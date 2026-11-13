@@ -95,7 +95,7 @@ const bank = K.asset('bank', ['bank', 'realtor', 'enterable'], { w: 8, d: 7, see
     const nc = Math.max(4, Math.round(w / 1.6)); for (let i = 0; i < nc; i++) { const x = .55 + i * (w - 1.1) / (nc - 1); if (Math.abs(x - du) < .45) continue; box(x - .34, d - .84, z0, .68, .68, .2, lt(st, .1), { ol: false }); cyl(x, d - .5, z0 + .2, .24, zc - z0 - .5, lt(st, .15)); const p = PW(x, d - .5, z0 + .2); for (let k = -3; k <= 3; k += 2) for (let v = 4; v < (zc - z0 - .5) * 16; v += 1) if (k !== 3) px(p[0] + k, p[1] - v + 2, C(dk(st, k < 0 ? .12 : .34))); box(x - .36, d - .86, zc - .3, .72, .72, .3, lt(st, .1), { ol: false }); }
     // entablature + pediment
     box(-.12, -.1, zc, w + .24, d + .12, .9, lt(st, .08));
-    const nm = q.name; K.bigSign(FY(d + .02), nm, 0, w, zc + .1, zc + .8, null, '#7a5a22', { lit: true, sc: K.bigW(nm, 2) / 16 <= w - .4 ? 2 : 1, off: .01 });
+    const nm = q.name; { const o = { sc: K.bigW(nm, 2) / 16 <= w - .4 ? 2 : 1, off: .01 }; K.bigSign(FY(d + .02), nm, 0, w, zc + .1, zc + .8, null, '#7a5a22', o); glow(() => K.bigSign(FY(d + .02), nm, 0, w, zc + .1, zc + .8, null, '#ffd98a', o)); }
     gable(-.12, -.1, zc + .9, w + .24, d + .12, 1.4, 'y', K.winter() ? mix(q.roof, K.SNOW, .6) : q.roof, { wall: lt(st, .08), over: .1 });
     const pm = [w / 2, d + .02, zc + 1.55]; K.disc(FY(d), w / 2, zc + 1.45, .3, dk(st, .25), .02); K.disc(FY(d), w / 2, zc + 1.45, .2, gold, .03);
     K.flag(w / 2, d / 2, zc + 2.3, 2, '#2f4a7a', '#f4f0e8');
@@ -142,7 +142,7 @@ const cityhall = K.asset('cityhall', ['cityhall', 'landmark', 'civic'], { w: 18,
     gable(cx0, 3.4, hc, 7, d - 3.4 + .1, 1.6, 'y', rf, { wall: lt(st, .1), over: .12 });
     K.disc(FY(d + .1), du, hc + .62, .32, gold, .0);
     box(cx0 - .1, d - .9, hc - 1.1, 7.2, 1, 1.1, lt(st, .1));
-    K.bigSign(FY(d + .1), q.name, cx0, cx1, hc - .95, hc - .15, null, '#7a5a22', { lit: true, sc: K.bigW(q.name, 2) / 16 < 6.6 ? 2 : 1, off: .01 });
+    { const o = { sc: K.bigW(q.name, 2) / 16 < 6.6 ? 2 : 1, off: .01 }; K.bigSign(FY(d + .1), q.name, cx0, cx1, hc - .95, hc - .15, null, '#6a4a1a', o); glow(() => K.bigSign(FY(d + .1), q.name, cx0, cx1, hc - .95, hc - .15, null, '#ffd98a', o)); }
     for (let i = 0; i < 6; i++) { const x = cx0 + .45 + i * (7 - .9) / 5; if (i === 2 || i === 3) { if (Math.abs(x - du) < .5) continue; } box(x - .32, d - .72, .6, .64, .64, .2, lt(st, .1), { ol: false }); cyl(x, d - .4, .8, .23, hc - 1.1 - .8 - .25, lt(st, .15)); box(x - .34, d - .74, hc - 1.35, .68, .68, .25, lt(st, .1), { ol: false }); }
     // grand steps
     for (let i = 0; i < 3; i++) box(cx0 - .2, d - .9, i * .2, 7.4, 2.6 - i * .45, .2, lt(st, .04 * i), { ol: i === 0 });

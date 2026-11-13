@@ -203,7 +203,7 @@ function pickHome() {
     const fin = v => { w.classList.add('out'); setTimeout(() => w.remove(), 180); removeEventListener('keydown', key, true); res(v); };
     const key = e => { if (e.key === 'Escape') { e.stopPropagation(); fin(null); } };
     homes.forEach((h, i) => {
-      const card = el('button.hp-card', { 'aria-pressed': 'false', onclick: () => { sel = h.id; ok.disabled = false; ok.textContent = 'Move in to ' + h.name + ' ▶'; for (const c of cards.children) { c.classList.toggle('on', c === card); c.setAttribute('aria-pressed', c === card ? 'true' : 'false'); } } },
+      const card = el('button.hp-card', { 'aria-pressed': 'false', onclick: () => { sel = h.id; ok.disabled = false; ok.textContent = 'Move in ▶'; for (const c of cards.children) { c.classList.toggle('on', c === card); c.setAttribute('aria-pressed', c === card ? 'true' : 'false'); } } },
         el('div.hp-top', null, homeArt(h, i), el('div.hp-id', null, el('div.hp-name', { text: h.name }), el('div.hp-dist', { text: DISTRICTS[h.district] || h.district || '' }),
           el('div.hp-rent', null, el('b', { text: '$' + (h.rentPerWeek || h.rent || '?') }), ' / week'))),
         h.blurb && el('div.hp-blurb', { text: h.blurb }),

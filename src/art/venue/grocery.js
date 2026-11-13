@@ -221,7 +221,7 @@ const corner = [
 ];
 
 export default [...grocery, ...corner];
-export const lists = [grocery, corner];
+export { atm, fridge };
 
 import generic from './generic.js';
 export const galleryItems = [

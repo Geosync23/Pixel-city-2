@@ -119,10 +119,10 @@ function ramen(p) {
     winRow(Fy, w, z, { cols: bays(w, { to: w - .8, m: .4, pitch: 1.6 }), r, ww: 1.0, wh: 1.0, zo: .72, frame: wd, glass: SHOJI, glowc: WARM, mull: 'cross', sill: false, p: .8 });
     winRow(Fx, d, z, { cols: bays(d, { m: .6, pitch: 2 }), r, ww: 1.0, wh: 1.0, zo: .72, frame: wd, glass: SHOJI, glowc: WARM, mull: 'cross', sill: false });
   }
-  leanTo(Fx, -.05, d + .05, 1.95, .5, .3, q.roof, { tick: true }); leanTo(Fy, -.05, w + .55, 1.95, .75, .38, q.roof, { tick: true });
+  leanTo(Fx, -.05, d + .05, 1.98, .4, .28, q.roof, { tick: true }); leanTo(Fy, -.05, w + .45, 1.98, .5, .3, q.roof, { tick: true });
   fascia(Fy, q.name, w / 2 - 1.95, w / 2 + 1.95, 2.42, 2.9, '#f4ead0', '#b82a22', { lit: true, mould: q.wood });
-  lanternString(Fy.P(2.1, 1.84, .78), Fy.P(w, 1.84, .78), Math.round((w - 2) * 1.3), { sag: .1, cols: ['#d8432f', '#f4ead0'] });
-  lw(Fy.P(.22, 1.9, .78), Fy.P(.22, 1.72, .78), '#2a2430'); lantern(Fy.P(.22, 1.72, .78), { s: 2 });
+  lanternString(Fy.P(2.1, 1.88, .55), Fy.P(w, 1.88, .55), Math.round((w - 2) * 1.3), { sag: .1, cols: ['#d8432f', '#f4ead0'] });
+  lw(Fy.P(.22, 1.95, .55), Fy.P(.22, 1.75, .55), '#2a2430'); lantern(Fy.P(.22, 1.75, .55), { s: 2 });
   roofX(0, 0, H, w, d, rh, q.roof, { wall: q.wall, over: .3, tick: true });
   neonV(Fy, w - .3, H + .2, 'RAMEN', { fg: q.neon, bg: '#241c30' });
   if (isWinter()) stringLights(Fy.P(0, H - .15, .32), Fy.P(w - .6, H - .15, .32), w * 2);

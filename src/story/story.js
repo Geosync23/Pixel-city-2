@@ -77,7 +77,7 @@ export const STORY_ITEMS = {
   leaf_crown:        { name: 'Maple Leaf Crown',       kind: 'wearable',  desc: 'Woven by Pip. Sheds. Worth it.' },
   paper_lantern:     { name: 'Paper Lantern',          kind: 'decor',     desc: 'The spare one. Your wish went out with the other.' },
   year_photo:        { name: 'First Year Photo',       kind: 'decor',     desc: 'Everyone at the lookout, squinting. Milo is looking at a bird.' },
-  tram_ticket:       { name: 'Lifetime Tram Ticket',   kind: 'keepsake',  desc: 'Punched by Mr. Pike. "No. 9 — ALL STOPS — FOREVER".' },
+  tram_ticket:       { name: 'Lifetime Streetcar Ticket',   kind: 'keepsake',  desc: 'Punched by Mr. Pike. "No. 9 — ALL STOPS — FOREVER".' },
 };
 
 export const RECIPES = {
@@ -241,7 +241,7 @@ export const BEATS = [
       { speaker: 'narrator', text: 'Above the door there\'s a small iron hook, with nothing on it.' },
       { choice: { id: 'g2_hook', options: [
         { text: 'What used to hang there?', effects: { flag: 'knows_about_bell' }, reply: [
-          { speaker: 'roz', text: 'The bell. Brass, about so big. You heard it from the tram stop.' },
+          { speaker: 'roz', text: 'The bell. Brass, about so big. You heard it from the streetcar stop.' },
           { speaker: 'roz', text: 'Bea took it down on the last day. Nobody has seen it since.' },
         ] },
         { text: 'Why did the Kettle close?', effects: { flag: 'knows_about_bell', relationship: { roz: 1 } }, reply: [
@@ -818,7 +818,7 @@ export const BEATS = [
       { speaker: 'kit', text: 'Back from tour! Three towns. Nobody in any of them makes pie like here.', anim: 'wave' },
       { speaker: 'pip', text: 'I have prepared a speech. It is eleven pages. I will do the highlights.', anim: 'talk' },
       { speaker: 'pip', text: 'Highlight one: you came. Highlight two: you stayed. The end. Clap.' },
-      { speaker: 'gordon', text: 'And from the old tramways: a lifetime ticket. No. 9 runs again this summer.' },
+      { speaker: 'gordon', text: 'And from the old streetcar lines: a lifetime ticket. No. 9 runs again this summer.' },
       { choice: { id: 's3_toast', options: [
         { text: 'To fresh starts.', effects: { relationship: { jules: 2, kit: 2 } }, reply: [
           { speaker: 'jules', text: 'To fresh starts. And to finishing them here.' },
@@ -845,13 +845,13 @@ export const BEATS = [
     },
   },
   {
-    id: 's4_harbor_lights', thread: 'grandma', seasonal: true, title: 'Harbor Lights & Tram No. 9',
-    summary: 'Tram No. 9 ran again, the Kettle Corner opened, and you rang two bells in one night.',
+    id: 's4_harbor_lights', thread: 'grandma', seasonal: true, title: 'Harbor Lights & Streetcar No. 9',
+    summary: 'Streetcar No. 9 ran again, the Kettle Corner opened, and you rang two bells in one night.',
     trigger: { minDay: 73, after: ['s3_one_year'], sendAt: '10:00' },
     delivery: {
       messages: [
         { from: 'nana', text: 'Darling. Roz and I have a SCHEME. Saturday teas at the corner table. "The Kettle Corner". I pour, she bakes. Opening this Saturday at 5.' },
-        { from: 'roz', text: 'She forgot to say: Mr. Pike is running Tram No. 9 down Market Street at 6 for the Harbor Lights, and he insists YOU ring the bell.' },
+        { from: 'roz', text: 'She forgot to say: Mr. Pike is running Streetcar No. 9 down Market Street at 6 for the Harbor Lights, and he insists YOU ring the bell.' },
       ],
       appointment: { title: 'Kettle Corner opening & Harbor Lights', place: 'bakery', dayOffset: 2, weekday: 'sat', from: '17:00', to: '22:00', with: ['nana', 'roz', 'jules', 'theo', 'pip', 'milo', 'gordon', 'kit', 'captain', 'ambrose'] },
     },
@@ -871,7 +871,7 @@ export const BEATS = [
           { speaker: 'gordon', text: 'Together. On three. I always was soft on a polite passenger.' },
         ] },
       ] } },
-      { speaker: 'narrator', text: 'The tram bell. Then, from the bakery door, the brass bell, answering.' },
+      { speaker: 'narrator', text: 'The streetcar bell. Then, from the bakery door, the brass bell, answering.' },
       { speaker: 'captain', text: 'Two bells and a lighthouse. Nobody will be lost in this town tonight.' },
       { speaker: 'kit', text: 'I\'m writing that down. Song number two. Thirty-eight to go.', anim: 'read' },
       { speaker: 'narrator', text: 'Fireworks over the harbor. You know every face on this street.' },
@@ -886,7 +886,7 @@ export const BEATS = [
       flags: ['kettle_corner_open', 'tram_runs'],
     },
     missed: {
-      messages: [{ from: 'nana', text: 'Mr. Pike would not run the tram without his bell-ringer. He has polished it again instead. Next Saturday, darling. We will all be there.' }],
+      messages: [{ from: 'nana', text: 'Mr. Pike would not run the streetcar without his bell-ringer. He has polished it again instead. Next Saturday, darling. We will all be there.' }],
       rescheduleDays: 7, weekday: 'sat',
     },
   },

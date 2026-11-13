@@ -27,3 +27,10 @@ generic.push(
     bx(.46, .14, .6, .06, .1, .2, '#f1ede4');
   }, { use: { x: .25, y: 1 } }),
 );
+generic.push(
+  F('generic.queuepost', ['generic', 'cinema', 'bank', 'queue'], p => [(p.n || 2) * 1.5 - 1, .5, 1], p => {
+    const n = p.n || 2, belt = p.kind === 'belt', pc = belt ? '#3a3f4c' : '#d8a848', rc = p.c || (belt ? '#3c64ad' : '#a8242a');
+    for (let i = 0; i < n; i++) { const x = .25 + i * 1.5; if (i) { const a = x - 1.5; if (belt) tube([a, .25, .9], [x, .25, .9], rc); else { lw([a, .25, .92], [a + .4, .25, .76], rc); tube([a + .4, .25, .75], [x - .4, .25, .75], rc); lw([x - .4, .25, .76], [x, .25, .92], rc); lw([a + .1, .25, .86], [a + .4, .25, .74], dk(rc, .3)); } } }
+    for (let i = 0; i < n; i++) { const x = .25 + i * 1.5; cyl(x, .25, 0, .15, .04, pc); tube([x, .25, .04], [x, .25, .95], pc); if (belt) bx(x - .04, .21, .82, .08, .08, .14, pc); else ball(x, .25, .98, .06, pc, { ol: false }); }
+  }, { variants: [{ n: 2 }, { n: 3 }, { n: 2, kind: 'belt' }, { n: 3, kind: 'belt', c: '#c0392b' }, { n: 1 }] }),
+);

@@ -69,7 +69,7 @@ const wheel = {
     }
     rim(y1);
     // bulbs on the front wheel
-    lit(() => { for (let i = 0; i < N; i++) { const a = rot + i / N * Math.PI * 2; for (let k = 1; k <= 5; k++) { const q = pt(y1 + .01, a, R * k / 5); spx(q[0], q[1], q[2], 0, 0, pal[(i + k) % pal.length]); } for (let k = 1; k < 4; k++) { const q = pt(y1 + .01, a + k / 4 / N * Math.PI * 2, R); spx(q[0], q[1], q[2], 0, 0, pal[(i + k) % pal.length]); } } });
+    lit(() => { for (let i = 0; i < N; i++) { const a = rot + i / N * Math.PI * 2; for (let k = 1; k <= 5; k++) { const q = pt(y1 + .01, a, R * k / 5); spx(q[0], q[1], q[2], 0, 0, pal[(i + k) % pal.length]); spx(q[0], q[1], q[2], 1, 0, pal[(i + k) % pal.length]); } for (let k = 1; k < 4; k++) { const q = pt(y1 + .01, a + k / 4 / N * Math.PI * 2, R); spx(q[0], q[1], q[2], 0, 0, pal[(i + k) % pal.length]); spx(q[0], q[1], q[2], 0, 1, pal[(i + k) % pal.length]); } } });
     frame(y1 + .25);
     // hub
     disc('y', [cx, y1 + .27, cz], .5, Lc(p.hub || '#f2c84a'), null, 14); circ('y', [cx, y1 + .27, cz], .5, st, 14); lit(() => disc('y', [cx, y1 + .28, cz], .2, '#fff2c4', null, 8));

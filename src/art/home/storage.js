@@ -72,8 +72,8 @@ function fireplace(p) {
   // firebox
   qy(.55, W - .55, .42, 0, .72, '#22202a'); frameY(.55, W - .55, .42, 0, .72, t === 2 ? GOLD : dk(c, .5)); if (t !== 0) frameY(.5, W - .5, .42, 0, .77, dk(c, .25));
   lw([.7, .44, .08], [1.3, .44, .08], '#5a3a2a'); lw([.75, .44, .13], [1.25, .44, .13], '#7a4a2a'); lw([.8, .44, .05], [1.2, .44, .05], '#3a241a');
+  if (on) glow(() => { qy(.57, W - .57, .42, .02, .7, '#4a1c14'); });
   if (on) lit(() => { const f = (x, h, col) => fq([[x - .12, .44, .12], [x + .12, .44, .12], [x, .44, .12 + h]], col); f(.85, .34, '#ff7a2c'); f(1.12, .42, '#ff7a2c'); f(1.0, .5, '#ff9a3c'); f(.93, .26, '#ffc24a'); f(1.08, .3, '#ffc24a'); f(1.0, .2, '#fff2a8'); dot(.8, .44, .5, '#ffb04a'); dot(1.2, .44, .58, '#ffb04a'); });
-  if (on) glow(() => { qy(.57, W - .57, .42, .02, .7, '#5a2418'); qz(.4, W - .4, .5, .8, .012, '#ff9a4a', 'glass'); });
   box(0, 0, H - .1, W, .5, .1, t === 0 ? wood(p) : c, { t: lt(t === 0 ? wood(p) : c, .12) });
   // mantel decor
   const z = H; if (t === 0) { mug(.4, .3, z, FAB.blue); b(1.3, .2, z, .3, .06, .22, wood(p)); qy(1.33, 1.57, .26, z + .03, z + .19, '#f7d9c4'); }
@@ -95,10 +95,10 @@ function xmasTree(p) {
 }
 function pumpkin(p) {
   const t = tier(p), one = (x, y, r, c, carved) => { ball(x, y, r * .8, r, c, { squash: .72 }); lw([x - r * .4, y + r * .6, r * .2], [x - r * .4, y + r * .6, r * 1.3], dk(c, .25)); lw([x + r * .5, y + r * .5, r * .2], [x + r * .5, y + r * .5, r * 1.3], dk(c, .25)); dot(x, y, r * 1.62, '#4f7a3a'); dot(x, y, r * 1.62, '#4f7a3a', 0, -1);
-    if (carved) { const e = () => { dot(x, y + r, r * .95, '#ffd24a', -2, 0); dot(x, y + r, r * .95, '#ffd24a', 1, 0); dot(x, y + r, r * .55, '#ffd24a', -2, 0); dot(x, y + r, r * .55, '#ffd24a', -1, 1); dot(x, y + r, r * .55, '#ffd24a', 0, 0); dot(x, y + r, r * .55, '#ffd24a', 1, 1); dot(x, y + r, r * .55, '#ffd24a', 2, 0); }; e(); glow(e); } };
+    if (carved) { const cz = r * .8, e = () => { for (const [dx, dy] of [[-2, -1], [2, -1], [-2, 2], [-1, 3], [0, 2], [1, 3], [2, 2]]) dot(x, y, cz, '#ffd24a', dx, dy); }; for (const [dx, dy] of [[-2, -1], [2, -1], [-2, 2], [-1, 3], [0, 2], [1, 3], [2, 2]]) dot(x, y, cz, '#5a2a14', dx, dy); glow(e); } };
   shadow(.06, .46, .06, .46);
-  if (t === 2) { one(.2, .16, .13, '#e9dcc0'); one(.34, .3, .17, p.c || '#e8843a', p.carved !== false); one(.12, .38, .09, '#d9562b'); }
-  else if (t === 1) one(.27, .25, .18, p.c || '#e8843a', p.carved !== false); else one(.27, .27, .13, p.c || '#e8843a', p.carved);
+  if (t === 2) { one(.16, .14, .14, '#e9dcc0'); one(.34, .28, .2, p.c || '#e8843a', p.carved !== false); one(.1, .4, .1, '#d9562b'); }
+  else if (t === 1) one(.26, .24, .23, p.c || '#e8843a', p.carved !== false); else one(.27, .27, .17, p.c || '#e8843a', p.carved);
 }
 function boxes(p) {
   const r = rng(p.seed || 1), n = p.n || 3, cb = '#c9a36a', tape = '#e9d9a8';

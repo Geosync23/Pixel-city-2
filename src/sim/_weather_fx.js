@@ -46,7 +46,7 @@ export function createFX(G) {
 
   /* ---------- pools ---------- */
   const pool = n => ({ n, u: new Float32Array(n), v: new Float32Array(n), vx: new Float32Array(n), vy: new Float32Array(n), ph: new Float32Array(n), a: new Float32Array(n), t: new Uint8Array(n) });
-  const rainFar = pool(200), rainNear = pool(150), snowFar = pool(150), snowNear = pool(90), amb = pool(40), spl = pool(40), flies = pool(22), glints = pool(18);
+  const rainFar = pool(230), rainNear = pool(170), snowFar = pool(170), snowNear = pool(110), amb = pool(40), spl = pool(40), flies = pool(22), glints = pool(18);
   for (const p of [rainFar, rainNear]) for (let i = 0; i < p.n; i++) { p.u[i] = R() * SPACE; p.v[i] = R() * SPACE; p.vy[i] = (p === rainNear ? 250 : 165) + R() * 60; }
   for (const p of [snowFar, snowNear]) for (let i = 0; i < p.n; i++) { p.u[i] = R() * SPACE; p.v[i] = R() * SPACE; p.vy[i] = (p === snowNear ? 20 : 11) + R() * 10; p.vx[i] = 2 + R() * 4; p.ph[i] = R() * 6.28; p.a[i] = 1.5 + R() * 4; }
   for (let i = 0; i < amb.n; i++) { amb.u[i] = R() * SPACE; amb.v[i] = R() * SPACE; amb.ph[i] = R() * 6.28; amb.a[i] = .6 + R() * 1.2; amb.t[i] = (R() * 4) | 0; amb.vx[i] = R(); amb.vy[i] = R(); }
@@ -185,8 +185,8 @@ export function createFX(G) {
     // --- precipitation ---
     if (wet > .02) {
       const sl = storm > .3 ? 1 : 0, wind = sl ? .42 : .2;
-      ctx.globalAlpha = .55 * nightA; rainLayer(ctx, rainFar, DROP.far[sl], Math.round(rainFar.n * wet * (storm ? 1 : .6)), cam, .8, wind, dt, RW, RH);
-      ctx.globalAlpha = .8 * nightA; rainLayer(ctx, rainNear, DROP.near[sl], Math.round(rainNear.n * wet * (storm ? 1 : .55)), cam, 1.25, wind, dt, RW, RH);
+      ctx.globalAlpha = .55 * nightA; rainLayer(ctx, rainFar, DROP.far[sl], Math.round(rainFar.n * wet * (storm ? 1 : .7)), cam, .8, wind, dt, RW, RH);
+      ctx.globalAlpha = .8 * nightA; rainLayer(ctx, rainNear, DROP.near[sl], Math.round(rainNear.n * wet * (storm ? 1 : .65)), cam, 1.25, wind, dt, RW, RH);
       ctx.globalAlpha = .07 * wet * (1 + storm); ctx.fillStyle = dark > .5 ? '#2c3550' : '#8e9ab4'; ctx.fillRect(0, 0, W, H);
     }
     if (snow > .02) {
@@ -202,5 +202,5 @@ export function createFX(G) {
     ctx.globalAlpha = 1;
   }
   const LEAF = ['#d9622b', '#c23b22', '#e8a33a', '#a8452a'];
-  return { draw, lightning: () => { L.flash = 0; L.thunder = .6; L.loud = .8; } };
+  return { draw, birds: () => { birds.next = 0; }, lightning: () => { L.flash = 0; L.thunder = .6; L.loud = .8; } };
 }

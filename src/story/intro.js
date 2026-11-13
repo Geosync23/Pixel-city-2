@@ -101,7 +101,7 @@ export const TAXI_RIDE = {
     railyard: [
       "This is the Railyard. Not pretty, but everything you own came through here.",
       "That's Dot's Diner. Best pancakes in the city. Dot will call you 'hon'. Let her.",
-      "Old streetcar barn's back there. They say Trolley No. 9 is still inside, napping.",
+      "Old streetcar barn's back there. They say Streetcar No. 9 is still inside, napping.",
     ],
     downtown: [
       "Downtown! Glass, suits, and the best people-watching in the state.",

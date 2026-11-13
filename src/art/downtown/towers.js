@@ -204,9 +204,9 @@ const hartwell = T('hartwell', ['tower', 'office', 'hartwell', 'enterable'], { w
     const { w, d, glass, frame, stone: st, gold } = q, r = rng(q.seed), L = K.lights(q.seed, q.dens || .45), H = hfH(q) - 1.6, FYd = FY(d), FXw = FX(w), du = 4.5;
     // podium
     box(0, 0, 0, w, d, 4.5, st);
-    K.shopGlass(FXw, .6, d - .6, .3, 3, { bayw: 1.2, transom: .6, sil: () => { for (let y = 1.3; y < d - 1; y += 2.4) K.sil(FXw, y, .3, r() < .5 ? 'plant' : 'desk', '#55607a'); } });
-    K.shopGlass(FYd, .6, du - 1.5, .3, 3, { bayw: 1.2, transom: .6, sil: () => K.sil(FYd, 1.6, .3, 'plant', '#55607a') });
-    K.shopGlass(FYd, du + 1.5, w - .6, .3, 3, { bayw: 1.2, transom: .6, sil: () => { K.sil(FYd, w - 1.8, .3, 'desk', '#55607a'); K.sil(FYd, w - 1.75, .88, 'person', '#55607a'); } });
+    K.scene(FXw, .6, d - .6, .3, 3, 'office', r, { bayw: 1.2, transom: .6, accent: gold, frame: '#22283a' });
+    K.scene(FYd, .6, du - 1.5, .3, 3, 'lobby', r, { bayw: 1.2, transom: .6, accent: gold, frame: '#22283a' });
+    K.scene(FYd, du + 1.5, w - .6, .3, 3, 'lobby', r, { bayw: 1.2, transom: .6, accent: gold, frame: '#22283a' });
     FYd.q(du - 1.3, du + 1.3, 0, 3.1, lt(st, .12)); K.shopGlass(FYd, du - 1, du + 1, 1.95, 2.9, { bayw: .66 }); K.glassDoor(FYd, du, 0, { w: 1.5, h: 1.8, frame: '#22283a' });
     K.canopy(FYd, du - 1.6, du + 1.6, 1.95, 1.2, '#22283a', { pc: gold, trim: gold });
     const nm = q.name, sc = K.bigW(nm, 2) / 16 <= w - .8 ? 2 : 1;
@@ -224,7 +224,7 @@ const hartwell = T('hartwell', ['tower', 'office', 'hartwell', 'enterable'], { w
     K.antenna(s + 1, s + 1, z, 3.6); K.ac(w - s - 1.6, s + .5, z); K.hut(s + .5, d - s - 2.4, z, 1.4, 1.2, 1.2, '#c9c4b8'); K.garden(s + 2.4, w - s - .5, d - s - 2, d - s - .5, z, r);
     // street
     K.flag(du - 2.2, d, 2.3, 0, '#2f4a7a', gold, { wall: true }); K.flag(du + 2.2, d, 2.3, 0, '#2f4a7a', gold, { wall: true });
-    K.planter(du - 3.6, d + .3, 1.2, .55, r, { c: '#22283a' }); K.planter(du + 2.4, d + .3, 1.2, .55, r, { c: '#22283a' });
+    K.planter(du - 3.6, d + .3, 1.2, .55, r, { c: '#22283a' }); K.planter(du + 2.4, d + .3, 1.2, .55, r, { c: '#22283a' }); K.art('arc', .5, d + .9, r, { c: gold });
   },
   [{ seed: 5 }, { seed: 12, floors: 9 }, { seed: 20, floors: 13, glass: '#3a5a5a', gold: '#f0d890', stone: '#2f3a3a' }],
   { door: { side: 'y', at: 4.5 }, light: { x: 4.5, y: 9.2, z: 0, r: 3.5 }, doorFn: () => ({ side: 'y', at: 4.5 }), lightFn: p => ({ x: 4.5, y: (p.d || 8) + 1.2, z: 0, r: 3.5 }) });

@@ -194,9 +194,9 @@ export default [
   furn('prop.rail.board', ['departures', 'sign'], [3.2, .3, 3.2], p => {
     const rows = p.rows || [['1 CENTRAL', '2'], ['2 AIRPORT', '5'], ['1 HARBOR', '9']], Wb = 3.2;
     for (const x of [.2, Wb - .2]) box(x - .06, .09, 0, .12, .12, 3.1, STEEL);
-    box(0, .05, 1.42, Wb, .2, 1.74, '#1b2026');
+    box(0, .05, 1.3, Wb, .2, 1.86, '#1b2026');
     lit(() => { qy(.06, Wb - .06, .255, 2.72, 3.1, NAVY); textY('DEPARTURES', .16, .256, 3.04, '#f6f2e6'); textY('MIN', Wb - .16 - 11 / U, .256, 3.04, '#9fd8ff');
-      rows.slice(0, 3).forEach((rw, i) => { const z = 2.6 - i * .38; textY(String(rw[0]).slice(0, 9), .16, .256, z, i ? '#ffb347' : '#ffd98a'); const m = String(rw[1]).slice(0, 2); textY(m, Wb - .16 - textW(m) / U, .256, z, '#9cf2b0'); }); });
+      rows.slice(0, 3).forEach((rw, i) => { const z = 2.6 - i * .44; textY(String(rw[0]).slice(0, 9), .16, .256, z, i ? '#ffb347' : '#ffd98a'); const m = String(rw[1]).slice(0, 2); textY(m, Wb - .16 - textW(m) / U, .256, z, '#9cf2b0'); }); });
     glow(() => qz(.2, Wb - .2, .3, 1.0, .01, '#4a4658'));
   }, { variants: [{}, { rows: [['2 AIRPORT', '1'], ['1 OLD TOWN', '6'], ['2 HILLCREST', '12']] }] }),
   furn('prop.rail.ticket', ['ticket', 'machine'], [.8, .6, 1.8], p => {

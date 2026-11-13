@@ -5,9 +5,10 @@ import service from './service.js';
 import train, { drawCar } from './train.js';
 import rail, { drawDeck } from './rail.js';
 import station from './station.js';
+import road from './road.js';
 const ALL = new Map();
 export const addAll = list => { for (const a of list) ALL.set(a.id, a); };
-addAll(cars); addAll(service); addAll(train); addAll(rail); addAll(station);
+addAll(cars); addAll(service); addAll(train); addAll(rail); addAll(station); addAll(road);
 const sz = (a, p) => typeof a.size === 'function' ? a.size(p) : a.size;
 /** grid of assets: rows = [[ [id, params], ... ], ...]; each row runs along x, rows stack along y */
 export function sheet(id, rows, o) {

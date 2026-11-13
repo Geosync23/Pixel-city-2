@@ -28,7 +28,8 @@ function entrance(s, a, pl, z, o) {
   W(s, a - w / 2, a + w / 2, pl, z, z + h, { on: true, mullion: 'v', frame: fr, glowc: ['#ffe9b0', '#ffd98a'] });
   fL(s, a - w / 2, z + h * .45, a + w / 2, z + h * .45, pl, fr); wpxx(s, a - .1, pl, z + .8); wpxx(s, a + .1, pl, z + .8);
   if (o.canopy !== false) fB(s, a - w / 2 - .35, pl, z + h + .2, w + .7, o.cdp || .4, .12, o.cc || '#3e3e4a', { t: winter() ? SNOW : (o.cc || '#3e3e4a') });
-  if (o.name) (s === 'y' ? signY(o.name, a - w / 2 - .3, a + w / 2 + .3, pl + (o.canopy !== false ? (o.cdp || .4) + .02 : .02), z + h + .32, z + h + .78, o.sbg || '#1f2a33', o.sfg || '#ffd98a', { lit: true }) : signX(o.name, pl + .42, a - w / 2 - .3, a + w / 2 + .3, z + h + .32, z + h + .78, o.sbg || '#1f2a33', o.sfg || '#ffd98a', { lit: true }));
+  const sw2 = Math.max(w / 2 + .3, (o.name ? o.name.length * 4 + 5 : 0) / 32);
+  if (o.name) (s === 'y' ? signY(o.name, a - sw2, a + sw2, pl + (o.canopy !== false ? (o.cdp || .4) + .02 : .02), z + h + .32, z + h + .78, o.sbg || '#1f2a33', o.sfg || '#ffd98a', { lit: true }) : signX(o.name, pl + .42, a - sw2, a + sw2, z + h + .32, z + h + .78, o.sbg || '#1f2a33', o.sfg || '#ffd98a', { lit: true }));
   lamp(s, a + w / 2 + .3, pl, z + 1.4); lamp(s, a - w / 2 - .3, pl, z + 1.4);
 }
 function wpxx(s, a, pl, z) { lw(pt(s, a, pl, z), pt(s, a, pl, z + .25), '#d9d9e2'); }
@@ -231,7 +232,7 @@ export default [
         for (let b = 0; b < nby; b++) { const y = .4 + b * byw; if (y + byw > bd - 1.3 && y < bd - .3) continue; W('x', y, y + byw, w, fz + .35, fz + 1.72, { on: r() < .45, mullion: null, frame }); }
         lw([ax, bd, fz + 1.86], [w, bd, fz + 1.86], dk(wall, .3));
         // staggered glass balconies
-        const left = f % 2 === 0, b0 = left ? ax : ax + bw * Math.floor(bays / 2), b1 = left ? ax + bw * Math.ceil(bays / 2) : w - .4 + .0;
+        const left = f % 2 === 1, b0 = left ? ax : ax + bw * Math.floor(bays / 2), b1 = left ? ax + bw * Math.ceil(bays / 2) : w - .4 + .0;
         if (f > 0 || true) balcony('y', b0, b1, bd, fz + .06, { dp: .6, style: 'glass', c: frame, slab: wall, r, stuff: r() < .7, h: .55 });
       }
       box(-.1, -.1, H, w + .2, bd + .2, .2, wall, { t: '#b9b2a2' });
@@ -270,7 +271,7 @@ export default [
       body(0, 0, 0, w, bd, H, wall, 'brick', { base: '#6a6470', baseH: .35 });
       // +x face: windows + ghost sign
       for (let f = 0; f < fl; f++) for (let b = 0; b < nby; b++) { const y = .25 + b * byw; if (f >= fl - 1 && fl > 2) continue; indWin('x', y + .35, y + byw - .35, w, f * fh + .65, f * fh + 1.95, { on: r() < .5, frame, lintel: trim, open: r() < .15 }); }
-      if (fl > 2) { const gz = (fl - 1) * fh + .35, gc = mix(dk(wall, .36), '#f4ead8', .5), gt = mix(dk(wall, .36), '#f4ead8', .12); qx(w, .4, bd - .4, gz, gz + 1.6, (u, v) => hash2(u >> 1, v >> 1, 9) > .25 ? gc : mix(gc, dk(wall, .36), .5)); textX(P.ghost, w, bd - .4 - ((bd - .8) * 16 - (P.ghost.length * 4 - 1)) / 32, gz + 1.35, gt); textX(P.ghost2, w, bd - .4 - ((bd - .8) * 16 - (P.ghost2.length * 4 - 1)) / 32, gz + .8, gt); }
+      if (fl > 2) { const gz = (fl - 1) * fh + .35, gc = mix(dk(wall, .36), '#f4ead8', .5), gt = dk(wall, .62); qx(w, .4, bd - .4, gz, gz + 1.6, (u, v) => (v % 3 === 0 && hash2(u >> 2, v, 9) > .6) ? mix(gc, dk(wall, .36), .4) : gc); textX(P.ghost, w, bd - .4 - ((bd - .8) * 16 - (P.ghost.length * 4 - 1)) / 32, gz + 1.35, gt); textX(P.ghost2, w, bd - .4 - ((bd - .8) * 16 - (P.ghost2.length * 4 - 1)) / 32, gz + .8, gt); }
       else for (let b = 0; b < nby; b++) { const y = .25 + b * byw; indWin('x', y + .35, y + byw - .35, w, (fl - 1) * fh + .65, (fl - 1) * fh + 1.95, { on: r() < .5, frame, lintel: trim }); }
       // +y facade: piers, windows
       for (let b = 0; b <= nb; b++) { const x = .25 + b * bw - .14; fB('y', Math.max(0, Math.min(w - .28, x)), bd, 0, .28, .1, H, wall, { l: PAT.brick(dk(wall, .12)), ol: false }); }

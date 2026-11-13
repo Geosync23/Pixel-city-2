@@ -424,7 +424,7 @@ export const NPC_LINES = {
   nana: {
     friend: [
       'The secret to pastry is cold hands and a warm kitchen.',
-      'I knew this street when the tram still rang past the door.',
+      'I knew this street when the streetcar still rang past the door.',
       'Roz at the bakery learned her knots from me. She ties them better.',
       'Never trust a quiet kettle or a loud man.',
     ],
@@ -654,8 +654,8 @@ export const NPC_LINES = {
   },
   gordon: {
     stranger: ['The No. 9 ran from the harbor to Hillcrest. Twenty-two minutes. Never late.'],
-    acquaintance: ['They stopped the trams in ninety-one. I kept the bell. And the hat.', 'That viaduct train is fine. No bell, though. A train should have a bell.'],
-    friend: ['Your Nana rode my tram every morning. Always had a bun for the conductor.'],
+    acquaintance: ['They stopped the streetcars in ninety-one. I kept the bell. And the hat.', 'That viaduct train is fine. No bell, though. A train should have a bell.'],
+    friend: ['Your Nana rode my streetcar every morning. Always had a bun for the conductor.'],
     close: ['When the No. 9 runs again, you ring the bell. I have decided.'],
   },
   fenn: {
@@ -758,7 +758,7 @@ export const AMBIENT = {
       'The ten-past freight shakes my fillings. Reliable, though.',
       'Dot\'s does a breakfast that sees you through to Thursday.',
       'My package is "out for delivery". So am I, frankly.',
-      'They say the old tram is still in the shed. Asleep, not gone.',
+      'They say the old streetcar is still in the shed. Asleep, not gone.',
       'It isn\'t pretty down here, but it works. Like me.',
     ],
     park: [
@@ -872,7 +872,7 @@ export const AMBIENT = {
     snow: [
       'First flake landed on my nose. I made a wish.',
       'The whole city has gone quiet under it.',
-      'Snow on the tram lines. Looks like sugar.',
+      'Snow on the streetcar lines. Looks like sugar.',
       'Careful on the Hillcrest stairs. I took them sitting down.',
       'Cocoa. Immediately. This isn\'t a request.',
       'Somebody built a snow gull on the pier. It\'s very good.',
@@ -997,7 +997,7 @@ export const AMBIENT = {
     train_delay: [
       'Delayed. "Leaves on the line." It\'s called Maple Bay, what did they expect?',
       'Ten minutes late. Time for a pastry. Silver linings.',
-      'Mr. Pike says the tram was never late. He says it a lot.',
+      'Mr. Pike says the streetcar was never late. He says it a lot.',
       'I shall simply stand here and become a statue.',
     ],
   },
@@ -1147,17 +1147,17 @@ export const LORE_TOPICS = [
     },
   },
   {
-    id: 'old_tram', title: 'Tram No. 9', tags: ['trains', 'history'],
+    id: 'old_tram', title: 'Streetcar No. 9', tags: ['trains', 'history'],
     lines: [
-      'You can still see the tram rails on Market Street, between the cobbles.',
-      'The last tram ran in ninety-one. Half the city rode it to the shed.',
+      'You can still see the streetcar rails on Market Street, between the cobbles.',
+      'The last streetcar ran in ninety-one. Half the city rode it to the shed.',
       'People say No. 9 is still in the Railyard shed, under a tarp.',
-      'The viaduct train is faster. The tram was friendlier. It had a bell.',
+      'The viaduct train is faster. The streetcar was friendlier. It had a bell.',
     ],
     askedOf: {
       gordon: 'Under a tarp? She\'s polished weekly! Come see her. Bring a rag.',
-      nana: 'I rode it every morning. Gordon would hold the tram if I was late.',
-      manny: 'Trams! Pah. Could a tram take you door to door? ...It was nice, though.',
+      nana: 'I rode it every morning. Gordon would hold the streetcar if I was late.',
+      manny: 'Streetcars! Pah. Could a streetcar take you door to door? ...It was nice, though.',
     },
   },
   {
@@ -1266,7 +1266,7 @@ export const LORE_TOPICS = [
     id: 'fog_of_68', title: 'The Great Fog of \'68', tags: ['weather', 'history'],
     lines: [
       'In sixty-eight the fog sat on the Bay for nine days. Nine!',
-      'They say people found their way home by following the tram bell.',
+      'They say people found their way home by following the streetcar bell.',
       'My grandma says she walked into the harbor twice that week.',
     ],
     askedOf: {

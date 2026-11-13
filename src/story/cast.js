@@ -101,7 +101,7 @@ export const SPOTS = {
   arts_steps:        { district: 'arts',      desc: 'Steps under Arts Quarter station' },
   campus_green:      { district: 'arts',      desc: 'University campus green' },
   mural_wall:        { district: 'arts',      desc: 'The long mural wall on Easel Lane' },
-  tram_shed:         { district: 'railyard',  desc: 'Old tram shed with Tram No. 9 parked inside' },
+  tram_shed:         { district: 'railyard',  desc: 'Old streetcar shed with Streetcar No. 9 parked inside' },
   taxi_rank_airport: { district: 'airport',   desc: 'Taxi rank at the arrivals drop-off curb' },
   building_stoop:    { district: 'any',       desc: "Front stoop of the player's building" },
 };
@@ -892,7 +892,7 @@ export const CAST = [
   },
   {
     id: 'gordon', name: 'Gordon Pike', short: 'Mr. Pike', age: 74, pronouns: 'he/him', group: 'neighbor',
-    role: 'Downstairs neighbor, retired tram conductor', district: 'railyard', home: 'player_building',
+    role: 'Downstairs neighbor, retired streetcar conductor', district: 'railyard', home: 'player_building',
     work: null,
     personality: ['chatty', 'proud', 'warm'],
     likes: { gifts: ['postcard', 'pastry_box', 'wool_socks'], topics: ['trains', 'history', 'weather'] },
@@ -908,8 +908,8 @@ export const CAST = [
     ],
     look: 'Old conductor cap with a brass No. 9 badge, navy waistcoat, pocket watch, ticket punch he still carries.',
     spec: { skin: 'brown', hair: 'balding', hairColor: '#e0e0e0', top: 'waistcoat', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#3d405b', hat: 'conductor-cap', glasses: 'none', bag: 'none', age: 'elder', outfit: 'conductor' },
-    background: 'Black American; his father was a Pullman porter, he chose trams.',
-    bio: 'Rang the bell on Tram No. 9 for thirty-eight years. Is restoring it one bolt at a time.',
+    background: 'Black American; his father was a Pullman porter, he chose streetcars.',
+    bio: 'Rang the bell on Streetcar No. 9 for thirty-eight years. Is restoring it one bolt at a time.',
     greetings: {
       low: ['Morning! Tickets, please. Ha! Old habit. Welcome to the building.', 'New upstairs, huh? Light feet. I approve.'],
       mid: ['{name}! Right on time. You would have made a fine conductor.', 'Ah, good. Sit. Did I tell you about the fog of sixty-eight?'],

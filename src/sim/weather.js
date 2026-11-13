@@ -123,6 +123,8 @@ export function crowdFactor(hour) {
   if (RUSH_HOURS && ti.weekday < 5) for (const r of RUSH_HOURS) if (h >= r.from && h < r.to) m *= r.npcDensity;
   return Math.max(0, Math.min(1, m * weatherCrowdMult() / 1.15));
 }
+/** debug: send a flock of birds across the screen now (fair weather, daytime) */
+export function birds() { if (fx) fx.birds(); }
 /** debug: trigger a lightning flash (+ thunder) now */
 export function lightning() { if (fx) fx.lightning(); }
 
@@ -143,5 +145,5 @@ export function init(g) {
     info.kind = S.kind; info.int = S.int; info.dark = G.env ? G.env.dark || 0 : 0; info.hf = m / 60; info.season = ENV.season; info.indoor = !!G.scene.indoor;
     fx.draw(ctx, cam, dt, info);
   });
-  G.weather = { current, forecast, daySummary, setWeather, isWet, isSnowing, comfort, crowdFactor, weatherCrowdMult, outdoorFunMult, walkSpeedMult, taxiWaitMult, lightning, KINDS };
+  G.weather = { current, forecast, daySummary, setWeather, isWet, isSnowing, comfort, crowdFactor, weatherCrowdMult, outdoorFunMult, walkSpeedMult, taxiWaitMult, lightning, birds, KINDS };
 }
