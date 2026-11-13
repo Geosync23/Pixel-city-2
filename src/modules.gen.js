@@ -9,8 +9,9 @@ import * as m6 from './story/story.js';
 import * as m7 from './story/texts.js';
 import * as m8 from './ui/creator.js';
 import * as m9 from './ui/title.js';
-import * as m10 from './world/testtown.js';
-const mods = [[m0, './scenes/interior.js'], [m1, './scenes/rooms/zz_testroom.js'], [m2, './sim/weather.js'], [m3, './story/cast.js'], [m4, './story/dialogue.js'], [m5, './story/intro.js'], [m6, './story/story.js'], [m7, './story/texts.js'], [m8, './ui/creator.js'], [m9, './ui/title.js'], [m10, './world/testtown.js']];
+import * as m10 from './world/minimap.js';
+import * as m11 from './world/testtown.js';
+const mods = [[m0, './scenes/interior.js'], [m1, './scenes/rooms/zz_testroom.js'], [m2, './sim/weather.js'], [m3, './story/cast.js'], [m4, './story/dialogue.js'], [m5, './story/intro.js'], [m6, './story/story.js'], [m7, './story/texts.js'], [m8, './ui/creator.js'], [m9, './ui/title.js'], [m10, './world/minimap.js'], [m11, './world/testtown.js']];
 export async function initModules(G) {
   mods.sort((a, b) => (a[0].order ?? 100) - (b[0].order ?? 100));
   for (const [m, f] of mods) if (typeof m.init === 'function') { try { await m.init(G); } catch (e) { console.error('init failed: ' + f, e); throw e; } }
