@@ -1,9 +1,10 @@
 // Composed gallery previews for the transit folder (no assets exported). `node tools/gallery.mjs lineup --night`
 import { at, qz } from '../../engine/raster.js';
 import cars from './cars.js';
+import service from './service.js';
 const ALL = new Map();
 export const addAll = list => { for (const a of list) ALL.set(a.id, a); };
-addAll(cars);
+addAll(cars); addAll(service);
 const sz = (a, p) => typeof a.size === 'function' ? a.size(p) : a.size;
 /** grid of assets: rows = [[ [id, params], ... ], ...]; each row runs along x, rows stack along y */
 export function sheet(id, rows, o) {
@@ -19,5 +20,16 @@ export const galleryItems = [
     [['veh.car.sedan', { color: '#f1efe8', dir: -1 }], ['veh.car.hatch', { dir: -1, color: '#e8a33a' }], ['veh.car.suv', { dir: -1, color: '#b5654a' }], ['veh.car.sports', { dir: -1, color: '#d64545' }]],
     [['veh.car.beetle', { dir: -1, color: '#e58a8a' }], ['veh.car.pickup', { dir: -1, color: '#31556b' }], ['veh.scooter', { dir: -1 }], ['veh.motorbike', { dir: -1 }], ['veh.bicycle', { dir: -1 }]],
   ], { road: true }),
+  sheet('lineup.service', [
+    [['veh.taxi', {}], ['veh.police', {}], ['veh.van', {}], ['veh.van.delivery', {}], ['veh.van.icecream', {}]],
+    [['veh.ambulance', {}], ['veh.truck.box', {}], ['veh.truck.garbage', {}]],
+    [['veh.taxi', { dir: -1 }], ['veh.police', { dir: -1 }], ['veh.van', { dir: -1, color: '#31556b' }], ['veh.van.delivery', { dir: -1 }], ['veh.van.icecream', { dir: -1 }]],
+    [['veh.ambulance', { dir: -1 }], ['veh.truck.box', { dir: -1, color: '#31556b', box: '#e9dcc0', name: 'MAPLE FOODS' }], ['veh.truck.garbage', { dir: -1 }]],
+  ], { road: true }),
+  sheet('lineup.bus', [
+    [['veh.bus', {}], ['veh.truck.fire', {}]],
+    [['veh.bus.double', { color: '#c9382e', route: '1', dest: 'CITY TOUR' }], ['veh.truck.fire', { dir: -1 }]],
+    [['veh.bus', { dir: -1, route: '7', dest: 'HILLCREST' }], ['veh.bus.double', { dir: -1 }]],
+  ], { road: true, gy: 2.4 }),
 ];
 export default [];

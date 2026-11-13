@@ -1,5 +1,5 @@
 // Shared helpers for the home furniture library (src/art/home). Not an asset module.
-import { box, qy, qx, qz, lw, PW, px, C, ellipse, dk, lt, mix, isFlipped } from '../../engine/raster.js';
+import { box, qy, qx, qz, lw, PW, px, C, ellipse, dk, lt, mix, isFlipped, lit, hash2 } from '../../engine/raster.js';
 
 /** quality tier 0 basic / 1 nice / 2 luxury (default 1) */
 export const tier = p => (p && p.tier != null ? Math.max(0, Math.min(2, p.tier | 0)) : 1);
@@ -103,6 +103,22 @@ export function shelfUnit(x, y, z, w, d, h, c, n, fillFn, o) {
   const p6 = [[x, y, z + h], [x + w, y, z + h], [x + w, y, z], [x + w, y + d, z], [x, y + d, z], [x, y + d, z + h]], oc = dk(c, .7);
   for (let i = 0; i < 6; i++) lw(p6[i], p6[(i + 1) % 6], oc);
   lw([x + w, y + d, z + h], [x, y + d, z + h], lt(c, .5));
+}
+
+/** screen picture pattern for qy (u,v,w,h). kind: sunset news game desktop code toon static */
+export function scene(kind, seed = 1) {
+  if (kind === 'news') return (u, v, w, h) => { const cx = w * .32, cy = h * .58, dx = u - cx, dy = v - cy; if (v < h * .22) return (u < w * .7 && v > 0) ? (u % 4 === 3 ? '#c8574d' : '#f1eee6') : '#c8574d'; if (dx * dx + dy * dy * 1.2 < h * h * .05) return '#f1c7a1'; if (Math.abs(dx) < h * .3 && v < cy - h * .14) return '#39456f'; if (u > w * .58 && v > h * .4 && v < h * .85) return ((u + v) & 1) ? '#8ad8ff' : '#6ab8e8'; return '#4f74b8'; };
+  if (kind === 'game') return (u, v, w, h) => { if (v < h * .2) return (u >> 2) & 1 ? '#6dbb58' : '#4f9a45'; if (v < h * .2 + 2 && u > w * .3 && u < w * .3 + 3) return '#e8563a'; const k = hash2(u >> 1, v >> 1, seed); if (v > h * .45 && v < h * .6 && u > w * .5 && u < w * .8) return '#b9653a'; if (v >= h * .62 && v < h * .62 + 2 && (u >> 1) % 3 === 0 && u > w * .5 && u < w * .8) return '#ffd98a'; if (v > h - 3 && u < w * .3) return '#ff7a8a'; return k > .96 ? '#f4f8fb' : '#3d4a8a'; };
+  if (kind === 'desktop') return (u, v, w, h) => { if (v < 2) return '#2c3442'; if (u > w * .12 && u < w * .6 && v > h * .3 && v < h * .88) return v > h * .88 - 2 ? '#4f74b8' : ((v & 1) && u < w * .5 && u > w * .18) ? '#b9c2c9' : '#f8f5ee'; if (u > w * .68 && u < w * .92 && v > h * .2 && v < h * .62) return v > h * .62 - 2 ? '#c8574d' : '#ffe9a8'; if (u < w * .1 && v % 4 > 1 && u > 0) return '#ffd98a'; return ((u + v * 2) % 11 < 5) ? '#3f8f8a' : '#4a9d96'; };
+  if (kind === 'code') return (u, v, w, h) => { if (v & 1 || v < 2 || u < 2) return '#22252f'; const row = v >> 1, len = 3 + hash2(row, seed, 5) * (w - 6), ind = 2 + ((hash2(row, seed, 9) * 3) | 0) * 2; if (u < ind || u > len) return '#22252f'; return ['#8dffb0', '#8ad8ff', '#ffd98a', '#ff9d8a'][(hash2(row, (u / 4) | 0, seed) * 4) | 0]; };
+  if (kind === 'toon') return (u, v, w, h) => { const dx = u - w * .5, dy = v - h * .45; const d = dx * dx + dy * dy; if (d < h * h * .07) return (Math.abs(dx) < 3 && Math.abs(dx) > 1 && dy > 0 && dy < 3) ? '#2c2738' : '#ffd24a'; if (v < h * .18) return '#7cc75e'; return ((u >> 2) + (v >> 2)) & 1 ? '#f2a7c3' : '#f7c1d4'; };
+  if (kind === 'static') return (u, v) => hash2(u, v, seed) > .5 ? '#c8ced3' : '#59607a';
+  return (u, v, w, h) => { const dx = u - w * .62, dy = v - h * .52; if (v < h * .3 - Math.abs((u % 14) - 7) * .35) return '#3f6f5a'; if (v < h * .3) return (v & 1) ? '#ff9a5c' : '#5f8fc8'; if (dx * dx + dy * dy < h * h * .045) return '#fff2c4'; return v > h * .75 ? '#7a6fc8' : v > h * .5 ? '#e87a8a' : '#ffb04a'; };
+}
+/** a TV / monitor screen on a +y plane: lit picture when on, dark glass with a glint when off */
+export function screenY(x0, x1, y, z0, z1, on, kind, seed) {
+  if (on) lit(() => qy(x0, x1, y, z0, z1, scene(kind, seed)));
+  else { qy(x0, x1, y, z0, z1, '#262a38'); lw([x0 + (x1 - x0) * .12, y, z1 - (z1 - z0) * .15], [x0 + (x1 - x0) * .3, y, z1 - (z1 - z0) * .55], '#454c66'); }
 }
 /** a 22px scale person for test scenes (not an asset) */
 export function dummy(x, y, z, o) {

@@ -238,3 +238,46 @@ export function crate(x, y, z, w, d, h, c = '#c9a268', fillc) {
   box(x, y, z, w, d, h, c, { l: (u, v) => v % 4 === 0 ? dk(c, .4) : dk(c, .18), r: (u, v) => v % 4 === 0 ? dk(c, .55) : dk(c, .36), t: fillc || dk(c, .5) });
   if (fillc) { const n = Math.max(2, Math.round(w * d * 22)), R = rng(Math.round(x * 97 + y * 31 + z * 7) + 3); for (let i = 0; i < n; i++) { const s = P(x + .06 + R() * (w - .12), y + .06 + R() * (d - .12), z + h); px(s[0], s[1], C(i % 3 ? lt(fillc, .3) : dk(fillc, .25))); } }
 }
+
+/* ---------- street / park construction helpers ---------- */
+import { fq, isFlipped, PAT, line } from '../../engine/raster.js';
+/** circle outline of rpx pixels around a world point (bike wheels, hoops) */
+export function ring(x, y, z, rpx, c, ry) { const s = P(x, y, z), n = Math.max(16, Math.round(rpx * 8)); for (let a = 0; a < n; a++) px(s[0] + Math.round(Math.cos(a / n * 6.283) * rpx), s[1] + Math.round(Math.sin(a / n * 6.283) * (ry || rpx)), C(c)); }
+/** cart / truck wheel standing on a y-plane */
+export function wheel(x, y, z, r, c = '#2a2f3a', hub = '#9aa0a8') { const s = PW(x, y, z + r); ellipse(s[0], s[1], r * U * .95, r * U, c); ellipse(s[0], s[1], r * U * .45, r * U * .5, hub); }
+/** parked bicycle along +x (1.5 long) */
+export function bike(x, y, z, c = '#d8342c', o = {}) {
+  const r = .3, A = [x + .3, y, z + r], B = [x + 1.2, y, z + r], S = [x + .58, y, z + .78], H = [x + 1.05, y, z + .82], K = [x + .72, y, z + r];
+  ring(A[0], y, A[2], 4, '#2a2f3a'); ring(B[0], y, B[2], 4, '#2a2f3a');
+  lw(A, S, c); lw(S, H, c); lw(K, H, c); lw(S, K, c); lw(A, K, c); lw(H, B, dk(c, .2)); lw(H, [x + 1.0, y, z + 1.0], '#2a2f3a');
+  const s = P(S[0], S[1], S[2]); px(s[0] - 1, s[1] - 1, C('#2a2433')); px(s[0], s[1] - 1, C('#2a2433')); px(s[0] + 1, s[1] - 1, C('#2a2433'));
+  const h = P(x + 1.0, y, z + 1.0); px(h[0] - 1, h[1], C('#2a2433')); px(h[0] + 1, h[1] - 1, C('#2a2433'));
+  if (o.basket) box(x + 1.1, y - .12, z + .7, .22, .24, .18, '#c9a268', { ol: false });
+  if (winter()) { px(s[0], s[1] - 2, C(SNOW)); px(s[0] - 1, s[1] - 2, C(SNOW)); }
+}
+/** striped sloping awning: back edge (y0, z0) to front edge (y1, z1), stripes along x. o.val = valance height (default .16) */
+export function awning(x0, x1, y0, y1, z0, z1, c1, c2, n, o = {}) {
+  n = n || Math.max(2, Math.round((x1 - x0) * 2)); const w = (x1 - x0) / n, v = o.val === undefined ? .16 : o.val;
+  for (let i = 0; i < n; i++) fq([[x0 + i * w, y0, z0], [x0 + (i + 1) * w, y0, z0], [x0 + (i + 1) * w, y1, z1], [x0 + i * w, y1, z1]], i & 1 ? c2 : c1);
+  if (y1 !== y0) fq([[x1, y0, z0], [x1, y1, z1], [x1, y1, z1 - v], [x1, y0, z0 - v * .4]], dk(c1, .35));
+  if (v) for (let i = 0; i < n; i++) qy(x0 + i * w, x0 + (i + 1) * w, y1, z1 - v, z1, dk(i & 1 ? c2 : c1, .16));
+  const o1 = dk(c1, .6); lw([x0, y1, z1 - v], [x1, y1, z1 - v], o1); lw([x0, y1, z1], [x1, y1, z1], lt(c2, .3)); lw([x0, y0, z0], [x1, y0, z0], o1); lw([x0, y0, z0], [x0, y1, z1], o1); lw([x0, y1, z1], [x0, y1, z1 - v], o1); lw([x1, y0, z0], [x1, y1, z1], o1); lw([x1, y1, z1], [x1, y1, z1 - v], o1);
+  if (winter() && o.snow !== false) { qz(x0 + .1, x1 - .1, y0, y0 + (y1 - y0) * .45, z0 + .005, SNOW, 'glass'); fq([[x0 + .15, y0, z0], [x1 - .15, y0, z0], [x1 - .15, y0 + (y1 - y0) * .5, z0 + (z1 - z0) * .5], [x0 + .15, y0 + (y1 - y0) * .5, z0 + (z1 - z0) * .5]], SNOW, 'glass'); fq([[x0 + .15, y0, z0], [x1 - .15, y0, z0], [x1 - .15, y0 + (y1 - y0) * .3, z0 + (z1 - z0) * .3], [x0 + .15, y0 + (y1 - y0) * .3, z0 + (z1 - z0) * .3]], SNOW); }
+}
+/** parasol on a pole at (x,y): canopy rim radius r at height z. open=false draws it furled */
+export function parasol(x, y, z, r, c1, c2, open = true, base = 0) {
+  pole(x, y, base, z + r * .4, '#e8e2d4', 1, false);
+  if (!open) { const a = P(x, y, z + r * .45), b = P(x, y, z - r * .75); for (let Y = a[1]; Y <= b[1]; Y++) { const hw = Math.round(1 + 1.2 * (Y - a[1]) / Math.max(1, b[1] - a[1])); for (let i = -hw; i <= hw; i++) px(a[0] + i, Y, C(i === -hw || i === hw ? dk(c1, .55) : i < 0 ? c1 : (i & 1 ? c2 : dk(c1, .2)))); } for (let i = -2; i <= 2; i++) px(a[0] + i, Math.round((a[1] + b[1]) / 2) + 2, C(dk(c2, .4))); if (winter()) { px(a[0], a[1] - 1, C(SNOW)); px(a[0] - 1, a[1], C(SNOW)); } return; }
+  const ap = [x, y, z + r * .42], seg = [];
+  for (let i = 0; i < 8; i++) { const a0 = i * .7854 + .3927, a1 = a0 + .7854, am = a0 + .3927; seg.push({ d: Math.cos(am) + Math.sin(am), k: (Math.cos(am) - Math.sin(am) + 1.42) / 2.84, p: [[x + Math.cos(a0) * r, y + Math.sin(a0) * r, z], [x + Math.cos(a1) * r, y + Math.sin(a1) * r, z]], c: i & 1 ? c2 : c1 }); }
+  seg.sort((a, b) => a.d - b.d);
+  for (const s of seg) { fq([ap, s.p[0], s.p[1]], dk(s.c, .04 + s.k * .3)); if (s.d > -.3) { fq([s.p[0], s.p[1], [s.p[1][0], s.p[1][1], z - .1], [s.p[0][0], s.p[0][1], z - .1]], dk(s.c, .2 + s.k * .3)); lw([s.p[0][0], s.p[0][1], z - .1], [s.p[1][0], s.p[1][1], z - .1], dk(c1, .62)); } else lw(s.p[0], s.p[1], dk(c1, .62)); }
+  const t = P(ap[0], ap[1], ap[2]); px(t[0], t[1] - 1, C('#e8e2d4')); px(t[0], t[1], C(lt(c1, .4)));
+}
+/** tiny bitmap stamped on a +y wall (rows of '#'/'.'), flip-aware */
+export function stampY(rows, x, y, z, c) { const s = P(x, y, z), d = isFlipped() ? -1 : 1, col = C(c); rows.forEach((r, v) => { for (let u = 0; u < r.length; u++) if (r[u] !== '.') px(s[0] + d * u, s[1] + (u >> 1) + v, col); }); }
+export const LEAF = ['...#...', '.#.#.#.', '.#####.', '#######', '.#####.', '..###..', '...#...', '...#...'];
+/** tiny sitting cat (screen-space, 6px) */
+export function cat(x, y, z, c = '#3a3440') { const s = P(x, y, z), k = C(c), d = C(dk(c, .3)); for (const q of [[0, -1], [1, -1], [2, -1], [0, -2], [1, -2], [2, -2], [1, -3], [2, -3], [1, -4], [2, -4], [3, -4], [1, -5], [3, -5]]) px(s[0] + q[0], s[1] + q[1], k); px(s[0] - 1, s[1] - 1, d); px(s[0] - 2, s[1] - 2, d); px(s[0] + 2, s[1] - 4, C('#ffe27a')); }
+/** horizontal rail between two world points, w px thick, lit from above */
+export function rail(a, b, c, w = 2) { for (let i = 0; i < w; i++) line([PW(a[0], a[1], a[2])[0], PW(a[0], a[1], a[2])[1] + i], [PW(b[0], b[1], b[2])[0], PW(b[0], b[1], b[2])[1] + i], i === 0 ? lt(c, .25) : i === w - 1 && w > 2 ? dk(c, .3) : c); }

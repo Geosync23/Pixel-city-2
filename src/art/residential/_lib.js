@@ -128,6 +128,7 @@ export function door(s, a, pl, z, o) {
   if (o.steps) steps(s, a0 - .25, a1 + .25, pl, z, o.steps, o.stepc);
   if (o.side) for (const b of [a0 - .38, a1 + .1]) { if (trim) fQ(s, b - .05, b + .33, pl, z, z + h + .05, fs(s, trim)); W(s, b, b + .28, pl, z + .5, z + h - .1, { on, mullion: 'h' }); }
   if (trim) fQ(s, a0 - .1, a1 + .1, pl, z, z + h + .1, fs(s, trim));
+  if (o.ped) { fQ(s, a0 - .22, a1 + .22, pl, z + h + .08, z + h + .2, fs(s, trim || '#f1ede4')); fq([pt(s, a0 - .22, pl, z + h + .2), pt(s, a1 + .22, pl, z + h + .2), pt(s, a, pl, z + h + .5)], fs(s, trim || '#f1ede4')); lw(pt(s, a0 - .22, pl, z + h + .2), pt(s, a, pl, z + h + .5), dk(trim || '#f1ede4', .35)); lw(pt(s, a1 + .22, pl, z + h + .2), pt(s, a, pl, z + h + .5), dk(trim || '#f1ede4', .35)); fQ(s, a0 - .2, a0 - .08, pl, z, z + h + .08, fs(s, trim || '#f1ede4')); fQ(s, a1 + .08, a1 + .2, pl, z, z + h + .08, fs(s, trim || '#f1ede4')); }
   fQ(s, a0, a1, pl, z, z + h, fs(s, c));
   const pc = dk(fs(s, c), .25), hi = lt(fs(s, c), .18);
   if (o.glass === 'full') W(s, a0 + .14, a1 - .14, pl, z + .25, z + h - .15, { on, mullion: o.dbl ? 'v' : 'cross' });
@@ -178,7 +179,7 @@ const slopeC = (s, c) => bright(s) ? c : dk(c, .2);
  * Returns R = { sl(a,t,up) -> world point on the visible slope (a along ridge, t 0 ridge..1 eave), face, ... } for roof furniture.
  */
 export function roofGable(x, y, z, w, d, h, axis, c, o) {
-  o = o || {}; const X = axis === 'x', ov = o.over === undefined ? .3 : o.over, rk = o.rake === undefined ? .25 : o.rake, trim = o.trim || '#f1ede4';
+  o = o || {}; const X = axis === 'x', ov = o.over === undefined ? .2 : o.over, rk = o.rake === undefined ? .25 : o.rake, trim = o.trim || '#f1ede4';
   const L = X ? w : d, Wd = X ? d : w, a0 = (X ? x : y), c0 = (X ? y : x), half = Wd / 2, m = c0 + half, zr = z + h, drop = ov * h / half, ze = z - drop;
   const W3 = (a, cc, zz) => X ? [a, cc, zz] : [cc, a, zz], sv = X ? 'y' : 'x', sg = X ? 'x' : 'y';   // sv: face the visible slope looks at; sg: gable wall face
   const A = a0 - rk, B = a0 + L + rk, oc = dk(c, .7);
@@ -223,7 +224,7 @@ export function dormer(R, a, tf, hh, o) {
 }
 /** hip roof with shingle patterns + snow. o: { kind, over, inset, behind } ; returns { top z } */
 export function roofHip(x, y, z, w, d, h, c, o) {
-  o = o || {}; const ov = o.over === undefined ? .3 : o.over, r = Math.min(w, d) / 2 * (1 - (o.inset || 0)), drop = ov * h / r, ze = z - drop, zt = z + h, oc = dk(c, .7);
+  o = o || {}; const ov = o.over === undefined ? .2 : o.over, r = Math.min(w, d) / 2 * (1 - (o.inset || 0)), drop = ov * h / r, ze = z - drop, zt = z + h, oc = dk(c, .7);
   const A = [x - ov, y - ov, ze], B = [x + w + ov, y - ov, ze], Cc = [x + w + ov, y + d + ov, ze], D = [x - ov, y + d + ov, ze];
   const a = [x + r, y + r, zt], b = [x + w - r, y + r, zt], cc = [x + w - r, y + d - r, zt], dd = [x + r, y + d - r, zt];
   fq([A, B, b, a], dk(c, .45)); fq([A, D, dd, a], dk(c, .32));
@@ -272,6 +273,27 @@ export function hood(s, a, pl, z, o) {
   if (s === 'y') roofGable(a - w / 2, pl, z, w, dp, o.h || .42, 'y', c, { wall: trim, trim, over: .06, rake: .08, kind: 'plain' }); else roofGable(pl, a - w / 2, z, dp, w, o.h || .42, 'x', c, { wall: trim, trim, over: .06, rake: .08, kind: 'plain' });
 }
 
+/** a bike seen side-on, standing against face plane pl. k = size (1 adult, .7 kid) */
+export function bike(s, a, pl, z, bc, k = 1) {
+  const R = .22 * k, L = .62 * k, t = '#3a3a48';
+  ring(s, a, pl, z + R, R, t, 16); ring(s, a + L, pl, z + R, R, t, 16);
+  fL(s, a, z + R, a + L * .4, z + R * 2.5, pl, bc); fL(s, a + L * .4, z + R * 2.5, a + L * .88, z + R * 2.5, pl, bc); fL(s, a + L * .88, z + R * 2.5, a + L, z + R, pl, bc); fL(s, a + L * .4, z + R * 2.5, a + L * .55, z + R, pl, bc); fL(s, a, z + R, a + L * .55, z + R, pl, bc);
+  fL(s, a + L * .33, z + R * 3, a + L * .5, z + R * 3, pl, t); fL(s, a + L * .88, z + R * 2.5, a + L * .8, z + R * 3.3, pl, t);
+}
+/** basketball hoop mounted on face s, backboard centred at a, rim height z */
+export function hoop(s, a, pl, z) {
+  fQ(s, a - .5, a + .5, pl + .04, z - .1, z + .65, fs(s, '#f4f0e8')); fL(s, a - .5, z - .1, a + .5, z - .1, pl + .04, '#55566a'); fL(s, a - .5, z + .65, a + .5, z + .65, pl + .04, '#55566a'); fL(s, a - .5, z - .1, a - .5, z + .65, pl + .04, '#55566a'); fL(s, a + .5, z - .1, a + .5, z + .65, pl + .04, '#55566a');
+  fL(s, a - .2, z + .05, a + .2, z + .05, pl + .04, '#d8443a'); fL(s, a - .2, z + .35, a + .2, z + .35, pl + .04, '#d8443a'); fL(s, a - .2, z + .05, a - .2, z + .35, pl + .04, '#d8443a'); fL(s, a + .2, z + .05, a + .2, z + .35, pl + .04, '#d8443a');
+  for (let i = 0; i < 14; i++) { const t = i / 14 * Math.PI * 2, q = pt(s, a + Math.cos(t) * .22, pl + .3 + Math.sin(t) * .22, z); wpx(q, 0, 0, '#f07a2a'); if (i % 2 === 0) { wpx(q, 0, 2, '#f4f0e8'); wpx(pt(s, a + Math.cos(t) * .16, pl + .3 + Math.sin(t) * .16, z), 0, 4, '#e2ded2'); } }
+}
+/** porch swing hanging at face plane (seat spans a0..a1), chains up to ztop */
+export function swing(s, a0, a1, pl, z, ztop, c = '#f1ede4', cush = '#d8443a') {
+  fB(s, a0, pl + .12, z + .3, a1 - a0, .1, .5, c, { ol: false });
+  fB(s, a0, pl + .2, z, a1 - a0, .42, .1, c);
+  fQ(s, a0 + .08, a1 - .08, pl + .22, z + .36, z + .7, PAT.vstripes(fs(s, cush), fs(s, lt(cush, .5)), 3));
+  for (const a of [a0 + .04, a1 - .04]) { lw(pt(s, a, pl + .6, z + .1), pt(s, a, pl + .4, ztop), '#6a6a78'); }
+}
+
 /* ---------- porches & balconies ---------- */
 /** picket/bar railing on the plane (face s at pl) from a0..a1, top at z+h */
 export function rail(s, a0, a1, pl, z, o) {
@@ -288,7 +310,7 @@ export function rail(s, a0, a1, pl, z, o) {
  * mid(): called after the deck is laid and before posts/roof — draw the wall's door and windows there.
  */
 export function porch(x0, x1, y0, dp, z, o, mid) {
-  o = o || {}; const post = o.post || '#f1ede4', ph = o.ph || 2.6, yf = y0 + dp, n = o.posts || Math.max(2, Math.round((x1 - x0) / 2) + 1), deck = o.deck || '#b08a64';
+  o = o || {}; const post = o.post || '#f1ede4', ph = o.ph || 2.5, yf = y0 + dp, n = o.posts || Math.max(2, Math.round((x1 - x0) / 2) + 1), deck = o.deck || '#b08a64';
   box(x0, y0, 0, x1 - x0, dp, z, o.base || '#a59c90', { t: PAT.fboards(deck, .25), l: o.lattice ? PAT.planks(dk(o.base || '#a59c90', .1), 3) : undefined });
   if (winter()) qz(x0, x1, yf - .25, yf, z, SNOW, 'glass');
   if (mid) mid();
@@ -302,7 +324,9 @@ export function porch(x0, x1, y0, dp, z, o, mid) {
   if (o.lights && winter()) fairy([x0, yf, z + ph - .05], [x1, yf, z + ph - .05], { sag: 2, waves: n - 1 });
   const rc = o.roofc || '#565266';
   if (o.roof === 'flat') { box(x0 - .15, y0, z + ph, x1 - x0 + .3, dp + .15, .2, o.trim || post, { t: winter() ? SNOW : dk(rc, .1) }); }
-  else if (o.roof !== 'none') { box(x0 - .05, yf - .3, z + ph, x1 - x0 + .1, .26, .14, o.trim || post, { ol: false }); roofShed(x0, y0, z + ph + .14, x1 - x0, dp, o.rh || .22, rc, { over: .1, kind: o.kind, trim: o.trim || post, sidewall: o.sidewall || post }); }
+  else if (o.roof === 'gable') { box(x0 - .08, yf - .3, z + ph - .2, x1 - x0 + .16, .3, .2, o.trim || post); roofGable(x0, y0 - (o.back || 0), z + ph, x1 - x0, dp + (o.back || 0), o.gh || .9, 'y', rc, { wall: o.gwall || post, wmat: o.gmat, trim: o.trim || post, kind: o.kind, over: .2, rake: .2, vent: o.vent }); }
+  else if (o.roof === 'beam') { box(x0 - .1, yf - .3, z + ph, x1 - x0 + .2, .3, .14, o.trim || post, { t: winter() ? SNOW : undefined }); }
+  else if (o.roof !== 'none') { roofShed(x0, y0, z + ph, x1 - x0, dp, o.rh || .22, rc, { over: .1, kind: o.kind, trim: o.trim || post, sidewall: o.sidewall || post }); }
 }
 /**
  * Apartment balcony on face s: a0..a1, slab top at z, sticking out dp.
@@ -320,9 +344,7 @@ export function balcony(s, a0, a1, pl, z, o) {
     } else if (k < .55) { // plants
       for (let a = a0 + .25; a < a1 - .15; a += .45 + r() * .3) { const q = P(a, mid - pl, z); pot(q[0], q[1], q[2], r() < .3 && !winter() ? bloom(r()) : leafy(r()), .14 + r() * .08); }
     } else if (k < .72) { // bike leaning on the wall
-      const a = a0 + (a1 - a0) * .3, bc = ['#d8443a', '#3a78c8', '#e8b63a', '#3aa87a'][Math.floor(k2 * 4)], py = pl + .15;
-      ring(s, a, py, z + .24, .22, '#3a3a48', 16); ring(s, a + .62, py, z + .24, .22, '#3a3a48', 16);
-      fL(s, a, z + .24, a + .25, z + .55, py, bc); fL(s, a + .25, z + .55, a + .55, z + .55, py, bc); fL(s, a + .55, z + .55, a + .62, z + .24, py, bc); fL(s, a + .25, z + .55, a + .34, z + .24, py, bc); fL(s, a, z + .24, a + .34, z + .24, py, bc); fL(s, a + .22, z + .66, a + .3, z + .66, py, '#3a3a48'); fL(s, a + .55, z + .55, a + .5, z + .72, py, '#3a3a48');
+      bike(s, a0 + (a1 - a0) * .3, pl + .15, z, ['#d8443a', '#3a78c8', '#e8b63a', '#3aa87a'][Math.floor(k2 * 4)]);
     } else if (k < .88) { // chair + table / parasol in summer
       const q = P(a0 + (a1 - a0) * .5, dp * .45, z); box(q[0] - .12, q[1] - .12, q[2], .24, .24, .42, '#e8e2d4', { ol: false }); const q2 = P(a0 + (a1 - a0) * .5 + (s === 'y' ? .4 : -.4), dp * .45, z); box(q2[0] - .1, q2[1] - .1, q2[2], .2, .2, .26, ['#d8443a', '#3a78c8', '#3aa87a'][Math.floor(k2 * 3)], { ol: false });
       const q3 = P(a0 + .3, dp * .5, z); pot(q3[0], q3[1], q3[2], leafy(k2), .16);

@@ -4,8 +4,8 @@ import { box, qy, qx, qz, lw, fq, lit, glow, dk, lt, mix, ENV, PW, px, C, isFlip
 import { mk, COL, disc, wheel, lamp, halo } from './_lib.js';
 
 const CARC = ['#d64545', '#3b5bdb', '#f1efe8', '#2f9e44', '#7a7f8c', '#e8a33a', '#2b2a38', '#8fc9b8', '#b5654a', '#6d4c9a'];
-const cv = (cols, extra) => { const out = []; cols.forEach((c, i) => out.push(Object.assign({ color: c, dir: i % 3 === 1 ? -1 : 1 }, extra || {}))); return out; };
-const vbOf = (len, wid, h) => [-2.9, -.5, 0, len + 2.9, wid + .5, h + .4];
+export const cv = (cols, extra) => { const out = []; cols.forEach((c, i) => out.push(Object.assign({ color: c, dir: i % 3 === 1 ? -1 : 1 }, extra || {}))); return out; };
+export const vbOf = (len, wid, h) => [-2.9, -.5, 0, len + 2.9, wid + .5, h + .4];
 
 /** generic car from a spec; returns the builder for extras */
 export function stdCar(p, s) {
@@ -29,7 +29,7 @@ export function stdCar(p, s) {
   return K;
 }
 
-const SPEC = {
+export const SPEC = {
   sedan: { len: 3.2, wid: 1.5, h: 1.3, col: '#d64545', body: [[0, .66], [.1, .8], [.7, .82], [2.35, .82], [3.05, .74], [3.2, .6]], cab: [[.55, .82], [.95, 1.3], [1.9, 1.3], [2.4, .82]], belt: .82, pillars: [1.45], doors: [.98, 1.45, 2.3], handles: [1.08, 1.55], mirror: 2.3, wheels: [.62, 2.58], snow: [1, 1.85, .2, 1.3, 1.3] },
   hatch: { len: 2.8, wid: 1.45, h: 1.35, col: '#3b5bdb', body: [[0, .62], [.06, .8], [2.0, .82], [2.66, .74], [2.8, .58]], cab: [[.04, .82], [.34, 1.35], [1.55, 1.35], [2.05, .82]], belt: .82, pillars: [1.0], doors: [.95, 1.95], handles: [1.05], mirror: 1.95, wheels: [.55, 2.25], snow: [.4, 1.5, .2, 1.25, 1.35] },
   suv: { len: 3.5, wid: 1.6, h: 1.65, col: '#2b2a38', zb: .38, wr: .36, body: [[0, .8], [.06, 1.0], [2.5, 1.0], [3.3, .94], [3.5, .74]], cab: [[.06, 1.0], [.26, 1.6], [2.05, 1.6], [2.55, 1.0]], belt: 1.0, pillars: [.85, 1.55], doors: [.9, 1.6, 2.45], handles: [1.0, 1.7], mirror: 2.45, wheels: [.68, 2.8], trim: .52, trimc: '#3d3b49', snow: [.35, 2.0, .2, 1.4, 1.6],

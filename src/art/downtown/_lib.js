@@ -1,5 +1,5 @@
 // Downtown kit: shared helpers (facades, curtain walls, rooftop clutter, street-level bits). Local to src/art/downtown.
-import { U, ENV, C, dk, lt, mix, rng, hash2, PW, px, fill, line, ellipse, fq, lw, qy, qx, qz, box, cyl, ball, cone, glow, lit, winY, winX, signY, signX, textW, foliage, grassC, isFlipped } from '../../engine/raster.js';
+import { U, ENV, C, dk, lt, mix, rng, hash2, PW, px, fill, line, ellipse, fq, lw, qy, qx, qz, box, cyl, ball, cone, glow, lit, winY, winX, signY, signX, textW, foliage, grassC, isFlipped, PAT } from '../../engine/raster.js';
 
 export const FH = 1.75;               // tower storey (slightly squat so 16 floors stay under ~620 px)
 export const SNOW = '#f4f8fb', SNOW2 = '#dde7f0';
@@ -369,3 +369,6 @@ export function lobby(w, d, h, o = {}) {
   if (o.name) FYd.sign(o.name, du - 1.5, du + 1.5, h - .5 + .0, h - .1, '#1f2a33', o.signc || '#ffd98a', { lit: true }, 1.12);
   if (o.planters !== false) { if (du - 2.9 > .2) planter(du - 2.9, d + .25, 1.1, .5, r); if (du + 1.8 + 1.1 < w) planter(du + 1.8, d + .25, 1.1, .5, r); }
 }
+
+export const PATs = c => PAT.stone(c);
+export { PAT };

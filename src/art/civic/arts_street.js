@@ -37,7 +37,7 @@ export default [
       { w: 7, d: 6, floors: 2, seed: 3, wall: '#e86a5c', mural: 'sun', name: 'CLAY & CO' },
       { w: 8, d: 7, floors: 3, seed: 11, wall: '#3fa7a0', mural: 'skyline', name: 'STUDIO 11' },
       { w: 6, d: 6, floors: 2, seed: 7, wall: '#e9b44c', mural: 'waves', name: 'PRINT LAB' },
-      { w: 9, d: 6, floors: 2, seed: 21, wall: '#8d7fd1', mural: 'flower', muralSide: 'y', name: 'BLOOM ARTS' },
+      { w: 9, d: 6, floors: 3, seed: 21, wall: '#8d7fd1', mural: 'flower', muralSide: 'y', name: 'BLOOM ARTS' },
       { w: 7, d: 8, floors: 3, seed: 5, wall: '#f1e9d8', mural: 'geo', name: 'ATELIER' },
       { w: 8, d: 6, floors: 2, seed: 16, wall: '#5fa8e0', mural: 'rainbow', name: 'KIDS ART' },
       { w: 6, d: 7, floors: 3, seed: 29, wall: '#ef8fb0', mural: 'memphis', name: 'ZINE HAUS' },
@@ -52,7 +52,7 @@ export default [
       if (ms !== 'y') mural('x', kind, .3, d - .3, w, .5, H - .25, p.seed || 1);
       else { for (let f = 0; f < fl; f++) wins('x', .5, d - .5, w, f * 2 + .6, f * 2 + 1.6, { ww: 1, gap: .8, r, mullion: 'cross', sill: true, trim }); }
       // +y wall upper floors
-      if (ms === 'x') for (let f = 1; f < fl; f++) wins('y', .4, w - .4, d, f * 2 + .45, f * 2 + 1.65, { ww: 1.3, gap: .5, r, p: .65, mullion: 'cross', sill: true, trim, each: () => r() < .3 ? { fbox: true } : null });
+      if (ms === 'x') for (let f = 1; f < fl; f++) wins('y', .4, w - .4, d, f * 2 + .6, f * 2 + 1.65, { ww: 1.3, gap: .5, r, p: .65, mullion: 'cross', sill: true, trim, each: () => r() < .3 ? { fbox: true } : null });
       else mural('y', ms === 'both' ? (p.mural2 || 'bubbles') : kind, .3, w - .3, d, 2.55, H - .25, (p.seed || 1) + (ms === 'both' ? 2 : 0));
       // ground floor: door + big studio window with art on show
       door('y', 1.2, d, { c: dc, transom: false });
@@ -62,7 +62,7 @@ export default [
       wins('y', x0, x1, d, .5, 1.7, { ww: (x1 - x0) / Math.max(1, Math.round((x1 - x0) / 1.3)) - .001, gap: 0, n: Math.max(1, Math.round((x1 - x0) / 1.3)), on: true, mullion: 'h' });
       const P = muralPal((p.seed || 1) + 1);
       for (let x = x0 + .3, i = 0; x + .5 < x1; x += 1.3, i++) { const c = P[i % 5]; qy(x, x + .55, d, .7, 1.25, '#f6efe0'); qy(x + .08, x + .47, d, .78, 1.17, c); qy(x + .18, x + .37, d, .86, 1.0, P[(i + 2) % 5]); lw([x + .27, d, .5], [x + .27, d, .7], '#6b4a2f'); }
-      sign('y', p.name || 'STUDIO', x0, x1, d + .02, 1.88, 2.36, '#2a2540', trim, { lit: true });
+      sign('y', p.name || 'STUDIO', x0, x1, d + .02, 1.84, 2.3, '#2a2540', trim, { lit: true });
       // paint pots by the door
       box(.25, d, 0, .25, .22, .28, P[0], { ol: false }); box(.5, d + .05, 0, .2, .2, .2, P[3], { ol: false });
       cornice(w, d, H - .2, trim, .2, .1);
@@ -115,9 +115,9 @@ export default [
       posters('x', .4, d - .5, w + .01, .35, 1.9, (p.seed || 1) * 3);
       for (let f = 1; f < fl; f++) wins('x', .5, d - .5, w, f * 2 + .5, f * 2 + 1.6, { ww: .9, gap: .9, r, mullion: 'cross', sill: true, trim });
       // front
-      for (let f = 1; f < fl; f++) wins('y', .3, w - .3, d, f * 2 + .5, f * 2 + 1.6, { ww: .9, n: 2, r, mullion: 'cross', sill: true, trim });
+      for (let f = 1; f < fl; f++) for (const x of [.3, w - 1.1]) win('y', x, x + .8, d, f * 2 + .5, f * 2 + 1.6, { on: r() < .6, mullion: 'cross', sill: true, trim });
       const V = vinyl(11), vw = iconW(V); // big record between the first-floor windows
-      icon('y', V, w / 2 - vw / 2, d + .02, 2 + 1.75, { o: '#15131f', k: '#2a2636', g: '#4a4560', r: acc, w: '#fff8e8' });
+      icon('y', V, w / 2 - vw / 2, d + .02, 2 + 1.8, { o: '#15131f', k: '#2a2636', g: '#4a4560', r: acc, w: '#fff8e8' }); lit(() => icon('y', V, w / 2 - vw / 2, d + .02, 2 + 1.8, { r: acc, w: '#fff8e8', o: '#ff8fb0' }));
       door('y', 1.1, d, { c: acc, frame: '#2a2540' });
       qy(1.9, w - .3, d, .3, 1.72, '#2a2540'); win('y', 2.0, w - .4, d, .5, 1.62, { on: true, mullion: 'v' });
       goods(2.0, w - .4, d, .55, 1.2, p.seed || 1, ['#f25c54', '#ffd166', '#06d6a0', '#4d96ff', '#f15bb5', '#2a2540']);
@@ -128,13 +128,13 @@ export default [
       lw([.6, d - .3, H + .3], [.6, d - .3, H + 1.0], '#3d3a4a'); lw([.3 + sw, d - .3, H + .3], [.3 + sw, d - .3, H + 1.0], '#3d3a4a');
       sign('y', nm, .3, .3 + sw, d - .3, H + .9, H + 1.6, '#15131f', acc, { lit: true });
       bulbs('y', .35, .25 + sw, d - .3, H + 1.62, { step: .3, cols: ['#ff8fb0', '#fff2a8'] });
-      clutter(r, { ...f, y1: f.y1 - .8 }, ['ac', 'vent', 'dish', 'pipe'], 2);
+      clutter(r, { ...f, y1: f.y1 - .8 }, ['ac', 'vent', 'dish', 'pipe', 'sky', 'ac2'], 4);
     },
   },
   /* ------------------------------------------------------------ tattoo / vintage shop (false-front) */
   {
     id: 'bld.arts.vintage', kind: 'building', tags: ['arts', 'shop', 'vintage', 'tattoo'],
-    size: p => [p.w || 5, p.d || 6, (p.floors || 2) * 2 + 1.2], vb: VB(p => [p.w || 5, p.d || 6, (p.floors || 2) * 2 + 1.2], 1.2, .5, 1),
+    size: p => [p.w || 5, p.d || 6, (p.floors || 2) * 2 + 1.4], vb: VB(p => [p.w || 5, p.d || 6, (p.floors || 2) * 2 + 1.4], 1.2, .5, 1),
     door: { side: 'y', at: 1.1 }, ...LIGHT(1.1, 6, 3),
     variants: [{ w: 5, d: 6, floors: 2, seed: 6, style: 'tattoo', name: 'INK & IVY' }, { w: 6, d: 6, floors: 2, seed: 18, style: 'vintage', name: 'RETRO RAGS' }, { w: 5, d: 7, floors: 3, seed: 27, style: 'vintage', wall: '#7fb6a8', name: 'MOTH & MOON' }, { w: 6, d: 5, floors: 2, seed: 33, style: 'tattoo', wall: '#4a2f4f', name: 'BLACK CAT INK' }],
     draw(p) {
@@ -159,16 +159,16 @@ export default [
         awning(.3, w - .3, d, 1.85, { c: nc, c2: '#fff3d6', dep: .65 });
       }
       // stepped false front
-      box(0, d - .35, H, w, .35, .55, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
-      box(w * .18, d - .35, H + .55, w * .64, .35, .6, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
+      box(0, d - .35, H, w, .35, .7, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
+      box(w * .18, d - .35, H + .7, w * .64, .35, .7, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
       const f = flatRoof(0, 0, H, w, d - .35, wall, { cap: trim });
       clutter(r, f, ['ac', 'vent', 'pipe', 'sky'], 2);
-      box(0, d - .35, H, w, .35, .55, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
-      box(w * .18, d - .35, H + .55, w * .64, .35, .6, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
-      snowTop(w * .18, w * .82, d - .35, d, H + 1.151, .05);
+      box(0, d - .35, H, w, .35, .7, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
+      box(w * .18, d - .35, H + .7, w * .64, .35, .7, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
+      snowTop(w * .18, w * .82, d - .35, d, H + 1.401, .05);
       const nm = p.name || (tat ? 'TATTOO' : 'VINTAGE');
-      if (tat) { sign('y', nm, .2, w - .2, d + .01, H + .0, H + .5, '#1c1a26', nc, { lit: true }); sign('y', 'TATTOO', w * .18 + .1, w * .82 - .1, d + .01, H + .62, H + 1.08, null, '#7df9ff', { lit: true }); icon('y', HEART, .35, d + .02, H - .35, { h: nc }); lit(() => icon('y', HEART, .35, d + .02, H - .35, { h: nc })); }
-      else { sign('y', nm, .2, w - .2, d + .01, H + .02, H + .5, trim, nc); sign('y', 'VINTAGE', w * .18 + .1, w * .82 - .1, d + .01, H + .62, H + 1.08, null, trim); }
+      if (tat) { sign('y', nm, .2, w - .2, d + .01, H + .1, H + .6, '#1c1a26', nc, { lit: true }); sign('y', 'TATTOO', w * .18 + .1, w * .82 - .1, d + .01, H + .78, H + 1.28, null, '#7df9ff', { lit: true }); icon('y', HEART, .35, d + .02, H - .35, { h: nc }); lit(() => icon('y', HEART, .35, d + .02, H - .35, { h: nc })); }
+      else { sign('y', nm, .2, w - .2, d + .01, H + .1, H + .6, nc, '#fff6e0', { lit: true }); sign('y', 'VINTAGE', w * .18 + .1, w * .82 - .1, d + .01, H + .78, H + 1.28, null, dk(wall, .6)); }
     },
   },
   /* ------------------------------------------------------------ artist lofts */
@@ -264,7 +264,7 @@ export default [
     door: { side: 'y', at: 1.3 }, ...LIGHT(1.3, 7, 4.5),
     variants: [{ w: 8, d: 7, floors: 2, seed: 7, name: 'THE BLUE HERON' }, { w: 9, d: 8, floors: 2, seed: 23, name: 'THE BLUE HERON', wall: '#3a2f55' }, { w: 8, d: 6, floors: 3, seed: 41, name: 'THE BLUE HERON', wall: '#243a4a' }],
     draw(p) {
-      const w = p.w || 8, d = p.d || 7, fl = p.floors || 2, H = fl * 2, r = rng(p.seed || 1), wall = p.wall || '#2c3558', cy = '#5ff2ff', pk = '#ff5fa8', nm = p.name || 'THE BLUE HERON';
+      const w = p.w || 8, d = p.d || 7, fl = p.floors || 2, H = fl * 2, r = rng(p.seed || 1), wall = p.wall || '#34406a', cy = '#5ff2ff', pk = '#ff5fa8', nm = p.name || 'THE BLUE HERON';
       box(0, 0, 0, w, d, H, wall, wallPat('brick', wall));
       qy(0, w, d, 0, .4, '#1c1f33'); qx(w, 0, d, 0, .4, '#15172a');
       // side wall: stage door, poster wall, glass-block windows
@@ -273,7 +273,7 @@ export default [
       const gb = { glass: ['#4a6f9a', '#5f86b4'], glowc: ['#7f9bff', '#b06bff'], frame: '#1c1f33', mullion: 'cross' };
       for (let f = 1; f < fl; f++) { wins('x', .6, d - .6, w, f * 2 + .6, f * 2 + 1.5, { ...gb, ww: 1.1, gap: 1, r, p: .8 }); wins('y', 3.6, w - .4, d, f * 2 + .6, f * 2 + 1.5, { ...gb, ww: 1.0, gap: .6, r, p: .85, glowc: ['#ff8fc8', '#c77bff'] }); }
       // front ground: door under a little canopy, long window glowing purple, neon stripe
-      door('y', 1.3, d, { c: '#16182b', double: true, w: 1.4, frame: '#0f1020', glowc: ['#ff9fd0', '#c77bff'], handle: cy });
+      door('y', 1.3, d, { c: '#16182b', double: true, w: 1.4, frame: '#0f1020', glowc: ['#ffd98a', '#ff9fd0'], handle: cy, full: true }); neon('y', [[.5, 0], [.5, 1.74], [2.1, 1.74], [2.1, 0]], d + .01, cy);
       box(.35, d, 1.85, 1.9, .8, .14, '#16182b'); bulbs('y', .4, 2.2, d + .8, 1.84, { step: .2, cols: [cy, pk] });
       wins('y', 3.0, w - .5, d, .7, 1.6, { ww: 1.0, gap: .25, on: true, ...gb, glowc: ['#ff8fc8', '#c77bff'] });
       neon('y', [[2.9, 1.78], [w - .4, 1.78]], d + .01, pk); neon('y', [[2.9, .55], [w - .4, .55]], d + .01, cy);
@@ -284,11 +284,10 @@ export default [
       cornice(w, d, H - .18, '#1c1f33', .18, .08);
       const f = flatRoof(0, 0, H, w, d, wall, { cap: '#4a5278', roof: '#55526a' });
       clutter(r, { ...f, x0: f.x0 + 1, y1: f.y1 - 1.2 }, ['ac2', 'ac', 'vent', 'pipe', 'dish'], 3);
-      const bx = .35, bw = 2.5, bz = Math.max(2.1, H - 1.7);
+      const bx = .35, bw = 2.3, bz = H - .7;
       box(bx, d, bz, bw, .3, H + 2.6 - bz, '#12142a');
       lit(() => { icon('y', HERON, bx + (bw - iconW(HERON, 2)) / 2, d + .31, H + 2.35, { b: cy, c: '#2fa8e0', w: '#12142a', y: '#ffd166', p: pk }, 2); });
       neon('y', [[bx + .12, bz + .12], [bx + bw - .12, bz + .12], [bx + bw - .12, H + 2.48], [bx + .12, H + 2.48], [bx + .12, bz + .12]], d + .31, pk);
-      halo(bx + bw / 2, d + .3, H + 1.1, 26, '#3fd8ff');
     },
   },
 ];

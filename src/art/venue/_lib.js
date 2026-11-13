@@ -236,3 +236,28 @@ export function compose(lists, id, w, d, h, o, items) {
     },
   };
 }
+
+/* ---------- small set-dressing ---------- */
+export const screenY = (x0, x1, y, z0, z1, c, seed, ink) => lit(() => { qy(x0, x1, y, z0, z1, c); if (seed !== 0) screenLines(x0 + P, x1 - P, y, z0 + P, z1, ink || lt(c, .6), seed || 1); });
+export function mirrorY(x0, x1, y, z0, z1, fr) {
+  qy(x0, x1, y, z0, z1, '#b4dbe8', '#c4e6f0'); const w = x1 - x0, h = z1 - z0;
+  for (const k of [.18, .3, .7]) lw([x0 + w * k, y, z0 + h * .9], [x0 + w * k + Math.min(.3, w * .3), y, z0 + h * .9 - Math.min(.6, h * .5)], '#eefafc');
+  frameY(x0, x1, y, z0, z1, fr || '#8a9098');
+}
+/** pleated curtain pattern */
+export const pleat = c => { const a = [lt(c, .12), c, dk(c, .14), c]; return (u, v) => a[u % 4]; };
+export const steam = (x, y, z, n = 4) => { for (let i = 0; i < n; i++) { spx(x, y, z + i * .11, i % 2 ? 1 : -1, 0, '#f4fbfc'); if (i % 2) spx(x, y, z + i * .11, 2, -1, '#e4eef2'); } };
+export const plate = (x, y, z, c, f) => { cyl(x, y, z, .11, .02, c || '#f4f0e8', { ol: false }); if (f) cyl(x, y, z + .02, .06, .03, f, { ol: false }); };
+export const cup = (x, y, z, c) => cyl(x, y, z, .05, .1, c || '#f4f0e8', { ol: false, t: '#6a4a30' });
+export const bottle = (x, y, z, c, h) => { cyl(x, y, z, .045, h || .16, c, { ol: false }); post(x, y, z + (h || .16), z + (h || .16) + .1, c); };
+export function candle(x, y, z) { post(x, y, z, z + .12, '#f4f0e8'); lit(() => { spx(x, y, z + .13, 0, -1, '#ffb040'); spx(x, y, z + .13, 0, -2, '#ffe680'); }); glow(() => { for (const [a, b] of [[-1, -1], [1, -1], [0, -3], [-1, -2], [1, -2], [0, 0], [-2, -1], [2, -1]]) spx(x, y, z + .13, a, b, '#ffd070'); }); }
+/** table/desk lamp with shade (glows at night) */
+export function lamp(x, y, z, h, c, o) {
+  o = o || {}; cyl(x, y, z, .07, .03, o.base || '#8a6a3a', { ol: false }); post(x, y, z, z + h - .14, o.base || '#8a6a3a');
+  cyl(x, y, z + h - .16, o.r || .13, .16, c, { ol: false, t: lt(c, .4) }); glow(() => { cyl(x, y, z + h - .16, o.r || .13, .16, '#ffe6a0', { ol: false }); cyl(x, y, z + h - .22, (o.r || .13) + .04, .02, '#ffd070', { ol: false }); });
+}
+/** flat rug with border on the floor */
+export function rug(x, y, w, d, c, c2, o) {
+  o = o || {}; qz(x, x + w, y, y + d, .01, c2 || lt(c, .3)); qz(x + .1, x + w - .1, y + .1, y + d - .1, .01, o.pat || c); if (o.inner) qz(x + .22, x + w - .22, y + .22, y + d - .22, .01, o.inner, o.inner2);
+  frameZ(x, x + w, y, y + d, .01, dk(c, .35));
+}
