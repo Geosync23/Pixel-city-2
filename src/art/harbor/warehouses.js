@@ -60,19 +60,19 @@ const corr = {
     const Fy = face('y', d), Fx = face('x', w);
     walls(0, 0, 0, w, d, h, wall, c => PAT.planks(c, 3));
     qy(0, w, d, 0, .3, Lc('#9a9aa0')); qx(w, 0, d, 0, .3, Rc('#9a9aa0'));
-    Fy.q(0, w, h - .75, h - .45, Lc(acc)); Fx.q(0, d, h - .75, h - .45, Rc(acc));
+    Fy.q(0, w, h - .95, h - .5, Lc(acc)); Fx.q(0, d, h - .95, h - .5, Rc(acc));
     // front: roller doors
     const nd = w >= 11 ? 3 : 2, dw = 2.3, gap = (w - 1.6 - nd * dw) / nd;
     let a = .5;
     for (let i = 0; i < nd; i++) {
       const op = r() < .4 ? .35 + r() * .3 : 0;
-      roll(Fy, a, a + dw, 0, 3, i === 0 ? acc : '#d8d4c8', { open: op, num: String(i + 1), numc: '#f4f0e8' });
+      roll(Fy, a, a + dw, 0, 3, i === 0 ? acc : '#d8d4c8', { open: op });
       stripeHaz(Fy, a - .22, a - .1, 0, 1); stripeHaz(Fy, a + dw + .1, a + dw + .22, 0, 1);
-      lamp(Fy, a + dw / 2, 3.42, { len: .5 });
+      lamp(Fy, a + dw / 2, 3.12, { len: .5 });
       a += dw + gap;
     }
     door(Fy, w - .75, { c: dk(wall, .4), glass: false }); lamp(Fy, w - .75, 2.1, { len: .9 });
-    textY(p.name || 'STORAGE', Math.max(.3, w / 2 - (p.name || 'STORAGE').length * 2 / 16), d + .01, h - .08, lt(wall, .75));
+    textY(p.name || 'STORAGE', Math.max(.3, w / 2 - (p.name || 'STORAGE').length * 2 / 16), d + .01, h - .56, '#2e2a3a');
     // side: high ribbon windows, pipes, code
     for (let y = .7; y + 1.4 < d - .3; y += 2.1) gridWin(Fx, y, y + 1.4, 2.3, 3.1, { on: r() < .45, cols: 4, rows: 2 });
     pipe(Fx, .35, .3, h); pipe(Fx, d - .3, .3, h);
@@ -85,7 +85,7 @@ const corr = {
     for (let y = 1.4; y + 1 < d; y += 3) { fq([sl(y, .25), sl(y + .9, .25), sl(y + .9, .8), sl(y, .8)], winter() ? SNOW : '#cfe6ee', winter() ? 'glass' : '#b4d6e2'); if (r() < .7) glow(() => fq([sl(y, .25), sl(y + .9, .25), sl(y + .9, .8), sl(y, .8)], '#ffe39a', 'glass')); }
     for (let y = 1.2; y < d - .5; y += 2.6) { cyl(w / 2, y, h + rh - .05, .16, .3, '#9aa0a6', { ol: false }); ball(w / 2, y, h + rh + .42, .22, '#c8ccd0', { squash: .8 }); }
     // gable apex badge
-    disc('y', [w / 2, d + .01, h + rh * .42], .38, Lc(acc), null, 12); textY(p.code || 'A1', w / 2 - 7 / 32 - .22, d + .02, h + rh * .42 + .3, '#2e2a3a');
+    
     // yard clutter
     if (r() < .6) { pallet(w - 2.6, d + .05, 0, 1.1, .8); crate(w - 2.5, d + .15, .16, .5); }
     if (r() < .5) drum(.25, d + .35, 0, '#d8452f');

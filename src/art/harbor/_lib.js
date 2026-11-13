@@ -1,5 +1,5 @@
 // Shared helpers for the harbour / industrial kit. Local to this folder (not an asset module: no default export array).
-import { U, ENV, C, PW, px, fq, lw, qy, qx, qz, box, cyl, glow, lit, dk, lt, PAT, winY, winX, isFlipped, ellipse, spx, gable, signY, signX, textY, textX } from '../../engine/raster.js';
+import { U, ENV, C, PW, px, fq, lw, qy, qx, qz, box, cyl, glow, lit, dk, lt, PAT, winY, winX, isFlipped, ellipse, spx, gable, hip, signY, signX, textY, textX } from '../../engine/raster.js';
 
 export const SNOW = '#f4f8fb';
 export const winter = () => ENV.season === 3;
@@ -170,7 +170,7 @@ export function stack(x, y, z, r, h, c, o) {
 }
 
 /** screen-space roof pattern: rows parallel to the ridge on the visible slope of a gable */
-export const roofPat = (c, step = 4) => { const f = isFlipped(), b = f ? dk(c, .18) : c, s = dk(b, .2); return (X, Y) => { const v = Math.floor(f ? Y + X * .5 : Y - X * .5); return ((v % step) + step) % step === 0 ? s : b; }; };
+export const roofPat = (c, step = 4, axis = 'x') => { const f = isFlipped() !== (axis === 'y'), b = f ? dk(c, .18) : c, s = dk(b, .2); return (X, Y) => { const v = Math.floor(f ? Y + X * .5 : Y - X * .5); return ((v % step) + step) % step === 0 ? s : b; }; };
 /** screen-space vertical plank / corrugation pattern for gable-end triangles. side: 'x' or 'y' = which wall the triangle is on (unflipped) */
 export const endPat = (c, side, step = 3) => { const b = side === 'x' ? Rc(c) : Lc(c), s = dk(b, .22); return (X, Y) => X % step === 0 ? s : b; };
 export const endBrick = (c, side) => { const b = side === 'x' ? Rc(c) : Lc(c), m = dk(b, .3); const up = (side === 'x') !== isFlipped(); return (X, Y) => { const v = Math.floor(up ? Y + X * .5 : Y - X * .5), row = Math.floor(v / 3); return ((v % 3) + 3) % 3 === 0 ? m : ((X + (row & 1) * 3) % 6 === 0 ? m : b); }; };
@@ -180,4 +180,29 @@ export function barnDoor(F, a0, a1, z0, z1, c, trim) {
   F.l(a0, z0, a1, z0, t); F.l(a0, z1, a1, z1, t); F.l(a0, z0, a0, z1, t); F.l(a1, z0, a1, z1, t); F.l(m, z0, m, z1, t);
   F.l(a0, z0, m, z1, t); F.l(m, z1, a1, z0, t);
   F.q(a0 - .5, a1 + .5, z1 + .06, z1 + .16, '#39424e'); F.l(a0 - .5, z1 + .06, a1 + .5, z1 + .06, '#23202e');
+}
+
+/** hip roof + winter snow */
+export function hipS(x, y, z, w, d, h, c, o) {
+  hip(x, y, z, w, d, h, c, o); o = o || {}; const ov = o.over === undefined ? .15 : o.over, r = Math.min(w, d) / 2 * (1 - (o.inset || 0)), zt = z + h;
+  snowSlope([x + r, y + d - r, zt], [x + w - r, y + d - r, zt], [x - ov, y + d + ov, z], [x + w + ov, y + d + ov, z], .5);
+  snowSlope([x + w - r, y + r, zt], [x + w - r, y + d - r, zt], [x + w + ov, y - ov, z], [x + w + ov, y + d + ov, z], .5);
+  if (o.inset) snowTop(x + r, x + w - r, y + r, y + d - r, zt, .1);
+}
+/** simple post-and-rail fence line between two ground points at height z (posts every ~step) */
+export function rail(a, b, z, hgt, c, n) { n = n || Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 1)); for (let i = 0; i <= n; i++) { const t = i / n, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t; lw([x, y, z], [x, y, z + hgt], c); } lw([a[0], a[1], z + hgt], [b[0], b[1], z + hgt], c); lw([a[0], a[1], z + hgt * .5], [b[0], b[1], z + hgt * .5], c); }
+/** parasol (closed in winter) */
+export function parasol(x, y, z, c, c2) {
+  lw([x, y, z], [x, y, z + 1.7], '#6b5a48');
+  if (winter()) { box(x - .05, y - .05, z + .9, .1, .1, .8, c, { ol: false }); return; }
+  const n = 8, top = [x, y, z + 1.95];
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + .39, b = (i + 1) / n * Math.PI * 2 + .39; fq([[x + Math.cos(a) * .95, y + Math.sin(a) * .95, z + 1.5], [x + Math.cos(b) * .95, y + Math.sin(b) * .95, z + 1.5], top], i % 2 ? c : c2); }
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + .39, b = (i + 1) / n * Math.PI * 2 + .39; lw([x + Math.cos(a) * .95, y + Math.sin(a) * .95, z + 1.5], [x + Math.cos(b) * .95, y + Math.sin(b) * .95, z + 1.5], dk(c, .5)); }
+}
+/** cafe table with two chairs */
+export function cafeTable(x, y, z, c = '#f4f0e8') { lw([x, y, z], [x, y, z + .7], '#4a4458'); cyl(x, y, z + .68, .32, .06, c); box(x - .65, y - .15, z, .3, .3, .45, '#8a5a34', { ol: false }); box(x + .4, y - .1, z, .3, .3, .45, '#8a5a34', { ol: false }); }
+/** fish crate: plastic tray with ice + fish */
+export function fishCrate(x, y, z, c = '#3f7fbf', seed = 1) {
+  box(x, y, z, .8, .55, .3, c); qz(x + .06, x + .74, y + .06, y + .49, z + .3, '#eaf4fa', '#d4e6f2');
+  const cols = ['#9fb4c4', '#e8927a', '#c8d4dc', '#f0b060']; for (let i = 0; i < 4; i++) { const fx = x + .15 + ((i * 37 + seed * 13) % 5) * .11, fy = y + .14 + (i % 2) * .2, cc = cols[(i + seed) % 4]; spx(fx, fy, z + .3, 0, 0, cc); spx(fx, fy, z + .3, 1, 0, cc); spx(fx, fy, z + .3, 2, 0, dk(cc, .3)); }
 }
