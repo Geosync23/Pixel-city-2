@@ -1,0 +1,16 @@
+{
+  "name": "pixel-city",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/serve.mjs",
+    "build": "node tools/build.mjs",
+    "gallery": "node tools/gallery.mjs",
+    "shot": "node tools/shot.mjs",
+    "check": "node tools/check.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
