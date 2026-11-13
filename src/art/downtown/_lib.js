@@ -6,7 +6,7 @@ export const SNOW = '#f4f8fb', SNOW2 = '#dde7f0';
 export const winter = () => ENV.season === 3;
 export const GLOWC = { warm: ['#ffd98a', '#f4c870'], cool: ['#e2f2ff', '#c4e2f6'], amber: ['#ffc56a', '#f0ac50'], tv: ['#a8d8ff', '#8ec2f2'], pink: ['#ffb0d0', '#f590b8'] };
 /** clamp a tower's floor count so the sprite stays under ~620 px: extra = units above the roof (crown, mast) */
-export const capFloors = (fl, w, d, extra = 0, fh = FH, base = 0) => Math.max(3, Math.min(fl, Math.floor(((620 - (w + d) * 8) / 16 - extra - base) / fh)));
+export const capFloors = (fl, w, d, extra = 0, fh = FH, base = 0) => Math.max(3, Math.min(fl, Math.floor(((588 - (w + d) * 8) / 16 - extra - base) / fh)));
 
 /* ---------- window-light planner: whole floors on/off + random cells, warm/cool mix ---------- */
 export function lights(seed, dens = .42) {
@@ -257,7 +257,7 @@ export function clutter(r, x0, x1, y0, y1, z, kinds = 'aavhdsk', dens = .6, extr
     if (typeof k === 'function') k(x, y);
     else if (k === 'a') ac(x, y, z); else if (k === 'A') ac(x, y, z, 1.25); else if (k === 'v') { vent(x + .3, y + .3, z); vent(x + .9, y + .5, z, .3); }
     else if (k === 'h') hut(x, y, z, 1.4, 1.3, 1.3); else if (k === 't') tank(x + .7, y + .7, z); else if (k === 'd') dish(x + .6, y + .6, z);
-    else if (k === 's') solar(x, y, z, 2); else if (k === 'k') skylight(x, y, z, 1.3, 1.1);
+    else if (k === 's') solar(x, y, z, 2); else if (k === 'k') skylight(x, y, z, 1.3, 1.1); else if (k === 'c') cooling(x, y, z);
   }
 }
 
@@ -511,3 +511,5 @@ export function bmu(F, u, z, drop, o = {}) {
 }
 /** simple railing along a roof edge on face F (at the parapet) */
 export function rail(F, u0, u1, z, c = '#c8d4dc') { F.l(u0, z + .5, u1, z + .5, c, -.1); F.l(u0, z + .28, u1, z + .28, dk(c, .15), -.1); for (let u = u0; u <= u1 + .01; u += .8) F.l(u, z, u, z + .5, dk(c, .1), -.1); }
+
+export const PATs = c => PAT.stone(c);

@@ -40,7 +40,7 @@ function charCanvas(spec, pose) {
   try { const r = render(sb, () => A.drawChar(spec, pose), null, 1); const s = toSprite(r); return s; } catch (e) { console.error(e); return null; }
 }
 // crop regions relative to the feet anchor: [x0, y0, w, h]
-const CROPS = { head: [-7, -28, 14, 13], torso: [-8, -21, 16, 15], legs: [-7, -12, 14, 14], body: [-9, -29, 18, 32], stage: [-14, -32, 28, 37] };
+const CROPS = { head: [-6, -24, 12, 11], torso: [-7, -17, 14, 12], legs: [-6, -10, 12, 11], body: [-8, -25, 16, 27], stage: [-12, -27, 24, 30] };
 function thumb(spec, region, scale = 3) {
   const s = charCanvas(spec, { anim: 'stand', frame: 0, dir: 0 }); const [x0, y0, w, h] = CROPS[region] || CROPS.body;
   const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'pix';

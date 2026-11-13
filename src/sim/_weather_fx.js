@@ -15,7 +15,6 @@ function dither(w, h, col, fn) {
 function pix(w, h, list) { // list: [x, y, colour, ...]
   const c = mk(w, h), x = c.getContext('2d'); for (let i = 0; i < list.length; i += 3) { x.fillStyle = list[i + 2]; x.fillRect(list[i], list[i + 1], 1, 1); } return c;
 }
-const hexmix = (a, b, k) => { const p = parseInt(a.slice(1), 16), q = parseInt(b.slice(1), 16), m = s => Math.round((p >> s & 255) + ((q >> s & 255) - (p >> s & 255)) * k); return '#' + ((1 << 24) | m(16) << 16 | m(8) << 8 | m(0)).toString(16).slice(1); };
 const smooth = e => e <= 0 ? 0 : e >= 1 ? 1 : e * e * (3 - 2 * e);
 
 export function createFX(G) {
@@ -55,7 +54,7 @@ export function createFX(G) {
   for (let i = 0; i < flies.n; i++) flies.a[i] = -R() * 6;
   for (let i = 0; i < glints.n; i++) glints.a[i] = -R() * 3;
   const CLOUDS = []; { let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 6; i++) CLOUDS.push(r() * 900, r() * 600, .7 + r() * .3); }
-  const birds = { on: false, x: 0, y: 0, vx: 0, n: 0, t: 0, next: 8 + R() * 20 };
+  const birds = { on: false, x: 0, y: 0, vx: 0, vy: 0, n: 0, t: 0, next: 8 + R() * 20 };
   const L = { t: 0, next: 4 + R() * 6, flash: -1, thunder: -1, loud: 0 };
   let T = 0, lcx = 0, lcy = 0, first = true;
   const PAD = 12;

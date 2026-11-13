@@ -127,7 +127,7 @@ function doormat(p) {
 function sitCat(x, y, z, c) { oblob(x, y, z + .1, 2.6, 3, c); oblob(x, y, z + .28, 2.2, 1.8, c); dot(x, y, z + .28, c, -2, -3); dot(x, y, z + .28, c, 2, -3); dot(x, y, z + .28, dk(c, .65), -1, 0); dot(x, y, z + .28, dk(c, .65), 1, 0); dot(x, y, z + .04, c, 3, 0); dot(x, y, z + .04, c, 4, -1); dot(x, y, z + .04, c, 4, -2); blob(x, y, z + .14, 1, 1.4, lt(c, .5)); }
 function catTree(p) {
   const t = tier(p), c = p.c || ['#b9b3a8', '#d9c8a8', '#8fae7e'][t], rope = (h) => ({ l: (u, v) => v % 2 ? '#d9b98a' : '#b8925a', r: (u, v) => v % 2 ? '#b8925a' : '#93744c', ol: false });
-  const post = (x, y, z, h) => cyl(x, y, z, .07, h, '#d9b98a', rope());
+  const post = (x, y, z, h) => { for (let k = 0; k * .0625 < h - .01; k++) cyl(x, y, z + k * .0625, .07, .0625, k % 2 ? '#d9b98a' : '#b8925a', { ol: false, t: '#e6cba0' }); };
   shadow(.02, 1, .02, 1);
   box(.05, .05, 0, .9, .9, .08, c, { t: lt(c, .12) });
   if (t === 0) { post(.5, .5, .08, .7); cyl(.5, .5, .78, .26, .07, c, { t: lt(c, .15) }); lw([.7, .6, .78], [.7, .6, .5], '#8e979d'); oblob(.7, .6, .46, 1.4, 1.4, FAB.red); if (p.cat) sitCat(.5, .5, .85, p.catc || '#f2a03a'); return; }

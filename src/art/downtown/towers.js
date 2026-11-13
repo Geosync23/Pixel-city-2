@@ -26,9 +26,11 @@ const setback = T('tower.setback', ['tower', 'office', 'glass'], { w: 8, d: 8, f
     z += D.b * FH;
     K.glassBox(2 * s, 2 * s, z, w - 4 * s, d - 4 * s, D.c * FH, Object.assign({}, o, { f0: D.a + D.b }));
     K.ac(s + .3, d - 2 * s + .1, z, .8); if (w > 8) K.ac(s + 1.6, d - 2 * s + .1, z, .8); K.dish(w - 2 * s + .5, s + .8, z);
+    if (r() < .7) K.bmu(FY(d - s), w * .62, z, 2.2 + Math.floor(r() * 3) * FH);
     z += D.c * FH;
     const cw = w - 4 * s;
-    K.clutter(r, 2 * s + .3, 2 * s + cw - .3, 2 * s + .3, 2 * s + cw - .3, z, 'aAvh', .5, [[2 * s + cw * .3, 2 * s + cw * .3, (x, y) => K.antenna(x, y, z, 4.5)]]);
+    K.rail(FY(d - 2 * s), 2 * s, 2 * s + cw, z); K.rail(FX(w - 2 * s), 2 * s, 2 * s + cw, z);
+    K.clutter(r, 2 * s + .3, 2 * s + cw - .3, 2 * s + .3, 2 * s + cw - .3, z, 'aAvhc', .5, [[2 * s + cw * .3, 2 * s + cw * .3, (x, y) => K.antenna(x, y, z, 4.5)]]);
   },
   [{ w: 8, d: 8, floors: 15, seed: 3 }, { w: 9, d: 7, floors: 12, seed: 8, glass: '#4f9a8e', frame: '#f0e8d8', accent: '#2f6f5f' }, { w: 7, d: 7, floors: 16, seed: 14, glass: '#46689c', frame: '#cfd6de', fin: 3 }, { w: 10, d: 8, floors: 10, seed: 21, glass: '#7a8fb8', frame: '#e8d9c4', accent: '#8a4b3a' }]);
 
@@ -54,6 +56,7 @@ const round = T('tower.round', ['tower', 'office', 'glass'], { w: 8, d: 8, floor
     const F = FY(d); F.q(w / 2 - 1, w / 2 + 1, 0, 2.05, dk(st, .1)); K.glassDoor(F, w / 2, 0); K.canopy(F, w / 2 - 1.4, w / 2 + 1.4, 2, 1, q.accent || '#3d4a54', { posts: false, trim: '#e8d08a' });
     if (q.name) F.sign(q.name, w / 2 - 1.4, w / 2 + 1.4, 2, 2.4, '#1f2a33', '#ffd98a', { lit: true }, 1.02);
     K.planter(w / 2 - 2.9, d + .2, 1, .5, r); K.planter(w / 2 + 1.9, d + .2, 1, .5, r);
+    K.art(['sphere', 'arc', 'cubes', 'fountain'][q.seed % 4], .7, d - .1, r); K.art('bench', w - .9, d - .3, r); K.cooling(w - 2.4, d - 2.8, z, .8);
   },
   [{ w: 8, d: 8, floors: 14, seed: 5 }, { w: 9, d: 7, floors: 11, seed: 12, glass: '#3f6f9f', band: '#e8eef2', rad: 2.6 }, { w: 7, d: 7, floors: 16, seed: 19, glass: '#5aa890', band: '#f4e8c8', frame: '#f4e8c8', rad: 2.9 }, { w: 10, d: 8, floors: 9, seed: 23, glass: '#8a7fb8', glass2: '#b89fd0', band: '#f0e6f4', rad: 1.6 }]);
 
@@ -94,9 +97,10 @@ const banded = T('tower.banded', ['tower', 'office', 'glass'], { w: 11, d: 6, fl
     F.q(.95, 1.35, 3, H + 1.2, q.accent); lit(() => F.l(1.15, 3, 1.15, H + 1.2, lt(q.accent, .5), .01));
     K.roofTop(0, 0, H + 2, cw, d, core); K.dish(.8, 1.2, H + 2, 1.1); K.dish(1.5, 2.6, H + 2, .9); K.antenna(1.2, d - 1.2, H + 2, 3);
     // slab
-    K.glassBox(cw, 0, 2.5, w - cw, d, H - 2.5, { L, glass, frame: band, bay: .5, sp: band, sph: .75, mull: dk(glass, .18), m: 0, cap: .5, rc: '#8a8f9a' });
+    K.glassBox(cw, 0, 2.5, w - cw, d, H - 2.5, { L: K.lights(q.seed + 1, .34), glass, frame: band, bay: .5, sp: band, sph: .75, mull: dk(glass, .18), m: 0, cap: .5, rc: '#8a8f9a' });
     const z = H; K.clutter(r, cw + .4, w - 3.6, .4, d - .3, z, 'aAvsk', .55);
     K.helipad(w - 2, d / 2, z, Math.min(1.6, d * .3));
+    K.bmu(FY(d), cw + 1.6 + r() * 2, z, 1.5 + Math.floor(r() * 4) * FH); K.rail(FX(w), .2, d - .2, z);
   },
   [{ w: 11, d: 6, floors: 13, seed: 4 }, { w: 12, d: 7, floors: 10, seed: 11, glass: '#2f5a50', band: '#e8e0cc', accent: '#e8b63a' }, { w: 10, d: 6, floors: 15, seed: 18, glass: '#4a3f5e', band: '#f4f0f0', accent: '#4fb8d0', core: '#a8a4b0' }, { w: 13, d: 6, floors: 8, seed: 26, glass: '#5a4a3a', band: '#f0d8b0', accent: '#b8432a', core: '#d0b898' }]);
 
@@ -108,7 +112,7 @@ const twotone = T('tower.twotone', ['tower', 'office', 'glass'], { w: 9, d: 8, f
     const { w, d } = q, r = rng(q.seed), L = K.lights(q.seed, q.dens || .42), H = twoH(q), wa = Math.round(w * .55), fb = Math.max(2, Math.round((H - 2.5) / FH * .68)), HB = 2.5 + fb * FH;
     K.lobby(w, d, 2.5, { r, accent: q.frame, trim: q.accent, name: q.name, stone: q.stone || '#cfc8ba', du: wa + (w - wa) / 2 - .2 });
     K.glassBox(0, 0, 2.5, wa, d, H - 2.5, { L, glass: q.glass, frame: q.frame, bay: .6, sp: null, hm: true, cap: 1.5 });
-    const z = H; K.clutter(r, .4, wa - .3, .4, d - 2.2, z, 'aAvh', .6, [[1, d - 1.6, (x, y) => K.antenna(x, y, z, 3)]]);
+    const z = H; K.clutter(r, .4, wa - .3, .4, d - 2.2, z, 'aAvhc', .6, [[1, d - 1.6, (x, y) => K.antenna(x, y, z, 3)]]);
     K.bigSign(FY(d), q.logo, .3, wa - .3, H - 1.35, H - .15, null, q.accent, { lit: true, sc: 2 }); K.bigSign(FX(wa), q.logo, .5, 2, H - 1.35, H - .15, null, q.accent, { lit: true, sc: 2 });
     K.neon(FX(wa), .12, HB + .5, .12, H - 1.6, q.accent);
     // lower bright volume
@@ -226,7 +230,7 @@ const hartwell = T('hartwell', ['tower', 'office', 'hartwell', 'enterable'], { w
   { door: { side: 'y', at: 4.5 }, light: { x: 4.5, y: 9.2, z: 0, r: 3.5 }, doorFn: () => ({ side: 'y', at: 4.5 }), lightFn: p => ({ x: 4.5, y: (p.d || 8) + 1.2, z: 0, r: 3.5 }) });
 
 /* ---- 9. tower under construction with crane ---- */
-const conD = q => { const fl = K.capFloors(q.floors, q.w, q.d, 9, FH, 0), clad = Math.max(1, Math.round(fl * (q.clad === undefined ? .4 : q.clad))); return { fl, clad, H: fl * FH }; };
+const conD = q => { const fl = K.capFloors(q.floors, q.w, q.d, 11, FH, 0), clad = Math.max(1, Math.round(fl * (q.clad === undefined ? .4 : q.clad))); return { fl, clad, H: fl * FH }; };
 function lattice(a, b, off, col, n) { const a2 = a.map((v, i) => v + off[i]), b2 = b.map((v, i) => v + off[i]); lw(a, b, col); lw(a2, b2, col); n = n || Math.max(2, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / .5)); for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n, P = (s, t) => s.map((v, k) => v + ((s === a ? b : b2)[k] - v) * t); lw(P(a, t0), P(a2, t1), col); if (i % 2 === 0) lw(P(a2, t0), P(a, t1), col); } }
 const construction = T('construction', ['tower', 'construction', 'site'], { w: 8, d: 8, floors: 11, seed: 1, glass: '#5fa3c4', conc: '#b8b4aa', crane: '#f2c230', fence: '#3f6f9f', name: 'COMING SOON' },
   q => [conD(q).H, 9],

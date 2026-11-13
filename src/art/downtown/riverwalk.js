@@ -22,6 +22,8 @@ const restaurant = K.asset('river.restaurant', ['riverwalk', 'restaurant', 'cafe
     fq([[x0, y0, zl], [x1, y0, zl], [x1, (y0 + y1) / 2, zm], [x0, (y0 + y1) / 2, zm]], K.winter() ? K.SNOW2 : '#8a8f9a'); fq([[x0, (y0 + y1) / 2, zm], [x1, (y0 + y1) / 2, zm], [x1, y1, zl + .2], [x0, y1, zl + .2]], K.winter() ? K.SNOW : '#a2a8b2');
     fq([[x1, y0, zl], [x1, (y0 + y1) / 2, zm], [x1, y1, zl + .2], [x1, y1, zl - .05], [x1, (y0 + y1) / 2, zm - .25], [x1, y0, zl - .25]].slice(0, 3), dk(wood, .3)); fq([[x1, y0, zl - .25], [x1, y0, zl], [x1, (y0 + y1) / 2, zm], [x1, (y0 + y1) / 2, zm - .25]], dk(wood, .36)); fq([[x1, (y0 + y1) / 2, zm - .25], [x1, (y0 + y1) / 2, zm], [x1, y1, zl + .2], [x1, y1, zl - .05]], dk(wood, .36));
     qy(x0, x1, y1, zl - .05, zl + .2, PAT.planks(dk(wood, .1), 5)); lw([x0, y1, zl + .2], [x1, y1, zl + .2], lt(wood, .4)); lw([x0, y1, zl - .05], [x1, y1, zl - .05], dk(wood, .6)); lw([x0, (y0 + y1) / 2, zm], [x1, (y0 + y1) / 2, zm], '#5a606c');
+    if (!K.winter()) for (let x = x0 + .8; x < x1; x += .8) { lw([x, y0, zl], [x, (y0 + y1) / 2, zm], '#7a7f8a'); lw([x, (y0 + y1) / 2, zm], [x, y1, zl + .2], '#8d939e'); }
+    for (let x = 1; x + 1.6 < w * .55; x += 2) fq([[x, y1 - 2.2, zm + (zl + .2 - zm) * (1 - 2.2 / ((y1 - y0) / 2)) + .02], [x + 1.6, y1 - 2.2, zm + (zl + .2 - zm) * (1 - 2.2 / ((y1 - y0) / 2)) + .02], [x + 1.6, y1 - .5, zm + (zl + .2 - zm) * (1 - .5 / ((y1 - y0) / 2)) + .02], [x, y1 - .5, zm + (zl + .2 - zm) * (1 - .5 / ((y1 - y0) / 2)) + .02]], '#2f4f8f', '#3c64ad');
     for (const x of [.4, w - .4]) lw([x, y1 - .2, .3], [x, y1 - .2, zl - .05], fr);
     K.bigSign(FY(y1), q.name, x0, x1, zl - .03, zl + .2, null, '#fff8e0', { lit: true, sc: 1, off: .01 });
     glow(() => { for (let x = .2; x < w; x += .9) { const p = PW(x, y1 - .1, zl - .12); px(p[0], p[1], C('#fff2c4')); px(p[0], p[1] + 1, C('#ffe9a0')); } });
@@ -115,7 +117,7 @@ const lookout = K.asset('river.lookout', ['riverwalk', 'lookout', 'deck', 'bridg
     const arch = (y, c) => { let pv = null; const n = 24; for (let i = 0; i <= n; i++) { const t = i / n, x = sx + (w - sx) * t, z = dz + .3 + Math.sin(t * Math.PI) * 4; if (pv) { lw(pv, [x, y, z], c); lw([pv[0], pv[1], pv[2] + .08], [x, y, z + .08], c); } if (i % 2 === 0 && i > 0 && i < n) lw([x, y, z], [x, y, dz + .3], '#aab4bc'); pv = [x, y, z]; } };
     arch(.25, dk(accent, .25));
     // stairs up from the left
-    const ns = 8; for (let i = 0; i < ns; i++) { const h = dz * (i + 1) / ns; box(i * sx / ns, .6, 0, sx / ns, d - 1.2, h + .3, i % 2 ? '#c9c4b8' : '#d6d1c4', { ol: false }); }
+    const ns = 8; for (let i = 0; i < ns; i++) { const h = dz * (i + 1) / ns; box(i * sx / ns, .6, 0, sx / ns + .02, d - 1.2, h + .3, i % 2 ? '#b9b4a8' : '#c9c4b8'); }
     lw([0, d - .6, .85], [sx, d - .6, dz + 1.15], '#aab4bc'); lw([0, d - .6, .3], [0, d - .6, .85], '#aab4bc');
     // deck slab
     box(sx, 0, dz, w - sx, d, .3, steel, { t: PAT.fboards(DECK, .4) }); K.snowTop(sx + .3, w - .3, .3, d - .3, dz + .3);
@@ -131,7 +133,8 @@ const lookout = K.asset('river.lookout', ['riverwalk', 'lookout', 'deck', 'bridg
     // glass rails + front arch
     glassRail(FX(w - .05), 0, d, z); glassRail(FY(d - .05), sx, w, z);
     arch(d - .25, accent);
-    K.beacon(sx + (w - sx) / 2, d - .25, dz + 4.45, 1, '#ffe9a0');
+    lit(() => { for (let i = 1; i < 24; i++) { const t = i / 24, p = PW(sx + (w - sx) * t, d - .25, dz + .3 + Math.sin(t * Math.PI) * 4); if (i % 2) px(p[0], p[1] + 2, C('#fff2c4')); } });
+    for (const x of [sx + .4, sx + (w - sx) * .45]) { lw([x, .4, z], [x, .4, z + 1.6], '#5a606c'); lit(() => { const p = PW(x, .4, z + 1.7); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) px(p[0] + a, p[1] + b, C('#fff2c4')); }); K.beacon(x, .4, z + 1.7, 0, '#ffe9a0'); }
     lit(() => K.bigText(FY(d), 'RIVER WALK', sx + (w - sx) / 2 - K.bigW('RIVER WALK', 1) / 32, dz + .25, dk(steel, .6), 1, .02));
   },
   [{ seed: 2 }, { seed: 9, w: 14, steel: '#dfe6ea', accent: '#2f8fbf', dz: 2.8 }, { seed: 20, w: 10, steel: '#f0e8d8', accent: '#3f9a6a', dz: 2 }], { solid: true });

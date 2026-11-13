@@ -118,7 +118,7 @@ const mirror = K.asset('office.mirror', ['office', 'midrise', 'glass', 'mirror']
     // entrance on +y (flat part)
     FYd.q(1.2, 3.2, 0, 2.1, dk(st, .2)); K.glassDoor(FYd, 2.2, 0, { w: 1.3, h: 1.7, frame: '#2a2430' }); K.canopy(FYd, 1, 3.4, 1.85, .9, st, { posts: false, trim: q.neon });
     FYd.sign(q.name, 3.7, Math.min(w - cut - .2, 3.7 + (q.name.length * 4 + 6) / 16), 1.75, 2.2, '#2a2430', q.neon, { lit: true }, .03);
-    K.planter(3.8, d + .25, 1.3, .5, r, { c: st });
+    K.planter(3.8, d + .25, 1.3, .5, r, { c: st }); K.art(['arc', 'cubes', 'sphere', 'fountain'][q.seed % 4], w - .9, d - .2, r, { c: q.neon });
   },
   [{ w: 9, d: 8, floors: 7, seed: 5 }, { w: 10, d: 8, floors: 5, seed: 15, glass: '#4fa8a0', neon: '#ffe45a', stone: '#3a4a4a', name: 'AQUA COURT' }, { w: 8, d: 8, floors: 8, seed: 29, glass: '#a8b4c4', neon: '#5fd4ff', stone: '#3a4050', name: 'SILVER ONE', cut: 3 }, { w: 11, d: 7, floors: 6, seed: 38, glass: '#b06a4a', neon: '#ffb347', stone: '#4a3a34', name: 'COPPER SQ', cut: 2 }]);
 

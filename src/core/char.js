@@ -21,6 +21,7 @@ export class Char {
     this.spec = spec; this.x = x; this.y = y; this.z = 0; this.dir = 1; this.anim = 'stand'; this.t = Math.random() * 10;
     this.speed = 3.6; this.path = null; this.moving = false; this.bb = [-.2, -.2, .2, .2, 1.4]; this.pose = null; // pose: forced anim while busy
     this.zoff = 0; // extra height (sitting on furniture, lying on bed)
+    this.poseOpts = null; // extra fields passed to drawChar's pose, e.g. { seated: true } or { blanket: '#88aacc' } or { item: 'box' }
   }
   setSpec(spec) { this.spec = spec; }
   face(dx, dy) { if (Math.abs(dx) < 1e-4 && Math.abs(dy) < 1e-4) return; this.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 0 : 2) : (dy > 0 ? 1 : 3); }
@@ -39,6 +40,7 @@ export class Char {
   sprite() {
     const A = charArt(), anim = this.pose || (this.moving ? (this.carry ? 'carry' : 'walk') : 'stand'), n = (A.ANIMS && A.ANIMS[anim]) || 1, a = A.ANIMS && A.ANIMS[anim] ? anim : 'stand';
     const f = Math.floor(this.t * (FPS[a] || 4)) % n, dir = this.dir;
-    return pixSprite('ch' + specId(this.spec) + a + f + dir + (this.spec._v || 0), A.CHAR_SB, () => A.drawChar(this.spec, { anim: a, frame: f, dir }));
+    const po = this.poseOpts; // extra pose fields: { seated, item, itemColor, blanket, seatH, mood }
+    return pixSprite('ch' + specId(this.spec) + a + f + dir + (this.spec._v || 0) + (po ? JSON.stringify(po) : ''), A.CHAR_SB, () => A.drawChar(this.spec, po ? Object.assign({ anim: a, frame: f, dir }, po) : { anim: a, frame: f, dir }));
   }
 }

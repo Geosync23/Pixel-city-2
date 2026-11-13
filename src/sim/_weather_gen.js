@@ -29,18 +29,18 @@ function roll(season, d, r) {
   return k;
 }
 /** the day's main weather (rolled at 05:00); repeats yesterday with WEATHER_RULES.persistence */
-export function mainKind(seed, d, depth = 0) {
+export function mainKind(seed, d, depth = 0, sOv) {
   if (d <= 0) return RULES.day0 || 'clear';
-  const r = dayRng(seed, d, 1), s = seasonOfDay(d);
-  if (depth < 8 && r() < RULES.persistence && seasonOfDay(d - 1) === s) { const y = mainKind(seed, d - 1, depth + 1); if (y !== 'storm') return y; }
+  const r = dayRng(seed, d, 1), s = sOv != null ? sOv : seasonOfDay(d);
+  if (depth < 8 && r() < RULES.persistence && (sOv != null || seasonOfDay(d - 1) === s)) { const y = mainKind(seed, d - 1, depth + 1, sOv); if (y !== 'storm') return y; }
   return roll(s, d, r);
 }
 const tail = k => k === 'storm' ? 'rain' : k === 'fog' ? 'cloudy' : k;
 
-/** -> { day, k: [24 kinds], c: [24 tempC] } */
-export function genDay(seed, d) {
-  const s = seasonOfDay(d), r = dayRng(seed, d, 2), main = mainKind(seed, d), k = new Array(24).fill(main), roll5 = RULES.rollAtHour | 0;
-  const prev = d > 0 ? tail(mainKind(seed, d - 1)) : main;
+/** -> { day, k: [24 kinds], c: [24 tempC] }. sOv: season override (debug ?season=N without matching day) */
+export function genDay(seed, d, sOv) {
+  const s = sOv != null ? sOv : seasonOfDay(d), r = dayRng(seed, d, 2), main = mainKind(seed, d, 0, sOv), k = new Array(24).fill(main), roll5 = RULES.rollAtHour | 0;
+  const prev = d > 0 ? tail(mainKind(seed, d - 1, 0, sOv)) : main;
   const bg = r() < .55 ? 'cloudy' : 'clear';
   const fill = (a, b, kind) => { for (let h = Math.max(0, a); h < Math.min(24, b); h++) k[h] = kind; };
   if (main === 'clear') { if (r() < .35) { const a = 11 + (r() * 4 | 0); fill(a, a + 2 + (r() * 3 | 0), 'cloudy'); } }
@@ -65,6 +65,6 @@ export function genDay(seed, d) {
     const kk = k[h]; if (kk === 'rain') t -= 2; else if (kk === 'storm') t -= 3; else if (kk === 'cloudy' || kk === 'fog') t -= 1;
     if (kk === 'snow') t = Math.min(t, 0); c[h] = Math.round(t);
   }
-  return { day: d, k, c };
+  return { day: d, k, c, s };
 }
 export const toF = c => Math.round(c * 9 / 5 + 32);
