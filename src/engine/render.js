@@ -69,7 +69,7 @@ export class Renderer {
     this._ground(world, cam, ctx);
     if (hooks.under) hooks.under(ctx, cam);
     const L = [], vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4;
-    for (const ob of world.query(vx0, vy0, vx1, vy1)) { if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const w = WS(ob.x, ob.y, ob.z); L.push({ B: ob.B, spr, ax: w[0], ay: w[1], r: ob.sb, k: ob.k }); }
+    for (const ob of world.query(vx0, vy0, vx1, vy1)) { if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const w = WS(ob.x, ob.y, ob.z); L.push({ B: ob.B, spr, ax: w[0], ay: w[1], r: ob.sb, k: ob.k, ob }); }
     for (const e of ents) {
       if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const w = WS(e.x, e.y, e.z), ax = Math.round(w[0]), ay = Math.round(w[1]);
       const r = [spr.x + ax, spr.y + ay, spr.x + ax + spr.w, spr.y + ay + spr.h]; if (r[2] < vx0 || r[0] > vx1 || r[3] < vy0 || r[1] > vy1) continue;
@@ -77,7 +77,12 @@ export class Renderer {
       L.push({ B, spr, ax, ay, r, k: B[0] + B[3] + B[1] + B[4], e });
     }
     const S = sortItems(L); this.stats.items = S.length;
-    for (const it of S) { const sp = it.spr; if (it.e && it.e.alpha !== undefined) { ctx.globalAlpha = it.e.alpha; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); }
+    // see-through: tall static objects drawn in front of the focus entity (the player) fade out
+    let fi = -1; for (let i = 0; i < S.length; i++) if (S[i].e && S[i].e.ghost && !S[i].e.hidden) { fi = i; break; }
+    const fading = this.fading || (this.fading = new Set()); for (const ob of fading) ob._want = 1;
+    if (fi >= 0) { const f = S[fi], fx = f.ax, fy = f.ay - 12; for (let i = fi + 1; i < S.length; i++) { const it = S[i], ob = it.ob; if (!ob || ob.B[5] - ob.B[2] < 2.4) continue; const r = it.r; if (fx < r[0] + 6 || fx > r[2] - 6 || fy < r[1] + 4 || fy > r[3] + 6) continue; if (ob.B[3] - ob.B[0] < 1.2 && ob.B[4] - ob.B[1] < 1.2) continue; ob._want = .28; if (ob._a === undefined) ob._a = 1; fading.add(ob); } }
+    for (const ob of fading) { ob._a += (ob._want - ob._a) * .18; if (ob._want === 1 && ob._a > .97) { ob._a = undefined; fading.delete(ob); } }
+    for (const it of S) { const sp = it.spr; if (it.ob && it.ob._a !== undefined) { ctx.globalAlpha = it.ob._a; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else if (it.e && it.e.alpha !== undefined) { ctx.globalAlpha = it.e.alpha; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); }
     for (const it of S) if (it.e && it.e.ghost) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
     const dark = env.dark || 0;
     if (env.amb && env.amb !== '#ffffff') {
@@ -87,7 +92,7 @@ export class Renderer {
     }
     if (dark > .02) {
       const b = this.B.getContext('2d'); b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
-      for (const it of S) { const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; } }
+      for (const it of S) { if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     if (hooks.over) hooks.over(ctx, cam);

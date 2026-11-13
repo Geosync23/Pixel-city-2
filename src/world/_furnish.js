@@ -30,7 +30,7 @@ export function build(c) {
       if (k % 4 === 0) { const id = c.first(...(rd.half === 4 && z !== Z.oldtown && z !== Z.hillcrest ? ['prop.street.lamp.double'] : []), ...(LAMP[z] || LAMP[1]), 'ex.lamp'); c.put(id, x, y, { p: c.vp(id, r), free: true }); }
       else if (bridge) continue;
       else if (k % 4 === 2) { const l = TREE[z] || []; if (l.length && r() < .8) pv(pick(l), x, y, r, { free: true }); }
-      else if (r() < .33) { const id = pick(SMALL[z] || SMALL[1]); if (!c.has(id)) continue; const sz = c.size(id, {}); if (Math.max(sz[0], sz[1]) > 1.6 && r() < .5) continue; pv(id, x - (rd.axis === 'y' && s < 0 ? sz[1] - .5 : 0), y - (rd.axis === 'x' && s < 0 ? Math.min(sz[1], 1) - .5 : 0), r, { free: true, flip: rd.axis === 'y' && sz[0] > 1 }); }
+      else if (r() < .45) { const id = pick(SMALL[z] || SMALL[1]); if (!c.has(id)) continue; const sz = c.size(id, {}); if (Math.max(sz[0], sz[1]) > 1.6 && r() < .5) continue; pv(id, x - (rd.axis === 'y' && s < 0 ? sz[1] - .5 : 0), y - (rd.axis === 'x' && s < 0 ? Math.min(sz[1], 1) - .5 : 0), r, { free: true, flip: rd.axis === 'y' && sz[0] > 1 }); }
     }
   }
   /* signals + signs */
@@ -57,7 +57,7 @@ export function build(c) {
       let st = stops.find(q => q.road === rd.id && q.side === side && Math.hypot(q.x - x, q.y - y) < 14);
       if (!st) { const cross = c.nodes.filter(n => (L.axis === 'x' ? n.rx : n.ry) === rd).sort((p, q) => Math.abs((L.axis === 'x' ? p.x : p.y) - t) - Math.abs((L.axis === 'x' ? q.x : q.y) - t))[0]; const nm = rd.name + (cross ? ' & ' + (L.axis === 'x' ? cross.ry : cross.rx).name : '');
         st = w.poi({ type: 'busstop', id: 'bus:' + (stops.length + 1), name: nm, x, y, road: rd.id, side, axis: L.axis, routes: [], lane: L.axis === 'x' ? { x: t, y: ln[li] } : { x: ln[li], y: t } }); stops.push(st);
-        const cx = L.axis === 'x' ? t : L.c + side * (rd.half + .5) - .12, cy = L.axis === 'x' ? L.c + side * (rd.half + .5) - .12 : t; c.put('prop.road.busstop', cx, cy, { p: { routes: R.name[0] } });
+        const cx = L.axis === 'x' ? t : L.c + side * (rd.half + .5) - .12, cy = L.axis === 'x' ? L.c + side * (rd.half + .5) - .12 : t; c.put('prop.road.busstop', cx, cy, { p: { routes: [R.name[0]] } });
         const bx = L.axis === 'x' ? t + 1 : L.c + side * (rd.half + 1.2) - .75, by = L.axis === 'x' ? L.c + side * (rd.half + 1.2) - .75 : t + 1, back = L.axis === 'x' ? c.occAt(t + 3, L.c + side * (rd.half + 3)) : c.occAt(L.c + side * (rd.half + 3), t + 3);
         if (back !== 3 && c.has('prop.road.busshelter')) c.put('prop.road.busshelter', L.axis === 'x' ? bx : bx - (side > 0 ? 0 : 0), by, { p: c.vp('prop.road.busshelter', r), flip: L.axis === 'y', free: true });
         const lo = side * (rd.half - 1.9), hi = side * (rd.half - .1), a0 = Math.min(lo, hi), a1 = Math.max(lo, hi); if (L.axis === 'x') { c.mark(t - 4, L.c + a0, t + 5, L.c + a0 + .12, YELLOW); c.mark(t - 4, L.c + a0, t - 3.88, L.c + a1, YELLOW); c.mark(t + 4.88, L.c + a0, t + 5, L.c + a1, YELLOW); } else { c.mark(L.c + a0, t - 4, L.c + a0 + .12, t + 5, YELLOW); c.mark(L.c + a0, t - 4, L.c + a1, t - 3.88, YELLOW); c.mark(L.c + a0, t + 4.88, L.c + a1, t + 5, YELLOW); } }
@@ -78,5 +78,6 @@ export function build(c) {
     if (rw() < .12) pv(pick(['prop.nature.rock', 'prop.nature.bush', 'prop.nature.wildflowers', 'prop.nature.fern', 'prop.nature.stump', 'prop.nature.grass']), x, y, rw, { free: true }); else if (WOOD.length && pv(WOOD[Math.floor(rw() * rw() * WOOD.length)], x, y, rw, { free: true })) n++; }
   // rocks + reeds along the upper river and the spring pond
   for (let i = 0; i < 40; i++) { const y = 42 + rw() * 78, x = rw() < .5 ? 146 + rw() * 3 : 163 + rw() * 3; pv(pick(['prop.nature.rock', 'prop.nature.reeds', 'prop.nature.grass', 'prop.nature.tree.willow']), x, y, rw, { free: true }); }
+  w.poi({ type: 'spot', kind: 'skate', name: 'Campus Skate Spot', x: 196, y: 96 }); w.poi({ type: 'spot', kind: 'cats', name: 'Cat Alley', x: 60, y: 240 }); w.poi({ type: 'spot', kind: 'planespotting', name: 'Runway Viewpoint', x: 270, y: 60 });
   w.poi({ type: 'landmark', name: 'Maple Falls', x: 156, y: 121 }); w.poi({ type: 'spot', kind: 'lookout', name: 'Maple Falls', x: 147, y: 124.5 });
 }

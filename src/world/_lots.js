@@ -14,7 +14,7 @@ export function install(c) {
     c.occSet(x, y, x1, y1, 3);
     const lot = { a, x, y, w: s[0], d: s[1], h: s[2], z, p, flip: !!o.flip, o }; c.queue.push(lot); c.lots.push(lot); return lot;
   };
-  c.flushBuildings = () => { for (const l of c.queue) { l.ob = w.place(l.a, l.x, l.y, { p: l.p, flip: l.flip, z: l.z, solid: l.o.solid }); c.stats[l.a.kind] = (c.stats[l.a.kind] || 0) + 1; } c.queue = []; };
+  c.flushBuildings = () => { for (const l of c.queue) { l.ob = w.place(c.safe(l.a), l.x, l.y, { p: l.p, flip: l.flip, z: l.z, solid: l.o.solid }); c.stats[l.a.kind] = (c.stats[l.a.kind] || 0) + 1; } c.queue = []; };
   /** world position just outside a lot's door */
   c.door = (l, off = .75) => { const at = l.a.door && l.a.door.at !== undefined ? l.a.door.at : (l.flip ? l.d : l.w) / 2, side = (l.a.door && l.a.door.side) || 'y'; const fy = (side === 'y') !== l.flip; return fy ? { x: l.x + Math.min(at, l.w - .5), y: l.y + l.d + off, dir: 3 } : { x: l.x + l.w + off, y: l.y + Math.min(at, l.d - .5), dir: 2 }; };
   /** generic pool: buildings carrying any of `tags`, minus special-purpose ones (unless allow has their tag) */

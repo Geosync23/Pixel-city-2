@@ -40,13 +40,16 @@ export function makeCtx(seed) {
   c.occFree = (x0, y0, x1, y1, ok) => { x0 = Math.floor(x0); y0 = Math.floor(y0); x1 = Math.ceil(x1); y1 = Math.ceil(y1); if (x0 < 0 || y0 < 0 || x1 > W || y1 > H) return false; for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const v = c.occ[y * W + x]; if (v && !(ok && ok.includes(v))) return false; } return true; };
   /** sub-stream rng so that one district's changes do not reshuffle the others */
   c.sub = k => rng(seed * 7919 + k * 104729);
+  /** wrap an asset so that a buggy draw() from in-progress art cannot crash the frame loop */
+  const safe = new Map(); c.safe = a => { let s = safe.get(a); if (!s) { s = Object.assign(Object.create(a), { draw(p) { try { a.draw(p); } catch (e) { if (!a._bad) { a._bad = true; (c.world.badArt = c.world.badArt || []).push(a.id + ': ' + e.message); } } } }); safe.set(a, s); } return s; };
+  c.keep = new Set(); c.keepClear = (x, y, rad = 2) => { const gx = Math.floor(x * 2), gy = Math.floor(y * 2); for (let j = -rad; j <= rad; j++) for (let i = -rad; i <= rad; i++) c.keep.add((gy + j) * 1000 + gx + i); };
   c.has = id => ASSETS.has(id);
   /** place an asset if it exists (returns object or null). o.free: only if nav cell is free. */
   c.put = (id, x, y, o = {}) => {
     const a = typeof id === 'string' ? ASSETS.get(id) : id; if (!a) return null;
     if (x < 1 || y < 1 || x > W - 2 || y > H - 2) return null;
-    if (o.free) { let s = assetSize(a, o.p || {}); if (o.flip) s = [s[1], s[0], s[2]]; if (world.isBlocked(x + .25, y + .25) || world.isBlocked(x + s[0] - .25, y + s[1] - .25) || world.isBlocked(x + s[0] / 2, y + s[1] / 2)) return null; }
-    const ob = world.place(a, x, y, o); c.stats[a.kind] = (c.stats[a.kind] || 0) + 1; return ob;
+    if (o.free) { let s = assetSize(a, o.p || {}); if (o.flip) s = [s[1], s[0], s[2]]; if (c.keep.size && a.kind !== 'vehicle') for (let yy = Math.floor(y * 2); yy < (y + s[1]) * 2; yy++) for (let xx = Math.floor(x * 2); xx < (x + s[0]) * 2; xx++) if (c.keep.has(yy * 1000 + xx)) return null; if (world.isBlocked(x + .25, y + .25) || world.isBlocked(x + s[0] - .25, y + s[1] - .25) || world.isBlocked(x + s[0] / 2, y + s[1] / 2)) return null; }
+    const ob = world.place(c.safe(a), x, y, o); c.stats[a.kind] = (c.stats[a.kind] || 0) + 1; return ob;
   };
   /** random variant params of an asset (+seed) */
   c.vp = (a, r, extra) => { a = typeof a === 'string' ? ASSETS.get(a) : a; if (!a) return Object.assign({ seed: 1 }, extra || {}); const vs = a.variants && a.variants.length ? a.variants : [{}]; return Object.assign({}, vs[Math.floor(r() * vs.length) % vs.length], { seed: 1 + Math.floor(r() * 9999) }, extra || {}); };

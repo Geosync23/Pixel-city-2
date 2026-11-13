@@ -24,7 +24,7 @@ const sw = b => [b[1], b[0], b[2], b[4], b[3], b[5]];
 /** sprite for a placed world object (see World.place). Anchor = WS(ob.x, ob.y, ob.z). */
 export function objSprite(ob) {
   if (!ob._key) ob._key = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : '');
-  return cached(ob._key, () => toSprite(R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip)));
+  return cached(ob._key, () => { try { return toSprite(R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip)); } catch (e) { console.warn('art error in ' + ob.id + ': ' + e.message); return null; } });
 }
 /** sprite for an asset drawn at the origin with params (vehicles etc). vb optional override. */
 export function assetSprite(a, p, flip, key) {

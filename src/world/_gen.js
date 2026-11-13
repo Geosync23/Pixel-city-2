@@ -18,7 +18,10 @@ export function generateCity(seed = 20261, steps = {}) {
   markRoads(c);
   w.bakeTerrainNav();
   bridges(c);
-  for (const f of steps.build || []) f(c);       // objects
+  let first = true;
+  for (const f of steps.build || []) { f(c); if (first) { first = false; for (const p of w.pois) if (p.type === 'door' || p.type === 'spawn') c.keepClear(p.x, p.y); } else for (const p of w.pois) if (!p._k && (p.type === 'station' || p.type === 'stall')) { p._k = 1; c.keepClear(p.x, p.y, 1); } }
+  // make sure every actionable poi sits on a walkable cell
+  for (const p of w.pois) { delete p._k; if (p.type === 'bench' || p.type === 'landmark' || !w.isBlocked(p.x, p.y)) continue; let best = null, bd = 1e9; for (let dy = -3; dy <= 3; dy += .5) for (let dx = -3; dx <= 3; dx += .5) { const x = p.x + dx, y = p.y + dy, d = dx * dx + dy * dy; if (d < bd && !w.isBlocked(x, y)) { bd = d; best = [x, y]; } } if (best) { p.x = best[0]; p.y = best[1]; } }
   flushMarks(c);
   w.genMs = Date.now() - t0; w.genStats = c.stats; w._ctx = c;
   return w;
