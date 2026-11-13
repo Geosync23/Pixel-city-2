@@ -94,7 +94,7 @@ export function loft(secs, o) {
       const n = [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
       const v = n[0] + n[1] + n[2] > 1e-9; vis[i].push(v); if (!v) continue;
       const b = cf(k, i); if (!b) { vis[i][k] = false; continue; } base0 = base0 || b;
-      fq([A, B, Cc, D], o.flat ? b : shade(b, n), o.h2 ? o.h2(k, i) : undefined);
+      if (!o.nofill) fq([A, B, Cc, D], o.flat ? b : shade(b, n), o.h2 ? o.h2(k, i) : undefined);
     }
   }
   const last = secs[secs.length - 1];
@@ -179,3 +179,24 @@ export function along(dir, L) {
   };
 }
 export { ring };
+
+/** tiny bitmap on a wall. rows = strings, pal = {char: hex}; top-left at (x,y,z) like wtext. */
+export function bmp(face, rows, x, y, z, pal, k = 1) {
+  const W = rows[0].length * k, fl = isFlipped(); let s, sl;
+  if (face === 'y') { s = fl ? PW(x + W / U, y, z) : PW(x, y, z); sl = fl ? -1 : 1; } else { s = fl ? PW(x, y - W / U, z) : PW(x, y, z); sl = fl ? 1 : -1; }
+  const X = Math.round(s[0]), Y = Math.round(s[1]);
+  rows.forEach((row, r) => { for (let b = 0; b < row.length; b++) { const h = pal[row[b]]; if (!h) continue; const c = C(h); for (let a = 0; a < k; a++) for (let e = 0; e < k; e++) { const u = b * k + a; px(X + u, Y + sl * (u >> 1) + r * k + e, c); } } });
+}
+export const LEAF = ['....#....', '...###...', '.#.###.#.', '.#######.', '#########', '.#######.', '..#####..', '....#....', '....#....'];
+/** annulus (ring) on a horizontal plane, drawn as quads so it can be dithered */
+export function ringZ(x, y, z, r0, r1, h, h2, n = 24) { for (let i = 0; i < n; i++) { const a = i / n * 6.2832, b = (i + 1) / n * 6.2832; fq([[x + r0 * Math.cos(a), y + r0 * Math.sin(a), z], [x + r1 * Math.cos(a), y + r1 * Math.sin(a), z], [x + r1 * Math.cos(b), y + r1 * Math.sin(b), z], [x + r0 * Math.cos(b), y + r0 * Math.sin(b), z]], h, h2); } }
+
+/** extrude an (x,z) profile along y from y0 to y1. profile ordered from the +x side over the top to -x. */
+export function extrudeY(prof, y0, y1, o) { loft([prof.map(q => [q[0], y1, q[1]]), prof.map(q => [q[0], y0, q[1]])], o); }
+/** end wall under an (x,z) profile at plane y (faces +y) */
+export function gableY(prof, y, zb, h, h2) { for (let i = 0; i < prof.length - 1; i++) { const a = prof[i], b = prof[i + 1]; fq([[a[0], y, zb], [b[0], y, zb], [b[0], y, b[1]], [a[0], y, a[1]]], h, h2); } }
+/** tiny parked car seen side-on against a +y plane */
+export function sideCar(x, y, z, c, dir = 1) {
+  qy(x, x + 2.5, y, z + .15, z + .62, c); qy(x + (dir > 0 ? .55 : .35), x + (dir > 0 ? 2.15 : 1.95), y, z + .62, z + 1.0, dk(c, .1)); qy(x + (dir > 0 ? .7 : .5), x + (dir > 0 ? 2.0 : 1.8), y, z + .66, z + .94, '#34425a');
+  qy(x + .35, x + .8, y, z, z + .32, '#1d1c26'); qy(x + 1.7, x + 2.15, y, z, z + .32, '#1d1c26'); lw([x, y, z + .15], [x + 2.5, y, z + .15], dk(c, .5));
+}

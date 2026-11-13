@@ -69,7 +69,7 @@ function snapCam() { const p = G.camTarget || G.player, a = WS(p.x, p.y, p.z); G
 G.snapCam = snapCam;
 function resize() {
   const wrap = G.cv.parentElement, dpr = window.devicePixelRatio || 1, cw = wrap.clientWidth, ch = wrap.clientHeight;
-  G.zmin = Math.max(1, Math.round(dpr)); G.zmax = Math.max(G.zmin + 3, Math.round(dpr * 6)); G.zoom = Math.min(G.zmax, Math.max(G.zmin, G.zoom));
+  G.zmin = Math.max(2, Math.round(dpr * 2)); G.zmax = Math.max(G.zmin + 2, Math.round(dpr * 5)); if (G.query && G.query.has('debug')) G.zmin = 1; G.zoom = Math.min(G.zmax, Math.max(G.zmin, G.zoom));
   G.W = Math.max(32, Math.ceil(cw * dpr / G.zoom)); G.H = Math.max(32, Math.ceil(ch * dpr / G.zoom)); G.renderer.resize(G.W, G.H);
   G.cv.style.width = (G.W * G.zoom / dpr) + 'px'; G.cv.style.height = (G.H * G.zoom / dpr) + 'px'; G.cssScale = G.zoom / dpr;
 }
@@ -161,7 +161,7 @@ G.boot = (cv, opts = {}) => {
   if (!G.state.player.spec) G.state.player.spec = (A.PLAYER_PRESETS && A.PLAYER_PRESETS[0]) || A.randomSpec(r, {});
   G.player = new Char(G.state.player.spec); G.player.ghost = true; G.player.isPlayer = true;
   ENV.season = timeInfo(G.state.t).season;
-  const dpr = window.devicePixelRatio || 1; G.zoom = Math.max(1, Math.round(dpr * 2)); resize(); addEventListener('resize', () => { resize(); snapCam(); });
+  const dpr = window.devicePixelRatio || 1; G.zoom = Math.max(2, Math.round(dpr * 3)); resize(); addEventListener('resize', () => { resize(); snapCam(); });
   G.input = setupInput(cv, { tap: onTap, zoom: (v, abs) => G.setZoom(abs ? v : G.zoom + v), getZoom: () => G.zoom, key: (k, e) => { if (G.modal) return; if (k === 'e' || k === ' ' || k === 'enter') { const it = !G.busy && !G.cutscene && G.nearestInteractable(); if (it) G.useInteractable(it); } G.emit('key', k, e); }, any: () => G.emit('anyinput') });
   last = performance.now(); requestAnimationFrame(frame);
 };

@@ -1,7 +1,7 @@
 // Aircraft for Maple Bay International. All lie along the x axis: p.dir = 1 nose toward +x, -1 nose toward -x.
 // p.gear (default true) = wheels down. Every aircraft has a matching flat ground shadow asset '<id>.shadow'.
 import { fq, lw, glow, dk, lt, spx, hash2 } from '../../engine/raster.js';
-import { loft, tubeSecs, tpt, discX, discY, discZ, wheel, lamp, wtext, tw, AP } from './_lib.js';
+import { loft, tubeSecs, tpt, discX, discY, discZ, wheel, lamp, wtext, tw, AP, ringZ } from './_lib.js';
 
 const SH = '#1c1a30';
 const lerp = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
@@ -99,7 +99,7 @@ function drawPlane(cfg, p) {
       const prop = () => {
         const c = M(E.x1 + .12, ey, E.z);
         if (p.spin === false) { for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .5; lw(c, [c[0], c[1] + Math.cos(a) * E.prop, c[2] + Math.sin(a) * E.prop], '#2e3440'); lw([c[0], c[1], c[2] + .06], [c[0], c[1] + Math.cos(a) * E.prop, c[2] + Math.sin(a) * E.prop + .06], '#2e3440'); } }
-        else { discX(c[0], c[1], c[2], E.prop, '#dfe6ee', 'glass', 16); discX(c[0], c[1], c[2], E.prop * .96, '#aab4c0', 'glass', 16); for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; spx(c[0], c[1] + Math.cos(a) * E.prop, c[2] + Math.sin(a) * E.prop, 0, 0, i % 4 === 0 ? AP.yel : '#8f99a6'); } }
+        else { discX(c[0], c[1], c[2], E.prop, '#f4f8fb', 'glass', 16); for (let i = 0; i < 3; i++) { const a = i * 2.094 + .4; lw(c, [c[0], c[1] + Math.cos(a) * E.prop * .9, c[2] + Math.sin(a) * E.prop * .9], '#8f99a6'); } for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; spx(c[0], c[1] + Math.cos(a) * E.prop, c[2] + Math.sin(a) * E.prop, 0, 0, i % 4 === 0 ? AP.yel : '#8f99a6'); } }
       };
       if (!front) prop();
       tube([{ x: E.x0, r: r * .5 }, { x: E.x0 + 1, r: r * .95 }, { x: E.x1 - .5, r }, { x: E.x1, r: r * .6 }, { x: E.x1 + .25, r: r * .15 }].map(q => ({ x: q.x, y: ey, z: E.z, ry: q.r, rz: q.r * 1.1 })),
@@ -226,7 +226,7 @@ function drawHeli(p) {
   const hub = M(6.2, cy, zc + 1.75); lw([hub[0], hub[1], zc + 1.2], hub, '#3d4654'); lw([hub[0] + 1 / 16, hub[1], zc + 1.2], [hub[0] + 1 / 16, hub[1], hub[2]], '#5b6676');
   const R = 3.6;
   if (p.spin === false) { for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .45, c = Math.cos(a), s = Math.sin(a), w = .09; fq([[hub[0] - s * w, hub[1] + c * w, hub[2]], [hub[0] + c * R - s * w, hub[1] + s * R + c * w, hub[2] - .08], [hub[0] + c * R + s * w, hub[1] + s * R - c * w, hub[2] - .08], [hub[0] + s * w, hub[1] - c * w, hub[2]]], '#2e3440'); } }
-  else { discZ(hub[0], hub[1], hub[2], R, '#e6ecf2', 'glass', 28); discZ(hub[0], hub[1], hub[2], R * .93, '#b9c2cc', 'glass', 28); discZ(hub[0], hub[1], hub[2], R * .5, '#e6ecf2', 'glass', 20);
+  else { ringZ(hub[0], hub[1], hub[2], R * .62, R * .93, '#c3ccd6', 'glass'); ringZ(hub[0], hub[1], hub[2], R * .93, R, '#f4f8fb', 'glass');
     for (let i = 0; i < 2; i++) { const a = i * Math.PI + .6, c = Math.cos(a), s = Math.sin(a), w = .12; fq([[hub[0] - s * w, hub[1] + c * w, hub[2]], [hub[0] + c * R - s * w, hub[1] + s * R + c * w, hub[2]], [hub[0] + c * R + s * w, hub[1] + s * R - c * w, hub[2]], [hub[0] + s * w, hub[1] - c * w, hub[2]]], '#6b7482', 'glass'); } }
   discZ(hub[0], hub[1], hub[2] + .02, .22, '#3d4654', null, 8);
   lamp(...M(.2, cy, zc + 2.05), '#ff4a3a'); lamp(...M(6.2, cy + .9, zc - .2), dir > 0 ? '#ff4a3a' : '#3dff7a'); lamp(...M(9.1, cy + .1, zc - .55), '#fff6d0', true);

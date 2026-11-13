@@ -85,8 +85,8 @@ const gull_ = {
     for (let y = .8; y + 1.4 <= d - .5; y += 2) { Fx.q(y - .06, y + 1.46, .3, 1.86, Rc(trim)); gridWin(Fx, y, y + 1.4, .3, 1.8, { on: true, cols: 2, rows: 3, frame: trim }); }
     for (let y = .9; y + 1 <= d - .5; y += 1.6) gridWin(Fx, y, y + 1, 2.95, 3.75, { on: r() < .6, cols: 2, rows: 2, frame: trim, sill: true });
     // roof
-    hipS(0, 0, H, bw, d, 1.7, roof, { over: .3 });
-    box(1, 1.2, H + .5, .6, .6, 1.5, '#a85640', { l: PAT.brick(Lc('#a85640')), r: PAT.brick(Rc('#a85640')) }); snowTop(1, 1.6, 1.2, 1.8, H + 2, .05);
+    hipS(0, 0, H, bw, d, 1.7, roof, { over: .2 });
+    box(bw - 1.9, 1.2, H + .5, .6, .6, 1.5, '#a85640', { l: PAT.brick(Lc('#a85640')), r: PAT.brick(Rc('#a85640')) }); snowTop(bw - 1.9, bw - 1.3, 1.2, 1.8, H + 2, .05);
     // gilded gull weathervane
     const gx = bw / 2, gy = d / 2, gz = H + 1.7; lw([gx, gy, gz], [gx, gy, gz + .8], '#4a4458');
     const g = (dx, dy) => spx(gx, gy, gz + .8, dx, dy, gold);[[-4, -3], [-3, -3], [-2, -3], [-1, -3], [0, -3], [1, -3], [-2, -4], [-1, -4], [0, -4], [1, -4], [2, -4], [2, -5], [3, -5], [-1, -5], [-2, -6], [-3, -7], [0, -2], [-5, -4]].forEach(q => g(q[0], q[1])); spx(gx, gy, gz + .8, 4, -5, '#e08030');

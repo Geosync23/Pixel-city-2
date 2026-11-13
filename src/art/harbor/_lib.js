@@ -206,3 +206,16 @@ export function fishCrate(x, y, z, c = '#3f7fbf', seed = 1) {
   box(x, y, z, .8, .55, .3, c); qz(x + .06, x + .74, y + .06, y + .49, z + .3, '#eaf4fa', '#d4e6f2');
   const cols = ['#9fb4c4', '#e8927a', '#c8d4dc', '#f0b060']; for (let i = 0; i < 4; i++) { const fx = x + .15 + ((i * 37 + seed * 13) % 5) * .11, fy = y + .14 + (i % 2) * .2, cc = cols[(i + seed) % 4]; spx(fx, fy, z + .3, 0, 0, cc); spx(fx, fy, z + .3, 1, 0, cc); spx(fx, fy, z + .3, 2, 0, dk(cc, .3)); }
 }
+
+/** see-through chain-link panel with posts and top rail on a wall face */
+export function chainlink(F, a0, a1, z0, z1, c = '#aab4bc') {
+  F.q(a0, a1, z0, z1, (u, v) => ((u + v) % 4 === 0 || (u - v + 4000) % 4 === 0) ? c : null);
+  const n = Math.max(1, Math.round((a1 - a0) / 2)); for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; F.l(a, z0, a, z1 + .08, dk(c, .45)); }
+  F.l(a0, z1, a1, z1, dk(c, .3)); F.l(a0, z0, a1, z0, dk(c, .45));
+}
+/** snow cap on a round top */
+export function snowDisc(x, y, z, r) { if (!winter()) return; const t = PW(x, y, z); ellipse(t[0], t[1], r * U * 1.414 - 1, r * U * .707 - 1, SNOW, '#e6edf2'); }
+/** panel pattern: grid lines every n px */
+export const panels = (c, n = 16, m = 16) => { const s = dk(c, .14); return (u, v) => (u % n === 0 || v % m === 0) ? s : c; };
+/** hazard-yellow bollard */
+export function bollardY(x, y, z = 0) { cyl(x, y, z, .1, .7, '#f2c230', { ol: false }); band(x, y, z + .45, .1, .1, '#2e2a3a'); }

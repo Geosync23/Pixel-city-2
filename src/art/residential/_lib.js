@@ -372,7 +372,7 @@ export function mk(a) {
   const out = {
     id: a.id, kind: 'building', tags: a.tags, variants: a.variants, solid: true,
     size: p => { const P = merge(p); return [P.w, P.d, a.height(P)]; },
-    vb: a.vb ? p => a.vb(merge(p)) : p => { const P = merge(p), h = a.height(P), m = a.pad || [.6, .6, .7, 1.1]; return [-m[0], -m[1], 0, P.w + m[2], P.d + m[3], h + (a.top === undefined ? 1 : a.top)]; },
+    vb: a.vb ? p => a.vb(merge(p)) : p => { const P = merge(p), h = a.height(P), m = a.pad || [.45, .45, .5, .6]; return [-m[0], -m[1], 0, P.w + m[2], P.d + m[3], h + (a.top === undefined ? .8 : a.top)]; },
     draw: p => { const P = merge(p); a.paint(P, rng(P.seed * 7 + 3)); },
     params: a.defs,
   };

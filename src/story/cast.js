@@ -39,7 +39,8 @@
 //                  place  venueId | 'home' | 'spot:<spotId>'
 //                  anim   one of: stand walk sit eat drink phone talk wave type work lift dance read cheer
 //                Any time not covered = at home, not available (asleep / indoors).
-//                First matching entry wins, so more specific blocks are listed first.
+//                If two blocks overlap, the LATER entry in the list wins (general blocks
+//                first, exceptions such as a lunch break after them).
 //   look         string   free-text description for the character artist.
 //   spec         suggested appearance: { skin, hair, hairColor, top, topColor, bottom,
 //                bottomColor, hat, glasses, bag, age:'kid'|'adult'|'elder', outfit }
@@ -430,9 +431,9 @@ export const CAST = [
     dislikes: { gifts: ['pastry_box'], topics: ['money'] },
     birthday: { season: 'spring', day: 6 }, flirtable: false,
     routine: [
-      r(['tue', 'wed', 'thu', 'fri', 'sat', 'sun'], '05:00', '14:00', 'bakery', 'work'),
+      r(['mon', 'tue', 'thu', 'fri', 'sat', 'sun'], '05:00', '14:00', 'bakery', 'work'),
       r(['tue', 'thu'], '15:00', '16:00', 'cafe', 'drink'),
-      r(['mon'], '11:00', '13:00', 'bookstore', 'read'),
+      r(['wed'], '11:00', '13:00', 'bookstore', 'read'),
     ],
     look: 'Bright head wrap, flour to the elbows, laugh you can hear from the street, tray always in hand.',
     spec: { skin: 'dark', hair: 'wrapped', hairColor: '#1b1b1e', top: 'tshirt', topColor: '#ffd166', bottom: 'trousers', bottomColor: '#6c584c', hat: 'headwrap', glasses: 'none', bag: 'none', age: 'adult', outfit: 'baker' },

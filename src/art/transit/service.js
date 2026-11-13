@@ -75,9 +75,9 @@ function drawBus(p, dd) {
     lw([m, W, zb + .06], [m, W, 2.0], '#1b2026'); lw([x0, W, zb + .06], [x0, W, 2.0], '#1b2026'); lw([x1, W, zb + .06], [x1, W, 2.0], '#1b2026'); lw([x0, W, 2.0], [x1, W, 2.0], '#1b2026');
     lamp(m, W, 2.07, '#9cf2b0', 0, 2, 1);
   }
-  if (dd) { const ws = []; for (let a = .3; a + .5 <= 7.7; a += .92) ws.push(span(a, a + .8)); paxWindows(ws.sort((a, b) => a[0] - b[0]), W, 2.6, 3.3, (p.seed || 3) + 29, { pax: .7 }); sideText(K, p.ad || 'VISIT MAPLE BAY', .6, 5.6, 2.33, cream); }
+  if (dd) { const ws = []; for (let a = .3; a + .5 <= 7.7; a += .92) ws.push(span(a, a + .8)); paxWindows(ws.sort((a, b) => a[0] - b[0]), W, 2.6, 3.3, (p.seed || 3) + 29, { pax: .7 }); sideText(K, p.ad || 'VISIT MAPLE BAY', .2, 4.2, 2.33, cream); }
   // side destination display
-  { const txt = route + ' ' + dest, wd = (textW(txt) + 6) / U, zD = dd ? 2.0 : 1.9, [x0] = span(K.f ? 7.3 - wd : 5.2, K.f ? 7.3 : 5.2 + wd), uOK = !dd || true; if (uOK) ledY(txt, K.f ? X(7.3) - wd : X(7.3), K.f ? X(7.3) : X(7.3) + wd, W + .01, zD, zD + .4); }
+  { const full = route + ' ' + dest, txt = dd && textW(full) > 46 ? route : full, wd = (textW(txt) + 6) / U, zD = dd ? 2.0 : 1.9, [x0] = span(K.f ? 7.3 - wd : 5.2, K.f ? 7.3 : 5.2 + wd), uOK = !dd || true; if (uOK) ledY(txt, K.f ? X(7.3) - wd : X(7.3), K.f ? X(7.3) : X(7.3) + wd, W + .01, zD, zD + .4); }
   // wheels
   for (const uu of [1.7, 6.3]) wheel(X(uu), W, r, r, '#8d939e');
   // ends
@@ -94,7 +94,7 @@ function drawBus(p, dd) {
     qx(x, W / 2 - .22, W / 2 + .22, .5, .62, '#f1ede0');
     box(x - .1, W, 1.7, .1, .16, .3, '#2c3340', { ol: false }); // mirror
   } else {
-    qx(x, .2, W - .2, 1.2, 1.84, COL.glassA, COL.glassB); glow(() => qx(x, .2, W - .2, 1.2, 1.84, COL.warm, COL.warm2)); lw([x, .2, 1.2], [x, W - .2, 1.2], '#1b2026'); lw([x, .2, 1.84], [x, W - .2, 1.84], '#1b2026');
+    qx(x, .25, W - .25, 1.3, 1.8, COL.glassA, COL.glassB); glow(() => qx(x, .25, W - .25, 1.3, 1.8, COL.warm2, '#e0bd78')); lw([x, .25, 1.3], [x, W - .25, 1.3], '#1b2026'); lw([x, .25, 1.8], [x, W - .25, 1.8], '#1b2026');
     if (dd) { qx(x, .2, W - .2, 2.6, 3.3, COL.glassA, COL.glassB); glow(() => qx(x, .2, W - .2, 2.6, 3.3, COL.warm, COL.warm2)); }
     for (let z = .56; z < .95; z += .1) lw([x, .5, z], [x, W - .5, z], dk(col, .6));                                    // engine louvres
     ledX(route, x + .01, W / 2 - .3, W / 2 + .3, dd ? 3.36 : 1.9, (dd ? 3.36 : 1.9) + .36);
@@ -114,19 +114,21 @@ export default [
       extra(K) {
         for (let i = 0, u = .98; u < 2.26; u += .0625 * 2, i++) { K.rectY(u, Math.min(u + .125, 2.3), K.wid, .56, .66, i % 2 ? '#f6f2e6' : '#25212d'); }
         for (let i = 0, u = .98 + .125; u < 2.26; u += .125, i++) K.rectY(u, Math.min(u + .125, 2.3), K.wid, .46, .56, i % 2 ? '#f6f2e6' : '#25212d');
-        const x0 = Math.min(K.X(.95), K.X(1.9)) + .02, free = p.free !== false && !p.parked;
-        box(x0, .55, 1.3, .9, .4, .08, '#25212d', { ol: false });
-        box(x0 + .05, .62, 1.36, .8, .26, .34, free ? '#ffe08a' : '#8a7a4a');
-        const d = () => { qy(x0 + .05, x0 + .85, .88, 1.36, 1.7, free ? '#ffe08a' : '#6f6340'); textY('TAXI', x0 + .05 + (.8 - 15 / U) / 2, .88, 1.67, free ? '#25212d' : '#3d3628'); qx(x0 + .85, .62, .88, 1.36, 1.7, free ? '#f2c230' : '#5e5436'); };
-        if (free) { halo(x0 + .45, .88, 1.52, 6, '#ffe9a8'); lit(d); } else d();
+        const x0 = Math.min(K.X(.88), K.X(1.98)), free = p.free !== false && !p.parked, fc = free ? '#ffe08a' : '#8a7a4a';
+        box(x0 + .1, .55, 1.3, .9, .4, .07, '#25212d', { ol: false });
+        box(x0, .64, 1.37, 1.1, .24, .46, fc);
+        const d = () => { qy(x0, x0 + 1.1, .88, 1.37, 1.83, free ? '#ffe08a' : '#6f6340'); textY('TAXI', x0 + (1.1 - 15 / U) / 2, .88, 1.77, free ? '#25212d' : '#3d3628'); qx(x0 + 1.1, .64, .88, 1.37, 1.83, free ? '#f2c230' : '#5e5436'); };
+        if (free) { halo(x0 + .55, .88, 1.6, 7, '#ffe9a8'); lit(d); } else d();
+        lw([x0, .88, 1.37], [x0 + 1.1, .88, 1.37], '#25212d'); lw([x0, .88, 1.83], [x0 + 1.1, .88, 1.83], dk(fc, .3));
       } });
     stdCar(p, s);
   }, { id: 'veh.taxi', vb: vbOf(3.2, 1.5, 1.9) }),
 
   V(3.2, 1.5, 1.3, ['police', 'emergency', 'car'], [{ dir: 1, siren: true }, { dir: -1, siren: true }, { dir: 1, siren: false, parked: true }], p => {
     const s = Object.assign({}, SPEC.sedan, { col: '#f1efe8', trim: 0,
-      pre(K) { K.rectY(.98, 2.3, K.wid, .36, .82, '#2c4a9a'); K.rectY(.1, 3.1, K.wid, .36, .44, '#2c4a9a'); },
-      extra(K) { sideText(K, 'POLICE', .98, 2.3, .74, '#f6f2e6'); lightBar(K, 1.32, 1.3, '#ff3b3b', '#3b7bff', p.siren !== false && !p.parked); } });
+      pre(K) { const n = '#26335e'; K.polyY([[0, .3], [0, .66], [.1, .8], [.98, .82], [.98, .3]], K.wid, n); K.polyY([[2.3, .3], [2.3, .82], [2.35, .82], [3.05, .74], [3.2, .6], [3.2, .3]], K.wid, n); K.rectY(.98, 2.3, K.wid, .5, .6, '#3b6bd6'); K.rectY(.98, 2.3, K.wid, .6, .63, '#f2c230');
+        const a = Math.min(K.X(0), K.X(.7)), b = Math.min(K.X(2.35), K.X(3.2)); qz(a, a + .7, 0, K.wid, .821, n); fq([[K.X(2.35), 0, .822], [K.X(3.05), 0, .742], [K.X(3.05), K.wid, .742], [K.X(2.35), K.wid, .822]], n); },
+      extra(K) { disc('y', K.X(1.9), K.wid, .7, .09, '#f2c230'); lightBar(K, 1.32, 1.3, '#ff3b3b', '#3b7bff', p.siren !== false && !p.parked); } });
     stdCar(p, s);
   }, { id: 'veh.police', vb: vbOf(3.2, 1.5, 1.7) }),
 
@@ -201,7 +203,7 @@ export default [
         K.body([[0, 1.1], [.5, 2.25], [.9, 2.5], [3.85, 2.5]], 0, W, zb + .05, c);
         for (let u = 1.2; u < 3.8; u += .55) K.lineY(u, zb + .15, u, 2.48, W, dk(c, .32));
         K.lineY(.9, 1.5, 3.85, 1.5, W, lt(c, .35)); K.polyY([[.06, 1.1], [.5, 2.1], [.86, 2.3], [.86, .7], [.06, .7]], W, dk(c, .34)); K.lineY(.5, 2.2, .86, .75, W, st);   // packer mechanism
-        K.rectY(1.3, 3.3, W, .8, 1.3, '#f6f2e6'); sideText(K, 'MAPLE BAY', 1.3, 3.3, 1.2, c);
+        K.rectY(1.2, 3.55, W, .98, 1.6, '#f6f2e6'); sideText(K, 'MAPLE BAY', 1.2, 3.55, 1.46, dk(c, .2));
         K.box(0, .3, 0, W, zb, .75, '#4a4856', { ol: false });
       }],
       [4.8, () => truckCab(K, 4.0, 5.6, zb - .1, 2.1, '#f1efe8')],

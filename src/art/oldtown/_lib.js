@@ -1,7 +1,7 @@
 // Old Town shared kit: face-abstracted facade details, roofs and rooftop clutter.
 // A "face" wraps a visible wall plane so every detail helper works on both the +y and +x walls
 // (and shades itself correctly when the engine draws the asset flipped).
-import { box, qy, qx, qz, fq, lw, PW, spx, ellipse, glow, lit, ball, cyl, cone, winY, winX, signY, signX, textY, textX, textW, PAT, foliage, hash2, dk, lt, mix, ENV, isFlipped, U } from '../../engine/raster.js';
+import { box, qy, qx, qz, fq, lw, PW, px, C, spx, ellipse, glow, lit, ball, cyl, cone, winY, winX, signY, signX, textY, textX, textW, PAT, foliage, hash2, dk, lt, mix, ENV, isFlipped, U } from '../../engine/raster.js';
 
 export const SNOW = '#f4f8fb', SNOW2 = '#dfe8f2';
 export const isWinter = () => ENV.season === 3;
@@ -53,7 +53,7 @@ export function face(side, pos) {
 
 /** small bitmap (array of strings, '#' or palette keys) with top-left at face point (u,z) */
 export function bitmap(F, u, z, rows, cols, o = 0) {
-  rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const ch = row[i]; if (ch === '.' || ch === ' ') continue; F.dot(u, z, i, j, typeof cols === 'string' ? cols : (cols[ch] || cols['#']), o); } });
+  rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const ch = row[i]; if (ch === '.' || ch === ' ') continue; F.dot(u, z, i, j + (i >> 1), typeof cols === 'string' ? cols : (cols[ch] || cols['#']), o); } });
 }
 /** bitmap at a free world point (screen aligned) */
 export function sprite(pt, rows, cols, cx = 0) {
@@ -82,7 +82,7 @@ export function flowerBox(F, u0, u1, z, r, c = '#7a5236') {
   for (let u = u0 + .06; u < u1 - .05; u += .13) { const fc = flowerC(r); if (r() < .8 && fc) { F.dot(u, z + .12, 0, 0, fc, .16); if (r() < .5) F.dot(u, z + .12, 0, -1, fc, .16); } if (r() < .3) F.dot(u, z - .1, 0, 0, G, .17); }
 }
 const CAT = ['...#.#', '#..###', '#####.', '.####.'];
-export function cat(F, u, z, c = '#3a3440') { bitmap(F, u, z, CAT.map(s => s), c, .09); F.dot(u, z, 0, -4 + 0, c, .09); glow(() => F.dot(u, z, 4, 1, '#f6e27a', .09)); }
+export function cat(F, u, z, c = '#3a3440') { bitmap(F, u, z, CAT, c, .09); glow(() => F.dot(u, z, 4, 3, '#f6e27a', .09)); }
 
 /**
  * Detailed window. o: r (rng), on, p (lit probability), trim, shut (shutter colour), arch, lintel, sill(false to skip), sillc,
@@ -195,10 +195,9 @@ const ICONS = {
 export function hangSign(F, u, z, o = {}) {
   const G = F.perp(u), a = F.pos + .14, b = F.pos + (o.w || .66), h = o.h || .5, c = o.c || '#2b2f3a', fg = o.fg || '#f6d870';
   lw(F.P(u, z + .1, 0), F.P(u, z + .1, b - F.pos + .04), '#2a2a34'); lw(F.P(u, z + .1, .3), F.P(u, z - .04, .3), '#2a2a34'); lw(F.P(u, z + .1, .5), F.P(u, z - .04, .5), '#2a2a34');
-  const d = () => { G.q(a, b, z - h - .04, z - .04, G.c(c)); const ic = ICONS[o.icon || 'star'], pw = (b - a) * U; bitmap(G, a, z - .04, ic.map(s => s), fg, 0); };
-  const dd = () => { G.q(a, b, z - h - .04, z - .04, G.c(c)); const ic = ICONS[o.icon || 'star'], iw = ic[0].length, ih = ic.length, pw = Math.round((b - a) * U), ph = Math.round(h * U);
-    const ox = Math.floor((pw - iw) / 2), oy = Math.floor((ph - ih) / 2) + 1; ic.forEach((row, j) => { for (let i = 0; i < iw; i++) if (row[i] === '#') { const p = G.P(G.Y ? a : b, z - .04, 0); spx(p[0], p[1], p[2], ox + i, oy + j - Math.round((G.Y ? 1 : -1) * (ox + i) / 2) * (G.Y ? -1 : 1) * (G.Y ? -1 : 1), fg); } }); };
-  void d; if (o.lit) lit(dd); else dd();
+  const dd = () => { G.q(a, b, z - h - .04, z - .04, G.c(c)); const ic = ICONS[o.icon || 'star'], pw = Math.round((b - a) * U), ph = Math.round(h * U);
+    bitmap(G, a + Math.floor((pw - ic[0].length) / 2) / U, z - .04 - (Math.floor((ph - ic.length) / 2) + 1) / U, ic, fg); };
+  if (o.lit) lit(dd); else dd();
   const oc = dk(c, .6); G.l(a, z - h - .04, b, z - h - .04, oc); G.l(a, z - .04, b, z - .04, oc); G.l(a, z - h - .04, a, z - .04, oc); G.l(b, z - h - .04, b, z - .04, oc);
 }
 /** vertical blade sign with stacked letters, projecting from the wall; top at z. lit day & night */
@@ -390,7 +389,7 @@ export function waterTank(x, y, z, o = {}) {
   lw([x - r * .7, y + r * .7, z], [x + r * .7, y + r * .7, z + lg], lc); lw([x + r * .7, y + r * .7, z + lg], [x + r * .7, y - r * .7, z], lc);
   box(x - r * .8, y - r * .8, z + lg, r * 1.6, r * 1.6, .08, '#4a3a2e', { ol: false });
   cyl(x, y, z + lg + .08, r, h, c);
-  for (const hz of [.2, .6, .95]) { const s = PW(x, y, z + lg + .08 + h * hz), rx = r * U * 1.414, ry = rx / 2; for (let X = Math.ceil(s[0] - rx); X <= Math.floor(s[0] + rx); X++) { const k = (X - s[0]) / rx; spx(0, 0, 0, 0, 0, '#000000'.slice(0, 0) || '#3f3a40'); void k; } }
+  for (const hz of [.22, .62]) { const q = PW(x, y, z + lg + .08 + h * hz), rx = r * U * 1.414, ry = rx / 2; for (let X = Math.ceil(q[0] - rx); X <= Math.floor(q[0] + rx); X++) { const k = (X - q[0]) / rx; px(X, Math.round(q[1] + ry * Math.sqrt(Math.max(0, 1 - k * k))), C('#4a3a34')); } }
   cone(x, y, z + lg + .08 + h, r * 1.12, .45, isWinter() ? '#e9eff5' : (o.roof || '#5a4f58'));
 }
 export function acUnit(x, y, z) { box(x, y, z, .7, .5, .42, '#b9bec4', { t: snowTop('#c9ced4') }); const F = face('y', y + .5); F.q(x + .08, x + .42, z + .07, z + .35, '#6f7680'); F.l(x + .08, z + .21, x + .42, z + .21, '#4a505a'); F.l(x + .25, z + .07, x + .25, z + .35, '#4a505a'); F.l(x + .5, z + .12, x + .62, z + .12, '#4a505a'); }
@@ -437,3 +436,16 @@ export const PALETTE = {
   door: ['#2f5f6f', '#8a2f3a', '#3f6a4a', '#d09030', '#34406a', '#6a3a5a'],
   trim: '#f0e8d8',
 };
+/** pent / lean-to roof attached to face F: outer eave at height z (dep out from the wall), meeting the wall at z+rise. o.posts: [u,...] posts down to o.pz */
+export function leanTo(F, u0, u1, z, dep, rise, c, o = {}) {
+  const G = F.perp(u1), sc = dk(c, F.k() * .6), oc = dk(c, .65), S = [F.P(u0, z, dep), F.P(u1, z, dep), F.P(u1, z + rise, 0), F.P(u0, z + rise, 0)];
+  if (o.posts) for (const u of o.posts) { lw(F.P(u, o.pz || 0, dep - .08), F.P(u, z, dep - .08), o.pc || '#3a3440'); lw(F.P(u + .06, o.pz || 0, dep - .08), F.P(u + .06, z, dep - .08), lt(o.pc || '#3a3440', .25)); }
+  fq(S, shingle(sc, F.Y, o));
+  fq([F.P(u1, z, dep), F.P(u1, z + rise, 0), F.P(u1, z - .08, 0), F.P(u1, z - .08, dep)], dk(G.c(c), .25));
+  if (isWinter()) snowQuad(S, .1, .35);
+  lw(S[0], S[1], oc); F.l(u0, z - .08, u1, z - .08, oc, dep); lw(S[1], S[2], oc); lw(S[0], S[3], oc); F.l(u0, z + rise, u1, z + rise, lt(c, .3));
+}
+/** a wall-material box protruding from face F (bays, porches, oriels) */
+export function wallsOn(F, u0, u1, z0, h, dep, c, kind, o = {}, off = 0) { F.box(u0, u1, z0, h, dep, c, { l: mat(kind, sY(c)), r: mat(kind, sX(c)), t: o.t || dk(c, .12), ol: o.ol }, off); }
+/** merge params with defaults */
+export const D = (p, def) => Object.assign({}, def, p);

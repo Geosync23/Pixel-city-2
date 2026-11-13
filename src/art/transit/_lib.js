@@ -137,7 +137,7 @@ export function mk(p, len, wid, defCol) {
         if (o.grille !== false) { qx(x, e + lw2 + .06, wid - e - lw2 - .06, o.gz0 !== undefined ? o.gz0 : lz - .02, o.gz1 !== undefined ? o.gz1 : lz + lh, o.grillec || '#2c2a36', o.grille2 || '#3d3b49'); }
         if (o.plate !== false) qx(x, wid / 2 - .2, wid / 2 + .2, zb + .12, zb + .22, '#f1ede0');
         const d = () => { qx(x, e, e + lw2, lz, lz + lh, COL.head); qx(x, wid - e - lw2, wid - e, lz, lz + lh, COL.head); };
-        if (on) { halo(x, e + lw2 / 2, lz + lh / 2, 4, '#fff8dc'); halo(x, wid - e - lw2 / 2, lz + lh / 2, 4, '#fff8dc'); lit(d); } else d();
+        if (on) { halo(x, e + lw2 / 2, lz + lh / 2, 3, '#fff8dc'); halo(x, wid - e - lw2 / 2, lz + lh / 2, 3, '#fff8dc'); lit(d); } else d();
       } else {
         if (o.plate !== false) qx(x, wid / 2 - .22, wid / 2 + .22, lz - .02, lz + .1, '#f1ede0');
         const d = () => { qx(x, e, e + lw2, lz, lz + lh, COL.tail); qx(x, wid - e - lw2, wid - e, lz, lz + lh, COL.tail); };

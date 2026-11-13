@@ -202,7 +202,7 @@ export const heap2 = (cols, n = 8, s = 0) => (x, y) => cols[Math.floor(hash2(Mat
 export function dude(x, y, z, shirt, o) {
   o = o || {}; const s = PW(x, y, z || 0), X = Math.round(s[0]), Y = Math.round(s[1]), skin = o.skin || '#f0c8a0', hair = o.hair || '#4a3028', pant = o.pant || '#3a4a6a', sit = o.sit ? 5 : 0;
   shirt = shirt || '#d86a4a'; const T = Y - 22 + sit;
-  rect(X - 3, T - 1, 6, 1, '#2a1f45'); rect(X - 3, T, 6, 2, hair); rect(X - 3, T + 2, 6, 4, skin); rect(X - 3, T + 2, 1, 2, hair); px(X - 1, T + 3, C('#2a1f45')); px(X + 1, T + 3, C('#2a1f45'));
+  rect(X - 3, T - 1, 6, 1, '#2a1f45'); rect(X - 3, T, 6, 2, hair); rect(X - 3, T + 2, 6, 4, skin); rect(X - 3, T + 2, 1, 2, hair); if (!o.manq) { px(X - 1, T + 3, C('#2a1f45')); px(X + 1, T + 3, C('#2a1f45')); }
   rect(X - 4, T + 6, 8, 8, shirt); rect(X - 4, T + 6, 1, 7, dk(shirt, .2)); rect(X + 3, T + 6, 1, 7, dk(shirt, .2)); rect(X - 4, T + 12, 1, 2, skin); rect(X + 3, T + 12, 1, 2, skin);
   if (o.apron) rect(X - 2, T + 8, 4, 6, o.apron);
   rect(X - 3, T + 14, 6, 8 - sit, pant); if (!sit) rect(X, T + 16, 1, 6, dk(pant, .5)); rect(X - 3, Y - 1, 3, 1, '#2a2733'); rect(X + 1, Y - 1, 3, 1, '#2a2733');

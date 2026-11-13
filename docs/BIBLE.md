@@ -44,3 +44,11 @@ bus routes with stops (ride in-world); taxis (hail on street or call from phone;
 tutorial teaches you to call a cab, the cab drives you across the city to your starter apartment.
 Your older sibling already lives here (Maplewood), grandma lives in Old Town, an old friend from school works in the
 Arts Quarter. Every couple of days a small story beat arrives on the phone (visit, dinner, a favour) — short, warm, optional.
+
+## Direction update (from the owner)
+- **Modern American city** with lots of diversity (people of every background, age, body type, style; varied neighbourhoods and food).
+- **Downtown** is a showpiece: glass skyscrapers with lots of cool detail. A **River Walk** — a pedestrian riverside park promenade
+  (boardwalk/paving, trees, benches, lamps, food carts, buskers, footbridges) runs through the city next to downtown.
+- **Camera is zoomed in** and cannot zoom out much: the world must reward close looking — dense detail, parks, interesting shops,
+  things happening everywhere (moving cars, buses, pedestrians, animals, events).
+- Characters are the high-resolution element (~22 px tall, expressive pixel art); the world stays chunky pixel art, rich in detail.

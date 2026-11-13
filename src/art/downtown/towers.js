@@ -211,7 +211,7 @@ const hartwell = T('hartwell', ['tower', 'office', 'hartwell', 'enterable'], { w
     K.roofTop(0, 0, 4.5, w, d, st, { rc: '#6a7080' });
     // tower
     const s = .75; K.glassBox(s, s, 4.5, w - 2 * s, d - 2 * s, H - 4.5, { L, glass, frame, bay: .6, fin: 2, finc: gold, sp: dk(glass, .3), sph: .35, m: .2, cap: 0, roof: false });
-    K.planter(.15, d - .62, w - .3, .45, r, { c: '#c9c4b8', h: .3 }); 
+    K.garden(.25, w - .25, d - .62, d - .12, 4.5, r, { low: true });
     // crown band with monogram
     box(s, s, H, w - 2 * s, d - 2 * s, 1.6, '#22283a');
     K.bigSign(FY(d - s), q.logo, s + .3, w - s - .3, H + .2, H + 1.4, null, gold, { lit: true, sc: 2 }); K.bigSign(FX(w - s), q.logo, s + .3, d - s - .3, H + .2, H + 1.4, null, dk(gold, .1), { lit: true, sc: 2 });
@@ -248,10 +248,10 @@ const construction = T('construction', ['tower', 'construction', 'site'], { w: 8
     }
     const H = D.H;
     // scaffolding + netting on +y face above the cladding
-    const s0 = D.clad * FH, s1 = Math.min(H - FH, s0 + 3 * FH), SF = FY(d + .15);
-    for (let z = s0; z <= s1 + .01; z += FH / 2) SF.l(.2, z, w * .62, z, '#8a909c');
-    for (let u = .2; u <= w * .62 + .01; u += .8) SF.l(u, s0 - (u < 1.2 ? s0 : 0), u, s1, '#8a909c');
-    SF.q(.2, w * .35, s0 + FH, s1, '#4f9a8e', 'glass');
+    const s0 = D.clad * FH, s1 = Math.min(H - FH, s0 + 3 * FH), SF = FY(d - .1);
+    for (let z = s0; z <= s1 + .01; z += FH / 2) SF.l(.4, z, w * .62, z, '#8a909c');
+    for (let u = .4; u <= w * .62 + .01; u += .8) SF.l(u, s0, u, s1, '#8a909c');
+    SF.q(.4, w * .4, s0 + FH, s1, '#4f9a8e', 'glass');
     // hoist on +x face
     const HX = FX(w + .1); lattice([w + .1, d - 2.2, 0], [w + .1, d - 2.2, H], [0, .7, 0], '#c8343a', Math.round(H / .7)); box(w - .25, d - 2.25, H * .45, .5, .8, 1.1, '#f2c230');
     // crane: mast through the core, jib along +x

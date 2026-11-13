@@ -2,13 +2,14 @@
 import { at, qz } from '../../engine/raster.js';
 import cars from './cars.js';
 import service from './service.js';
+import train, { drawCar } from './train.js';
 const ALL = new Map();
 export const addAll = list => { for (const a of list) ALL.set(a.id, a); };
-addAll(cars); addAll(service);
+addAll(cars); addAll(service); addAll(train);
 const sz = (a, p) => typeof a.size === 'function' ? a.size(p) : a.size;
 /** grid of assets: rows = [[ [id, params], ... ], ...]; each row runs along x, rows stack along y */
 export function sheet(id, rows, o) {
-  o = o || {}; const gx = o.gx === undefined ? 1.2 : o.gx, gy = o.gy === undefined ? 1.6 : o.gy; const cells = []; let y = 0, W = 0, H = 0;
+  o = o || {}; const gx = o.gx === undefined ? 1.2 : o.gx, gy = o.gy === undefined ? 2.6 : o.gy; const cells = []; let y = 0, W = 0, H = 0;
   for (const row of rows) { let x = 0, d = 0; for (const [aid, p] of row) { const a = ALL.get(aid); if (!a) throw new Error('preview: no asset ' + aid); const s = sz(a, p || {}); cells.push([a, p || {}, x, y]); x += s[0] + gx; d = Math.max(d, s[1]); H = Math.max(H, s[2]); } W = Math.max(W, x); y += d + gy; }
   return { id, size: [W, y, 0], vb: [-1, -1, o.z0 || 0, W + 1, y + 1, (o.h || H) + 1.2], draw() { if (o.road) qz(-.5, W + .5, -.5, y + .5, 0, '#5a5862', '#55535d'); for (const [a, p, x, yy] of cells) at(x, yy, o.lift || 0, () => a.draw(p)); } };
 }
@@ -31,5 +32,7 @@ export const galleryItems = [
     [['veh.bus.double', { color: '#c9382e', route: '1', dest: 'CITY TOUR' }], ['veh.truck.fire', { dir: -1 }]],
     [['veh.bus', { dir: -1, route: '7', dest: 'HILLCREST' }], ['veh.bus.double', { dir: -1 }]],
   ], { road: true, gy: 2.4 }),
+  { id: 'lineup.train3', size: [36.8, 2.2, 0], vb: [-1, -.4, 0, 38, 2.6, 3.7], draw() { ['rear', 'mid', 'front'].forEach((h, i) => at(i * 12.4, 0, 0, () => drawCar({ head: h, livery: 'line1', seed: i + 1, dest: 'HARBOR' }))); } },
+  { id: 'lineup.train2', size: [24.4, 2.2, 0], vb: [-1, -.4, 0, 26, 2.6, 3.7], draw() { ['rear', 'front'].forEach((h, i) => at(i * 12.4, 0, 0, () => drawCar({ head: h, livery: 'line2', seed: i + 4, dest: 'AIRPORT', dir: -1 }))); } },
 ];
 export default [];

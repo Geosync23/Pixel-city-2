@@ -33,7 +33,7 @@ const cafe = [
     const c = p.c || W; counter(0, 0, 1.5, .5, 1, c, p.top || '#e8dcc4', { pw: .5 });
     till(.2, .08, 1); cyl(.75, .3, 1, .07, .16, '#b4dbe8', { t: '#f2c230' }); spx(.75, .3, 1.06, 0, 0, '#f2c230'); spx(.75, .3, 1.06, 1, 1, '#d5dbe0'); // tip jar
     box(.95, .1, 1, .4, .3, .04, '#5a3a28'); for (let i = 0; i < 3; i++) ball(1.05 + i * .1, .25, 1.09, .06, ['#e0b468', '#c88838', '#8a4a2a'][i], { ol: false });
-    qy(.3, 1.2, .5, .3, .75, '#2f3a34'); frameY(.3, 1.2, .5, .3, .75, '#d2a26a'); textY('TO GO', .4, .5, .68, '#f4f0e8'); lw([.45, .5, .42], [1.05, .5, .42], '#f6e08a');
+    signY('TO GO', .1, 1.4, .5, .28, .78, '#2f3a34', '#f4f0e8');
   }, { vb: [-.3, -.3, 0, 1.8, .8, 1.6], use: { x: .5, y: 1 }, staff: { x: .5, y: -.5, dir: 1 }, variants: [{}, { c: '#3f6a5a', top: '#f1ede4' }] }),
 
   F('cafe.pastrycase', ['cafe', 'bakery', 'display', 'shelf'], [1.5, .5, 1.3], p => {
@@ -62,7 +62,7 @@ const cafe = [
 
   F('cafe.windowbar', ['cafe', 'bakery', 'seating'], p => [p.n || 2, 1, 1.1], p => {
     const n = p.n || 2, c = p.c || '#d2a26a';
-    bx(0, 0, 0, n, .06, 1.0, dk(c, .2)); for (let x = .1; x < n; x += .9) lw([x, .4, .55], [x, .06, 1.0], '#4a4458');
+    bx(0, 0, 0, n, .06, 1.0, dk(c, .2)); for (let x = .05; x < n + .01; x += (n - .1) / n) post(x, .42, 0, 1.0, '#4a4458');
     box(0, 0, 1.0, n, .45, .07, c); for (let i = 0; i < n; i++) { if (i % 2 === 0) cup(.4 + i, .22, 1.07); else plate(.5 + i, .22, 1.07, '#f4f0e8', '#c88838'); }
     for (let i = 0; i < n; i++) stool(.5 + i, .75, .7, p.sc || '#c0563a', { ring: true });
   }, { seats: p => Array.from({ length: p.n || 2 }, (_, i) => ({ x: .5 + i, y: .75, z: .7, dir: 3 })), variants: [{ n: 2 }, { n: 3, sc: '#3f6a5a' }] }),
@@ -71,7 +71,7 @@ const cafe = [
     { seats: [{ x: .5, y: .55, z: .42, dir: 1 }], variants: [{}, { c: '#c0704a' }, { c: '#4a7a6a' }, { c: '#c8a850' }] }),
 
   F('cafe.lowtable', ['cafe', 'bookstore', 'table'], [1, 1, .5], p => {
-    rtable(.5, .5, .4, .45, p.c || '#8a5a3a', { leg: '#5a3a28' }); cup(.4, .5, .45); bx(.52, .38, .45, .22, .16, .03, '#3c64ad'); bx(.54, .4, .48, .2, .14, .02, '#f1ede4');
+    table(.1, .1, .8, .8, .45, p.c || '#8a5a3a', { leg: '#5a3a28', thick: true }); cup(.4, .5, .45); bx(.52, .38, .45, .22, .16, .03, '#3c64ad'); bx(.54, .4, .48, .2, .14, .02, '#f1ede4');
   }, { variants: [{}, { c: '#f1ede4' }] }),
 
   F('cafe.condiments', ['cafe', 'bakery', 'decor'], [1, .5, 1.2], p => {

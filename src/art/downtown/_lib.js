@@ -39,7 +39,7 @@ export const FY = d => face('y', d), FX = w => face('x', w);
  */
 export function curtain(F, a0, a1, z0, z1, o = {}) {
   const fh = o.fh || FH, g = o.glass || '#5fa3c4', L = o.L, bay = o.bay || .75, sp = o.sp === undefined ? dk(g, .32) : o.sp, sph = o.sph === undefined ? .4 : o.sph, mull = o.mull || dk(g, .5);
-  const n = Math.max(1, Math.round((a1 - a0) / bay)), bw = (a1 - a0) / n, nf = Math.max(1, Math.round((z1 - z0) / fh)), fhh = (z1 - z0) / nf, ph = o.ph || 0, f0 = o.f0 || 0;
+  const n = Math.max(1, Math.round((a1 - a0) / bay)), bw = (a1 - a0) / n, nf = Math.max(1, Math.round((z1 - z0) / fh)), fhh = (z1 - z0) / nf, ph = o.ph || 0, f0 = o.f0 || 0, det = o.detail === undefined ? 4 : o.detail;
   F.q(a0, a1, z0, z1, F.sh(g));
   for (let f = 0; f < nf; f++) {
     const zb = z0 + f * fhh, zg = zb + (sp ? sph : 0), zt = zb + fhh;
@@ -50,7 +50,10 @@ export function curtain(F, a0, a1, z0, z1, o = {}) {
       let c = o.tint ? o.tint(f + f0, si) : g;
       c = st < 4 ? lt(c, .2) : st < 6 ? lt(c, .09) : k < .13 ? dk(c, .1) : k > .9 ? lt(c, .08) : c;
       if (c !== g) F.q(u0, u1, zg, zt, F.sh(c));
-      if (L && L.on(f + f0)) { const gc = L.col(f + f0), bl = L.r() < .22; glow(() => F.q(u0, u1, bl ? zg + (zt - zg) * .45 : zg, zt, F.xf ? gc[1] : gc[0], F.xf ? dk(gc[1], .08) : gc[1])); }
+      F.q(u0, u1, zt - .1, zt, F.sh(dk(c, .14)));
+      const on = L && L.on(f + f0);
+      if (on) { const gc = L.col(f + f0), bl = L.r() < .22; glow(() => { F.q(u0, u1, bl ? zg + (zt - zg) * .45 : zg, zt, F.xf ? gc[1] : gc[0], F.xf ? dk(gc[1], .08) : gc[1]); if (!bl) F.q(u0 + bw * .2, u1 - bw * .2, zt - .16, zt - .08, '#fffbe8'); }); if (bl) F.q(u0, u1, zg + (zt - zg) * .45, zg + (zt - zg) * .45 + .07, F.sh(lt(c, .3))); }
+      if (f + f0 < det && bw >= .45) mini(F, u0, u1, zg, zt, hash2(si, f + f0, ph + 11), on, c);
     }
     if (o.hm) F.l(a0, (zg + zt) / 2, a1, (zg + zt) / 2, F.sh(mull));
     F.l(a0, zb, a1, zb, F.sh(dk(mull, .15)));
@@ -357,18 +360,154 @@ export function glassBox(x, y, z, w, d, h, o = {}) {
   lw([x + w, y + d, z], [x + w, y + d, z + h], lt(fr, .3));
   if (o.roof !== false) roofTop(x, y, z + h, w, d, fr, { rc: o.rc });
 }
-/** standard tower lobby: stone base with glowing glass, revolving door centred at du on +y, canopy, planters. Returns nothing. */
+/**
+ * Tower base: stone-framed lobby with furnished interiors, door centred at du on +y, canopy, ground-floor shop, garage/dock on +x, public art.
+ * o: { r, stone, accent, trim, name, du, door:'rev'|'glass', shop:'cafe'|'retail'|'lobby'|'office', shopName, side:'garage'|'dock'|'lobby'|'retail', art, awn, glowc, num }
+ */
 export function lobby(w, d, h, o = {}) {
-  const st = o.stone || '#d9d2c4', du = o.du === undefined ? w / 2 : o.du, r = o.r || rng(1), FYd = FY(d), FXw = FX(w), gc = o.glowc;
+  const st = o.stone || '#d9d2c4', du = o.du === undefined ? w / 2 : o.du, r = o.r || rng(1), FYd = FY(d), FXw = FX(w), gc = o.glowc, ac = o.accent || '#3d4a54', pl = dk(st, .3), zt = h - .5;
+  const shop = o.shop || ['cafe', 'retail', 'lobby', 'cafe'][Math.floor(r() * 4)], side = o.side || (d >= 6.5 ? ['garage', 'dock', 'lobby', 'retail'][Math.floor(r() * 4)] : 'lobby'), artk = o.art === undefined ? ['sphere', 'arc', 'cubes', 'fountain', 'tree', 'bench'][Math.floor(r() * 6)] : o.art, awn = o.awn || ['#c8543a', '#2f6f5f', '#3f6f9f', '#e8b63a'][Math.floor(r() * 4)];
   box(0, 0, 0, w, d, h, st);
-  shopGlass(FXw, .5, d - .5, .25, h - .45, { bayw: 1.1, transom: .5, glowc: gc, sil: () => { for (let y = 1.2; y < d - 1; y += 2.2) sil(FXw, y, .25, r() < .5 ? 'plant' : 'desk', '#4a5068'); } });
-  shopGlass(FYd, .5, w - .5, .25, h - .45, { bayw: 1.1, transom: .5, glowc: gc, sil: () => { for (let x = 1.1; x < w - 1; x += 2.2) if (Math.abs(x - du) > 1.3) sil(FYd, x, .25, r() < .5 ? 'plant' : 'desk', '#4a5068'); } });
-  FYd.q(du - 1, du + 1, 0, h - .45, dk(st, .1));
-  if (o.door === 'glass') glassDoor(FYd, du, 0, { glowc: gc }); else revolving(FYd, du, 0, { cap: o.accent });
-  canopy(FYd, du - 1.5, du + 1.5, h - .5, 1.1, o.accent || '#3d4a54', { posts: false, trim: o.trim });
-  if (o.name) FYd.sign(o.name, du - 1.5, du + 1.5, h - .5 + .0, h - .1, '#1f2a33', o.signc || '#ffd98a', { lit: true }, 1.12);
-  if (o.planters !== false) { if (du - 2.9 > .2) planter(du - 2.9, d + .25, 1.1, .5, r); if (du + 1.8 + 1.1 < w) planter(du + 1.8, d + .25, 1.1, .5, r); }
+  for (const F of [FXw, FYd]) { const n = F.xf ? d : w; F.q(0, n, 0, .22, F.sh(pl)); F.q(0, n, h - .32, h - .22, F.sh(lt(st, .35))); F.q(0, n, h - .22, h - .16, F.sh(dk(st, .25))); }
+  // +x face
+  let y0 = .5;
+  if (side === 'garage' && d >= 6) { garageDoor(FXw, .7, 2.9, Math.min(2.1, zt)); y0 = 3.7; } else if (side === 'dock' && d >= 6) { dock(FXw, .6, 2.8, r, Math.min(2, zt - .1)); y0 = 3.4; }
+  scene(FXw, y0, d - .5, .25, zt, side === 'retail' ? 'retail' : 'lobby', r, { glowc: gc, transom: .4, accent: ac });
+  if (side === 'retail') awning(FXw, y0 - .1, d - .4, zt + .05, .6, awn, '#f4f0e8');
+  // +y face: left segment, door, right segment (shop)
+  const lw0 = du - 1.5 - .5, rw = w - .5 - (du + 1.5);
+  if (lw0 >= 1) scene(FYd, .5, du - 1.5, .25, zt, 'lobby', r, { glowc: gc, transom: .4, accent: ac });
+  if (rw >= 1) { scene(FYd, du + 1.5, w - .5, .25, zt, rw < 1.8 ? 'lobby' : shop, r, { glowc: gc, transom: shop === 'lobby' ? .4 : 0, accent: ac });
+    if (shop !== 'lobby' && rw >= 1.8) { awning(FYd, du + 1.4, w - .4, zt - .25, .7, awn, shop === 'cafe' ? '#f4f0e8' : null); const nm = o.shopName || (shop === 'cafe' ? ['COFFEE', 'CAFE', 'BEANS', 'DELI'] : shop === 'retail' ? ['SHOP', 'BOOKS', 'GIFTS', 'OPTICS'] : ['BANK', 'TRAVEL'])[Math.floor(r() * 4) % 2 + (r() < .5 ? 2 : 0)] || 'SHOP'; FYd.sign(nm, du + 1.6, Math.min(w - .5, du + 1.6 + (nm.length * 4 + 6) / 16), zt + .28, zt + .68, dk(awn, .45), '#fff2c4', { lit: true }); } }
+  FYd.q(du - 1.3, du + 1.3, 0, h - .32, dk(st, .1)); FYd.q(du - 1.05, du + 1.05, 0, zt, '#2e3440');
+  glow(() => FYd.q(du - 1, du + 1, .05, zt - .05, '#ffe6ac', '#f8d48c')); FYd.q(du - 1, du + 1, .05, zt - .05, '#8ec4da', '#a8d6e6');
+  if (o.door === 'glass') glassDoor(FYd, du, 0, { glowc: gc, w: 1.3 }); else revolving(FYd, du, 0, { cap: o.trim || ac });
+  for (const s of [-1, 1]) { sconce(FYd, du + s * 1.18, 1.45); }
+  canopy(FYd, du - 1.5, du + 1.5, zt, 1.1, ac, { posts: false, trim: o.trim || lt(ac, .5) });
+  if (o.name) FYd.sign(o.name, du - 1.5, du + 1.5, zt + .02, zt + .42, '#1f2a33', o.signc || '#ffd98a', { lit: true }, 1.12);
+  else { const num = String(o.num || 100 + Math.floor(r() * 80) * 10); lit(() => bigText(FYd, num, du - bigW(num, 1) / 32, zt + .38, '#fff2c4', 1, 1.12)); }
+  // apron: planters, art, cafe tables
+  if (o.planters !== false) { if (du - 2.9 > .2) planter(du - 2.9, d + .25, 1.1, .5, r); }
+  if (shop === 'cafe' && rw >= 2.4) { art('cafe', du + 2.4, d + .75, r, { c: awn }); if (rw >= 4) art('cafe', du + 4, d + .75, r, { c: awn }); art('board', du + 1.75, d + .5, r); } else if (du + 1.8 + 1.1 < w) planter(du + 1.8, d + .25, 1.1, .5, r);
+  if (artk && artk !== 'none' && du - 2.9 > 1.6) art(artk, Math.max(.9, du - 4.4), d + .8, r);
 }
+/** asset factory: def = default params; dims(q) -> { h: solid height, top: extra above, front: extra beyond +y (default 1.6), side: extra beyond +x (default .4) } */
+export function asset(id, tags, def, dims, draw, variants, extra = {}) {
+  const Q = p => Object.assign({}, def, p);
+  return Object.assign({ id: 'bld.downtown.' + id, kind: 'building', tags: ['downtown', ...tags], variants,
+    size: p => { const q = Q(p); return [q.w, q.d, dims(q).h]; },
+    vb: p => { const q = Q(p), D = dims(q); return [-(D.left || .4), -.4, 0, q.w + (D.side === undefined ? .4 : D.side), q.d + (D.front === undefined ? 1.6 : D.front), D.h + (D.top || 0) + .4]; },
+    draw: p => draw(Q(p)) }, extra);
+}
+/** static door/light + function forms for custom sizes */
+export const entry = (at, d, r = 3.5) => ({ door: { side: 'y', at }, light: { x: at, y: d + 1.2, z: 0, r }, doorFn: () => ({ side: 'y', at }), lightFn: p => ({ x: at, y: ((p && p.d) || d) + 1.2, z: 0, r }) });
+export const poly = (w, d, c) => (x, y) => x >= 0 && x <= w && y >= 0 && y <= d && x + y <= w + d - c;
 
-export const PATs = c => PAT.stone(c);
-export { PAT };
+/* ---------- interiors seen through glass ---------- */
+const TINT = c => mix(c, '#7fb6d0', .2);
+/** tiny office vignette inside one curtain-wall cell (desk+monitor, person, plant, shelf, blinds). on = the cell is lit at night */
+function mini(F, u0, u1, z0, z1, k, on, g) {
+  if (k > .78) return; const m = (u0 + u1) / 2, q = (a, b, za, zb, c) => F.q(m + a, m + b, z0 + za, z0 + zb, F.sh(mix(c, g, .3)), undefined, .005), d = () => {
+    if (k < .2) { q(-.22, .22, 0, .42, '#b08a62'); q(-.1, .12, .5, .74, '#2a3040'); q(-.02, .04, .42, .5, '#2a3040'); }
+    else if (k < .36) { q(-.11, .11, 0, .62, '#4a5a8a'); q(-.08, .08, .64, .84, '#e8b890'); q(-.08, .08, .8, .86, '#4a3428'); }
+    else if (k < .48) { q(-.08, .08, 0, .18, '#9a6a4a'); q(-.14, .14, .18, .52, '#4f9a55'); q(-.07, .07, .52, .7, '#5aa84f'); }
+    else if (k < .6) { q(-.2, .2, 0, .9, '#8a7460'); for (const z of [.12, .4, .66]) { q(-.16, -.04, z, z + .18, '#c8543a'); q(0, .16, z, z + .14, '#e8c06a'); } }
+    else if (k < .7) { q(-.2, .2, 0, .34, '#5a8f9a'); q(-.2, .2, .34, .56, '#6aa0aa'); }
+    else for (let z = z1 - z0 - .12; z > (z1 - z0) * (.35 + k * .2); z -= .12) F.l(u0, z0 + z, u1, z0 + z, F.sh(lt(g, .55)), .005);
+  };
+  if (on && k < .7) { lit(d); if (k < .2) lit(() => q(-.07, .09, .53, .71, '#9fe0ff')); } else d();
+}
+/**
+ * Shop / lobby window with a furnished interior visible through the glass (bright at night).
+ * kind: 'lobby' | 'cafe' | 'retail' | 'office' | 'gym' | 'fashion' | 'home' | 'bank'.  o: { glowc, frame, bayw, accent, transom }
+ */
+export function scene(F, u0, u1, z0, z1, kind, r, o = {}) {
+  const gc = o.glowc || ['#ffe6ac', '#f8d48c'], fr = o.frame || '#2e3440', g = o.glass || ['#7fb6d0', '#9fcbe0'], W = u1 - u0, H = z1 - z0, ac = o.accent || '#c8543a';
+  F.win(u0, u1, z0, z1, { on: true, frame: fr, glass: F.xf ? g.map(c => dk(c, .14)) : g, glowc: F.xf ? gc.map(c => dk(c, .07)) : gc });
+  const q = (a, b, za, zb, c) => { a = Math.max(.02, a); b = Math.min(W - .02, b); zb = Math.min(H - .02, zb); if (b > a && zb > za) F.q(u0 + a, u0 + b, z0 + za, z0 + zb, F.sh(TINT(c)), undefined, .005); };
+  const skin = () => ['#e8b890', '#c68a5e', '#8a5a3c', '#f0c8a0'][Math.floor(r() * 4)], cloth = () => ['#c8543a', '#3f6f9f', '#4f9a8e', '#e8b63a', '#8a5aa8', '#f4f0e8', '#3a4458'][Math.floor(r() * 7)];
+  const I = {
+    person: (x, z = 0) => { const c = cloth(); q(x - .1, x - .01, z, z + .5, '#3a4458'); q(x + .01, x + .1, z, z + .5, '#3a4458'); q(x - .14, x + .14, z + .5, z + 1, c); q(x - .09, x + .09, z + 1.02, z + 1.24, skin()); q(x - .09, x + .09, z + 1.18, z + 1.26, '#4a3428'); },
+    seated: (x, z = .35) => { q(x - .13, x + .13, z, z + .45, cloth()); q(x - .09, x + .09, z + .47, z + .68, skin()); },
+    plant: x => { q(x - .12, x + .12, 0, .28, '#9a6a4a'); q(x - .22, x + .22, .28, .8, '#4f9a55'); q(x - .12, x + .14, .8, 1.1, '#5aa84f'); q(x - .05, x + .05, 1.1, 1.25, '#4f9a55'); },
+    sofa: x => { const c = ['#4f9a8e', '#c8543a', '#e8b63a', '#5a6aa8'][Math.floor(r() * 4)]; q(x - .5, x + .5, 0, .3, c); q(x - .5, x + .5, .3, .55, lt(c, .2)); q(x - .56, x - .44, 0, .45, dk(c, .15)); q(x + .44, x + .56, 0, .45, dk(c, .15)); },
+    pend: x => { q(x - .01, x + .03, H - .35, H, '#3a3440'); q(x - .1, x + .12, H - .48, H - .35, '#fff8e0'); },
+    art: x => { q(x - .38, x + .38, .85, 1.5, '#f4f0e8'); q(x - .3, x, .93, 1.42, ac); q(x + .05, x + .3, 1.1, 1.42, '#3f6f9f'); q(x + .05, x + .3, .93, 1.05, '#e8b63a'); },
+    lift: x => { q(x - .45, x + .45, 0, 1.4, '#7d838e'); q(x - .38, x - .02, 0, 1.3, '#b4bac2'); q(x + .02, x + .38, 0, 1.3, '#a6acb6'); q(x - .08, x + .08, 1.44, 1.52, '#7dffb0'); },
+    desk: x => { q(x - .5, x + .5, 0, .5, '#b08a62'); q(x - .5, x + .5, .5, .57, '#d8b88a'); q(x - .16, x + .16, .68, .95, '#2a3040'); q(x - .12, x + .12, .72, .91, '#9fe0ff'); q(x - .02, x + .04, .57, .68, '#2a3040'); },
+    recep: x => { I.person(x + .1, .0); q(x - .8, x + .8, 0, .62, '#e8e2d4'); q(x - .8, x + .8, .5, .62, ac); q(x - .8, x + .8, .62, .68, '#fff8e0'); q(x - .5, x - .25, .68, .86, '#2a3040'); },
+    counter: x => { I.person(x - .2); q(x - .8, x + .8, 0, .58, '#6b4a2f'); q(x - .8, x + .8, .58, .64, '#d8b88a'); q(x + .2, x + .6, .64, .98, '#c2c8d0'); q(x + .26, x + .54, .7, .8, '#3a3440'); q(x - .7, x - .35, .64, .9, '#cfe8f0'); q(x - .66, x - .4, .66, .76, '#e8a04a'); },
+    menu: x => { q(x - .55, x + .55, H - .78, H - .2, '#2a3040'); for (let i = 0; i < 3; i++) q(x - .45, x + .1 + (i % 2) * .25, H - .36 - i * .15, H - .31 - i * .15, i ? '#f4f0e8' : '#ffd98a'); },
+    stool: x => { q(x - .02, x + .02, 0, .35, '#3a3440'); q(x - .12, x + .12, .32, .38, '#3a3440'); I.seated(x); q(x - .3, x + .3, .0, .04, '#3a3440'); },
+    table: x => { q(x - .3, x + .3, .4, .46, '#d8b88a'); q(x - .03, x + .03, 0, .4, '#3a3440'); I.seated(x - .42, .3); I.seated(x + .42, .3); q(x - .08, x + .02, .46, .58, '#f4f0e8'); },
+    shelf: x => { q(x - .42, x + .42, 0, 1.3, '#8a7460'); for (const z of [.08, .5, .92]) for (let a = -.36; a < .3; a += .18) q(x + a, x + a + .13, z, z + .2 + r() * .12, cloth()); },
+    manq: x => { const c = cloth(); q(x - .03, x + .03, 0, .3, '#c2c8d0'); q(x - .16, x + .16, .3, .7, dk(c, .1)); q(x - .14, x + .14, .7, 1.05, c); q(x - .07, x + .07, 1.08, 1.26, '#e4e0d8'); },
+    dress: x => { const c = cloth(); q(x - .03, x + .03, 0, .2, '#c2c8d0'); q(x - .24, x + .24, .2, .6, c); q(x - .16, x + .16, .6, .8, c); q(x - .12, x + .12, .8, 1.05, lt(c, .15)); q(x - .07, x + .07, 1.08, 1.26, '#e4e0d8'); },
+    rack: x => { q(x - .45, x + .45, 1.0, 1.04, '#c2c8d0'); q(x - .45, x - .41, 0, 1.04, '#c2c8d0'); q(x + .41, x + .45, 0, 1.04, '#c2c8d0'); for (let a = -.36; a < .32; a += .14) q(x + a, x + a + .1, .42 + r() * .15, 1, cloth()); },
+    poster: x => { q(x - .3, x + .3, .7, 1.45, ac); q(x - .22, x + .22, 1.15, 1.22, '#fff8e0'); q(x - .22, x + .1, .98, 1.04, '#fff8e0'); },
+    tv: x => { q(x - .45, x + .45, .5, 1.1, '#22283a'); q(x - .4, x + .4, .55, 1.05, ['#8fd8ff', '#9cf2b0', '#ffb0d0'][Math.floor(r() * 3)]); q(x - .3, x + .1, .62, .8, '#f4f0e8'); q(x - .5, x + .5, 0, .42, '#8a7460'); },
+    lampf: x => { q(x - .02, x + .02, 0, .95, '#3a3440'); q(x - .16, x + .16, .95, 1.2, '#fff2c4'); },
+    bed: x => { q(x - .6, x + .6, 0, .3, '#8a7460'); q(x - .6, x + .6, .3, .45, '#f4f0e8'); q(x - .6, x - .3, .45, .58, '#e8b63a'); q(x - .66, x - .58, 0, .8, '#6b4a2f'); },
+    tread: x => { q(x - .4, x + .4, 0, .14, '#3a3f4a'); q(x + .3, x + .36, .14, .9, '#3a3f4a'); q(x + .14, x + .4, .9, 1, '#22283a'); I.person(x - .08, .14); },
+    weights: x => { q(x - .45, x + .45, 0, .08, '#3a3f4a'); q(x - .4, x - .34, 0, 1.1, '#5a606c'); q(x + .34, x + .4, 0, 1.1, '#5a606c'); q(x - .5, x + .5, .8, .85, '#c2c8d0'); q(x - .56, x - .44, .66, .98, '#22283a'); q(x + .44, x + .56, .66, .98, '#22283a'); for (const z of [.2, .45]) for (let a = -.28; a < .2; a += .2) q(x + a, x + a + .14, z, z + .14, '#22283a'); },
+    bag: x => { q(x - .02, x + .02, .95, H, '#3a3440'); q(x - .14, x + .14, .3, .95, ac); q(x - .14, x + .14, .58, .64, '#22283a'); },
+    teller: x => { I.person(x); q(x - .55, x + .55, 0, .66, '#6b4a2f'); q(x - .55, x + .55, .66, .72, '#c9a24a'); q(x - .5, x + .5, .72, 1.3, '#cfe8f0'); q(x - .5, x + .5, 1.3, 1.36, '#c9a24a'); },
+    vault: x => { q(x - .5, x + .5, 0, 1.3, '#8a909c'); q(x - .36, x + .36, .2, 1.1, '#aab0ba'); q(x - .1, x + .1, .55, .75, '#c9a24a'); },
+    queue: x => { I.person(x - .3); I.person(x + .25); },
+  };
+  const seqs = { lobby: ['plant', 'recep', 'art', 'sofa', 'lift', 'plant', 'sofa', 'art'], cafe: ['counter', 'menu', 'table', 'stool', 'plant', 'table'], retail: ['shelf', 'manq', 'poster', 'rack', 'shelf', 'dress'], office: ['desk', 'person', 'plant', 'desk', 'art', 'desk'],
+    gym: ['tread', 'weights', 'bag', 'tread', 'poster', 'weights'], fashion: ['manq', 'dress', 'rack', 'manq', 'poster', 'dress', 'rack'], home: ['sofa', 'lampf', 'tv', 'bed', 'shelf', 'tv', 'sofa', 'lampf'], bank: ['teller', 'queue', 'plant', 'teller', 'vault', 'art'] };
+  const sq = seqs[kind] || seqs.lobby, wd = { recep: 1.8, counter: 1.8, menu: .0, sofa: 1.3, table: 1.5, desk: 1.2, shelf: 1.05, rack: 1.1, tv: 1.1, bed: 1.4, lift: 1.1, tread: 1.1, weights: 1.2, teller: 1.3, vault: 1.2, queue: 1.1, art: .95, poster: .8 };
+  lit(() => {
+    q(0, W, 0, .06, '#a89a88');
+    let x = .15, i = Math.floor(r() * 2), n = 0;
+    while (x < W - .4 && n++ < 30) { const k = sq[i++ % sq.length], w = wd[k] === undefined ? .7 : wd[k]; if (k === 'menu') { if (W > 1.4) I.menu(Math.min(W - .65, Math.max(.65, x + .2))); continue; } if (x + w > W - .05) { if (W - x > .6) I.plant(x + .3); break; } I[k](x + w / 2); x += w + .12; }
+    if (kind === 'lobby' || kind === 'cafe' || kind === 'bank') for (let a = .5; a < W - .2; a += 1.1) I.pend(a);
+  });
+  const n = Math.max(1, Math.round(W / (o.bayw || 1.3)));
+  for (let i = 1; i < n; i++) { const u = u0 + W * i / n; F.l(u, z0, u, z1, fr); }
+  if (o.transom) F.l(u0, z1 - o.transom, u1, z1 - o.transom, fr);
+  F.l(u0, z0, u1, z0, fr); F.l(u0, z1, u1, z1, fr);
+}
+/** parking-garage entrance cut into face F between u0..u1 */
+export function garageDoor(F, u0, u1, h = 2) {
+  F.q(u0, u1, 0, h, F.sh('#2e2c38')); F.q(u0 + .15, u1 - .15, 0, h * .45, F.sh('#45434f')); for (let z = .15; z < h * .45; z += .22) F.l(u0 + .15, z, u1 - .15, z, F.sh('#55535f'));
+  lit(() => F.q(u0 + .3, u1 - .3, h - .32, h - .24, '#dff1ff')); glow(() => F.q(u0 + .1, u1 - .1, h * .45, h - .35, '#5a6a8a', 'glass'));
+  for (let u = u0, i = 0; u < u1 - .01; u += .25, i++) F.q(u, Math.min(u1, u + .25), h - .2, h, i % 2 ? '#f2c230' : '#2a2430', undefined, .01);
+  const m = (u0 + u1) / 2, n = Math.round((u1 - u0 - .5) / .3); for (let i = 0; i < n; i++) F.q(u0 + .25 + i * .3, u0 + .55 + i * .3, .8, .92, i % 2 ? '#f4f0e8' : '#d63a3a', undefined, .15);
+  const p = F.P(u0 + .2, .15, 0); box(p[0] - .09, p[1] - .09, 0, .18, .18, 1, '#f2c230', { ol: false });
+  lit(() => F.sign('P', u1 + .12, u1 + .62, h - .5, h + .05, '#2f5fbf', '#ffffff', { frame: false }, .03));
+  for (const u of [u0 - .12, u1 + .0]) { const b = F.P(u, .2, 0); cyl(b[0], b[1], 0, .09, .55, '#f2c230'); }
+}
+/** loading dock: raised platform, roller shutter, crates */
+export function dock(F, u0, u1, r, h = 2.1) {
+  F.q(u0, u1, .55, h, (a, b) => b % 3 === 0 ? '#6a707c' : (F.xf ? '#8d939e' : '#a2a8b2')); F.l(u0, h, u1, h, '#3a3f4a'); F.l(u0, .55, u0, h, '#3a3f4a'); F.l(u1, .55, u1, h, '#3a3f4a');
+  F.box(u0 - .1, 0, 0, u1 - u0 + .2, .35, .55, '#8a8f9a'); for (let u = u0, i = 0; u < u1; u += .25, i++) F.q(u, Math.min(u1 + .1, u + .25), .4, .55, i % 2 ? '#f2c230' : '#2a2430', undefined, .36);
+  F.q(u0 + .1, u0 + .3, .1, .4, '#22222a', undefined, .36); F.q(u1 - .3, u1 - .1, .1, .4, '#22222a', undefined, .36);
+  F.box(u0 + .2, .02, .55, .5, .3, .45, '#b08a5a'); if (r() < .6) F.box(u0 + .28, .04, 1, .4, .26, .35, '#c49a6a'); if (r() < .6) F.box(u1 - .7, .02, .55, .45, .3, .3, '#5a8f9a');
+  sconce(F, (u0 + u1) / 2, h + .1); F.sign('DOCK ' + (1 + Math.floor(r() * 4)), u0 + .1, u0 + 1.6, h + .32, h + .72, '#f4f0e8', '#3a3f4a', {}, .02);
+}
+/** public art / street furniture for the apron in front of a tower. kind: sphere | arc | cubes | fountain | tree | bench | cafe | bikes | none */
+export function art(kind, x, y, r, o = {}) {
+  const c = o.c || ['#d63a3a', '#e8b63a', '#3f6f9f', '#4f9a8e'][Math.floor(r() * 4)];
+  if (kind === 'sphere') { box(x - .35, y - .35, 0, .7, .7, .35, '#8a8f9a'); ball(x, y, .95, .55, '#c2c8d0', { t: '#f4f8fb', d: '#7d838e' }); const p = PW(x, y, 1.2); px(p[0] - 3, p[1] - 2, C('#ffffff')); px(p[0] - 2, p[1] - 3, C('#ffffff')); }
+  else if (kind === 'arc') { box(x - .6, y - .3, 0, 1.2, .6, .2, '#8a8f9a'); for (let k = 0; k < 3; k++) { const a = [x - .45 + k * .06, y, .2], b = [x + .1 + k * .06, y, 2.3], e = [x + .5 + k * .06, y, .9]; lw(a, b, k === 1 ? c : dk(c, .25)); lw(b, e, k === 1 ? lt(c, .2) : c); } lw([x + .35, y, .2], [x - .1, y, 1.5], dk(c, .1)); lw([x + .41, y, .2], [x - .04, y, 1.5], c); }
+  else if (kind === 'cubes') { box(x - .35, y - .35, 0, .7, .7, .7, c); box(x - .15, y - .45, .7, .6, .6, .6, '#e8b63a'); box(x - .4, y - .2, 1.3, .5, .5, .5, '#3f6f9f'); }
+  else if (kind === 'fountain') { cyl(x, y, 0, .8, .3, '#b4b0a6', { t: winter() ? SNOW2 : '#6ab8d8', t2: winter() ? SNOW : '#8fd0e8' }); cyl(x, y, .3, .16, .35, '#c9c4b8'); if (!winter()) { lit(() => { lw([x, y, .65], [x, y, 1.3], '#e8f6fb'); lw([x, y, 1.3], [x - .25, y, .9], '#cfeaf5'); lw([x, y, 1.3], [x + .25, y, .9], '#cfeaf5'); lw([x, y, 1.3], [x, y + .25, .85], '#cfeaf5'); }); glow(() => { const p = PW(x, y, .3); ellipse(p[0], p[1], 12, 6, '#5fd4ff', 'glass'); }); } }
+  else if (kind === 'tree') { qz(x - .45, x + .45, y - .45, y + .45, .01, '#5a5560', '#6a6570'); box(x - .08, y - .08, 0, .16, .16, 1.5, '#6b4a2f', { ol: false }); const f = foliage('leaf', r()); if (f) { ball(x, y, 2.2, .85, f); ball(x - .35, y + .2, 1.9, .5, dk(f, .08)); ball(x + .3, y - .1, 2.6, .5, lt(f, .1)); } else { for (const [a, b] of [[-.5, 2.4], [.5, 2.5], [0, 2.9], [-.25, 2.1]]) lw([x, y, 1.5], [x + a, y, b], '#6b4a2f'); glow(() => { for (let i = 0; i < 10; i++) { const p = PW(x - .5 + r(), y, 1.6 + r() * 1.2); px(p[0], p[1], C('#ffe9a0')); } }); } }
+  else if (kind === 'bench') { box(x - .6, y - .18, .3, 1.2, .36, .08, '#b08a5a'); box(x - .6, y - .2, .38, 1.2, .07, .35, '#b08a5a', { ol: false }); for (const a of [-.5, .42]) box(x + a, y - .15, 0, .08, .3, .3, '#3a3f4a', { ol: false }); }
+  else if (kind === 'cafe') { for (const a of [-.55, .55]) { box(x + a - .12, y - .12, 0, .24, .24, .32, c, { ol: false }); } cyl(x, y, 0, .05, .5, '#5a606c', { ol: false }); cyl(x, y, .5, .3, .05, '#f4f0e8'); if (ENV.season === 1 || ENV.season === 0) { lw([x, y, .55], [x, y, 1.7], '#5a606c'); cone(x, y, 1.45, .75, .4, c); } else { const p = PW(x, y, .6); px(p[0], p[1] - 1, C('#f4f0e8')); px(p[0] + 1, p[1] - 1, C('#f4f0e8')); } }
+  else if (kind === 'bikes') { lw([x - .6, y, .45], [x + .6, y, .45], '#8a909c'); lw([x - .6, y, 0], [x - .6, y, .45], '#8a909c'); lw([x + .6, y, 0], [x + .6, y, .45], '#8a909c'); for (const a of [-.3, .2]) { const p = PW(x + a, y + .1, .22), cc = C(a < 0 ? c : '#3a3f4a'); for (const o2 of [-3, 3]) for (const [e, f] of [[-1, -2], [0, -2], [1, -2], [-2, -1], [2, -1], [-2, 0], [2, 0], [-1, 1], [0, 1], [1, 1]]) px(p[0] + o2 + e, p[1] + f, C('#2a2a34')); for (let e = -3; e <= 3; e++) px(p[0] + e, p[1] - 3, cc); px(p[0] - 3, p[1] - 4, cc); px(p[0] + 3, p[1] - 5, cc); px(p[0] + 3, p[1] - 4, cc); } }
+  else if (kind === 'board') { fq([[x - .2, y, 0], [x + .2, y, 0], [x + .2, y - .12, .7], [x - .2, y - .12, .7]], '#2a3040'); const p = PW(x, y - .06, .5); for (let i = 0; i < 3; i++) { px(p[0] - 2, p[1] + i * 2 - 1, C('#f4f0e8')); px(p[0] - 1, p[1] + i * 2 - 1, C('#f4f0e8')); px(p[0] + (i % 2), p[1] + i * 2 - 1 + 0, C('#ffd98a')); } }
+}
+/** rooftop cooling tower with fan */
+export function cooling(x, y, z, s = 1) { box(x, y, z, 1.4 * s, 1.4 * s, .9 * s, '#a8aeb8', { l: (u, v) => v % 3 === 1 ? '#6d7480' : '#969ca6', r: (u, v) => v % 3 === 1 ? '#5a606c' : '#7d838e' }); cyl(x + .7 * s, y + .7 * s, z + .9 * s, .5 * s, .3 * s, '#c2c8d0', { t: '#4c525e' }); const p = PW(x + .7 * s, y + .7 * s, z + 1.2 * s); line([p[0] - 6 * s, p[1]], [p[0] + 6 * s, p[1]], '#8a909c'); line([p[0], p[1] - 3 * s], [p[0], p[1] + 3 * s], '#8a909c'); if (winter()) qz(x, x + 1.4 * s, y, y + .35 * s, z + .9 * s, SNOW, 'glass'); }
+/** window-washing rig: roof crane at (x,y,z) with a cradle hanging down the +y face (F) by drop units */
+export function bmu(F, u, z, drop, o = {}) {
+  const p = F.P(u, -.9, z); box(p[0] - .35, p[1] - .35, z, .7, .7, .45, '#f2c230'); lw([p[0], p[1], z + .45], F.P(u, .35, z + 1.1), '#5a606c'); lw(F.P(u, -.9, z + .45), F.P(u, -.9, z + .9), '#5a606c'); lw(F.P(u, -.9, z + .9), F.P(u, .35, z + 1.1), '#5a606c');
+  for (const a of [-.4, .4]) lw(F.P(u + a, .35, z + 1.1), F.P(u + a, .35, z - drop + .5), '#3a3f4a'); lw(F.P(u - .4, .35, z + 1.1), F.P(u + .4, .35, z + 1.1), '#5a606c');
+  F.box(u - .55, .12, z - drop, 1.1, .4, .5, '#e8843a'); const q = (a, b, za, zb, c) => F.q(u + a, u + b, z - drop + za, z - drop + zb, c, undefined, .3);
+  q(-.25, -.05, .5, .95, '#3f6f9f'); q(-.22, -.08, .97, 1.15, '#e8b890'); q(-.24, -.06, 1.12, 1.2, '#f2c230'); q(.1, .3, .5, .9, '#c8543a'); q(.13, .27, .92, 1.1, '#c68a5e'); q(.11, .29, 1.07, 1.15, '#f2c230');
+}
+/** simple railing along a roof edge on face F (at the parapet) */
+export function rail(F, u0, u1, z, c = '#c8d4dc') { F.l(u0, z + .5, u1, z + .5, c, -.1); F.l(u0, z + .28, u1, z + .28, dk(c, .15), -.1); for (let u = u0; u <= u1 + .01; u += .8) F.l(u, z, u, z + .5, dk(c, .1), -.1); }
