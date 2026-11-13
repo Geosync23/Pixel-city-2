@@ -17,16 +17,16 @@ export const ANIMS = {
 export const SEAT_H = 7;
 
 /* ---------- option lists (for the character creator) ---------- */
-export const SKINS = ['#ffe0c4', '#f7cfa8', '#eab98f', '#d9a074', '#c08457', '#a56a43', '#84502f', '#5f3a22'];
+export const SKINS = ['#ffe2c8', '#f8d0aa', '#ecba90', '#dba276', '#c4875a', '#a66a44', '#84502f', '#643c26', '#4a2c1e'];
 export const HAIR_COLORS = ['#2b2433', '#4a3022', '#6e4428', '#8f5a30', '#a8452a', '#d9722e', '#e6c36a', '#f0e4b8', '#a9a9b4', '#e8e8ee', '#f07aa8', '#4f8fd8', '#3fb8a8', '#8a5cd0'];
 export const CLOTH_COLORS = ['#d9483b', '#f07a5a', '#f09a3a', '#e8b83a', '#9ac84a', '#4fa860', '#2f9a94', '#5ab0e0', '#3b6fd0', '#2f3f72', '#7a55c8', '#f08ab0', '#b83a6a', '#f4f0e8', '#ead9b8', '#9aa0a8', '#4a4a58', '#33303f', '#7a5238'];
 export const PANTS_COLORS = ['#4a6fa8', '#34507f', '#7fa0c8', '#33303f', '#4a4a58', '#c8ad7a', '#6f7a48', '#7a5238', '#8a8f98', '#e8e2d4', '#8a3848'];
 export const SHOE_COLORS = ['#f0ece4', '#2f2c3a', '#6a4428', '#d04a3a', '#c8a070', '#3b6fd0'];
 export const BAG_COLORS = ['#7a5238', '#d9483b', '#3b6fd0', '#4fa860', '#e8b83a', '#33303f', '#ead9b8', '#7a55c8'];
-export const HAIRS = ['short', 'buzz', 'sidepart', 'bob', 'long', 'ponytail', 'bun', 'afro', 'curly', 'mohawk', 'bald', 'braids', 'spiky', 'pigtails', 'balding', 'hijab'];
-export const TOPS = ['tee', 'stripe', 'polo', 'long', 'tank', 'hoodie', 'jacket', 'suit', 'sweater', 'cardigan', 'flannel', 'dress', 'coat', 'puffer'];
-export const BOTTOMS = ['jeans', 'slacks', 'shorts', 'skirt', 'longskirt', 'leggings', 'sweats'];
-export const HATS = [null, 'cap', 'beanie', 'sunhat', 'hardhat', 'beret', 'flatcap', 'headband'];
+export const HAIRS = ['short', 'buzz', 'sidepart', 'bob', 'long', 'ponytail', 'bun', 'afro', 'curly', 'mohawk', 'bald', 'braids', 'spiky', 'pigtails', 'balding', 'hijab', 'locs', 'cornrows', 'hightop', 'wavy'];
+export const TOPS = ['tee', 'graphic', 'stripe', 'polo', 'long', 'tank', 'hoodie', 'jacket', 'suit', 'sweater', 'cardigan', 'flannel', 'dress', 'coat', 'puffer', 'varsity'];
+export const BOTTOMS = ['jeans', 'slacks', 'shorts', 'skirt', 'longskirt', 'leggings', 'sweats', 'cargo', 'overalls'];
+export const HATS = [null, 'cap', 'beanie', 'sunhat', 'hardhat', 'beret', 'flatcap', 'headband', 'turban'];
 export const BAGS = [null, 'backpack', 'tote', 'briefcase', 'grocery', 'messenger'];
 export const BUILDS = ['slim', 'avg', 'broad'];
 export const HEIGHTS = ['short', 'avg', 'tall'];
@@ -89,10 +89,23 @@ const HAIR = {
     b: [8, ['...h.h.h...', '..hhhhhhh..'].concat(SHORT_B)],
   },
   pigtails: {
-    f: [6, ['...hHHhh...', '..hhhhhhh..', '.chhhh.hhc.', 'hhhh....hhh', 'hh.s.....hh', '.d.......d.']],
-    b: [6, ['...hhHhh...', '..hhhHhhh..', '.chhhhhhhc.', 'hhhhhhhh.hh', 'hhdhhhh..hh', '.d.ddd...d.']],
+    f: [6, ['...hHHhh...', '..hhhhhhh..', '.chhhh.hh..', '.hhh....hc.', '.h.s.....h.', '.d.......d.']],
+    b: [6, ['...hhHhh...', '..hhhHhhh..', '.chhhhhhh..', '.hhhhhhh.c.', '.hdhhhhs.h.', '.d.ddd...d.']],
   },
   balding: { f: [5, ['..h.l......', '..hh.......', '..hh.......', '..hs.......']], b: [5, ['..h..l..h..', '..hhhhhhh..', '..hhhhhh...', '..dhhhhs...']] },
+  locs: {
+    f: [7, ['...hhhh....', '..hHhHhhh..', '..hhHhhHh..', '.hdhh.h.h..', '.hdh....d..', '.dhd.......', '.hdh.......', '.dhd.......', '.hdh.......', '.d.d.......']],
+    b: [7, ['...hhhh....', '..hhHhhhh..', '..hdhHhdh..', '.hdhdhdhd..', '.dhdhdhd...', '.hdhdhdh...', '.dhdhdhd...', '.hdhdhdh...', '.d.dhd.d...', '.c..d..c...']],
+  },
+  cornrows: { f: [6, ['...hthth...', '..hththth..', '..ht.......', '..h........']], b: [6, ['...hthth...', '..hththth..', '..hththth..', '..hththt...', '...hthts...', '...h.h.....']] },
+  hightop: {
+    f: [8, ['..hhhhhhh..', '..hhHHhhh..', '..hhhhhhh..', '..thhhhhh..', '..tt.......', '..t........']],
+    b: [8, ['..hhhhhhh..', '..hhhHhhh..', '..hhhhhhh..', '..thhhhht..', '..ttttttt..', '..ttttt....', '...ttt.s...']],
+  },
+  wavy: {
+    f: [7, ['...hhhhh...', '..hHHhhhh..', '.hhHhhhhhh.', '.hhhh...hh.', '.hhh.....h.', '.hhh.......', '.hhh.......', 'hhhh.......', 'hhhh.......', '.hhd.......', '.dd........']],
+    b: [7, ['...hhhhh...', '..hhhHhhh..', '.hhhhHhhhh.', '.hhhhhhhhh.', '.hhhhhhhh..', '.hhhhhhhh..', '.hhhhhhhh..', 'hhhhhhhhh..', 'hhhhhhhhh..', '.dhhhhhdh..', '.d.dddd.d..']],
+  },
   hijab: {
     f: [7, ['....hhh....', '...hHHhhh..', '..hhHhhhh..', '..hhh...h..', '..hh....h..', '..hh....h..', '..hhh..hh..', '..hhhhhhh..', '.hhhhhhhh..', '..dhhhhd...']],
     b: [7, ['....hhh....', '...hhHhhh..', '..hhhHhhh..', '..hhhhhhh..', '..hhhhhhh..', '..hhhhhhh..', '..hhhhhhh..', '..hhhhhhh..', '.hhhhhhhh..', '..dhhhhd...']],
@@ -124,7 +137,7 @@ const OUTFIT_DEF = {
   swim(k, s) { if (skirty(s)) { k.top = 'swimsuit'; k.bottom = 'bare'; } else { k.top = 'none'; k.bottom = 'shorts'; k.botC = s.topColor; } k.shoeC = null; k.bag = null; k.scarf = null; if (k.hat !== 'sunhat' && k.hat !== 'cap') k.hat = null; },
   winter(k, s) { if (k.top !== 'puffer') k.top = 'coat'; k.scarf = s.accent || mix(s.topColor, '#f4e070', .7); if (!k.hat || k.hat === 'sunhat') { k.hat = 'beanie'; k.hatC = k.scarf; } if (k.bottom === 'shorts' || k.bottom === 'skirt') k.bottom = 'jeans'; k.shoeC = '#6a4428'; },
 };
-const SHORT_SLEEVE = { tee: 1, stripe: 1, polo: 1, dress: 1, flannel: 0 }, NO_SLEEVE = { tank: 1, none: 1, swimsuit: 1 };
+const SHORT_SLEEVE = { tee: 1, graphic: 1, stripe: 1, polo: 1, dress: 1, flannel: 0 }, NO_SLEEVE = { tank: 1, none: 1, swimsuit: 1 };
 function look(spec) {
   const s = Object.assign({}, DEF, spec);
   const k = {
@@ -136,6 +149,7 @@ function look(spec) {
   };
   if (s.outfit && OUTFIT_DEF[s.outfit]) OUTFIT_DEF[s.outfit](k, s);
   if (!k.hatC) k.hatC = k.hat === 'sunhat' ? '#ecd690' : k.hat === 'hardhat' ? '#f2c230' : k.hat === 'headband' ? k.accent : mix(k.topC, k.botC, .5);
+  k.overalls = k.bottom === 'overalls' && k.top !== 'dress' && !k.apron;
   if (k.top === 'dress') { k.skirtC = k.topC; k.skirtLen = 4; k.bottom = 'bare'; }
   else if (k.bottom === 'skirt') { k.skirtC = k.botC; k.skirtLen = 3; }
   else if (k.bottom === 'longskirt') { k.skirtC = k.botC; k.skirtLen = 99; }
@@ -167,9 +181,14 @@ function gait(P, f, fy, run) {
   }
   P.legs = sw ? [back, fwd] : [fwd, back];
   P.arms = sw ? [aF, aB] : [aB, aF]; // arms swing opposite to the legs
+  // swings away from the body are foreshortened so the arms never spread into a T
+  const lim = run ? 2 : 1, A = P.arms[0], B = P.arms[1];
+  if (A[2] < 0) P.arms[0] = [Math.max(A[0], 0), A[1], Math.max(A[2], -lim), A[3]];
+  if (B[2] > 0) P.arms[1] = [Math.min(B[0], run ? 1 : 0), B[1], Math.min(B[2], lim), B[3]];
 }
 function poseOf(anim, f, front, pose) {
   const fy = front ? 1 : -1;
+  if (pose.mood === 'happy') pose = Object.assign({}, pose);
   const P = { bob: 0, jump: 0, hdx: 0, hdy: 0, lean: 0, legs: [[0, 0, 0], [0, 0, 0]], arms: [HANG, HANG], eyes: 1, mouth: 0, prop: null, seated: !!pose.seated, hold: true };
   switch (anim) {
     case 'stand': P.bob = f; break;
@@ -181,17 +200,18 @@ function poseOf(anim, f, front, pose) {
     case 'eat': P.arms = [[1, 2, 3, 3], f ? [1, 1, 0, -1] : [0, 2, 0, 3]]; P.prop = 'eat'; P.mouth = f; P.eyes = f ? 1 : 3; P.hold = false; break;
     case 'drink': P.arms = [HANG, f ? [1, 2, 1, 0] : [1, 2, 2, 2]]; P.prop = 'cup'; P.eyes = f ? 2 : 1; break;
     case 'phone': P.arms = [HANG, f ? [1, 2, 2, 2] : [1, 2, 2, 1]]; P.prop = 'phone'; P.eyes = 3; break;
-    case 'talk': P.arms = [HANG, f === 0 ? HANG : f === 1 ? [1, 2, 2, 1] : [1, 1, 2, 0]]; P.mouth = f === 1 ? 1 : 0; break;
-    case 'wave': P.arms = [HANG, [[1, -1, 2, -4], [1, -1, 3, -4], [1, -1, 2, -4], [1, -1, 1, -5]][f]]; P.mouth = 1; break;
+    case 'talk': P.arms = [HANG, f === 0 ? HANG : f === 1 ? [1, 2, 2, 1] : [1, 1, 2, 0]]; P.mouth = f === 1 ? 1 : f === 2 ? 2 : 0; break;
+    case 'wave': P.arms = [HANG, [[1, -1, 2, -4], [1, -1, 3, -4], [1, -1, 2, -4], [1, -1, 1, -5]][f]]; P.mouth = 2; break;
     case 'type': P.seated = pose.seated !== false; P.arms = f ? [[2, 2, 5, 3], [1, 2, 3, 2]] : [[2, 2, 5, 2], [1, 2, 3, 3]]; P.hold = false; break;
     case 'work': P.arms = [[[2, 2, 4, 2], [1, 2, 3, 3]], [[2, 2, 4, 3], [1, 2, 3, 2]], [[2, 2, 3, 2], [1, 2, 3, 3]], [[2, 2, 4, 3], [1, 2, 4, 2]]][f]; P.eyes = 3; P.hold = false; break;
     case 'lift': P.arms = f === 0 ? [HANG, HANG] : f === 2 ? [UPA, UPB] : [[-1, 2, -1, 0], [1, 2, 1, 0]]; P.prop = 'dumb'; P.bob = f === 0 ? 1 : 0; P.eyes = f === 2 ? 2 : 1; P.hold = false; break;
     case 'dance':
       P.arms = [[UPA, [1, 1, 3, 1]], [[-1, 2, -2, 1], [1, 2, 2, 1]], [[-1, 1, -3, 1], UPB], [[-1, 2, -2, 1], [1, 2, 2, 1]]][f];
-      P.bob = f & 1; P.hdx = f === 0 ? -1 : f === 2 ? 1 : 0; P.legs = f === 0 ? [[-1, 0, 0], [0, 0, 1]] : f === 2 ? [[0, 0, 1], [1, 0, 0]] : P.legs; P.mouth = f === 0 || f === 2 ? 1 : 0; P.hold = false; break;
+      P.bob = f & 1; P.hdx = f === 0 ? -1 : f === 2 ? 1 : 0; P.legs = f === 0 ? [[-1, 0, 0], [0, 0, 1]] : f === 2 ? [[0, 0, 1], [1, 0, 0]] : P.legs; P.mouth = f === 0 || f === 2 ? 1 : 2; P.hold = false; break;
     case 'read': P.arms = [[2, 2, 4, 2], [0, 2, 1, f ? 1 : 2]]; P.prop = 'book'; P.eyes = 3; P.hold = false; break;
     case 'cheer': P.arms = f ? [[-2, -2, -2, -6], [2, -2, 2, -6]] : [UPA, UPB]; P.jump = f ? 2 : 0; P.mouth = 1; P.eyes = f ? 2 : 1; P.hold = false; break;
   }
+  if (pose.mood === 'happy' && !P.mouth) P.mouth = 2;
   P.seatH = pose.seatH || 0;
   return P;
 }
@@ -206,18 +226,26 @@ function legColor(k, i, n) {
   if (b === 'sweats') return i === n - 1 && n > 2 ? dk(c, .2) : (k.pjStripe && (i & 1) ? lt(c, .35) : c);
   return c;
 }
+function shoeCols(k, near) {
+  const b = k.shoeC || k.skin, c = near ? b : dk(b, .16);
+  return k.shoeC ? { up: c, hi: lt(c, .3), sole: dk(c, .22), toe: c } : { up: c, hi: c, sole: dk(c, .08), toe: dk(c, .08) };
+}
 function standLegs(k, P, front, hipY) {
   for (const near of [false, true]) {
     const idx = (near === front) ? 0 : 1, lg = P.legs[idx], rx = idx ? 1 : -2;
-    const fy = (near ? -1 : -2) - P.jump + lg[1] - lg[2], n = Math.max(1, fy - hipY), shoe = k.shoeC || dk(k.skin, .08);
+    const fy = (near ? -1 : -2) - P.jump + lg[1] - lg[2], n = Math.max(1, fy - 1 - hipY), S = shoeCols(k, near);
     for (let i = 0; i < n; i++) {
       const t = n > 1 ? i / (n - 1) : 1; let x = rx + Math.round(lg[0] * t);
       if (lg[2] >= 2) x += Math.round(Math.sin(Math.PI * t) * 1.2);
-      let c = legColor(k, i, n); if (!near) c = dk(c, .16);
-      p(x, hipY + i, c); p(x + 1, hipY + i, c);
+      let c = legColor(k, i, n), c2 = c;
+      if (k.bottom === 'cargo' && i === (n >> 1)) c2 = lt(c, .22);
+      if (near && c !== k.skin && lg[0] === 0 && i === 1 && n > 3) c2 = lt(c2, .12);
+      if (!near) { c = dk(c, .16); c2 = dk(c2, .16); }
+      p(x, hipY + i, c); p(x + 1, hipY + i, c2);
     }
-    const x = rx + lg[0], sc = near ? shoe : dk(shoe, .16);
-    p(x, fy, sc); p(x + 1, fy, sc); if (k.shoeC || !k.kid) p(x + 2, fy, k.shoeC ? sc : dk(sc, .1));
+    const x = rx + lg[0];
+    p(x, fy - 1, S.up); p(x + 1, fy - 1, S.hi);
+    p(x, fy, S.sole); p(x + 1, fy, S.sole); p(x + 2, fy, S.toe);
   }
 }
 function seatedLegs(k, P, front) {
@@ -229,8 +257,8 @@ function seatedLegs(k, P, front) {
     let kx = hx, ky = ty;
     for (let i = 0; i <= tl; i++) { kx = hx + i; ky = ty + s * (i >> 1); p(kx, ky, sd(lt(thighC, front ? .1 : 0))); p(kx, ky + 1, sd(thighC)); }
     const foot = ky + sh + (front ? 0 : 1);
-    for (let y = ky + (front ? 2 : 1); y < foot; y++) { const c = sd(y === foot - 1 ? cuffC : shinC); p(kx - 1, y, c); p(kx, y, c); }
-    p(kx - 1, foot, sd(shoe)); p(kx, foot, sd(shoe)); p(kx + 1, foot, sd(shoe));
+    for (let y = ky + (front ? 2 : 1); y < foot - 1; y++) { const c = sd(y === foot - 2 ? cuffC : shinC); p(kx - 1, y, c); p(kx, y, c); }
+    { const S = shoeCols(k, near); p(kx - 1, foot - 1, S.up); p(kx, foot - 1, S.hi); p(kx - 1, foot, S.sole); p(kx, foot, S.sole); p(kx + 1, foot, S.toe); }
   }
 }
 function skirt(k, hipY) {
@@ -252,13 +280,16 @@ function torso(k, P, front, yS, hipY) {
       else if (top === 'flannel' && ((x + j) & 1)) c = dk(c, .3);
       else if (top === 'puffer' && (j & 1)) c = dk(c, .12);
     }
-    if (x === x0) c = dk(c, .14); else if (j === T - 1 && top !== 'dress' && top !== 'coat') c = dk(c, .08);
+    if (x === x0) c = dk(c, .14); else if (j === T - 1 && top !== 'dress' && top !== 'coat') c = dk(c, .08); else if (j === 0 && x > x0 && !bare) c = lt(c, .1);
+    if (top === 'varsity' && j === T - 1 && !k.vest) c = (x & 1) ? WHITE : dk(body, .1);
     t(x, j, c);
   }
   if (top === 'swimsuit') { for (let x = x0; x <= x1; x++) p(x, hipY, x === x0 ? dk(body, .14) : body); }
   if (front) {
     const cx = 1;
     if (k.vest) { for (let j = 0; j < T; j++) t(cx, j, k.topC); t(cx, 0, sk); if (top === 'polo') { t(0, 0, k.topC); t(2, 0, k.topC); } }
+    else if (top === 'graphic') { t(cx, 0, sk); t(0, 2, k.accent); t(1, 2, k.accent); t(0, 3, k.accent); t(1, 3, lt(k.accent, .4)); }
+    else if (top === 'varsity') { t(cx, 0, WHITE); t(0, 0, WHITE); for (let j = 1; j < T - 1; j++) t(cx, j, dk(body, .25)); t(x0 + 1, 1, WHITE); }
     else if (top === 'tee' || top === 'stripe' || top === 'long' || top === 'pj' || top === 'flannel') t(cx, 0, sk);
     else if (top === 'polo') { t(0, 0, lt(body, .4)); t(2, 0, lt(body, .4)); t(1, 0, sk); t(1, 1, lt(body, .4)); }
     else if (top === 'tank' || top === 'swimsuit') { t(x0, 0, sk); t(x1, 0, sk); t(0, 0, sk); if (x1 > 1) t(1, 0, sk); }
@@ -269,6 +300,7 @@ function torso(k, P, front, yS, hipY) {
     else if (top === 'coat') { t(0, 0, lt(body, .22)); if (x1 > 1) t(2, 0, lt(body, .22)); for (let j = 1; j < T; j++) t(cx, j, dk(body, .25)); }
     else if (top === 'puffer') { for (let x = x0; x <= x1; x++) t(x, 0, lt(body, .2)); for (let j = 1; j < T; j++) t(cx, j, dk(body, .3)); }
     else if (top === 'dress') { t(0, 0, sk); t(1, 0, sk); for (let x = x0; x <= x1; x++) t(x, T - 2, dk(body, .2)); }
+    if (k.overalls) { const o = k.botC; t(0, 0, dk(o, .1)); if (x1 > 1) t(2, 0, dk(o, .1)); t(0, 1, dk(o, .1)); if (x1 > 1) t(2, 1, dk(o, .1)); for (let j = 2; j < T; j++) for (let x = (j >= T - 2 ? x0 : 0); x <= x1; x++) t(x, j, x === x0 ? dk(o, .14) : o); t(0, 2, GOLD); if (x1 > 1) t(2, 2, GOLD); t(1, 3, lt(o, .25)); }
     if (k.buttons) { t(0, 1, '#9aa0a8'); t(0, 3, '#9aa0a8'); if (x1 > 1) { t(2, 1, '#9aa0a8'); t(2, 3, '#9aa0a8'); } }
     if (k.hivis) { for (let x = x0; x <= x1; x++) if (x !== cx) t(x, 3, '#f8f0a0'); t(0, 1, '#f8f0a0'); if (x1 > 1) t(2, 1, '#f8f0a0'); }
     if (k.tie) { t(cx, 0, k.tie); t(cx, 1, k.tie); t(cx, 2, dk(k.tie, .15)); if (k.kid === false && top !== 'suit') t(cx, 3, dk(k.tie, .15)); }
@@ -287,6 +319,8 @@ function torso(k, P, front, yS, hipY) {
     else if (top === 'suit' || top === 'jacket' || top === 'coat') { for (let x = -1; x <= 1; x++) t(x, 0, lt(body, .2)); if (top !== 'jacket') t(0, T - 1, dk(body, .3)); }
     else if (top === 'sweater') { for (let x = x0; x <= x1; x++) t(x, T - 1, dk(body, .22)); for (let x = -1; x <= 1; x++) t(x, 0, lt(body, .3)); }
     else if (top === 'dress') { for (let x = x0; x <= x1; x++) t(x, T - 2, dk(body, .2)); t(0, 0, sk); }
+    if (k.overalls) { const o = k.botC; for (let j = 0; j < T; j++) { if (j < 2) { t(-1, j, dk(o, .1)); t(1, j, dk(o, .1)); } else if (j === 2) { t(-1, j, o); t(0, j, o); t(1, j, o); } else for (let x = x0; x <= x1; x++) t(x, j, x === x0 ? dk(o, .14) : o); } }
+    if (top === 'varsity') { for (let x = -1; x <= 1; x++) t(x, 0, WHITE); t(0, 2, WHITE); t(0, 3, WHITE); t(-1, 2, WHITE); t(1, 2, WHITE); }
     if (k.hivis) { for (let x = x0; x <= x1; x++) t(x, 3, '#f8f0a0'); t(-1, 1, '#f8f0a0'); t(-1, 2, '#f8f0a0'); t(1, 1, '#f8f0a0'); t(1, 2, '#f8f0a0'); }
     if (k.apron) { t(0, 0, dk(k.apron, .25)); for (let x = x0; x <= x1; x++) t(x, T - 2, dk(k.apron, .1)); t(0, T - 1, k.apron); t(-1, T - 1, k.apron); }
     if (k.belt) for (let x = x0; x <= x1; x++) t(x, T - 1, k.belt);
@@ -297,14 +331,16 @@ function arm(k, P, i, a, yS) {
   const sx = k.ax[i] + (P.lean || 0), sc = k.kid ? .75 : 1;
   const ex = sx + Math.round(a[0] * sc), ey = yS + Math.round(a[1] * sc), hx = sx + Math.round(a[2] * sc), hy = yS + Math.round(a[3] * sc);
   const path = pts(sx, yS, ex, ey).concat(pts(ex, ey, hx, hy).slice(1));
-  const base = (k.top === 'none' || k.top === 'tank' || k.top === 'swimsuit') ? k.skin : k.topC, sl = i ? dk(base, .15) : lt(base, .12), skn = i ? dk(k.skin, .1) : k.skin;
+  const base = (k.top === 'none' || k.top === 'tank' || k.top === 'swimsuit') ? k.skin : k.top === 'varsity' ? '#ece6d8' : k.topC, sl = i ? dk(base, .15) : lt(base, .12), skn = i ? dk(k.skin, .1) : k.skin;
   const n = path.length;
   for (let j = 0; j < n; j++) {
     let c = j === n - 1 ? skn : j < k.sleeve ? sl : skn;
     if (j < k.sleeve && j < n - 1) {
       if ((k.top === 'stripe' || k.top === 'pj') && (j & 1)) c = mix(sl, WHITE, k.top === 'pj' ? .4 : .7);
       if (k.top === 'flannel' && (j & 1)) c = dk(sl, .3);
-      if (k.top === 'sweater' && j === n - 2) c = dk(sl, .22);
+      if ((k.top === 'sweater' || k.top === 'hoodie' || k.top === 'puffer') && j === n - 2) c = dk(sl, .22);
+      if (k.top === 'varsity' && j === n - 2) c = k.topC;
+      if (k.top === 'suit' && j === n - 2) c = k.inner;
       if (k.epaul && j === n - 2) c = k.epaul;
     }
     if (j === 0 && k.epaul) c = k.epaul;
@@ -315,9 +351,9 @@ function arm(k, P, i, a, yS) {
 function hairTpl(k, cx, yb, front, hat) {
   const tp = HAIR[k.hair][front ? 'f' : 'b'], top = tp[0], rows = tp[1], h = k.hairC;
   const map = { h, H: lt(h, .22), d: dk(h, .25), t: mix(k.skin, h, .4), s: k.skin, l: lt(k.skin, .35), c: k.accent };
-  const cut = hat && hat !== 'headband' && hat !== 'beret' && k.hair !== 'hijab';
+  const cut = hat && hat !== 'headband' && hat !== 'beret' && k.hair !== 'hijab', tb = hat === 'turban';
   for (let i = 0; i < rows.length; i++) {
-    const rr = top - i; if (cut && rr >= 6) continue; const s = rows[i];
+    const rr = top - i; if (cut && rr >= (tb ? (front ? 3 : 1) : 6)) continue; const s = rows[i];
     for (let j = 0; j < 11; j++) { const c = map[s[j]]; if (!c) continue; if (cut && rr === 5 && (j < 2 || j > 8)) continue; p(cx + j - 5, yb - rr, c); }
   }
 }
@@ -332,6 +368,7 @@ function hatDraw(k, cx, yb, front) {
   else if (h === 'flatcap') { R(-3, 1, 7, c); R(-3, 4, 6, c); R(3, bf, 5, dk(c, .3)); R(-3, -2, 6, dk(c, .15)); p(cx - 1, yb - 7, lt(c, .2)); }
   else if (h === 'headband') { R(-3, 3, 5, c); if (!front) p(cx - 4, yb - 4, c); }
   else if (h === 'peaked') { const b = k.hatBand || dk(c, .35); R(-2, 2, 8, c); R(-3, 3, 7, c); R(-3, 3, 6, b); R(3, bf, 5, '#22202c'); if (front) p(cx + 2, yb - 7, GOLD); p(cx - 1, yb - 8, lt(c, .25)); }
+  else if (h === 'turban') { R(-1, 1, 8, c); R(-2, 2, 7, c); R(-3, 3, 6, c); R(-3, 3, 5, c); R(-3, front ? 0 : 3, 4, c); if (front) { p(cx + 3, yb - 4, c); p(cx + 1, yb - 4, dk(c, .1)); p(cx + 2, yb - 4, dk(c, .1)); } if (front) R(-3, -2, 3, dk(c, .15)); else { R(-3, 2, 3, c); R(-3, -2, 3, dk(c, .15)); p(cx - 1, yb - 2, dk(c, .18)); p(cx, yb - 2, dk(c, .18)); } p(cx, yb - 7, lt(c, .3)); p(cx - 1, yb - 6, lt(c, .3)); p(cx - 2, yb - 5, lt(c, .3)); p(cx + 1, yb - 6, dk(c, .18)); p(cx + 2, yb - 5, dk(c, .18)); p(cx, yb - 5, dk(c, .18)); p(cx - 3, yb - 5, dk(c, .18)); p(cx - 3, yb - 4, dk(c, .18)); }
   else if (h === 'cookcap') { R(-2, 2, 7, c); R(-3, 3, 6, c); R(-3, 3, 5, dk(c, .12)); }
   else if (h === 'toque') { R(-3, 3, 5, dk(c, .14)); R(-3, 3, 6, c); R(-3, 3, 7, c); R(-4, 4, 8, c); R(-4, 4, 9, c); R(-3, 3, 10, c); p(cx - 1, yb - 7, dk(c, .12)); p(cx + 1, yb - 7, dk(c, .12)); p(cx - 4, yb - 8, dk(c, .12)); p(cx - 2, yb - 9, lt(c, .5)); }
 }
@@ -339,17 +376,18 @@ function head(k, cx, yb, front, P) {
   const sk = k.skin;
   for (let rr = 0; rr < 7; rr++) { const hw = (rr === 0 || rr === 6) ? 2 : 3; for (let x = -hw; x <= hw; x++) p(cx + x, yb - rr, rr === 0 ? dk(sk, .1) : (x === -3 ? dk(sk, .06) : sk)); }
   if (front) {
-    const bl = mix(sk, '#f0506a', .3), ey = P.eyes;
+    const bl = mix(sk, '#f0506a', .28), ey = P.eyes, lip = mix(dk(sk, .3), '#c04050', .35), brow = mix(dk(sk, .35), k.hairC, .45);
     p(cx + 3, yb - 1, bl); if (k.kid) p(cx - 1, yb - 1, bl);
+    if (!k.kid) { p(cx, yb - 4, brow); p(cx + 2, yb - 4, brow); }
     for (const x of [0, 2]) {
-      if (ey === 1) { p(cx + x, yb - 3, EYE); p(cx + x, yb - 2, EYE); }
+      if (ey === 1) { p(cx + x, yb - 3, EYE); p(cx + x, yb - 2, EYE); p(cx + x - 1, yb - 3, '#f6efe6'); }
       else if (ey === 2) p(cx + x, yb - 2, dk(sk, .5));      // closed
-      else p(cx + x, yb - 2, EYE);                           // looking down
+      else { p(cx + x, yb - 2, EYE); p(cx + x, yb - 3, dk(sk, .12)); }   // looking down
     }
-    if (P.mouth) p(cx + 1, yb - 1, '#8a3040');
-    if (k.beard) { for (let x = -1; x <= 3; x++) p(cx + x, yb - 1, k.hairC); for (let x = -1; x <= 2; x++) p(cx + x, yb, dk(k.hairC, .15)); if (P.mouth) p(cx + 1, yb - 1, '#8a3040'); }
-    if (k.elder && !k.beard && !P.mouth) p(cx + 1, yb - 1, dk(sk, .14));
-    if (k.glasses === 'sun') { for (let x = -1; x <= 3; x++) p(cx + x, yb - 3, '#22202c'); p(cx, yb - 2, '#22202c'); p(cx + 2, yb - 2, '#22202c'); p(cx, yb - 3, '#4a4a68'); }
+    if (P.mouth === 1) p(cx + 1, yb - 1, '#8a3040'); else if (P.mouth === 2) { p(cx + 1, yb - 1, lip); p(cx + 2, yb - 1, lip); } else p(cx + 1, yb - 1, mix(sk, lip, .55));
+    if (k.beard) { for (let x = -1; x <= 3; x++) if (x !== 1) p(cx + x, yb - 1, k.hairC); for (let x = -1; x <= 2; x++) p(cx + x, yb, dk(k.hairC, .15)); if (P.mouth !== 1) p(cx + 1, yb - 1, lt(k.hairC, .15)); }
+    if (k.elder && !k.beard) p(cx - 1, yb - 2, dk(sk, .1));
+    if (k.glasses === 'sun') { for (let x = -1; x <= 3; x++) p(cx + x, yb - 3, '#22202c'); p(cx, yb - 2, '#22202c'); p(cx + 2, yb - 2, '#22202c'); p(cx, yb - 3, '#5a5a7a'); p(cx - 2, yb - 3, '#22202c'); }
     else if (k.glasses) { const g = '#3a3448'; p(cx - 1, yb - 3, g); p(cx + 1, yb - 3, g); p(cx + 3, yb - 3, g); p(cx, yb - 3, '#dff4fa'); p(cx + 2, yb - 3, '#dff4fa'); p(cx, yb - 2, EYE); p(cx + 2, yb - 2, EYE); p(cx - 2, yb - 3, g); }
   } else if (k.glasses) p(cx + 3, yb - 3, '#3a3448');
   hairTpl(k, cx, yb, front, k.hat);
@@ -401,10 +439,11 @@ function figure(k, P, front, pose) {
   if (front) {
     if (k.bag === 'backpack') { const c = k.bagC; for (let j = 0; j < T - 1; j++) { p(k.ax[0] - 1, yS + 1 + j, dk(c, .12)); p(k.ax[0], yS + 1 + j, c); if (j && j < T - 2) p(k.ax[0] - 2, yS + 1 + j, dk(c, .22)); } p(k.ax[0] - 1, yS + 1, lt(c, .3)); }
     if (!seated) { standLegs(k, P, front, hipY); if (k.skirtLen) skirt(k, hipY); }
+    const bBehind = P.arms[1][2] < 0; if (bBehind) hB = arm(k, P, 1, P.arms[1], yS);
     torso(k, P, front, yS, hipY);
     if (seated) seatedLegs(k, P, front);
     if (k.top === 'hoodie') { p(k.x0 - 1 + hdx, yS - 1, dk(k.topC, .2)); p(k.x0 - 2 + hdx, yS, dk(k.topC, .2)); }
-    hB = arm(k, P, 1, P.arms[1], yS); hA = arm(k, P, 0, P.arms[0], yS);
+    if (!bBehind) hB = arm(k, P, 1, P.arms[1], yS); hA = arm(k, P, 0, P.arms[0], yS);
     head(k, hdx, yb, front, P);
     if (k.scarf) { for (let x = k.x0 - 1; x <= k.x1 + 1; x++) p(x + (P.lean || 0), yS, x < k.x0 + 1 ? dk(k.scarf, .15) : k.scarf); p(P.lean || 0, yS + 1, k.scarf); p(P.lean || 0, yS + 2, dk(k.scarf, .15)); }
     bagBack(k, front, yS); bagHand(k, P, hA);
@@ -421,29 +460,34 @@ function figure(k, P, front, pose) {
     bagBack(k, front, yS);
   }
 }
-const get0 = (k, i) => { if (k.epaul) return k.epaul; const base = (k.top === 'none' || k.top === 'tank' || k.top === 'swimsuit') ? k.skin : k.topC; return i ? dk(base, .15) : lt(base, .12); };
+const get0 = (k, i) => { if (k.epaul) return k.epaul; const base = (k.top === 'none' || k.top === 'tank' || k.top === 'swimsuit') ? k.skin : k.top === 'varsity' ? '#ece6d8' : k.topC; return i ? dk(base, .15) : lt(base, .12); };
 
 function lying(k, front, f, pose) {
-  const s = front ? 1 : -1, yo = x => Math.round(x * .5 * s) - 3, T = k.T + 2, L = k.L + 1;
-  const tx = -4, lx = tx + T, ex = lx + L, bare = k.top === 'none', body = bare ? k.skin : (k.vest || k.topC);
+  const s = front ? 1 : -1, yo = x => Math.round(x * .5 * s) - 4, T = k.T + 1, L = k.L;
+  const tx = -5 + (k.kid ? 2 : 0), lx = tx + T, ex = lx + L, bare = k.top === 'none', body = bare ? k.skin : (k.vest || k.topC);
+  const armBase = NO_SLEEVE[k.top] ? k.skin : k.top === 'varsity' ? '#ece6d8' : k.topC;
   for (let x = tx; x < lx; x++) {
-    const y = yo(x), i = x - tx;
+    const y = yo(x), i = x - tx, br = f && i > 1 && i < T - 1 ? 1 : 0;
     let c = body; if (!bare && (k.top === 'stripe' || k.top === 'pj') && (i & 1)) c = lt(c, .4);
-    for (let j = -2 - (f && i > 0 && i < T - 2 ? 1 : 0); j <= 1; j++) p(x, y + j, j === 1 ? dk(c, .14) : c);
-    const armC = i < k.sleeve + 1 && !NO_SLEEVE[k.top] ? lt(k.topC, .12) : k.skin; if (i > 0 && i < 6) p(x, y + 2, armC);
+    for (let j = -3 - br; j <= 1; j++) p(x, y + j, j === -3 - br ? lt(c, .12) : j === 1 ? dk(c, .14) : c);
+    if (i > 0 && i < 6) { const ac = i === 5 ? k.skin : i <= k.sleeve ? lt(armBase, .12) : k.skin; p(x, y + 2, ac); if (i < 5) p(x, y + 1, dk(ac, .12)); }
   }
   for (let x = lx; x < ex; x++) {
-    const y = yo(x), i = x - lx, n = L;
-    let c = k.skirtLen && i < Math.min(k.skirtLen + 1, n) ? k.skirtC : legColor(k, Math.max(0, i - 1), n - 1);
-    p(x, y - 2, dk(c, .16)); p(x, y - 1, dk(c, .16)); p(x, y, c); p(x, y + 1, c);
+    const y = yo(x), i = x - lx;
+    const c = k.skirtLen && i < Math.min(k.skirtLen + 1, L) ? k.skirtC : legColor(k, i, L);
+    p(x, y - 3, dk(c, .16)); p(x, y - 2, dk(c, .16)); p(x, y - 1, c); p(x, y, c); if (k.skirtLen && i < Math.min(k.skirtLen + 1, L)) p(x, y + 1, dk(c, .1));
   }
-  const shoe = k.shoeC || dk(k.skin, .08);
-  for (let x = ex; x < ex + 2; x++) { const y = yo(x); for (let j = (x === ex ? -3 : -2); j <= 1; j++) p(x, y + j, j < -1 ? dk(shoe, .16) : shoe); }
+  const S = shoeCols(k, true);
+  for (let x = ex; x < ex + 2; x++) { const y = yo(x); for (let j = (x === ex ? -4 : -3); j <= 0; j++) p(x, y + j, x === ex + 1 ? S.sole : j < -2 ? S.hi : S.up); }
   if (pose.blanket) {
-    const b = pose.blanket;
-    for (let x = tx + 3; x < ex + 2; x++) { const y = yo(x), i = x - tx - 3; for (let j = -3 - (f && i > 0 && i < 4 ? 1 : 0); j <= 2; j++) p(x, y + j, i === 0 ? lt(b, .45) : j === 2 ? dk(b, .2) : j === -3 ? lt(b, .15) : (i % 5 === 4 && j > -2) ? dk(b, .08) : b); }
+    const b = pose.blanket, bx = tx + 3, be = ex + 2;
+    for (let x = bx; x <= be; x++) {
+      const y = yo(x), i = x - bx, last = x === be, br = f && i > 0 && i < 4 ? 1 : 0;
+      for (let j = (last ? -3 : -4) - br; j <= (last ? 1 : 2); j++)
+        p(x, y + j, i < 2 ? lt(b, .5) : j === 2 || last ? dk(b, .18) : j <= -4 ? lt(b, .18) : ((x + j * 2) % 6 === 0) ? dk(b, .08) : b);
+    }
   }
-  const hx = tx - 4, hat = k.hat; k.hat = null;
+  const hx = tx - 3, hat = k.hat; k.hat = null;
   head(k, hx, yo(hx) + 2, true, { eyes: 2, mouth: 0 });
   k.hat = hat;
 }
@@ -471,77 +515,117 @@ export function drawChar(spec, pose) {
 /* ---------- random citizens ---------- */
 const pick = (r, a) => a[Math.floor(r() * a.length) % a.length];
 const wpick = (r, a) => { let t = 0; for (const q of a) t += q[1]; let v = r() * t; for (const q of a) { v -= q[1]; if (v <= 0) return q[0]; } return a[0][0]; };
+/** fashion archetypes used by randomSpec (opts.style forces one) */
+export const STYLES = ['casual', 'street', 'athleisure', 'business', 'hipster', 'workwear', 'preppy'];
+// per style: tops for warm / mild / cold weather, bottoms, [hat, chance] list, bags, shoes
+const ST = {
+  casual: { w: ['tee', 'tee', 'graphic', 'stripe', 'polo', 'tank'], m: ['long', 'hoodie', 'jacket', 'sweater', 'tee', 'stripe', 'flannel'], c: ['coat', 'puffer', 'sweater', 'hoodie'], b: ['jeans', 'jeans', 'slacks', 'cargo'], hats: [['cap', .1]], bags: ['backpack', 'tote', 'grocery', 'messenger'], shoes: SHOE_COLORS },
+  street: { w: ['graphic', 'graphic', 'tee', 'tank', 'varsity'], m: ['hoodie', 'hoodie', 'varsity', 'graphic', 'puffer'], c: ['puffer', 'puffer', 'hoodie', 'varsity'], b: ['sweats', 'cargo', 'jeans', 'cargo'], hats: [['cap', .35], ['beanie', .2]], bags: ['backpack', 'messenger'], shoes: ['#f0ece4', '#d04a3a', '#3b6fd0', '#f0c040', '#2f2c3a', '#4fa860'] },
+  athleisure: { w: ['tank', 'tee', 'tank'], m: ['long', 'hoodie', 'tee', 'puffer'], c: ['puffer', 'hoodie'], b: ['leggings', 'sweats', 'leggings', 'shorts'], hats: [['headband', .25], ['cap', .2]], bags: ['backpack', 'tote'], shoes: ['#f0ece4', '#f0ece4', '#f08ab0', '#5ab0e0', '#9ac84a'] },
+  business: { w: ['suit', 'polo', 'long'], m: ['suit', 'suit', 'cardigan'], c: ['coat', 'suit'], b: ['slacks'], hats: [], bags: ['briefcase', 'briefcase', 'messenger', 'tote'], shoes: ['#2f2c3a', '#6a4428'] },
+  hipster: { w: ['stripe', 'flannel', 'graphic', 'tee', 'tank'], m: ['cardigan', 'flannel', 'sweater', 'jacket', 'stripe'], c: ['coat', 'sweater', 'jacket'], b: ['jeans', 'overalls', 'cargo', 'slacks'], hats: [['beanie', .25], ['beret', .12], ['flatcap', .1]], bags: ['tote', 'tote', 'messenger', 'backpack'], shoes: ['#6a4428', '#f0ece4', '#d04a3a', '#2f2c3a', '#c8a070'] },
+  workwear: { w: ['tee', 'flannel', 'tank', 'graphic'], m: ['flannel', 'jacket', 'long', 'hoodie'], c: ['jacket', 'puffer', 'coat', 'flannel'], b: ['jeans', 'cargo', 'overalls', 'jeans'], hats: [['cap', .3], ['beanie', .15]], bags: ['backpack', 'grocery'], shoes: ['#6a4428', '#6a4428', '#c8a070', '#2f2c3a'] },
+  preppy: { w: ['polo', 'stripe', 'polo', 'tee'], m: ['sweater', 'cardigan', 'long', 'jacket', 'varsity'], c: ['coat', 'coat', 'sweater'], b: ['slacks', 'slacks', 'jeans'], hats: [['cap', .08]], bags: ['tote', 'messenger', 'briefcase', 'backpack'], shoes: ['#f0ece4', '#6a4428', '#c8a070', '#2f2c3a'] },
+};
+const DIST_STYLE = {
+  downtown: { business: 6, preppy: 2, casual: 2, street: 1.5, athleisure: 1, hipster: 1, workwear: .5 },
+  oldtown: { casual: 3, hipster: 3, preppy: 2, street: 1, athleisure: 1, business: 1, workwear: 1 },
+  harborside: { casual: 3, workwear: 3, street: 1.5, hipster: 1.5, athleisure: 1, preppy: 1, business: .5 },
+  hillcrest: { preppy: 4, business: 2, athleisure: 2.5, casual: 2, hipster: 1, street: .5, workwear: .3 },
+  maplewood: { casual: 4, athleisure: 2, preppy: 2, street: 1.5, workwear: 1.5, hipster: 1, business: 1 },
+  arts: { hipster: 5, street: 3, casual: 2, athleisure: 1, preppy: 1, business: .5, workwear: .5 },
+  railyard: { workwear: 6, street: 2, casual: 2, hipster: .5, athleisure: .5, business: .3, preppy: .3 },
+  park: { athleisure: 4, casual: 3, street: 2, hipster: 1.5, preppy: 1.5, workwear: .5, business: .5 },
+  airport: { casual: 3, business: 3, athleisure: 2, street: 2, preppy: 1.5, hipster: 1, workwear: .5 },
+};
+// hair textures: straight/wavy styles vs coily/protective styles; mixed by skin tone only as a soft weighting so everyone can wear anything
+const HAIR_F = [['long', 3], ['bob', 3], ['ponytail', 3], ['bun', 2.5], ['wavy', 3], ['sidepart', 1], ['short', 1], ['pigtails', .5], ['curly', 2.5]];
+const HAIR_M = [['short', 4], ['sidepart', 3], ['buzz', 2.5], ['spiky', 1.5], ['curly', 2.5], ['bald', 1.2], ['mohawk', .4], ['bun', .7], ['ponytail', .6], ['long', .5]];
+const COIL_F = [['afro', 3], ['braids', 3.5], ['locs', 2.5], ['curly', 3], ['bun', 2], ['cornrows', 1.5], ['buzz', 1], ['ponytail', 1], ['wavy', 1]];
+const COIL_M = [['afro', 2], ['hightop', 2], ['buzz', 3.5], ['locs', 2.5], ['cornrows', 1.5], ['curly', 2], ['bald', 1.5], ['short', 1.5], ['braids', .7]];
+const ELDER_F = [['bun', 3], ['bob', 3], ['curly', 3], ['short', 2], ['wavy', 1], ['afro', 1], ['locs', 1]], ELDER_M = [['short', 3], ['balding', 4], ['bald', 2], ['sidepart', 2], ['buzz', 2], ['afro', .7]];
 /**
- * Plausible random citizen. r = rng() function. opts: { age, season (0-3), district, outfit }.
+ * Plausible, stylish random citizen. r = rng() function.
+ * opts: { age, season (0 spring..3 winter), district, outfit, style }.
  * district: 'downtown'|'oldtown'|'harborside'|'hillcrest'|'maplewood'|'arts'|'railyard'|'park'|'airport'
  */
 export function randomSpec(r, opts) {
   opts = opts || {}; const season = opts.season === undefined ? 1 : opts.season, d = opts.district || '';
-  const age = opts.age || wpick(r, [['adult', d === 'downtown' || d === 'railyard' ? 90 : 74], ['elder', d === 'oldtown' ? 20 : 13], ['kid', d === 'maplewood' || d === 'park' ? 22 : d === 'downtown' || d === 'railyard' ? 3 : 12]]);
+  const age = opts.age || wpick(r, [['adult', d === 'downtown' || d === 'railyard' ? 86 : 68], ['elder', d === 'oldtown' ? 22 : 16], ['kid', d === 'maplewood' || d === 'park' ? 24 : d === 'downtown' || d === 'railyard' ? 4 : 14]]);
   const fem = r() < .5, kid = age === 'kid', elder = age === 'elder';
-  const s = { age, skin: pick(r, SKINS), build: wpick(r, [['slim', 3], ['avg', 5], ['broad', kid ? 0 : 2]]), height: wpick(r, [['short', 2], ['avg', 5], ['tall', 2]]) };
-  s.hairColor = elder && r() < .8 ? pick(r, ['#a9a9b4', '#e8e8ee', '#c8c8d0']) : (!kid && r() < (d === 'arts' ? .3 : .06)) ? pick(r, HAIR_COLORS.slice(10)) : wpick(r, [['#2b2433', 5], ['#4a3022', 5], ['#6e4428', 4], ['#8f5a30', 3], ['#a8452a', 1.5], ['#d9722e', 1], ['#e6c36a', 2.5], ['#f0e4b8', .7]]);
-  s.hair = elder ? pick(r, fem ? ['bun', 'bob', 'curly', 'short', 'sidepart', 'hijab'] : ['short', 'balding', 'bald', 'sidepart', 'balding', 'buzz'])
-    : kid ? pick(r, fem ? ['pigtails', 'bob', 'ponytail', 'braids', 'curly', 'afro', 'long'] : ['short', 'spiky', 'curly', 'buzz', 'sidepart', 'afro'])
-      : pick(r, fem ? ['long', 'bob', 'ponytail', 'bun', 'braids', 'curly', 'afro', 'sidepart', 'long', 'hijab', 'pigtails', 'short'] : ['short', 'sidepart', 'buzz', 'curly', 'spiky', 'afro', 'bald', 'mohawk', 'short', 'sidepart', 'bun', 'ponytail']);
-  s.beard = !fem && !kid && r() < (elder ? .3 : .16);
-  // clothes by season
-  const warm = [['tee', 5], ['stripe', 3], ['polo', 2], ['tank', 2], ['flannel', 1], ['long', 1]], mild = [['long', 3], ['hoodie', 4], ['jacket', 4], ['cardigan', 2], ['flannel', 3], ['sweater', 3], ['tee', 2], ['stripe', 2]], cold = [['coat', 5], ['puffer', 5], ['sweater', 2], ['hoodie', 2], ['jacket', 1]];
-  let tops = season === 1 ? warm : season === 3 ? cold : season === 2 ? mild.concat([['coat', 2]]) : mild;
-  if (fem && season !== 3) tops = tops.concat([['dress', season === 1 ? 5 : 2]]);
-  if (d === 'downtown' && !kid) tops = tops.concat([['suit', 5]]); if (d === 'hillcrest' && !kid) tops = tops.concat([['suit', 2], ['polo', 2], ['cardigan', 2]]); if (d === 'railyard') tops = tops.concat([['flannel', 4], ['hoodie', 2]]); if (d === 'harborside') tops = tops.concat([['stripe', 4]]);
-  s.top = wpick(r, tops);
-  let bots = season === 1 ? [['shorts', 5], ['jeans', 3], ['slacks', 1]] : season === 3 ? [['jeans', 5], ['slacks', 3], ['sweats', 2]] : [['jeans', 6], ['slacks', 3], ['sweats', 1], ['shorts', season === 0 ? 1 : 0]];
-  if (fem) bots = bots.concat(season === 3 ? [['leggings', 3], ['longskirt', 2]] : [['skirt', season === 1 ? 4 : 2], ['leggings', 2], ['longskirt', elder ? 4 : 1]]);
-  if (elder) bots = bots.filter(b => b[0] !== 'shorts' || season === 1).concat([['slacks', 5]]);
-  s.bottom = s.top === 'suit' ? (fem && r() < .4 ? 'skirt' : 'slacks') : wpick(r, bots);
-  const suitish = s.top === 'suit' || s.top === 'coat';
-  s.topColor = suitish ? pick(r, ['#2f3f72', '#4a4a58', '#33303f', '#7a5238', '#8a3848', '#5a6478', '#c8ad7a', '#4a7a58']) : pick(r, CLOTH_COLORS);
-  s.bottomColor = s.top === 'suit' ? dk(s.topColor, .08) : (s.bottom === 'skirt' || s.bottom === 'longskirt' || s.bottom === 'shorts') && r() < .5 ? pick(r, CLOTH_COLORS) : pick(r, PANTS_COLORS);
+  const si = Math.floor(r() * SKINS.length) % SKINS.length, deep = si >= 5, midT = si >= 3 && si < 5;
+  const s = { age, skin: SKINS[si], build: wpick(r, [['slim', 3], ['avg', 4], ['broad', kid ? 0 : 3]]), height: wpick(r, [['short', 3], ['avg', 4], ['tall', 3]]) };
+  // hair
+  const coil = deep ? r() < .8 : midT ? r() < .3 : r() < .06;
+  let hp = elder ? (fem ? ELDER_F : ELDER_M) : coil ? (fem ? COIL_F : COIL_M) : (fem ? HAIR_F : HAIR_M);
+  if (kid) hp = hp.filter(h => h[0] !== 'bald' && h[0] !== 'mohawk' && h[0] !== 'balding').concat(fem ? [['pigtails', 4]] : [['spiky', 2]]);
+  if (elder && coil) hp = hp.concat(fem ? [['afro', 3], ['locs', 2], ['braids', 2]] : [['buzz', 3], ['afro', 2], ['locs', 1]]);
+  s.hair = wpick(r, hp);
+  const dark = [['#2b2433', 6], ['#4a3022', 3], ['#6e4428', 1]], any = [['#2b2433', 3], ['#4a3022', 4], ['#6e4428', 4], ['#8f5a30', 3], ['#a8452a', 1.5], ['#d9722e', 1.2], ['#e6c36a', 3], ['#f0e4b8', .8]];
+  s.hairColor = elder && r() < .85 ? pick(r, ['#a9a9b4', '#e8e8ee', '#c8c8d0', '#8a8a98']) : (!kid && r() < (d === 'arts' ? .28 : .07)) ? pick(r, HAIR_COLORS.slice(10).concat(['#e6c36a', '#f0e4b8'])) : wpick(r, si >= 3 ? dark : si === 2 ? dark.concat(any) : any);
+  // faith / culture headwear, worn by a small share across all tones
+  const hw = r();
+  if (!kid && fem && hw < .07) { s.hair = 'hijab'; s.hairColor = pick(r, ['#3fb8a8', '#ead9b8', '#33303f', '#b83a6a', '#7a55c8', '#5ab0e0', '#f08ab0', '#4a4a58', '#f4f0e8']); }
+  s.beard = !fem && !kid && r() < (elder ? .35 : .22);
+  if (!kid && !fem && hw < .05) { s.hat = 'turban'; s.hatColor = pick(r, ['#d9483b', '#3b6fd0', '#f09a3a', '#2f3f72', '#33303f', '#7a55c8', '#f4f0e8', '#4fa860']); s.beard = true; if (!elder) s.hairColor = '#2b2433'; s.hair = 'bun'; }
+  // style archetype
+  const sw = Object.assign({}, DIST_STYLE[d] || { casual: 4, street: 2, athleisure: 1.5, business: 1, hipster: 1.5, workwear: 1, preppy: 1.5 });
+  if (kid) { sw.business = 0; sw.workwear = .2; sw.casual += 3; } if (elder) { sw.street *= .3; sw.preppy += 2; sw.casual += 2; sw.athleisure *= .6; }
+  const style = ST[opts.style] ? opts.style : wpick(r, Object.keys(sw).map(k => [k, sw[k]])), S = ST[style];
+  s.style = style;
+  let tops = (season === 1 ? S.w : season === 3 ? S.c : S.m).slice(), bots = S.b.slice();
+  if (season === 2 && style !== 'athleisure') tops.push(S.c[0]);
+  if (fem && season !== 3 && style !== 'workwear' && style !== 'street') { tops.push('dress'); if (season === 1) tops.push('dress'); }
+  if (kid) tops = tops.map(t => t === 'suit' ? 'polo' : t);
+  if (season === 1 && style !== 'business') bots.push('shorts', 'shorts', 'shorts');
+  if (fem) { if (style === 'business' || style === 'preppy' || style === 'casual' || style === 'hipster') bots.push('skirt', season === 3 || elder ? 'longskirt' : 'skirt'); if (style !== 'business') bots.push('leggings'); if (elder || s.hair === 'hijab') bots.push('longskirt', 'longskirt'); }
+  if (season === 3) bots = bots.filter(b => b !== 'shorts' && b !== 'skirt'); if (elder) bots = bots.filter(b => b !== 'shorts' || season === 1).concat(['slacks', 'slacks']);
+  s.top = pick(r, tops); s.bottom = pick(r, bots.length ? bots : ['jeans']);
+  if (s.hair === 'hijab') { if (s.top === 'tank' || s.top === 'tee' || s.top === 'graphic') s.top = 'long'; if (s.bottom === 'shorts' || s.bottom === 'skirt') s.bottom = 'longskirt'; }
+  const muted = ['#2f3f72', '#4a4a58', '#33303f', '#7a5238', '#8a3848', '#5a6478', '#c8ad7a', '#4a7a58', '#ead9b8'];
+  const formal = s.top === 'suit' || s.top === 'coat' || style === 'business';
+  s.topColor = formal ? pick(r, muted) : style === 'hipster' ? pick(r, ['#b8862e', '#8a3848', '#4a7a58', '#e8b83a', '#f4f0e8', '#d9483b', '#5a6478', '#7a5238', '#2f9a94', '#ead9b8']) : style === 'street' ? pick(r, ['#33303f', '#f4f0e8', '#d9483b', '#e8b83a', '#3b6fd0', '#7a55c8', '#4fa860', '#f09a3a', '#9aa0a8']) : pick(r, CLOTH_COLORS);
+  s.bottomColor = s.top === 'suit' ? dk(s.topColor, .08) : s.bottom === 'overalls' ? pick(r, ['#4a6fa8', '#7fa0c8', '#34507f', '#c8ad7a', '#6f7a48']) : s.bottom === 'leggings' ? pick(r, ['#33303f', '#33303f', '#4a4a58', '#2f3f72', '#8a3848', '#7a55c8', '#2f9a94']) : s.bottom === 'cargo' ? pick(r, ['#6f7a48', '#c8ad7a', '#4a4a58', '#33303f', '#7a5238']) : (s.bottom === 'skirt' || s.bottom === 'longskirt' || s.bottom === 'shorts' || s.bottom === 'sweats') && r() < .5 ? pick(r, CLOTH_COLORS) : pick(r, PANTS_COLORS);
   if (s.bottomColor === s.topColor) s.bottomColor = pick(r, PANTS_COLORS.slice(0, 3));
-  s.shoes = s.top === 'suit' ? pick(r, ['#2f2c3a', '#6a4428']) : season === 3 ? pick(r, ['#6a4428', '#2f2c3a', '#c8a070']) : pick(r, SHOE_COLORS);
-  s.glasses = r() < (elder ? .45 : .14) ? true : (season === 1 && !kid && r() < .08 ? 'sun' : false);
-  s.accent = pick(r, ['#e8546a', '#f0c040', '#5ab0e0', '#9ac84a', '#f4f0e8', '#f08a20']);
+  s.shoes = season === 3 && style !== 'street' && style !== 'athleisure' ? pick(r, ['#6a4428', '#2f2c3a', '#c8a070']) : pick(r, S.shoes);
+  s.glasses = r() < (elder ? .45 : style === 'hipster' ? .4 : .14) ? true : (season === 1 && !kid && r() < .1 ? 'sun' : false);
+  s.accent = pick(r, ['#e8546a', '#f0c040', '#5ab0e0', '#9ac84a', '#f4f0e8', '#f08a20', '#7a55c8']);
   // hats
-  s.hat = null;
-  const hr = r();
-  if (s.hair !== 'hijab') {
-    if (season === 3) { if (hr < .5) s.hat = 'beanie'; else if (hr < .56) s.hat = 'flatcap'; }
-    else if (season === 1) { if (hr < .14) s.hat = 'cap'; else if (hr < (fem ? .26 : .17)) s.hat = 'sunhat'; }
-    else if (hr < .08) s.hat = 'cap'; else if (hr < .12) s.hat = 'beanie'; else if (hr < (d === 'arts' ? .26 : .14)) s.hat = 'beret'; else if (elder && hr < .24) s.hat = 'flatcap';
-    if (d === 'railyard' && r() < .2) s.hat = 'hardhat';
+  if (!s.hat && s.hair !== 'hijab') {
+    s.hat = null; const hr = r(); let acc = 0;
+    for (const h of S.hats) { acc += h[1] * (h[0] === 'beanie' && season === 1 ? .2 : 1); if (hr < acc) { s.hat = h[0]; break; } }
+    if (!s.hat) { const h2 = r(); if (season === 3 && h2 < .4) s.hat = 'beanie'; else if (season === 1 && h2 < (fem ? .14 : .05)) s.hat = 'sunhat'; else if (elder && h2 < .14) s.hat = 'flatcap'; }
+    if (d === 'railyard' && style === 'workwear' && r() < .3) s.hat = 'hardhat';
+    if (s.hat) s.hatColor = s.hat === 'sunhat' ? '#ecd690' : s.hat === 'hardhat' ? pick(r, ['#f2c230', '#f4f0e8', '#f08a20']) : s.hat === 'headband' ? s.accent : pick(r, CLOTH_COLORS);
   }
-  if (s.hat) s.hatColor = s.hat === 'sunhat' ? '#ecd690' : s.hat === 'hardhat' ? pick(r, ['#f2c230', '#f4f0e8', '#f08a20']) : pick(r, CLOTH_COLORS);
   if (season === 3 && r() < .55) s.scarf = pick(r, ['#d9483b', '#e8b83a', '#f4f0e8', '#4fa860', '#5ab0e0', '#7a55c8']);
   // bags
-  const br = r();
-  s.bag = kid ? (br < .35 ? 'backpack' : null) : s.top === 'suit' ? (br < .55 ? 'briefcase' : br < .65 ? 'messenger' : null)
-    : d === 'airport' ? (br < .5 ? 'backpack' : br < .7 ? 'briefcase' : null)
-      : br < .12 ? 'backpack' : br < .2 ? 'tote' : br < .26 ? 'messenger' : br < (d === 'oldtown' || d === 'maplewood' ? .36 : .3) ? 'grocery' : br < .33 ? 'briefcase' : null;
+  const br = r(), bc = kid ? .4 : style === 'business' ? .6 : d === 'airport' ? .7 : .34;
+  s.bag = br < bc ? (kid ? 'backpack' : pick(r, S.bags)) : null;
   s.bagColor = s.bag === 'briefcase' ? pick(r, ['#7a5238', '#33303f', '#6a4428']) : pick(r, BAG_COLORS);
   // occasional uniforms seen around town
   if (opts.outfit) s.outfit = opts.outfit;
   else if (!kid) {
     const o = r();
     if (season === 3 && o < .25) s.outfit = 'winter';
-    else if (d === 'railyard' && o < .3) s.outfit = 'dockworker';
-    else if (d === 'harborside' && o < .12) s.outfit = 'dockworker';
-    else if (d === 'park' && o < .22 && season !== 3) s.outfit = 'gymwear';
-    else if (d === 'downtown' && o < .3 && !elder) s.outfit = 'office';
-    else if (d === 'airport' && o < .08) s.outfit = 'pilot';
+    else if (d === 'railyard' && o < .25) s.outfit = 'dockworker';
+    else if (d === 'harborside' && o < .1) s.outfit = 'dockworker';
+    else if (style === 'business' && s.top === 'suit' && o < .6) s.outfit = 'office';
+    else if (style === 'athleisure' && season !== 3 && (d === 'park' || o < .2)) s.outfit = 'gymwear';
+    else if (d === 'airport' && o < .06) s.outfit = 'pilot';
   }
   return s;
 }
 
 /* ---------- presets ---------- */
 export const PLAYER_PRESETS = [
-  { name: 'Robin', skin: SKINS[1], hair: 'sidepart', hairColor: '#6e4428', top: 'hoodie', topColor: '#d9483b', bottom: 'jeans', bottomColor: '#4a6fa8', shoes: '#f0ece4', hat: null, glasses: false, bag: 'backpack', bagColor: '#3b6fd0', build: 'avg', height: 'avg', age: 'adult' },
-  { name: 'Maya', skin: SKINS[4], hair: 'long', hairColor: '#2b2433', top: 'jacket', topColor: '#e8b83a', bottom: 'skirt', bottomColor: '#33303f', shoes: '#2f2c3a', hat: null, glasses: false, bag: 'tote', bagColor: '#ead9b8', build: 'slim', height: 'avg', age: 'adult' },
-  { name: 'Theo', skin: SKINS[6], hair: 'afro', hairColor: '#2b2433', top: 'stripe', topColor: '#2f9a94', bottom: 'shorts', bottomColor: '#c8ad7a', shoes: '#f0ece4', hat: null, glasses: true, bag: null, bagColor: '#7a5238', build: 'avg', height: 'tall', age: 'adult' },
+  { name: 'Robin', skin: SKINS[2], hair: 'sidepart', hairColor: '#4a3022', top: 'hoodie', topColor: '#d9483b', bottom: 'jeans', bottomColor: '#4a6fa8', shoes: '#f0ece4', hat: null, glasses: false, bag: 'backpack', bagColor: '#3b6fd0', build: 'avg', height: 'avg', age: 'adult' },
+  { name: 'Maya', skin: SKINS[4], hair: 'wavy', hairColor: '#2b2433', top: 'jacket', topColor: '#e8b83a', bottom: 'skirt', bottomColor: '#33303f', shoes: '#2f2c3a', hat: null, glasses: false, bag: 'tote', bagColor: '#ead9b8', build: 'slim', height: 'avg', age: 'adult' },
+  { name: 'Theo', skin: SKINS[7], hair: 'locs', hairColor: '#2b2433', top: 'varsity', topColor: '#2f9a94', bottom: 'cargo', bottomColor: '#c8ad7a', shoes: '#f0ece4', hat: null, glasses: true, bag: null, bagColor: '#7a5238', build: 'avg', height: 'tall', age: 'adult' },
   { name: 'Juno', skin: SKINS[0], hair: 'bob', hairColor: '#f07aa8', top: 'sweater', topColor: '#7a55c8', bottom: 'leggings', bottomColor: '#33303f', shoes: '#d04a3a', hat: 'beret', hatColor: '#33303f', glasses: false, bag: 'messenger', bagColor: '#7a5238', build: 'slim', height: 'short', age: 'adult' },
-  { name: 'Sam', skin: SKINS[3], hair: 'curly', hairColor: '#4a3022', top: 'flannel', topColor: '#4fa860', bottom: 'jeans', bottomColor: '#34507f', shoes: '#6a4428', hat: null, glasses: false, beard: true, bag: null, bagColor: '#7a5238', build: 'broad', height: 'avg', age: 'adult' },
+  { name: 'Sam', skin: SKINS[0], hair: 'curly', hairColor: '#a8452a', top: 'flannel', topColor: '#4fa860', bottom: 'jeans', bottomColor: '#34507f', shoes: '#6a4428', hat: null, glasses: false, beard: true, bag: null, bagColor: '#7a5238', build: 'broad', height: 'avg', age: 'adult' },
   { name: 'Aiko', skin: SKINS[1], hair: 'bun', hairColor: '#2b2433', top: 'dress', topColor: '#f07a5a', bottom: 'skirt', bottomColor: '#f07a5a', shoes: '#f0ece4', hat: 'sunhat', glasses: false, bag: 'tote', bagColor: '#4fa860', build: 'avg', height: 'avg', age: 'adult' },
-  { name: 'Dev', skin: SKINS[5], hair: 'short', hairColor: '#2b2433', top: 'suit', topColor: '#2f3f72', bottom: 'slacks', bottomColor: '#2b3a68', shoes: '#2f2c3a', hat: null, glasses: true, bag: 'briefcase', bagColor: '#6a4428', build: 'avg', height: 'tall', age: 'adult' },
+  { name: 'Dev', skin: SKINS[5], hair: 'hightop', hairColor: '#2b2433', top: 'suit', topColor: '#2f3f72', bottom: 'slacks', bottomColor: '#2b3a68', shoes: '#2f2c3a', hat: null, glasses: true, bag: 'briefcase', bagColor: '#6a4428', build: 'avg', height: 'tall', age: 'adult' },
   { name: 'Noor', skin: SKINS[3], hair: 'hijab', hairColor: '#3fb8a8', top: 'cardigan', topColor: '#ead9b8', bottom: 'longskirt', bottomColor: '#34507f', shoes: '#c8a070', hat: null, glasses: false, bag: 'backpack', bagColor: '#f08ab0', build: 'avg', height: 'avg', age: 'adult' },
 ];
 
@@ -551,14 +635,16 @@ const P0 = PLAYER_PRESETS[0], P1 = PLAYER_PRESETS[1];
 export const galleryItems = [];
 {
   const g = galleryItems, pad = n => (n < 10 ? '0' : '') + n, DISTS = ['downtown', 'oldtown', 'harborside', 'hillcrest', 'maplewood', 'arts', 'railyard', 'park'];
-  for (let i = 0; i < 24; i++) g.push(G('char.cit.' + pad(i), randomSpec(rng(100 + i * 7), { season: i < 16 ? 1 : 2, district: DISTS[i % 8] }), { anim: 'stand', dir: i % 4 === 3 ? 3 : i % 2 }));
+  for (let i = 0; i < 32; i++) g.push(G('char.cit.' + pad(i), randomSpec(rng(100 + i * 7), { season: i < 16 ? 1 : i < 24 ? 2 : 0, district: DISTS[i % 8] }), { anim: i % 5 === 2 ? 'walk' : 'stand', frame: 0, dir: i % 4 === 3 ? 3 : i % 2 }));
+  STYLES.forEach((st, i) => { for (let j = 0; j < 3; j++) g.push(G('char.sty.' + st + j, randomSpec(rng(7 + i * 31 + j * 17), { style: st, season: j, age: 'adult' }), { dir: j % 2 })); });
   for (let i = 0; i < 8; i++) g.push(G('char.win.' + i, randomSpec(rng(900 + i * 13), { season: 3 }), { anim: 'stand', dir: i === 7 ? 2 : i % 2 }));
   PLAYER_PRESETS.forEach((s, i) => { g.push(G('char.pre.' + i, s, { dir: 0 })); g.push(G('char.pre.' + i + 'b', s, { dir: 3 })); });
   OUTFITS.forEach((o, i) => { const s = Object.assign(randomSpec(rng(40 + i * 5), {}), { outfit: o }); g.push(G('char.out.' + o, s, { dir: i % 2 })); g.push(G('char.outb.' + o, s, { dir: 2 + (i % 2) })); });
   for (let d = 0; d < 4; d++) { g.push(G('char.dir.' + d, P0, { dir: d })); g.push(G('char.dir.m' + d, P1, { dir: d })); }
   HAIRS.forEach((h, i) => { const s = Object.assign({}, P0, { hair: h, bag: null, hairColor: HAIR_COLORS[(i * 3 + 1) % 9], skin: SKINS[(i * 3) % 8], top: 'tee', topColor: '#f4f0e8' }); g.push(G('char.hair.' + h, s, { dir: 0 })); g.push(G('char.hairb.' + h, s, { dir: 3 })); });
   TOPS.forEach((t, i) => g.push(G('char.top.' + t, Object.assign({}, P0, { top: t, bag: null, topColor: CLOTH_COLORS[(i * 4) % 13] }), { dir: i % 2 })));
-  BOTTOMS.forEach((t, i) => g.push(G('char.bot.' + t, Object.assign({}, P1, { bottom: t, bag: null, top: 'tee', bottomColor: PANTS_COLORS[i] }), { dir: 0 })));
+  BOTTOMS.forEach((t, i) => { const s = Object.assign({}, P1, { bottom: t, bag: null, top: 'tee', bottomColor: PANTS_COLORS[i] }); g.push(G('char.bot.' + t, s, { dir: 0 })); g.push(G('char.botb.' + t, s, { dir: 3 })); });
+  SKINS.forEach((c, i) => g.push(G('char.skin.' + i, Object.assign({}, P0, { skin: c, bag: null, hair: ['short', 'bob', 'curly', 'wavy', 'braids', 'cornrows', 'afro', 'locs', 'hightop'][i], hairColor: i < 2 ? '#8f5a30' : '#2b2433', top: 'tee', topColor: CLOTH_COLORS[i * 2] }), { dir: i % 2, mood: 'happy' })));
   HATS.forEach((t, i) => { if (!t) return; const s = Object.assign({}, i % 2 ? P1 : P0, { hat: t, bag: null, hatColor: t === 'sunhat' || t === 'hardhat' ? null : CLOTH_COLORS[i * 2] }); g.push(G('char.hat.' + t, s, { dir: 0 })); g.push(G('char.hatb.' + t, s, { dir: 3 })); });
   BAGS.forEach((t, i) => { if (!t) return; const s = Object.assign({}, P0, { bag: t, top: 'tee', bagColor: BAG_COLORS[i] }); g.push(G('char.bag.' + t, s, { dir: 0 })); g.push(G('char.bagb.' + t, s, { dir: 3 })); });
   for (const a of AGES) for (const b of BUILDS) g.push(G('char.body.' + a + '.' + b, Object.assign({}, P0, { age: a, build: b, bag: null, height: b === 'slim' ? 'short' : b === 'broad' ? 'tall' : 'avg', hairColor: a === 'elder' ? '#c8c8d0' : P0.hairColor }), { dir: 0 }));

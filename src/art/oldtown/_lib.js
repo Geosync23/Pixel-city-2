@@ -60,7 +60,7 @@ export function sprite(pt, rows, cols, cx = 0) {
   rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const ch = row[i]; if (ch === '.' || ch === ' ') continue; spx(pt[0], pt[1], pt[2], i - cx, j, cols[ch]); } });
 }
 /** dim warm dither on the wall around a light source (draw BEFORE lit windows) */
-export function spill(pt, rx, ry, c = '#7a5630') { glow(() => { const s = PW(pt[0], pt[1], pt[2]); ellipse(s[0], s[1], rx, ry, c, 'glass'); }); }
+export function spill(F, u0, u1, z0, z1, c = '#7a5630') { glow(() => F.q(u0, u1, z0, z1, c, 'glass')); }
 
 /** evenly spread bay centres along a wall of length len */
 export function bays(len, o = {}) {
@@ -452,3 +452,19 @@ export function leanTo(F, u0, u1, z, dep, rise, c, o = {}) {
 export function wallsOn(F, u0, u1, z0, h, dep, c, kind, o = {}, off = 0) { F.box(u0, u1, z0, h, dep, c, { l: mat(kind, sY(c)), r: mat(kind, sX(c)), t: o.t || dk(c, .12), ol: o.ol }, off); }
 /** merge params with defaults */
 export const D = (p, def) => Object.assign({}, def, p);
+/** windows for the upper storeys (f0..fl-1) on both visible faces. oy / ox = winRow options per face */
+export function upperFloors(Fy, Fx, w, d, fl, r, oy = {}, ox = {}, f0 = 1) {
+  const yc = oy.cols || bays(w, Object.assign({ m: .45, pitch: 1.6 }, oy)), xc = ox.cols || bays(d, Object.assign({ m: .8, pitch: 2.1 }, ox));
+  for (let f = f0; f < fl; f++) { const z = f * 2; winRow(Fx, d, z, Object.assign({ r, ww: .7, wh: 1.1 }, ox, { cols: xc })); winRow(Fy, w, z, Object.assign({ r }, oy, { cols: yc })); }
+  return { yc, xc };
+}
+/** window on a round turret between angles (deg, 0 = +x, 90 = +y) */
+export function cylWin(cx, cy, rad, a0, a1, z0, z1, on, gc = ['#ffd98a', '#f4c870']) {
+  const P = (a, z) => [cx + rad * Math.cos(a * Math.PI / 180), cy + rad * Math.sin(a * Math.PI / 180), z], q = [P(a1, z0), P(a0, z0), P(a0, z1), P(a1, z1)];
+  fq(q, '#7fb6d0', '#9fcbe0'); if (on) glow(() => fq(q, gc[0], gc[1])); for (let i = 0; i < 4; i++) lw(q[i], q[(i + 1) % 4], '#4a4458'); lw(P(a1, z0 - .06), P(a0, z0 - .06), '#e6dfd0');
+}
+/** produce crate on the ground */
+export function crate(x, y, z, r, o = {}) {
+  const c = o.c || pick(r, ['#e8483f', '#f6a23a', '#f6d04d', '#7ab84a', '#c06ad8', '#e86a3a']);
+  box(x, y, z, o.w || .5, o.d || .4, o.h || .28, '#a8804f', { t: c, t2: dk(c, .22) });
+}

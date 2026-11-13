@@ -319,7 +319,7 @@ export default [
     draw(p) {
       const c = p.c || '#c8302a', fg = p.fg || '#fff8e0', pc = '#3d4a54';
       cyl(.25, .25, 0, .16, .3, pc); pole(.25, .25, .3, 4.4, pc, 2); ball(.25, .25, 4.48, .08, '#e8c85a');
-      const ban = (x0, x1) => { rail([Math.min(x0, .25), .25, 4.1], [Math.max(x1, .25), .25, 4.1], pc, 1); rail([Math.min(x0, .25), .25, 1.9], [Math.max(x1, .25), .25, 1.9], pc, 1); qy(x0, x1, .25, 1.95, 4.05, c); qy(x0, x1, .25, 1.95, 2.15, dk(c, .2)); qy(x0, x1, .25, 3.85, 4.05, dk(c, .2)); stampY(LEAF, (x0 + x1) / 2 - 3.5 / 16, .25, 3.7, fg); const t = String(p.text || 'MAPLE').slice(0, 5); for (let i = 0; i < t.length; i++) textY(t[i], (x0 + x1) / 2 - 1.5 / 16, .25, 3.05 - i * .42 + .3, fg); };
+      const ban = (x0, x1) => { rail([Math.min(x0, .25), .25, 4.1], [Math.max(x1, .25), .25, 4.1], pc, 1); rail([Math.min(x0, .25), .25, 1.45], [Math.max(x1, .25), .25, 1.45], pc, 1); qy(x0, x1, .25, 1.5, 4.05, c); qy(x0, x1, .25, 1.5, 1.66, dk(c, .2)); qy(x0, x1, .25, 3.85, 4.05, dk(c, .2)); stampY(LEAF, (x0 + x1) / 2 - 3.5 / 16, .25, 3.7, fg); const t = String(p.text || 'MAPLE').slice(0, 5); for (let i = 0; i < t.length; i++) textY(t[i], (x0 + x1) / 2 - 1.5 / 16, .25, 3.2 - i * .36, fg); };
       ban(.36, 1.1); if (p.double) ban(-.6, .14 - 0);
     },
   },

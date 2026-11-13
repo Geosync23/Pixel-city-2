@@ -41,8 +41,8 @@ const pier7 = {
       roll(Fy, a, a + 2.1, .6, 3.3, i % 2 ? '#d8d4c8' : '#c95a3a', { open: op }); Fy.text(String(i + 1), a + .95, 3.9, '#f4f0e8'); lamp(Fy, a + 1.05, 3.45, { len: .5 });
     }
     // canopy over dock
-    for (let x = .1; x < sw; x += 2.9) lw([x, 8.4, 3.75], [x, sd, 4.25], '#39424e');
-    box(0, sd, 3.72, sw, .95, .08, '#6c7680', { ol: true }); snowTop(0, sw, sd, sd + .95, 3.8, .1);
+    for (let x = .1; x < sw; x += 2.9) lw([x, sd + .7, 4.2], [x, sd, 4.6], '#39424e');
+    box(0, sd, 4.15, sw, .7, .08, '#6c7680', { ol: true }); snowTop(0, sw, sd, sd + .7, 4.23, .1);
     // goods on the dock
     let x = .4; while (x < sw - 1.4) { const k = r(); if (k < .35) { pallet(x, 7.75, .6, 1.1, .9); crate(x + .1, 7.85, .76, .55); if (r() < .6) crate(x + .58, 7.95, .76, .45, '#c9a36a'); } else if (k < .55) { drum(x + .3, 8.2, .6, '#3f7fbf'); drum(x + .85, 8.3, .6, '#d8452f'); } else if (k < .7) crate(x, 7.8, .6, .8, '#a87a4a'); x += 1.6 + r(); }
     for (const sx of [1.2, sw - 1.6]) { for (let i = 0; i < 3; i++) box(sx + i * .3, 9 + i * .0, 0, .3, .5, .6 - i * .2 - .0, '#a8a49c', { ol: false }); }

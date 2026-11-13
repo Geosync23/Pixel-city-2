@@ -37,7 +37,7 @@ export const VENUES = [
   { id: 'grocery', name: 'FreshWay Market', type: 'shop', district: 'maplewood', where: 'Maplewood edge, on the avenue towards Downtown',
     station: 'st_maplewood', interior: true,
     hours: [[8, 21], [8, 21], [8, 21], [8, 21], [8, 21], [8, 21], [9, 19]],
-    offers: { shop: ['ingredient', 'ready_meal', 'snack', 'drink', 'gift'], functions: ['shelf', 'till'] },
+    offers: { shop: ['ingredient', 'ready_meal', 'snack', 'drink', 'gift', 'misc'], functions: ['shelf', 'till'] },
     priceMult: 1, jobId: 'grocery_clerk', blurb: 'Everything for the fridge, under one green awning.' },
   { id: 'cornerstore', name: 'Lucky Corner', type: 'shop', district: 'oldtown', where: 'Old Town, on a cobbled corner under a neon clover',
     station: 'st_oldtown', interior: true,
@@ -57,7 +57,7 @@ export const VENUES = [
   { id: 'bookstore', name: 'Dog-Eared Books', type: 'shop', district: 'oldtown', where: 'Old Town, narrow shopfront with a sleeping dog in the window',
     station: 'st_oldtown', interior: true,
     hours: [[10, 18], [10, 18], [10, 18], [10, 18], [10, 20], [10, 20], [11, 16]],
-    offers: { shop: ['book', 'misc'], functions: ['book_browse', 'till'] },
+    offers: { shop: ['book', 'misc', 'gift'], functions: ['book_browse', 'till'] },
     priceMult: 1, jobId: null, blurb: 'New and second-hand. The dog is not for sale.' },
 
   // ---------------------------------------------------------------- food
@@ -96,7 +96,7 @@ export const VENUES = [
   { id: 'gym', name: 'Iron Maple Gym', type: 'leisure', district: 'downtown', where: 'Downtown, second floor with big windows',
     station: 'st_central', interior: true,
     hours: [[6, 22], [6, 22], [6, 22], [6, 22], [6, 22], [7, 20], [8, 18]],
-    offers: { shop: ['misc'], services: ['gym_day_entry'], functions: ['till', 'treadmill', 'weights', 'yoga_studio', 'locker_shower'] },
+    offers: { shop: ['misc', 'snack', 'drink', 'outfit'], services: ['gym_day_entry'], functions: ['till', 'treadmill', 'weights', 'yoga_studio', 'locker_shower'] },
     priceMult: 1, jobId: 'fitness_trainer', blurb: 'Treadmills, free weights, yoga at 8, 12 and 18.' },
   { id: 'library', name: 'Maple Bay Public Library', type: 'leisure', district: 'arts', where: 'Arts Quarter, on the campus green',
     station: 'st_arts', interior: true,
@@ -148,7 +148,7 @@ export const VENUES = [
   { id: 'stand_hotdog', name: "Frank's Franks", type: 'stall', district: 'park', where: 'Central Park main gate',
     station: 'st_central', interior: false,
     hours: DAILY(11, 20),
-    offers: { menu: true, functions: ['till'] }, priceMult: 1, jobId: null, blurb: 'Hot dogs with everything.' },
+    offers: { menu: true, shop: ['misc'], functions: ['till'] }, priceMult: 1, jobId: null, blurb: 'Hot dogs with everything.' },
   { id: 'stand_coffee', name: 'Little Drip Coffee Cart', type: 'stall', district: 'downtown', where: 'Central Station plaza',
     station: 'st_central', interior: false,
     hours: [[6, 15], [6, 15], [6, 15], [6, 15], [6, 15], [8, 14], null],
@@ -164,7 +164,7 @@ export const VENUES = [
   { id: 'market_stalls', name: 'Old Town Market', type: 'stall', district: 'oldtown', where: 'Market street, Old Town (doubles in size for the Saturday Farmers\' Market)',
     station: 'st_oldtown', interior: false,
     hours: [null, [9, 15], [9, 15], [9, 15], [9, 15], [8, 14], null],
-    offers: { menu: true, shop: ['ingredient', 'gift', 'snack', 'drink'], functions: ['till'] },
+    offers: { menu: true, shop: ['ingredient', 'gift', 'snack', 'drink', 'homegood'], functions: ['till'] },
     priceMult: 0.8, // produce is cheaper AND fresher here: +2 days shelf life on anything bought (see items.js)
     jobId: null, blurb: 'Crates of vegetables, buckets of flowers, a man who only sells honey.' },
 ];

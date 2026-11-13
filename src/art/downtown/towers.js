@@ -138,7 +138,7 @@ const twin = T('tower.twin', ['tower', 'office', 'glass'], { w: 12, d: 7, floors
     // skybridge
     box(.4 + wt, yb, bz, w - .8 - 2 * wt, 1.4, 1.5, q.frame, { ol: false }); const FB = FY(yb + 1.4); FB.win(.4 + wt, w - .4 - wt, bz + .3, bz + 1.2, { on: true, glowc: K.GLOWC.cool }); for (let x = .4 + wt + .5; x < w - .4 - wt; x += .5) FB.l(x, bz + .3, x, bz + 1.2, '#3a4458');
     K.garden(.4 + wt + .2, w - .4 - wt - .2, d - 1.6, d - .4, pod, r, { low: true });
-    K.glassBox(w - .4 - wt, .4, pod, wt, d - .8, h2, Object.assign({ glass: q.glass2, f0: 5 }, o));
+    K.glassBox(w - .4 - wt, .4, pod, wt, d - .8, h2, Object.assign({ glass: q.glass2, ph: 7 }, o));
     K.clutter(r, w - .1 - wt, w - .7, .7, d - .7, pod + h2, 'aAvk', .5, tall1 ? [] : [[w - .4 - wt / 2, d / 2, (x, y) => K.antenna(x - .8, y - .8, pod + h2, 4)]]);
   },
   [{ w: 12, d: 7, floors: 14, seed: 7 }, { w: 13, d: 7, floors: 12, seed: 15, glass: '#3f7f78', glass2: '#6aa89a', frame: '#f0e8d8', flipTall: true, accent: '#2f6f5f' }, { w: 12, d: 8, floors: 15, seed: 24, glass: '#3a4a7a', glass2: '#5a6aa8', frame: '#d8dce4', ratio: .6, fin: 3 }, { w: 14, d: 7, floors: 10, seed: 33, glass: '#b8864a', glass2: '#3a5a7a', frame: '#f0e4cc', ratio: .85, stone: '#d8c8a8', accent: '#8a4b3a' }]);

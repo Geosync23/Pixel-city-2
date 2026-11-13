@@ -2,8 +2,13 @@
 import * as m0 from './scenes/interior.js';
 import * as m1 from './scenes/rooms/zz_testroom.js';
 import * as m2 from './story/cast.js';
-import * as m3 from './world/testtown.js';
-const mods = [[m0, './scenes/interior.js'], [m1, './scenes/rooms/zz_testroom.js'], [m2, './story/cast.js'], [m3, './world/testtown.js']];
+import * as m3 from './story/dialogue.js';
+import * as m4 from './story/intro.js';
+import * as m5 from './story/story.js';
+import * as m6 from './ui/creator.js';
+import * as m7 from './ui/title.js';
+import * as m8 from './world/testtown.js';
+const mods = [[m0, './scenes/interior.js'], [m1, './scenes/rooms/zz_testroom.js'], [m2, './story/cast.js'], [m3, './story/dialogue.js'], [m4, './story/intro.js'], [m5, './story/story.js'], [m6, './ui/creator.js'], [m7, './ui/title.js'], [m8, './world/testtown.js']];
 export async function initModules(G) {
   mods.sort((a, b) => (a[0].order ?? 100) - (b[0].order ?? 100));
   for (const [m, f] of mods) if (typeof m.init === 'function') { try { await m.init(G); } catch (e) { console.error('init failed: ' + f, e); throw e; } }

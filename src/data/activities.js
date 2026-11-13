@@ -31,6 +31,13 @@
 //                   weather: [allowed weather ids]   notWeather: [blocked weather ids]
 //                   venueOpen: true                  companion: true (needs a friend along)
 //                   event: calendar event id that must be running
+//                   itemCategory / bookKind: needs an item of that category (book kind) to use
+//                   skillAny: { skillId: minLevel } any ONE of them is enough
+//                   purchasedHere: true (bought something at this venue this visit)
+//   schedule      fixed start times: { startHours: [...], joinWindowMinutes }
+//   yieldPerHour  items produced while doing it: [{ item (id or array = random pick), qty, chance }]
+//   fixed         true = cannot be cancelled early / runs its full length
+//   note          extra rule for programmers;  district = only offered in that district
 //   onComplete    applied once when the full default duration (or more) was done:
 //                   { moodlet, needs: {...}, gives: [{ item, qty, chance }], money: [min, max], opens: uiId }
 //   fastForward   true = time may run at high speed while it plays (sleep, work-like things).

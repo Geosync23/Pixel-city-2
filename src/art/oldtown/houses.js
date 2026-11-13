@@ -102,7 +102,7 @@ function bayHouse(p) {
 /* ---------- 4. mansard townhouse with dormers and iron balconies ---------- */
 const manSize = p => [p.w || 5, p.d || 8, (p.floors || 3) * 2 + 1.7];
 function mansardHouse(p) {
-  const q = D(p, { w: 5, d: 8, floors: 3, seed: 1, wall: '#e9dcc0', roof: '#5c6478', trim: '#f6f0e2' }), { w, d } = q, fl = q.floors, r = rng(q.seed), H = fl * 2, mh = 1.7, inn = .55;
+  const q = D(p, { w: 5, d: 8, floors: 3, seed: 1, wall: '#f0e2c4', roof: '#5c6478', trim: '#fbf4e4' }), { w, d } = q, fl = q.floors, r = rng(q.seed), H = fl * 2, mh = 1.7, inn = .55;
   const Fy = face('y', d), Fx = face('x', w), dc = q.door || pick(r, PALETTE.door), st = dk(q.wall, .12);
   walls(0, 0, 0, w, d, H, q.wall, 'plain');
   Fy.q(0, w, 0, 2, mat('stone', Fy.c(st))); Fx.q(0, d, 0, 2, mat('stone', Fx.c(st)));
@@ -124,6 +124,7 @@ function mansardHouse(p) {
   const ms = mansard(0, 0, H, w, d, mh, inn, q.roof, { party: true, wall: q.wall });
   cols.forEach(c => dormer(Fy, c - .42, c + .42, .1, H + .1 * ms.s, 1.0, ms.s, { wall: q.trim, roof: dk(q.roof, .2), rh: .28, win: { r, mull: 'cross' } }));
   railing(face('y', d - inn), 0, w, H + mh, { h: .22, step: .2 });
+  roofStuff(r, { z: H + mh, x0: 1, y0: .5, x1: w - 1, y1: d - inn - 1.2 }, { n: 4, kinds: ['skylight', 'vent', 'antenna', 'skylight', 'ac'] });
   chimney(.2, d * .25, H + mh, .9, '#a8553f', { w: .5, d: .9 }); chimney(w - .7, d * .5, H + mh, .9, '#a8553f', { w: .5, d: .9 });
 }
 
@@ -237,7 +238,7 @@ export default [
   { id: 'bld.oldtown.rowhouse.bay', kind: 'building', tags: [...T, 'house', 'rowhouse', 'bay'], size: baySize, vb: vbOf(baySize, { y: .4 }), door: { side: 'y', at: 1.1 }, draw: bayHouse,
     variants: [{ w: 5, d: 8, floors: 3, seed: 5, wall: '#b8cdd6' }, { w: 5, d: 8, floors: 2, seed: 17, wall: '#e8b4a8', roof: '#7a5548', accent: '#c07a80' }, { w: 6, d: 9, floors: 3, seed: 29, wall: '#c9d6b8', accent: '#6a8a6a', roof: '#4f4a58' }, { w: 5, d: 8, floors: 3, seed: 41, wall: '#f0d890', accent: '#c98a3a', roof: '#9a4a3a' }] },
   { id: 'bld.oldtown.rowhouse.mansard', kind: 'building', tags: [...T, 'house', 'rowhouse', 'mansard'], size: manSize, vb: vbOf(manSize, { y: .6 }), door: { side: 'y', at: 1.1 }, draw: mansardHouse,
-    variants: [{ w: 5, d: 8, floors: 3, seed: 6, wall: '#e9dcc0' }, { w: 6, d: 8, floors: 4, seed: 18, wall: '#d9cdb8', roof: '#4f4a58' }, { w: 5, d: 7, floors: 2, seed: 33, wall: '#e8d0c0', roof: '#6a5a6a' }, { w: 7, d: 9, floors: 3, seed: 47, wall: '#dcd6c4', roof: '#4a6a6a' }] },
+    variants: [{ w: 5, d: 8, floors: 3, seed: 6 }, { w: 6, d: 8, floors: 4, seed: 18, wall: '#ecd9c0', roof: '#4f4a58' }, { w: 5, d: 7, floors: 2, seed: 33, wall: '#f2d6c4', roof: '#6a5a6a' }, { w: 7, d: 9, floors: 3, seed: 47, wall: '#e6e2c8', roof: '#4a6a6a' }] },
   { id: 'bld.oldtown.rowhouse.gable', kind: 'building', tags: [...T, 'house', 'rowhouse', 'brick', 'gable'], size: sgSize, vb: vbOf(sgSize, { y: .8 }), door: { side: 'y', at: 1 }, draw: gableHouse,
     variants: [{ w: 4, d: 8, floors: 3, seed: 7, wall: '#a8553f' }, { w: 4, d: 8, floors: 4, seed: 19, wall: '#8f5a4c', roof: '#7a4a3a' }, { w: 5, d: 9, floors: 3, seed: 35, wall: '#c07850', door: '#3f6a4a' }, { w: 4, d: 7, floors: 2, seed: 49, wall: '#9c4a40', door: '#34406a' }] },
   { id: 'bld.oldtown.rowhouse.timber', kind: 'building', tags: [...T, 'house', 'rowhouse', 'timber'], size: tfSize, vb: vbOf(tfSize, { y: .6 }), door: { side: 'y', at: 1 }, draw: timberHouse,

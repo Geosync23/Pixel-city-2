@@ -104,7 +104,7 @@ function wing(p) {
   qy(0, w, y, 2.2, 2.7, '#f4f2ea'); qy(0, w, y, 2.28, 2.4, AP.sky);
   doors.forEach((dx, i) => { const t = (p.signs || ['CHECK-IN', 'BAGGAGE', 'GATES', 'TICKETS'])[i % 4]; bsignY(t, dx - 1.3, dx + 1.3, y + .01, 2.22, 2.68, i % 2 ? '#2f7fd0' : NAVY, '#ffffff', { lit: true }); });
   qy(0, w, y, 3.9, 4.2, '#f4f2ea'); lw([0, y, 3.9], [w, y, 3.9], dk(AP.wall, .3));
-  qy(0, w, y, 3.9, 4.32, '#f4f2ea'); if (w >= 8) wtext('y', name, w - .5 - tw(name) / 16, y + .01, 4.27, NAVY);
+  qy(0, w, y, 3.9, 4.32, '#f4f2ea'); if (w >= 8) wtext('y', name, w - .5 - tw(name) / 16, y + .01, 4.23, NAVY);
   const prof = waveProf(d + .08, -.3, 4.36, 1.0, 1.25, 8);
   box(-.15, -.15, H, w + .3, d + .3, .12, ROOFC, { ol: false });
   endGlass(prof, w, 4.36);

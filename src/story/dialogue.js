@@ -34,7 +34,7 @@
 //   GIFT_REACTIONS  { loved, liked, neutral, disliked }  each { delta, lines[] }
 //       loved = item in npc.likes.gifts, disliked = in npc.dislikes.gifts, liked = same
 //       venue/category heuristics (programmer's call), neutral = everything else.
-//   FAVOURS   [{ id, minTier, ask, yes, no, effect }]  what "ask a favor" can grant.
+//   FAVORS   [{ id, minTier, ask, yes, no, effect }]  what "ask a favor" can grant.
 //
 //   NPC_LINES  { [npcId]: { stranger?, acquaintance?, friend?, close?, family? : string[] } }
 //       Unique chat lines per NPC, used as the reply to 'chat' / 'ask about day' or as
@@ -382,7 +382,7 @@ export const GIFT_REACTIONS = {
   },
 };
 
-export const FAVOURS = [
+export const FAVORS = [
   { id: 'small_loan',   minTier: 'friend', ask: 'Could you spot me a little until payday?',
     yes: 'Here. Pay me back in dinner.', no: 'I\'m broke myself this week, sorry.', effect: { money: 30 } },
   { id: 'leftovers',    minTier: 'friend', ask: 'I don\'t suppose you have any food going spare?',
@@ -1071,7 +1071,7 @@ export const AMBIENT = {
     greeting: [
       'Morning!',
       'Hello there!',
-      'Hi! Lovely day, is it not?',
+      'Hi! Nice day, huh?',
       'Oh, hello! You\'re new, right? Welcome!',
       'Hey, neighbor.',
       'Howdy.',

@@ -180,3 +180,8 @@ export const ledX = (str, x, y0, y1, z0, z1, fg, bg) => signX(str, x, y0, y1, z0
 export const tw = (s, pad = 4) => (textW(String(s)) + pad) / U;
 /** snow blanket on a flat top */
 export function snowTop(x0, x1, y0, y1, z) { qz(x0, x1, y0, y1, z, COL.snow, '#e3ebf2'); }
+/** sparse see-through screen pattern for glass (use with fq): 1 pixel in n */
+export const sparse = (hex, n = 3) => (X, Y) => ((X + 2 * Y) % n === 0 ? hex : null);
+/** glass quad on a constant-y plane with the sparse pattern */
+export const glassY = (x0, x1, y, z0, z1, hex, n) => fq([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], sparse(hex || '#c8eef4', n));
+export const glassX = (x, y0, y1, z0, z1, hex, n) => fq([[x, y0, z0], [x, y1, z0], [x, y1, z1], [x, y0, z1]], sparse(hex || '#a8dce6', n));

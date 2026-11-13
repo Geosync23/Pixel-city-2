@@ -281,3 +281,32 @@ export const LEAF = ['...#...', '.#.#.#.', '.#####.', '#######', '.#####.', '..#
 export function cat(x, y, z, c = '#3a3440') { const s = P(x, y, z), k = C(c), d = C(dk(c, .3)); for (const q of [[0, -1], [1, -1], [2, -1], [0, -2], [1, -2], [2, -2], [1, -3], [2, -3], [1, -4], [2, -4], [3, -4], [1, -5], [3, -5]]) px(s[0] + q[0], s[1] + q[1], k); px(s[0] - 1, s[1] - 1, d); px(s[0] - 2, s[1] - 2, d); px(s[0] + 2, s[1] - 4, C('#ffe27a')); }
 /** horizontal rail between two world points, w px thick, lit from above */
 export function rail(a, b, c, w = 2) { for (let i = 0; i < w; i++) line([PW(a[0], a[1], a[2])[0], PW(a[0], a[1], a[2])[1] + i], [PW(b[0], b[1], b[2])[0], PW(b[0], b[1], b[2])[1] + i], i === 0 ? lt(c, .25) : i === w - 1 && w > 2 ? dk(c, .3) : c); }
+/** bicycle parked along +y (nose toward -y), frame colour c */
+export function bikeY(x, y0, z, c = '#d8342c') {
+  const r = .3, A = [x, y0 + .3, z + r], B = [x, y0 + 1.2, z + r], S = [x, y0 + .95, z + .78], H = [x, y0 + .45, z + .85], K = [x, y0 + .8, z + r];
+  ring(x, y0 + .3, z + r, 4, '#2a2f3a'); ring(x, y0 + 1.2, z + r, 4, '#2a2f3a');
+  lw(B, S, c); lw(S, H, c); lw(K, H, c); lw(S, K, c); lw(B, K, c); lw(H, A, dk(c, .2)); lw(H, [x, y0 + .5, z + 1.02], '#2a2f3a');
+  const s = P(S[0], S[1], S[2]); px(s[0] - 1, s[1] - 1, C('#2a2433')); px(s[0], s[1] - 1, C('#2a2433')); px(s[0] + 1, s[1] - 2, C(winter() ? SNOW : '#2a2433'));
+}
+/** faceted (octagonal) cone roof: rim radius r at height z, apex h above. Snowy in winter */
+export function octRoof(x, y, z, r, h, c1, c2, o = {}) {
+  const ap = [x, y, z + h], seg = [], n = o.n || 8, st = 6.2832 / n, w = winter() && o.snow !== false;
+  for (let i = 0; i < n; i++) { const a0 = i * st + st / 2, a1 = a0 + st, am = a0 + st / 2; seg.push({ d: Math.cos(am) + Math.sin(am), k: (Math.cos(am) - Math.sin(am) + 1.42) / 2.84, p: [[x + Math.cos(a0) * r, y + Math.sin(a0) * r, z], [x + Math.cos(a1) * r, y + Math.sin(a1) * r, z]], c: i & 1 ? c2 : c1 }); }
+  seg.sort((a, b) => a.d - b.d);
+  for (const s of seg) {
+    fq([ap, s.p[0], s.p[1]], dk(s.c, .04 + s.k * .32));
+    if (w) { const m = (q, t) => [x + (q[0] - x) * t, y + (q[1] - y) * t, z + h * (1 - t)]; fq([ap, m(s.p[0], .62), m(s.p[1], .62)], s.k > .6 ? SNOW2 : SNOW); fq([m(s.p[0], .62), m(s.p[1], .62), m(s.p[1], .8), m(s.p[0], .8)], s.k > .6 ? SNOW2 : SNOW, 'glass'); }
+    lw(ap, s.p[1], dk(s.c, .45)); if (s.d > -.3) { const e = o.eave === undefined ? .12 : o.eave; fq([s.p[0], s.p[1], [s.p[1][0], s.p[1][1], z - e], [s.p[0][0], s.p[0][1], z - e]], dk(s.c, .25 + s.k * .3)); lw([s.p[0][0], s.p[0][1], z - e], [s.p[1][0], s.p[1][1], z - e], dk(c1, .65)); lw(s.p[0], s.p[1], lt(s.c, .25)); } else lw(s.p[0], s.p[1], dk(c1, .65));
+  }
+}
+/** small rowboat along +x, hull colour c */
+export function rowboat(x, y, z, len, c, o = {}) {
+  const h = .32, b = [x + len, y + .5, z + h + .06], w = '#c9a268';
+  fq([[x, y + .15, z + h], [x + len * .78, y + .15, z + h], b, [x + len * .78, y + .85, z + h], [x, y + .85, z + h]], o.cover || dk(w, .3));
+  fq([[x, y + .85, z + h], [x + len * .78, y + .85, z + h], b, [x + len * .86, y + .55, z], [x + .12, y + .72, z]], c);
+  fq([[x, y + .85, z + h - .1], [x + len * .78, y + .85, z + h - .1], b, [x + len * .78, y + .85, z + h], [x, y + .85, z + h]], lt(c, .35));
+  lw([x, y + .85, z + h], [x + len * .78, y + .85, z + h], lt(c, .5)); lw([x + len * .78, y + .85, z + h], b, lt(c, .5)); lw([x, y + .15, z + h], [x + len * .78, y + .15, z + h], dk(c, .3)); lw([x + len * .78, y + .15, z + h], b, dk(c, .3)); lw([x, y + .15, z + h], [x, y + .85, z + h], dk(c, .5));
+  lw([x + .12, y + .72, z], [x + len * .86, y + .55, z], dk(c, .65)); lw([x + len * .86, y + .55, z], b, dk(c, .65)); lw([x, y + .85, z + h], [x + .12, y + .72, z], dk(c, .65));
+  if (!o.cover) for (const t of [.3, .6]) { fq([[x + len * t, y + .17, z + h - .02], [x + len * t + .16, y + .17, z + h - .02], [x + len * t + .16, y + .83, z + h - .02], [x + len * t, y + .83, z + h - .02]], w); }
+  if (winter()) fq([[x + .1, y + .22, z + h + .01], [x + len * .7, y + .22, z + h + .01], [x + len * .7, y + .5, z + h + .01], [x + .1, y + .5, z + h + .01]], SNOW, 'glass');
+}

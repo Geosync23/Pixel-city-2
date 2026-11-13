@@ -1,5 +1,5 @@
 // Shared helpers for the harbour / industrial kit. Local to this folder (not an asset module: no default export array).
-import { U, ENV, C, PW, px, fq, lw, qy, qx, qz, box, cyl, glow, lit, dk, lt, PAT, winY, winX, isFlipped, ellipse, spx, gable, hip, signY, signX, textY, textX } from '../../engine/raster.js';
+import { mix, U, ENV, C, PW, px, fq, lw, qy, qx, qz, box, cyl, glow, lit, dk, lt, PAT, winY, winX, isFlipped, ellipse, spx, gable, hip, signY, signX, textY, textX } from '../../engine/raster.js';
 
 export const SNOW = '#f4f8fb';
 export const winter = () => ENV.season === 3;
@@ -219,3 +219,33 @@ export function snowDisc(x, y, z, r) { if (!winter()) return; const t = PW(x, y,
 export const panels = (c, n = 16, m = 16) => { const s = dk(c, .14); return (u, v) => (u % n === 0 || v % m === 0) ? s : c; };
 /** hazard-yellow bollard */
 export function bollardY(x, y, z = 0) { cyl(x, y, z, .1, .7, '#f2c230', { ol: false }); band(x, y, z + .45, .1, .1, '#2e2a3a'); }
+
+/** shipping container: len 3 (20ft) or 6 (40ft), 1.2 wide, 1.3 high. doors on the +x end */
+export function container(x, y, z, len, c, o) {
+  o = o || {}; const wd = 1.2, h = 1.3;
+  box(x, y, z, len, wd, h, c, { l: PAT.planks(Lc(c), 2), r: PAT.planks(Rc(c), 4), t: lt(c, .1) });
+  const F = face('x', x + len), G = face('y', y + wd);
+  G.q(x, x + len, z, z + .1, Lc(dk(c, .28))); G.q(x, x + len, z + h - .1, z + h, Lc(dk(c, .2))); G.q(x, x + .1, z, z + h, Lc(dk(c, .25))); G.q(x + len - .1, x + len, z, z + h, Lc(dk(c, .25)));
+  F.q(y, y + wd, z, z + .08, Rc(dk(c, .28))); F.l(y + wd / 2, z + .08, y + wd / 2, z + h - .06, dk(c, .6)); for (const a of [y + .28, y + .92]) F.l(a, z + .12, a, z + h - .1, lt(c, .4));
+  if (o.logo) G.text(o.logo, x + .3, z + h - .32, lt(c, .65));
+  if (o.snow !== false) snowTop(x, x + len, y, y + wd, z + h, .12);
+}
+export const CONT = ['#c9482f', '#2f6f9f', '#3f8a55', '#e0a030', '#7a4a8a', '#d86a2a', '#4a5868', '#2f8a8a', '#b8bcc0', '#8a3a3a'];
+export const LOGOS = ['MBX', 'ZIP', 'KOA', 'NORD', 'TIDE', 'ORCA', '', '', 'BAY', 'M+L'];
+/** boat hull lying along x, bow at +x, waterline at z. Returns deck-height fn. o: {sheer, bowAt, stripe, boot, deck, tuck} */
+export function hull(L, W, fb, c, o) {
+  o = o || {}; const sh = o.sheer === undefined ? .3 : o.sheer, bx = L * (o.bowAt || .68), tw = o.tuck === undefined ? .14 : o.tuck, boot = o.boot || '#8a2f2a', stripe = o.stripe, deckc = o.deck || '#c9a36a', z = o.z || 0;
+  const A = [0, 0, z + fb], B = [bx, 0, z + fb], Cb = [L, W / 2, z + fb + sh], D = [bx, W, z + fb], E = [0, W, z + fb];
+  const Ew = [.12, W - tw, z], Dw = [bx - .1, W - tw, z], Cw = [L - Math.min(.5, L * .09), W / 2, z];
+  const m = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const sc = Lc(c), bc = mix(Lc(c), Rc(c), .6);
+  const strip = (t0, t1, c1, c2) => { fq([m(Ew, E, t0), m(Dw, D, t0), m(Dw, D, t1), m(Ew, E, t1)], c1); fq([m(Dw, D, t0), m(Cw, Cb, t0), m(Cw, Cb, t1), m(Dw, D, t1)], c2); };
+  strip(0, 1, sc, bc); const bt = Math.min(.3, .16 / fb); strip(0, bt, Lc(boot), mix(Lc(boot), Rc(boot), .6));
+  if (stripe) strip(.72, .9, Lc(stripe), mix(Lc(stripe), Rc(stripe), .6));
+  fq([A, B, Cb, D, E], deckc);
+  const oc = dk(c, .7); lw(Ew, Dw, oc); lw(Dw, Cw, oc); lw(Cw, Cb, oc); lw(Ew, E, oc); lw(A, B, oc); lw(B, Cb, oc); lw(A, E, oc);
+  lw(E, D, lt(c, .5)); lw(D, Cb, lt(c, .5)); lw(Dw, D, dk(sc, .25));
+  // foam at the waterline
+  for (let t = .08; t < 1; t += .17) { const q = m(Ew, Dw, t); spx(q[0], q[1] + .04, z, 0, 1, '#e8f6fb'); spx(q[0], q[1] + .04, z, 1, 1, '#e8f6fb'); }
+  return { A, B, Cb, D, E };
+}

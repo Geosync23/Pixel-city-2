@@ -94,7 +94,7 @@ const gym = [
   }, { use: { x: .75, y: 1 }, staff: { x: .75, y: 1, dir: 1 }, variants: [{}, { name: 'HIIT', seed: 5 }] }),
 
   F('gym.kettlebells', ['gym', 'weights', 'liftstation', 'workout'], [1, .5, .5], p => {
-    bx(0, .05, 0, 1, .4, .04, MD); ['#e87aa0', '#f2c230', '#4a90e8', '#c0392b'].forEach((c, i) => { const x = .14 + i * .24, r = .07 + i * .012; ball(x, .25, .04 + r, r, c); lw([x - .04, .25, .04 + 2 * r + .04], [x + .04, .25, .04 + 2 * r + .04], MD); spx(x - .04, .25, .04 + 2 * r, 0, 0, MD); spx(x + .04, .25, .04 + 2 * r, 0, 0, MD); });
+    bx(0, .05, 0, 1, .4, .04, MD); ['#e87aa0', '#f2c230', '#4a90e8', '#c0392b'].forEach((c, i) => { const x = .14 + i * .24, r = .09 + i * .012; ball(x, .25, .04 + r, r, c); lw([x - .04, .25, .04 + 2 * r + .04], [x + .04, .25, .04 + 2 * r + .04], MD); spx(x - .04, .25, .04 + 2 * r, 0, 0, MD); spx(x + .04, .25, .04 + 2 * r, 0, 0, MD); });
   }, { use: { x: .5, y: 1 }, pose: { x: .5, y: 1, z: 0, dir: 3, anim: 'curl' } }),
 
   F('gym.balls', ['gym', 'decor', 'yoga'], [1, 1, 1], p => {

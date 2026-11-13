@@ -8,7 +8,7 @@ const lerp = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
 
 const CFG = {
   airliner: {
-    L: 22, span: 18, h: 6.2, zc: 1.9,
+    L: 22, span: 17, h: 6.2, zc: 1.9,
     st: [[.3, .15, .55], [2, .45, .4], [5, .9, .1], [7.5, 1.05, 0], [18.5, 1.05, 0], [20.3, .9, -.05], [21.3, .6, -.15], [21.9, .2, -.25]],
     wing: { x0: 8.8, x1: 13.2, tx0: 6.6, tx1: 7.9, z: 1.35, zt: 1.95, ry: .5, winglet: 1 },
     eng: { type: 'jet', y: 3.3, x0: 10.6, x1: 13.7, r: .6, z: .95 },
@@ -38,14 +38,14 @@ const CFG = {
     gear: { nose: 8.4, main: 4.7, y: .9, r: .22 }, text: 0,
   },
   cargo: {
-    L: 22, span: 18, h: 6.6, zc: 2.1,
+    L: 22, span: 17, h: 6.6, zc: 2.1,
     st: [[.3, .2, 1.1], [2.5, .6, .8], [5.5, 1.15, .2], [7.5, 1.3, 0], [18, 1.3, 0], [20, 1.1, -.1], [21.2, .7, -.3], [21.85, .25, -.45]],
     wing: { x0: 9.2, x1: 13.2, tx0: 7.4, tx1: 8.8, z: 3.3, zt: 2.95, ry: 0, high: 1 },
     eng: { type: 'jet', y: 3.6, x0: 10.4, x1: 13.7, r: .64, z: 2.3 },
     stab: { x0: .2, x1: 2.5, tx0: 0, tx1: 1.3, half: 3.8, z: 6.3, T: 1 },
     fin: [[1.0, 3.0], [5.2, 3.2], [2.3, 6.3], [.3, 6.3]],
-    win: null, cock: [20, 21], doors: [], cdoor: [14.6, 17.4],
-    gear: { nose: 19, main: 9.8, y: 1.2 }, text: 8.6,
+    win: null, cock: [20, 21], doors: [], cdoor: [12.6, 15.0],
+    gear: { nose: 19, main: 9.8, y: 1.2 }, text: 15.5,
   },
 };
 
@@ -190,8 +190,8 @@ const V = (liv, dir, gear, extra) => Object.assign({ dir, gear, seed: 3 }, LIV[l
 function planeAssets(key, id, variants, tags) {
   const cfg = CFG[key], size = [cfg.L, cfg.span, cfg.h];
   return [
-    { id: 'veh.airport.' + id, kind: 'vehicle', tags: ['airport', 'aircraft', ...tags], size, vb: [-.4, -.4, 0, cfg.L + .4, cfg.span + .4, cfg.h + .4], variants, draw: p => drawPlane(cfg, p) },
-    { id: 'veh.airport.' + id + '.shadow', kind: 'vehicle', solid: false, tags: ['airport', 'aircraft', 'shadow'], size: [cfg.L, cfg.span, .1], vb: [-.2, -.2, 0, cfg.L + .2, cfg.span + .2, .2], variants: [{ dir: 1 }, { dir: -1 }], draw: p => drawShadow(cfg, p) },
+    { id: 'veh.airport.' + id, kind: 'vehicle', tags: ['airport', 'aircraft', ...tags], size, vb: [-.15, -.15, 0, cfg.L + .15, cfg.span + .15, cfg.h + .4], variants, draw: p => drawPlane(cfg, p) },
+    { id: 'veh.airport.' + id + '.shadow', kind: 'vehicle', solid: false, tags: ['airport', 'aircraft', 'shadow'], size: [cfg.L, cfg.span, .1], vb: [-.15, -.15, 0, cfg.L + .15, cfg.span + .15, .2], variants: [{ dir: 1 }, { dir: -1 }], draw: p => drawShadow(cfg, p) },
   ];
 }
 

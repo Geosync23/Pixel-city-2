@@ -44,6 +44,8 @@
 //   look         string   free-text description for the character artist.
 //   spec         suggested appearance: { skin, hair, hairColor, top, topColor, bottom,
 //                bottomColor, hat, glasses, bag, age:'kid'|'adult'|'elder', outfit }
+//   background   string   heritage / where they are from (Maple Bay is a modern, very diverse
+//                American city). For writers and the character artist; not shown in game.
 //   bio          string   one line for the contact card.
 //   greetings    { low: string[], mid: string[], high: string[] }
 //                low = stranger/acquaintance, mid = friend, high = close friend (or family).
@@ -201,6 +203,7 @@ export const CAST = [
     ],
     look: 'Tall, tired-but-smiling. Chestnut hair in a messy bun with a pencil in it, mustard cardigan, lanyard, tote full of marking.',
     spec: { skin: 'tan', hair: 'bun', hairColor: '#7a4a2b', top: 'cardigan', topColor: '#e0a526', bottom: 'jeans', bottomColor: '#3d5a80', hat: 'none', glasses: 'none', bag: 'tote', age: 'adult', outfit: 'casual' },
+    background: "Mixed-heritage family, third generation in the Pacific Northwest; the family look follows the player's chosen skin tone where possible.",
     bio: 'Moved here ten years ago and never stopped telling you to do the same.',
     greetings: {
       low: ['There you are! Have you eaten? You look like you haven\'t eaten.', "Hey, you. Still can't believe you actually live here now."],
@@ -225,6 +228,7 @@ export const CAST = [
     ],
     look: 'Soft-spoken, round glasses, neat beard, knitted vest over a shirt. Sawdust on his cuffs at weekends.',
     spec: { skin: 'brown', hair: 'short', hairColor: '#1e1a18', top: 'vest', topColor: '#4f7a5b', bottom: 'slacks', bottomColor: '#55504a', hat: 'none', glasses: 'round', bag: 'briefcase', age: 'adult', outfit: 'office' },
+    background: 'Black American; grew up in Atlanta, came west for college and stayed for Jules.',
     bio: 'Approves mortgages by day, builds wobbly furniture by night.',
     greetings: {
       low: ['Ah, the famous sibling. I was told to feed you on sight.', 'Welcome to the Bay. It grows on you. Like moss, but nicer.'],
@@ -249,6 +253,7 @@ export const CAST = [
     ],
     look: 'Two puffball pigtails, gap-toothed grin, star-print overalls, clipboard she takes everywhere.',
     spec: { skin: 'brown', hair: 'pigtails', hairColor: '#2a1c14', top: 'tshirt', topColor: '#f2c14e', bottom: 'overalls', bottomColor: '#4a6fa5', hat: 'none', glasses: 'none', bag: 'backpack', age: 'kid', outfit: 'casual' },
+    background: 'Maple Bay born and raised.',
     bio: 'Nine years old, three clubs, one clipboard. Runs a tight ship.',
     greetings: {
       low: ['Mom says you are my aunt-or-uncle. I have questions.', 'Hi! Do you like lists? I have a list about you.'],
@@ -272,6 +277,7 @@ export const CAST = [
     ],
     look: 'Small, serious, green dinosaur hoodie with the hood always up, one sock always down.',
     spec: { skin: 'brown', hair: 'curly', hairColor: '#2a1c14', top: 'hoodie', topColor: '#5fa55a', bottom: 'shorts', bottomColor: '#6b5b4b', hat: 'hood', glasses: 'none', bag: 'none', age: 'kid', outfit: 'casual' },
+    background: 'Maple Bay born and raised.',
     bio: 'Speaks rarely, draws constantly, knows forty-one dinosaurs.',
     greetings: {
       low: ['...hi.', 'Do you know what a stegosaurus is? ...Okay. Good.'],
@@ -297,6 +303,7 @@ export const CAST = [
     ],
     look: 'Tiny, upright, silver bun, flour on a floral apron, cardigan with a tissue up the sleeve, twinkly eyes.',
     spec: { skin: 'tan', hair: 'bun', hairColor: '#c9c9c9', top: 'cardigan', topColor: '#b56576', bottom: 'skirt', bottomColor: '#6d597a', hat: 'none', glasses: 'half-moon', bag: 'basket', age: 'elder', outfit: 'apron' },
+    background: 'Daughter of immigrants who ran a boarding house in Old Town; has never lived more than six blocks from it.',
     bio: 'Ran the Copper Kettle tearoom for 31 years. Still knows what you want before you do.',
     greetings: {
       low: ['Let me look at you. Too thin. Sit. I will fix it.', 'There is my {name}. The kettle went on when I heard the gate.'],
@@ -322,6 +329,7 @@ export const CAST = [
     ],
     look: 'Lanky, grinning, courier cap backwards, neon windbreaker, one pant leg rolled up, enormous messenger bag.',
     spec: { skin: 'tan', hair: 'fade', hairColor: '#1e1a18', top: 'windbreaker', topColor: '#ff7b3a', bottom: 'joggers', bottomColor: '#2f2f38', hat: 'cap-backwards', glasses: 'none', bag: 'messenger', age: 'adult', outfit: 'courier' },
+    background: 'Your cousin on the other side of the family; half Filipino, all Railyard.',
     bio: 'Knows every shortcut in the city and at least two that aren\'t legal for bikes.',
     greetings: {
       low: ['Cuz! You made it! I\'d hug you but I\'m very sweaty.', 'Yo, {name}! Need a shortcut? I have a shortcut for everything.'],
@@ -348,6 +356,7 @@ export const CAST = [
     ],
     look: 'Teal bob with grown-out roots, denim jacket covered in enamel pins, paint on her boots, guitar case with a peeling sticker of your old school mascot.',
     spec: { skin: 'olive', hair: 'bob', hairColor: '#2a9d8f', top: 'denim-jacket', topColor: '#4a6fa5', bottom: 'jeans', bottomColor: '#22223b', hat: 'none', glasses: 'none', bag: 'guitar-case', age: 'adult', outfit: 'casual' },
+    background: 'Filipino-Mexican American; grew up in your hometown, moved to Maple Bay for art school.',
     bio: 'Sat next to you in every class that allowed it. Has forty half-songs and one finished.',
     greetings: {
       low: ['No way. NO way. {name}?! In my actual city?', 'Look who it is. You still owe me a pencil from ninth grade.'],
@@ -372,6 +381,7 @@ export const CAST = [
     ],
     look: 'Rolled sleeves, forearm tattoo of a coffee plant, undercut, linen apron, expression of deep espresso focus.',
     spec: { skin: 'tan', hair: 'undercut', hairColor: '#3b2a20', top: 'shirt', topColor: '#e9e4d8', bottom: 'chinos', bottomColor: '#5b4636', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'barista' },
+    background: 'Puerto Rican, raised in Chicago; nonbinary; learned coffee in Portland.',
     bio: 'Remembers your order, your name, and the thing you said last Tuesday.',
     greetings: {
       low: ['Welcome to Bean & Gone. New face! I like new faces.', 'Morning. What can I get started for you?'],
@@ -394,6 +404,7 @@ export const CAST = [
     ],
     look: 'Green FreshWay apron with a row of enamel fruit pins, hair in a long braid, price gun in a hip holster.',
     spec: { skin: 'brown', hair: 'braid', hairColor: '#1b1b1e', top: 'polo', topColor: '#f4f1de', bottom: 'slacks', bottomColor: '#3d405b', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'grocer' },
+    background: 'Tamil American; parents ran a spice stall in Queens.',
     bio: 'Can tell a ripe melon by ear. Has opinions about how you bag.',
     greetings: {
       low: ['Welcome to FreshWay! Baskets on your left, bargains on your right.', 'New in town? Peaches are perfect today. Trust me.'],
@@ -415,6 +426,7 @@ export const CAST = [
     ],
     look: 'Gray cardigan, reading glasses on a cord, small radio playing baseball, lucky cat waving beside the till.',
     spec: { skin: 'light', hair: 'short', hairColor: '#8d8d8d', top: 'cardigan', topColor: '#8a8f98', bottom: 'slacks', bottomColor: '#4a4e69', hat: 'none', glasses: 'reading', bag: 'none', age: 'adult', outfit: 'shopkeeper' },
+    background: 'Korean American; came over from Busan in 1988 and bought the store in 1994.',
     bio: 'Open every day, fourteen hours. Claims he is "resting" the whole time.',
     greetings: {
       low: ['Welcome. Umbrellas by the door. You\'ll need one. Eventually.', 'Evening. Milk is in the back. It\'s always in the back.'],
@@ -437,6 +449,7 @@ export const CAST = [
     ],
     look: 'Bright head wrap, flour to the elbows, laugh you can hear from the street, tray always in hand.',
     spec: { skin: 'dark', hair: 'wrapped', hairColor: '#1b1b1e', top: 'tshirt', topColor: '#ffd166', bottom: 'trousers', bottomColor: '#6c584c', hat: 'headwrap', glasses: 'none', bag: 'none', age: 'adult', outfit: 'baker' },
+    background: 'Nigerian American; born in Lagos, raised in Old Town from age six.',
     bio: "Washed dishes at the Copper Kettle at sixteen. Now bakes in the same ovens.",
     greetings: {
       low: ['Morning, sunshine! Everything is warm, including me.', 'Welcome to Rise & Shine. The cinnamon knots just came out.'],
@@ -459,6 +472,7 @@ export const CAST = [
     ],
     look: 'Pink uniform, white apron, pencil behind the ear, cat-eye glasses on a chain, coffee pot fused to her right hand.',
     spec: { skin: 'light', hair: 'beehive', hairColor: '#c9763a', top: 'uniform', topColor: '#f4a6b8', bottom: 'skirt', bottomColor: '#f4a6b8', hat: 'none', glasses: 'cat-eye', bag: 'none', age: 'elder', outfit: 'diner' },
+    background: 'Polish American; third-generation Railyard, daughter of a train engineer.',
     bio: 'Forty years of pancakes. Calls everyone "hon". Means it about half the time.',
     greetings: {
       low: ['Sit anywhere, hon. Coffee is coming whether you like it or not.', 'New face. You look hungry. Everybody new looks hungry.'],
@@ -481,6 +495,7 @@ export const CAST = [
     ],
     look: 'Indigo headband, spotless white jacket, arms folded, the faintest possible smile when you finish the broth.',
     spec: { skin: 'light', hair: 'short', hairColor: '#1b1b1e', top: 'chef-jacket', topColor: '#f5f5f0', bottom: 'trousers', bottomColor: '#2b2d42', hat: 'headband', glasses: 'none', bag: 'none', age: 'adult', outfit: 'chef' },
+    background: 'Japanese; from Sapporo, came for one summer nineteen years ago.',
     bio: 'The broth takes eighteen hours. He will not be taking questions about the broth.',
     greetings: {
       low: ['Welcome. Sit. Slurping is encouraged.', 'One moment. The noodles decide when they are ready.'],
@@ -504,6 +519,7 @@ export const CAST = [
     ],
     look: 'Flour handprint on a red apron, curly mop under a paper cap, sings along to the radio, tosses dough too high.',
     spec: { skin: 'olive', hair: 'curly', hairColor: '#3b2a20', top: 'tshirt', topColor: '#ffffff', bottom: 'jeans', bottomColor: '#3d5a80', hat: 'paper-cap', glasses: 'none', bag: 'none', age: 'adult', outfit: 'pizza' },
+    background: 'Italian American from New Jersey; pizza is a family language.',
     bio: 'Believes every problem is either a pizza problem or solved by pizza.',
     greetings: {
       low: ['Ciao! Welcome to Slice of Heaven! Halo not included.', 'Hungry? Wrong question. How hungry?'],
@@ -527,6 +543,7 @@ export const CAST = [
     ],
     look: 'Black dress, gold gull brooch, silver streak in a sleek chignon, posture like a lighthouse.',
     spec: { skin: 'light', hair: 'chignon', hairColor: '#2b2b2b', top: 'dress', topColor: '#1d1d24', bottom: 'dress', bottomColor: '#1d1d24', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'formal' },
+    background: 'French-Haitian American; trained in Marseille and Montreal.',
     bio: 'Has never once dropped a fork. The fork would not dare.',
     greetings: {
       low: ['Good evening. Welcome to The Gilded Gull. Have we a reservation?', 'Good evening. Do mind the gull. He thinks he is staff.'],
@@ -551,6 +568,7 @@ export const CAST = [
     ],
     look: 'Maple-leaf tank top, whistle, braids in a high ponytail, stopwatch, biceps that have their own zip code.',
     spec: { skin: 'dark', hair: 'ponytail', hairColor: '#1b1b1e', top: 'tank', topColor: '#d1495b', bottom: 'leggings', bottomColor: '#22223b', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'trainer' },
+    background: 'Black American; from Detroit, former national-team rower.',
     bio: 'Former national rower. Will absolutely count that last rep for you. Loudly.',
     greetings: {
       low: ['Welcome to Iron Maple! First rule: we cheer for everybody.', 'New here? Great! Everyone started as new here.'],
@@ -574,6 +592,7 @@ export const CAST = [
     ],
     look: 'Tape measure worn like a scarf, bold geometric earrings, color-blocked jumpsuit, pins in her collar.',
     spec: { skin: 'dark', hair: 'afro', hairColor: '#2a1c14', top: 'jumpsuit', topColor: '#e76f51', bottom: 'jumpsuit', bottomColor: '#e76f51', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'stylist' },
+    background: 'Black American; Maple Bay native, fashion school in New York, came home.',
     bio: 'Can guess your size, your job and your week from across the street.',
     greetings: {
       low: ['Ooh, hello! Come in. That jacket is brave. I respect it.', 'Welcome to Thread & Co. Browsing is free. Compliments too.'],
@@ -597,6 +616,7 @@ export const CAST = [
     ],
     look: 'Orange Nest & Wire vest stuffed with tiny screwdrivers, headphones round the neck, permanently apologetic fringe.',
     spec: { skin: 'light', hair: 'fringe', hairColor: '#1b1b1e', top: 'vest', topColor: '#f77f00', bottom: 'jeans', bottomColor: '#3d405b', hat: 'none', glasses: 'square', bag: 'none', age: 'adult', outfit: 'retail' },
+    background: 'Taiwanese American; grew up in the Bay Area, engineering dropout by choice.',
     bio: 'Will sell you a lamp, then quietly talk you into the cheaper, better lamp.',
     greetings: {
       low: ['Oh! Hi. Welcome to Nest & Wire. Um. Sofas left, wires right.', 'Hi. Let me know if you need, uh, anything plugged in.'],
@@ -620,6 +640,7 @@ export const CAST = [
     ],
     look: 'Corduroy jacket with elbow patches, wild gray curls, two pairs of glasses (one on head, one lost), shop cat on shoulder.',
     spec: { skin: 'light', hair: 'curly', hairColor: '#a8a8a8', top: 'blazer', topColor: '#8a5a44', bottom: 'slacks', bottomColor: '#4a4e69', hat: 'none', glasses: 'round', bag: 'none', age: 'adult', outfit: 'bookseller' },
+    background: 'White American of Welsh descent; inherited the shop from an aunt.',
     bio: 'Has read everything in the shop. The cat, Chapter, has slept on the rest.',
     greetings: {
       low: ['Hm? Oh! A customer. Marvelous. Mind the cat, he bills by the hour.', 'Welcome. Everything is alphabetical, more or less. Mostly less.'],
@@ -643,6 +664,7 @@ export const CAST = [
     ],
     look: 'Emerald blouse, silver bob, reading glasses on a beaded chain, a whisper that carries forty yards.',
     spec: { skin: 'tan', hair: 'bob', hairColor: '#b8b8b8', top: 'blouse', topColor: '#2a9d8f', bottom: 'skirt', bottomColor: '#264653', hat: 'none', glasses: 'chain', bag: 'none', age: 'adult', outfit: 'librarian' },
+    background: 'Mexican American; from El Paso, two library science degrees.',
     bio: 'Has shushed three mayors. Will find you any fact in under four minutes.',
     greetings: {
       low: ['Welcome to the library. Cards are free. So is the quiet.', 'Good day. The computers are upstairs. Indoor voice, please.'],
@@ -666,6 +688,7 @@ export const CAST = [
     ],
     look: 'Navy suit, silver pixie cut, pearl earrings, a fountain pen she clicks when thinking. Secretly wears sneakers under the desk.',
     spec: { skin: 'light', hair: 'pixie', hairColor: '#d0d0d0', top: 'blazer', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#1d3557', hat: 'none', glasses: 'none', bag: 'briefcase', age: 'adult', outfit: 'office' },
+    background: 'White American; old Hillcrest family, first in it to actually work.',
     bio: 'Nobody has ever met Finch. She says he is "mostly a filing cabinet now".',
     greetings: {
       low: ['Hartwell. You are the new one. Good. We like punctual.', 'Good morning. Coffee is free. The spreadsheets are not optional.'],
@@ -689,6 +712,7 @@ export const CAST = [
     ],
     look: 'Teal scrubs with tiny sailboats, hijab in soft gray, sensible clogs, a pen light and a pocket full of lollipops.',
     spec: { skin: 'olive', hair: 'covered', hairColor: '#1b1b1e', top: 'scrubs', topColor: '#3aa6a0', bottom: 'scrubs', bottomColor: '#3aa6a0', hat: 'hijab', glasses: 'none', bag: 'none', age: 'adult', outfit: 'nurse' },
+    background: 'Lebanese American; raised in Dearborn, twenty years a nurse.',
     bio: 'Unflappable. Has seen it all, bandaged most of it, and given it a lollipop.',
     greetings: {
       low: ['Welcome to Bayside Clinic. Take a seat, we don\'t bite.', 'Hello there. Feeling sick, or just short on sleep?'],
@@ -712,6 +736,7 @@ export const CAST = [
     ],
     look: 'Rumpled waistcoat, towel over the shoulder, salt-and-pepper beard, drumsticks in his back pocket out of habit.',
     spec: { skin: 'brown', hair: 'short', hairColor: '#7d7d7d', top: 'waistcoat', topColor: '#264653', bottom: 'slacks', bottomColor: '#2b2d42', hat: 'flat-cap', glasses: 'none', bag: 'none', age: 'adult', outfit: 'bartender' },
+    background: 'Black Creole from New Orleans; toured the world, settled by a quieter water.',
     bio: 'Toured as a jazz drummer for twenty years. Came home for the quiet. Opened a bar.',
     greetings: {
       low: ['Evening. Welcome to the Heron. Music starts when it feels like it.', 'Take a stool. First rule of the Heron: no requests before nine.'],
@@ -734,6 +759,7 @@ export const CAST = [
     ],
     look: 'Velvet usher jacket with gold braid, red lipstick, white curls, a flashlight and a roll of paper tickets.',
     spec: { skin: 'light', hair: 'curly', hairColor: '#e8e8e8', top: 'jacket', topColor: '#9d0208', bottom: 'skirt', bottomColor: '#2b2d42', hat: 'none', glasses: 'cat-eye', bag: 'none', age: 'elder', outfit: 'usher' },
+    background: 'Czech American; arrived in 1968 as a child and found the Orpheum at eleven.',
     bio: 'Has run the Orpheum projector since 1979. Cries at the same scene every time.',
     greetings: {
       low: ['One ticket to somewhere else? Right this way.', 'Welcome to the Orpheum. The popcorn is older than it looks.'],
@@ -756,6 +782,7 @@ export const CAST = [
     ],
     look: 'Headset permanently on, hi-vis vest over a floral shirt, clipboard, three pens in her hair, voice like a friendly foghorn.',
     spec: { skin: 'tan', hair: 'ponytail', hairColor: '#5a3825', top: 'hi-vis', topColor: '#ffd60a', bottom: 'cargo', bottomColor: '#4a4e69', hat: 'headset', glasses: 'none', bag: 'none', age: 'adult', outfit: 'depot' },
+    background: 'Dominican American; from the Bronx, kept the volume.',
     bio: 'Knows where every package in Maple Bay is, and most of the people too.',
     greetings: {
       low: ['ZipParcel, Rhonda speaking. Oh, you\'re in person! Hi!', 'Sending or collecting, hon? Either way, sign here.'],
@@ -780,6 +807,7 @@ export const CAST = [
     ],
     look: 'Built like a bollard. Orange hard hat, blond-grey mustache, thermos, a tiny rescued kitten usually asleep in his jacket pocket.',
     spec: { skin: 'light', hair: 'short', hairColor: '#c9b458', top: 'work-jacket', topColor: '#3a5a78', bottom: 'cargo', bottomColor: '#5b4636', hat: 'hardhat', glasses: 'none', bag: 'none', age: 'adult', outfit: 'dock' },
+    background: 'Swedish American; fourth-generation dock family.',
     bio: 'Says about nine words a day. Feeds every stray cat on Pier 7.',
     greetings: {
       low: ['Mm. Morning. Mind the forklift.', 'Hard hats on the hook. Coffee in the pot.'],
@@ -802,7 +830,8 @@ export const CAST = [
       r(['sat'], '10:00', '12:00', 'homegoods', 'walk'),
     ],
     look: 'Gray coveralls, enormous ring of keys, flat cap, mustache like a push broom, folded newspaper under one arm.',
-    spec: { skin: 'light', hair: 'balding', hairColor: '#9a9a9a', top: 'coveralls', topColor: '#6c757d', bottom: 'coveralls', bottomColor: '#6c757d', hat: 'flat-cap', glasses: 'none', bag: 'toolbox', age: 'elder', outfit: 'super' },
+    spec: { skin: 'tan', hair: 'balding', hairColor: '#9a9a9a', top: 'coveralls', topColor: '#6c757d', bottom: 'coveralls', bottomColor: '#6c757d', hat: 'flat-cap', glasses: 'none', bag: 'toolbox', age: 'elder', outfit: 'super' },
+    background: "Japanese American, third generation; grew up above his parents' hardware store.",
     bio: 'Fixes everything with the same wrench. Pretends he doesn\'t water your plants when you\'re away.',
     greetings: {
       low: ['Rent is due on the first. Hot water is due whenever it likes.', 'You the new tenant? Don\'t flush anything interesting.'],
@@ -826,6 +855,7 @@ export const CAST = [
     ],
     look: 'Hawaiian shirt in all weathers, flat driving cap, beaded seat cover, pine air freshener, dashboard hula gull.',
     spec: { skin: 'tan', hair: 'short', hairColor: '#3b2a20', top: 'hawaiian', topColor: '#2a9d8f', bottom: 'slacks', bottomColor: '#6c584c', hat: 'flat-cap', glasses: 'aviators', bag: 'none', age: 'adult', outfit: 'driver' },
+    background: 'Mexican American; born in Guadalajara, Maple Bay since he was nine.',
     bio: 'Twenty-six years in Cab 22. Has an opinion on every street and a cousin on most of them.',
     greetings: {
       low: ['Hop in, hop in! Where to? Don\'t say "surprise me". I will.', 'Cab 22, best seat in the Bay. Mind the gull on the dash.'],
@@ -852,6 +882,7 @@ export const CAST = [
     ],
     look: 'Oversized mustard sweater, long dark braid, cello case nearly her own height, always one earbud in.',
     spec: { skin: 'brown', hair: 'braid', hairColor: '#1b1b1e', top: 'sweater', topColor: '#e9c46a', bottom: 'skirt', bottomColor: '#264653', hat: 'none', glasses: 'round', bag: 'cello-case', age: 'adult', outfit: 'casual' },
+    background: 'Pakistani American; from Houston, here on a music scholarship.',
     bio: 'Practices from seven to nine. Apologizes for it at ten. Plays beautifully.',
     greetings: {
       low: ['Oh! Hi. You\'re the new neighbor. Sorry about the cello.', 'Hello. If the scales get annoying, just knock. Twice.'],
@@ -877,6 +908,7 @@ export const CAST = [
     ],
     look: 'Old conductor cap with a brass No. 9 badge, navy waistcoat, pocket watch, ticket punch he still carries.',
     spec: { skin: 'brown', hair: 'balding', hairColor: '#e0e0e0', top: 'waistcoat', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#3d405b', hat: 'conductor-cap', glasses: 'none', bag: 'none', age: 'elder', outfit: 'conductor' },
+    background: 'Black American; his father was a Pullman porter, he chose trams.',
     bio: 'Rang the bell on Tram No. 9 for thirty-eight years. Is restoring it one bolt at a time.',
     greetings: {
       low: ['Morning! Tickets, please. Ha! Old habit. Welcome to the building.', 'New upstairs, huh? Light feet. I approve.'],
@@ -903,6 +935,7 @@ export const CAST = [
     ],
     look: 'Patchwork coat, red accordion, striped scarf in every season, hat on the ground with a sign: "SONGS 1 COIN, SAD SONGS 2".',
     spec: { skin: 'light', hair: 'shaggy', hairColor: '#d98e04', top: 'coat', topColor: '#7b2cbf', bottom: 'trousers', bottomColor: '#3a5a40', hat: 'beanie', glasses: 'none', bag: 'accordion', age: 'adult', outfit: 'busker' },
+    background: 'White American drifter from rural Montana; nonbinary; arrived by train.',
     bio: 'Arrived on the train one spring and hasn\'t got round to leaving.',
     greetings: {
       low: ['Any requests? I know nine songs and four of them are this one.', 'Hello, stranger! Walk in time, it helps my rhythm.'],
@@ -926,7 +959,8 @@ export const CAST = [
       r(['fri'], '19:30', '21:30', 'bar', 'drink'),
     ],
     look: 'White beard, navy peacoat, captain cap gone soft with age, pipe he never lights, fishing rod he never baits.',
-    spec: { skin: 'light', hair: 'short', hairColor: '#f1f1f1', top: 'peacoat', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#2b2d42', hat: 'captain-cap', glasses: 'none', bag: 'none', age: 'elder', outfit: 'captain' },
+    spec: { skin: 'brown', hair: 'short', hairColor: '#f1f1f1', top: 'peacoat', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#2b2d42', hat: 'captain-cap', glasses: 'none', bag: 'none', age: 'elder', outfit: 'captain' },
+    background: 'Of old Cape Verdean seafaring stock; third generation on the bay.',
     bio: 'Sailed the bay ferry for forty years. Every story is true, roughly.',
     greetings: {
       low: ['Ahoy. New crew in the harbor, I see. Welcome aboard.', 'Morning. Tide is turning. So is the weather. So am I, a bit.'],
@@ -951,6 +985,7 @@ export const CAST = [
     ],
     look: 'Tweed flat cap, maroon scarf, immaculate white mustache, travel chess set, thermos of very strong tea.',
     spec: { skin: 'brown', hair: 'short', hairColor: '#f1f1f1', top: 'blazer', topColor: '#6b705c', bottom: 'slacks', bottomColor: '#3d405b', hat: 'flat-cap', glasses: 'square', bag: 'none', age: 'elder', outfit: 'casual' },
+    background: 'Indian American; came from Pune for graduate school in 1978.',
     bio: 'Retired math teacher. Undefeated at table three, by his own careful accounting.',
     greetings: {
       low: ['Do you play? Everyone plays. Some just do not know it yet.', 'Sit, sit. White or black? It will not matter, but choose.'],
@@ -975,7 +1010,8 @@ export const CAST = [
       r(['sun'], '08:00', '10:00', 'lookout', 'walk'),
     ],
     look: 'Neon yellow running jacket, tiny shorts in all weather, smartwatch he checks mid-sentence, jogs on the spot while talking.',
-    spec: { skin: 'light', hair: 'short', hairColor: '#b5651d', top: 'windbreaker', topColor: '#d9f000', bottom: 'shorts', bottomColor: '#22223b', hat: 'headband', glasses: 'none', bag: 'none', age: 'adult', outfit: 'runner' },
+    spec: { skin: 'brown', hair: 'bun', hairColor: '#1b1b1e', top: 'windbreaker', topColor: '#d9f000', bottom: 'shorts', bottomColor: '#22223b', hat: 'headband', glasses: 'none', bag: 'none', age: 'adult', outfit: 'runner' },
+    background: 'Samoan American; grew up in Honolulu, misses the water temperature.',
     bio: 'Training for the Maple Bay Half. Has been training for it for four years.',
     greetings: {
       low: ['Morning! Lovely pace you have! Walking is a pace!', 'Hi! Can\'t stop! Well, can. Jogging on the spot counts.'],
@@ -1002,6 +1038,7 @@ export const CAST = [
     ],
     look: 'Plum velvet blazer, polka-dot cravat, tiny notebook, napkin tucked in at all times, mustache waxed to two fine points.',
     spec: { skin: 'light', hair: 'slick', hairColor: '#4a3728', top: 'blazer', topColor: '#6a2c70', bottom: 'slacks', bottomColor: '#3d405b', hat: 'none', glasses: 'monocle', bag: 'notebook', age: 'adult', outfit: 'formal' },
+    background: 'White American; from Boston, affects more England than he has ever visited.',
     bio: 'Gives four stars at most. Secretly eats at Dot\'s every Monday and has never reviewed it.',
     greetings: {
       low: ['Shh. I am tasting. ...Yes. Hello. You may speak now.', 'Good day. Do you know, a city is only as good as its soup.'],
@@ -1024,6 +1061,7 @@ export const CAST = [
     ],
     look: 'Clip-on tie over a striped T-shirt, visor, cash tin, hand-lettered sign: "LEMONADE 1 COIN. ADVICE 2 COINS."',
     spec: { skin: 'dark', hair: 'short', hairColor: '#1b1b1e', top: 'tshirt', topColor: '#ffd60a', bottom: 'shorts', bottomColor: '#3d5a80', hat: 'visor', glasses: 'none', bag: 'none', age: 'kid', outfit: 'casual' },
+    background: 'Black American; Maplewood kid, his mom is the school nurse.',
     bio: 'Saving up for "either a bike or the bank, whichever is cheaper".',
     greetings: {
       low: ['Lemonade! One coin! No refunds, no regrets!', 'Hello, valued customer. You look thirsty and financially stable.'],
@@ -1047,7 +1085,8 @@ export const CAST = [
       r(ALL, '17:00', '18:30', 'spot:central_plaza', 'stand'),
     ],
     look: 'Lavender coat, hand-knitted hat with a pom-pom, paper bag of seed, a pigeon on one shoulder (Gerald) and often another on her hat.',
-    spec: { skin: 'light', hair: 'curly', hairColor: '#dcdcdc', top: 'coat', topColor: '#b8a1d9', bottom: 'skirt', bottomColor: '#6d6875', hat: 'pompom', glasses: 'round', bag: 'paper-bag', age: 'elder', outfit: 'casual' },
+    spec: { skin: 'dark', hair: 'curly', hairColor: '#dcdcdc', top: 'coat', topColor: '#b8a1d9', bottom: 'skirt', bottomColor: '#6d6875', hat: 'pompom', glasses: 'round', bag: 'paper-bag', age: 'elder', outfit: 'casual' },
+    background: 'Black American; born in Savannah, forty years a telephone operator in the Bay.',
     bio: 'Knows every pigeon in Maple Bay by name, and what they have seen.',
     greetings: {
       low: ['Mind your step, dear. That\'s Gerald. He was here first.', 'Hello, dear. The pigeons say you\'re new. They notice.'],

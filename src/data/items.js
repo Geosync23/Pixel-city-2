@@ -57,8 +57,8 @@ const GM = ['grocery', 'market_stalls'];        // also at the market (x0.8, fre
 const GCM = ['grocery', 'cornerstore', 'market_stalls'];
 
 export const INGREDIENTS = [
-  { id: 'bread', name: 'Bread', category: 'ingredient', price: 1.5, icon: 'small brown loaf, cream slice', effects: { hunger: 8 }, stack: 10, soldAt: ['grocery', 'cornerstore', 'bakery'], shelfLifeDays: 4, needsFridge: false, edibleRaw: true, eatMinutes: 3 },
-  { id: 'eggs', name: 'Eggs', category: 'ingredient', price: 1.5, icon: 'two white eggs', effects: {}, stack: 10, soldAt: GCM, shelfLifeDays: 10, needsFridge: true, edibleRaw: false },
+  { id: 'bread', name: 'Bread', category: 'ingredient', price: 1, icon: 'small brown loaf, cream slice', effects: { hunger: 8 }, stack: 10, soldAt: ['grocery', 'cornerstore', 'bakery'], shelfLifeDays: 4, needsFridge: false, edibleRaw: true, eatMinutes: 3 },
+  { id: 'eggs', name: 'Eggs', category: 'ingredient', price: 1, icon: 'two white eggs', effects: {}, stack: 10, soldAt: GCM, shelfLifeDays: 10, needsFridge: true, edibleRaw: false },
   { id: 'milk', name: 'Milk', category: 'ingredient', price: 1.5, icon: 'white carton, blue stripe', effects: { hunger: 5 }, stack: 10, soldAt: GC, shelfLifeDays: 6, needsFridge: true, edibleRaw: true, eatMinutes: 2 },
   { id: 'butter', name: 'Butter', category: 'ingredient', price: 1, icon: 'yellow block in foil', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: 14, needsFridge: true, edibleRaw: false },
   { id: 'cheese', name: 'Cheese', category: 'ingredient', price: 2, icon: 'yellow wedge with holes', effects: { hunger: 8 }, stack: 10, soldAt: GCM, shelfLifeDays: 12, needsFridge: true, edibleRaw: true, eatMinutes: 3 },
@@ -112,7 +112,7 @@ export const PACKAGED_FOOD = [
 // ---------------------------------------------------------------------------------------------
 // DISHES — menus. Eaten at the venue (anim: eat/drink). Prices include nothing extra; tipping is
 // optional (economy.js TIPPING). Rough value: eating out costs $0.20-0.30 per hunger point,
-// fine dining $0.50+ (you are paying for the fun and the moodlet), home cooking ~$0.06-0.10.
+// fine dining $0.50+ (you are paying for the fun and the moodlet), home cooking ~$0.03-0.11.
 // ---------------------------------------------------------------------------------------------
 const dish = (id, name, venue, price, effects, eatMinutes, course, icon, extra = {}) =>
   ({ id, name, category: 'dish', price, icon, effects, stack: 1, soldAt: [venue], venue, eatMinutes, course, takeaway: false, ...extra });
@@ -218,7 +218,8 @@ export const DISHES = [
 //   shelfLifeDays  leftovers in the fridge.
 //   xp           cooking xp for cooking one batch.
 //   giftable     true = a serving can be given as a gift (relationship in `gift`).
-// Ingredient cost per serving is $1.30-$3.50 — far cheaper than eating out, at the price of time.
+// Ingredient cost per serving is about $1.20-$5 (run validate.mjs --summary) — far cheaper than
+// eating out, at the price of time. Big-batch recipes at higher skill are the best value.
 // ---------------------------------------------------------------------------------------------
 export const RECIPES = [
   { id: 'garden_salad', name: 'Garden Salad', icon: 'green bowl, red and orange bits', ingredients: { lettuce: 1, tomato: 1, carrot: 1, lemon: 1 }, skill: 1, appliance: 'none', stoveTier: 0, cookMinutes: 10, servings: 2, effects: { hunger: 25, energy: 3 }, eatMinutes: 10, shelfLifeDays: 2, xp: 15 },
