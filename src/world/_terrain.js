@@ -30,11 +30,11 @@ export function carveWater(c) {
   const wz = y => y <= RIV.weir ? 1.5 : -1;
   // river (bridges = pinned road vertices are kept)
   for (let y = RIV.y0; y <= H; y++) for (let x = RIV.x0; x <= RIV.x1; x++) { const i = y * S + x; if (c.fixed[i] === 2) continue; w.hv[i] = wz(y); c.fixed[i] = 3; }
-  for (let y = RIV.y0; y < H; y++) for (let x = RIV.x0 - 1; x < RIV.x1 + 1; x++) { const o = c.occAt(x, y); if (o === 1 || o === 2) continue; const inner = x >= RIV.x0 && x < RIV.x1; w.gt[y * W + x] = inner ? GT.water : GT.rock; c.occ[y * W + x] = 4; if (inner) w.zone[y * W + x] = Z.park; }
+  for (let y = RIV.y0; y < H; y++) for (let x = RIV.x0 - 1; x < RIV.x1 + 1; x++) { const o = c.occAt(x, y); if (o === 1 || o === 2 || o === 6) continue; const inner = x >= RIV.x0 && x < RIV.x1; w.gt[y * W + x] = inner ? GT.water : GT.rock; c.occ[y * W + x] = 4; if (inner) w.zone[y * W + x] = Z.park; }
   // spring pond at the head of the river
   for (let y = 40; y <= 52; y++) for (let x = 144; x <= 168; x++) { const d = Math.hypot((x - 156) / 12, (y - 48) / 7); if (d < 1) { w.hv[y * S + x] = 1.5; c.fixed[y * S + x] = 3; } }
   for (let y = 40; y < 52; y++) for (let x = 144; x < 168; x++) { const vs = [w.H(x, y), w.H(x + 1, y), w.H(x, y + 1), w.H(x + 1, y + 1)]; if (vs.every(v => v === 1.5) && c.occAt(x, y) !== 1) { w.gt[y * W + x] = GT.water; c.occ[y * W + x] = 4; } }
   // the bay
   for (let y = SEA; y <= H; y++) for (let x = 0; x <= W; x++) { const i = y * S + x; if (c.fixed[i] === 2) continue; w.hv[i] = -1; c.fixed[i] = 3; }
-  for (let y = SEA - 1; y < H; y++) for (let x = 0; x < W; x++) { if (c.occAt(x, y) === 1 || c.occAt(x, y) === 2) continue; w.gt[y * W + x] = y === SEA - 1 ? GT.concrete : y < SEA + 6 ? GT.water : GT.deepwater; if (y >= SEA) c.occ[y * W + x] = 4; }
+  for (let y = SEA - 1; y < H; y++) for (let x = 0; x < W; x++) { if ([1, 2, 6].includes(c.occAt(x, y))) continue; w.gt[y * W + x] = y === SEA - 1 ? GT.concrete : y < SEA + 6 ? GT.water : GT.deepwater; if (y >= SEA) c.occ[y * W + x] = 4; }
 }

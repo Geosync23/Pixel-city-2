@@ -17,7 +17,7 @@ export const ROADS = [
   Y('Western Ave', 52, 114, 326, 2, 'arterial'),
   Y('Crest Way', 24, 94, 114, 2, 'hill'), Y('Crest Way', 140, 76, 94, 2, 'hill'), Y('Crest Way', 24, 58, 76, 2, 'hill'), Y('Crest Way', 140, 40, 58, 2, 'hill'),
   Y('Cooper St', 82, 200, 326), Y('Chandler St', 112, 200, 326),
-  Y('Riverside Dr', 178, 58, 326), Y('1st St', 206, 58, 326), Y('Main St', 234, 58, 326), Y('Maple Ave', 266, 58, 326, 4, 'arterial'),
+  Y('Riverside Dr', 178, 58, 326), Y('1st St', 206, 58, 296), Y('Main St', 234, 58, 326), Y('Maple Ave', 266, 58, 326, 4, 'arterial'),
   Y('Linden St', 302, 106, 326, 2, 'residential'), Y('Aspen St', 338, 138, 296, 2, 'residential'), Y('Birch Ln', 368, 138, 326, 2, 'residential'),
   Y('Terminal Rd', 350, 106, 138, 2, 'airport'),
   Y('Cedar Ct', 320, 180, 200, 2, 'residential', { endA: 'bulb' }), Y('Hazel Ct', 354, 232, 251, 2, 'residential', { endB: 'bulb' }),

@@ -17,7 +17,7 @@ while (q.length) { const n = []; for (const i of q) { const x = i % NW, y = i / 
 save('nav', w.w * S, w.h * S, img((x, y) => { const i = Math.floor(y * 2) * NW + Math.floor(x * 2); return nav[i] ? [40, 40, 50] : seen[i] ? [200, 220, 200] : [230, 80, 200]; }));
 const ZC = [[90, 90, 90], [111, 143, 216], [201, 120, 92], [79, 163, 160], [185, 143, 208], [224, 168, 78], [224, 111, 154], [138, 143, 153], [95, 174, 106], [127, 143, 176]];
 save('zone', w.w * S, w.h * S, img((x, y) => ZC[w.zoneAt(x, y)] || [0, 0, 0]));
-const bad = w.pois.filter(p => !seen[Math.floor(p.y * 2) * NW + Math.floor(p.x * 2)] && p.type !== 'landmark');
+const bad = w.pois.filter(p => !seen[Math.floor(p.y * 2) * NW + Math.floor(p.x * 2)] && p.type !== 'landmark' && p.type !== 'bench');
 const kinds = {}; for (const o of w.objs) kinds[o.a.kind] = (kinds[o.a.kind] || 0) + 1; const pk = {}; for (const p of w.pois) pk[p.type] = (pk[p.type] || 0) + 1;
 console.log(`generated in ${ms} ms (gen ${w.genMs} ms); objects ${w.objs.length}`, JSON.stringify(kinds), 'lights', w.lights.length, 'pois', JSON.stringify(pk));
 console.log('unreachable pois:', bad.length, bad.slice(0, 40).map(p => `${p.id || p.type}@${p.x},${p.y}`).join(' '));

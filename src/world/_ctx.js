@@ -49,7 +49,7 @@ export function makeCtx(seed) {
     const ob = world.place(a, x, y, o); c.stats[a.kind] = (c.stats[a.kind] || 0) + 1; return ob;
   };
   /** random variant params of an asset (+seed) */
-  c.vp = (a, r, extra) => { a = typeof a === 'string' ? ASSETS.get(a) : a; const vs = a.variants && a.variants.length ? a.variants : [{}]; return Object.assign({}, vs[Math.floor(r() * vs.length) % vs.length], { seed: 1 + Math.floor(r() * 9999) }, extra || {}); };
+  c.vp = (a, r, extra) => { a = typeof a === 'string' ? ASSETS.get(a) : a; if (!a) return Object.assign({ seed: 1 }, extra || {}); const vs = a.variants && a.variants.length ? a.variants : [{}]; return Object.assign({}, vs[Math.floor(r() * vs.length) % vs.length], { seed: 1 + Math.floor(r() * 9999) }, extra || {}); };
   /** place with a random variant */
   c.putv = (id, x, y, r, o = {}) => { const a = typeof id === 'string' ? ASSETS.get(id) : id; if (!a) return null; return c.put(a, x, y, Object.assign({}, o, { p: c.vp(a, r, o.p) })); };
   /** first existing asset id of a list */

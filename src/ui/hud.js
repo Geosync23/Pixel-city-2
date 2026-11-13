@@ -1,0 +1,136 @@
+// HUD: clock/date/weather, money, the five need meters (tap -> wellness panel with mood, moodlets, fitness, skills), interaction prompt,
+// activity progress + cancel, phone + backpack buttons, time-speed / pause, autosave + "saved" indicator.
+//
+// G.hud
+//   show() / hide()            the HUD is hidden behind the title screen until 'game:start' (shown at once on dev URL launches)
+//   refresh()                  redraw now
+//   addIndicator({ id, icon, text?, title?, onclick?, cls? }) -> { set({ icon?, text?, cls?, hidden? }), remove() }
+//                              a small chip in the status row under the money (pass, job timer, "raining" ...). Same id replaces.
+//   setBadge('phone' | 'bag', n | '')    force a button badge (the phone badge follows G.messages.unread() by itself)
+//   togglePanel(open?)         the wellness panel         pause(on?)          saved()  flash the save indicator
+// Autosave (only in a started game, never on dev ?scene= launches): after sleeping, on every scene change, every 2 game hours.
+// Keys: P pause, 1/2/3 speed, I/B backpack (inventory.js), Tab/N wellness panel, M/Q phone.
+import { G } from '../core/game.js';
+import { el, root, toast } from './kit.js';
+import { iconEl, weatherIcon } from './_icons.js';
+import { NEEDS, FITNESS, SKILLS, SKILL_MAX_LEVEL } from '../data/needs.js';
+
+export const order = 90;
+let H = null, shown = false, dirty = true, acc = 0, lastHours = 0, pauseOn = false, panelOpen = false, lastPrompt = null, lastSaveT = -1e9;
+const meters = {}, indicators = new Map(), badges = {};
+const fmt = n => (G.money ? G.money.fmt(n) : '$' + Math.round(n));
+const hm = m => (m >= 60 ? `${Math.floor(m / 60)}h ${String(Math.round(m % 60)).padStart(2, '0')}m` : `${Math.max(1, Math.round(m))}m`);
+const canSave = () => !!G.started && shown && !(G.query && G.query.has('scene')) && !G.cutscene;
+
+function injectCss() { if (!document.querySelector('link[href="src/ui/style.css"]') || document.querySelector('link[href="src/ui/hud.css"]')) return; document.head.append(el('link', { rel: 'stylesheet', href: 'src/ui/hud.css' })); }
+function swapIcon(holder, id, scale) { if (holder._ic === id) return; holder._ic = id; holder.textContent = ''; holder.append(iconEl(id, scale)); }
+
+function build() {
+  H = { root: el('div', { id: 'hud', class: 'off' }) };
+  // top-left: time + needs
+  H.wx = el('span.hud-wx'); H.clock = el('b.hud-clock'); H.date = el('span.hud-date');
+  H.time = el('div.hud-chip.hud-time', { title: 'Time' }, H.wx, el('div.hud-tcol', null, H.clock, H.date));
+  H.face = el('span.hud-face');
+  H.needs = el('button.hud-needs', { 'aria-label': 'Needs and mood', onclick: () => togglePanel() }, H.face);
+  for (const n of NEEDS) { const fill = el('i'), m = el('span.hud-need', { title: n.name }, iconEl('need.' + n.id, 1), el('span.hud-bar', null, fill)); meters[n.id] = { m, fill }; H.needs.append(m); }
+  // top-right: money, speed, indicators
+  H.moneyT = el('b'); H.money = el('button.hud-chip.hud-money', { 'aria-label': 'Money', onclick: () => (G.phone && G.phone.open ? G.phone.open('bank') : togglePanel(true)) }, iconEl('ui.coin', 1), H.moneyT);
+  H.delta = el('div.hud-deltas');
+  H.speed = el('div.hud-speed');
+  H.pauseB = el('button', { 'aria-label': 'Pause', onclick: () => pause() }, '❚❚'); H.speed.append(H.pauseB); H.sp = {};
+  for (const s of [1, 2, 4]) { H.sp[s] = el('button', { 'aria-label': `Speed ${s}x`, onclick: () => { G.state.speed = s; dirty = true; } }, s + 'x'); H.speed.append(H.sp[s]); }
+  H.saved = el('span.hud-saved', { text: 'Saved' });
+  H.ind = el('div.hud-ind');
+  // bottom
+  H.prompt = el('button.hud-prompt', { onclick: () => { const it = !G.busy && !G.cutscene && !G.modal && G.nearestInteractable(); if (it) G.useInteractable(it); } }, el('kbd', { text: 'E' }), H.promptT = el('span'));
+  H.actL = el('span.hud-act-l'); H.actT = el('span.hud-act-t'); H.actFill = el('i');
+  H.actX = el('button.hud-act-x', { 'aria-label': 'Stop', onclick: () => { if (G.busy && G.busy.canCancel !== false) G.endActivity(false); } }, 'Stop');
+  H.act = el('div.hud-act', null, el('div.hud-act-top', null, H.actL, H.actT), el('div.hud-act-bar', null, H.actFill), H.actX);
+  H.bagBadge = el('span.hud-badge'); H.phoneBadge = el('span.hud-badge');
+  H.bag = el('button.hud-btn.hud-bag', { 'aria-label': 'Backpack', onclick: () => G.inv && G.inv.open() }, iconEl('ui.backpack', 2), H.bagBadge);
+  H.phone = el('button.hud-btn.hud-phone', { 'aria-label': 'Phone', onclick: () => (G.phone && G.phone.open ? G.phone.open() : toast('No signal yet.', 'info')) }, iconEl('ui.phone', 3), H.phoneBadge);
+  H.panel = el('div.hud-panel');
+  H.paused = el('button.hud-paused', { onclick: () => pause(false) }, el('b', { text: 'Paused' }), el('span', { text: 'tap to continue' }));
+  H.root.append(el('div.hud-tl', null, H.time, H.needs), el('div.hud-tr', null, el('div.hud-trrow', null, H.saved, H.money), H.delta, H.speed, H.ind), el('div.hud-bc', null, H.prompt, H.act), el('div.hud-br', null, H.bag, H.phone), H.panel, H.paused);
+  root().prepend(H.root);
+}
+
+/* ---------- wellness panel ---------- */
+function bar(v, cls) { return el('span.hp-bar' + (cls ? '.' + cls : ''), null, el('i', { style: { width: Math.max(0, Math.min(100, v)) + '%' } })); }
+function renderPanel() {
+  const N = G.needs, P = H.panel; if (!N) return; const y = P.scrollTop; P.textContent = '';
+  const tier = N.moodTier(), mood = N.mood();
+  P.append(el('div.hp-head', null, iconEl('mood.' + tier.id, 3), el('div.hp-mood', null, el('b', { text: `Feeling ${tier.label.toLowerCase()}` }), el('span', { text: `Mood ${mood}` + (tier.xpMult !== 1 ? ` · skill xp x${tier.xpMult}` : '') })), el('button.x', { 'aria-label': 'Close', onclick: () => togglePanel(false) }, 'x')));
+  const g = el('div.hp-needs');
+  for (const n of NEEDS) { const v = N.get(n.id), b = N.band(n.id); g.append(el('div.hp-need.' + b.id, null, iconEl('need.' + n.id, 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: n.name }), el('span', { text: b.label }), el('em', { text: Math.round(v) })), bar(v, b.id)))); }
+  const f = N.fitness(); g.append(el('div.hp-need.fit', null, iconEl('need.fitness', 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: FITNESS.name }), el('span', { text: N.fitnessLabel() }), el('em', { text: Math.round(f) })), bar(f, 'fit'))));
+  P.append(g);
+  const ml = N.moodlets();
+  if (ml.length) { const box = el('div.hp-mls'); for (const m of ml) box.append(el('div.hp-ml' + (m.mood < 0 ? '.neg' : ''), { title: m.desc }, iconEl(m.icon, 1), el('span', { text: m.name }), el('em', { text: (m.mood > 0 ? '+' : '') + m.mood }), m.left !== null && el('i', { text: hm(m.left) }))); P.append(el('div.hp-sub', { text: 'How you feel' }), box); }
+  if (G.skills) { const sk = el('div.hp-skills'); for (const s of SKILLS) { const l = G.skills.level(s.id), nx = G.skills.next(s.id); sk.append(el('div.hp-skill', { title: s.desc }, iconEl('skill.' + s.id, 1), el('span', { text: s.name }), el('b', { text: l >= SKILL_MAX_LEVEL ? 'MAX' : 'Lv ' + l }), bar(nx ? nx.into / nx.need * 100 : 100, 'xp'))); } P.append(el('div.hp-sub', { text: 'Skills' }), sk); }
+  if (G.money && G.money.bills && !G.phone) { const b = G.money.bills(); P.append(el('div.hp-sub', { text: `Bills due Monday 08:00: ${fmt(b.total)}` })); }
+  P.scrollTop = y;
+}
+function togglePanel(on) { panelOpen = on === undefined ? !panelOpen : !!on; H.panel.classList.toggle('on', panelOpen); H.needs.classList.toggle('on', panelOpen); if (panelOpen) renderPanel(); }
+function pause(on) { on = on === undefined ? !pauseOn : !!on; if (on === pauseOn) return; pauseOn = on; G.modal += on ? 1 : -1; H.paused.classList.toggle('on', on); H.pauseB.classList.toggle('on', on); }
+
+/* ---------- updates ---------- */
+function refresh() {
+  if (!H || !shown) return; dirty = false;
+  const n = G.now(), night = !!(G.env && G.env.night), wk = (G.weather && G.weather.current && (G.weather.current() || {}).kind) || G.state.weather;
+  H.clock.textContent = n.clock; H.date.textContent = `${n.weekdayName} · ${n.seasonName} ${n.dayOfMonth}`; swapIcon(H.wx, weatherIcon(wk, night), 2);
+  const bal = G.state.player.money; H.moneyT.textContent = fmt(bal); H.money.classList.toggle('neg', bal < 0);
+  if (G.needs) { for (const d of NEEDS) { const v = G.needs.get(d.id), b = G.needs.band(d.id).id, m = meters[d.id]; m.fill.style.width = Math.round(v) + '%'; if (m.b !== b) { m.b = b; m.m.className = 'hud-need ' + b; } } swapIcon(H.face, 'mood.' + G.needs.moodTier().id, 1); }
+  for (const s of [1, 2, 4]) H.sp[s].classList.toggle('on', G.state.speed === s && !pauseOn);
+  const un = badges.phone !== undefined ? badges.phone : (G.messages && G.messages.unread ? G.messages.unread() : 0); H.phoneBadge.textContent = un || ''; H.phoneBadge.classList.toggle('on', !!un);
+  const bb = badges.bag !== undefined ? badges.bag : ''; H.bagBadge.textContent = bb || ''; H.bagBadge.classList.toggle('on', !!bb);
+  if (G.inv) H.bag.classList.toggle('full', G.inv.free() === 0);
+  if (panelOpen) renderPanel();
+}
+function fast() {
+  const busy = G.busy, cut = !!G.cutscene; H.root.classList.toggle('cut', cut);
+  if (busy && !cut) {
+    if (!H.act.classList.contains('on')) { H.act.classList.add('on'); H.actL.textContent = busy.label || 'Busy'; H.actX.style.display = busy.canCancel === false ? 'none' : ''; }
+    else if (H.actL.textContent !== (busy.label || 'Busy')) { H.actL.textContent = busy.label || 'Busy'; H.actX.style.display = busy.canCancel === false ? 'none' : ''; }
+    H.actFill.style.width = (100 - busy.left / Math.max(1, busy.minutes) * 100).toFixed(1) + '%'; H.actT.textContent = hm(busy.left) + ' left';
+  } else H.act.classList.remove('on');
+  const it = !busy && !cut && !G.modal && G.scene ? G.nearestInteractable() : null;
+  if (it !== lastPrompt) { lastPrompt = it; H.prompt.classList.toggle('on', !!it); if (it) H.promptT.textContent = it.label || 'Use'; }
+}
+function onFrame(dt) {
+  if (!shown) return; acc += dt; fast();
+  if (acc > .25 || (dirty && acc > .08)) { acc = 0; refresh(); }
+}
+function moneyDelta(d) { if (!shown || !d) return; const e = el('span.hud-delta' + (d < 0 ? '.neg' : ''), { text: (d > 0 ? '+' : '-') + fmt(Math.abs(d)) }); H.delta.append(e); setTimeout(() => e.remove(), 1900); while (H.delta.children.length > 3) H.delta.firstChild.remove(); dirty = true; }
+function saved() { H.saved.classList.add('on'); clearTimeout(H._st); H._st = setTimeout(() => H.saved.classList.remove('on'), 1600); }
+function autosave() { if (!canSave()) return; if (performance.now() - lastSaveT < 1500) return; lastSaveT = performance.now(); try { if (G.save()) saved(); } catch (e) { console.error(e); } }
+function show() { shown = true; H.root.classList.remove('off'); dirty = true; refresh(); }
+function hide() { shown = false; H.root.classList.add('off'); if (pauseOn) pause(false); togglePanel(false); }
+function addIndicator(o) {
+  if (indicators.has(o.id)) indicators.get(o.id).remove();
+  const ic = el('span.hud-ind-ic'), tx = el('span'), e = el(o.onclick ? 'button.hud-chip.hud-indic' : 'div.hud-chip.hud-indic', { title: o.title, onclick: o.onclick }, ic, tx);
+  const h = { el: e, set(p) { if (p.icon) swapIcon(ic, p.icon, 1); if (p.text !== undefined) tx.textContent = p.text; if (p.cls !== undefined) e.className = 'hud-chip hud-indic ' + p.cls; if (p.hidden !== undefined) e.style.display = p.hidden ? 'none' : ''; return h; }, remove() { e.remove(); indicators.delete(o.id); } };
+  h.set({ icon: o.icon, text: o.text || '', cls: o.cls || '' }); H.ind.append(e); indicators.set(o.id, h); return h;
+}
+
+export function init() {
+  injectCss(); build();
+  G.hud = { show, hide, refresh, addIndicator, togglePanel, pause, saved, setBadge: (k, v) => { badges[k] = v; dirty = true; }, get visible() { return shown; }, get el() { return H.root; } };
+  G.on('frame', onFrame);
+  for (const ev of ['needs:change', 'inv:change', 'hour', 'weather', 'load', 'msg:new', 'moodlet', 'skill:up']) G.on(ev, () => { dirty = true; });
+  G.on('money', moneyDelta);
+  G.on('game:start', show); G.on('ready', () => { if (!G.started) show(); });
+  G.on('title:open', hide);
+  G.on('scene', () => { togglePanel(false); setTimeout(autosave, 700); });
+  G.on('hour', (h, abs) => { if (abs - lastHours >= 2) { lastHours = abs; autosave(); } });
+  G.on('activity:done', (id, r) => { if (id === 'sleep' && r && r.minutes > 60) setTimeout(autosave, 50); });
+  G.on('use', () => togglePanel(false));
+  G.on('key', k => { if (!shown) return; if (k === 'p') pause(); else if (k === '1') G.state.speed = 1; else if (k === '2') G.state.speed = 2; else if (k === '3' || k === '4') G.state.speed = 4; else if (k === 'tab' || k === 'n') togglePanel(); else if (k === 'm' || k === 'q') G.phone && G.phone.open && G.phone.open(); else return; dirty = true; });
+  addEventListener('keydown', e => { if (pauseOn && (e.key === 'p' || e.key === 'P' || e.key === 'Escape' || e.key === ' ')) { e.preventDefault(); pause(false); } else if (panelOpen && e.key === 'Escape') togglePanel(false); });
+  G.cv && G.cv.addEventListener('pointerdown', () => { if (panelOpen) togglePanel(false); });
+  // debug helpers
+  G.debugSim = {
+    fillNeeds() { for (const n of NEEDS) G.needs.set(n.id, 100); }, setNeed: (k, v) => G.needs.set(k, v),
+    give: (id, n = 1) => G.inv.add(id, n), cash: (n = 1000) => G.money.add(n, 'Debug'),
+  };
+}
