@@ -78,7 +78,7 @@ export function prof(pts, y0, y1, zb, col, o) {
  * Returns helpers that take u coordinates so one description serves both directions.
  */
 export function mk(p, len, wid, defCol) {
-  const f = p.dir !== -1, col = p.color || defCol, P = pal(col), on = p.lights !== false && !p.parked;
+  const f = p.dir !== -1, col = hexOr(p.color, defCol), P = pal(col), on = p.lights !== false && !p.parked;
   const X = u => f ? u : len - u;
   const K = {
     f, col, P, len, wid, on, X,
@@ -185,3 +185,9 @@ export const sparse = (hex, n = 3) => (X, Y) => ((X + 2 * Y) % n === 0 ? hex : n
 /** glass quad on a constant-y plane with the sparse pattern */
 export const glassY = (x0, x1, y, z0, z1, hex, n) => fq([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], sparse(hex || '#c8eef4', n));
 export const glassX = (x, y0, y1, z0, z1, hex, n) => fq([[x, y0, z0], [x, y1, z0], [x, y1, z1], [x, y0, z1]], sparse(hex || '#a8dce6', n));
+/** tolerant list param: array | 'a,b' | number | undefined -> array of strings (def when empty) */
+export function list(v, def) { let a = Array.isArray(v) ? v : (v === undefined || v === null || v === '' || typeof v === 'object' || typeof v === 'boolean') ? [] : String(v).split(/[,;\s]+/); a = a.filter(x => x !== undefined && x !== null && x !== '').map(x => Array.isArray(x) ? x : String(x)); return a.length ? a : def; }
+/** tolerant number param */
+export const num = (v, def, lo, hi) => { v = +v; if (!isFinite(v) || v <= 0) v = def; if (lo !== undefined) v = Math.max(lo, v); if (hi !== undefined) v = Math.min(hi, v); return v; };
+/** valid '#rrggbb' or the default */
+export function hexOr(v, def) { return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v) ? v : def; }

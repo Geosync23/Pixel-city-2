@@ -45,7 +45,7 @@ export const galleryItems = [
     at(1, 3.2, 5, () => drawCar({ head: 'rear', seed: 2 })); at(13.4, 3.2, 5, () => drawCar({ head: 'front', seed: 3 }));
     at(16, .6, 5, () => drawCar({ head: 'front', livery: 'line2', dest: 'AIRPORT', seed: 4 }));
   } },
-  { id: 'scene.station', size: [24, 12, 0], vb: [-9, -1, 0, 25, 15, 11.5], draw() {
+  { id: 'scene.station', size: [24, 12, 0], vb: [-9, -1, 0, 25, 15.5, 11.5], draw() {
     const A = (id, x, y, z, p) => at(x, y, z, () => ALL.get(id).draw(p || {}));
     for (const x of [3.3, 11.3, 19.3]) A('prop.rail.pier', x, 5.2, 0, { h: 4.4, seed: x });
     A('prop.rail.platform', 0, 0, 4.4, { len: 24, edge: 'y1' });
@@ -58,5 +58,7 @@ export const galleryItems = [
     A('prop.rail.canopy', 4, 9, 5.6, { len: 16 });
     A('bld.rail.stairs', -8, 12, 0, { h: 5.6, esc: true }); A('bld.rail.elevator', 21.5, 12.2, 0, { h: 5.6 });
   } },
+  sheet('lineup.road2', [[['prop.road.billboard', {}], ['prop.road.billboard', { ad: 'cola' }], ['prop.road.gantry', {}]], [['prop.rail.arch', { infill: 'garage' }], ['prop.rail.arch', { infill: 'brick' }], ['prop.rail.viaduct.corner', {}], ['prop.rail.viaduct.corner', { corner: 2 }]]], { gy: 3 }),
+  sheet('lineup.rail2', [[['prop.rail.viaduct.truss', {}], ['prop.rail.signal', {}], ['prop.rail.buffer', {}], ['prop.rail.crossing', {}], ['prop.rail.crossing', { open: true }], ['prop.rail.track', { tracks: 2 }]]], { lift: 2.2, h: 8, gx: 2 }),
 ];
 export default [];

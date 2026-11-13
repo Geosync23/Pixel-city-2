@@ -1,0 +1,11 @@
+# Transit & vehicle art (src/art/transit/) — condensed. See `RAIL` constants exported from src/art/transit/_lib.js. Preview: `node tools/gallery.mjs transit --scale 2 --out t`.
+Vehicles (kind 'vehicle', drawn along x; flip = along y). Common params: color, dir (1 = toward +x, -1), lights (false = lamps off), parked (true), beam (false = no night road beam; vb extends ±2.9 in x for the beam).
+size [len, wid, h]: veh.car.sedan [3.2,1.5,1.3], .hatch [2.8,1.45,1.35], .suv [3.5,1.6,1.65], .sports [3.3,1.5,1.08], .beetle [2.9,1.45,1.38], .pickup [3.7,1.6,1.5] (param roof);
+veh.scooter [1.5,.6,1.1], veh.motorbike [1.9,.7,1.15], veh.bicycle [1.6,.5,1]; veh.taxi [3.2,1.5,1.3] (free:false turns roof sign off); veh.police (siren), veh.van [3.8,1.6,1.9], veh.van.delivery, veh.van.icecream,
+veh.ambulance [4.4,1.7,2.2], veh.truck.box [5.6,1.9,2.7], veh.truck.garbage, veh.truck.fire [6.2,1.9,2.5]; veh.bus [8,1.8,2.4] (route, dest), veh.bus.double [8,1.8,3.8];
+veh.train.car [12,2.2,2.6] (head 'front' = cab at +x | 'rear' | 'mid'; livery 'line1' | 'line2'; dest; dir). Car pitch 12.4. No turning sprites (straight along x, or flipped along y).
+Rail: prop.rail.viaduct [len,6,.6] deck (local z 0 = underside, track bed at z .6; track centre lines at y 1.7 and 4.3; a 2.2-wide train car sits at y = deckY + .6 or + 3.2, z = deckZ + .6),
+.viaduct.corner [6,6,.6] (corner 0..3), .viaduct.truss, prop.rail.pier (h), prop.rail.arch (+ .open), prop.rail.track (ground), .buffer, .signal (state), .crossing (open).
+Station: prop.rail.platform [len,3,1.2] (top = deckZ + 1.2 = train floor), prop.rail.canopy, .bench (seats), .board (rows), .ticket (use), .namesign (name), .clock, .vending, .bin; bld.rail.stairs, bld.rail.elevator, bld.rail.entrance (door +y at 4), bld.rail.central [26,12.8,9.5] (door at 13).
+Road: prop.road.trafficlight (state red/amber/green, arm, name), .pedsignal (state walk/stop), .sign.stop/.yield/.parking/.oneway/.street (name, cross), .busshelter [4.2,1.5,2.7] (seats, use, light; routes), .busstop, .taxistand, .meter, .bikerack, .evcharger, .barrier, .cone, .billboard, .gantry.
+Sorting note: the deck is one overhead sprite — draw trains after the deck they stand on. Bus doors are drawn on the curb side from dir + flip.

@@ -2,7 +2,7 @@
 // VIADUCT LOCAL COORDS: the deck runs along x, is 6 wide (y 0..6); local z = 0 is the deck UNDERSIDE, the track bed is at z = 0.6.
 // Track centre lines at y = 1.7 and y = 4.3. Trains (veh.train.car, 2.2 wide) are placed at y = 0.6 / 3.2, z = deck z + 0.6.
 import { box, qy, qx, qz, lw, fq, lit, glow, dk, lt, mix, ENV, PAT, hash2, rng, textY, textW, signY, winY, U } from '../../engine/raster.js';
-import { RAIL, COL, disc, lamp, halo, post, pole, prof, ledY } from './_lib.js';
+import { RAIL, COL, disc, lamp, halo, post, pole, prof, ledY, num } from './_lib.js';
 
 const BED = RAIL.SLAB, DW = RAIL.DECK_W, TY = RAIL.TRACK_Y, G = RAIL.GAUGE;
 const CONC = '#bdb8ab', CONC2 = '#a9a498', STEEL = '#56636b';
@@ -25,7 +25,7 @@ export function mast(x) {
 export function wires(x0, x1) { for (const y of TY) { lw([x0, y, RAIL.WIRE + .22], [x1, y, RAIL.WIRE + .22], '#4a4856'); lw([x0, y, RAIL.WIRE], [x1, y, RAIL.WIRE], '#2f2b3a'); } }
 
 export function drawDeck(p) {
-  const L = p.len || 8, par = p.parapet || 'both', back = par === 'both' || par === 'back', front = par === 'both' || par === 'front', snow = ENV.season === 3;
+  const L = num(p.len, 8, 1, 96), par = p.parapet || 'both', back = par === 'both' || par === 'back', front = par === 'both' || par === 'front', snow = ENV.season === 3;
   // box girder + cantilevered slab
   box(0, 1.1, 0, L, 3.8, .3, CONC2, { ol: false }); lw([0, 4.9, 0], [L, 4.9, 0], dk(CONC2, .6));
   box(0, 0, .26, L, DW, BED - .26, CONC, { t: snow ? '#dfe5ea' : '#b3aea2' });
@@ -46,8 +46,27 @@ export function drawDeck(p) {
   if (p.masts !== false && p.wires !== false) wires(0, L);
 }
 
+
+/** 6x6 corner deck joining a run along x to a run along y. p.corner 0..3 = which corner the curve is centred on: 0 (x0,y1) 1 (x1,y1) 2 (x1,y0) 3 (x0,y0) */
+function drawCorner(p) {
+  const k = ((+p.corner || 0) % 4 + 4) % 4, cx = k === 1 || k === 2 ? DW : 0, cy = k === 0 || k === 1 ? DW : 0, snow = ENV.season === 3, S = 14;
+  const a0 = [(-Math.PI / 2), Math.PI, Math.PI / 2, 0][k], pt = (r, t) => [cx + Math.cos(a0 + t * Math.PI / 2) * r, cy + Math.sin(a0 + t * Math.PI / 2) * r];
+  box(1.1, 1.1, 0, 3.8, 3.8, .3, CONC2, { ol: false });
+  box(0, 0, .26, DW, DW, BED - .26, CONC, { t: snow ? '#dfe5ea' : '#b3aea2' });
+  const backY = cy === DW, backX = cx === DW;            // outer sides are opposite the centre
+  if (backY) { box(0, 0, BED, DW, .16, .55, CONC, { ol: false }); lw([0, .16, BED + .55], [DW, .16, BED + .55], lt(CONC, .5)); }
+  if (backX) { box(0, 0, BED, .16, DW, .55, CONC, { ol: false }); lw([.16, 0, BED + .55], [.16, DW, BED + .55], lt(CONC, .5)); }
+  for (const R of [RAIL.TRACK_Y[0], RAIL.TRACK_Y[1]]) {
+    for (let i = 0; i < S; i++) { const a = pt(R - .95, i / S), b = pt(R + .95, i / S), c = pt(R + .95, (i + 1) / S), d = pt(R - .95, (i + 1) / S); fq([[a[0], a[1], BED + .005], [b[0], b[1], BED + .005], [c[0], c[1], BED + .005], [d[0], d[1], BED + .005]], snow ? '#cdd5db' : '#a39e93'); }
+    for (let i = 0; i <= S * 2; i++) { const a = pt(R - .78, i / (S * 2)), b = pt(R + .78, i / (S * 2)); lw([a[0], a[1], BED + .02], [b[0], b[1], BED + .02], '#8f897d'); }
+    for (const rr of [R - G, R + G]) for (let i = 0; i < S; i++) { const a = pt(rr, i / S), b = pt(rr, (i + 1) / S); lw([a[0], a[1], BED + .04], [b[0], b[1], BED + .04], '#35323f'); lw([a[0], a[1], BED + .1], [b[0], b[1], BED + .1], COL.rail); }
+  }
+  if (!backY) { box(0, DW - .16, BED, DW, .16, .55, CONC, { ol: false }); lw([0, DW, BED + .55], [DW, DW, BED + .55], lt(CONC, .55)); lw([0, DW, BED + .62], [DW, DW, BED + .62], STEEL); }
+  if (!backX) { box(DW - .16, 0, BED, .16, DW, .55, CONC, { ol: false }); lw([DW, 0, BED + .55], [DW, DW, BED + .55], lt(CONC, .3)); lw([DW, 0, BED + .62], [DW, DW, BED + .62], STEEL); }
+}
+
 function drawPier(p) {
-  const h = p.h || 4.4, cw = 1.4, cd = 1.6, capH = 1.1, y0 = -2.0, y1 = 3.6, zc = h - capH, c = p.color || CONC;
+  const h = num(p.h, 4.4, 1.6, 20), cw = 1.4, cd = 1.6, capH = 1.1, y0 = -2.0, y1 = 3.6, zc = h - capH, c = p.color || CONC;
   box(-.15, -.15, 0, cw + .3, cd + .3, .35, dk(c, .12));
   box(0, 0, .35, cw, cd, zc - .35, c, { l: PAT.planks(dk(c, .18), 8), ol: true });
   for (let z = 1.2; z < zc; z += 1.2) { lw([0, cd, z], [cw, cd, z], dk(c, .34)); lw([cw, 0, z], [cw, cd, z], dk(c, .5)); }
@@ -66,7 +85,7 @@ function drawPier(p) {
 }
 
 function drawTruss(p) {
-  const L = p.len || 16, c = p.color || '#b0583a', dpt = 2.0, n = Math.max(2, Math.round(L / 4)), pw = L / n, d = dk(c, .3);
+  const L = num(p.len, 16, 4, 96), c = p.color || '#b0583a', dpt = 2.0, n = Math.max(2, Math.round(L / 4)), pw = L / n, d = dk(c, .3);
   const side = (y, col, hi) => {
     const m = (a, b, w) => { const dx = b[0] - a[0], dz = b[1] - a[1], k = w / Math.hypot(dx, dz), nx = -dz * k, nz = dx * k; fq([[a[0] - nx, y, a[1] - nz], [b[0] - nx, y, b[1] - nz], [b[0] + nx, y, b[1] + nz], [a[0] + nx, y, a[1] + nz]], col); };
     for (let i = 0; i < n; i++) { const a = i * pw, b = a + pw, mid = a + pw / 2; m([a, -.1], [mid, -dpt + .1], .07); m([mid, -dpt + .1], [b, -.1], .07); m([mid, -.1], [mid, -dpt + .1], .04); }
@@ -81,7 +100,7 @@ function drawTruss(p) {
 }
 
 function drawArch(p, open) {
-  const L = p.len || 8, D = DW, h = p.h || 4.4, c = p.color || '#a8553f', stone = p.stone || '#d9cfb8', pierW = .75;
+  const L = num(p.len, 8, 4, 16), D = DW, h = num(p.h, 4.4, 2.5, 12), c = p.color || '#a8553f', stone = p.stone || '#d9cfb8', pierW = .75;
   let R = (L - 2 * pierW) / 2; R = Math.min(R, h - 1.0); const sp = Math.max(.2, h - .6 - R), x0 = L / 2 - R, x1 = L / 2 + R, crown = sp + R;
   const inf = open ? 'open' : (p.infill || 'shop'), rec = .5, r = rng(p.seed || 1), name = p.name || 'CAFE', fc = p.front || '#2f6f5f';
   // what is seen through the opening (drawn first; the wall with a hole is painted over it)
@@ -126,7 +145,7 @@ function drawArch(p, open) {
 }
 
 function drawTrack(p) {
-  const L = p.len || 8, n = p.tracks === 2 ? 2 : 1, W = 2.6 * n, snow = ENV.season === 3;
+  const L = num(p.len, 8, .5, 96), n = +p.tracks === 2 ? 2 : 1, W = 2.6 * n, snow = ENV.season === 3;
   const b1 = snow ? '#d5dce2' : '#7d766c', b2 = snow ? '#c3ccd4' : '#6c665d';
   qz(0, L, 0, W, .01, (x, y) => { const k = hash2(Math.floor(x * 8), Math.floor(y * 8), 5); return k < .22 ? b2 : k > .9 ? lt(b1, .18) : b1; });
   fq([[0, W, .01], [L, W, .01], [L, W + .15, 0], [0, W + .15, 0]], b2);
@@ -134,21 +153,23 @@ function drawTrack(p) {
 }
 
 export default [
-  { id: 'prop.rail.viaduct', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'deck'], solid: false, size: p => [p.len || 8, DW, BED], vb: p => [-.1, -.3, 0, (p.len || 8) + .1, DW + .2, 5.2],
+  { id: 'prop.rail.viaduct', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'deck'], solid: false, size: p => [num(p.len, 8, 1, 96), DW, BED], vb: p => [-.1, -.3, 0, num(p.len, 8, 1, 96) + .1, DW + .2, 5.2],
     variants: [{ len: 8 }, { len: 16 }, { len: 8, parapet: 'back', masts: false }, { len: 8, parapet: 'none' }], draw: drawDeck },
+  { id: 'prop.rail.viaduct.corner', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'deck', 'corner'], solid: false, size: [DW, DW, BED], vb: [-.2, -.2, 0, DW + .2, DW + .2, 1.5],
+    variants: [{ corner: 0 }, { corner: 1 }, { corner: 2 }, { corner: 3 }], draw: drawCorner },
   { id: 'prop.rail.mast', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'catenary'], solid: false, size: [.2, .2, 4], vb: [-.4, -.2, 0, .5, 5, 5.2], variants: [{}],
     draw(p) { at0(() => mast(.1)); if (p.wires) wires(-4, 4); } },
-  { id: 'prop.rail.pier', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'pier', 'support'], solid: true, size: p => [1.4, 1.6, p.h || 4.4], vb: p => [-.3, -2.2, 0, 1.7, 3.8, (p.h || 4.4) + .1],
+  { id: 'prop.rail.pier', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'pier', 'support'], solid: true, size: p => [1.4, 1.6, num(p.h, 4.4, 1.6, 20)], vb: p => [-.3, -2.2, 0, 1.7, 3.8, num(p.h, 4.4, 1.6, 20) + .1],
     variants: [{ h: 4.4, seed: 1 }, { h: 6.4, seed: 2 }, { h: 3.4, seed: 5, poster: false }], draw: drawPier },
-  { id: 'prop.rail.viaduct.truss', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'deck', 'truss', 'bridge', 'river'], solid: false, size: p => [p.len || 16, DW, BED], vb: p => [-.1, -.3, -2.1, (p.len || 16) + .1, DW + .2, 5.2],
+  { id: 'prop.rail.viaduct.truss', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'deck', 'truss', 'bridge', 'river'], solid: false, size: p => [num(p.len, 16, 4, 96), DW, BED], vb: p => [-.1, -.3, -2.1, num(p.len, 16, 4, 96) + .1, DW + .2, 5.2],
     variants: [{ len: 16 }, { len: 24, color: '#3f7f7a' }], draw: drawTruss },
-  { id: 'prop.rail.arch', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'arch', 'support', 'oldtown', 'shop'], solid: true, size: p => [p.len || 8, DW, p.h || 4.4], door: { side: 'y', at: 5.9 },
+  { id: 'prop.rail.arch', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'arch', 'support', 'oldtown', 'shop'], solid: true, size: p => [num(p.len, 8, 4, 16), DW, num(p.h, 4.4, 2.5, 12)], door: { side: 'y', at: 5.9 },
     light: { x: 4, y: 7, z: 0, r: 4 },
     variants: [{ infill: 'shop', name: 'CAFE', seed: 1 }, { infill: 'shop', name: 'BIKES', front: '#31556b', seed: 2 }, { infill: 'garage', seed: 3 }, { infill: 'brick', seed: 4 }, { infill: 'shop', name: 'RECORDS', front: '#8a3a4a', color: '#b86a48', seed: 5 }],
     draw: p => drawArch(p, false) },
-  { id: 'prop.rail.arch.open', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'arch', 'support', 'oldtown', 'passage'], solid: false, size: p => [p.len || 8, DW, p.h || 4.4],
+  { id: 'prop.rail.arch.open', kind: 'prop', tags: ['transit', 'rail', 'viaduct', 'arch', 'support', 'oldtown', 'passage'], solid: false, size: p => [num(p.len, 8, 4, 16), DW, num(p.h, 4.4, 2.5, 12)],
     variants: [{}, { color: '#b86a48' }], draw: p => drawArch(p, true) },
-  { id: 'prop.rail.track', kind: 'prop', tags: ['transit', 'rail', 'track', 'ground'], solid: false, size: p => [p.len || 8, p.tracks === 2 ? 5.2 : 2.6, .15], vb: p => [0, 0, 0, p.len || 8, (p.tracks === 2 ? 5.2 : 2.6) + .2, .3],
+  { id: 'prop.rail.track', kind: 'prop', tags: ['transit', 'rail', 'track', 'ground'], solid: false, size: p => [num(p.len, 8, .5, 96), +p.tracks === 2 ? 5.2 : 2.6, .15], vb: p => [0, 0, 0, num(p.len, 8, .5, 96), (+p.tracks === 2 ? 5.2 : 2.6) + .2, .3],
     variants: [{ len: 8 }, { len: 8, tracks: 2 }], draw: drawTrack },
   { id: 'prop.rail.buffer', kind: 'prop', tags: ['transit', 'rail', 'track', 'buffer'], solid: true, size: [1.2, 2.6, 1.4], variants: [{}],
     draw() {
@@ -169,10 +190,10 @@ export default [
       });
       qy(-.02, .32, .31, 2.6, 2.95, '#f6f2e6'); textY(String(p.num || 'A4').slice(0, 2), .02, .31, 2.93, '#25212d');
     } },
-  { id: 'prop.rail.crossing', kind: 'prop', tags: ['transit', 'rail', 'crossing', 'gate'], solid: true, size: [.5, .5, 3.6], vb: p => [-.3, -.4, 0, (p.len || 4) + .9, 1, 5.2],
+  { id: 'prop.rail.crossing', kind: 'prop', tags: ['transit', 'rail', 'crossing', 'gate'], solid: true, size: [.5, .5, 3.6], vb: p => [-.3, -.4, 0, num(p.len, 4, 2, 10) + .9, 1, 6.2 + num(p.len, 4, 2, 10)],
     variants: [{ open: false }, { open: true }, { open: false, len: 6 }],
     draw(p) {
-      const Lb = p.len || 4, open = !!p.open, y = .25;
+      const Lb = num(p.len, 4, 2, 10), open = !!p.open, y = .25;
       box(.05, .05, 0, .4, .4, 1.0, '#f2c230', { l: PAT.stripes('#f2c230', '#25212d', 3) }); box(.17, .17, 1.0, .16, .16, 2.3, '#c9ced6');
       // crossbuck
       for (const s of [1, -1]) fq([[.25 - .55, .34, 3.1 - .55 * s - .06], [.25 + .55, .34, 3.1 + .55 * s - .06], [.25 + .55, .34, 3.1 + .55 * s + .06], [.25 - .55, .34, 3.1 - .55 * s + .06]], '#f6f2e6');

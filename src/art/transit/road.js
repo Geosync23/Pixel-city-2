@@ -1,9 +1,10 @@
 // Road furniture: signals, signs, bus stops, taxi stand, meters, bike racks, EV charger, road works, billboards, gantry.
 // Everything faces +y (flip the asset for the other street direction).
 import { box, qy, qx, qz, lw, fq, lit, glow, dk, lt, mix, ENV, PAT, rng, textY, textX, textW, signY, signX, U, at, cone, ball, cyl, PW, px, C, isFlipped } from '../../engine/raster.js';
-import { COL, disc, lamp, halo, post, pole, tw, glassY, glassX, sparse } from './_lib.js';
+import { COL, disc, lamp, halo, post, pole, tw, glassY, glassX, sparse, list, num } from './_lib.js';
 import cars from './cars.js';
 
+const armOf = p => { const a = +p.arm; return p.arm === undefined || !isFinite(a) ? 3.2 : Math.max(0, Math.min(8, a)); };
 const STEEL = '#56636b', STEELD = '#3d4a54', DARK = '#25212d', NAVY = '#26335e';
 const bike = cars.find(a => a.id === 'veh.bicycle');
 const P = (id, tags, size, draw, extra) => Object.assign({ id, kind: 'prop', tags: ['transit', 'road', 'street', ...tags], size, solid: true, draw }, extra || {});
@@ -31,12 +32,12 @@ function adArt(x0, x1, y, z0, z1, kind, seed) {
 
 export default [
   P('prop.road.trafficlight', ['signal', 'trafficlight'], [.3, .3, 5.6], p => {
-    const st = p.state || 'red', arm = p.arm === undefined ? 3.2 : p.arm;
+    const st = p.state || 'red', arm = armOf(p);
     box(0, 0, 0, .3, .3, .5, STEELD); box(.08, .08, .5, .14, .14, 5.0, STEEL); box(.06, .06, 5.5, .18, .18, .08, STEELD, { ol: false });
     box(-.02, .3, 1.0, .2, .12, .3, '#f2c230', { ol: false }); disc('y', .08, .425, 1.15, .05, DARK);                     // push button
     if (arm > 0) { box(.2, .1, 5.1, arm, .1, .1, STEEL); lw([.3, .15, 5.5], [arm * .6, .15, 5.2], STEELD); head3(arm + .05, .3, 4.05, st, .14); if (arm > 2.4) qy(arm - 1.7, arm - .5, .21, 4.6, 5.0, '#2f7f4f'), textY(String(p.name || 'MAIN').slice(0, 4), arm - 1.62, .215, 4.93, '#f6f2e6'); }
     head3(.15, .52, 2.5, st, .12);
-  }, { vb: p => [-.4, -.3, 0, (p.arm === undefined ? 3.2 : p.arm) + .7, .9, 5.8], variants: [{ state: 'red' }, { state: 'green' }, { state: 'amber' }, { state: 'green', arm: 0 }] }),
+  }, { vb: p => [-.4, -.3, 0, armOf(p) + .7, .9, 5.8], variants: [{ state: 'red' }, { state: 'green' }, { state: 'amber' }, { state: 'green', arm: 0 }] }),
 
   P('prop.road.pedsignal', ['signal', 'pedestrian'], [.3, .3, 3.0], p => {
     const walk = p.state === 'walk';
@@ -48,9 +49,9 @@ export default [
     box(.0, .21, 1.0, .3, .1, .3, '#f2c230', { ol: false });
   }, { vb: [-.4, -.3, 0, .7, .7, 3.2], variants: [{ state: 'stop' }, { state: 'walk' }] }),
 
-  P('prop.road.sign.stop', ['sign', 'stop'], [.24, .24, 2.9], () => { signPole(2.8); const y = .2, z = 2.3, r = .5 * U;
-    disc('y', .12, y, z, .56, (a, b) => Math.abs(a) + Math.abs(b) > r * 1.42 + 1 || Math.abs(a) > r + .5 || Math.abs(b) > r + .5 ? null : (Math.abs(a) + Math.abs(b) > r * 1.42 - .6 || Math.abs(a) > r - 1 || Math.abs(b) > r - 1) ? '#f6f2e6' : '#d2332a');
-    textY('STOP', .12 - 7.5 / U, y + .001, z + .2, '#f6f2e6'); }, { vb: [-.6, -.2, 0, .9, .5, 3.1], variants: [{}] }),
+  P('prop.road.sign.stop', ['sign', 'stop'], [.24, .24, 2.9], () => { signPole(2.8); const y = .2, z = 2.25, r = .58 * U;
+    disc('y', .12, y, z, .66, (a, b) => Math.abs(a) + Math.abs(b) > r * 1.42 + 1 || Math.abs(a) > r + .5 || Math.abs(b) > r + .5 ? null : (Math.abs(a) + Math.abs(b) > r * 1.42 - .6 || Math.abs(a) > r - 1 || Math.abs(b) > r - 1) ? '#f6f2e6' : '#d2332a');
+    textY('STOP', .12 - 7.5 / U, y + .001, z + .2, '#f6f2e6'); }, { vb: [-.7, -.2, 0, 1, .5, 3.2], variants: [{}] }),
   P('prop.road.sign.yield', ['sign', 'yield'], [.24, .24, 2.8], () => { signPole(2.7); const y = .2;
     fq([[-.42, y, 2.7], [.66, y, 2.7], [.12, y, 1.8]], '#d2332a'); fq([[-.24, y, 2.6], [.48, y, 2.6], [.12, y, 2.0]], '#f6f2e6'); }, { vb: [-.6, -.2, 0, .9, .5, 3], variants: [{}] }),
   P('prop.road.sign.oneway', ['sign', 'oneway'], [.24, .24, 2.9], p => { signPole(2.8); const y = .2, d = p.dir === -1 ? -1 : 1;
@@ -62,7 +63,7 @@ export default [
     { vb: p => { const w = Math.max(tw(p.name || 'MAPLE ST', 8), p.cross ? tw(p.cross, 8) : 0) / 2 + .2; return [.12 - w, .12 - w, 0, .12 + w, .12 + w, 3.5]; }, variants: [{ name: 'MAPLE ST' }, { name: 'HARBOR RD', cross: 'PIER AVE' }, { name: 'LANTERN ROW' }] }),
 
   P('prop.road.busshelter', ['busstop', 'shelter', 'bus'], [4.2, 1.5, 2.7], p => {
-    const W = 4.2, D = 1.5, H = 2.45, routes = (p.routes || ['12', '7']).slice(0, 3), snow = ENV.season === 3, ad = p.ad || 'bay';
+    const W = 4.2, D = 1.5, H = 2.45, routes = list(p.routes, ['12', '7']).slice(0, 3), snow = ENV.season === 3, ad = p.ad || 'bay';
     qz(0, W, 0, D, .01, '#c9c2b2');
     // back glass wall + far end panel
     for (const x of [.06, W / 2, W - .06]) post(x, .08, 0, H, STEELD, .1);
@@ -76,7 +77,7 @@ export default [
     lit(() => disc('x', W + .002, .75, 1.55, .22, ad === 'cola' ? '#f6f2e6' : '#ffd95a'));
     // roof
     post(.06, D - .1, 0, H, STEELD, .1);
-    box(-.15, -.1, H, W + .3, D + .35, .12, STEELD, { t: snow ? COL.snow : '#6f8a96' }); fq([[-.1, 0, H + .125], [W + .1, 0, H + .125], [W + .1, D + .2, H + .125], [-.1, D + .2, H + .125]], sparse(snow ? '#ffffff' : '#bfe6ee', 2));
+    box(-.15, -.1, H, W + .3, D + .35, .12, STEELD, { t: snow ? COL.snow : '#6f8a96' }); fq([[-.1, 0, H + .125], [W + .1, 0, H + .125], [W + .1, D + .2, H + .125], [-.1, D + .2, H + .125]], sparse(snow ? '#ffffff' : '#bfe6ee', 3));
     lit(() => lw([.3, D + .24, H - .01], [W - .3, D + .24, H - .01], '#fff2c4')); glow(() => { qz(.2, W - .2, .2, D + .9, .02, '#55536a'); qy(.3, W - .3, D + .25, H - .08, H, '#fff2c4'); });
     // route flag on the front-left post
     box(-.1, D - .14, H + .12, .5, .08, .62, NAVY, { ol: false }); lit(() => { qy(-.1, .4, D - .055, H + .12, H + .74, NAVY); disc('y', .15, D - .054, H + .52, .17, '#f6f2e6'); icon(.15, D - .053, H + .64, ['.###.', '#####', '#.#.#', '#####', '#.#.#'], '#3f9a6a'); });
@@ -85,7 +86,7 @@ export default [
     variants: [{ routes: ['12', '7'] }, { routes: ['3'], ad: 'cola' }] }),
 
   P('prop.road.busstop', ['busstop', 'bus', 'sign'], [.24, .24, 3.2], p => {
-    const routes = (p.routes || ['12']).slice(0, 3); signPole(3.1, STEELD); const y = .19;
+    const routes = list(p.routes, ['12']).slice(0, 3); signPole(3.1, STEELD); const y = .19;
     lit(() => { disc('y', .12, y, 2.75, .36, '#f6f2e6'); disc('y', .12, y + .001, 2.75, .3, '#3f9a6a'); icon(.12, y + .002, 2.92, ['.#####.', '#######', '#.#.#.#', '#######', '#######', '.#...#.'], '#fff8e0'); });
     routes.forEach((r, i) => { const z = 2.3 - i * .4; plate(-.2, .44, y, z - .34, z, i % 2 ? '#2f8f96' : NAVY); textY(String(r).slice(0, 2), .12 - textW(String(r).slice(0, 2)) / U / 2, y + .001, z - .03, '#fff8e0'); });
     plate(-.14, .38, y, .9, 1.5, '#f1ead6'); for (let z = 1.0; z < 1.45; z += .1) lw([-.08, y + .001, z], [.32, y + .001, z], '#8d939e');
@@ -93,7 +94,7 @@ export default [
 
   P('prop.road.taxistand', ['taxistand', 'taxi', 'sign'], [.24, .24, 3.2], () => {
     signPole(3.1, DARK); const y = .19;
-    box(-.4, .1, 2.45, 1.04, .1, .62, DARK); lit(() => { qy(-.36, .6, y + .012, 2.5, 3.03, '#ffd23a'); textY('TAXI', .12 - 7.5 / U, y + .013, 2.92, DARK); for (let i = 0; i < 12; i++) qy(-.36 + i * .08, -.28 + i * .08, y + .013, 2.5 + (i % 2) * .07, 2.57 + (i % 2) * .07, DARK); });
+    box(-.4, .1, 2.45, 1.04, .1, .62, DARK); lit(() => { qy(-.36, .6, y + .012, 2.5, 3.03, '#ffd23a'); textY('TAXI', .12 - 7.5 / U, y + .013, 2.92, DARK); });
     halo(.12, y + .02, 2.76, 9, '#ffe9a8'); lit(() => textY('TAXI', .12 - 7.5 / U, y + .013, 2.92, DARK));
     plate(-.14, .38, y, 1.5, 2.0, '#f1ead6'); lw([-.08, y + .001, 1.85], [.32, y + .001, 1.85], DARK); lw([-.08, y + .001, 1.72], [.2, y + .001, 1.72], '#8d939e'); lw([-.08, y + .001, 1.62], [.26, y + .001, 1.62], '#8d939e');
   }, { use: { x: .12, y: 1.0 }, light: { x: .1, y: .8, z: 0, r: 2.5 }, vb: [-.8, -.3, 0, 1.1, .7, 3.5], variants: [{}] }),
@@ -103,7 +104,7 @@ export default [
   }, { variants: [{}, { color: '#2c5fc4' }] }),
 
   P('prop.road.bikerack', ['bike', 'rack', 'parking'], [1.9, 2.6, 1.0], p => {
-    const r = rng(p.seed || 1), n = p.bikes === undefined ? 3 : p.bikes, cols = ['#d64545', '#3b5bdb', '#2f9e44', '#e8a33a', '#8fc9b8'];
+    const r = rng(p.seed || 1), n = p.bikes === undefined || !isFinite(+p.bikes) ? 3 : +p.bikes, cols = ['#d64545', '#3b5bdb', '#2f9e44', '#e8a33a', '#8fc9b8'];
     for (let i = 0; i < 5; i++) { const y = .15 + i * .575;
       lw([.5, y, 0], [.5, y, .8], '#aab0ba'); lw([1.3, y, 0], [1.3, y, .8], '#8d939e'); lw([.5, y, .8], [1.3, y, .8], '#c9ced6'); lw([.5, y, .82], [1.3, y, .82], '#8d939e');
       if (i < 4 && bike && r() < n / 4) at(.12, y + .06, 0, () => bike.draw({ color: cols[Math.floor(r() * cols.length)], dir: r() < .5 ? 1 : -1, basket: r() < .3 })); }
@@ -117,12 +118,12 @@ export default [
     lamp(.25, .41, 1.52, '#4dff88', 3, 2, 1);
   }, { use: { x: .25, y: .9 }, variants: [{}, { color: '#2b2a38' }] }),
 
-  P('prop.road.barrier', ['roadwork', 'barrier'], p => [p.len || 2, .5, 1.1], p => {
-    const L = p.len || 2;
+  P('prop.road.barrier', ['roadwork', 'barrier'], p => [num(p.len, 2, 1, 8), .5, 1.1], p => {
+    const L = num(p.len, 2, 1, 8);
     for (const x of [.15, L - .15]) { lw([x, .0, 0], [x, .25, 1.0], '#8d939e'); lw([x, .5, 0], [x, .25, 1.0], '#c9ced6'); }
     box(0, .2, .62, L, .08, .3, '#e0453a', { l: PAT.vstripes('#f6f2e6', '#e0453a', 4), t: '#f6f2e6' }); box(0, .2, .25, L, .08, .14, '#f2c230', { l: PAT.vstripes('#25212d', '#f2c230', 4), ol: false });
     for (const x of [.15, L - .15]) lamp(x, .25, 1.06, '#ffb347', 3, 2, 2);
-  }, { vb: p => [-.2, -.2, 0, (p.len || 2) + .2, .7, 1.4], variants: [{ len: 2 }, { len: 3 }] }),
+  }, { vb: p => [-.2, -.2, 0, num(p.len, 2, 1, 8) + .2, .7, 1.4], variants: [{ len: 2 }, { len: 3 }] }),
 
   P('prop.road.cone', ['roadwork', 'cone'], [.4, .4, .7], () => {
     box(.02, .02, 0, .36, .36, .05, '#d95a1e'); cone(.2, .2, .05, .14, .62, '#f26a2e'); const s = [[.2, .2, .32]]; disc('y', .2, .22, .3, .0, null);
@@ -139,8 +140,8 @@ export default [
     if (ENV.season === 3) qz(-.1, W + .1, .05, .45, z1 + .16, COL.snow);
   }, { vb: [-.4, -.3, 0, 6.4, 1.3, 7.5], variants: [{ ad: 'bay' }, { ad: 'zip' }, { ad: 'cola' }, { ad: 'radio', seed: 2 }] }),
 
-  P('prop.road.gantry', ['gantry', 'sign', 'highway'], p => [p.span || 10, .6, 7.2], p => {
-    const S = p.span || 10, zb = 5.4, signs = p.signs || [['DOWNTOWN', '^'], ['AIRPORT', '>']], n = signs.length, sw = Math.min(4.6, (S - 1) / n - .3);
+  P('prop.road.gantry', ['gantry', 'sign', 'highway'], p => [num(p.span, 10, 4, 30), .6, 7.2], p => {
+    const S = num(p.span, 10, 4, 30), zb = 5.4, signs = (Array.isArray(p.signs) && p.signs.length ? p.signs : [['DOWNTOWN', '^'], ['AIRPORT', '>']]).map(q => Array.isArray(q) ? q : [String(q), '^']), n = signs.length, sw = Math.min(4.6, (S - 1) / n - .3);
     const leg = x => { box(x, .1, 0, .4, .4, zb + .9, STEEL); box(x - .12, 0, 0, .64, .6, .35, '#a39e93'); };
     leg(0);
     // truss beam
@@ -153,5 +154,5 @@ export default [
         if (s[2]) { qy(x0 + .15, x0 + .15 + tw(s[2], 4), y + .002, zb - .34, zb + .06, '#f2c230'); textY(String(s[2]), x0 + .15 + 2 / U, y + .003, zb + .0, DARK); } });
       lamp(cx - sw / 4, y + .5, zb - .6, '#fff2c4', 2, 2, 1); lamp(cx + sw / 4, y + .5, zb - .6, '#fff2c4', 2, 2, 1); lw([cx - sw / 4, .56, zb - .6], [cx - sw / 4, 1.06, zb - .6], DARK); lw([cx + sw / 4, .56, zb - .6], [cx + sw / 4, 1.06, zb - .6], DARK); });
     leg(S - .4);
-  }, { solid: false, vb: p => [-.3, -.2, 0, (p.span || 10) + .3, 1.3, 7.4], variants: [{ span: 10 }, { span: 12, signs: [['HARBOR', '<', '4'], ['OLD TOWN', '^'], ['HILLCREST', '>', '7']] }] }),
+  }, { solid: false, vb: p => [-.3, -.2, 0, num(p.span, 10, 4, 30) + .3, 1.3, 7.4], variants: [{ span: 10 }, { span: 12, signs: [['HARBOR', '<', '4'], ['OLD TOWN', '^'], ['HILLCREST', '>', '7']] }] }),
 ];

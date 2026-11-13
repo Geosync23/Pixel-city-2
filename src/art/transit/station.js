@@ -2,7 +2,7 @@
 // Platforms use the viaduct's local z: z = 0 is the deck underside, the platform top is at z = 1.2 (0.6 above the track bed).
 // Platform furniture + canopy are separate props placed ON the platform top (their local z = 0).
 import { box, qy, qx, qz, lw, fq, lit, glow, dk, lt, mix, ENV, PAT, rng, textY, textX, textW, signY, signX, winY, winX, gable, hip, U, at, cyl, ball } from '../../engine/raster.js';
-import { RAIL, COL, disc, lamp, halo, post, pole, prof, ledY, ledX, tw, sparse, glassY, glassX } from './_lib.js';
+import { list, num, RAIL, COL, disc, lamp, halo, post, pole, prof, ledY, ledX, tw, sparse, glassY, glassX } from './_lib.js';
 
 const CONC = '#bdb8ab', STEEL = '#56636b', STEELD = '#3d4a54', PT = RAIL.PLAT_TOP, PW_ = RAIL.PLAT_W, LINE = '#d2412f', NAVY = '#26335e';
 const clockFace = (plane, x, y, z, r, seed) => {
@@ -19,7 +19,7 @@ function fence(x0, x1, y, z, h = 1.0) {
 const tactile = (x, y) => { const fx = (x * 8) % 2, fy = (y * 8) % 2; return (Math.floor(x * 8) + Math.floor(y * 8)) % 2 ? '#f2c230' : '#dba91c'; };
 
 function drawPlatform(p) {
-  const L = p.len || 8, W = PW_, front = (p.edge || 'y0') === 'y0', snow = ENV.season === 3 && p.covered === false;
+  const L = num(p.len, 8, 1, 64), W = PW_, front = (p.edge || 'y0') === 'y0', snow = ENV.season === 3 && p.covered === false;
   if (!front && p.fence !== false) fence(0, L, .04, PT);
   for (let x = 1.5; x < L; x += 4) { box(x, .3, 0, .3, W - .6, .5, dk(CONC, .2), { ol: false }); }
   box(0, 0, .5, L, W, PT - .5, CONC, { t: snow ? PAT.ftile('#e6ecf1', '#dbe3ea', .5) : PAT.ftile('#d8d1c1', '#cdc5b4', .5), l: front ? PAT.planks(dk(CONC, .18), 16) : dk(CONC, .5) });
@@ -32,7 +32,7 @@ function drawPlatform(p) {
 }
 
 function drawCanopy(p) {
-  const L = p.len || 8, W = PW_, H = p.h || 3.3, zc = H - .25, ze = H + .1, snow = ENV.season === 3, y0 = -.3, y1 = W + .3, mid = W / 2;
+  const L = num(p.len, 8, 2, 64), W = PW_, H = num(p.h, 3.3, 2.4, 6), zc = H - .25, ze = H + .1, snow = ENV.season === 3, y0 = -.3, y1 = W + .3, mid = W / 2;
   // back wing (rises toward -y): seen from below-front, so draw the underside tone first
   const xs = []; for (let x = 2; x < L; x += 4) xs.push(x);
   for (const x of xs) { box(x - .1, mid - .1, 0, .2, .2, zc - .5, STEEL); box(x - .16, mid - .16, 0, .32, .32, .12, STEELD, { ol: false });
@@ -51,7 +51,7 @@ function drawCanopy(p) {
 }
 
 function drawStairs(p) {
-  const h = p.h || 5.6, rise = .35, tread = .4, n = Math.round(h / rise), run = n * tread, land = 1.6, L = run + land, W = 2.4, esc = !!p.esc, ys = esc ? 1.05 : 0, c = p.color || CONC;
+  const h = num(p.h, 5.6, 1.4, 14), rise = .35, tread = .4, n = Math.round(h / rise), run = n * tread, land = 1.6, L = run + land, W = 2.4, esc = !!p.esc, ys = esc ? 1.05 : 0, c = p.color || CONC;
   const slopeRail = (y, col, glass) => { const a = [0, y, 1.0], b = [run, y, h + 1.0], e = [L, y, h + 1.0]; if (glass) { fq([[0, y, .1], [run, y, h + .1], [run, y, h + .95], [0, y, .95]], sparse('#d4f2f6')); glassY(run, L, y, h + .1, h + .95, '#d4f2f6'); } lw(a, b, col); lw(b, e, col); for (let x = 0; x <= run; x += tread * 4) lw([x, y, x / tread * rise], [x, y, x / tread * rise + 1.0], STEEL); lw([L - .03, y, h], [L - .03, y, h + 1.0], STEEL); };
   slopeRail(.05, '#8d939e', false);
   if (esc) {
@@ -75,7 +75,7 @@ function drawStairs(p) {
 }
 
 function drawElevator(p) {
-  const h = p.h || 5.6, W = 2.2, H = h + 2.9, f = STEELD, cabZ = (p.cab === undefined ? 1 : p.cab) * h;
+  const h = num(p.h, 5.6, 2.5, 14), W = 2.2, H = h + 2.9, f = STEELD, cabZ = Math.max(0, Math.min(1, p.cab === undefined || !isFinite(+p.cab) ? 1 : +p.cab)) * h;
   box(0, 0, 0, W, W, .25, dk(CONC, .1));
   // back + far frame, cab, then front glass
   qy(0, W, .05, .25, H - .5, '#7fa8b8', '#8fb8c6'); qx(.05, 0, W, .25, H - .5, '#6f98a8', '#7fa8b8');
@@ -93,7 +93,7 @@ function drawElevator(p) {
 }
 
 function drawEntrance(p) {
-  const w = p.w || 8, d = p.d || 5, H = 3.2, name = String(p.name || 'MAPLE BAY'), r = rng(p.seed || 1), stone = p.wall || '#e6dcc6', lc = p.line || LINE;
+  const w = num(p.w, 8, 5, 16), d = num(p.d, 5, 3, 10), H = 3.2, name = String(p.name || 'MAPLE BAY'), r = rng(p.seed || 1), stone = p.wall || '#e6dcc6', lc = p.line || LINE;
   box(0, 0, 0, w, d, H, stone, { l: PAT.stone(dk(stone, .18)), r: PAT.stone(dk(stone, .36)), t: '#8f9aa0' });
   // glazed front with the gate line inside
   const gx0 = .6, gx1 = w - .6;
@@ -181,9 +181,9 @@ function drawCentral(p) {
 
 const furn = (id, tags, size, draw, extra) => Object.assign({ id, kind: 'prop', tags: ['transit', 'station', 'platform', ...tags], size, solid: true, draw }, extra || {});
 export default [
-  { id: 'prop.rail.platform', kind: 'prop', tags: ['transit', 'rail', 'station', 'platform', 'deck'], solid: false, size: p => [p.len || 8, PW_, PT], vb: p => [-.1, -.2, 0, (p.len || 8) + .1, PW_ + .2, PT + 1.2],
+  { id: 'prop.rail.platform', kind: 'prop', tags: ['transit', 'rail', 'station', 'platform', 'deck'], solid: false, size: p => [num(p.len, 8, 1, 64), PW_, PT], vb: p => [-.1, -.2, 0, num(p.len, 8, 1, 64) + .1, PW_ + .2, PT + 1.2],
     variants: [{ len: 8, edge: 'y0' }, { len: 8, edge: 'y1' }, { len: 16, edge: 'y0', fence: false }], draw: drawPlatform },
-  { id: 'prop.rail.canopy', kind: 'prop', tags: ['transit', 'rail', 'station', 'canopy', 'roof'], solid: false, size: p => [p.len || 8, PW_, (p.h || 3.3) + .2], vb: p => [-.1, -.5, 0, (p.len || 8) + .1, PW_ + .5, (p.h || 3.3) + .4],
+  { id: 'prop.rail.canopy', kind: 'prop', tags: ['transit', 'rail', 'station', 'canopy', 'roof'], solid: false, size: p => [num(p.len, 8, 2, 64), PW_, num(p.h, 3.3, 2.4, 6) + .2], vb: p => [-.1, -.5, 0, num(p.len, 8, 2, 64) + .1, PW_ + .5, num(p.h, 3.3, 2.4, 6) + .4],
     light: { x: 4, y: 1.5, z: 0, r: 5 }, variants: [{ len: 8 }, { len: 16 }], draw: drawCanopy },
   furn('prop.rail.bench', ['bench', 'seat'], [1.6, .6, .9], p => {
     const c = p.color || '#3f7f8a';
@@ -192,11 +192,11 @@ export default [
     for (const x of [.52, 1.06]) box(x, .08, .5, .04, .46, .16, STEELD, { ol: false });
   }, { seats: [{ x: .4, y: .35, z: .5, dir: 1 }, { x: 1.2, y: .35, z: .5, dir: 1 }], variants: [{}, { color: '#b5654a' }] }),
   furn('prop.rail.board', ['departures', 'sign'], [3.2, .3, 3.2], p => {
-    const rows = p.rows || [['1 CENTRAL', '2'], ['2 AIRPORT', '5'], ['1 HARBOR', '9']], Wb = 3.2;
+    const rows = (Array.isArray(p.rows) && p.rows.length ? p.rows : [['1 CENTRAL', '2'], ['2 AIRPORT', '5'], ['1 HARBOR', '9']]).map(q => Array.isArray(q) ? q : [String(q), '']), Wb = 3.2;
     for (const x of [.2, Wb - .2]) box(x - .06, .09, 0, .12, .12, 3.1, STEEL);
     box(0, .05, 1.3, Wb, .2, 1.86, '#1b2026');
     lit(() => { qy(.06, Wb - .06, .255, 2.72, 3.1, NAVY); textY('DEPARTURES', .16, .256, 3.04, '#f6f2e6'); textY('MIN', Wb - .16 - 11 / U, .256, 3.04, '#9fd8ff');
-      rows.slice(0, 3).forEach((rw, i) => { const z = 2.6 - i * .44; textY(String(rw[0]).slice(0, 9), .16, .256, z, i ? '#ffb347' : '#ffd98a'); const m = String(rw[1]).slice(0, 2); textY(m, Wb - .16 - textW(m) / U, .256, z, '#9cf2b0'); }); });
+      rows.slice(0, 3).forEach((rw, i) => { const z = 2.6 - i * .44; textY(String(rw[0]).slice(0, 9), .16, .256, z, i ? '#ffb347' : '#ffd98a'); const m = String(rw[1] === undefined ? '' : rw[1]).slice(0, 2); textY(m, Wb - .16 - textW(m) / U, .256, z, '#9cf2b0'); }); });
     glow(() => qz(.2, Wb - .2, .3, 1.0, .01, '#4a4658'));
   }, { variants: [{}, { rows: [['2 AIRPORT', '1'], ['1 OLD TOWN', '6'], ['2 HILLCREST', '12']] }] }),
   furn('prop.rail.ticket', ['ticket', 'machine'], [.8, .6, 1.8], p => {
@@ -224,11 +224,11 @@ export default [
   furn('prop.rail.bin', ['bin'], [.5, .5, .9], p => {
     box(.02, .02, 0, .46, .46, .8, p.color || '#4a6a5a', { l: PAT.planks(dk(p.color || '#4a6a5a', .18), 3) }); box(0, 0, .8, .5, .5, .1, '#3a3644'); qy(.12, .38, .503, .58, .72, '#25212d');
   }, { variants: [{}, { color: '#56636b' }] }),
-  { id: 'bld.rail.stairs', kind: 'building', tags: ['transit', 'rail', 'station', 'stairs', 'access'], solid: true, size: p => [Math.round((p.h || 5.6) / .35) * .4 + 1.6, 2.4, p.h || 5.6], vb: p => [-.2, -.2, 0, Math.round((p.h || 5.6) / .35) * .4 + 1.8, 2.7, (p.h || 5.6) + 1.4],
+  { id: 'bld.rail.stairs', kind: 'building', tags: ['transit', 'rail', 'station', 'stairs', 'access'], solid: true, size: p => [Math.round(num(p.h, 5.6, 1.4, 14) / .35) * .4 + 1.6, 2.4, num(p.h, 5.6, 1.4, 14)], vb: p => [-.2, -.2, 0, Math.round(num(p.h, 5.6, 1.4, 14) / .35) * .4 + 1.8, 2.7, num(p.h, 5.6, 1.4, 14) + 1.4],
     light: { x: 0, y: 3, z: 0, r: 4 }, variants: [{ h: 5.6 }, { h: 5.6, esc: true, seed: 1 }, { h: 3.5, seed: 2 }], draw: drawStairs },
-  { id: 'bld.rail.elevator', kind: 'building', tags: ['transit', 'rail', 'station', 'elevator', 'access'], solid: true, size: p => [2.2, 2.2, (p.h || 5.6) + 2.9], door: { side: 'y', at: 1.1 }, vb: p => [-.3, -.3, 0, 2.5, 2.5, (p.h || 5.6) + 3.1],
+  { id: 'bld.rail.elevator', kind: 'building', tags: ['transit', 'rail', 'station', 'elevator', 'access'], solid: true, size: p => [2.2, 2.2, num(p.h, 5.6, 2.5, 14) + 2.9], door: { side: 'y', at: 1.1 }, vb: p => [-.3, -.3, 0, 2.5, 2.5, num(p.h, 5.6, 2.5, 14) + 3.1],
     light: { x: 1.1, y: 3, z: 0, r: 3 }, variants: [{ h: 5.6 }, { h: 5.6, cab: 0 }], draw: drawElevator },
-  { id: 'bld.rail.entrance', kind: 'building', tags: ['transit', 'rail', 'station', 'entrance'], solid: true, size: p => [p.w || 8, p.d || 5, 3.75], vb: p => [-.5, -.5, 0, (p.w || 8) + .5, (p.d || 5) + .8, 4.6], door: { side: 'y', at: 4 },
+  { id: 'bld.rail.entrance', kind: 'building', tags: ['transit', 'rail', 'station', 'entrance'], solid: true, size: p => [num(p.w, 8, 5, 16), num(p.d, 5, 3, 10), 3.75], vb: p => [-.5, -.5, 0, num(p.w, 8, 5, 16) + .5, num(p.d, 5, 3, 10) + .8, 4.6], door: { side: 'y', at: 4 },
     light: { x: 4, y: 6.2, z: 0, r: 5 }, variants: [{ name: 'MAPLE BAY', seed: 1 }, { name: 'OLD TOWN', line: '#2f8f96', wall: '#c9a58a', seed: 2 }, { name: 'HARBORSIDE', w: 10, seed: 3 }], draw: drawEntrance },
   { id: 'bld.rail.central', kind: 'building', tags: ['transit', 'rail', 'station', 'landmark', 'downtown', 'central'], solid: true, size: [26, 12.8, 9.5], vb: [-.5, -.5, 0, 26.5, 14.4, 14.2], door: { side: 'y', at: 13 },
     light: { x: 13, y: 15, z: 0, r: 8 }, variants: [{ seed: 3 }], draw: drawCentral },

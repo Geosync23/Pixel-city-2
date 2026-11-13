@@ -4,7 +4,7 @@
 //         dir 1|-1 (which way the train runs: white head lamps or red tail lamps on the visible cab), dest (side display, <= 7 chars),
 //         line (number on the nose), panto (false = no pantograph), seed (passenger silhouettes), lights (false = dark, depot)
 import { box, qy, qx, qz, lw, fq, lit, glow, dk, lt, mix, ENV, rng } from '../../engine/raster.js';
-import { prof, COL, disc, lamp, halo, paxWindows, ledY, ledX } from './_lib.js';
+import { hexOr, prof, COL, disc, lamp, halo, paxWindows, ledY, ledX } from './_lib.js';
 
 export const LIVERY = { line1: { body: '#f1ead6', accent: '#d2412f', roof: '#b9bec4' }, line2: { body: '#2f8f96', accent: '#f2c230', roof: '#c9ced6' } };
 const L = 12, W = 2.2, ZB = .45, ZS = 2.2, ZR = 2.38;
@@ -24,7 +24,7 @@ function panto(x, y) {
 }
 
 export function drawCar(p) {
-  const lv = LIVERY[p.livery] || LIVERY.line1, body = p.body || lv.body, acc = p.accent || lv.accent, roofC = p.roof || lv.roof;
+  const lv = LIVERY[p.livery] || LIVERY.line1, body = hexOr(p.body, lv.body), acc = hexOr(p.accent, lv.accent), roofC = hexOr(p.roof, lv.roof);
   const cf = p.head === 'front', cr = p.head === 'rear', on = p.lights !== false, fwd = p.dir !== -1, seed = p.seed || 1, r = rng(seed * 7 + 3);
   const dAcc = dk(acc, .18), frame = '#2a2634', dest = String(p.dest === undefined ? 'CENTRAL' : p.dest).slice(0, 8);
   // headlight beam on the track (drawn first: it lies on the ground)
