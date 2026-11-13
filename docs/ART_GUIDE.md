@@ -34,7 +34,7 @@ A module in `src/art/<your-folder>/<name>.js` does `export default [asset, ...]`
   several sizes; list good combos in `variants`. Variety comes from params + seed (window lights, rooftop clutter, colours).
 - **Flip is free**: the engine can draw any asset mirrored across the x/y diagonal (`--flip` in the gallery). Lighting and text stay correct
   when you use the raster primitives. So design ONE orientation (main facade on **+y**), don't write a second one.
-  Vehicles: draw travelling along the x axis only; `p.dir` = +1 (driving toward +x, you see its rear... i.e. tail lights on the -x end, headlights on the +x end) or -1.
+  Vehicles: draw the vehicle lying along the x axis only; `p.dir = 1` means it drives toward +x (headlights on the +x end, tail lights on the -x end), `p.dir = -1` the opposite.
 - **Night**: draw the daytime look normally. Wrap things that only shine at night in `glow(() => ...)` (window light, lamp bulbs) and things that
   are bright day and night in `lit(() => ...)` (neon, screens, signals). `winY/winX` do window glow for you (`on:` decides if that window is lit at night; randomise with rng).
 - **Seasons**: `ENV.season` 0 spring, 1 summer, 2 autumn, 3 winter. Use `foliage(kind, v)` / `grassC()` for plants. In winter add snow to roofs/tops

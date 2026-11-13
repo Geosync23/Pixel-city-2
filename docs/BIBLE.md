@@ -35,7 +35,7 @@ dock/warehouse worker, bartender. Each has a workplace interior, shifts, pay, pr
 **Transit**: elevated light-rail loop with ~7 stations (ride = cutaway train interior with the city scrolling by);
 bus routes with stops (ride in-world); taxis (hail on street or call from phone; ride in-world; costs money).
 
-**Time**: day/night cycle; 7-day week; 4 months = 4 seasons (spring, summer, autumn, winter), 7 days... (see data).
+**Time**: day/night cycle; 7-day week; a month is 14 days and each of the 4 months is a season (spring, summer, autumn, winter); 1 game minute ≈ 1 real second by default.
 **Needs**: hunger, energy, hygiene, fun, social, fitness(+money). Buy groceries -> carry home -> store in fridge -> cook; or eat out.
 **Social**: talk to anyone; named NPCs with routines become friends; invite over / get invited; phone contacts & messages.
 **Crowd**: faked ambient population (not agent-based) — walkers, cars, park-goers, queues; density by district/time/weather.
