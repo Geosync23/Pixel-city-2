@@ -8,7 +8,7 @@
 //   SPOTS       { [spotId]:  { district, desc } }   outdoor/non-venue places NPCs stand at.
 //               Referenced from routines as 'spot:<spotId>'.
 //   HOMES       { [homeId]:  { district, desc, enterable } }   NPC homes. 'player_building'
-//               is whichever starter building the player picked (neighbours/super live there).
+//               is whichever starter building the player picked (neighbors/super live there).
 //   JOBS        { [jobId]:   { title, venue, boss } }   the 10 player jobs and who the boss is.
 //   TRAITS      string[]   closed vocabulary for `personality` (dialogue.js verbs key off these).
 //   TOPICS      string[]   closed vocabulary for likes/dislikes topics.
@@ -22,7 +22,7 @@
 //   short        string   what the player calls them in bubbles and the phone contact list.
 //   age          number
 //   pronouns     'she/her' | 'he/him' | 'they/them'
-//   group        'family' | 'friend' | 'staff' | 'neighbour' | 'regular'
+//   group        'family' | 'friend' | 'staff' | 'neighbor' | 'regular'
 //   role         string   one-phrase label shown under the name ("Diner owner").
 //   district     district id where they are most often found.
 //   home         home id from HOMES.
@@ -108,15 +108,15 @@ export const HOMES = {
   home_jules:      { district: 'maplewood', enterable: true,  desc: 'Yellow family house with a porch swing, 12 Sycamore Lane' },
   home_nana:       { district: 'oldtown',   enterable: true,  desc: 'Narrow brick house with a blue door, 4 Thimble Street' },
   home_kit:        { district: 'arts',      enterable: true,  desc: 'Loft above the print shop on Easel Lane' },
-  player_building: { district: 'any',       enterable: false, desc: "The player's starter building (flat next door / ground floor)" },
-  flat_oldtown:    { district: 'oldtown',   enterable: false, desc: 'Flat above a shop in Old Town' },
+  player_building: { district: 'any',       enterable: false, desc: "The player's starter building (apartment next door / ground floor)" },
+  flat_oldtown:    { district: 'oldtown',   enterable: false, desc: 'Apartment above a shop in Old Town' },
   flat_downtown:   { district: 'downtown',  enterable: false, desc: 'Apartment tower downtown' },
-  flat_arts:       { district: 'arts',      enterable: false, desc: 'Shared flat in the Arts Quarter' },
+  flat_arts:       { district: 'arts',      enterable: false, desc: 'Shared apartment in the Arts Quarter' },
   house_maplewood: { district: 'maplewood', enterable: false, desc: 'Family house in Maplewood' },
   house_hillcrest: { district: 'hillcrest', enterable: false, desc: 'Terrace house in Hillcrest' },
   loft_harbor:     { district: 'harbor',    enterable: false, desc: 'Converted warehouse loft, Harborside' },
   boat_harbor:     { district: 'harbor',    enterable: false, desc: "Houseboat 'Second Wind', berth 3" },
-  flat_railyard:   { district: 'railyard',  enterable: false, desc: 'Flat over the diner / near the depot' },
+  flat_railyard:   { district: 'railyard',  enterable: false, desc: 'Apartment over the diner / near the depot' },
 };
 
 export const JOBS = {
@@ -203,9 +203,9 @@ export const CAST = [
     spec: { skin: 'tan', hair: 'bun', hairColor: '#7a4a2b', top: 'cardigan', topColor: '#e0a526', bottom: 'jeans', bottomColor: '#3d5a80', hat: 'none', glasses: 'none', bag: 'tote', age: 'adult', outfit: 'casual' },
     bio: 'Moved here ten years ago and never stopped telling you to do the same.',
     greetings: {
-      low: ['There you are! Have you eaten? You look like you have not eaten.', "Hey, you. Still can't believe you actually live here now."],
-      mid: ['{name}! Perfect timing, I need a grown-up to talk to.', 'Hey, little one. Yes, I am still allowed to call you that.'],
-      high: ['My favourite sibling. Do not tell the others. There are no others.', "Come here. Hug first, news after. That's the rule."],
+      low: ['There you are! Have you eaten? You look like you haven\'t eaten.', "Hey, you. Still can't believe you actually live here now."],
+      mid: ['{name}! Perfect timing, I need a grown-up to talk to.', 'Hey, little one. Yes, I\'m still allowed to call you that.'],
+      high: ['My favorite sibling. Don\'t tell the others. There are no others.', "Come here. Hug first, news after. That's the rule."],
     },
   },
   {
@@ -229,7 +229,7 @@ export const CAST = [
     greetings: {
       low: ['Ah, the famous sibling. I was told to feed you on sight.', 'Welcome to the Bay. It grows on you. Like moss, but nicer.'],
       mid: ['{name}! Come in, the kettle basically lives on now.', 'Good to see you. I made a shelf. Please admire the shelf.'],
-      high: ["You're family. You don't knock, you just raid the fridge.", "There's my favourite in-law. Low bar, but you clear it nicely."],
+      high: ["You're family. You don't knock, you just raid the fridge.", "There's my favorite in-law. Low bar, but you clear it nicely."],
     },
   },
   {
@@ -251,9 +251,9 @@ export const CAST = [
     spec: { skin: 'brown', hair: 'pigtails', hairColor: '#2a1c14', top: 'tshirt', topColor: '#f2c14e', bottom: 'overalls', bottomColor: '#4a6fa5', hat: 'none', glasses: 'none', bag: 'backpack', age: 'kid', outfit: 'casual' },
     bio: 'Nine years old, three clubs, one clipboard. Runs a tight ship.',
     greetings: {
-      low: ['Mum says you are my aunt-or-uncle. I have questions.', 'Hi! Do you like lists? I have a list about you.'],
+      low: ['Mom says you are my aunt-or-uncle. I have questions.', 'Hi! Do you like lists? I have a list about you.'],
       mid: ['{name}! I wrote you into my schedule. You are at four.', 'Guess what guess what guess what. No, guess.'],
-      high: ["You're my favourite grown-up. The list is official now.", 'I saved you the good swing. I had to guard it.'],
+      high: ["You're my favorite grown-up. The list is official now.", 'I saved you the good swing. I had to guard it.'],
     },
   },
   {
@@ -320,13 +320,13 @@ export const CAST = [
       r(WE, '11:00', '13:00', 'ramen', 'eat'),
       r(['sun'], '15:00', '17:00', 'gym', 'lift'),
     ],
-    look: 'Lanky, grinning, courier cap backwards, neon windbreaker, one trouser leg rolled up, enormous messenger bag.',
+    look: 'Lanky, grinning, courier cap backwards, neon windbreaker, one pant leg rolled up, enormous messenger bag.',
     spec: { skin: 'tan', hair: 'fade', hairColor: '#1e1a18', top: 'windbreaker', topColor: '#ff7b3a', bottom: 'joggers', bottomColor: '#2f2f38', hat: 'cap-backwards', glasses: 'none', bag: 'messenger', age: 'adult', outfit: 'courier' },
-    bio: 'Knows every shortcut in the city and at least two that are not legal for bikes.',
+    bio: 'Knows every shortcut in the city and at least two that aren\'t legal for bikes.',
     greetings: {
-      low: ['Cuz! You made it! I would hug you but I am very sweaty.', 'Yo, {name}! Need a shortcut? I have a shortcut for everything.'],
+      low: ['Cuz! You made it! I\'d hug you but I\'m very sweaty.', 'Yo, {name}! Need a shortcut? I have a shortcut for everything.'],
       mid: ['There they are! Noodle Lantern, my treat, your wallet.', 'Cuz! Race you to the corner. Kidding. Unless?'],
-      high: ['My favourite cousin and I am not just saying it this time.', 'Hop on the back. No? Fair. Nobody ever says yes.'],
+      high: ['My favorite cousin and I\'m not just saying it this time.', 'Hop on the back. No? Fair. Nobody ever says yes.'],
     },
   },
   // ------------------------------------------------------------- OLD FRIEND
@@ -350,9 +350,9 @@ export const CAST = [
     spec: { skin: 'olive', hair: 'bob', hairColor: '#2a9d8f', top: 'denim-jacket', topColor: '#4a6fa5', bottom: 'jeans', bottomColor: '#22223b', hat: 'none', glasses: 'none', bag: 'guitar-case', age: 'adult', outfit: 'casual' },
     bio: 'Sat next to you in every class that allowed it. Has forty half-songs and one finished.',
     greetings: {
-      low: ['No way. NO way. {name}?! In my actual city?', 'Look who it is. You still owe me a pencil from year nine.'],
+      low: ['No way. NO way. {name}?! In my actual city?', 'Look who it is. You still owe me a pencil from ninth grade.'],
       mid: ['Hey, you. I was just writing a line and thinking of you.', 'Pull up a stool. Usual? You have a usual now. I decided.'],
-      high: ['There is my person. The day just got good.', "Oh thank goodness. I've been saving up things to tell you."],
+      high: ['There\'s my person. The day just got good.', "Oh thank goodness. I've been saving up things to tell you."],
     },
   },
   // ------------------------------------------------------------ VENUE STAFF
@@ -376,7 +376,7 @@ export const CAST = [
     greetings: {
       low: ['Welcome to Bean & Gone. New face! I like new faces.', 'Morning. What can I get started for you?'],
       mid: ['{name}! The usual, or are we feeling brave today?', 'Hey, I saved the good corner seat. No reason. Sit.'],
-      high: ["It's on before you're through the door. That's friendship.", 'My favourite regular. Try this, tell me the truth.'],
+      high: ["It's on before you're through the door. That's friendship.", 'My favorite regular. Try this, tell me the truth.'],
     },
   },
   {
@@ -397,12 +397,12 @@ export const CAST = [
     bio: 'Can tell a ripe melon by ear. Has opinions about how you bag.',
     greetings: {
       low: ['Welcome to FreshWay! Baskets on your left, bargains on your right.', 'New in town? Peaches are perfect today. Trust me.'],
-      mid: ['{name}! I put the good tomatoes at the back. Go, go.', 'Back again! That is what I like. A cook in the making.'],
+      mid: ['{name}! I put the good tomatoes at the back. Go, go.', 'Back again! That\'s what I like. A cook in the making.'],
       high: ['For you, I checked the stockroom. Twice.', 'There you are. I set aside the last of the sweet corn.'],
     },
   },
   {
-    id: 'mr_oh', name: 'Oh Sung-min', short: 'Mr. Oh', age: 59, pronouns: 'he/him', group: 'staff',
+    id: 'mr_oh', name: 'Sung-min Oh', short: 'Mr. Oh', age: 59, pronouns: 'he/him', group: 'staff',
     role: 'Shopkeeper, Lucky Corner', district: 'maplewood', home: 'house_maplewood',
     work: { venue: 'cornerstore', job: 'Shopkeeper' },
     personality: ['stoic', 'generous', 'witty'],
@@ -413,13 +413,13 @@ export const CAST = [
       r(ALL, '07:00', '21:00', 'cornerstore', 'work'),
       r(ALL, '21:00', '21:30', 'spot:lemonade_stand', 'stand'),
     ],
-    look: 'Grey cardigan, reading glasses on a cord, small radio playing baseball, lucky cat waving beside the till.',
+    look: 'Gray cardigan, reading glasses on a cord, small radio playing baseball, lucky cat waving beside the till.',
     spec: { skin: 'light', hair: 'short', hairColor: '#8d8d8d', top: 'cardigan', topColor: '#8a8f98', bottom: 'slacks', bottomColor: '#4a4e69', hat: 'none', glasses: 'reading', bag: 'none', age: 'adult', outfit: 'shopkeeper' },
     bio: 'Open every day, fourteen hours. Claims he is "resting" the whole time.',
     greetings: {
-      low: ['Welcome. Umbrellas by the door. You will need one. Eventually.', 'Evening. Milk is in the back. It is always in the back.'],
-      mid: ['Ah, {name}. Your snacks came in. I know they are yours.', 'You again. Good. The cat was asking about you.'],
-      high: ['Take a peach. No charge. Do not tell the other customers.', 'My best customer. Top three, anyway. Top five.'],
+      low: ['Welcome. Umbrellas by the door. You\'ll need one. Eventually.', 'Evening. Milk is in the back. It\'s always in the back.'],
+      mid: ['Ah, {name}. Your snacks came in. I know they\'re yours.', 'You again. Good. The cat was asking about you.'],
+      high: ['Take a peach. No charge. Don\'t tell the other customers.', 'My best customer. Top three, anyway. Top five.'],
     },
   },
   {
@@ -440,8 +440,8 @@ export const CAST = [
     bio: "Washed dishes at the Copper Kettle at sixteen. Now bakes in the same ovens.",
     greetings: {
       low: ['Morning, sunshine! Everything is warm, including me.', 'Welcome to Rise & Shine. The cinnamon knots just came out.'],
-      mid: ["{name}! Bea's grandkid gets the corner piece. House rule.", 'You are just in time. I need an honest taster.'],
-      high: ['Here, take a loaf to your Nana. And one for the walk.', 'My favourite face before nine a.m. Do not tell the mailman.'],
+      mid: ["{name}! Bea's grandkid gets the corner piece. House rule.", 'You\'re just in time. I need an honest taster.'],
+      high: ['Here, take a loaf to your Nana. And one for the walk.', 'My favorite face before nine a.m. Don\'t tell the mailman.'],
     },
   },
   {
@@ -462,8 +462,8 @@ export const CAST = [
     bio: 'Forty years of pancakes. Calls everyone "hon". Means it about half the time.',
     greetings: {
       low: ['Sit anywhere, hon. Coffee is coming whether you like it or not.', 'New face. You look hungry. Everybody new looks hungry.'],
-      mid: ['{name}, hon! Your booth is open. I chased a trucker out of it.', 'Back for the pie? Smart. It is a good pie day.'],
-      high: ["Kitchen's yours if you want an extra pickle. Don't push it.", 'There is my favourite. Do not make a thing of it.'],
+      mid: ['{name}, hon! Your booth is open. I chased a trucker out of it.', 'Back for the pie? Smart. It\'s a good pie day.'],
+      high: ["Kitchen's yours if you want an extra pickle. Don't push it.", 'There\'s my favorite. Don\'t make a thing of it.'],
     },
   },
   {
@@ -549,13 +549,13 @@ export const CAST = [
       r(['sun'], '09:00', '10:30', 'lookout', 'walk'),
       r(['sat'], '13:00', '14:00', 'diner', 'eat'),
     ],
-    look: 'Maple-leaf tank top, whistle, braids in a high ponytail, stopwatch, biceps that have their own postcode.',
+    look: 'Maple-leaf tank top, whistle, braids in a high ponytail, stopwatch, biceps that have their own zip code.',
     spec: { skin: 'dark', hair: 'ponytail', hairColor: '#1b1b1e', top: 'tank', topColor: '#d1495b', bottom: 'leggings', bottomColor: '#22223b', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'trainer' },
     bio: 'Former national rower. Will absolutely count that last rep for you. Loudly.',
     greetings: {
       low: ['Welcome to Iron Maple! First rule: we cheer for everybody.', 'New here? Great! Everyone started as new here.'],
       mid: ['{name}! Hydrated? Stretched? Lying? Let us find out.', "Look who showed up! Showing up is ninety percent. Let's go."],
-      high: ['My star! I tell the morning class about you. They are tired of it.', 'Rest day or leg day, I am glad to see you. But leg day.'],
+      high: ['My star! I tell the morning class about you. They\'re tired of it.', 'Rest day or leg day, I\'m glad to see you. But leg day.'],
     },
   },
   {
@@ -572,12 +572,12 @@ export const CAST = [
       r(['thu', 'sat'], '20:00', '23:00', 'bar', 'dance'),
       r(['mon'], '13:00', '16:00', 'spot:mural_wall', 'walk'),
     ],
-    look: 'Tape measure worn like a scarf, bold geometric earrings, colour-blocked jumpsuit, pins in her collar.',
+    look: 'Tape measure worn like a scarf, bold geometric earrings, color-blocked jumpsuit, pins in her collar.',
     spec: { skin: 'dark', hair: 'afro', hairColor: '#2a1c14', top: 'jumpsuit', topColor: '#e76f51', bottom: 'jumpsuit', bottomColor: '#e76f51', hat: 'none', glasses: 'none', bag: 'none', age: 'adult', outfit: 'stylist' },
     bio: 'Can guess your size, your job and your week from across the street.',
     greetings: {
       low: ['Ooh, hello! Come in. That jacket is brave. I respect it.', 'Welcome to Thread & Co. Browsing is free. Compliments too.'],
-      mid: ['{name}! I just got something in that is extremely you.', 'There you are. Spin. Mm-hm. We can work with this.'],
+      mid: ['{name}! I just got something in that\'s extremely you.', 'There you are. Spin. Mm-hm. We can work with this.'],
       high: ['I put a coat aside with your name on it. Literally. A tag.', 'My muse! Sit, gossip first, hemlines after.'],
     },
   },
@@ -600,8 +600,8 @@ export const CAST = [
     bio: 'Will sell you a lamp, then quietly talk you into the cheaper, better lamp.',
     greetings: {
       low: ['Oh! Hi. Welcome to Nest & Wire. Um. Sofas left, wires right.', 'Hi. Let me know if you need, uh, anything plugged in.'],
-      mid: ['{name}, hey! The desk you liked? I hid it behind a fern.', 'Oh good, it is you. I can stop doing my sales voice.'],
-      high: ['I fixed a radio and thought of you. It only gets jazz now.', 'Staff discount. You are basically staff. Do not ask my manager.'],
+      mid: ['{name}, hey! The desk you liked? I hid it behind a fern.', 'Oh good, it\'s you. I can stop doing my sales voice.'],
+      high: ['I fixed a radio and thought of you. It only gets jazz now.', 'Staff discount. You\'re basically staff. Don\'t ask my manager.'],
     },
   },
   {
@@ -618,11 +618,11 @@ export const CAST = [
       r(['wed'], '18:30', '20:00', 'spot:chess_tables', 'sit'),
       r(['tue', 'fri'], '08:30', '09:30', 'cafe', 'drink'),
     ],
-    look: 'Corduroy jacket with elbow patches, wild grey curls, two pairs of glasses (one on head, one lost), shop cat on shoulder.',
+    look: 'Corduroy jacket with elbow patches, wild gray curls, two pairs of glasses (one on head, one lost), shop cat on shoulder.',
     spec: { skin: 'light', hair: 'curly', hairColor: '#a8a8a8', top: 'blazer', topColor: '#8a5a44', bottom: 'slacks', bottomColor: '#4a4e69', hat: 'none', glasses: 'round', bag: 'none', age: 'adult', outfit: 'bookseller' },
     bio: 'Has read everything in the shop. The cat, Chapter, has slept on the rest.',
     greetings: {
-      low: ['Hm? Oh! A customer. Marvellous. Mind the cat, he bills by the hour.', 'Welcome. Everything is alphabetical, more or less. Mostly less.'],
+      low: ['Hm? Oh! A customer. Marvelous. Mind the cat, he bills by the hour.', 'Welcome. Everything is alphabetical, more or less. Mostly less.'],
       mid: ['{name}! I found a book that reminded me of you. It is odd.', 'Ah, good. Chapter has been warming your reading chair.'],
       high: ['Take it, take it. Pay me in opinions when you finish.', 'My dear friend. Tea? I found the second cup.'],
     },
@@ -641,12 +641,12 @@ export const CAST = [
       r(['sat'], '15:00', '17:00', 'bookstore', 'read'),
       r(['sun'], '15:00', '17:30', 'cinema', 'sit'),
     ],
-    look: 'Emerald blouse, silver bob, reading glasses on a beaded chain, a whisper that carries forty metres.',
+    look: 'Emerald blouse, silver bob, reading glasses on a beaded chain, a whisper that carries forty yards.',
     spec: { skin: 'tan', hair: 'bob', hairColor: '#b8b8b8', top: 'blouse', topColor: '#2a9d8f', bottom: 'skirt', bottomColor: '#264653', hat: 'none', glasses: 'chain', bag: 'none', age: 'adult', outfit: 'librarian' },
     bio: 'Has shushed three mayors. Will find you any fact in under four minutes.',
     greetings: {
       low: ['Welcome to the library. Cards are free. So is the quiet.', 'Good day. The computers are upstairs. Indoor voice, please.'],
-      mid: ['{name}. I set aside a book. You will pretend to be surprised.', 'Ah, my favourite patron of the public computers.'],
+      mid: ['{name}. I set aside a book. You will pretend to be surprised.', 'Ah, my favorite patron of the public computers.'],
       high: ['Between us, you may whisper slightly louder than the others.', 'There you are. The good armchair is free. I guarded it.'],
     },
   },
@@ -664,7 +664,7 @@ export const CAST = [
       r(['fri'], '19:30', '22:00', 'restaurant', 'eat'),
       r(['sun'], '09:00', '11:00', 'lookout', 'walk'),
     ],
-    look: 'Navy suit, silver pixie cut, pearl earrings, a fountain pen she clicks when thinking. Secretly wears trainers under the desk.',
+    look: 'Navy suit, silver pixie cut, pearl earrings, a fountain pen she clicks when thinking. Secretly wears sneakers under the desk.',
     spec: { skin: 'light', hair: 'pixie', hairColor: '#d0d0d0', top: 'blazer', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#1d3557', hat: 'none', glasses: 'none', bag: 'briefcase', age: 'adult', outfit: 'office' },
     bio: 'Nobody has ever met Finch. She says he is "mostly a filing cabinet now".',
     greetings: {
@@ -687,13 +687,13 @@ export const CAST = [
       r(['sat'], '09:00', '10:30', 'spot:fish_market', 'walk'),
       r(['sun'], '11:00', '13:00', 'diner', 'eat'),
     ],
-    look: 'Teal scrubs with tiny sailboats, hijab in soft grey, sensible clogs, a pen light and a pocket full of lollipops.',
+    look: 'Teal scrubs with tiny sailboats, hijab in soft gray, sensible clogs, a pen light and a pocket full of lollipops.',
     spec: { skin: 'olive', hair: 'covered', hairColor: '#1b1b1e', top: 'scrubs', topColor: '#3aa6a0', bottom: 'scrubs', bottomColor: '#3aa6a0', hat: 'hijab', glasses: 'none', bag: 'none', age: 'adult', outfit: 'nurse' },
     bio: 'Unflappable. Has seen it all, bandaged most of it, and given it a lollipop.',
     greetings: {
-      low: ['Welcome to Bayside Clinic. Take a seat, we do not bite.', 'Hello there. Feeling poorly, or just poorly slept?'],
-      mid: ['{name}! Upright and smiling. My favourite kind of visit.', 'Hello, you. Drinking water? Do not lie to a nurse.'],
-      high: ['Lollipop? They are for the brave. You qualify.', 'There is my {name}. Sit a minute. Doctor says so. I am the doctor now.'],
+      low: ['Welcome to Bayside Clinic. Take a seat, we don\'t bite.', 'Hello there. Feeling sick, or just short on sleep?'],
+      mid: ['{name}! Upright and smiling. My favorite kind of visit.', 'Hello, you. Drinking water? Don\'t lie to a nurse.'],
+      high: ['Lollipop? They\'re for the brave. You qualify.', 'There\'s my {name}. Sit a minute. Doctor says so. I\'m the doctor now.'],
     },
   },
   {
@@ -732,13 +732,13 @@ export const CAST = [
       r(['tue'], '11:00', '13:00', 'bakery', 'eat'),
       r(['tue'], '14:00', '16:00', 'spot:pond', 'sit'),
     ],
-    look: 'Velvet usher jacket with gold braid, red lipstick, white curls, a torch and a roll of paper tickets.',
+    look: 'Velvet usher jacket with gold braid, red lipstick, white curls, a flashlight and a roll of paper tickets.',
     spec: { skin: 'light', hair: 'curly', hairColor: '#e8e8e8', top: 'jacket', topColor: '#9d0208', bottom: 'skirt', bottomColor: '#2b2d42', hat: 'none', glasses: 'cat-eye', bag: 'none', age: 'elder', outfit: 'usher' },
     bio: 'Has run the Orpheum projector since 1979. Cries at the same scene every time.',
     greetings: {
       low: ['One ticket to somewhere else? Right this way.', 'Welcome to the Orpheum. The popcorn is older than it looks.'],
-      mid: ['{name}! Row F, seat nine. Best sound in the house. Our secret.', 'You are in luck. Tonight is a good cry.'],
-      high: ['Come up to the booth sometime. I will show you the old reels.', 'My favourite audience. You laugh in the right places.'],
+      mid: ['{name}! Row F, seat nine. Best sound in the house. Our secret.', 'You\'re in luck. Tonight is a good cry.'],
+      high: ['Come up to the booth sometime. I\'ll show you the old reels.', 'My favorite audience. You laugh in the right places.'],
     },
   },
   {
@@ -756,11 +756,11 @@ export const CAST = [
     ],
     look: 'Headset permanently on, hi-vis vest over a floral shirt, clipboard, three pens in her hair, voice like a friendly foghorn.',
     spec: { skin: 'tan', hair: 'ponytail', hairColor: '#5a3825', top: 'hi-vis', topColor: '#ffd60a', bottom: 'cargo', bottomColor: '#4a4e69', hat: 'headset', glasses: 'none', bag: 'none', age: 'adult', outfit: 'depot' },
-    bio: 'Knows where every parcel in Maple Bay is, and most of the people too.',
+    bio: 'Knows where every package in Maple Bay is, and most of the people too.',
     greetings: {
-      low: ['ZipParcel, Rhonda speaking. Oh, you are in person! Hi!', 'Sending or collecting, hon? Either way, sign here.'],
-      mid: ['{name}! Copy that, you are looking good today. Over.', 'Hey! Guess what came through this morning. A canoe. A whole canoe.'],
-      high: ['My best set of legs in the whole fleet. Coffee is fresh.', 'Sit down, I have gossip and it is time-sensitive.'],
+      low: ['ZipParcel, Rhonda speaking. Oh, you\'re in person! Hi!', 'Sending or collecting, hon? Either way, sign here.'],
+      mid: ['{name}! Copy that, you\'re looking good today. Over.', 'Hey! Guess what came through this morning. A canoe. A whole canoe.'],
+      high: ['My best set of legs in the whole fleet. Coffee is fresh.', 'Sit down, I have gossip and it\'s time-sensitive.'],
     },
   },
   {
@@ -778,7 +778,7 @@ export const CAST = [
       r(['sat'], '18:00', '20:00', 'ramen', 'eat'),
       r(['sun'], '10:00', '12:00', 'spot:lighthouse', 'stand'),
     ],
-    look: 'Built like a bollard. Orange hard hat, blond-grey moustache, thermos, a tiny rescued kitten usually asleep in his jacket pocket.',
+    look: 'Built like a bollard. Orange hard hat, blond-grey mustache, thermos, a tiny rescued kitten usually asleep in his jacket pocket.',
     spec: { skin: 'light', hair: 'short', hairColor: '#c9b458', top: 'work-jacket', topColor: '#3a5a78', bottom: 'cargo', bottomColor: '#5b4636', hat: 'hardhat', glasses: 'none', bag: 'none', age: 'adult', outfit: 'dock' },
     bio: 'Says about nine words a day. Feeds every stray cat on Pier 7.',
     greetings: {
@@ -788,7 +788,7 @@ export const CAST = [
     },
   },
   {
-    id: 'walt', name: 'Walter "Walt" Pruitt', short: 'Walt', age: 63, pronouns: 'he/him', group: 'neighbour',
+    id: 'walt', name: 'Walter "Walt" Tanaka', short: 'Walt', age: 63, pronouns: 'he/him', group: 'neighbor',
     role: 'Building super & landlord', district: 'downtown', home: 'player_building',
     work: { venue: 'spot:building_stoop', job: 'Superintendent' },
     personality: ['grumpy', 'practical', 'gentle'],
@@ -801,13 +801,13 @@ export const CAST = [
       r(ALL, '14:00', '18:00', 'spot:building_stoop', 'sit'),
       r(['sat'], '10:00', '12:00', 'homegoods', 'walk'),
     ],
-    look: 'Grey coveralls, enormous ring of keys, flat cap, moustache like a push broom, folded newspaper under one arm.',
+    look: 'Gray coveralls, enormous ring of keys, flat cap, mustache like a push broom, folded newspaper under one arm.',
     spec: { skin: 'light', hair: 'balding', hairColor: '#9a9a9a', top: 'coveralls', topColor: '#6c757d', bottom: 'coveralls', bottomColor: '#6c757d', hat: 'flat-cap', glasses: 'none', bag: 'toolbox', age: 'elder', outfit: 'super' },
-    bio: 'Fixes everything with the same wrench. Pretends he does not water your plants when you are away.',
+    bio: 'Fixes everything with the same wrench. Pretends he doesn\'t water your plants when you\'re away.',
     greetings: {
-      low: ['Rent is due on the first. Hot water is due whenever it likes.', 'You the new tenant? Do not flush anything interesting.'],
-      mid: ['{name}. Radiator behaving? Kick it. Gently. Left side.', 'Mm. Parcel came for you. I did not open it. Much.'],
-      high: ['Best tenant I have had. Do not let it go to your head.', 'Fixed your squeaky door. Was driving me up the wall, is all.'],
+      low: ['Rent is due on the first. Hot water is due whenever it likes.', 'You the new tenant? Don\'t flush anything interesting.'],
+      mid: ['{name}. Radiator behaving? Kick it. Gently. Left side.', 'Mm. Package came for you. I didn\'t open it. Much.'],
+      high: ['Best tenant I have had. Don\'t let it go to your head.', 'Fixed your squeaky door. Was driving me up the wall, is all.'],
     },
   },
   {
@@ -828,15 +828,15 @@ export const CAST = [
     spec: { skin: 'tan', hair: 'short', hairColor: '#3b2a20', top: 'hawaiian', topColor: '#2a9d8f', bottom: 'slacks', bottomColor: '#6c584c', hat: 'flat-cap', glasses: 'aviators', bag: 'none', age: 'adult', outfit: 'driver' },
     bio: 'Twenty-six years in Cab 22. Has an opinion on every street and a cousin on most of them.',
     greetings: {
-      low: ['Hop in, hop in! Where to? Do not say "surprise me". I will.', 'Cab 22, best seat in the Bay. Mind the gull on the dash.'],
-      mid: ['Hey, my first fare from the airport! Look at you, a local!', '{name}! Need a lift or just a chat? Chat is free.'],
-      high: ['For you, the meter runs slow. Do not tell the company.', 'My favourite passenger! Front seat. You have earned it.'],
+      low: ['Hop in, hop in! Where to? Don\'t say "surprise me". I will.', 'Cab 22, best seat in the Bay. Mind the gull on the dash.'],
+      mid: ['Hey, my first fare from the airport! Look at you, a local!', '{name}! Need a ride or just a chat? Chat is free.'],
+      high: ['For you, the meter runs slow. Don\'t tell the company.', 'My favorite passenger! Front seat. You have earned it.'],
     },
   },
   // ------------------------------------------------------------- NEIGHBOURS
   {
-    id: 'noor', name: 'Noor Aziz', short: 'Noor', age: 25, pronouns: 'she/her', group: 'neighbour',
-    role: 'Next-door neighbour, cello student', district: 'arts', home: 'player_building',
+    id: 'noor', name: 'Noor Aziz', short: 'Noor', age: 25, pronouns: 'she/her', group: 'neighbor',
+    role: 'Next-door neighbor, cello student', district: 'arts', home: 'player_building',
     work: { venue: 'spot:campus_green', job: 'Graduate student (music)' },
     personality: ['shy', 'artistic', 'curious'],
     likes: { gifts: ['tea_tin', 'houseplant', 'pastry_box', 'vinyl_record'], topics: ['music', 'books', 'movies'] },
@@ -850,18 +850,18 @@ export const CAST = [
       r(['sat'], '10:00', '12:00', 'cafe', 'read'),
       r(['sun'], '14:00', '16:00', 'park', 'sit'),
     ],
-    look: 'Oversized mustard jumper, long dark plait, cello case nearly her own height, always one earbud in.',
+    look: 'Oversized mustard sweater, long dark braid, cello case nearly her own height, always one earbud in.',
     spec: { skin: 'brown', hair: 'braid', hairColor: '#1b1b1e', top: 'sweater', topColor: '#e9c46a', bottom: 'skirt', bottomColor: '#264653', hat: 'none', glasses: 'round', bag: 'cello-case', age: 'adult', outfit: 'casual' },
-    bio: 'Practises from seven to nine. Apologises for it at ten. Plays beautifully.',
+    bio: 'Practices from seven to nine. Apologizes for it at ten. Plays beautifully.',
     greetings: {
-      low: ['Oh! Hi. You are the new neighbour. Sorry about the cello.', 'Hello. If the scales get annoying, just knock. Twice.'],
-      mid: ['{name}, hi! I learned a new piece. You probably heard. Sorry.', 'Hey, neighbour. I made too much dal again. Want some?'],
-      high: ['I play a bit better when I know you are listening.', 'There you are! I was hoping to bump into you. On purpose.'],
+      low: ['Oh! Hi. You\'re the new neighbor. Sorry about the cello.', 'Hello. If the scales get annoying, just knock. Twice.'],
+      mid: ['{name}, hi! I learned a new piece. You probably heard. Sorry.', 'Hey, neighbor. I made too much dal again. Want some?'],
+      high: ['I play a bit better when I know you\'re listening.', 'There you are! I was hoping to bump into you. On purpose.'],
     },
   },
   {
-    id: 'gordon', name: 'Gordon Pike', short: 'Mr. Pike', age: 74, pronouns: 'he/him', group: 'neighbour',
-    role: 'Downstairs neighbour, retired tram conductor', district: 'railyard', home: 'player_building',
+    id: 'gordon', name: 'Gordon Pike', short: 'Mr. Pike', age: 74, pronouns: 'he/him', group: 'neighbor',
+    role: 'Downstairs neighbor, retired tram conductor', district: 'railyard', home: 'player_building',
     work: null,
     personality: ['chatty', 'proud', 'warm'],
     likes: { gifts: ['postcard', 'pastry_box', 'wool_socks'], topics: ['trains', 'history', 'weather'] },
@@ -879,9 +879,9 @@ export const CAST = [
     spec: { skin: 'brown', hair: 'balding', hairColor: '#e0e0e0', top: 'waistcoat', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#3d405b', hat: 'conductor-cap', glasses: 'none', bag: 'none', age: 'elder', outfit: 'conductor' },
     bio: 'Rang the bell on Tram No. 9 for thirty-eight years. Is restoring it one bolt at a time.',
     greetings: {
-      low: ['Morning! Tickets, please. Ha! Old habit. Welcome to the building.', 'New upstairs, are you? Light feet. I approve.'],
+      low: ['Morning! Tickets, please. Ha! Old habit. Welcome to the building.', 'New upstairs, huh? Light feet. I approve.'],
       mid: ['{name}! Right on time. You would have made a fine conductor.', 'Ah, good. Sit. Did I tell you about the fog of sixty-eight?'],
-      high: ['I punched you a ticket. Lifetime pass on the No. 9.', 'My favourite passenger. Next stop: a cup of tea.'],
+      high: ['I punched you a ticket. Lifetime pass on the No. 9.', 'My favorite passenger. Next stop: a cup of tea.'],
     },
   },
   // --------------------------------------------------------------- REGULARS
@@ -903,11 +903,11 @@ export const CAST = [
     ],
     look: 'Patchwork coat, red accordion, striped scarf in every season, hat on the ground with a sign: "SONGS 1 COIN, SAD SONGS 2".',
     spec: { skin: 'light', hair: 'shaggy', hairColor: '#d98e04', top: 'coat', topColor: '#7b2cbf', bottom: 'trousers', bottomColor: '#3a5a40', hat: 'beanie', glasses: 'none', bag: 'accordion', age: 'adult', outfit: 'busker' },
-    bio: 'Arrived on the train one spring and has not got round to leaving.',
+    bio: 'Arrived on the train one spring and hasn\'t got round to leaving.',
     greetings: {
       low: ['Any requests? I know nine songs and four of them are this one.', 'Hello, stranger! Walk in time, it helps my rhythm.'],
-      mid: ['{name}! I wrote you a jingle. It is mostly your name.', 'Hey! Stand there a second. Crowds attract crowds.'],
-      high: ['This next one is for my friend. It is a happy one. Mostly.', 'You! Good. Hold my hat. You have an honest face.'],
+      mid: ['{name}! I wrote you a jingle. It\'s mostly your name.', 'Hey! Stand there a second. Crowds attract crowds.'],
+      high: ['This next one is for my friend. It\'s a happy one. Mostly.', 'You! Good. Hold my hat. You have an honest face.'],
     },
   },
   {
@@ -929,7 +929,7 @@ export const CAST = [
     spec: { skin: 'light', hair: 'short', hairColor: '#f1f1f1', top: 'peacoat', topColor: '#1d3557', bottom: 'slacks', bottomColor: '#2b2d42', hat: 'captain-cap', glasses: 'none', bag: 'none', age: 'elder', outfit: 'captain' },
     bio: 'Sailed the bay ferry for forty years. Every story is true, roughly.',
     greetings: {
-      low: ['Ahoy. New crew in the harbour, I see. Welcome aboard.', 'Morning. Tide is turning. So is the weather. So am I, a bit.'],
+      low: ['Ahoy. New crew in the harbor, I see. Welcome aboard.', 'Morning. Tide is turning. So is the weather. So am I, a bit.'],
       mid: ['{name}! Pull up a bollard. I have a story. It has a whale.', 'There you are. The gulls said you would come. Gossips.'],
       high: ['If I still had a ship, you would be first mate.', 'Sit by me, friend. Best view in the Bay and it is free.'],
     },
@@ -949,9 +949,9 @@ export const CAST = [
       r(['wed'], '15:00', '17:00', 'library', 'read'),
       r(['wed'], '18:30', '20:00', 'spot:chess_tables', 'sit'),
     ],
-    look: 'Tweed flat cap, maroon scarf, immaculate white moustache, travel chess set, thermos of very strong tea.',
+    look: 'Tweed flat cap, maroon scarf, immaculate white mustache, travel chess set, thermos of very strong tea.',
     spec: { skin: 'brown', hair: 'short', hairColor: '#f1f1f1', top: 'blazer', topColor: '#6b705c', bottom: 'slacks', bottomColor: '#3d405b', hat: 'flat-cap', glasses: 'square', bag: 'none', age: 'elder', outfit: 'casual' },
-    bio: 'Retired maths teacher. Undefeated at table three, by his own careful accounting.',
+    bio: 'Retired math teacher. Undefeated at table three, by his own careful accounting.',
     greetings: {
       low: ['Do you play? Everyone plays. Some just do not know it yet.', 'Sit, sit. White or black? It will not matter, but choose.'],
       mid: ['{name}. Ready to lose with dignity again?', 'Ah. My worthy opponent. Worthy-ish.'],
@@ -959,7 +959,7 @@ export const CAST = [
     },
   },
   {
-    id: 'callum', name: 'Callum Reid', short: 'Callum', age: 30, pronouns: 'he/him', group: 'regular',
+    id: 'tav', name: 'Tavita "Tav" Leota', short: 'Tav', age: 30, pronouns: 'he/him', group: 'regular',
     role: 'The jogger (also an analyst at Hartwell & Finch)', district: 'park', home: 'flat_downtown',
     work: { venue: 'office', job: 'Senior analyst' },
     personality: ['sporty', 'cheerful', 'chatty'],
@@ -978,7 +978,7 @@ export const CAST = [
     spec: { skin: 'light', hair: 'short', hairColor: '#b5651d', top: 'windbreaker', topColor: '#d9f000', bottom: 'shorts', bottomColor: '#22223b', hat: 'headband', glasses: 'none', bag: 'none', age: 'adult', outfit: 'runner' },
     bio: 'Training for the Maple Bay Half. Has been training for it for four years.',
     greetings: {
-      low: ['Morning! Lovely pace you have! Walking is a pace!', 'Hi! Cannot stop! Well, can. Jogging on the spot counts.'],
+      low: ['Morning! Lovely pace you have! Walking is a pace!', 'Hi! Can\'t stop! Well, can. Jogging on the spot counts.'],
       mid: ['{name}! Lap with me? One lap. A small one. Half.', 'Hey! Personal best today. I mean me. But also you, probably.'],
       high: ['I slow down for exactly one person in this city.', 'Running buddy! Or walking buddy. I like both versions.'],
     },
@@ -1000,7 +1000,7 @@ export const CAST = [
       r(['mon', 'tue', 'wed', 'thu', 'fri'], '15:00', '17:00', 'cafe', 'type'),
       r(['sun'], '11:00', '13:00', 'spot:market_street', 'walk'),
     ],
-    look: 'Plum velvet blazer, polka-dot cravat, tiny notebook, napkin tucked in at all times, moustache waxed to two fine points.',
+    look: 'Plum velvet blazer, polka-dot cravat, tiny notebook, napkin tucked in at all times, mustache waxed to two fine points.',
     spec: { skin: 'light', hair: 'slick', hairColor: '#4a3728', top: 'blazer', topColor: '#6a2c70', bottom: 'slacks', bottomColor: '#3d405b', hat: 'none', glasses: 'monocle', bag: 'notebook', age: 'adult', outfit: 'formal' },
     bio: 'Gives four stars at most. Secretly eats at Dot\'s every Monday and has never reviewed it.',
     greetings: {
@@ -1027,8 +1027,8 @@ export const CAST = [
     bio: 'Saving up for "either a bike or the bank, whichever is cheaper".',
     greetings: {
       low: ['Lemonade! One coin! No refunds, no regrets!', 'Hello, valued customer. You look thirsty and financially stable.'],
-      mid: ['{name}! My best repeat customer. Loyalty card? I made one.', 'Good news. I am expanding. I got a second jug.'],
-      high: ['For you, free ice. That is a business secret.', 'You can be vice president. It is mostly carrying lemons.'],
+      mid: ['{name}! My best repeat customer. Loyalty card? I made one.', 'Good news. I\'m expanding. I got a second jug.'],
+      high: ['For you, free ice. That\'s a business secret.', 'You can be vice president. It\'s mostly carrying lemons.'],
     },
   },
   {
@@ -1050,9 +1050,9 @@ export const CAST = [
     spec: { skin: 'light', hair: 'curly', hairColor: '#dcdcdc', top: 'coat', topColor: '#b8a1d9', bottom: 'skirt', bottomColor: '#6d6875', hat: 'pompom', glasses: 'round', bag: 'paper-bag', age: 'elder', outfit: 'casual' },
     bio: 'Knows every pigeon in Maple Bay by name, and what they have seen.',
     greetings: {
-      low: ['Mind your step, dear. That is Gerald. He was here first.', 'Hello, dear. The pigeons say you are new. They notice.'],
-      mid: ['{name}! Gerald saved you a crumb. It is the thought.', 'Oh, lovely. Come and meet Winifred. She is the shy one.'],
-      high: ['The whole flock likes you. I took a vote.', 'There you are, dear. I knitted you a hat. Gerald chose the colour.'],
+      low: ['Mind your step, dear. That\'s Gerald. He was here first.', 'Hello, dear. The pigeons say you\'re new. They notice.'],
+      mid: ['{name}! Gerald saved you a crumb. It\'s the thought.', 'Oh, lovely. Come and meet Winifred. She\'s the shy one.'],
+      high: ['The whole flock likes you. I took a vote.', 'There you are, dear. I knitted you a hat. Gerald chose the color.'],
     },
   },
 ];

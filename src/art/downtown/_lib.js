@@ -373,12 +373,12 @@ export function lobby(w, d, h, o = {}) {
   let y0 = .5;
   if (side === 'garage' && d >= 6) { garageDoor(FXw, .7, 2.9, Math.min(2.1, zt)); y0 = 3.7; } else if (side === 'dock' && d >= 6) { dock(FXw, .6, 2.8, r, Math.min(2, zt - .1)); y0 = 3.4; }
   scene(FXw, y0, d - .5, .25, zt, side === 'retail' ? 'retail' : 'lobby', r, { glowc: gc, transom: .4, accent: ac });
-  if (side === 'retail') awning(FXw, y0 - .1, d - .4, zt + .05, .6, awn, '#f4f0e8');
+  if (side === 'retail') awning(FXw, y0 - .1, d - .4, zt - .3, .45, awn, '#f4f0e8', { rise: .28 });
   // +y face: left segment, door, right segment (shop)
   const lw0 = du - 1.5 - .5, rw = w - .5 - (du + 1.5);
   if (lw0 >= 1) scene(FYd, .5, du - 1.5, .25, zt, 'lobby', r, { glowc: gc, transom: .4, accent: ac });
   if (rw >= 1) { scene(FYd, du + 1.5, w - .5, .25, zt, rw < 1.8 ? 'lobby' : shop, r, { glowc: gc, transom: shop === 'lobby' ? .4 : 0, accent: ac });
-    if (shop !== 'lobby' && rw >= 1.8) { awning(FYd, du + 1.4, w - .4, zt - .25, .7, awn, shop === 'cafe' ? '#f4f0e8' : null); const nm = o.shopName || (shop === 'cafe' ? ['COFFEE', 'CAFE', 'BEANS', 'DELI'] : shop === 'retail' ? ['SHOP', 'BOOKS', 'GIFTS', 'OPTICS'] : ['BANK', 'TRAVEL'])[Math.floor(r() * 4) % 2 + (r() < .5 ? 2 : 0)] || 'SHOP'; FYd.sign(nm, du + 1.6, Math.min(w - .5, du + 1.6 + (nm.length * 4 + 6) / 16), zt + .28, zt + .68, dk(awn, .45), '#fff2c4', { lit: true }); } }
+    if (shop !== 'lobby' && rw >= 1.8) { awning(FYd, du + 1.4, w - .4, zt - .3, .45, awn, shop === 'cafe' ? '#f4f0e8' : null, { rise: .28 }); const nm = o.shopName || (shop === 'cafe' ? ['COFFEE', 'CAFE', 'BEANS', 'DELI'] : shop === 'retail' ? ['SHOP', 'BOOKS', 'GIFTS', 'OPTICS'] : ['BANK', 'TRAVEL'])[Math.floor(r() * 4) % 2 + (r() < .5 ? 2 : 0)] || 'SHOP'; FYd.sign(nm, du + 1.6, Math.min(w - .5, du + 1.6 + (nm.length * 4 + 6) / 16), zt + .04, zt + .44, dk(awn, .45), '#fff2c4', { lit: true }); } }
   FYd.q(du - 1.3, du + 1.3, 0, h - .32, dk(st, .1)); FYd.q(du - 1.05, du + 1.05, 0, zt, '#2e3440');
   glow(() => FYd.q(du - 1, du + 1, .05, zt - .05, '#ffe6ac', '#f8d48c')); FYd.q(du - 1, du + 1, .05, zt - .05, '#8ec4da', '#a8d6e6');
   if (o.door === 'glass') glassDoor(FYd, du, 0, { glowc: gc, w: 1.3 }); else revolving(FYd, du, 0, { cap: o.trim || ac });
@@ -388,7 +388,7 @@ export function lobby(w, d, h, o = {}) {
   else { const num = String(o.num || 100 + Math.floor(r() * 80) * 10); lit(() => bigText(FYd, num, du - bigW(num, 1) / 32, zt + .38, '#fff2c4', 1, 1.12)); }
   // apron: planters, art, cafe tables
   if (o.planters !== false) { if (du - 2.9 > .2) planter(du - 2.9, d + .25, 1.1, .5, r); }
-  if (shop === 'cafe' && rw >= 2.4) { art('cafe', du + 2.4, d + .75, r, { c: awn }); if (rw >= 4) art('cafe', du + 4, d + .75, r, { c: awn }); art('board', du + 1.75, d + .5, r); } else if (du + 1.8 + 1.1 < w) planter(du + 1.8, d + .25, 1.1, .5, r);
+  if (shop === 'cafe' && rw >= 2.4) { art('cafe', du + 2.9, d + .8, r, { c: awn }); if (rw >= 4.4) art('cafe', du + 4.5, d + .8, r, { c: awn }); } else if (du + 1.8 + 1.1 < w) planter(du + 1.8, d + .25, 1.1, .5, r);
   if (artk && artk !== 'none' && du - 2.9 > 1.6) art(artk, Math.max(.9, du - 4.4), d + .8, r);
 }
 /** asset factory: def = default params; dims(q) -> { h: solid height, top: extra above, front: extra beyond +y (default 1.6), side: extra beyond +x (default .4) } */
@@ -407,7 +407,7 @@ export const poly = (w, d, c) => (x, y) => x >= 0 && x <= w && y >= 0 && y <= d 
 const TINT = c => mix(c, '#7fb6d0', .2);
 /** tiny office vignette inside one curtain-wall cell (desk+monitor, person, plant, shelf, blinds). on = the cell is lit at night */
 function mini(F, u0, u1, z0, z1, k, on, g) {
-  if (k > .78) return; const m = (u0 + u1) / 2, q = (a, b, za, zb, c) => F.q(m + a, m + b, z0 + za, z0 + zb, F.sh(mix(c, g, .3)), undefined, .005), d = () => {
+  k = k * 1.7; if (k > .78) return; const m = (u0 + u1) / 2, q = (a, b, za, zb, c) => F.q(m + a, m + b, z0 + za, z0 + zb, F.sh(mix(c, g, .3)), undefined, .005), d = () => {
     if (k < .2) { q(-.22, .22, 0, .42, '#b08a62'); q(-.1, .12, .5, .74, '#2a3040'); q(-.02, .04, .42, .5, '#2a3040'); }
     else if (k < .36) { q(-.11, .11, 0, .62, '#4a5a8a'); q(-.08, .08, .64, .84, '#e8b890'); q(-.08, .08, .8, .86, '#4a3428'); }
     else if (k < .48) { q(-.08, .08, 0, .18, '#9a6a4a'); q(-.14, .14, .18, .52, '#4f9a55'); q(-.07, .07, .52, .7, '#5aa84f'); }

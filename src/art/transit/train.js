@@ -56,7 +56,7 @@ export function drawCar(p) {
   const spans = [[cr ? 99 : .35, 1.5], [3.1, 4.05], [4.25, 5.2], [6.8, 7.75], [7.95, 8.9], [10.5, cf ? -99 : 11.65]].filter(s => s[1] > s[0]);
   paxWindows(spans, W, z0, z1, seed, { frame });
   for (const d of doors) {
-    qy(d - dw, d + dw, W, ZB + .06, 1.98, mix(body, acc, .0) === body ? lt(dAcc, .12) : dAcc); 
+    qy(d - dw, d + dw, W, ZB + .06, 1.98, dk(body, .16));
     for (const [a, b] of [[d - dw + .1, d - .05], [d + .05, d + dw - .1]]) { qy(a, b, W, .95, 1.84, COL.glassA, COL.glassB); glow(() => qy(a, b, W, .95, 1.84, COL.warm, COL.warm2)); lw([a, W, .95], [b, W, .95], frame); lw([a, W, 1.84], [b, W, 1.84], frame); lw([a, W, .95], [a, W, 1.84], frame); lw([b, W, .95], [b, W, 1.84], frame); }
     lw([d, W, ZB + .06], [d, W, 1.98], frame); lw([d - dw, W, ZB + .06], [d - dw, W, 1.98], frame); lw([d + dw, W, ZB + .06], [d + dw, W, 1.98], frame); lw([d - dw, W, 1.98], [d + dw, W, 1.98], frame);
     qy(d - dw, d + dw, W, ZB, ZB + .06, '#f2c230');

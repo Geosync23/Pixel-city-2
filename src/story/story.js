@@ -63,14 +63,14 @@ export const STORY_ITEMS = {
   milo_drawing:      { name: "Milo's Drawing",         kind: 'decor',     desc: 'You (tall), a train (long), a dinosaur (approving). Goes on the fridge.' },
   leftover_roast:    { name: 'Tub of Leftover Roast',  kind: 'food',      desc: 'Theo packed it. Jules added more. Then Theo added more.' },
   heron_coaster:     { name: 'Blue Heron Coaster',     kind: 'decor',     desc: 'Kit drew a tiny you on the back. The hair is accurate.' },
-  cinnamon_knots:    { name: 'Box of Cinnamon Knots',  kind: 'food',      desc: 'Still warm. The box will not make it home full.' },
+  cinnamon_knots:    { name: 'Box of Cinnamon Knots',  kind: 'food',      desc: 'Still warm. The box won\'t make it home full.' },
   fair_flyer:        { name: 'Summer Fair Flyer',      kind: 'decor',     desc: 'Designed by Pip. Eleven fonts. "BE THERE" underlined three times.' },
   nana_pie:          { name: "Nana's Apple-Maple Pie", kind: 'food',      desc: 'You crimped the edge yourself. Nana fixed it when you looked away.' },
   wobbly_shelf:      { name: "Theo's Wobbly Shelf",    kind: 'furniture', desc: 'Handmade with love and one leg slightly shorter. Holds books. Mostly.' },
   seaglass:          { name: 'Piece of Sea Glass',     kind: 'keepsake',  desc: 'Kit found it on the pier. Green, like an old bottle of something good.' },
   kettle_photo:      { name: 'Photo of the Copper Kettle', kind: 'decor', desc: 'Nana in the doorway, flour on her cheek, the brass bell above her head.' },
   copper_bell:       { name: 'The Copper Kettle Bell', kind: 'keepsake',  desc: 'Brass, palm-sized, a clear high note. Rang in every customer for 31 years.' },
-  kit_poster:        { name: 'Hand-printed Gig Poster', kind: 'decor',    desc: 'Two-colour linocut. Your name is in tiny letters under "thanks to".' },
+  kit_poster:        { name: 'Hand-printed Gig Poster', kind: 'decor',    desc: 'Two-color linocut. Your name is in tiny letters under "thanks to".' },
   fair_ribbon:       { name: 'Best Stall Ribbon',      kind: 'decor',     desc: 'Blue rosette. Pip says it is "ours" but lives at your place on weekdays.' },
   kettle_teapot:     { name: 'The Copper Teapot',      kind: 'furniture', desc: "Nana's shop teapot, polished. Tea made in it tastes like being looked after." },
   kit_demo:          { name: "Kit's Demo Tape",        kind: 'keepsake',  desc: 'One song, recorded in the loft. Play it on any stereo at home.' },
@@ -83,7 +83,7 @@ export const STORY_ITEMS = {
 export const RECIPES = {
   maple_pancakes:   { name: "Bea's Maple Oat Pancakes", from: 'nana',    ingredients: ['flour', 'oats', 'egg', 'milk', 'maple_syrup'], desc: 'Fluffy, forgiving, impossible to eat just two.' },
   apple_maple_pie:  { name: 'Copper Kettle Apple-Maple Pie', from: 'nana', ingredients: ['flour', 'butter', 'apple', 'maple_syrup', 'cinnamon'], desc: 'The pie that won eleven ribbons. Cold hands, warm kitchen.' },
-  harbor_chowder:   { name: "Captain's Harbour Chowder", from: 'captain', ingredients: ['fresh_fish', 'potato', 'milk', 'onion', 'butter'], desc: '"Feeds a crew of one for three days, or a crew of three once."' },
+  harbor_chowder:   { name: "Captain's Harbor Chowder", from: 'captain', ingredients: ['fresh_fish', 'potato', 'milk', 'onion', 'butter'], desc: '"Feeds a crew of one for three days, or a crew of three once."' },
   sunday_roast:     { name: "Theo's Sunday Roast",       from: 'theo',    ingredients: ['chicken', 'potato', 'carrot', 'onion', 'butter'], desc: 'The secret is patience. And more butter than you would admit to.' },
   maple_taffy:      { name: 'Festival Maple Taffy',      from: 'roz',     ingredients: ['maple_syrup', 'butter'], desc: 'Pulled until golden. Sticks to teeth, memories, and door handles.' },
   lantern_soup:     { name: 'Lantern Night Miso Soup',   from: 'haru',    ingredients: ['miso', 'tofu', 'spring_onion', 'noodles'], desc: 'Served free at the pier every Lantern Night. Warms the hands first.' },
@@ -141,34 +141,34 @@ export const BEATS = [
     delivery: {
       messages: [
         { from: 'jules', text: 'Right. Official welcome dinner. Tomorrow, ours, 6ish. 12 Sycamore Lane, yellow house, bike on the lawn. Theo is doing The Roast.' },
-        { from: 'jules', text: 'Pip has prepared questions for you. I am so sorry in advance.' },
+        { from: 'jules', text: 'Pip has prepared questions for you. I\'m so sorry in advance.' },
       ],
       appointment: { title: 'Welcome dinner at Jules & Theo\'s', place: 'home_jules', dayOffset: 1, from: '18:00', to: '21:00', with: ['jules', 'theo', 'pip', 'milo'] },
     },
     scene: [
       { speaker: 'narrator', text: 'A yellow house, a porch swing, a bike on the lawn. Something smells amazing.' },
       { speaker: 'jules', text: 'You found it! Come in, shoes anywhere, mind the dinosaurs.', anim: 'wave' },
-      { speaker: 'theo', text: 'Welcome! The roast is resting. I am not. Sit anywhere that is not sticky.', anim: 'work' },
+      { speaker: 'theo', text: 'Welcome! The roast is resting. I\'m not. Sit anywhere that isn\'t sticky.', anim: 'work' },
       { speaker: 'pip', text: 'Hello. I am Pip. I have a clipboard and seven questions.', anim: 'talk' },
-      { speaker: 'pip', text: 'Question one. What is your favourite thing about Maple Bay so far?' },
+      { speaker: 'pip', text: 'Question one. What is your favorite thing about Maple Bay so far?' },
       { choice: { id: 'f1_interview', options: [
         { text: 'The pancakes, honestly.', effects: { relationship: { pip: 2 }, flag: 'interview_food' }, reply: [
           { speaker: 'pip', text: '"Pancakes." Correct. That was a test and you passed.' },
         ] },
         { text: 'The people. Everyone says hello.', effects: { relationship: { pip: 1, jules: 2 }, flag: 'interview_people' }, reply: [
-          { speaker: 'pip', text: '"The people." Mum, they said the people. Write that I am a people.' },
+          { speaker: 'pip', text: '"The people." Mom, they said the people. Write that I am a people.' },
         ] },
         { text: 'That my family is here.', effects: { relationship: { jules: 3, theo: 1 }, flag: 'interview_family' }, reply: [
-          { speaker: 'jules', text: 'Oh, do not. I have gravy to make. I cannot cry into gravy.' },
+          { speaker: 'jules', text: 'Oh, do not. I have gravy to make. I can\'t cry into gravy.' },
         ] },
       ] } },
       { speaker: 'narrator', text: 'Dinner is loud, long and excellent. Someone refills your plate twice.', anim: 'eat' },
       { speaker: 'milo', text: '...This is for you. That is you. That is a train. He is a dinosaur.', anim: 'stand' },
-      { speaker: 'theo', text: 'High honour. I waited two years for a drawing.' },
-      { speaker: 'jules', text: 'I meant to ask Nana tonight, but... she is busy Thursdays. I think.' },
+      { speaker: 'theo', text: 'High honor. I waited two years for a drawing.' },
+      { speaker: 'jules', text: 'I meant to ask Nana tonight, but... she\'s busy Thursdays. I think.' },
       { speaker: 'narrator', text: 'Jules is suddenly very interested in the dishes.' },
-      { speaker: 'theo', text: 'Take leftovers. This is not a question. Sunday roast is a standing invite.' },
-      { speaker: 'jules', text: 'I am really glad you are here. Text me when you are home. Humour me.' },
+      { speaker: 'theo', text: 'Take leftovers. This isn\'t a question. Sunday roast is a standing invite.' },
+      { speaker: 'jules', text: 'I\'m really glad you\'re here. Text me when you\'re home. Humor me.' },
     ],
     rewards: {
       relationship: { jules: 5, theo: 5, pip: 4, milo: 4 }, items: ['milo_drawing', 'leftover_roast'], recipes: [], money: 0,
@@ -194,23 +194,23 @@ export const BEATS = [
       { speaker: 'narrator', text: 'Low lights, a small stage, a blue neon heron. Behind the bar: teal hair. That grin.' },
       { speaker: 'kit', text: 'NO. Look at you! You got tall! Or I got short. Come here!', anim: 'cheer' },
       { speaker: 'lou', text: 'So this is the famous school friend. She has polished that glass for an hour.', anim: 'work' },
-      { speaker: 'kit', text: 'Lou. Lou, please. I am being cool. Sit, sit. What are you drinking?' },
-      { speaker: 'kit', text: 'Ten years! Last I saw you, we were on the gym roof with stolen crisps.' },
+      { speaker: 'kit', text: 'Lou. Lou, please. I\'m being cool. Sit, sit. What are you drinking?' },
+      { speaker: 'kit', text: 'Ten years! Last I saw you, we were on the gym roof with stolen chips.' },
       { choice: { id: 'k1_memory', options: [
         { text: 'You sang the whole bus ride home.', effects: { relationship: { kit: 3 }, flag: 'remembered_singing' }, reply: [
           { speaker: 'kit', text: 'You remember that? Everyone told me to shut up. Except you.' },
         ] },
         { text: 'You still owe me a pencil.', effects: { relationship: { kit: 2 } }, reply: [
-          { speaker: 'kit', text: 'I KNEW you would say that. Here. A bar pencil. We are square.' },
+          { speaker: 'kit', text: 'I KNEW you would say that. Here. A bar pencil. We\'re square.' },
         ] },
-        { text: 'I should have written. I am sorry.', effects: { relationship: { kit: 4 } }, reply: [
-          { speaker: 'kit', text: 'Me too. Hey. We were kids. We are here now. That counts double.' },
+        { text: 'I should have written. I\'m sorry.', effects: { relationship: { kit: 4 } }, reply: [
+          { speaker: 'kit', text: 'Me too. Hey. We were kids. We\'re here now. That counts double.' },
         ] },
       ] } },
       { speaker: 'kit', text: 'I pour drinks, I paint a bit, I host the Friday open mic.', anim: 'drink' },
-      { speaker: 'lou', text: 'She also writes songs. She will not tell you that. So I have.' },
+      { speaker: 'lou', text: 'She also writes songs. She won\'t tell you that. So I have.' },
       { speaker: 'kit', text: 'Half-songs. Forty of them. Nobody gets to hear a half-song.' },
-      { speaker: 'kit', text: 'But I am playing Friday. Just a cover. Come? I sing better at one face.' },
+      { speaker: 'kit', text: 'But I\'m playing Friday. Just a cover. Come? I sing better at one face.' },
       { speaker: 'narrator', text: 'She draws something on a coaster and slides it over, face down.' },
     ],
     rewards: {
@@ -218,7 +218,7 @@ export const BEATS = [
       unlocks: [{ type: 'contact', npc: 'kit' }], flags: [],
     },
     missed: {
-      messages: [{ from: 'kit', text: 'no worries!! new city, I get it. I\'m behind the bar tue to sat from 5. the drink offer does not expire. neither do I' }],
+      messages: [{ from: 'kit', text: 'no worries!! new city, I get it. I\'m behind the bar tue to sat from 5. the drink offer doesn\'t expire. neither do I' }],
       rescheduleDays: 1,
     },
   },
@@ -235,10 +235,10 @@ export const BEATS = [
     },
     scene: [
       { speaker: 'roz', text: 'Bea\'s grandkid! She said you were coming. She says it to everyone.', anim: 'wave' },
-      { speaker: 'roz', text: 'The tin, the tin. I have been hiding from that tin for weeks.', anim: 'work' },
+      { speaker: 'roz', text: 'The tin, the tin. I\'ve been hiding from that tin for weeks.', anim: 'work' },
       { speaker: 'roz', text: 'You know this was her shop? The Copper Kettle. I washed up here at sixteen.' },
       { speaker: 'roz', text: 'Same ovens. Same corner table. I never had the heart to change them.' },
-      { speaker: 'narrator', text: 'Above the door there is a small iron hook, with nothing on it.' },
+      { speaker: 'narrator', text: 'Above the door there\'s a small iron hook, with nothing on it.' },
       { choice: { id: 'g2_hook', options: [
         { text: 'What used to hang there?', effects: { flag: 'knows_about_bell' }, reply: [
           { speaker: 'roz', text: 'The bell. Brass, about so big. You heard it from the tram stop.' },
@@ -249,7 +249,7 @@ export const BEATS = [
           { speaker: 'roz', text: 'She took the door bell down that last day. Nobody has seen it since.' },
         ] },
       ] } },
-      { speaker: 'roz', text: 'She says she cannot remember where it went. Bea!' },
+      { speaker: 'roz', text: 'She says she can\'t remember where it went. Bea!' },
       { speaker: 'roz', text: 'That woman remembers what I wore to my interview. In 1999.' },
       { speaker: 'roz', text: 'Here, the tin. And knots, warm. One box for her, one for the walk.', anim: 'talk' },
       { speaker: 'roz', text: 'Family price for you from now on. Bea would haunt me otherwise.' },
@@ -269,8 +269,8 @@ export const BEATS = [
     trigger: { minDay: 8, after: ['f1_welcome_dinner'], sendAt: '18:30' },
     delivery: {
       messages: [
-        { from: 'jules', text: 'Tiny favour? Staff meeting tomorrow and Theo is stuck at the bank. Could you collect the kids at 3? School gate, Maplewood.' },
-        { from: 'jules', text: 'They walk themselves home really, they just need a tall person nearby. You are tall enough.' },
+        { from: 'jules', text: 'Tiny favor? Staff meeting tomorrow and Theo is stuck at the bank. Could you collect the kids at 3? School gate, Maplewood.' },
+        { from: 'jules', text: 'They walk themselves home really, they just need a tall person nearby. You\'re tall enough.' },
       ],
       appointment: { title: 'Pick up Pip & Milo', place: 'spot:school', dayOffset: 1, from: '14:45', to: '16:00', with: ['pip', 'milo'] },
     },
@@ -280,7 +280,7 @@ export const BEATS = [
       { speaker: 'milo', text: '...I told Speed you were coming. Speed is a snail.', anim: 'stand' },
       { speaker: 'pip', text: 'News. The Summer Fair is in two and a half weeks. Every class runs a stall.' },
       { speaker: 'pip', text: 'I want ours to be a pie stall. Like Nana\'s old shop. With a sign.', anim: 'talk' },
-      { speaker: 'milo', text: 'Mum goes quiet when we say the Kettle.' },
+      { speaker: 'milo', text: 'Mom goes quiet when we say the Kettle.' },
       { speaker: 'pip', text: 'Milo. That is classified.' },
       { speaker: 'narrator', text: 'On the corner by Lucky Corner, a boy in a clip-on tie waves a jug.' },
       { choice: { id: 'f2_lemonade', options: [
@@ -288,14 +288,14 @@ export const BEATS = [
           { speaker: 'otis', text: 'Three cups! A bulk order! Pleasure doing business.', anim: 'cheer' },
           { speaker: 'milo', text: 'This is the best day.' },
         ] },
-        { text: 'Straight home. I promised your mum.', effects: { relationship: { jules: 2 } }, reply: [
+        { text: 'Straight home. I promised your mom.', effects: { relationship: { jules: 2 } }, reply: [
           { speaker: 'pip', text: 'Responsible. I will put it in my report. With regret.' },
         ] },
       ] } },
       { speaker: 'narrator', text: 'Sycamore Lane. Jules arrives ten minutes later, juggling folders.' },
-      { speaker: 'jules', text: 'Lifesaver. Were they good? Do not answer, I can see Pip\'s face.', anim: 'wave' },
-      { speaker: 'pip', text: 'Mum, can our stall be a pie stall? Like the Copper Kettle?' },
-      { speaker: 'jules', text: '...We will see, love. Go wash your hands.' },
+      { speaker: 'jules', text: 'Lifesaver. Were they good? Don\'t answer, I can see Pip\'s face.', anim: 'wave' },
+      { speaker: 'pip', text: 'Mom, can our stall be a pie stall? Like the Copper Kettle?' },
+      { speaker: 'jules', text: '...We\'ll see, honey. Go wash your hands.' },
       { speaker: 'jules', text: 'Thank you. Really. Here, take a flyer. She made forty.' },
     ],
     rewards: {
@@ -313,7 +313,7 @@ export const BEATS = [
     trigger: { minDay: 10, after: ['k1_reunion'], sendAt: '15:00' },
     delivery: {
       messages: [
-        { from: 'kit', text: 'open mic tomorrow, 8pm. I\'m on third, after a man who does bird impressions. I have changed my shirt four times already.' },
+        { from: 'kit', text: 'open mic tomorrow, 8pm. I\'m on third, after a man who does bird impressions. I\'ve changed my shirt four times already.' },
         { from: 'kit', text: 'you don\'t have to come. (please come.)' },
       ],
       appointment: { title: "Kit's set at the open mic", place: 'bar', dayOffset: 1, weekday: 'fri', from: '19:30', to: '23:00', with: ['kit', 'lou', 'fenn', 'dez'] },
@@ -323,32 +323,32 @@ export const BEATS = [
       { speaker: 'kit', text: 'You came. Okay. Okay okay. My hands are doing a thing. Look.', anim: 'stand' },
       { choice: { id: 'k2_pep', options: [
         { text: 'Sing it to me. Forget the room.', effects: { relationship: { kit: 4 }, flag: 'pep_one_face' }, reply: [
-          { speaker: 'kit', text: 'One face. Right. I can do one face. Do not move from that stool.' },
+          { speaker: 'kit', text: 'One face. Right. I can do one face. Don\'t move from that stool.' },
         ] },
         { text: 'You followed a bird man. The bar is low.', effects: { relationship: { kit: 3 }, flag: 'pep_joke' }, reply: [
-          { speaker: 'kit', text: 'Ha! Okay. I am at least better than an owl. Probably.' },
+          { speaker: 'kit', text: 'Ha! Okay. I\'m at least better than an owl. Probably.' },
         ] },
         { text: 'Nervous means it matters.', effects: { relationship: { kit: 3 }, flag: 'pep_matters' }, reply: [
           { speaker: 'kit', text: '...Yeah. It does. Hold my drink. Hold my whole life.' },
         ] },
       ] } },
       { speaker: 'lou', text: 'Next up, our own Kit Navarro. Be nice, she pours your drinks.', anim: 'talk' },
-      { speaker: 'narrator', text: 'She plays an old harbour song, slow. The room goes quiet. Even Dez.', anim: 'sit' },
+      { speaker: 'narrator', text: 'She plays an old harbor song, slow. The room goes quiet. Even Dez.', anim: 'sit' },
       { speaker: 'dez', text: 'THAT IS MY COUSIN\'S FRIEND! Sorry. Carry on.', anim: 'cheer' },
       { speaker: 'narrator', text: 'Applause. Someone shouts "one more". Kit looks at you, then at her guitar.' },
-      { speaker: 'kit', text: 'This one is... not finished. It is about coming somewhere new.' },
+      { speaker: 'kit', text: 'This one is... not finished. It\'s about coming somewhere new.' },
       { speaker: 'narrator', text: 'Thirty seconds. A verse like an open window. Then she stops.' },
-      { speaker: 'kit', text: 'That is all there is. Sorry. Thank you. Tip your bartender. It is me.' },
-      { speaker: 'lou', text: 'Kid. Finish that one. That is an order from management.', anim: 'drink' },
+      { speaker: 'kit', text: 'That\'s all there is. Sorry. Thank you. Tip your bartender. It\'s me.' },
+      { speaker: 'lou', text: 'Kid. Finish that one. That\'s an order from management.', anim: 'drink' },
       { speaker: 'kit', text: 'A song about a place needs the place in it. I only know the bar.' },
-      { speaker: 'kit', text: 'You are out there meeting everyone. Help me find the rest of it?' },
+      { speaker: 'kit', text: 'You\'re out there meeting everyone. Help me find the rest of it?' },
     ],
     rewards: {
       relationship: { kit: 8, lou: 3, fenn: 2 }, items: [], recipes: [], money: 0,
       unlocks: [{ type: 'discount', venue: 'bar', percent: 10 }, { type: 'contact', npc: 'lou' }], flags: ['song_started'],
     },
     missed: {
-      messages: [{ from: 'kit', text: 'missed you last night! honestly I lost my nerve and did not go on. so. next friday? I\'ll be brave if you\'re on the good stool' }],
+      messages: [{ from: 'kit', text: 'missed you last night! honestly I lost my nerve and didn\'t go on. so. next friday? I\'ll be brave if you\'re on the good stool' }],
       rescheduleDays: 7, weekday: 'fri',
     },
   },
@@ -369,10 +369,10 @@ export const BEATS = [
       { speaker: 'narrator', text: 'The pie goes in. The kitchen ticks. Nana looks at the photo on the wall.' },
       { speaker: 'nana', text: 'Roz told you about the bell. She cannot keep a thing in. Never could.', anim: 'sit' },
       { speaker: 'nana', text: 'I hoped your sister would take the Kettle. She chose her classroom.' },
-      { speaker: 'nana', text: 'I said, "Then it ends with me." Sharp, like that. Over the washing-up.' },
+      { speaker: 'nana', text: 'I said, "Then it ends with me." Sharp, like that. Over the dishes.' },
       { speaker: 'nana', text: 'I was sorry before the plate was dry. I never found a way to unsay it.' },
       { choice: { id: 'g3_listen', options: [
-        { text: 'Does Jules know you are sorry?', effects: { relationship: { nana: 3 }, flag: 'nana_confided' }, reply: [
+        { text: 'Does Jules know you\'re sorry?', effects: { relationship: { nana: 3 }, flag: 'nana_confided' }, reply: [
           { speaker: 'nana', text: 'She is busy on Thursdays. And Sundays. I can take a hint, darling.' },
         ] },
         { text: 'And the bell?', effects: { relationship: { nana: 2 }, flag: 'nana_confided' }, reply: [
@@ -403,48 +403,48 @@ export const BEATS = [
     trigger: { minDay: 14, after: ['f2_school_run', 'g3_sunday_baking'], sendAt: '12:30' },
     delivery: {
       messages: [
-        { from: 'theo', text: 'Booth emergency. I have timber, a plan drawn by a nine-year-old, and no second pair of hands. Tomorrow after work? I will feed you.' },
+        { from: 'theo', text: 'Booth emergency. I have timber, a plan drawn by a nine-year-old, and no second pair of hands. Tomorrow after work? I\'ll feed you.' },
       ],
       appointment: { title: 'Help Theo build the fair booth', place: 'home_jules', dayOffset: 1, from: '17:30', to: '20:30', with: ['theo', 'jules', 'pip', 'milo'] },
     },
     scene: [
-      { speaker: 'theo', text: 'Welcome to the workshop. It is a garage. Hold this. No, the other this.', anim: 'work' },
+      { speaker: 'theo', text: 'Welcome to the workshop. It\'s a garage. Hold this. No, the other this.', anim: 'work' },
       { speaker: 'pip', text: 'The plan says striped awning, a counter, and a hook for a bell.', anim: 'talk' },
       { speaker: 'narrator', text: 'An hour of sawdust. The booth stands. It leans slightly, with confidence.', anim: 'lift' },
-      { speaker: 'theo', text: 'Structural lemonade. Back in a minute. Do not lean on anything.' },
+      { speaker: 'theo', text: 'Structural lemonade. Back in a minute. Don\'t lean on anything.' },
       { speaker: 'narrator', text: 'Jules comes out with a box of old paint. On top: a menu. THE COPPER KETTLE.' },
       { speaker: 'jules', text: 'Pip found this in my sock drawer. Nothing is safe.', anim: 'sit' },
       { speaker: 'jules', text: 'Nana wanted me to have the shop. I said no. Badly. In her own kitchen.' },
-      { speaker: 'jules', text: 'She closed it that winter. I have never been sure she forgave me.' },
-      { speaker: 'jules', text: 'So I am busy on Thursdays. And I hate that I am.' },
+      { speaker: 'jules', text: 'She closed it that winter. I\'ve never been sure she forgave me.' },
+      { speaker: 'jules', text: 'So I\'m busy on Thursdays. And I hate that I am.' },
       { choice: { id: 'f3_secret', options: [
         { text: 'She thinks YOU are avoiding HER.', effects: { relationship: { jules: 4 }, flag: 'told_jules_truth' }, reply: [
-          { speaker: 'jules', text: 'She what? But I... oh. Oh, we are both idiots. It runs in the family.' },
+          { speaker: 'jules', text: 'She what? But I... oh. Oh, we\'re both idiots. It runs in the family.' },
         ] },
         { text: 'You should hear it from her, not me.', effects: { relationship: { jules: 3 }, flag: 'nudged_jules' }, reply: [
-          { speaker: 'jules', text: 'That is annoyingly wise. When did you get wise? Stop it.' },
+          { speaker: 'jules', text: 'That\'s annoyingly wise. When did you get wise? Stop it.' },
         ] },
         { text: 'A pie stall might say it for you.', effects: { relationship: { jules: 3, pip: 2 }, flag: 'nudged_jules' }, reply: [
           { speaker: 'jules', text: 'Ha. Let the pastry do the talking. Very on-brand for us.' },
         ] },
       ] } },
       { speaker: 'pip', text: 'I have named the stall. "The Little Kettle." It is on the form already.' },
-      { speaker: 'jules', text: '...Fine. Yes. But we need her pie. Would you ask her? I will fold.' },
+      { speaker: 'jules', text: '...Fine. Yes. But we need her pie. Would you ask her? I\'ll fold.' },
       { speaker: 'theo', text: 'Lemonade! Why is everyone misty? Is it the varnish? Open a window.', anim: 'drink' },
-      { speaker: 'theo', text: 'Oh, and I made you a shelf. It wobbles. That is how you know it is mine.' },
+      { speaker: 'theo', text: 'Oh, and I made you a shelf. It wobbles. That\'s how you know it\'s mine.' },
     ],
     rewards: {
       relationship: { jules: 8, theo: 6, pip: 3, milo: 2 }, items: ['wobbly_shelf'], recipes: ['sunday_roast'], money: 0,
       unlocks: [], flags: ['little_kettle_planned'],
     },
     missed: {
-      messages: [{ from: 'theo', text: 'No trouble at all. I held both ends myself. It went poorly. The timber and I will be here tomorrow, same time, humbler.' }],
+      messages: [{ from: 'theo', text: 'No trouble at all. I held both ends myself. It went poorly. The timber and I\'ll be here tomorrow, same time, humbler.' }],
       rescheduleDays: 1,
     },
   },
   {
     id: 'k3_song_hunting', thread: 'friend', title: 'Song Hunting on the Pier',
-    summary: 'You and Kit collected lines from the harbour. The song has a chorus now.',
+    summary: 'You and Kit collected lines from the harbor. The song has a chorus now.',
     trigger: { minDay: 16, after: ['k2_open_mic'], sendAt: '11:00' },
     delivery: {
       messages: [
@@ -456,7 +456,7 @@ export const BEATS = [
       { speaker: 'kit', text: 'Rules. We ask people one question: what does the Bay sound like?', anim: 'wave' },
       { speaker: 'kit', text: 'I write. You charm. Go. That one, with the cap and the rod.' },
       { speaker: 'captain', text: 'Sound like? The lighthouse horn. A light for anyone not home yet.', anim: 'sit' },
-      { speaker: 'kit', text: '"A light for anyone not home yet." Oh, that is going straight in.', anim: 'read' },
+      { speaker: 'kit', text: '"A light for anyone not home yet." Oh, that\'s going straight in.', anim: 'read' },
       { speaker: 'fenn', text: 'It sounds like the train on the viaduct. Like the city humming to itself.', anim: 'dance' },
       { speaker: 'fenn', text: 'Try it in D. Everything about this town is in D.' },
       { speaker: 'narrator', text: 'By three, the notebook has gulls, bells, kettles and a taxi horn in it.' },
@@ -466,14 +466,14 @@ export const BEATS = [
           { speaker: 'kit', text: 'Yes. The Captain gets a writing credit and a free drink.' },
         ] },
         { text: '"The Bay will keep your place."', effects: { flag: 'chorus_place', relationship: { kit: 4 } }, reply: [
-          { speaker: 'kit', text: 'Did you just... that is yours? I am keeping it. Too late.' },
+          { speaker: 'kit', text: 'Did you just... that\'s yours? I\'m keeping it. Too late.' },
         ] },
         { text: '"Come as you are, stay as you like."', effects: { flag: 'chorus_stay', relationship: { kit: 3 } }, reply: [
-          { speaker: 'kit', text: 'That is this whole city in eight words. Okay. Okay!' },
+          { speaker: 'kit', text: 'That\'s this whole city in eight words. Okay. Okay!' },
         ] },
       ] } },
-      { speaker: 'kit', text: 'I have not finished a song in three years. I think this one wants out.' },
-      { speaker: 'kit', text: 'Here. Sea glass. For luck. I found it right where you are standing.', anim: 'talk' },
+      { speaker: 'kit', text: 'I haven\'t finished a song in three years. I think this one wants out.' },
+      { speaker: 'kit', text: 'Here. Sea glass. For luck. I found it right where you\'re standing.', anim: 'talk' },
     ],
     rewards: {
       relationship: { kit: 8, captain: 4, fenn: 3 }, items: ['seaglass'], recipes: [], money: 0,
@@ -543,7 +543,7 @@ export const BEATS = [
         { text: 'Why did you never take it back?', effects: { relationship: { captain: 3 } }, reply: [
           { speaker: 'captain', text: 'Nobody asked. A bell wants asking for. I have kept it warm.' },
         ] },
-        { text: 'It is for a pie stall. And an apology.', effects: { relationship: { captain: 4 }, flag: 'told_captain_plan' }, reply: [
+        { text: 'It\'s for a pie stall. And an apology.', effects: { relationship: { captain: 4 }, flag: 'told_captain_plan' }, reply: [
           { speaker: 'captain', text: 'Best use of brass I ever heard. Bea sent pies to my crew in gales.' },
         ] },
       ] } },
@@ -567,31 +567,31 @@ export const BEATS = [
     trigger: { minDay: 22, after: ['k3_song_hunting'], sendAt: '10:30' },
     delivery: {
       messages: [
-        { from: 'kit', text: 'IT HAS A SECOND VERSE. and a bridge!! come to the loft tomorrow afternoon, above the print shop on Easel Lane. bring ears. I have biscuits' },
+        { from: 'kit', text: 'IT HAS A SECOND VERSE. and a bridge!! come to the loft tomorrow afternoon, above the print shop on Easel Lane. bring ears. I have cookies' },
       ],
       appointment: { title: "Hear the song at Kit's loft", place: 'home_kit', dayOffset: 1, from: '13:00', to: '16:30', with: ['kit'] },
     },
     scene: [
       { speaker: 'narrator', text: 'A big cold room, a wall of windows, paint on everything, one good chair.' },
-      { speaker: 'kit', text: 'You get the chair. It is the chair. Do not look at the dishes.', anim: 'wave' },
-      { speaker: 'kit', text: 'Okay. Whole thing. Start to finish. If it is bad, lie to me kindly.' },
+      { speaker: 'kit', text: 'You get the chair. It\'s the chair. Don\'t look at the dishes.', anim: 'wave' },
+      { speaker: 'kit', text: 'Okay. Whole thing. Start to finish. If it\'s bad, lie to me kindly.' },
       { speaker: 'narrator', text: 'She plays. Gulls, bells and kettles. The chorus lands like a porch light.', anim: 'sit' },
-      { speaker: 'narrator', text: 'The last chord hangs in the four o\'clock light. It is not bad. It is lovely.' },
+      { speaker: 'narrator', text: 'The last chord hangs in the four o\'clock light. It isn\'t bad. It\'s lovely.' },
       { speaker: 'kit', text: '...Well? Say something. Your face is doing a thing.' },
-      { speaker: 'kit', text: 'It needs a name. I have crossed out nine. You choose.' },
+      { speaker: 'kit', text: 'It needs a name. I\'ve crossed out nine. You choose.' },
       { choice: { id: 'k4_title', options: [
         { text: '"Not Home Yet"', effects: { flag: 'title_not_home_yet', relationship: { kit: 3 } }, reply: [
           { speaker: 'kit', text: '"Not Home Yet." Oh. Because by the end, you are. Yes.' },
         ] },
         { text: '"Fresh Start"', effects: { flag: 'title_fresh_start', relationship: { kit: 3 } }, reply: [
-          { speaker: 'kit', text: '"Fresh Start." Ha. It is about you, you know. A bit. A lot.' },
+          { speaker: 'kit', text: '"Fresh Start." Ha. It\'s about you, you know. A bit. A lot.' },
         ] },
         { text: '"Maple Bay, Tuesday"', effects: { flag: 'title_tuesday', relationship: { kit: 3 } }, reply: [
-          { speaker: 'kit', text: '"Maple Bay, Tuesday." It is perfect. It is so ordinary. I love it.' },
+          { speaker: 'kit', text: '"Maple Bay, Tuesday." It\'s perfect. It\'s so ordinary. I love it.' },
         ] },
       ] } },
-      { speaker: 'kit', text: 'Also, your niece rang the bar. The landline. She has "booked" me.', anim: 'phone' },
-      { speaker: 'kit', text: 'I am playing a school fair. A pie stall is my first real venue.' },
+      { speaker: 'kit', text: 'Also, your niece called the bar. The landline. She has "booked" me.', anim: 'phone' },
+      { speaker: 'kit', text: 'I\'m playing a school fair. A pie stall is my first real venue.' },
       { speaker: 'kit', text: 'Then Sunday at the Heron, properly. Lou gave me the whole night.' },
       { speaker: 'kit', text: 'I printed posters. Take one. Your name is on it. Very small. But on it.', anim: 'talk' },
     ],
@@ -600,7 +600,7 @@ export const BEATS = [
       unlocks: [{ type: 'home', home: 'home_kit' }], flags: ['song_finished'],
     },
     missed: {
-      messages: [{ from: 'kit', text: 'no stress, I used the time to fix the bridge. it had a wobble. loft\'s open tomorrow afternoon too, biscuits are holding' }],
+      messages: [{ from: 'kit', text: 'no stress, I used the time to fix the bridge. it had a wobble. loft\'s open tomorrow afternoon too, cookies are holding' }],
       rescheduleDays: 1,
     },
   },
@@ -610,7 +610,7 @@ export const BEATS = [
     trigger: { minDay: 24, after: ['f3_booth_building', 'g5_the_bell', 'k4_rehearsal'], sendAt: '16:30' },
     delivery: {
       messages: [
-        { from: 'jules', text: 'FROM PIP: "You are officialy invited to The Little Kettle, Saturday 11 o clock, school yard. Bring the SURPRISE. Do not be late."' },
+        { from: 'jules', text: 'FROM PIP: "You\'re officialy invited to The Little Kettle, Saturday 11 o clock, school yard. Bring the SURPRISE. Don\'t be late."' },
         { from: 'jules', text: 'From me: Nana said yes to the pies. She sounded odd on the phone. Good odd, I think. What surprise?? I\'m nervous. Come early?' },
       ],
       appointment: { title: 'Summer Fair: The Little Kettle', place: 'spot:school', dayOffset: 2, weekday: 'sat', from: '10:30', to: '15:00', with: ['jules', 'theo', 'pip', 'milo', 'nana', 'kit', 'otis', 'barnaby', 'captain', 'roz'] },
@@ -619,33 +619,33 @@ export const BEATS = [
       { speaker: 'narrator', text: 'Bunting, a bouncy castle, a tuba. In the corner: a striped, leaning stall.' },
       { speaker: 'pip', text: 'You have the surprise? Hook is ready. I measured it twice.', anim: 'talk' },
       { speaker: 'narrator', text: 'You hang the brass bell over the counter. It catches the sun.' },
-      { speaker: 'jules', text: 'Is that... no. Where did you... that is THE bell. That is her bell.', anim: 'stand' },
+      { speaker: 'jules', text: 'Is that... no. Where did you... that\'s THE bell. That\'s her bell.', anim: 'stand' },
       { speaker: 'narrator', text: 'Across the yard, a small upright figure with a stack of pie tins stops walking.' },
       { speaker: 'nana', text: 'Well. There you are, old thing.', anim: 'stand' },
-      { speaker: 'theo', text: 'I will take those pies, Bea. And I will take the children. Over there. Far.' },
-      { speaker: 'jules', text: 'Nana. I should have said this years ago. I am sorry I did not take it.', anim: 'talk' },
+      { speaker: 'theo', text: 'I\'ll take those pies, Bea. And I\'ll take the children. Over there. Far.' },
+      { speaker: 'jules', text: 'Nana. I should have said this years ago. I\'m sorry I didn\'t take it.', anim: 'talk' },
       { speaker: 'nana', text: 'Hush. I was never cross with you. I was cross with the calendar.' },
       { speaker: 'nana', text: 'You opened a classroom. I closed a shop. Both true. Nobody to blame.' },
-      { speaker: 'jules', text: 'I thought you could not forgive me. So I stayed busy.' },
+      { speaker: 'jules', text: 'I thought you couldn\'t forgive me. So I stayed busy.' },
       { speaker: 'nana', text: 'And I thought you were ashamed of an old woman\'s tearoom. Pair of fools.' },
-      { speaker: 'narrator', text: 'It is a long hug. The pies, wisely, have been put down first.' },
+      { speaker: 'narrator', text: 'It\'s a long hug. The pies, wisely, have been put down first.' },
       { speaker: 'pip', text: 'Is the feelings part done? We open in two minutes. Who rings the bell?' },
       { choice: { id: 'f4_ring', options: [
-        { text: 'Nana. It is her bell.', effects: { relationship: { nana: 4 }, flag: 'bell_rung_nana' }, reply: [
+        { text: 'Nana. It\'s her bell.', effects: { relationship: { nana: 4 }, flag: 'bell_rung_nana' }, reply: [
           { speaker: 'nana', text: 'Thirty-one years. I know the wrist of it. Stand back.', anim: 'cheer' },
         ] },
         { text: 'Jules. First day of the new shop.', effects: { relationship: { jules: 4 }, flag: 'bell_rung_jules' }, reply: [
           { speaker: 'jules', text: 'Me? Oh. Right. Nana, how do I... like this?', anim: 'cheer' },
-          { speaker: 'nana', text: 'Like you mean it, love.' },
+          { speaker: 'nana', text: 'Like you mean it, honey.' },
         ] },
-        { text: 'Milo. He has not asked, but look at him.', effects: { relationship: { milo: 5 }, flag: 'bell_rung_milo' }, reply: [
+        { text: 'Milo. He hasn\'t asked, but look at him.', effects: { relationship: { milo: 5 }, flag: 'bell_rung_milo' }, reply: [
           { speaker: 'milo', text: '...Really? Me? ...I will be very careful.', anim: 'cheer' },
         ] },
       ] } },
       { speaker: 'narrator', text: 'One clear high note over the school yard. Somewhere, a tuba stops to listen.' },
-      { speaker: 'kit', text: 'That is my cue. This one is new. It is for a pie stall. One, two...', anim: 'dance' },
+      { speaker: 'kit', text: 'That\'s my cue. This one is new. It\'s for a pie stall. One, two...', anim: 'dance' },
       { speaker: 'barnaby', text: 'One slice. Hm. Mm. Four stars. And a fifth, which I have borrowed.', anim: 'eat' },
-      { speaker: 'captain', text: 'I was promised a slice. I see I am in a queue. Good. As it should be.' },
+      { speaker: 'captain', text: 'I was promised a slice. I see I am in a line. Good. As it should be.' },
       { speaker: 'narrator', text: 'The Little Kettle sells out by two. Pip counts the tin three times.' },
       { speaker: 'nana', text: 'You did this, you know. You went and found my bell.' },
       { speaker: 'nana', text: 'It stays with the stall. But the teapot is yours. No arguing with your Nana.' },
@@ -662,7 +662,7 @@ export const BEATS = [
     },
     missed: {
       messages: [
-        { from: 'jules', text: 'Fair got rained off!! Pip is furious at the sky. It\'s moved to next Saturday, same time. The stall is in the garage, sulking.' },
+        { from: 'jules', text: 'Fair got rained out!! Pip is furious at the sky. It\'s moved to next Saturday, same time. The stall is in the garage, sulking.' },
       ],
       rescheduleDays: 7, weekday: 'sat',
     },
@@ -674,7 +674,7 @@ export const BEATS = [
     delivery: {
       messages: [
         { from: 'kit', text: 'tonight. 8. the Heron. the whole song, with a name and everything. I saved you the good stool and put a sign on it. the sign says your name' },
-        { from: 'lou', text: 'Lou here. She has rehearsed since dawn. Come. Clap loudly. I am not asking as your barman, I am asking as a fan.' },
+        { from: 'lou', text: 'Lou here. She has rehearsed since dawn. Come. Clap loudly. I\'m not asking as your barman, I\'m asking as a fan.' },
       ],
       appointment: { title: "Kit's song at the Blue Heron", place: 'bar', dayOffset: 0, weekday: 'sun', from: '19:30', to: '23:30', with: ['kit', 'lou', 'jules', 'theo', 'nana', 'dez', 'noor', 'fenn'] },
     },
@@ -692,17 +692,17 @@ export const BEATS = [
       { speaker: 'kit', text: 'I finished something. I actually finished something.', anim: 'sit' },
       { choice: { id: 'k5_after', options: [
         { text: 'First of forty.', effects: { relationship: { kit: 4 }, flag: 'k5_first_of_forty' }, reply: [
-          { speaker: 'kit', text: 'Thirty-nine to go. You are helping with every single one. Sorry.' },
+          { speaker: 'kit', text: 'Thirty-nine to go. You\'re helping with every single one. Sorry.' },
         ] },
-        { text: 'I am proud of you, Kit.', effects: { relationship: { kit: 5 }, flag: 'k5_proud' }, reply: [
+        { text: 'I\'m proud of you, Kit.', effects: { relationship: { kit: 5 }, flag: 'k5_proud' }, reply: [
           { speaker: 'kit', text: 'Do not. I just got my face back under control. ...Thank you.' },
         ] },
         { text: '(Sit with her and listen to the city.)', effects: { relationship: { kit: 5 }, flag: 'k5_quiet' }, reply: [
           { speaker: 'narrator', text: 'A foghorn. A late taxi. Somewhere, a small brass bell, or the memory of one.' },
         ] },
       ] } },
-      { speaker: 'kit', text: 'New rule. We do not lose each other again. I made you a tape. Sign here.', anim: 'talk' },
-      { speaker: 'narrator', text: 'Four weeks in Maple Bay. It is starting to feel like yours.' },
+      { speaker: 'kit', text: 'New rule. We don\'t lose each other again. I made you a tape. Sign here.', anim: 'talk' },
+      { speaker: 'narrator', text: 'Four weeks in Maple Bay. It\'s starting to feel like yours.' },
     ],
     rewards: {
       relationship: { kit: 12, lou: 4, nana: 2, jules: 2 }, items: ['kit_demo'], recipes: [], money: 0,
@@ -722,14 +722,14 @@ export const BEATS = [
     delivery: {
       messages: [
         { from: 'nana', text: 'Darling. I have done something rash. I have entered the Festival pie contest. First time in nine years. I need a taster and a carrier.' },
-        { from: 'roz', text: 'Tell your Nana I am ALSO entering and I have been practising. Saturday, the park, noon. May the best crust win. (Hers. It will be hers.)' },
+        { from: 'roz', text: 'Tell your Nana I\'m ALSO entering and I\'ve been practicing. Saturday, the park, noon. May the best crust win. (Hers. It will be hers.)' },
       ],
       appointment: { title: 'Maple Festival pie contest', place: 'park', dayOffset: 2, weekday: 'sat', from: '10:00', to: '18:00', with: ['nana', 'roz', 'jules', 'theo', 'pip', 'milo', 'kit', 'barnaby', 'imani', 'vik'] },
     },
     scene: [
       { speaker: 'narrator', text: 'The whole park is red and gold. Leaf crowns, a parade tuba, syrup in the air.' },
       { speaker: 'pip', text: 'Hold still. This is your leaf crown. I made it regulation size.', anim: 'talk' },
-      { speaker: 'nana', text: 'Carry it level, darling. Level! That pie has travelled worse, but still.', anim: 'walk' },
+      { speaker: 'nana', text: 'Carry it level, darling. Level! That pie has traveled worse, but still.', anim: 'walk' },
       { speaker: 'roz', text: 'Bea. May your bottom be soggy. I say it with love.', anim: 'wave' },
       { speaker: 'nana', text: 'Rosalind. May your lattice slip. I taught you that lattice.' },
       { speaker: 'barnaby', text: 'Silence at the judging table. I am approaching the pies.', anim: 'eat' },
@@ -745,7 +745,7 @@ export const BEATS = [
       { speaker: 'nana', text: 'Twelve. Hm. Eleven was plenty for anybody.', anim: 'cheer' },
       { speaker: 'narrator', text: 'She crosses the grass and pins the ribbon to Roz\'s apron.' },
       { speaker: 'nana', text: 'It is the same recipe, in the same ovens. This one is yours, my girl.' },
-      { speaker: 'roz', text: 'Bea, you cannot just... oh, now I am crying into the taffy.' },
+      { speaker: 'roz', text: 'Bea, you can\'t just... oh, now I\'m crying into the taffy.' },
       { speaker: 'kit', text: 'From the bandstand: this next one is about a city. You may know it.', anim: 'dance' },
       { speaker: 'narrator', text: 'They tap the big maple at noon. The first cup goes to Milo.' },
     ],
@@ -765,7 +765,7 @@ export const BEATS = [
     delivery: {
       messages: [
         { from: 'kit', text: 'Lantern Night on saturday. the whole city floats wishes off the pier at 9. I need to tell you something and I want to do it by lantern' },
-        { from: 'jules', text: 'Lantern Night! We\'ll all be on the pier from 6. Wrap up. Milo has written his wish already and will not show anyone. It is a dinosaur.' },
+        { from: 'jules', text: 'Lantern Night! We\'ll all be on the pier from 6. Wrap up. Milo has written his wish already and won\'t show anyone. It\'s a dinosaur.' },
       ],
       appointment: { title: 'Lantern Night at the pier', place: 'pier', dayOffset: 2, weekday: 'sat', from: '18:00', to: '22:00', with: ['kit', 'jules', 'theo', 'pip', 'milo', 'nana', 'captain', 'haru'] },
     },
@@ -775,13 +775,13 @@ export const BEATS = [
       { speaker: 'milo', text: 'My wish is secret. It is a dinosaur. That is all I can say.', anim: 'stand' },
       { speaker: 'captain', text: 'It began for the boats. A light for everyone not home yet.', anim: 'talk' },
       { speaker: 'kit', text: 'So. A label heard the tape. They want me on a little tour. In spring.', anim: 'stand' },
-      { speaker: 'kit', text: 'Three towns up the coast. Two weeks. I have never left for two weeks.' },
+      { speaker: 'kit', text: 'Three towns up the coast. Two weeks. I\'ve never left for two weeks.' },
       { choice: { id: 's2_tour', options: [
-        { text: 'Go. We will keep the light on.', effects: { relationship: { kit: 5 }, flag: 'tour_encouraged' }, reply: [
-          { speaker: 'kit', text: 'You are quoting my own chorus at me. That is cheating. ...Okay. I will go.' },
+        { text: 'Go. We\'ll keep the light on.', effects: { relationship: { kit: 5 }, flag: 'tour_encouraged' }, reply: [
+          { speaker: 'kit', text: 'You\'re quoting my own chorus at me. That\'s cheating. ...Okay. I\'ll go.' },
         ] },
-        { text: 'I will miss you. Go anyway.', effects: { relationship: { kit: 6 }, flag: 'tour_encouraged' }, reply: [
-          { speaker: 'kit', text: 'Two weeks. I will send a postcard from every single town. Boring ones.' },
+        { text: 'I\'ll miss you. Go anyway.', effects: { relationship: { kit: 6 }, flag: 'tour_encouraged' }, reply: [
+          { speaker: 'kit', text: 'Two weeks. I\'ll send a postcard from every single town. Boring ones.' },
         ] },
         { text: 'What do YOU want?', effects: { relationship: { kit: 5 }, flag: 'tour_encouraged' }, reply: [
           { speaker: 'kit', text: 'To go. And to have somewhere to come back to. I think I have both now.' },
@@ -789,7 +789,7 @@ export const BEATS = [
       ] } },
       { speaker: 'nana', text: 'Write your wish, darling. Small writing. The sea does not need the details.' },
       { speaker: 'narrator', text: 'At nine the lanterns go out past the breakwater, one by one, like slow stars.' },
-      { speaker: 'jules', text: 'Yours cleared the wall. That means it counts. I do not make the rules.', anim: 'cheer' },
+      { speaker: 'jules', text: 'Yours cleared the wall. That means it counts. I don\'t make the rules.', anim: 'cheer' },
     ],
     rewards: {
       relationship: { kit: 8, jules: 3, nana: 3, captain: 2, haru: 3 }, items: ['paper_lantern'], recipes: ['lantern_soup'], money: 0,
@@ -812,7 +812,7 @@ export const BEATS = [
       appointment: { title: 'One-year picnic at the Lookout', place: 'lookout', dayOffset: 2, weekday: 'sun', from: '12:00', to: '16:00', with: ['jules', 'theo', 'pip', 'milo', 'nana', 'kit', 'dez', 'manny', 'gordon'] },
     },
     scene: [
-      { speaker: 'narrator', text: 'The whole bay below: harbour, viaduct, Old Town roofs, the lighthouse.' },
+      { speaker: 'narrator', text: 'The whole bay below: harbor, viaduct, Old Town roofs, the lighthouse.' },
       { speaker: 'manny', text: 'A year ago I drove this one in with a single suitcase. Look at this crowd!', anim: 'cheer' },
       { speaker: 'theo', text: 'I built a picnic bench for the occasion. Sit gently. Sit in shifts.', anim: 'sit' },
       { speaker: 'kit', text: 'Back from tour! Three towns. Nobody in any of them makes pie like here.', anim: 'wave' },
@@ -830,7 +830,7 @@ export const BEATS = [
           { speaker: 'dez', text: 'Finally, someone speaks for the people.' },
         ] },
       ] } },
-      { speaker: 'nana', text: 'Everyone squeeze in. Milo, look at the camera. Milo. The camera, love.', anim: 'stand' },
+      { speaker: 'nana', text: 'Everyone squeeze in. Milo, look at the camera. Milo. The camera, sweetie.', anim: 'stand' },
       { speaker: 'milo', text: 'There is a bird.' },
       { speaker: 'narrator', text: 'Click. One year. It looks good on you.' },
     ],
@@ -845,21 +845,21 @@ export const BEATS = [
     },
   },
   {
-    id: 's4_harbour_lights', thread: 'grandma', seasonal: true, title: 'Harbour Lights & Tram No. 9',
+    id: 's4_harbor_lights', thread: 'grandma', seasonal: true, title: 'Harbor Lights & Tram No. 9',
     summary: 'Tram No. 9 ran again, the Kettle Corner opened, and you rang two bells in one night.',
     trigger: { minDay: 73, after: ['s3_one_year'], sendAt: '10:00' },
     delivery: {
       messages: [
         { from: 'nana', text: 'Darling. Roz and I have a SCHEME. Saturday teas at the corner table. "The Kettle Corner". I pour, she bakes. Opening this Saturday at 5.' },
-        { from: 'roz', text: 'She forgot to say: Mr. Pike is running Tram No. 9 down Market Street at 6 for the Harbour Lights, and he insists YOU ring the bell.' },
+        { from: 'roz', text: 'She forgot to say: Mr. Pike is running Tram No. 9 down Market Street at 6 for the Harbor Lights, and he insists YOU ring the bell.' },
       ],
-      appointment: { title: 'Kettle Corner opening & Harbour Lights', place: 'bakery', dayOffset: 2, weekday: 'sat', from: '17:00', to: '22:00', with: ['nana', 'roz', 'jules', 'theo', 'pip', 'milo', 'gordon', 'kit', 'captain', 'ambrose'] },
+      appointment: { title: 'Kettle Corner opening & Harbor Lights', place: 'bakery', dayOffset: 2, weekday: 'sat', from: '17:00', to: '22:00', with: ['nana', 'roz', 'jules', 'theo', 'pip', 'milo', 'gordon', 'kit', 'captain', 'ambrose'] },
     },
     scene: [
       { speaker: 'narrator', text: 'Rise & Shine, summer evening. On the hook above the door: the brass bell.' },
       { speaker: 'roz', text: 'The school lent it back for Saturdays. Pip negotiated. There were terms.', anim: 'wave' },
       { speaker: 'nana', text: 'Corner table, my teapot, her scones. I am un-retired on Saturdays only.', anim: 'work' },
-      { speaker: 'jules', text: 'I have signed up for the till. Do not look at me like that. I want to.', anim: 'talk' },
+      { speaker: 'jules', text: 'I\'ve signed up for the till. Don\'t look at me like that. I want to.', anim: 'talk' },
       { speaker: 'ambrose', text: 'Thirty years of Saturday scones, and now thirty more. Chapter sends regards.' },
       { speaker: 'narrator', text: 'Outside, on Market Street, something old and green and polished hums.' },
       { speaker: 'gordon', text: 'All aboard the No. 9! First run since ninety-one. You. The cord. Go on.', anim: 'cheer' },
@@ -873,8 +873,8 @@ export const BEATS = [
       ] } },
       { speaker: 'narrator', text: 'The tram bell. Then, from the bakery door, the brass bell, answering.' },
       { speaker: 'captain', text: 'Two bells and a lighthouse. Nobody will be lost in this town tonight.' },
-      { speaker: 'kit', text: 'I am writing that down. Song number two. Thirty-eight to go.', anim: 'read' },
-      { speaker: 'narrator', text: 'Fireworks over the harbour. You know every face on this street.' },
+      { speaker: 'kit', text: 'I\'m writing that down. Song number two. Thirty-eight to go.', anim: 'read' },
+      { speaker: 'narrator', text: 'Fireworks over the harbor. You know every face on this street.' },
       { speaker: 'nana', text: 'Tea, darling? The kettle is always on. It is a house rule.' },
     ],
     rewards: {

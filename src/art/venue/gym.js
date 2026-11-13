@@ -1,6 +1,6 @@
 // Gym fixtures.
 import { box, qy, qx, qz, lw, fq, glow, lit, ball, cyl, dk, lt, mix, PAT, textY, signY, spx, hash2, rng } from '../../engine/raster.js';
-import { F, K, bx, tube, post, posts, frameY, frameX, frameZ, table, counter, till, monitor, goods, plant, compose, mirrorY, screenY, screenLines, PX } from './_lib.js';
+import { F, K, bx, tube, post, posts, frameY, frameX, frameZ, table, counter, till, monitor, goods, plant, compose, mirrorY, screenY, screenLines, bottle, PX } from './_lib.js';
 import generic from './generic.js';
 const M = '#4a4f5c', MD = '#2e3440', CH = '#c4c9ce';
 /** weight plate (disc facing along y) centred at x,z on plane y */

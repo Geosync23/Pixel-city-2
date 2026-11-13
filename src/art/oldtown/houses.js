@@ -32,13 +32,13 @@ function brownstone(p) {
   const Fd = face('y', d - .03); railing(Fd, 1.95, w, 0, { h: .62 }); railing(Fd, 0, .45, 0, { h: .62 }); railing(face('x', w - .03), Dp, d, 0, { h: .62 });
   const R = flatRoof(0, 0, H, w, Dp, { c: q.trim, ov: .12, ph: .42, dent: true });
   chimney(R.x0, R.y0 + .2, R.z, 1.0, q.wall, { w: .5, d: .9 });
-  roofStuff(r, Object.assign({}, R, { x0: R.x0 + .8 }), { n: 2, kinds: ['skylight', 'vent', 'antenna', 'vent'] });
+  roofStuff(r, Object.assign({}, R, { x0: R.x0 + .8 }), { n: 4, kinds: ['skylight', 'vent', 'antenna', 'planter', 'ac', 'dish'] });
 }
 
 /* ---------- 2. painted stucco rowhouse, tiled roof + dormers ---------- */
-const stSize = p => [p.w || 4, p.d || 7, (p.floors || 2) * 2 + 1.5];
+const stSize = p => [p.w || 4, p.d || 7, (p.floors || 2) * 2 + Math.round((p.d || 7) * .3 * 4) / 4];
 function stuccoHouse(p) {
-  const q = D(p, { w: 4, d: 7, floors: 2, seed: 1, wall: '#e8c9a0', roof: '#b8573f', trim: '#f4eee0' }), { w, d } = q, fl = q.floors, r = rng(q.seed), H = fl * 2, rh = 1.5;
+  const q = D(p, { w: 4, d: 7, floors: 2, seed: 1, wall: '#e8c9a0', roof: '#b8573f', trim: '#f4eee0' }), { w, d } = q, fl = q.floors, r = rng(q.seed), H = fl * 2, rh = Math.round(d * .3 * 4) / 4;
   const Fy = face('y', d), Fx = face('x', w), sh = q.shut || pick(r, ['#3f6a5a', '#34506a', '#8a3a3a', '#5a6a3a', '#6a4a6a']), dc = q.door || pick(r, PALETTE.door);
   walls(0, 0, 0, w, d, H, q.wall, 'stucco');
   Fy.q(0, w, 0, .4, Fy.c(dk(q.wall, .28))); Fx.q(0, d, 0, .4, Fx.c(dk(q.wall, .28))); Fy.l(0, .4, w, .4, Fy.c(dk(q.wall, .45))); Fx.l(0, .4, d, .4, Fx.c(dk(q.wall, .45)));
@@ -56,7 +56,7 @@ function stuccoHouse(p) {
   const rs = roofX(0, 0, H, w, d, rh, q.roof, { wall: q.wall });
   win(Fx, d / 2 - .25, d / 2 + .25, H + .25, H + .75, { r, trim: q.trim, mull: 'v', sill: false });
   const dn = w >= 5.5 ? 2 : 1, inset = d * .2;
-  bays(w, { n: dn, m: .5 }).forEach(c => dormer(Fy, c - .5, c + .5, inset, H + inset * rs.s, .8, rs.s, { wall: q.wall, roof: dk(q.roof, .15), win: { r, trim: q.trim } }));
+  bays(w, { n: dn, m: .5 }).forEach(c => dormer(Fy, c - .5, c + .5, inset, H + inset * rs.s, .7, rs.s, { wall: q.wall, rh: .3, roof: q.roof, win: { r, trim: q.trim } }));
   chimney(w - .95, d / 2 - .3, H + rh - .25, 1.0, '#a8553f', { w: .6, d: .5 });
   pot(.28, d + .2, 0, { v: r() });
 }
@@ -192,9 +192,9 @@ function timberHouse(p) {
 }
 
 /* ---------- 7. grandma's house ---------- */
-const gmSize = p => [p.w || 4, p.d || 7, 4 + 1.7];
+const gmSize = p => [p.w || 4, p.d || 7, 6];
 function grandma(p) {
-  const q = D(p, { w: 4, d: 7, seed: 3, wall: '#f0d890', roof: '#9a4a3a', trim: '#fff8ea', door: '#d8607a', shut: '#5a8a7a' }), { w, d } = q, r = rng(q.seed), Dp = d - 1.5, H = 4, rh = 1.7;
+  const q = D(p, { w: 4, d: 7, seed: 3, wall: '#f0d890', roof: '#9a4a3a', trim: '#fff8ea', door: '#d8607a', shut: '#5a8a7a' }), { w, d } = q, r = rng(q.seed), Dp = d - 1.5, H = 4, rh = 2;
   const Fy = face('y', Dp), Fx = face('x', w), g = grassC();
   qz(0, w, Dp, d, 0, g[0], g[1]);
   for (let i = 0; i < 3; i++) qz(.75, 1.25, Dp + .15 + i * .45, Dp + .45 + i * .45, 0, '#cfc6b4', '#bdb4a2');
@@ -215,7 +215,7 @@ function grandma(p) {
   Fy.box(0, w, H - .14, .14, .08, q.trim, { ol: false });
   const rs = roofX(0, 0, H, w, Dp, rh, q.roof, { wall: q.wall, tick: true });
   win(Fx, Dp / 2 - .25, Dp / 2 + .25, H + .3, H + .8, { r, trim: q.trim, mull: 'cross', sill: false });
-  const inset = Dp * .16; dormer(Fy, w / 2 - .55, w / 2 + .55, inset, H + inset * rs.s, .85, rs.s, { wall: q.wall, roof: dk(q.roof, .15), win: { r, trim: q.trim, curt: '#fff8ea', on: true } });
+  const inset = Dp * .16; dormer(Fy, w / 2 - .55, w / 2 + .55, inset, H + inset * rs.s, .75, rs.s, { wall: q.wall, rh: .32, roof: q.roof, win: { r, trim: q.trim, curt: '#fff8ea', on: true } });
   chimney(w - 1.05, Dp / 2 - .35, H + rh - .3, 1.2, '#a8553f', { w: .8, d: .6 });
   drainpipe(Fx, Dp - .14, 0, H);
   // garden

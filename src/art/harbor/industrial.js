@@ -1,11 +1,11 @@
 // Railyard / industrial district buildings + the job sites (Pier 7 Freight, ZipParcel Depot) and roadside classics.
-import { U, PW, C, px, box, qy, qx, qz, lw, fq, glow, lit, cyl, cone, ball, spx, ellipse, PAT, rng, dk, lt, mix, textS, textY, foliage } from '../../engine/raster.js';
+import { U, PW, C, px, at, box, qy, qx, qz, lw, fq, glow, lit, cyl, cone, ball, spx, ellipse, PAT, rng, dk, lt, mix, textS, textY, foliage } from '../../engine/raster.js';
 import { Lc, Rc, walls, face, roll, door, gridWin, lamp, ladder, pipe, bulbs, rope, crate, barrel, drum, pallet, gull, gableS, hipS, snowTop, snowSlope, snowDisc, parapet, hcyl, band, taper, circ, disc, ring, roofPat, endPat, endBrick, ac, vent, skylight, stack, stripeHaz, chainlink, panels, bollardY, rail, winter, SNOW } from './_lib.js';
 
 const pier7 = {
   id: 'bld.harbor.pier7', kind: 'building', tags: ['harbor', 'industrial', 'warehousejob', 'warehouse', 'freight', 'job'],
   size: p => [p.w || 16, 9, 6.8], vb: p => [-.5, -.5, 0, (p.w || 16) + .8, 9.8, 8.4],
-  door: p => ({ side: 'y', at: (p && p.w || 16) - 3.6 }), light: { x: 12.4, y: 10, z: 0, r: 5 },
+  door: { side: 'y', at: 1.4 }, light: { x: 1.4, y: 10, z: 0, r: 5 },
   variants: [{ w: 16, seed: 1, wall: '#4f6f8f', name: 'PIER 7 FREIGHT' }, { w: 18, seed: 5, wall: '#7a8a6a', name: 'PIER 7 FREIGHT' }, { w: 14, seed: 9, wall: '#9a5a4a', name: 'PIER 7 FREIGHT' }],
   draw(p) {
     const w = p.w || 16, r = rng(p.seed || 1), wall = p.wall || '#4f6f8f', sd = 7.5, h = 5, rh = 1.7, sw = w - 5, name = p.name || 'PIER 7 FREIGHT', acc = '#f2c230';
@@ -23,6 +23,16 @@ const pier7 = {
     fq([[bc[0] + .01, bc[1] + .45, bc[2] + .5], [bc[0] + .01, bc[1] - .45, bc[2] + .5], [bc[0] + .01, bc[1] - .45, bc[2] + .28], [bc[0] + .01, bc[1] + .45, bc[2] + .28]], Rc('#d8452f'));
     fq([[bc[0] + .01, bc[1] - .45, bc[2] + .28], [bc[0] + .01, bc[1] - .2, bc[2] + .28], [bc[0] + .01, bc[1] + .25, bc[2] - .58], [bc[0] + .01, bc[1], bc[2] - .58]], Rc('#d8452f'));
     for (let x = 2; x < w - 1; x += 3.2) { vent(x, sd / 2, h + rh - .1); }
+    // office annex
+    const ax = 0, ay = 5.2, aw = 5, ad = 3.8, aH = 4, Ay = face('y', 9), Ax = face('x', ax + aw), brick = '#a8604a';
+    walls(ax, ay, 0, aw, ad, aH, brick, c => PAT.brick(c)); Ay.q(ax, ax + aw, 0, .3, Lc('#8c8a90')); Ax.q(ay, 9, 0, .3, Rc('#8c8a90'));
+    door(Ay, ax + 1.4, { c: '#2f4a6a' }); Ay.box(ax + .7, 0, 1.78, 1.4, .5, .08, '#39424e'); lamp(Ay, ax + 1.4, 1.72, { len: .3 });
+    gridWin(Ay, ax + 2.5, ax + 4.5, .7, 1.7, { on: true, cols: 4, rows: 2, sill: true });
+    Ay.sign(name, ax + .25, ax + 4.75, 2.12, 2.72, '#1f2a3a', '#ffd060', { lit: true });
+    for (const a of [ax + .5, ax + 2, ax + 3.5]) gridWin(Ay, a, a + 1, 2.95, 3.7, { on: r() < .6, cols: 2, rows: 2, sill: true });
+    for (const z of [.8, 2.95]) for (const a of [ay + .5, ay + 2.2]) gridWin(Ax, a, a + 1.1, z, z + .8, { on: r() < .6, cols: 2, rows: 2, sill: true });
+    parapet(ax, ay, aH, aw, ad, .3, .18, brick, '#6f6a70'); ac(ax + 1, ay + .8, aH); lw([ax + 3.5, ay + 1, aH], [ax + 3.5, ay + 1, aH + 1.8], '#4a4458'); lit(() => spx(ax + 3.5, ay + 1, aH + 1.8, 0, 0, '#ff5040'));
+    at(5, 0, 0, () => {
     // dock
     box(0, sd, 0, sw, 1.5, .6, '#b8b4aa', { l: PAT.stone(Lc('#b8b4aa')) }); qz(0, sw, 8.82, 9, .6, acc); for (let x = .8; x < sw; x += 2.2) qy(x, x + .25, 9, .2, .5, '#2e2a3a');
     const nd = Math.floor((sw - .6) / 2.9);
@@ -36,15 +46,7 @@ const pier7 = {
     // goods on the dock
     let x = .4; while (x < sw - 1.4) { const k = r(); if (k < .35) { pallet(x, 7.75, .6, 1.1, .9); crate(x + .1, 7.85, .76, .55); if (r() < .6) crate(x + .58, 7.95, .76, .45, '#c9a36a'); } else if (k < .55) { drum(x + .3, 8.2, .6, '#3f7fbf'); drum(x + .85, 8.3, .6, '#d8452f'); } else if (k < .7) crate(x, 7.8, .6, .8, '#a87a4a'); x += 1.6 + r(); }
     for (const sx of [1.2, sw - 1.6]) { for (let i = 0; i < 3; i++) box(sx + i * .3, 9 + i * .0, 0, .3, .5, .6 - i * .2 - .0, '#a8a49c', { ol: false }); }
-    // office annex
-    const ax = sw, ay = 5.2, aw = 5, ad = 3.8, aH = 4, Ay = face('y', 9), Ax = face('x', w), brick = '#a8604a';
-    walls(ax, ay, 0, aw, ad, aH, brick, c => PAT.brick(c)); Ay.q(ax, w, 0, .3, Lc('#8c8a90')); Ax.q(ay, 9, 0, .3, Rc('#8c8a90'));
-    door(Ay, ax + 1.4, { c: '#2f4a6a' }); Ay.box(ax + .7, 0, 1.78, 1.4, .5, .08, '#39424e'); lamp(Ay, ax + 1.4, 1.72, { len: .3 });
-    gridWin(Ay, ax + 2.5, ax + 4.5, .7, 1.7, { on: true, cols: 4, rows: 2, sill: true });
-    Ay.sign(name, ax + .25, ax + 4.75, 2.12, 2.72, '#1f2a3a', '#ffd060', { lit: true });
-    for (const a of [ax + .5, ax + 2, ax + 3.5]) gridWin(Ay, a, a + 1, 2.95, 3.7, { on: r() < .6, cols: 2, rows: 2, sill: true });
-    for (const z of [.8, 2.95]) for (const a of [ay + .5, ay + 2.2]) gridWin(Ax, a, a + 1.1, z, z + .8, { on: r() < .6, cols: 2, rows: 2, sill: true });
-    parapet(ax, ay, aH, aw, ad, .3, .18, brick, '#6f6a70'); ac(ax + 1, ay + .8, aH); lw([ax + 3.5, ay + 1, aH], [ax + 3.5, ay + 1, aH + 1.8], '#4a4458'); lit(() => spx(ax + 3.5, ay + 1, aH + 1.8, 0, 0, '#ff5040'));
+    });
     if (r() < .8) gull(4, sd / 2, h + rh + .02);
   },
 };
@@ -377,7 +379,7 @@ const diner = {
 
 const gas = {
   id: 'bld.ind.gasstation', kind: 'building', tags: ['industrial', 'gasstation', 'shop', 'roadside'],
-  size: [10, 8, 4.1], vb: [-.5, -.5, 0, 10.6, 8.6, 6.2],
+  size: [10, 8, 4.3], vb: [-.5, -.5, 0, 10.6, 8.6, 6.2],
   light: { x: 5, y: 5.6, z: 0, r: 6 },
   variants: [{ seed: 1, acc: '#d8452f', name: 'MAPLE GAS' }, { seed: 2, acc: '#2f8a5a', acc2: '#f2c230', name: 'BAY FUEL' }, { seed: 3, acc: '#2f5a9f', acc2: '#ff7a1a', name: 'COAST GAS' }],
   draw(p) {
@@ -392,7 +394,8 @@ const gas = {
     // propane cage + air pump
     box(kw + .2, .4, 0, .9, .5, 1.2, '#c8ccd0'); chainlink(face('y', .92), kw + .2, kw + 1.1, .1, 1.2, '#7c8690'); cyl(kw + .5, .65, .1, .15, .5, '#f4f0e8', { ol: false }); cyl(kw + .85, .65, .1, .15, .5, '#f4f0e8', { ol: false });
     // ground glow under canopy
-    const cx0 = 1.2, cx1 = 9.2, cy0 = 3.8, cy1 = 7.6, cz = 3.5;
+    const cx0 = 2, cx1 = 9.2, cy0 = 4.3, cy1 = 7.5, cz = 3.8;
+    cyl(.6, 3.6, 0, .22, .7, '#3f8a55');
     glow(() => qz(cx0 + .6, cx1 - .6, cy0 + .5, cy1 - .3, .02, '#ffe9a8', 'glass'));
     // island + pumps
     box(2.4, 5.3, 0, 5.6, .8, .15, '#c8c4b8'); stripeHaz(face('y', 6.1), 2.4, 8, 0, .15);
@@ -406,14 +409,13 @@ const gas = {
     box(cx0, cy0, cz, cx1 - cx0, cy1 - cy0, .5, '#f4f0e8', { l: () => Lc('#f4f0e8') }); const Cy = face('y', cy1), Cx = face('x', cx1);
     Cy.q(cx0, cx1, cz + .12, cz + .38, Lc(acc)); Cx.q(cy0, cy1, cz + .12, cz + .38, Rc(acc)); Cy.q(cx0, cx1, cz + .04, cz + .1, Lc(acc2)); Cx.q(cy0, cy1, cz + .04, cz + .1, Rc(acc2));
     lit(() => { Cy.text(name, (cx0 + cx1) / 2 - (name.length * 4 - 1) / 32, cz + .41, '#fff8e0'); Cy.l(cx0, cz, cx1, cz, '#fff2c4'); Cx.l(cy0, cz, cy1, cz, '#ffe9a8'); });
+    qz(cx0 + .3, cx1 - .3, cy0 + .3, cy1 - .3, cz + .5, '#e4e0d6'); lw([cx0 + .3, cy0 + .3, cz + .5], [cx1 - .3, cy0 + .3, cz + .5], '#c8c4b8'); lw([cx0 + .3, cy0 + .3, cz + .5], [cx0 + .3, cy1 - .3, cz + .5], '#c8c4b8');
     snowTop(cx0, cx1, cy0, cy1, cz + .5);
     // price pylon
     const px0 = 9.3, py0 = 6.6; box(px0, py0, 0, .3, 1, 5.6, '#e4e0d6'); const S = face('y', py0 + 1.005);
     // (pylon faces +x for a readable board)
     const X = face('x', px0 + .305); lit(() => { X.q(py0 + .06, py0 + .94, 4.5, 5.5, acc); X.text('GAS', py0 + .87, 5.2, '#fff8e0'); X.q(py0 + .06, py0 + .94, 3.7, 4.4, '#1f2430'); X.text('149', py0 + .87, 4.25, '#7af0a0'); X.q(py0 + .06, py0 + .94, 2.9, 3.6, '#1f2430'); X.text('162', py0 + .87, 3.45, '#ffb347'); });
     snowTop(px0, px0 + .3, py0, py0 + 1, 5.6, .04);
-    // bin + squeegee
-    cyl(.6, 3.6, 0, .22, .7, '#3f8a55');
   },
 };
 

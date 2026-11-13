@@ -9,7 +9,7 @@ function planting(x, y, z, r, seed, kind) {
   if (kind === 'shrub') { clumps([{ x, y, z: z + r * .9, r: r * 1.05, c: everC(seed || 0, '#3f8f4a', .4) }, { x: x - r * .3, y: y + r * .3, z: z + r * .6, r: r * .7, c: everC((seed || 0) + 1, '#3f8f4a', .4) }], { seed, bump: .12, snow: winter() }); return; }
   if (s === 3) { clumps([{ x, y, z: z + r * .45, r: r * .75, sq: .7, c: everC(seed || 0) }], { seed, bump: .15, snow: true }); const q = P(x, y, z + r); px(q[0] + 2, q[1] + 2, C('#d8342c')); px(q[0] - 3, q[1] + 3, C('#d8342c')); return; }
   const c = s === 2 ? '#8a9a45' : leafC(seed || 0), cols = s === 2 ? ['#e8822a', '#b8432a', '#e8b63a'] : s === 0 ? ['#ff8ab0', '#ffd23a', '#ffffff'] : FL;
-  clumps([{ x, y, z: z + r * .45, r: r * .95, sq: .65, c }], { seed, bump: .18, dots: { c: cols, p: .42 } });
+  clumps([{ x, y, z: z + r * .45, r: r * .95, sq: .65, c }], { seed, bump: .18 }); blooms(x - r * .6, x + r * .6, y - r * .6, y + r * .6, z + r * .55, cols, Math.max(4, Math.round(r * 22)), seed, null);
 }
 const lampTags = (...t) => ['street', 'lamp', 'light', ...t];
 
@@ -138,7 +138,7 @@ export default [
       const c = p.c || '#2f5fa8';
       for (const [x, y] of [[.08, .08], [.38, .08], [.08, .38], [.38, .38]]) lw([x, y, 0], [x, y, .3], '#2a2f3a');
       box(.05, .05, .25, .4, .4, .7, c); cyl(.25, .25, .95, .2, .12, c, { ol: false }); box(.05, .05, .93, .4, .4, .12, c, { ol: false, t: winter() ? SNOW : lt(c, .12) });
-      qy(.1, .4, .45, .76, .86, '#2a2433'); signY('MAIL', .07, .43, .455, .42, .68, c, '#ffffff', { frame: false }); qx(.45, .12, .38, .4, .6, '#e8e2d4');
+      qy(.1, .4, .45, .76, .86, '#2a2433'); qy(.14, .36, .455, .46, .62, '#f4f0e0'); lw([.14, .455, .62], [.25, .455, .54], dk(c, .2)); lw([.25, .455, .54], [.36, .455, .62], dk(c, .2)); qx(.45, .12, .38, .4, .6, '#e8e2d4');
     },
   },
   {
@@ -165,7 +165,6 @@ export default [
   },
   {
     id: 'prop.street.bollard', kind: 'prop', tags: ['street', 'bollard', 'road', 'parking', 'segment'], solid: true, size: p => [p.len || .5, .5, .9], vb: p => [-.1, -.1, 0, (p.len || .5) + .1, .6, 1.2],
-    light: { x: .25, y: .25, z: 0, r: 0 },
     variants: [{}, { style: 'stone' }, { style: 'lit' }, { style: 'chain', len: 2 }, { style: 'steel', len: 2 }, { style: 'flex' }, { style: 'chain', len: 4 }],
     draw(p) {
       const st = p.style || 'steel', L = p.len || .5, n = Math.max(1, Math.round(L / (st === 'chain' ? 2 : 1))) + (L > .5 ? 1 : 0);
@@ -235,12 +234,12 @@ export default [
   },
   {
     id: 'prop.street.vending', kind: 'prop', tags: ['street', 'vending', 'shop', 'station', 'lit'], solid: true, size: p => [p.n === 2 ? 2 : 1, 1, 2], use: { x: .5, y: 1.4 }, light: { x: .5, y: 1.2, z: 0, r: 2.2 },
-    variants: [{ seed: 1 }, { seed: 2, c: '#2f5fa8', kind: 'snack' }, { seed: 3, c: '#e8e2d4', kind: 'drink' }, { seed: 4, n: 2 }, { seed: 5, c: '#3fa890', kind: 'ticket', name: 'TICKETS' }],
+    variants: [{ seed: 1 }, { seed: 2, c: '#2f5fa8', kind: 'snack' }, { seed: 3, c: '#e8e2d4', kind: 'drink' }, { seed: 4, n: 2 }, { seed: 5, c: '#3fa890', kind: 'ticket', name: 'TIX' }],
     draw(p) {
       const one = (x, c, kind, seed, name) => {
         const R = rng(seed * 7 + 2);
         box(x + .08, .12, 0, .84, .76, 1.9, c, { t: winter() ? SNOW : lt(c, .15) });
-        if (kind === 'ticket') { signY(name || 'TICKETS', x + .14, x + .86, .885, 1.5, 1.75, '#f4f0e0', dk(c, .3), { lit: true }); screenY(x + .2, x + .62, .885, .95, 1.38, '#5ad0c0', '#7fe0d0'); qy(x + .68, x + .82, .885, 1.0, 1.3, '#8a8f9a'); qy(x + .2, x + .8, .885, .5, .7, '#2a2433'); return; }
+        if (kind === 'ticket') { signY(String(name || 'TIX').slice(0, 3), x + .14, x + .86, .885, 1.45, 1.8, '#f4f0e0', dk(c, .3), { lit: true }); screenY(x + .2, x + .62, .885, .95, 1.38, '#5ad0c0', '#7fe0d0'); qy(x + .68, x + .82, .885, 1.0, 1.3, '#8a8f9a'); qy(x + .2, x + .8, .885, .5, .7, '#2a2433'); return; }
         lit(() => { qy(x + .14, x + .68, .885, .72, 1.76, '#eaf6f4'); for (let r = 0; r < 4; r++) for (let i = 0; i < 4; i++) { const q = P(x + .19 + i * .125, .885, 1.66 - r * .25), cc = kind === 'snack' ? ['#e8b63a', '#d8342c', '#4fa850', '#b06ae0', '#f08a1c'][Math.floor(R() * 5)] : ['#d8342c', '#3b7bd8', '#4fa850', '#f08a1c', '#3a3440'][Math.floor(R() * 5)]; px(q[0], q[1], C(lt(cc, .3))); px(q[0], q[1] + 1, C(cc)); px(q[0], q[1] + 2, C(cc)); if (kind === 'snack') { px(q[0] + 1, q[1] + 1, C(dk(cc, .15))); px(q[0] + 1, q[1] + 2, C(dk(cc, .15))); } } });
         for (let r = 1; r < 4; r++) lw([x + .14, .885, 1.76 - r * .25 - .02], [x + .68, .885, 1.76 - r * .25 - .02], '#8a959e');
         lw([x + .14, .885, .72], [x + .68, .885, .72], dk(c, .5)); lw([x + .14, .885, 1.76], [x + .68, .885, 1.76], dk(c, .5)); lw([x + .14, .885, .72], [x + .14, .885, 1.76], dk(c, .5)); lw([x + .68, .885, .72], [x + .68, .885, 1.76], dk(c, .5));
@@ -279,7 +278,7 @@ export default [
       if (k === 'boxes') { cbox(.05, .1, 0, .6, .55, .5); cbox(w - .5, .35, 0, .45, .45, .35); cbox(.12, .16, .5, .42, .4, .32); if (p.cat) cat(.3, .4, .82, typeof p.cat === 'string' ? p.cat : '#3a3440'); }
       if (k === 'pallet') { for (const y of [.1, .45, .8]) box(.05, y, 0, w - .1, .1, .08, '#a8824a', { ol: false }); box(.05, .08, .08, w - .1, .84, .05, '#c9a268', { t: (x, y) => Math.floor(y * 8) % 2 ? '#c9a268' : dk('#c9a268', .3) }); crate(.15, .2, .13, .5, .5, .4, '#b8925a'); crate(.75, .3, .13, .5, .5, .4, '#c9a268'); crate(.4, .28, .53, .5, .45, .35, '#d8b070'); }
       if (k === 'mixed') { cbox(1.1, .2, 0, .6, .55, .5); crate(1.2, .7, 0, .4, .28, .3, '#b8925a'); if (p.cat) cat(1.35, .45, .5, typeof p.cat === 'string' ? p.cat : '#3a3440'); const s = P(1.0, .9, 0); px(s[0], s[1], C('#8a959e')); px(s[0] + 1, s[1], C('#c8ccd4')); px(s[0] - 4, s[1] + 1, C('#d8a23a')); }
-      if (k === 'dumpster') { const c = p.c || '#2f6f5f'; box(.1, .1, .1, w - .2, .8, .9, c, { l: PAT.planks(dk(c, .18), 6), r: PAT.planks(dk(c, .36), 6) }); fq([[.05, .05, 1.2], [w - .05, .05, 1.2], [w - .05, .95, 1.0], [.05, .95, 1.0]], winter() ? SNOW : dk(c, .3)); qy(.05, w - .05, .95, .94, 1.0, dk(c, .45)); lw([.05, .95, 1.0], [w - .05, .95, 1.0], lt(c, .3)); box(.2, .9, 0, .14, .1, .12, '#2a2f3a', { ol: false }); box(w - .34, .9, 0, .14, .1, .12, '#2a2f3a', { ol: false }); textY('MB', .7, .905, .75, lt(c, .5)); bag(w - .1, 1.0, 0, .2, '#3a3440'); }
+      if (k === 'dumpster') { const c = p.c || '#2f6f5f'; box(.1, .1, .1, w - .2, .8, .9, c, { l: PAT.planks(dk(c, .18), 6), r: PAT.planks(dk(c, .36), 6) }); fq([[.05, .05, 1.2], [w - .05, .05, 1.2], [w - .05, .95, 1.0], [.05, .95, 1.0]], winter() ? SNOW : dk(c, .3)); qy(.05, w - .05, .95, .94, 1.0, dk(c, .45)); lw([.05, .95, 1.0], [w - .05, .95, 1.0], lt(c, .3)); box(.2, .9, 0, .14, .1, .12, '#2a2f3a', { ol: false }); box(w - .34, .9, 0, .14, .1, .12, '#2a2f3a', { ol: false }); textY('BAY', .6, .905, .75, lt(c, .5)); bag(w - .1, 1.0, 0, .2, '#3a3440'); }
     },
   },
   {

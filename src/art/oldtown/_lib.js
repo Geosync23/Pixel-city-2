@@ -315,6 +315,7 @@ const slopeLite = onY => onY !== isFlipped();
 /** gable roof, ridge along x: big slope faces the street (+y), gable end wall on +x. o: over, wall, wallPat, tick */
 export function roofX(x, y, z, w, d, h, c, o = {}) {
   const ov = o.over === undefined ? .15 : o.over, m = y + d / 2, wc = o.wall, sc = slopeLite(true) ? c : dk(c, .2), oc = dk(c, .65);
+  if (h < d / 2) { const Bk = [[x, y, z], [x + w, y, z], [x + w, m, z + h], [x, m, z + h]]; fq(Bk, shingle(dk(c, .32), true, o)); if (isWinter()) snowQuad(Bk, .08, .28, SNOW2); lw(Bk[0], Bk[1], oc); }
   if (wc) fq([[x + w, y, z], [x + w, y + d, z], [x + w, m, z + h]], o.wallPat || sX(wc));
   const ez = z - ov * h / (d / 2), S = [[x, y + d + ov, ez], [x + w, y + d + ov, ez], [x + w, m, z + h], [x, m, z + h]];
   fq(S, shingle(sc, true, o));
@@ -325,6 +326,7 @@ export function roofX(x, y, z, w, d, h, c, o = {}) {
 /** gable roof, ridge along y: gable end faces the street (+y), visible slope faces +x. */
 export function roofY(x, y, z, w, d, h, c, o = {}) {
   const ov = o.over === undefined ? .15 : o.over, m = x + w / 2, wc = o.wall, sc = slopeLite(false) ? c : dk(c, .2), oc = dk(c, .65), f = y + d + (o.ovf === undefined ? .12 : o.ovf);
+  if (h < w / 2) { const Bk = [[x, f, z], [x, y, z], [m, y, z + h], [m, f, z + h]]; fq(Bk, shingle(dk(c, .1), false, o)); if (isWinter()) snowQuad(Bk, .08, .28, SNOW); lw(Bk[0], Bk[1], oc); }
   if (wc) fq([[x, y + d, z], [x + w, y + d, z], [m, y + d, z + h]], o.wallPat || sY(wc));
   const ez = z - ov * h / (w / 2), S = [[x + w + ov, f, ez], [x + w + ov, y, ez], [m, y, z + h], [m, f, z + h]];
   fq(S, shingle(sc, false, o));
@@ -343,7 +345,8 @@ export function dormer(F, u0, u1, inset, zb, dh, s, o = {}) {
   else {
     fq([F.P(u0, zb + dh, -inset), F.P(u1, zb + dh, -inset), F.P(um, top, -inset)], F.c(wc));
     const R = [F.P(u1 + ov, zb + dh - .06, -inset + ov), F.P(u1 + ov, zb + dh - .06, bk(dh)), F.P(um, top, bk(dh + rh)), F.P(um, top, -inset + ov)];
-    fq(R, isWinter() ? SNOW2 : G.c(rc));
+    fq([F.P(u0 - ov, zb + dh - .06, -inset + ov), F.P(u0 - ov, zb + dh - .06, bk(dh)), F.P(um, top, bk(dh + rh)), F.P(um, top, -inset + ov)], isWinter() ? SNOW : lt(rc, .08));
+    fq(R, isWinter() ? SNOW2 : dk(rc, .22));
     const oc = dk(rc, .6); lw(R[0], R[3], oc); lw(R[0], R[1], oc); lw(F.P(u0 - ov, zb + dh - .06, -inset + ov), R[3], oc); lw(F.P(u0 - ov, zb + dh - .12, -inset + ov), F.P(um, top - .06, -inset + ov), F.c(rc)); lw(F.P(u1 + ov, zb + dh - .12, -inset + ov), F.P(um, top - .06, -inset + ov), F.c(rc));
   }
   win(F.off(-inset), u0 + .12, u1 - .12, zb + .14, zb + dh - .1, Object.assign({ sill: false, mull: 'v' }, o.win));

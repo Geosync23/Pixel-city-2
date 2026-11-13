@@ -49,25 +49,25 @@ export default [
       glow(() => qy(cx - 3.3, cx + 3.3, d, 0, 2.3, '#ffd98a', 'glass'));
       const ff = flatRoof(0, fy, HF, w, 3, wall, { cap: lt(wall, .4), roof: '#8a8078' });
       // lower pylon on the facade
-      box(cx - 1.1, d, 3.2, 2.2, .3, HF + .3 - 3.2, acc, { ol: false });
+      box(cx - 1.1, d, 3.5, 2.2, .3, HF + .3 - 3.5, acc, { ol: false });
       // marquee
-      const mx0 = cx - 3.5, mx1 = cx + 3.5, mz = 2.3, mh = 1.0, md = 1.4;
+      const mx0 = cx - 3.5, mx1 = cx + 3.5, mz = 2.3, mh = 1.2, md = 1.4;
       box(mx0, d, mz, mx1 - mx0, md, mh, '#f1e2c0');
       lit(() => { qy(mx0 + .15, mx1 - .15, d + md, mz + .14, mz + mh - .14, cream); qx(mx1, d + .12, d + md - .12, mz + .14, mz + mh - .14, '#f4e8c4'); });
-      lit(() => { sign('y', nm, mx0 + .15, mx1 - .15, d + md + .01, mz + .5, mz + mh - .12, null, red); sign('y', p.film || 'NOW SHOWING', mx0 + .15, mx1 - .15, d + md + .01, mz + .13, mz + .52, null, '#2a2540'); txt('x', 'OPEN', d + md - .2, mx1 + .01, mz + .68, red); });
+      lit(() => { sign('y', nm, mx0 + .15, mx1 - .15, d + md + .01, mz + .62, mz + mh - .12, null, red); sign('y', p.film || 'NOW SHOWING', mx0 + .15, mx1 - .15, d + md + .01, mz + .14, mz + .62, null, '#2a2540'); txt('x', 'OPEN', d + md - .2, mx1 + .01, mz + .78, red); });
       bulbs('y', mx0 + .1, mx1 - .1, d + md, mz + mh - .04, { step: .25 }); bulbs('y', mx0 + .1, mx1 - .1, d + md, mz + .06, { step: .25 }); bulbs('x', d + .1, d + md - .1, mx1, mz + mh - .04, { step: .25 }); bulbs('x', d + .1, d + md - .1, mx1, mz + .06, { step: .25 });
       glow(() => { for (let x = mx0 + .5; x < mx1; x += 1) { const q = PW(x, d + md - .4, mz); px(q[0], q[1] + 1, C('#fff2a8')); } });
       snowTop(mx0, mx1, d, d + md, mz + mh + .001, .15);
       // upper pylon with stacked letters
       const pt = HF + 3.2;
       box(cx - 1.1, d - .9, HF + .3, 2.2, 1.2, pt - HF - .3, acc);
-      qy(cx - 1.1, cx + 1.1, d + .3, 3.3, pt, dk(acc, .18)); lw([cx - 1.1, d + .3, 3.3], [cx - 1.1, d + .3, pt], dk(acc, .7)); lw([cx + 1.1, d + .3, 3.3], [cx + 1.1, d + .3, pt], lt(acc, .3));
-      qy(cx - .8, cx + .8, d + .3, 3.45, pt - .15, dk(acc, .5));
+      qy(cx - 1.1, cx + 1.1, d + .3, 3.5, pt, dk(acc, .18)); lw([cx - 1.1, d + .3, 3.5], [cx - 1.1, d + .3, pt], dk(acc, .7)); lw([cx + 1.1, d + .3, 3.5], [cx + 1.1, d + .3, pt], lt(acc, .3));
+      qy(cx - .8, cx + .8, d + .3, 3.65, pt - .15, dk(acc, .5));
       box(cx - .8, d - .7, pt, 1.6, 1.0, .45, lt(acc, .15)); box(cx - .45, d - .5, pt + .45, .9, .6, .45, gold);
       lw([cx, d - .2, pt + .9], [cx, d - .2, pt + 1.7], '#c9ccd2'); lit(() => { const q = PW(cx, d - .2, pt + 1.7); px(q[0], q[1], C('#ff5a4a')); px(q[0], q[1] - 1, C('#ff5a4a')); });
-      const n = short.length, st = Math.min(.78, (pt - 3.9) / n), z0 = pt - .35 - ((pt - 3.9) - st * n) / 2;
+      const n = short.length, st = Math.min(.78, (pt - 4.1) / n), z0 = pt - .35 - ((pt - 4.1) - st * n) / 2;
       lit(() => { for (let i = 0; i < n; i++) txt('y', short[i], cx - .19, d + .31, z0 - i * st, gold, 2); });
-      bulbsV('y', cx - .95, d + .31, 3.5, pt - .2, { step: .3, cols: ['#fff2a8', '#ff8f6a'] }); bulbsV('y', cx + .95, d + .31, 3.5, pt - .2, { step: .3, cols: ['#ff8f6a', '#fff2a8'] });
+      bulbsV('y', cx - .95, d + .31, 3.7, pt - .2, { step: .3, cols: ['#fff2a8', '#ff8f6a'] }); bulbsV('y', cx + .95, d + .31, 3.7, pt - .2, { step: .3, cols: ['#ff8f6a', '#fff2a8'] });
       snowTop(cx - .8, cx + .8, d - .7, d + .3, pt + .451, .1);
     },
   },

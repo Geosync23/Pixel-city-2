@@ -30,21 +30,20 @@ function tower(p) {
   for (let i = 0; i <= 8; i++) { const a = VIS0 + (VIS1 - VIS0) * i / 8; lw([cx + 2.5 * Math.cos(a), cy + 2.5 * Math.sin(a), zt + .9], [cx + 2.5 * Math.cos(a), cy + 2.5 * Math.sin(a), zt + 1.25], '#55627a'); }
   // glass cab (outward-leaning panes)
   full(1.9, zt + .9, zt + 1.25, '#f4f2ea');
-  full(1.9, zt + 1.25, zt + 2.35, '#3d4654', { r1: 2.35, flat: true });
-  full(1.9, zt + 1.3, zt + 2.3, i => i % 3 === 0 ? '#a9d8e8' : '#6fb4cf', { r1: 2.35, gap: .09 });
-  glow(() => full(1.9, zt + 1.3, zt + 2.3, i => i % 4 === 1 ? '#bff5e0' : '#8fe6d0', { r1: 2.35, gap: .09, flat: true }));
-  full(2.6, zt + 2.35, zt + 2.65, '#f4f2ea');
-  discZ(cx, cy, zt + 2.65, 2.6, winter() ? SNOW : '#e9e7df', null, 24); discZ(cx, cy, zt + 2.65, 2.1, winter() ? SNOW : '#d2d0c8', null, 24);
-  circ(cx, cy, 2.6, zt + 2.65, 0, Math.PI * 2, '#fbfaf4'); circ(cx, cy, 2.6, zt + 2.35, VIS0, VIS1, dk(wall, .7)); circ(cx, cy, 2.6, zt + 2.65, VIS1, VIS0 + Math.PI * 2, dk(wall, .7));
-  lit(() => { for (let i = 0; i < 6; i++) { const a = VIS0 + .2 + (VIS1 - VIS0 - .4) * i / 5; spx(cx + 2.6 * Math.cos(a), cy + 2.6 * Math.sin(a), zt + 2.5, 0, 0, '#8fe0ff'); } });
+  full(1.9, zt + 1.25, zt + 2.75, '#3d4654', { r1: 2.4, flat: true });
+  full(1.9, zt + 1.3, zt + 2.7, i => i % 3 === 0 ? '#a9d8e8' : '#6fb4cf', { r1: 2.4, gap: .09 });
+  glow(() => full(1.9, zt + 1.3, zt + 2.7, i => i % 4 === 1 ? '#bff5e0' : '#8fe6d0', { r1: 2.4, gap: .09, flat: true }));
+  full(2.5, zt + 2.75, zt + 3.0, '#f4f2ea');
+  discZ(cx, cy, zt + 3.0, 2.5, winter() ? SNOW : '#e9e7df', null, 24); discZ(cx, cy, zt + 3.0, 2.0, winter() ? SNOW : '#d2d0c8', null, 24);
+  circ(cx, cy, 2.5, zt + 3.0, 0, Math.PI * 2, '#fbfaf4'); circ(cx, cy, 2.5, zt + 2.75, VIS0, VIS1, dk(wall, .7)); circ(cx, cy, 2.5, zt + 3.0, VIS1, VIS0 + Math.PI * 2, dk(wall, .7));
+  lit(() => { for (let i = 0; i < 6; i++) { const a = VIS0 + .2 + (VIS1 - VIS0 - .4) * i / 5; spx(cx + 2.5 * Math.cos(a), cy + 2.5 * Math.sin(a), zt + 2.88, 0, 0, '#8fe0ff'); } });
   // radar + antennas + beacon
-  const zr = zt + 2.65;
+  const zr = zt + 3.0;
   box(cx - .3, cy - .3, zr, .6, .6, .5, '#8a93a0'); box(cx - .07, cy - .07, zr + .5, .14, .14, .7, '#6b7482', { ol: false });
   const rd = [[cx - 1.3, cy + .5, zr + 1.0], [cx + 1.1, cy - .9, zr + 1.0], [cx + 1.25, cy - .75, zr + 1.75], [cx - 1.15, cy + .65, zr + 1.75]];
   fq(rd, PAT ? '#f08a2c' : '', '#f4f2ea'); for (let i = 0; i < 4; i++) lw(rd[i], rd[(i + 1) % 4], '#8a4a1c'); lw([cx - .1, cy - .1, zr + 1.0], [cx - .1, cy - .1, zr + 1.75], '#8a4a1c');
   lw([cx + 1.6, cy + 1.2, zr], [cx + 1.6, cy + 1.2, zr + 2.2], '#55627a'); lw([cx - 1.4, cy + 1.6, zr], [cx - 1.4, cy + 1.6, zr + 1.5], '#55627a'); lw([cx + .9, cy + 1.9, zr], [cx + .9, cy + 1.9, zr + 1.1], '#55627a');
   lamp(cx + 1.6, cy + 1.2, zr + 2.25, '#ff4a3a', true); lamp(cx - 1.4, cy + 1.6, zr + 1.55, '#ffffff');
-  glow(() => { fq([[cx + 2.4, cy + 2.4, zt + 1.6], [cx + 6, cy + 4.6, zt + 1.3], [cx + 6, cy + 5.2, zt + 1.5]], '#d8ffe8', 'glass'); });
 }
 
 /* ---------- hangars ---------- */
@@ -92,6 +91,7 @@ function hangarBox(p) {
   qy(0, mw, d, H - .9, H - .5, dk('#f4f2ea', .18)); qx(mw, 0, d, H - .9, H - .5, dk('#f4f2ea', .36));
   hangarDoors(.8, mw - .8, d + .01, H - 1.1, p.door || '#e6e9ea', p.open === undefined ? 0 : p.open, Math.max(3, Math.round((mw - 1.6) / 1.8)));
   gable(0, 0, H, mw, d, 1.3, 'y', winter() ? SNOW : '#c9d2d8', { wall: c, over: .2 });
+  for (const y of [d * .25, d * .6]) box(mw / 2 - .3, y, H + 1.2, .6, 1.2, .3, '#8a93a0');
   bsignY(p.name || 'MAPLE AIR TECHNICS', mw / 2 - Math.min(mw / 2 - .6, 3.4), mw / 2 + Math.min(mw / 2 - .6, 3.4), d + .02, H - .98, H - .42, '#f4f2ea', p.ink || NAVY, { lit: true });
   bmp('y', LEAF, mw / 2 - 9 / 32, d + .02, H + .95, { '#': p.logo || AP.red });
   // annex
@@ -152,7 +152,7 @@ function fire(p) {
     else { qy(x, x1, d, 0, 2.4, PAT.siding('#e0e3e6', 3)); for (let k = 0; k < 3; k++) winY(x + .15 + k * (x1 - x - .3) / 3 + .05, x + .15 + (k + 1) * (x1 - x - .3) / 3 - .05, d, 1.4, 1.85, { on: r() < .5 }); }
     lit(() => wtext('y', String(i + 1), (x + x1) / 2 - .1, d + .01, 2.47 + .25, '#c94436'));
   }
-  bsignY(p.name || 'FIRE & RESCUE', .5, tx - .3, d + .02, H - .62, H - .1, null, '#c94436', { lit: true });
+  bsignY(p.name || 'FIRE & RESCUE', tx / 2 - 2, tx / 2 + 2, d + .02, H - .62, H - .1, '#fff8e0', '#c94436', { lit: true });
   qz(.15, w - .15, .15, d - .15, H, '#b9b7b6'); snowTop(.1, w - .1, .1, d - .1, H + .01); acUnit(1, 1, H);
   // hose / watch tower
   box(tx, d - 1.8, 0, 1.8, 1.8, 6.2, '#e4e2da', { l: PAT.stucco(dk('#e4e2da', .18)), r: PAT.stucco(dk('#e4e2da', .36)) });
@@ -323,7 +323,7 @@ function shelter(p) {
 }
 
 export default [
-  { id: 'bld.airport.tower', kind: 'building', tags: ['airport', 'landmark', 'tower'], size: p => [6, 6, 2.2 + (p.h || 11) + 2.7], vb: p => [-.4, -.4, 0, 9.5, 8.8, 2.2 + (p.h || 11) + 5.6], door: { side: 'y', at: 1.1 },
+  { id: 'bld.airport.tower', kind: 'building', tags: ['airport', 'landmark', 'tower'], size: p => [6, 6, 2.2 + (p.h || 11) + 3], vb: p => [-.4, -.4, 0, 9.5, 8.8, 2.2 + (p.h || 11) + 5.6], door: { side: 'y', at: 1.1 },
     variants: [{ h: 11, seed: 1 }, { h: 8, seed: 3, accent: '#f08a2c' }], draw: tower },
   { id: 'bld.airport.hangar.arch', kind: 'building', tags: ['airport', 'hangar', 'airside'], size: p => [p.w || 12, p.d || 10, 1.6 + (p.rise || 3.9)], door: { side: 'y', at: .7 },
     variants: [{ w: 12, d: 10, seed: 1 }, { w: 10, d: 8, seed: 2, col: '#c9b48a', name: 'HANGAR 2', open: 0, rise: 3.4 }, { w: 16, d: 12, seed: 3, col: '#8fa9c9', name: 'HANGAR 3', open: 2.4, rise: 4.6, logo: '#27456b' }], draw: hangarArch },
