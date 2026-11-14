@@ -30,6 +30,7 @@ Last updated: stage 14 (apps) — CLEAN STOP before the account move.
 - airport interior: plane cabin, concourse, tram, terminal; new opening sequence.
 - stalls + welcome glow (src/sim/stalls.js), addresses (src/sim/addresses.js).
 - bladder need + bathrooms as own rooms + restrooms everywhere (docs/reports/bladder_bath.md).
+- all 9 player homes unique (docs/reports/unique_homes.md).
 - 46 apartment + office lobbies (docs/reports/lobbies.md).
 - unique rooms for all 53 converted places: 26 food & drink + 27 shops/services/groceries (docs/reports/unique_food.md, unique_shops.md), with venue + browsing activities.
 - public places: 53 generic enterable venues + 8 walk-up windows converted from existing buildings, 5 extra groceries, 50 new food/gift items; phone map shows street names + addresses.

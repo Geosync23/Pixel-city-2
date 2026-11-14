@@ -57,7 +57,7 @@ function build() {
   Cn('bed', 23, 1, { w: 3.5, d: 3.5, kind: 'tropical', seed: 9 }); inBed('palm', 25, 1.5, { kind: 'coconut', h: 4.4, seed: 6 }); inBed('palm', 23.5, 3, { kind: 'date', h: 3, seed: 4 }); inBed('banana', 25.5, 3.5, { seed: 4 });
   Cn('bed', 22.5, 7.5, { w: 4, d: 3.5, kind: 'tropical', seed: 11 }); inBed('palm', 25, 8, { kind: 'areca', h: 2.8, seed: 9 }); inBed('palm', 23, 9, { kind: 'coconut', h: 3.8, seed: 7, lean: .4 }); inBed('banana', 25, 10, { seed: 6 }); inBed('cycad', 23.5, 8, { seed: 9 });
   Cn('mister', 13.5, 5, { w: 4 }, { z: 3.2, anim: 4, mist: 1 }); Cn('mister', 22.5, 5, { w: 4 }, { z: 3.2, anim: 4, mist: 1 });
-  Cn('bench', 14, 11.5); Cn('bench', 24.5, 11.5); Cn('lamp', 17, 12); Cn('lamp', 22.5, 12); Cn('lamp', 17, 4.5);
+  Cn('bench', 14, 11); Cn('bench', 24.5, 11); Cn('lamp', 17, 11); Cn('lamp', 22.5, 11); Cn('lamp', 17, 4.5);
   Cn('plaque', 15, 4.5, {}, { fact: 'coconut' }); Cn('plaque', 24.5, 4.5, {}, { fact: 'banana' }); Cn('plaque', 16.5, 11, {}, { fact: 'cycad' });
   S(18.3, 3.3, 0, { anim: 'phone' }); S(21.7, 3.4, 2); S(15.3, 5.4, 3, { p: .6 }); S(24.8, 5.4, 3, { p: .6 }); S(18.4, 7.6, 0, { busy: 1 }); S(21.6, 9.4, 2, { busy: 1, age: 'kid', lines: LINES.kid });
   // ---- lily pool (centre)
@@ -66,10 +66,10 @@ function build() {
   Cn('bench', 24, 13.5); Cn('bench', 11.5, 18.5); Cn('barrow', 11.5, 12); Cn('lamp', 26, 19);
   // ---- entrance hall
   Cn('gate', 13, 20, { w: 3.5 }, { gate: 1 }); Cn('gate', 23.5, 20, { w: 3.5 }, { gate: 1 });
-  Cn('counter', 22.5, 23.5, { kind: 'ticket', w: 2.5 }, { tags: ['cons_ticket'] }); S(23.75, 23.05, 1, { kind: 'staff', label: 'Ticket desk', lines: LINES.staff });
-  Cn('mapboard', 14.5, 22.5); Cn('urn', 18, 26.5, { seed: 2 }, { seasonal: 1 }); Cn('urn', 21.5, 26.5, { seed: 5 }, { seasonal: 1 }); Cn('lamp', 17.5, 21); Cn('lamp', 22, 21);
-  Cn('bed', 16.5, 23.5, { w: 2, d: 1, kind: 'orchid', seed: 21 }, { rare: 1, solid: false }); Cn('plaque', 17, 24.5, { c: '#b8562a' }, { rare: 1, fact: 'rare' });
-  S(15.3, 23.4, 3, { p: .6 }); S(19, 24.6, 1, { anim: 'phone', p: .5 }); S(24, 25, 3, { p: .5 }); S(24.6, 24.9, 3, { busy: 1 }); S(20.3, 20.9, 3, { p: .5 });
+  Cn('counter', 22.5, 22, { kind: 'ticket', w: 2.5 }, { tags: ['cons_ticket'] }); S(23.75, 21.55, 1, { kind: 'staff', label: 'Ticket desk', lines: LINES.staff });
+  Cn('mapboard', 18, 22.5); Cn('urn', 18, 26.5, { seed: 2 }, { seasonal: 1 }); Cn('urn', 21.5, 26.5, { seed: 5 }, { seasonal: 1 }); Cn('lamp', 17.5, 21); Cn('lamp', 22, 21);
+  Cn('bed', 13.5, 25.5, { w: 2, d: 1, kind: 'orchid', seed: 21 }, { rare: 1, solid: false }); Cn('plaque', 14, 26.5, { c: '#b8562a' }, { rare: 1, fact: 'rare' });
+  S(18.8, 23.5, 3, { p: .6 }); S(19, 24.6, 1, { anim: 'phone', p: .5 }); S(24, 25, 3, { p: .5 }); S(24.6, 24.9, 3, { busy: 1 }); S(20.3, 20.9, 3, { p: .5 });
   // ---- Garden Gifts + The Glasshouse Cafe
   Cn('partition', 0, 20, { w: 13 });
   Cn('shelf', .5, 20.5, { kind: 'gift', w: 3 }); Cn('counter', .5, 21.5, { kind: 'gift', w: 3 }, { tags: ['cons_shop'], venue: CONS_VENUES.gifts, label: 'Garden Gifts' }); S(2, 21.05, 1, { kind: 'staff', label: 'Garden Gifts', lines: LINES.gifts });
@@ -81,16 +81,16 @@ function build() {
   Cn('partition', 0, 10, { w: 4 }); Cn('arch', 4, 10, { w: 3, name: 'BUTTERFLIES' }); Cn('partition', 7, 10, { w: 4 });
   Cn('partition', 11, 10, { w: 4.5 }, { flip: true }); Cn('arch', 11, 14.5, { w: 3, name: 'BUTTERFLIES' }, { flip: true }); Cn('partition', 11, 17.5, { w: 2.5 }, { flip: true });
   Cn('bed', .5, 10.5, { w: 3, d: 2, kind: 'butterfly', seed: 3 }, { perch: 1 }); Cn('bed', 7.5, 10.5, { w: 3, d: 2, kind: 'butterfly', seed: 6 }, { perch: 1 }); Cn('bed', .5, 17.5, { w: 4.5, d: 2, kind: 'butterfly', seed: 8 }, { perch: 1 }); Cn('bed', 6, 17.5, { w: 4.5, d: 2, kind: 'butterfly', seed: 12 }, { perch: 1 }); Cn('bed', 4, 13.5, { w: 3, d: 2.5, kind: 'butterfly', seed: 15 }, { perch: 1 });
-  Cn('puparium', .5, 13.5, {}, { flip: true, fact: 'pupae' }); Cn('nectar', 2.5, 15.5, {}, { perch: 2 }); Cn('nectar', 8, 15, {}, { perch: 2 }); Cn('bench', 1, 16.5); Cn('plaque', 5, 16, {}, { fact: 'butterfly' });
+  Cn('puparium', .5, 13.5, {}, { flip: true, fact: 'pupae' }); Cn('nectar', 2.5, 15.5, {}, { perch: 2 }); Cn('nectar', 8, 15, {}, { perch: 2 }); Cn('bench', 1, 12.5); Cn('plaque', 5, 16, {}, { fact: 'butterfly' });
   Cn('basket', 2.5, 12.5, { kind: 'fuchsia', seed: 4 }, { z: 2.2 }); Cn('basket', 9, 13, { kind: 'orchid', seed: 5 }, { z: 2.3 });
-  S(3.6, 15.9, 2, { anim: 'phone' }); S(7.3, 16.7, 3, { age: 'kid', lines: LINES.kid }); S(1.7, 13.9, 2, { p: .6 }); S(3.2, 13, 3, { busy: 1 }); S(8.9, 16.6, 2, { busy: 1, anim: 'phone' });
+  S(3.6, 15.9, 2, { anim: 'phone' }); S(7.3, 16.7, 3, { age: 'kid', lines: LINES.kid }); S(1.6, 14.7, 2, { p: .6 }); S(3.2, 13, 3, { busy: 1 }); S(8.9, 16.6, 2, { busy: 1, anim: 'phone' });
   // ---- orchid & fern grotto
   Cn('rock', 12, .5, { w: 1, d: 2, h: 1.6, moss: 1, seed: 3 }); Cn('rock', 12, 2.5, { w: 1, d: 2, h: 1.9, moss: 1, seed: 7 }); Cn('arch', 12, 4.5, { w: 2.5, name: 'GROTTO' }, { flip: true }); Cn('rock', 12, 7, { w: 1, d: 2, h: 1.8, moss: 1, seed: 9 }); Cn('rock', 11.5, 9, { w: 1.5, d: 1, h: 1.4, moss: 1, seed: 12 });
   Cn('bed', .5, .5, { w: 3, d: 2, kind: 'fern', seed: 4 }); inBed('treefern', 1, 1, { seed: 7, h: 2.2 }); inBed('treefern', 2.5, 1.5, { seed: 3, h: 1.4 });
   Cn('orchidlog', 4, .5); Cn('sketchspot', 5, 2.5); Cn('plaque', 7, 1.5, {}, { fact: 'orchid' });
   Cn('bed', 8, .5, { w: 3.5, d: 1.5, kind: 'orchid', seed: 5, gap: .1 }); Cn('sketchboard', 8.5, 2.5, { n: 0 }, { board: 1 });
   Cn('bed', .5, 4, { w: 1.5, d: 4.5, kind: 'fern', seed: 8 }); inBed('treefern', .5, 5.5, { seed: 5, h: 1.8 }); Cn('plaque', 2, 6, {}, { flip: true, fact: 'treefern' });
-  Cn('rock', 5.5, 7.5, { w: 2, d: 1.5, h: 1.1, moss: 1, seed: 5 }); Cn('bench', 2.5, 8.5); Cn('lamp', 3.5, 4.5); Cn('lamp', 10.5, 4); Cn('treefern', 10.5, 7, { seed: 9, h: 1.7 });
+  Cn('rock', 6, 7, { w: 2, d: 1.5, h: 1.1, moss: 1, seed: 5 }); Cn('bench', 2.5, 8.5); Cn('lamp', 3.5, 4.5); Cn('lamp', 10.5, 4); Cn('treefern', 10.5, 7, { seed: 9, h: 1.7 });
   for (const [x, y, k, z, sd] of [[2, 3, 'orchid', 2.3, 5], [8.5, 4.5, 'fern', 2.4, 3], [10.5, 2, 'fuchsia', 2.5, 7], [7, 6, 'orchid', 2.4, 9], [9.5, 8, 'fern', 2.3, 6], [4, 6.5, 'fern', 2.5, 2]]) Cn('basket', x, y, { kind: k, seed: sd }, { z });
   S(4.4, 2.3, 3, { anim: 'read', label: 'Art student', lines: LINES.student }); S(7, 2.6, 3, { anim: 'read', label: 'Art student', lines: LINES.student, p: .7 }); S(9.6, 3.4, 3, { p: .5 }); S(3.1, 6.3, 2, { p: .5 }); S(8.2, 6.6, 3, { busy: 1, anim: 'read', label: 'Art student', lines: LINES.student });
   // ---- desert house
@@ -109,9 +109,9 @@ function build() {
   S(28.9, 15.3, 0, { age: 'kid', lines: LINES.kid }); S(39.3, 15.2, 2, { p: .5 }); S(34.5, 19.8, 3, { busy: 1, anim: 'phone' }); S(33, 12, 1, { busy: 1 });
   // ---- seasonal flower show
   Cn('bed', 27, 21.5, { w: 2, d: .5, kind: 'hedge', seed: 2 }, { flip: true }); Cn('arch', 27, 23.5, { w: 2, name: 'FLOWERS' }, { flip: true }); Cn('bed', 27, 25.5, { w: 2.5, d: .5, kind: 'hedge', seed: 5 }, { flip: true });
-  for (const [x, y, v] of [[28.5, 22, 0], [36.5, 22, 2], [28.5, 25.5, 3], [36.5, 25.5, 1]]) Cn('flowerbed', x, y, { w: 3, d: 2, v, seed: v + 1 }, { seasonal: 1 });
-  Cn('showpiece', 32.5, 23, {}, { seasonal: 1 }); Cn('banner', 31, 21.5, {}, { seasonal: 1 }); Cn('plaque', 33.5, 26, {}, { fact: 'show' }); Cn('urn', 39, 24, { seed: 8 }, { seasonal: 1 }); Cn('urn', 32, 27, { seed: 3 }, { seasonal: 1 }); Cn('urn', 35.5, 27, { seed: 6 }, { seasonal: 1 });
-  S(30, 24.7, 3); S(38, 24.7, 3, { anim: 'phone' }); S(34.6, 26.8, 3, { p: .6 }); S(33.4, 22.3, 3, { busy: 1 }); S(30.4, 21.9, 1, { busy: 1, age: 'elder' }); S(37.4, 24.6, 3, { busy: 1, age: 'kid', lines: LINES.kid });
+  for (const [x, y, v] of [[28.5, 22.5, 0], [36.5, 22.5, 2], [28.5, 26, 3], [36.5, 26, 1]]) Cn('flowerbed', x, y, { w: 3, d: 2, v, seed: v + 1 }, { seasonal: 1 });
+  Cn('showpiece', 32.5, 23.5, {}, { seasonal: 1 }); Cn('banner', 31, 21.5, {}, { seasonal: 1 }); Cn('plaque', 33.5, 26.5, {}, { fact: 'show' }); Cn('urn', 39.5, 25, { seed: 8 }, { seasonal: 1 });
+  S(30, 25, 3); S(38, 25, 3, { anim: 'phone' }); S(34.8, 27.4, 3, { p: .6 }); S(33.4, 22.1, 1, { busy: 1 }); S(30.4, 22, 1, { busy: 1, age: 'elder' }); S(37.4, 25.4, 1, { busy: 1, age: 'kid', lines: LINES.kid });
 }
 build();
 
@@ -168,7 +168,7 @@ class Puff {
 }
 
 /* ---------------- walking staff ---------------- */
-const GARDEN_SPOTS = [[18, 8.6, 2], [22, 8.6, 0], [7.5, 2.9, 3], [3, 12.9, 3], [32, 24.5, 0], [18, 3.4, 2], [22.6, 5.6, 3], [29.5, 23.4, 3], [5.6, 16.6, 3]];
+const GARDEN_SPOTS = [[18, 8.6, 2], [22, 8.6, 0], [7.5, 2.9, 3], [3, 12.9, 3], [32, 25, 0], [18, 3.4, 2], [22.6, 5.6, 3], [30, 25.2, 3], [5.6, 16.6, 3]];
 const TOUR = [
   { x: 15.5, y: 16.5, dir: 0, zone: 'lily', say: 'The giant water lily, Victoria amazonica. Every pad could carry a small child. We have tested this. With permission.' },
   { x: 18, y: 9.6, dir: 3, zone: 'palm', say: 'The Palm House. Eighty-five percent humidity, twenty-six degrees, and one waterfall that has run since 1908.' },
@@ -176,7 +176,7 @@ const TOUR = [
   { x: 8.6, y: 13.6, dir: 2, zone: 'butterfly', say: 'Stand still and they will come to you. The blue ones are morphos: no blue pigment at all, only light playing tricks.' },
   { x: 31, y: 6.6, dir: 3, zone: 'desert', say: 'From the wettest room to the driest. That saguaro is younger than it looks, and it still has no arms. Patience.' },
   { x: 28.3, y: 16, dir: 0, zone: 'koi', say: 'Our koi. The big orange lady is Marmalade. She is thirty-one and has opinions about lunch.' },
-  { x: 34, y: 27, dir: 3, zone: 'show', say: 'And the flower show, new every season. Twelve thousand bulbs, planted by hand. Thank you all for walking with me!' },
+  { x: 34, y: 27.3, dir: 3, zone: 'show', say: 'And the flower show, new every season. Twelve thousand bulbs, planted by hand. Thank you all for walking with me!' },
 ];
 function makeStaff(sc, spec, label, x, y) { const c = new Char(spec, x + O, y + O); c.speed = 1.5; c.kind = 'staff'; c.label = label; sc.ents.push(c); return c; }
 
@@ -203,8 +203,8 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
     // ---- life: static crowd + lane walkers
     const seats = []; for (const f of sc.fixtures) { const id = f.asset.id; if (!/cons\.bench|cafe\.tableset/.test(id)) continue; f.seats.forEach((s, i) => seats.push({ x: s.x - O, y: s.y - O, z: s.z, dir: s.dir === undefined ? 1 : s.dir, seated: true, p: .45, busy: (seats.length + i) % 3 === 2 ? 1 : 0, bench: /bench/.test(id) })); }
     const cr = crowd(sc, sc.def.npcSpots.concat(seats), { seed: 33, fill: .7, lines: LINES.visitor });
-    const N = { h0: [20, 26.6], h1: [15, 22], h2: [25.2, 22], w1: [14.8, 19.2], w2: [14.8, 12.2], w3: [13, 16], p1: [18.2, 12.2], p2: [18.2, 5.9], p3: [20, 6.1], g0: [15, 5.8], g1: [12.6, 5.9], g2: [9.5, 5.8], g3: [6.3, 4.4], g4: [5.5, 8.8], b0: [5.5, 10.2], b1: [5.5, 12.7], b2: [9.4, 13.3], b3: [9.6, 16], b4: [11.2, 16], e1: [21.8, 5.9], e2: [26.8, 5.9], e3: [25.4, 16.2], e4: [25.4, 19.4], d1: [30.6, 6.3], d2: [34, 8.4], d3: [34, 11.1], k1: [34, 12.1], k2: [28.3, 12.6], k3: [28.3, 16.25], k4: [27.2, 16.2], k5: [39.3, 16.25], k6: [39.4, 12.9], kb: [34, 16.25], f1: [27.2, 24.5], f2: [31.9, 26.7], f3: [36, 26.7], f4: [36, 22.2], f5: [31.9, 22.2], cf: [11.6, 24.6] };
-    const ROUTES = [['h0', 'h1', 'w1', 'w2', 'p1', 'p2', 'g0', 'g1', 'g2', 'g3*', 'g4', 'b0', 'b1*', 'b2', 'b3', 'b4', 'w3', 'w1', 'h1', 'h0'], ['h0', 'h2', 'e4', 'e3', 'k4', 'k3*', 'k2', 'k1', 'd3', 'd2*', 'd1', 'e2', 'e1', 'p3', 'p2*', 'p1', 'w2', 'w1', 'h1', 'h0'], ['h0', 'h2', 'f1', 'f2*', 'f3', 'f4', 'f5*', 'f2', 'f1', 'h2', 'h1', 'cf*', 'h1', 'h0'], ['h0', 'h2', 'e4', 'e3', 'k4', 'k3', 'kb*', 'k5', 'k6', 'k1', 'd3', 'd2*', 'd1', 'e2', 'e1', 'p3', 'p2', 'p1', 'w2', 'w1', 'h1', 'h0'], ['h0', 'h1', 'w1', 'w2*', 'p1', 'p2*', 'p3', 'e1', 'e2', 'd1*', 'd2', 'd3', 'k1', 'k2', 'k3*', 'k4', 'e3', 'e4', 'h2', 'f1', 'f2*', 'f1', 'h2', 'h0']];
+    const N = { h0: [20, 26.6], h1: [15, 22], h2: [26.2, 22.3], hc: [25.8, 24.2], hm: [20, 24.5], w1: [14.8, 19.2], w2: [14.8, 12.3], w3: [13, 16], p1: [18.2, 12.3], p2: [18.2, 5.9], p3: [20, 6.1], g0: [15, 5.8], g1: [12.6, 5.9], g2: [9.5, 5.8], g3: [6.3, 4.4], g4: [4.9, 9.3], b0: [5.5, 10.2], b1: [5.5, 12.7], b2: [9.4, 13.3], b3: [9.6, 16], b4: [11.2, 16], e1: [21.8, 5.9], e2: [26.8, 5.9], e3: [25.4, 16.2], e4: [25.4, 19.4], d1: [30.6, 6.3], d2: [34, 8.4], d3: [34, 11.1], k1: [34, 12.1], k2: [28.3, 12.6], k3: [28.3, 16.25], k4: [27.2, 16.2], k5: [39.3, 16.25], k6: [39.4, 12.9], kb: [34, 16.25], f1: [27.2, 24.6], fa: [28.3, 25.25], fb: [32, 25.25], f2: [32, 27.2], f3: [36, 27.2], f4: [36, 22], f5: [32, 22], cf: [11.6, 24.6] };
+    const ROUTES = [['h0', 'h1', 'w1', 'w2', 'p1', 'p2', 'g0', 'g1', 'g2', 'g3*', 'g4', 'b0', 'b1*', 'b2', 'b3', 'b4', 'w3', 'w1', 'h1', 'h0'], ['h0', 'h2', 'e4', 'e3', 'k4', 'k3*', 'k2', 'k1', 'd3', 'd2*', 'd1', 'e2', 'e1', 'p3', 'p2*', 'p1', 'w2', 'w1', 'h1', 'h0'], ['h0', 'h2', 'f1', 'fa', 'fb', 'f2*', 'f3', 'f4', 'f5*', 'fb', 'fa', 'f1', 'h2', 'hc', 'hm', 'h1', 'cf*', 'h1', 'h0'], ['h0', 'h2', 'e4', 'e3', 'k4', 'k3', 'kb*', 'k5', 'k6', 'k1', 'd3', 'd2*', 'd1', 'e2', 'e1', 'p3', 'p2', 'p1', 'w2', 'w1', 'h1', 'h0'], ['h0', 'h1', 'w1', 'w2*', 'p1', 'p2*', 'p3', 'e1', 'e2', 'd1*', 'd2', 'd3', 'k1', 'k2', 'k3*', 'k4', 'e3', 'e4', 'h2', 'f1', 'fa', 'fb', 'f2*', 'fb', 'fa', 'f1', 'h2', 'h0']];
     const lane = () => { const r = pick(ROUTES), stay = r.map(k => k.endsWith('*')), keys = r.map(k => k.replace('*', '')); if (Math.random() < .35) { keys.reverse(); stay.reverse(); }
       return { pts: keys.map((k, i) => Object.assign({ x: N[k][0] + O + (Math.random() - .5) * .5, y: N[k][1] + O + (Math.random() - .5) * .4 }, stay[i] ? { wait: 6 + Math.random() * 6, pose: Math.random() < .4 ? 'phone' : null } : null)), kind: Math.random() < .5 ? 'stroll' : 'walk' }; };
     const wk = walkers(sc, { n: 14, route: lane, lines: LINES.visitor, label: 'Visitor' });
@@ -236,7 +236,7 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
       if (isOpen && !tour.on) for (const th of TOUR_TIMES) if (h >= th && h < th + .25 && (tour.day !== n.day || tour.hour !== th)) { tour.day = n.day; tour.hour = th; startTour(false); }
       sc.life.open = isOpen;
     };
-    sc.cons = { koi, flies, puffs, gardener: gard, docent: doc, tour, startTour, endTour, sync, feed(x, y, sec = 14) { feed = { x: x - PX, y: y - PY, t: sec }; }, feeding: () => !!feed, view: () => view, zoneAt: (x, y) => { for (const z of ZONES) if (x >= z.x0 && x < z.x1 && y >= z.y0 && y < z.y1) return z; return null; }, nodes: N };
+    sc.cons = { koi, flies, puffs, gardener: gard, docent: doc, tour, startTour, endTour, sync, feed(x, y, sec = 14) { feed = { x: x - PX, y: y - PY, t: sec }; }, feeding: () => !!feed, view: () => view, routes: ROUTES, zoneAt: (x, y) => { for (const z of ZONES) if (x >= z.x0 && x < z.x1 && y >= z.y0 && y < z.y1) return z; return null; }, nodes: N };
     sc.env = t => { const o = ambient(t, G.state.weather); return { amb: o.amb === '#ffffff' ? o.amb : R.mix(o.amb, '#ffffff', .22), dark: Math.min(.9, (o.dark || 0) * .92), bg: Wd.bg, night: o.night }; };
     sync();
     const onBridge = c => { const lx = c.x - O - PX, ly = c.y - O - PY, t = (lx - BR.x0) / (BR.x1 - BR.x0); return t > 0 && t < 1 && ly > BR.y0 - .1 && ly < BR.y1 + .1 ? archZ(t) : 0; };
@@ -259,7 +259,7 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
       // docent + tour group
       if (doc._hold > 0 && !tour.on) { doc._hold -= dt; doc.t += dt; doc.moving = false; }
       else if (tour.on) {
-        if (doc.path) { doc.pose = null; doc.move(Wd, dt); if (!doc.path) { const st = TOUR[tour.i]; if (st) { doc.dir = st.dir; doc.pose = 'talk'; bubble(doc, st.say, 5200); tour.wait = 9; if (Math.hypot(p.x - doc.x, p.y - doc.y) < 5.5 && tour.joined) { tour.seen++; tour.stops[st.zone] = 1; G.emit('conservatory:tourstop', st.zone); } } } }
+        if (doc.path) { doc.pose = null; doc.speed = tour.fast ? 3.3 : 1.5; doc.move(Wd, dt); if (!doc.path) { const st = TOUR[tour.i]; if (st) { doc.dir = st.dir; doc.pose = 'talk'; bubble(doc, st.say, 5200); tour.wait = tour.fast ? 1.5 : 9; if (Math.hypot(p.x - doc.x, p.y - doc.y) < 5.5 && tour.joined) { tour.seen++; tour.stops[st.zone] = 1; G.emit('conservatory:tourstop', st.zone); } } } }
         else { doc.t += dt; doc.moving = false; if ((tour.wait -= dt) <= 0) { tour.i++; doc.pose = null; const st = TOUR[tour.i]; if (!st) endTour(); else if (!doc.goTo(Wd, st.x + O, st.y + O)) { doc.x = st.x + O; doc.y = st.y + O; } } }
         tour.group.forEach((c, i) => { if (c.hidden) return; const tx = doc.x - .5 + (i - 1) * .7, ty = doc.y + .9 + (i % 2) * .5; if ((c._rt = (c._rt || 0) - dt) <= 0 && Math.hypot(tx - c.x, ty - c.y) > 1.3) { c._rt = 1 + Math.random(); c.goTo(Wd, tx, ty); } if (c.path) c.move(Wd, dt); else { c.moving = false; c.t += dt; c.faceTo(doc.x, doc.y); } c.z = onBridge(c); });
         if (tour.joined && !G.busy && !G.modal) { const d = Math.hypot(p.x - doc.x, p.y - doc.y); if (d > 2.4 && !p.path && (tour._ft = (tour._ft || 0) - dt) <= 0) { tour._ft = .8; p.goTo(Wd, doc.x - .3, doc.y + 1.3); } }

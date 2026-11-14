@@ -25,6 +25,9 @@
 //   deliverNow()                land all pending deliveries        unpack(boxUid) -> [itemId]   box contents -> storage (+ gifts to bag/wardrobe)
 //   storage() -> [itemId] (incl. stay)     items() -> placed     slots() -> { used, max }     ambience() -> number
 //   check({ itemId, x, y, flip } | { itemId, wall, at }, ignoreUid?) -> null | reason string
+//       Rules: inside the room and off its void cut-outs (L-shaped homes), not on other solids, doorways (front door, exit mat, bathroom door) stay clear,
+//       the piece must be reachable from the door and must not wall in another piece or the spot you stand on to use one; wall pieces cannot hang
+//       behind a full-height block of the shell (`build.block`). Boxes pile up by the same rules (roomDef).
 //   place(itemId, pos, { quiet? }) -> uid | null      move(uid, pos, opts) -> bool      rotate(uid, opts) -> bool
 //   store(uid, opts) -> bool    sell(uid | itemId, opts) -> price | 0     sellPrice(itemId)
 //   visual(itemId) -> { id (asset id), a (asset), p, wall, solid, z, mount, size: [w, d, h] }      roomDef(homeId, room?) -> room def for interior.js
@@ -122,13 +125,22 @@ const wallCover = (sh, wall) => (sh.fixed || []).filter(i => !i.wall && i.id.inc
 function keepRects(sh) { const out = [], wr = (b) => { const o = b.off || 0; return b.wall === 'y' ? [b.at - .1, o, b.at + 1.1, o + 1.5] : [o, b.at - .1, o + 1.5, b.at + 1.1]; }; if (sh.door) out.push(wr(sh.door)); else out.push([sh.exit.x - 1, sh.exit.y - 1.5, sh.exit.x + 1, sh.exit.y + .5]); if (sh.bathDoor) out.push(wr(sh.bathDoor)); return out; }
 function spawnOf(sh) { return sh.door ? (sh.door.wall === 'y' ? [sh.door.at + .5, .9] : [.9, sh.door.at + .5]) : [sh.exit.x, sh.exit.y - .2]; }
 /** which of the rects can be walked up to from the door (rects = solids; all of them block) */
-function reach(sh, rects, blocked = []) {
+function floodMap(sh, rects) {
   const W = sh.w * 2, D = sh.d * 2, g = new Uint8Array(W * D);
-  for (const r of rects.concat(blocked)) for (let y = Math.max(0, Math.floor(r[1] * 2 + EPS)); y < Math.min(D, Math.ceil(r[3] * 2 - EPS)); y++) for (let x = Math.max(0, Math.floor(r[0] * 2 + EPS)); x < Math.min(W, Math.ceil(r[2] * 2 - EPS)); x++) g[y * W + x] = 1;
-  const sp = spawnOf(sh), q = [Math.min(D - 1, Math.floor(sp[1] * 2)) * W + Math.min(W - 1, Math.floor(sp[0] * 2))]; if (g[q[0]]) return rects.map(() => false); g[q[0]] = 2;
+  for (const r of rects) for (let y = Math.max(0, Math.floor(r[1] * 2 + EPS)); y < Math.min(D, Math.ceil(r[3] * 2 - EPS)); y++) for (let x = Math.max(0, Math.floor(r[0] * 2 + EPS)); x < Math.min(W, Math.ceil(r[2] * 2 - EPS)); x++) g[y * W + x] = 1;
+  const sp = spawnOf(sh), q = [Math.min(D - 1, Math.floor(sp[1] * 2)) * W + Math.min(W - 1, Math.floor(sp[0] * 2))]; if (g[q[0]]) return { g, W, D }; g[q[0]] = 2;
   while (q.length) { const c = q.pop(), x = c % W, y = (c - x) / W; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= D) continue; const k = ny * W + nx; if (!g[k]) { g[k] = 2; q.push(k); } } }
+  return { g, W, D };
+}
+function reach(sh, rects, blocked = []) {
+  const { g, W, D } = floodMap(sh, rects.concat(blocked));
   return rects.map(r => { for (let y = Math.floor(r[1] * 2 + EPS) - 1; y <= Math.ceil(r[3] * 2 - EPS); y++) for (let x = Math.floor(r[0] * 2 + EPS) - 1; x <= Math.ceil(r[2] * 2 - EPS); x++) if (x >= 0 && y >= 0 && x < W && y < D && g[y * W + x] === 2) return true; return false; });
 }
+/** which of the floor spots ([x, y] points, e.g. the spot you stand on to use a piece) can be walked to from the door */
+function spotsReach(sh, blocked, spots) { const { g, W, D } = floodMap(sh, blocked); return spots.map(s => { const x = Math.floor(s[0] * 2 + EPS), y = Math.floor(s[1] * 2 + EPS); return x >= 0 && y >= 0 && x < W && y < D && g[y * W + x] === 2; }); }
+/** the spot a character stands on to use a floor piece (room coords), or null when the engine picks one itself */
+function useSpot(i) { if (i.wall) return null; let a; try { a = asset(i.id); } catch (e) { return null; } const u = typeof a.use === 'function' ? a.use(i.p || {}) : a.use; if (!u) return null; return i.flip ? [i.x + u.y, i.y + u.x] : [i.x + u.x, i.y + u.y]; }
+const cellOf = s => { const x = Math.floor(s[0] * 2 + EPS) / 2, y = Math.floor(s[1] * 2 + EPS) / 2; return [x, y, x + .5, y + .5]; };
 function check(c, ignore, room = curRoom()) {
   const sh = shOf(S.id, room); if (!sh) return 'You have no home yet';
   const v = visual(c.itemId), items = roomDef(S.id, room).items.filter(i => !(ignore && i.uid === ignore));
@@ -151,6 +163,8 @@ function check(c, ignore, room = curRoom()) {
   const before = reach(sh, solids, voids), after = reach(sh, solids.concat([r]), voids);
   if (!after[solids.length]) return 'You could not get to it there';
   for (let i = 0; i < solids.length; i++) if (before[i] && !after[i]) return 'That would block the way';
+  const fr = items.map(useSpot).filter(u => u && !hit(cellOf(u), r));     // ... nor seal off the spot you use something from (a piece standing ON such a spot is the player's own call)
+  if (fr.length) { const b4 = spotsReach(sh, solids.concat(voids), fr), af = spotsReach(sh, solids.concat([r], voids), fr); if (b4.some((ok, i) => ok && !af[i])) return 'That would block the way'; }
   return null;
 }
 
@@ -183,9 +197,11 @@ function roomDef(id, room) {
     const real = list.filter(solidDef).map(rectOfDef), voids = voidRects(sh), solids = real.concat(keepRects(sh), voids, list.map(useSpot).filter(Boolean).map(cellOf)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
     for (const b of S.boxes) {
-      const sz = b.k === 'm' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids);
+      const sz = b.k === 'm' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids), fr = list.map(useSpot).filter(Boolean), fb = spotsReach(sh, real.concat(voids), fr);
       for (const s of spots) { const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
-        const a = reach(sh, real.concat([r]), voids); if (a[real.length] && !base.some((ok, i) => ok && !a[i])) { at = s; break; } }
+        const front = cellOf(sz === 1 ? [s[0] + .5, s[1] + 1.3] : [s[0] + .25, s[1] + .8]); if (front[3] > sh.d || real.some(o => hit(front, o)) || voids.some(o => hit(front, o))) continue;
+        const a = reach(sh, real.concat([r]), voids); if (!a[real.length] || base.some((ok, i) => ok && !a[i])) continue;
+        const fa = spotsReach(sh, real.concat([r], voids), fr.concat([[front[0] + .25, front[1] + .25]])); if (fa[fr.length] && !fb.some((ok, i) => ok && !fa[i])) { at = s; break; } }
       at = at || any; if (at) { const r = [at[0], at[1], at[0] + sz, at[1] + sz]; solids.push(r); real.push(r); }
       if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : 'furn.home.parcel', x: at[0], y: at[1], box: b.uid, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
     }
@@ -206,21 +222,19 @@ function fits(itemId, pos, room) {
   return true;
 }
 /* stricter than check(), for when the GAME moves furniture: never park a piece on the spot you stand on to use a fitting / landlord's piece, and keep its own front usable */
-function useSpot(i) { if (i.wall) return null; let a; try { a = asset(i.id); } catch (e) { return null; } const u = typeof a.use === 'function' ? a.use(i.p || {}) : a.use; if (!u) return null; return i.flip ? [i.x + u.y, i.y + u.x] : [i.x + u.x, i.y + u.y]; }
-const cellOf = s => { const x = Math.floor(s[0] * 2 + EPS) / 2, y = Math.floor(s[1] * 2 + EPS) / 2; return [x, y, x + .5, y + .5]; };
 const rectAt = (v, pos) => { const s = pos.flip ? [v.size[1], v.size[0]] : v.size; return [pos.x, pos.y, pos.x + s[0], pos.y + s[1]]; };
-function clearOfFronts(itemId, pos, room) {
+function clearOfFronts(itemId, pos, room, all) {
   const v = visual(itemId); if (v.wall || !v.solid) return true; const r = rectAt(v, pos), sh = shOf(S.id, room);
   const u = useSpot({ id: v.id, p: v.p, x: pos.x, y: pos.y, flip: pos.flip });           // its own front must not face a wall of the new shell
   if (u && (u[0] < .25 || u[1] < .25 || u[0] > sh.w - .25 || u[1] > sh.d - .25 || voidRects(sh).some(o => hit(cellOf(u), o)) || (sh.fixed || []).some(i => solidDef(i) && hit(cellOf(u), rectOfDef(i))))) return false;
-  for (const d of roomDef(S.id, room).items) { if (d.wall || !(d.fixed || (d.uid && (S.items.find(x => x.uid === d.uid) || {}).inc))) continue; const u = useSpot(d); if (u && hit(r, cellOf(u))) return false; }
+  for (const d of roomDef(S.id, room).items) { if (d.wall || !(all || d.fixed || (d.uid && (S.items.find(x => x.uid === d.uid) || {}).inc))) continue; const u = useSpot(d); if (u && hit(r, cellOf(u))) return false; }
   return true;
 }
 function ownFrontOk(itemId, pos, room) {
   const v = visual(itemId); if (v.wall || !v.solid) return true; const u = useSpot({ id: v.id, p: v.p, x: pos.x, y: pos.y, flip: pos.flip }); if (!u) return true;
   const sh = shOf(S.id, room); if (u[0] < .25 || u[1] < .25 || u[0] > sh.w - .25 || u[1] > sh.d - .25) return false;
   const c = cellOf(u), solids = roomDef(S.id, room).items.filter(solidDef).map(rectOfDef).concat([rectAt(v, pos)], voidRects(sh)); if (solids.some(o => hit(c, o))) return false;
-  return reach(sh, [[c[0] + .2, c[1] + .2, c[2] - .2, c[3] - .2]], solids)[0];
+  return spotsReach(sh, solids, [u])[0];
 }
 function nearest(it, room) {
   const sh = shOf(S.id, room), v = visual(it.itemId), out = [];
@@ -231,7 +245,7 @@ function nearest(it, room) {
   for (const c of out) {
     if (solids) { const s = c.pos.flip ? [v.size[1], v.size[0]] : v.size, r = [c.pos.x, c.pos.y, c.pos.x + s[0], c.pos.y + s[1]]; if (solids.some(o => hit(r, o))) continue; }   // cheap test first
     if (!fits(it.itemId, c.pos, room)) continue; if (!plain) plain = c.pos;
-    if (clearOfFronts(it.itemId, c.pos, room) && ownFrontOk(it.itemId, c.pos, room)) return c.pos;
+    if (clearOfFronts(it.itemId, c.pos, room, true) && ownFrontOk(it.itemId, c.pos, room)) return c.pos;
     if (++tried > 400) break;
   }
   return plain;

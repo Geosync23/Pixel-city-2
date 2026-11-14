@@ -157,7 +157,7 @@ export const SHELLS = {
       F('bookshelf', 0, 9, FL(2)), F('bookshelf', 0, 10, FL(2)), F('armchair', 1.5, 9.5, FL(2)),
       B('column', 0, 11, { style: 'classic', h: 3.2 }), B('column', 6, 11, { style: 'classic', h: 3.2 }), B('column', 12, 11, { style: 'classic', h: 3.2 }), B('column', 17.5, 11, { style: 'classic', h: 3.2 }),
       B('railing', 0, 13.5, { len: 18, style: 'stone' }), B('lemontree', .5, 12.5), B('lemontree', 17, 12.5, { seed: 9 }), B('lemontree', 8.5, 12.5, { seed: 6 }),
-      F('table.round', 13.5, 11.5, T(2)), F('chair', 14, 11, T(2)), F('chair', 15.5, 12, FL(2, { face: 3 }))],
+      F('table.round', 13.5, 11.5, T(2)), F('chair', 14, 10.5, T(2)), F('chair', 15.5, 12, FL(2, { face: 3 }))],
     slots: { fridge: [0, 0], stove: [1, 0], bed: [17, 2] },
     bath: { w: 7, d: 5, floor: GT.f_stone, wall: { color: '#f4efe4', pattern: 'tile', trim: '#b8683c', h: 3.2 }, exit: { x: 3.5, y: 4.5 },
       fixed: [F('bath.mat', .5, 1, T(2)), F('bath.sink', 2.5, 0, { p: { tier: 2, len: 1.5, wood: '#5e3f30' } }), F('bath.toilet', 4.5, 0, T(2)), WX('bath.towelrack', 1.5, T(2)),

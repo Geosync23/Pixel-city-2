@@ -110,12 +110,13 @@ function detail(b, ctx, id) {
   const l = safe(() => H().homes().find(x => x.id === id), null); if (!l) { b.append(empty('ui.warning', 'Listing gone', '')); return; }
   const h = l.home, sc = SIZE_CLASSES[h.sizeClass] || {}, n = near(l); b.classList.add('as-body');
   b.append(el('div.nl-hero', null, thumb(l, 176, 104)), el('b.nl-name', { text: h.name }), el('p.as-desc', { text: h.blurb || '' }), el('small.nl-dim', { text: h.where || dn(h.district) }));
+  if (h.layout) b.append(el('p.as-desc', { text: h.layout }));          // what makes this floor plan its own (data/homes.js)
   if (!l.available) b.append(el('p.nl-lock.big', null, iconEl('ui.lock', 1), availText(l) + '. You can still walk past and have a look.'));
   if (l.current) b.append(el('p.as-note', { text: l.owned ? 'This is your home, and you own it.' : 'You live here now.' }));
   const c = el('div.ph-card');
   if (l.rent) c.append(kv('Rent', money(l.rent) + ' / week'));
   if (l.price) c.append(kv('Buy', `${money(l.price)} (${money(l.down)} down)`), kv('Upkeep once owned', money(h.upkeepPerWeekOwned || 0) + ' / week'));
-  c.append(kv('Utilities', money(sc.utilitiesPerWeek || 0) + ' / week'), kv('Size', `${sc.label || '?'} · ${(h.tiles || sc.tiles || []).join(' x ')} tiles · ${sc.furnitureSlots || '?'} furniture spots`), h.layout ? el('p.as-desc', { text: h.layout }) : null,
+  c.append(kv('Utilities', money(sc.utilitiesPerWeek || 0) + ' / week'), kv('Size', `${sc.label || '?'} · ${(h.tiles || sc.tiles || []).join(' x ')} tiles · ${sc.furnitureSlots || '?'} furniture spots`),
     kv('Rooms', (h.rooms || []).map(r => r.name).join(', ')), kv('Guests', 'Up to ' + (h.maxGuests || 2)));
   b.append(c, section('Close by')); const d = el('div.ph-card');
   if (n.work) d.append(kv(n.work.name, walkText(n.work.m))); if (n.station) d.append(kv(n.station.name, walkText(n.station.m))); if (n.bus) d.append(kv('Bus: ' + n.bus.name, walkText(n.bus.m))); if (n.grocery) d.append(kv(n.grocery.name, walkText(n.grocery.m)));
