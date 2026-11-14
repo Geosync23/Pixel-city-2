@@ -10,7 +10,9 @@ Rule: this file is updated every time a worker finishes, a build is published, o
   - 2g-2 shops/services/groceries unique rooms: places_shops*.js, src/art/venue/places_shop_art.js, docs/reports/unique_shops.md.
   - 2g-3 apartment + office lobbies (25+): src/sim/lobbies.js (order 60), src/scenes/rooms/lobbies*.js, src/art/venue/lobby_art.js, docs/reports/lobbies.md.
   - 2g-4 bladder need + toilets + home bathrooms as own rooms + venue/park restrooms: src/sim/bladder.js; may edit data/needs.js, sim/needs.js, data/activities.js, sim/activities.js, HUD needs file, rooms/homes.js, sim/housing.js, interior.js (additive), navigator need data. docs/reports/bladder_bath.md.
-  - Lead-owned hook added: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom) + call sites in src/sim/public_places.js.
+  - Lead-owned hook added: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom + registerInfo/placeInfo/allInfo for guide blurbs) + call sites in src/sim/public_places.js.
+  - Owner msg 65: interiors must have activities + be in the Wander guide. Workers 2g-1/2/3 were told to tag signature fixtures with existing activity tags, list NEW activities in their reports, and registerInfo() per place.
+    LEAD TODO after Wave A: wire placeInfo() into src/sim/guide.js entries (blurb/signature/try-this), add the new activities the workers list to data/activities.js, verify in the guide app.
   - If a worker is gone after a restart: check its files above, then brief a new worker "these files exist; continue".
 - **PLAN (waves of up to 4; next wave's workers start as slots free up):**
   - NEXT as soon as 2g-4 frees homes.js/housing.js: **2g-5 UNIQUE HOMES** (owner msg 64; BIBLE update 13) — every starter studio and every Nestly property its own layout/size/character, no repeats; optionally more unique listings (some in the new lobby buildings).

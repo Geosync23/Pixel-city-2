@@ -8,3 +8,10 @@ export function uniqueRoom(place) {
   for (const fn of BUILDERS) { try { const d = fn(place); if (d) return d; } catch (e) { console.warn('uniqueRoom', place && place.name, e); } }
   return null;
 }
+
+// Guide info per place (for the Wander guide + Living Tips): registerInfo(name, { blurb, signature, tryThis: ['...'], activities: ['<activity id or fixture tag>'] }).
+// Workers fill this from their places_*.js / lobbies*.js modules; the lead wires it into src/sim/guide.js.
+const INFO = new Map();
+export function registerInfo(name, info) { if (name && info) INFO.set(name, info); }
+export function placeInfo(name) { return INFO.get(name) || null; }
+export function allInfo() { return [...INFO.entries()]; }

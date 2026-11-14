@@ -283,3 +283,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 64 — Unique homes; Wave D stores; expand the map if it makes sense
 > Also the starting apartments should be different. And the properties tou cam buy must be all difffernt no repeats. For wave d make sure we have a lot of interesting store for thay. Hope depot like store and department stores and furieneiture stores etc. We cam alwsys expand rhe map if needed pleaae feel free if it makes sense
+
+## 65 — Where are the signature interiors in the plan; activities; Maple Bay guide
+> Ok where are signature interiors in the plan of action?  Also these interiors have activities attached yes? Need to be int the maple bay guide if they aren't now

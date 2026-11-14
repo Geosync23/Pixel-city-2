@@ -42,3 +42,4 @@
 27. (msg 62) The old usage numbers were from a different plan; the new account is on a plan with ~10x the usage. Workers no longer need to be ultra-thrifty: favour quality (more checks/screenshots), still steady.
 28. (msg 63) Asked whether the signature (unique) interiors are done.
 29. (msg 64) Starter apartments must differ from each other; every buyable/rentable property unique (no repeated layouts). Wave D: lots of interesting stores for home goods — a big home-improvement store (Home-Depot-like), department stores, furniture stores, etc. Expanding the map is fine when it makes sense.
+30. (msg 65) Asked where the signature interiors sit in the plan; interiors must have activities attached and appear in the Wander guide.
