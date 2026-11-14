@@ -224,3 +224,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 52 — Landing plane: turn at the end of the runway
 > The plane needs to wait until its at the end of the runway. Then turn not translate on an axis
+
+## 53 — Landing: keep it simple
+> Still looks weird just keep the plane going on the runway until the cut

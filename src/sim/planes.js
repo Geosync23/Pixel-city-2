@@ -79,12 +79,10 @@ function step(f, dt) {
       f.cx -= f.v * dt; const d = f.cx - A.touchdown;
       if (d <= 0) { f.alt = 0; f.phase = 'roll'; G.emit('plane:landed', f); } else f.alt = d * .13 * (d < 14 ? .45 + .55 * d / 14 : 1);
     } else {
-      // roll out to the END of the runway, stop, TURN 90 degrees toward the taxiway (swap to the y-axis sprite), then taxi off and fade
-      const R = AP.runways[0], endX = R.a + f.L / 2 + 4, ty = (AP.taxiway && AP.taxiway.c) || A.c + 14, sy = Math.sign(ty - A.c) || 1;
-      if (!f.ay) {
-        const left = f.cx - endX; f.v = left > 9 ? Math.max(15, f.v - 6 * dt) : Math.max(left > .3 ? 5 : 0, f.v - 14 * dt); f.cx = Math.max(endX, f.cx - f.v * dt);
-        if (f.cx <= endX + .01) { f.hold = (f.hold || 0) + dt; if (f.hold > .5) { f.ay = sy; f.turn = true; f.v = 0; } }
-      } else { f.v = Math.min(4.5, f.v + 3 * dt); f.cy += f.ay * f.v * dt; if (Math.abs(f.cy - A.c) > 10) { f.fade -= dt / 1.2; if (f.fade <= 0) return free(f); } }
+      // roll straight down the runway, slowing; fade out near the far end (no turn: the art has no in-between angles and it looked odd)
+      const R = AP.runways[0], endX = R.a + f.L / 2 + 4;
+      f.v = Math.max(9, f.v - 5 * dt); f.cx -= f.v * dt;
+      if (f.cx < endX + 12) { f.fade -= dt / 1.2; if (f.fade <= 0) return free(f); }
     }
   } else if (f.kind === 'takeoff') {
     if (f.fade < 1 && f.phase === 'roll') f.fade = Math.min(1, f.fade + dt * 1.5);
