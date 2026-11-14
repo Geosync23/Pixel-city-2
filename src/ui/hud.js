@@ -74,7 +74,9 @@ function renderPanel() {
 // tap a need -> "Where can I fix this?": the nearest suitable places, each row sets a waypoint
 const FIX = { hunger: /food|restaurant|cafe|diner|noodle|pizza|bakery|grocer|market|stall|deli|ramen|burger|taco/, energy: /cafe|coffee|tea/, hygiene: /gym|bath|pool|\bspa\b/, fun: /cinema|arcade|theat|museum|club|bowling|music|karaoke|gallery|\bpark\b|show/, social: /cafe|\bbar\b|\bpub\b|club|plaza|\bpark\b/ };
 const HOME_TIP = { hunger: 'Home (cook)', energy: 'Home (sleep)', hygiene: 'Home (shower)', fun: 'Home (TV, games)' };
-function fixPlaces(id) {
+// data-driven matching lives in src/sim/navigator.js (G.nav.find: venue offers / guide types / home / friends, open-closed, closed last); the regex below is only a fallback
+function fixPlaces(id) { try { if (G.nav && G.nav.find) return G.nav.find(id, 3).map(q => ({ id: q.id, name: q.name + (q.note && !q.friend ? ' (' + q.note + ')' : ''), d: q.d, open: q.open })); } catch (e) { } return fixPlacesOld(id); }
+function fixPlacesOld(id) {
   const re = FIX[id] || FIX.fun, P = G.places, p = G.player; let x = p.x, y = p.y, out = [];
   try { if (G.scene && G.scene.id !== 'city') { const d = String(G.state.flags.lastDoor || '').replace(/^door:/, ''), q = P.get(d) || P.get('door:' + d); if (q) { x = q.x; y = q.y; } } } catch (e) { }
   try { out = P.list().filter((q, i, A) => q && isFinite(q.x) && ['venue', 'stall', 'spot'].includes(q.kind) && A.findIndex(o => o.name === q.name) === i && re.test(((q.kind || '') + ' ' + (q.type || '') + ' ' + (q.cat || '') + ' ' + (q.tags || []).join(' ') + ' ' + (q.name || '')).toLowerCase()) && !/^home/.test(q.id)).map(q => [Math.hypot(q.x - x, q.y - y), q]).sort((a, b) => a[0] - b[0]).slice(0, 3).map(a => ({ id: a[1].id, name: a[1].name, d: a[0] })); } catch (e) { out = []; }
@@ -86,7 +88,8 @@ function fixPlaces(id) {
 function fixNeed(n) {
   const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
   if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));
-  for (const q of L) m.body.append(el('button', { style: 'display:block;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', text: q.name + '  (' + Math.max(1, Math.round(q.d / 10)) * 10 + ' steps)', onclick: () => { try { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } catch (e) { toast('No route there yet.'); } m.close(); togglePanel(false); } }));
+  for (const q of L) m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', onclick: () => { try { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } catch (e) { toast('No route there yet.'); } m.close(); togglePanel(false); } },
+    el('span', { style: 'flex:1', text: q.name }), el('small', { text: Math.max(1, Math.round(q.d / 10)) * 10 + ' m' }), q.open == null ? null : el('small', { style: 'padding:0 4px;border:2px solid #2a2733;background:' + (q.open ? '#bfe3a1' : '#f0b0a0'), text: q.open ? 'OPEN' : 'CLOSED' })));
   return m;
 }
 function togglePanel(on) { panelOpen = on === undefined ? !panelOpen : !!on; H.panel.classList.toggle('on', panelOpen); H.needs.classList.toggle('on', panelOpen); if (panelOpen) renderPanel(); }

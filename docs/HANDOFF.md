@@ -2,6 +2,8 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-14 21:58 UTC) — STILL WORKING THIS WINDOW (owner reported 41% used at ~21:55; account move comes after)
+- **Context note (22:05 UTC):** the owner warned the lead's memory is nearly full — a compaction is likely soon. After it: re-read CLAUDE.md + this file; the fix pack 2 worker's report will arrive as a message; do the playbook loop
+  (docs/reports/fixpack2.md, build, 1 screenshot, commit + push, publish with base_version from `get_artifact`), then launch the item-icons worker. Owner usage readings: 41% at 21:55, 46% at 22:03 (stop launching at ~85%).
 - **Calibration:** two economical workers (189k + 142k tokens) + lead integration cost ~15% of the 5-hour window. So run them one at a time back-to-back until the owner reports ~85%, then clean stop.
 - **Running worker:** FIX PACK 2 + NAVIGATOR, launched 21:57 UTC; may EDIT EXISTING FILES. Items: (1) verify/finish station stairs [src/sim/rail.js], (2) verify/fix city bench sitting [src/sim/activities.js],
   (3) intro smoke test + cabin tail check [src/sim/intro_airport.js, src/art/airport_interior/cabin.js], (4) train flicker overhead [src/sim/rail.js sort boxes], (5) data-driven need->place matching [src/ui/hud.js, new src/sim/navigator.js],

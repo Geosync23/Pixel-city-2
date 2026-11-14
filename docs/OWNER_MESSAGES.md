@@ -209,3 +209,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 47 — Usage reading
 > 46 percent
+
+## 48 — Memory nearly full
+> You're almost full on memory just so you know. But I understand youre making handoff notes all the time and we have a system in place

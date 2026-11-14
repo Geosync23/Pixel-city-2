@@ -12,7 +12,7 @@ import { TRANSIT_SERVICE } from '../data/venues.js';
 import { el, iconCanvas, empty, btn, chip, allPlaces, isKnown, place, placeCat, CATS, CAT_BY_ID, openState, cityPos, distTo, homePlace, money, safe, timeInfo } from './phone_util.js';
 
 const INK = '#2a2733', CREAM = '#fff4dc';
-let base = null, baseWorld = null, view = { cx: 192, cy: 192, z: 2 }, sel = null, needCenter = true, hidden = {}, pins = [], cv = null, footEl = null, ctxRef = null, wayEl = null, selStreet = null, streetsOpen = false;
+let base = null, baseWorld = null, view = { cx: 192, cy: 192, z: 2 }, sel = null, needCenter = true, hidden = {}, pins = [], cv = null, footEl = null, ctxRef = null, wayEl = null, selStreet = null, streetsOpen = false, navKind = null, navDest = null;
 const FONT = '"Pixelify Sans", system-ui, sans-serif', lbl = { key: '', w: null, list: [] }, dist = { w: null, list: [] };
 const streets = () => (G.address && G.address.streets ? G.address.streets() || [] : []);
 const addrOf = p => (p && p.poi && p.poi.address) || (G.address && p ? (G.address.of(p) || {}).text : '') || '';
@@ -112,7 +112,7 @@ function zoomBy(f, ax, ay) {
 
 /* ---------- place card ---------- */
 function showCard() {
-  if (!footEl) return; footEl.replaceChildren(); const p = sel && place(sel); if (!p) return;
+  if (!footEl) return; footEl.replaceChildren(); if (navDest) return routeCard(); const p = sel && place(sel); if (!p) return;
   const cat = CAT_BY_ID[placeCat(p)], os = openState(p), v = p.venue, wp = getWaypoint(), isWp = wp && wp.id === p.id, ctx = ctxRef;
   const c = el('div.ph-placecard', null,
     el('div.t', null, el('div', null, el('b', { text: p.name }), el('br'), el('small', { text: [cat.name, p.districtName].filter(Boolean).join(' · ') + ` · ~${Math.round(distTo(p))} m` })), el('button.ph-link', { text: 'x', 'aria-label': 'Close card', onclick: () => { sel = null; showCard(); draw(); } })),
@@ -120,9 +120,41 @@ function showCard() {
     v && v.blurb ? el('small', { text: v.blurb }) : null,
     os.open !== null ? el('div', null, chip(os.open ? 'OPEN' : 'CLOSED', os.open ? 'good' : 'bad'), ' ', el('small', { text: os.hours })) : null,
     p.kind === 'station' ? el('small', { text: `Light rail: ${money(FARES.train.single)} flat, a train every ${TRANSIT_SERVICE.train.headwayMinutes.offPeak} min or so.` }) : null,
-    el('div.ph-btns', null, btn(isWp ? 'Clear waypoint' : 'Set waypoint', () => { setWaypoint(isWp ? null : p); if (!isWp) ctx.tip('Waypoint set. Follow the arrow.'); showCard(); draw(); }, isWp ? '' : 'pri', 'ui.pin'),
+    el('div.ph-btns', null, btn(isWp ? 'Clear waypoint' : 'Set waypoint', () => { if (isWp) { setWaypoint(null); if (G.nav) G.nav.cancel(); } else if (G.nav) { navDest = p; } else { setWaypoint(p); ctx.tip('Waypoint set. Follow the arrow.'); } showCard(); draw(); }, isWp ? '' : 'pri', 'ui.pin'),
       G.phone.isUnlocked('taxi') ? btn('Call cab here', () => ctx.open('taxi', { place: p.id }), '', 'transport.taxi') : null));
   footEl.append(c);
+}
+/* ---------- navigator: "Where to?" chips -> nearest places -> route card (walk / bus / train / cab) ---------- */
+const NAVCHIPS = [['food', 'Food'], ['groceries', 'Groceries'], ['coffee', 'Coffee'], ['home', 'Home'], ['work', 'Work'], ['fun', 'Fun'], ['shopping', 'Shopping'], ['transit', 'Transit'], ['search', 'Search']];
+const MODE_ICON = { walk: 'WALK', bike: 'BIKE', bus: 'BUS', train: 'TRAIN', cab: 'CAB' };
+function routeCard() {
+  const d = navDest, ctx = ctxRef, opts = safe(() => G.nav.routeTo(d), []), t = G.nav.trip && G.nav.trip();
+  const c = el('div.ph-placecard.ph-route', null, el('div.t', null, el('div', null, el('b', { text: 'To ' + d.name }), el('br'), el('small', { text: 'How will you get there?' })), el('button.ph-link', { text: 'x', 'aria-label': 'Close directions', onclick: () => { navDest = null; showCard(); draw(); } })));
+  if (t) c.append(el('small', null, 'Trip in progress to ' + t.dest.name + '. ', el('button.ph-link', { text: 'Cancel trip', onclick: () => { G.nav.cancel(); showCard(); draw(); } })));
+  for (const o of opts) c.append(el('button', { 'data-nav': o.mode, style: { display: 'block', width: '100%', textAlign: 'left', margin: '3px 0', padding: '4px 8px', minHeight: '40px' }, onclick: () => { G.nav.start(o); if (o.mode === 'cab') return; ctx.tip(o.mode === 'bus' || o.mode === 'train' ? 'Trip started: first walk to ' + o.board.name + '.' : 'Waypoint set. Follow the arrow.'); navDest = null; sel = null; showCard(); draw(); } },
+    el('b', { text: MODE_ICON[o.mode] + (o.line ? ' · ' + o.line : '') + ' · ' + o.minutes + ' min · ' + o.costText }), el('br'), el('small', { text: o.text + (o.next ? ' · ' + o.next : '') })));
+  if (!opts.length) c.append(el('small', { text: 'No route found.' }));
+  footEl.append(c);
+}
+function navPanel() {
+  const list = el('div', { style: { overflowY: 'auto', flex: '1', minHeight: '0', display: 'flex', flexDirection: 'column', gap: '4px' } }), title = (NAVCHIPS.find(c => c[0] === navKind) || [])[1] || 'Places';
+  const pick = r => { navKind = null; const p = typeof r.id === 'string' ? place(r.id) : null; navDest = p ? { id: p.id, name: r.home ? 'Home' : p.name, x: p.x, y: p.y } : { name: r.name, x: r.x, y: r.y }; view.cx = navDest.x; view.cy = navDest.y; sel = null; if (ctxRef) ctxRef.refresh(); };
+  const fill = rows => { list.replaceChildren(); for (const r of rows) list.append(el('button', { 'data-navrow': typeof r.id === 'string' ? r.id : 'pos', style: { textAlign: 'left', minHeight: '40px', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }, onclick: () => pick(r) },
+      el('span', null, el('b', { text: r.name }), r.note ? el('small', { text: ' · ' + r.note }) : null), el('span', { style: { whiteSpace: 'nowrap' } }, el('small', { text: Math.round(r.d) + ' m ' }), r.open == null ? null : chip(r.open ? 'OPEN' : 'CLOSED', r.open ? 'good' : 'bad'))));
+    if (!rows.length) list.append(el('small', { text: navKind === 'search' ? 'Type a place, a dish, a thing to do...' : navKind === 'work' ? 'No job yet - try the job board.' : navKind === 'home' ? 'No home yet.' : 'Nothing like that on the map yet.' })); };
+  let inp = null;
+  if (navKind === 'search') { const c = cityPos(), run = q => fill(q.trim().length < 2 ? [] : safe(() => G.guide.search(q.trim()), []).filter(e => isFinite(e.x) && isFinite(e.y)).slice(0, 10).map(e => { const p = e.placeId && place(e.placeId); return { id: p ? p.id : { x: e.x, y: e.y, name: e.title }, name: e.title, note: e.type || '', x: e.x, y: e.y, d: Math.abs(e.x - c.x) + Math.abs(e.y - c.y), open: p ? openState(p).open : null }; }));
+    inp = el('input', { type: 'search', placeholder: 'Search places and things to do...', 'aria-label': 'Search places', style: { minHeight: '40px', padding: '4px 8px', border: '2px solid #2a2733', font: 'inherit', background: '#fffdf4' }, oninput: () => run(inp.value) }); for (const ev of ['pointerdown', 'pointerup', 'wheel']) inp.addEventListener(ev, e => e.stopPropagation()); fill([]); }
+  else fill(safe(() => G.nav.find(navKind, 6), []));
+  const panel = el('div.ph-streets.ph-navlist', { style: { position: 'absolute', left: '8px', top: '8px', bottom: '8px', width: 'min(290px, calc(100% - 64px))', background: '#fff4dc', border: '2px solid #2a2733', boxShadow: '3px 3px 0 #2a2733', padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: '3', touchAction: 'pan-y' } },
+    el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, el('b', { text: 'Where to? ' + title }), el('button.ph-link', { text: 'x', 'aria-label': 'Close list', onclick: () => { navKind = null; if (ctxRef) ctxRef.refresh(); } })), inp, list);
+  for (const ev of ['pointerdown', 'pointermove', 'pointerup', 'wheel']) panel.addEventListener(ev, e => e.stopPropagation());
+  return panel;
+}
+function whereTo(ctx) {
+  const job = safe(() => G.jobs.current(), null), chips = NAVCHIPS.filter(c => c[0] !== 'work' || job);
+  return el('div.ph-legend.ph-whereto', { role: 'group', 'aria-label': 'Where to?', style: { borderBottom: '2px solid #2a2733' } }, el('b', { text: 'Where to?', style: { alignSelf: 'center', whiteSpace: 'nowrap' } }),
+    chips.map(([id, name]) => el('button.ph-chip' + (navKind === id ? '.on' : ''), { 'data-navchip': id, 'aria-pressed': navKind === id ? 'true' : 'false', onclick: () => { streetsOpen = false; if (id === 'home') { const h = safe(() => G.nav.find('home', 1), [])[0]; if (!h) return ctx.tip('No home yet.'); navKind = null; navDest = { id: h.id, name: 'Home', x: h.x, y: h.y }; } else navKind = navKind === id ? null : id; ctx.refresh(); } }, name)));
 }
 /* ---------- street search ---------- */
 function streetList() { const by = new Map(); for (const s of streets()) { const e = by.get(s.name); if (!e || s.b - s.a > e.b - e.a) by.set(s.name, s); } return [...by.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })); }
@@ -170,13 +202,14 @@ export default {
     const w = cityWorld(); if (!w) return b.append(empty('ui.pin', 'No map data yet', 'Step outside and the city map will load.'));
     ctxRef = ctx; footEl = ctx.foot; const a = ctx.arg;
     if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) { sel = p.id; view.cx = p.x; view.cy = p.y; view.z = Math.max(view.z, 3); needCenter = false; hidden[placeCat(p)] = false; } }
-    if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; }
+    if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; navKind = null; navDest = null; }
+    if (G.nav) b.append(whereTo(ctx));
     const present = new Set(allPlaces().map(placeCat));
     b.append(el('div.ph-legend', { role: 'group', 'aria-label': 'Filter' }, streets().length ? el('button.ph-chip' + (streetsOpen ? '.on' : ''), { 'aria-pressed': streetsOpen ? 'true' : 'false', onclick: () => { streetsOpen = !streetsOpen; ctx.refresh(); } }, 'Streets') : null, CATS.filter(c => present.has(c.id)).map(c => el('button.ph-chip' + (hidden[c.id] ? '.off' : ''), { 'aria-pressed': hidden[c.id] ? 'false' : 'true', onclick: () => { hidden[c.id] = !hidden[c.id]; ctx.refresh(); } }, el('i', { style: { background: c.color } }), c.name))));
     cv = el('canvas', { 'aria-label': 'City map' });
     const box = el('div.ph-map', null, cv, el('div.ph-map-ctl', null, el('button', { text: '+', 'aria-label': 'Zoom in', onclick: () => zoomBy(1.5) }), el('button', { text: '-', 'aria-label': 'Zoom out', onclick: () => zoomBy(1 / 1.5) }),
       el('button', { 'aria-label': 'Centre on me', onclick: () => { const c = cityPos(); view.cx = c.x; view.cy = c.y; draw(); } }, el('span', { text: '◎' }))));
-    if (streetsOpen) box.append(streetsPanel());
+    if (navKind && G.nav) box.append(navPanel()); else if (streetsOpen) box.append(streetsPanel());
     b.append(box); attach(box, ctx); showCard();
     requestAnimationFrame(() => { clampView(); draw(); }); setTimeout(draw, 250);
   },

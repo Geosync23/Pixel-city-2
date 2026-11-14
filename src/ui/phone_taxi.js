@@ -12,6 +12,7 @@ const canCall = () => !!(G.transit && G.transit.callTaxi);
 const eta = () => { const w = TRANSIT_SERVICE.taxi.pickupWaitMinutes, m = safe(() => G.weather.taxiWaitMult(), 1) || 1; return `${Math.round(w.phoneMin * m)}-${Math.round(w.phoneMax * m)} min`; };
 function hereName() { const c = cityPos(); let best = null, bd = 1e9; for (const p of allPlaces()) { const d = Math.abs(p.x - c.x) + Math.abs(p.y - c.y); if (d < bd && p.kind !== 'spot') { bd = d; best = p; } } return best ? (bd < 14 ? 'Near ' + best.name : (best.districtName || DISTRICT_NAME[best.district] || 'Maple Bay')) : 'Your location'; }
 
+const freeRide = () => !!(G.state.flags && G.state.flags.firstCabFree);
 function request(p, fare, ctx) {
   if (!canCall()) return ctx.push('No cars available', b => b.append(empty('transport.taxi', 'No cars available', 'All MapleCab drivers are off the road right now. Please try again a little later. The light rail and buses are running!', btn('Back to destinations', () => ctx.open('taxi'), 'wide'))));
   let r; try { r = G.transit.callTaxi(p.id); } catch (e) { console.error(e); r = false; } if (r === false) return ctx.tip("A cab can't reach you here. Step outside to the street and try again.");
@@ -22,17 +23,17 @@ function quote(p) {
   return (b, ctx) => {
     const fare = taxiFare(p), bal = balance(), ok = safe(() => G.money.canAfford(fare), bal >= fare), os = openState(p), st = safe(() => G.places.nearest(cityPos().x, cityPos().y, 'station'), null);
     b.append(el('div.ph-hero.dark', null, iconEl('transport.taxi', 3), el('div', null, el('small', { text: 'From: ' + hereName() }), el('b', { text: 'To: ' + p.name, style: { fontSize: '18px' } }), el('small', { text: p.districtName || DISTRICT_NAME[p.district] || '' }))), el('div.ph-checker'));
-    b.append(card(el('div.ph-kv', null, el('span', { text: 'Fare' }), el('b.ph-big', { text: money(fare) })), kv('Pick-up in', eta()), kv('Your balance', money(bal)), os.open !== null ? kv('Destination', os.text) : null));
-    if (!ok) b.append(card(el('b', { text: 'That fare is a bit much right now.' }), el('p', { text: st ? `The light rail is only ${money(2.5)}. Nearest station: ${st.name}.` : 'The light rail and buses are cheaper.' }), st ? btn('Show station on map', () => ctx.open('map', { place: st.id }), '', 'ui.pin') : null));
+    b.append(card(el('div.ph-kv', null, el('span', { text: 'Fare' }), el('b.ph-big', { text: freeRide() ? 'Free — prepaid' : money(fare) })), kv('Pick-up in', eta()), kv('Your balance', money(bal)), os.open !== null ? kv('Destination', os.text) : null));
+    if (!ok && !freeRide()) b.append(card(el('b', { text: 'That fare is a bit much right now.' }), el('p', { text: st ? `The light rail is only ${money(2.5)}. Nearest station: ${st.name}.` : 'The light rail and buses are cheaper.' }), st ? btn('Show station on map', () => ctx.open('map', { place: st.id }), '', 'ui.pin') : null));
     b.append(el('p.ph-note', { text: 'Your driver meets you at the nearest kerb. You pay when you arrive; cancelling before pick-up is free.' }));
-    ctx.foot.append(btn(ok ? `Request ride · ${money(fare)}` : 'Not enough money', () => request(p, fare, ctx), 'gold wide big', 'transport.taxi')); if (!ok) ctx.foot.lastChild.disabled = true;
+    ctx.foot.append(btn(ok || freeRide() ? `Request ride · ${freeRide() ? 'Free — prepaid' : money(fare)}` : 'Not enough money', () => request(p, fare, ctx), 'gold wide big', 'transport.taxi')); if (!ok && !freeRide()) ctx.foot.lastChild.disabled = true;
   };
 }
 function status(b, ctx, r) {
   const riding = r.status === 'riding' || !!G.cutscene;
   b.append(el('div.ph-hero.dark', null, iconEl('transport.taxi', 3), el('div', null, el('b', { text: riding ? 'Enjoy the ride!' : 'Your cab is on its way', style: { fontSize: '18px' } }), el('small', { text: 'To ' + r.name }))), el('div.ph-checker'));
   b.append(el('div.ph-steps', null, ['Requested', 'On the way', 'Riding', 'Arrived'].map((s, i) => el('span' + (i < (riding ? 2 : 1) ? '.done' : i === (riding ? 2 : 1) ? '.on' : ''), { text: s }))));
-  b.append(card(kv('Fare', money(r.fare)), kv('Pick-up', riding ? 'Done' : 'about ' + eta()), el('p', { text: riding ? 'Sit back. The city looks great from the back seat.' : 'Put your phone away and wait by the kerb. Hop in when the yellow cab pulls up.' })));
+  b.append(card(kv('Fare', freeRide() ? 'Free — prepaid' : money(r.fare)), kv('Pick-up', riding ? 'Done' : 'about ' + eta()), el('p', { text: riding ? 'Sit back. The city looks great from the back seat.' : 'Put your phone away and wait by the kerb. Hop in when the yellow cab pulls up.' })));
   ctx.foot.append(btn('Put phone away', () => ctx.close(), 'pri wide big', 'ui.check'));
   if (!riding) ctx.foot.append(btn('Cancel ride (free)', () => { safe(() => G.transit.cancelTaxi(), 0); G.emit('taxi:cancel', r.placeId); S().ride = null; ctx.refresh(); ctx.tip('Ride cancelled.'); }, 'wide'));
 }
@@ -54,7 +55,7 @@ export default {
     const all = destinations(), here = cityPos(), far = all.filter(p => Math.abs(p.x - here.x) + Math.abs(p.y - here.y) > 10);
     if (!far.length) return b.append(empty('ui.pin', 'No destinations yet', 'Places you visit or hear about show up here. Stations and your home are always listed.'));
     const item = p => { const os = openState(p); return row({ icon: p.kind === 'home' ? 'ui.home' : p.kind === 'station' ? 'transport.train' : p.kind === 'airport' ? 'transport.plane' : el('i', { style: { width: '16px', height: '16px', border: '2px solid #2a2733', background: CAT_BY_ID[placeCat(p)].color, flex: 'none' } }), iconScale: 1,
-      title: p.name, sub: [CAT_BY_ID[placeCat(p)].name, os.open === null ? '' : os.open ? 'open now' : 'closed now'].filter(Boolean).join(' · '), right: money(taxiFare(p)), onclick: () => ctx.push('Your ride', quote(p)) }); };
+      title: p.name, sub: [CAT_BY_ID[placeCat(p)].name, os.open === null ? '' : os.open ? 'open now' : 'closed now'].filter(Boolean).join(' · '), right: freeRide() ? 'Free' : money(taxiFare(p)), onclick: () => ctx.push('Your ride', quote(p)) }); };
     const home = homePlace(), work = safe(() => place(G.jobs.current().venue), null), quick = [home, work, ...(S().seen.taxi || []).map(place)].filter((p, i, arr) => p && far.includes(p) && arr.indexOf(p) === i);
     if (quick.length) { b.append(section('Quick picks')); for (const p of quick) b.append(item(p)); }
     const groups = {}; for (const p of far) (groups[p.district || 'other'] = groups[p.district || 'other'] || []).push(p);
