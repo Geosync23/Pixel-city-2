@@ -40,7 +40,7 @@ export function walkers(sc, cfg) {
     c.x = p0.x + (Math.random() - .5) * .3; c.y = p0.y + (Math.random() - .5) * .3; c.z = 0; c.alpha = 0; c.hidden = false; c.moving = false;
   };
   for (let i = 0; i < cfg.n; i++) { const c = new Char(P.adult[0], 0, 0), wk = { ch: c, n: i }; if (i % 6 === 5 && list.length) wk.follow = list[list.length - 1]; list.push(wk); setup(wk, true); sc.ents.push(c); addTalk(sc, c, cfg.label || 'Shopper', cfg.lines); }
-  return { list, count: () => list.filter(w => !w.ch.hidden).length, setActive(n) { active = n; },
+  return { list, count: () => list.filter(w => !w.ch.hidden).length, setActive(n, now) { active = n; if (now) for (const w of list) if (w.n >= n && !w.ch.hidden && !(w.dead > 0)) w.dead = .3 + Math.random() * 8; },
     update(dt) {
       for (let n = 0; n < list.length; n++) {
         const wk = list[n], c = wk.ch; if (c.hidden) { if (wk.n < active && (wk.dead -= dt) <= 0) setup(wk, false); continue; } c.t += dt;

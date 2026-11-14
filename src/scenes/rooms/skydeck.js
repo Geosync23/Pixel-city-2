@@ -6,7 +6,7 @@
 // Fixture tags handled here: elevator, telescope, glassfloor, plaque, photospot, city_model + item tags skyticket, skyshop.   Events: 'skydeck:ledge', 'skydeck:plaque'(i)
 import { G } from '../../core/game.js';
 import { GT } from '../../engine/world.js';
-import { defineRoom, registerFixture, exitRoom } from '../interior.js';
+import { defineRoom, registerFixture } from '../interior.js';
 import { toast, bubble, say } from '../../ui/kit.js';
 import { SKY_VENUES } from '../../data/venues_showpiece.js';
 import { MOODLETS } from '../../data/needs.js';
@@ -30,7 +30,7 @@ defineRoom({ id: 'skydeck_lobby', name: 'Beacon Tower — SkyDeck Lobby', w: 12,
   items: [
     { id: 'furn.skydeck.liftdoor', wall: 'y', at: 2.4, p: { floor: '1' }, lift: 'up' }, { id: 'furn.skydeck.liftdoor', wall: 'y', at: 5.4, p: { floor: '38' }, lift: 'up' },
     { id: 'furn.airport.sign', x: 2.6, y: .2, z: 2.45, p: { text: 'SKYDECK  LEVEL 52 ^', w: 5, c: '#39424e' }, solid: false },
-    { id: 'furn.generic.queuepost', x: 1.6, y: 2.8, p: { n: 2, kind: 'rope', c: '#b8342e' } }, { id: 'furn.generic.queuepost', x: 6.6, y: 2.8, p: { n: 2, kind: 'rope', c: '#b8342e' } },
+    { id: 'furn.generic.queuepost', x: 1.6, y: 2.8, p: { n: 2, c: '#b8342e' } }, { id: 'furn.generic.queuepost', x: 6.6, y: 2.8, p: { n: 2, c: '#b8342e' } },
     { id: 'furn.station.info', x: 8.8, y: 3.6, tags: ['skyticket'] }, { id: 'furn.skydeck.model', x: 2.6, y: 4.6 }, { id: 'furn.skydeck.plaque', x: 4.9, y: 5.4, text: 3 },
     { id: 'furn.generic.sofa', x: .5, y: 6.6, p: { c: '#2f7f86' }, flip: true }, { id: 'furn.generic.plant', x: .4, y: .5, p: { kind: 'palm' } }, { id: 'furn.generic.plant', x: 11.1, y: .5, p: { kind: 'palm' } }, { id: 'furn.generic.plant', x: 11.1, y: 8, p: { kind: 'snake' } },
     { id: 'furn.airport.greenwall', wall: 'x', at: 3.2, p: { w: 4, text: 'BEACON TOWER' } }, { id: 'furn.generic.clock', wall: 'y', at: 9.6 }, { id: 'furn.generic.picture', wall: 'y', at: 10.5, p: { kind: 'sea', w: 1 } },
@@ -46,7 +46,7 @@ const items = [], spots = [];
 for (let at = 0; at < 22; at += 4) { const w = Math.min(4, 22 - at); items.push({ id: 'furn.skydeck.pano', wall: 'y', at, p: { w, u0: 256 + at * 16 }, sky: 1 }); }
 for (let at = 0; at < 16; at += 4) items.push({ id: 'furn.skydeck.pano', wall: 'x', at, p: { w: 4, u0: (16 - at) * 16, rev: 1 }, sky: 1 });
 const add = (id, x, y, p, o) => items.push(Object.assign({ id: 'furn.' + id, x, y, p: p || {} }, o));
-add('generic.rug', 7.5, 4.5, { w: 7, d: 4, c: '#2f3f72', c2: '#e8c06a', inner: '#27345f' });
+add('generic.rug', 8, 5, { w: 6, d: 3, c: '#2f7f86', c2: '#e8c06a' });
 add('skydeck.glassfloor', 3.2, 1.6, { w: 3, d: 2 }); add('skydeck.photospot', 9.4, 1.5); add('skydeck.plaque', 11.2, 1.2, { kind: 'photo' }, { photo: 1 });
 for (const [d, x, y, f, c] of [['hillcrest', .9, 11.6, 1], ['park', .9, 6.9, 1, '#2f6fb0'], ['oldtown', .9, 4.1, 1, '#b8443a'], ['harbor', 12.4, .9, 0, '#b8443a'], ['airport', 19.3, .9, 0, '#2f6fb0']]) add('skydeck.scope', x, y, c ? { c } : {}, { flip: !!f, district: d });
 add('skydeck.plaque', 6.6, .9, {}, { text: 0 }); add('skydeck.plaque', 15.6, .9, {}, { text: 1 }); add('skydeck.plaque', .9, 2.6, { c: '#7a4e2d' }, { text: 2, flip: true }); add('skydeck.plaque', .9, 9.2, {}, { text: 3, flip: true });
@@ -96,4 +96,4 @@ export function init() {
     G.startActivity({ label: 'Standing on the sky ledge', anim: 'stand', minutes: 6, at: { x: fx.x, y: fx.y, z: 0, dir: 3 }, done: () => { try { G.needs.add('fun', first ? 22 : 12); if (MOODLETS.inspired && G.needs.addMoodlet) G.needs.addMoodlet(first ? 'inspired' : 'bay_view'); } catch (e) { } G.emit('skydeck:ledge', first); toast(first ? 'Fifty-two floors of nothing under your shoes. Your knees have opinions. Your heart is delighted.' : 'Still terrifying. Still wonderful.', 'good', 4200); } });
   } })));
 }
-export { PLAQUES, exitRoom };
+export { PLAQUES };

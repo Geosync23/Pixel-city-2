@@ -42,7 +42,7 @@ const DISPLAYS = {
     T.S(3.1, 3.2, 2); T.S(4.6, 2.2, 3); T.S(3.6, 2.9, 3); },
   tech(T) { T.F(.4, .9, 'homegoods.tvstand', {}, { anim: 1 }); T.F(.4, 3, 'homegoods.demotable'); T.F(3.9, 3.2, 'homegoods.plinth', { item: 'console' }); T.F(4.95, 3.2, 'homegoods.plinth', { item: 'laptop' }); T.F(2.7, .4, 'homegoods.plinth', { item: 'speaker' });
     T.S(1.4, 2.1, 3, { anim: 'phone' }); T.S(1.4, 4.5, 3); T.S(4.4, 4.7, 3); T.S(4.6, 2.2, 3); },
-  clothes(T) { T.F(.4, .9, 'clothing.rack', { pal: 'warm', seed: 2 }); T.F(.8, 2.7, 'clothing.roundrack', { pal: 'cool', seed: 3 }); T.F(.3, 4.2, 'clothing.mannequin', { shirt: '#b8342e' }); T.F(2, 4.3, 'clothing.mannequin', { shirt: '#e8b83a', scarf: 1 }); T.F(3.8, 3.2, 'clothing.foldtable', { pal: 'warm', seed: 5 }); T.F(2.7, .4, 'clothing.mirror');
+  clothes(T) { T.F(.4, .9, 'clothing.rack', { pal: 'warm', seed: 2 }); T.F(.8, 2.7, 'clothing.roundrack', { pal: 'cool', seed: 3 }); T.F(.3, 4.2, 'clothing.mannequin', { shirt: '#b8342e' }); T.F(2, 4.3, 'clothing.mannequin', { shirt: '#e8b83a', scarf: '#f4f0e8' }); T.F(3.8, 3.2, 'clothing.foldtable', { pal: 'warm', seed: 5 }); T.F(2.7, .4, 'clothing.mirror');
     T.S(1.4, 1.9, 3); T.S(2.2, 3.2, 2); T.S(4.8, 4.7, 3); T.S(4.6, 2.2, 3); },
   shoes(T) { T.F(.4, .9, 'clothing.foldtable', { pal: 'cool', seed: 2 }); T.F(.9, 2.8, 'clothing.pouf', { c: '#e8862c' }, { tags: ['seating'] }); T.F(.4, 3.7, 'clothing.shelves', { pal: 'cool', seed: 4 }); T.F(4, 3.3, 'clothing.mannequin', { shirt: '#2f9a94', pant: '#33303f' }); T.F(5.1, 3.2, 'clothing.mirror'); T.F(4.2, 4.2, 'generic.bench', { c: '#e8862c' });
     T.S(1.4, 2.4, 3); T.S(3.1, 3.3, 0); T.S(4.6, 2.2, 3); },
@@ -117,7 +117,7 @@ function setup(sc) {
   };
   const wk = walkers(sc, { n: 26, route, lines: LINES.shopper, label: 'Shopper' });
   sc.life = { crowd: cr, walkers: wk, open: null, count: () => cr.count() + wk.count() };
-  const sync = force => { const o = isOpen(); if (o === sc.life.open && !force) return; sc.life.open = o; for (const f of fascias) setP(f, { closed: o ? 0 : 1 }); cr.show(o, false); wk.setActive(o ? 26 : 2); if (!o && !force) sc.pa('The Galleria is now closed. Thank you for shopping. Please take your pretzels with you.'); };
+  const sync = force => { const o = isOpen(); if (o === sc.life.open && !force) return; sc.life.open = o; for (const f of fascias) setP(f, { closed: o ? 0 : 1 }); cr.show(o, false); wk.setActive(o ? 26 : 2, !o); if (!o && !force) sc.pa('The Galleria is now closed. Thank you for shopping. Please take your pretzels with you.'); };
   sync(true); if (!sc.life.open) for (const w of wk.list) if (w.n >= 2) { w.ch.hidden = true; w.dead = 1; }
   const PA = ['Welcome to Maple Bay Galleria. Ten shops, one fountain, zero regrets.', 'A small blue mitten has been found at Toy Galaxy. It misses you.', 'Fern & Frond reminds shoppers that the mister is not a shower.', 'The time is {clock}. The Galleria closes at nine.', 'Would the owner of a red bicycle please stop riding it through the food court.', 'Free samples at Twist & Salt while the tray lasts. The tray will not last.'];
   let fa = 0, fb = 0, st = 0, pa = 25 + Math.random() * 30; const u0 = sc.update;
