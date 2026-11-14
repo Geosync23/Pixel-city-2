@@ -203,3 +203,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 45 — Don't transfer yet; use the rest of the window, then stop cleanly
 > Since 4pm we used 26 percent of the 5 hour session window. Lsts not transfer yet, lets use more. Plan some work accordingly so you can stop cleanly again  before 100%
+
+## 46 — Usage reading
+> Were at 41 percent

@@ -1,13 +1,14 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 21:50 UTC) — CLEAN STOP POINT FOR THE ACCOUNT MOVE
-- **Running worker: NONE. No timers pending. Nothing half-done on disk.** Everything is integrated, published (Stage 11) and pushed.
-- **Done in the final window:** performance venues (Stage 9), Wander guidebook app (Stage 10, docs/reports/guide.md), playtest fix pack 1 (Stage 11, docs/reports/fixpack1.md — read it: items 4 and 6 are PARTIAL and several
-  things were verified by eval only), plus lead quick fixes (sign names, Talk-button-only, Jules -> Nora, relationship rate/cap).
-- **START HERE NEXT:** fix pack 2 = what is still open from owner msg 36: verify/finish station stairs in the city and city bench "Sit" spots; run the real intro end to end after the cabin/deboarding changes;
-  real item icons (backpack shows colour squares); train flicker overhead; Map "what do you need?" navigator with foot/bike, bus, train (trip planner); better need->place matching in the HUD chooser.
-  Then continue the numbered list below from item 3.
+## Now (updated 2026-11-14 21:58 UTC) — STILL WORKING THIS WINDOW (owner reported 41% used at ~21:55; account move comes after)
+- **Calibration:** two economical workers (189k + 142k tokens) + lead integration cost ~15% of the 5-hour window. So run them one at a time back-to-back until the owner reports ~85%, then clean stop.
+- **Running worker:** FIX PACK 2 + NAVIGATOR, launched 21:57 UTC; may EDIT EXISTING FILES. Items: (1) verify/finish station stairs [src/sim/rail.js], (2) verify/fix city bench sitting [src/sim/activities.js],
+  (3) intro smoke test + cabin tail check [src/sim/intro_airport.js, src/art/airport_interior/cabin.js], (4) train flicker overhead [src/sim/rail.js sort boxes], (5) data-driven need->place matching [src/ui/hud.js, new src/sim/navigator.js],
+  (6) Maps navigator: "Where to?" chips + route card with WALK / BUS / TRAIN / CAB and multi-leg trip banner, `G.nav` [src/ui/phone_map.js, src/sim/navigator.js], (7) "Free — prepaid" taxi fare [src/ui/phone_taxi.js].
+  If the session ends before it reports: `node tools/build.mjs`, `git diff --stat`, test those items, finish the remainder.
+- **Queue for the rest of this window, one at a time, clean stop after each:** real item icons (backpack/shop colour squares) -> 2g unique interiors + more enterable buildings (lobbies, separate bathrooms, toilets/bladder)
+  -> 2h apps (app store, Properties browser, Living Tips). Stop launching when the owner reports ~85%.
 - **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794692688-4db5` (Stage 11). The new account must publish its own artifact (see MOVING section below).
 - **NEXT, in order (nothing started):**
   1. [DONE] GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
