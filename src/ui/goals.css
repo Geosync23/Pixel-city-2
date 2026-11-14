@@ -1,0 +1,31 @@
+/* Goals / Opportunities / Appointments widget, tutorial hint bubble, captions (src/ui/goals.js) */
+#goalsw{position:absolute;left:max(8px,env(safe-area-inset-left,0px));top:100px;width:min(236px,62vw);font-size:13px;z-index:5;pointer-events:auto}
+#goalsw.off,#goalsw.empty{display:none}
+#goalsw .gw-head{display:flex;align-items:center;gap:6px;width:auto;background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:3px 8px;font-weight:700;font-size:13px;cursor:pointer;min-height:0}
+#goalsw .gw-head i{font-style:normal;opacity:.7;font-weight:600}
+#goalsw .gw-body{margin-top:6px;background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:5px 7px 7px;max-height:min(46vh,330px);overflow:auto}
+#goalsw.shut .gw-body{display:none}
+#goalsw .gw-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;opacity:.6;margin:6px 0 3px}
+#goalsw .gw-sec:first-child{margin-top:0}
+#goalsw .gw-list{font-size:11px;font-weight:700;margin:2px 0 3px;opacity:.85}
+#goalsw .gw-item{display:flex;gap:6px;align-items:flex-start;padding:2px 0;cursor:pointer;line-height:1.25;background:none;border:0;box-shadow:none;width:100%;text-align:left;font:inherit;color:inherit;min-height:0}
+#goalsw .gw-box{flex:none;width:11px;height:11px;border:2px solid var(--edge);background:#fff8e0;margin-top:1px;box-sizing:border-box}
+#goalsw .gw-item.done{opacity:.55;text-decoration:line-through}
+#goalsw .gw-item.done .gw-box{background:#58b368}
+#goalsw .gw-item.pop{animation:gwpop .7s}
+#goalsw .gw-item.opp .gw-box{background:#ffe08a;transform:rotate(45deg) scale(.8)}
+#goalsw .gw-item.appt .gw-box{background:var(--accent)}
+#goalsw .gw-when{display:block;font-size:11px;opacity:.7;font-weight:600}
+@keyframes gwpop{0%{transform:scale(1)}30%{transform:scale(1.12);background:#dff5d8}100%{transform:scale(1)}}
+.tut{position:absolute;left:50%;top:98px;transform:translateX(-50%);z-index:70;max-width:min(330px,92vw);width:max-content;background:#fff3b0;border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:6px 10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px;pointer-events:auto;animation:tutin .25s}
+.tut-skip{font-size:11px;padding:2px 6px!important;min-height:0!important;white-space:nowrap;background:var(--panel)!important;box-shadow:0 2px 0 var(--edge)!important}
+@keyframes tutin{from{transform:translate(-50%,-8px);opacity:0}}
+.tut-hl{outline:3px solid #ff5a3c!important;outline-offset:2px;animation:tuthl .6s infinite alternate;position:relative;z-index:2}
+@keyframes tuthl{from{outline-color:#ff5a3c}to{outline-color:#ffd23c;outline-offset:5px}}
+.tut-arrow{position:absolute;left:0;top:0;z-index:30;width:0;height:0;pointer-events:none;border-left:9px solid transparent;border-right:9px solid transparent;border-top:14px solid #ff5a3c;filter:drop-shadow(0 2px 0 #2a2733);margin:-16px 0 0 -9px;animation:tutbob .5s infinite alternate}
+@keyframes tutbob{to{margin-top:-24px}}
+.tut-cap{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);z-index:30;width:min(520px,94vw);background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:9px 12px 8px;font-size:15px;pointer-events:none;animation:tutin .25s}
+.tut-cap b{position:absolute;top:-13px;left:8px;background:var(--accent);color:#fff8e0;border:2px solid var(--edge);padding:0 7px;font-size:12px}
+.tut-cap.narr{font-style:italic;text-align:center;background:#2a2733;color:#fff4dc}
+.tut-skipcut{position:absolute;right:12px;bottom:14px;z-index:70;pointer-events:auto}
+@media (max-width:480px){#goalsw{font-size:12px}.tut{font-size:13px}.tut-cap{font-size:14px}}
