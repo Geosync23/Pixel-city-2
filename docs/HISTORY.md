@@ -52,3 +52,4 @@
 - Lead fix (owner msg 53): removed the runway-end turn; the plane keeps rolling straight and the opening cuts to the cabin 3.6 s after touchdown while it is still moving (traced: cut at 8.7 s, plane at v=9, fully visible). Ambient landings roll and fade near the runway end.
 - Lead fix (owner msg 55): walkway chevrons now point in the direction of travel (gates.js); checked in a gallery render for both directions.
 - Item icons landed (365/365 items, 558 icons). Stage 13 published.
+- 22:52 UTC: apps worker launched (app store, Properties browser, Living Tips) — the last worker of this window.

@@ -1,16 +1,16 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 22:25 UTC) — STILL WORKING THIS WINDOW (owner readings: 41% at 21:55, 46% at 22:03, 65% at ~22:40; plan: icons worker lands ~72%, then ONE more worker = 2h apps (app store, Properties browser, Living Tips), then CLEAN STOP ~80-85%; account move comes after)
-- **Done this window:** performance venues (Stage 9), Wander guidebook (Stage 10), fix pack 1 (Stage 11), fix pack 2 + Maps navigator (Stage 12, artifact version `1794693873-7b6a`; docs/reports/fixpack2.md).
-- **Running worker:** ITEM ICONS (real 16x16 icons for all ~365 items + app/need/job icons), launched 22:24 UTC. It owns src/art/icons/ and may minimally edit src/ui/_icons.js.
-  If the session ends before it reports: `node tools/build.mjs`, `node tools/gallery.mjs icon. --scale 5 --out icons`, check the backpack shows real icons, finish coverage.
-- **After it reports:** playbook loop (docs/reports/icons.md, build, 1 screenshot of the backpack, commit + push, publish with base_version from get_artifact), then — if the owner's usage reading allows — next worker:
-  2g unique interiors + more enterable buildings (lobbies, separate bathrooms, toilets/bladder), then 2h apps (app store, Properties browser, Living Tips).
-- **Lead fixes while the icons worker ran (owner msgs 49-53):** intro no longer flashes the curb between the landing shot and the cabin; runway cleared of other aircraft for the opening; aircraft parked on grass hidden;
-  landing plane rolls straight and the shot cuts 3.6 s after touchdown (a turn-at-runway-end attempt was removed at the owner's request). Live artifact version `1794694471-0651`.
-- **Calibration:** an economical worker (~150-190k tokens) + lead integration costs roughly 6-8% of the 5-hour window.
-- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794693873-7b6a` (Stage 12). The new account must publish its own artifact (see MOVING section below).
+## Now (updated 2026-11-14 22:55 UTC) — LAST WORKER OF THIS WINDOW RUNNING (owner readings: 41% 21:55, 46% 22:03, 65% ~22:40; account move comes after)
+- **Done this window:** Stages 9-13: performance venues, Wander guidebook, fix pack 1, fix pack 2 + Maps navigator, item icons (docs/reports/icons.md), plus lead fixes for owner msgs 49-55
+  (no curb flash in the intro; empty runway; aircraft on grass hidden; landing plane rolls straight until the cut; walkway chevrons point the right way). Live artifact version `1794694715-1092` (Stage 13).
+- **Running worker (THE LAST ONE this window):** APPS — app store with releases (`G.apps`), Properties browser (`homes`), Living Tips (`tips`, `G.tips`), and small new apps (showtime, transit, wallet, closet, friends, weather),
+  launched 22:52 UTC. Files: src/ui/phone_store.js, phone_homes.js, phone_tips.js, phone_apps.css, src/sim/apps.js; minimal edits allowed in src/ui/phone.js.
+  If the session ends before it reports: `node tools/build.mjs`, `git diff --stat`, open each app via `G.phone.open(id)`, finish the remainder from the brief (owner msg 36: app store, properties browser, living tips).
+- **After it reports:** playbook loop (docs/reports/apps.md, build, 1 phone screenshot, commit + push, publish with base_version from get_artifact), then CLEAN STOP: rewrite this section, push, tell the owner the final commit. Do NOT launch another worker.
+- **Then next (new account):** 2g unique interiors + many more enterable buildings (lobbies, separate bathrooms, toilets/bladder) -> 2i clothes/hair/laundry -> 2j traits/skills/mini-games + university -> 2c museum (new building),
+  conservatory, hotel, post offices -> 2k big in-world events -> 3 jobs expansion -> 4b romance -> 4c goods/physical shopping/home design -> 4 new needs + Opportunities -> 5 remaining art -> 6 QA. Details: docs/BACKLOG.md.
+- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794694715-1092` (Stage 13). The new account must publish its own artifact (see MOVING section below).
 - **NEXT, in order (nothing started):**
   1. [DONE] GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
      venue, show, event, activity/mini-game, transit line; chapters + by district + near me; "Things to try" checklist with stamps; active links: "Take me there" waypoint, "Add to planner" for scheduled shows/events
