@@ -128,3 +128,7 @@ Sights, Services, Getting Around): every place with picture, blurb, hours, addre
 venues in a few bars/clubs (stage + rotating bands), OUTDOOR CONCERTS at the park bandstand, open mic, jazz brunch, night food market on Lantern Row, outdoor movie night
 on the River Walk, pier fireworks, farmers' market, gallery openings, pickup basketball / 5K fun run, chess tournaments, trivia + karaoke nights, stargazing at the
 Hillcrest lookout, seasonal festivals. The lead is asked to invent a good list beyond what the owner dictated.
+
+## Direction update 9 — trip planner; future city expansion
+- Any destination picked on the map offers Take Cab, TAKE BUS and TAKE TRAIN; transit options show which stop/station to board at and where to get off.
+- FUTURE PROJECT (not now): make the city 50-100% larger with new districts and interesting areas. The lead may already expand at the edges when new content needs room.

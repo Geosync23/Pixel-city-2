@@ -5,8 +5,11 @@ import { toSprite, objSprite } from './sprites.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
 function behind(A, B) {
-  if (A[3] <= B[0] + 1e-6) return true; if (B[3] <= A[0] + 1e-6) return false;
-  if (A[4] <= B[1] + 1e-6) return true; if (B[4] <= A[1] + 1e-6) return false;
+  // separation along x and along y (-1: A is behind, 1: A is in front, 0: ranges overlap)
+  const sx = A[3] <= B[0] + 1e-6 ? -1 : B[3] <= A[0] + 1e-6 ? 1 : 0, sy = A[4] <= B[1] + 1e-6 ? -1 : B[4] <= A[1] + 1e-6 ? 1 : 0;
+  // separated on both axes in opposite senses: the solids cannot really overlap on screen, so use one consistent order (centre depth) to avoid cycles -> no flicker
+  if (sx && sy && sx !== sy) return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4];
+  if (sx) return sx < 0; if (sy) return sy < 0;
   if (A[5] <= B[2] + 1e-6) return true; if (B[5] <= A[2] + 1e-6) return false;
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
 }

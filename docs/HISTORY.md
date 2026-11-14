@@ -25,3 +25,4 @@
 - Owner direction update 7: concert hall, cinema with real short films, theater show (queued as showpieces B).
 - GitHub access fixed by the owner; branch pushed for the first time (full history).
 - Owner direction update 8: City Guide app + more events/live music (queued as 2d).
+- Fixed vehicle draw-order flicker (render.js behind(): diagonal separation uses centre depth; flipping pairs 14 -> 4 in a 25 s rush-hour test). Queued trip planner; noted future city expansion.
