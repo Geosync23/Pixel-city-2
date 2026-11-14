@@ -280,3 +280,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 63 — Status check
 > Are the signature interiors done?
+
+## 64 — Unique homes; Wave D stores; expand the map if it makes sense
+> Also the starting apartments should be different. And the properties tou cam buy must be all difffernt no repeats. For wave d make sure we have a lot of interesting store for thay. Hope depot like store and department stores and furieneiture stores etc. We cam alwsys expand rhe map if needed pleaae feel free if it makes sense

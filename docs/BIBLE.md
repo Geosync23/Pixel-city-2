@@ -164,3 +164,10 @@ Lantern Row Night Festival, Harbor Day (boat parade + pier fireworks), Summer St
   (e.g. Spring Blossom Parade; Lantern Row Night Festival; Harbor Day + Summer Street Fair; Autumn Harvest Festival; Winter Lights Parade).
 - HARD RULE (owner msg 42): big events are DYNAMIC and happen IN THE WORLD — never cutscenes, never separate locked-away scenes. Parades move along real streets (traffic rerouted), crowds line real
   sidewalks, stalls stand in real plazas; the player walks through freely and can join, watch or ignore.
+
+## Direction update 13 — unique homes; big stores for home goods; map expansion OK (owner msg 64, new account)
+- Every player home is UNIQUE: the four starter studios must differ from each other (today they share an 8x7 shell family), and every property you can rent or buy (Nestly) has its own layout,
+  size, shape, views, fittings and character — no repeats. More properties can be added as long as each one is unique (new ones may live in the new lobby buildings).
+- Wave D (goods/home) needs MANY interesting stores to buy home goods: a big-box home-improvement store (warehouse aisles, lumber, paint mixing, garden centre), department stores (several floors/sections),
+  several furniture showrooms of different styles, plant nursery, kitchenware, lighting, rugs/textiles, electronics, thrift/antiques — each physical (pick from displays, pay at the counter) and different.
+- Expanding the map is allowed whenever it makes sense (owner: "please feel free"): new districts/lots at the edges for big-box stores, the university, a museum etc. Never re-lay-out what exists.

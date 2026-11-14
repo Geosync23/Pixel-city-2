@@ -13,9 +13,10 @@ Rule: this file is updated every time a worker finishes, a build is published, o
   - Lead-owned hook added: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom) + call sites in src/sim/public_places.js.
   - If a worker is gone after a restart: check its files above, then brief a new worker "these files exist; continue".
 - **PLAN (waves of up to 4; next wave's workers start as slots free up):**
+  - NEXT as soon as 2g-4 frees homes.js/housing.js: **2g-5 UNIQUE HOMES** (owner msg 64; BIBLE update 13) — every starter studio and every Nestly property its own layout/size/character, no repeats; optionally more unique listings (some in the new lobby buildings).
   - Wave B: 2i clothes/hair/laundry (uses 2g-4 bathrooms/washers) | 2j traits + skills + in-world mini-games | 2j university campus (new lots at the city edge) | 2c museum + conservatory + hotel lobby + post offices.
   - Wave C: 2k big city events (5-6/year, in-world parades/festivals) | 3 jobs expansion: writer (25 job arcs as data) | 3 jobs: 15 new jobs + workplaces + job-story engine | 4b relationships/vignettes/romance + dating app.
-  - Wave D: 4c goods catalogue + furniture/plant stores + physical shopping | 4c home design mode + online shipping | 4 new needs + Opportunities | 5 art catch-up (building sets, props, terrain/water, audio, weather, title/creator).
+  - Wave D: 4c goods catalogue + MANY home-goods stores (big-box home-improvement store, department stores, several furniture showrooms, nursery, kitchenware, lighting, electronics, antiques; map expansion at the edges OK) + physical shopping | 4c home design mode + online shipping | 4 new needs + Opportunities | 5 art catch-up (building sets, props, terrain/water, audio, weather, title/creator).
   - Wave E: 6 QA — full New Game playthrough, mobile pass, performance, save/load, balance; plus the small open items below. FUTURE: city +50-100%.
   - Publish a stage whenever a worker's player-visible work is integrated and checked.
 - **Small open items:** Circle app releases immediately; `app.*` icons for new apps; city-bench sit; two "Beacon" buildings; SkyDeck telescope discovery; weather isWet bug; show music never heard;
