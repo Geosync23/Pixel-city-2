@@ -12,18 +12,18 @@ const clinic = [
     box(1.8, .12, 1.1, .3, .2, .12, '#f8fbf8'); spx(1.95, .32, 1.18, 0, 0, a); bottle(2.3, .2, 1.1, '#9fd0e8', .12);
   }, { vb: [-.3, -.3, 0, 2.8, .8, 1.8], use: { x: 1.4, y: 1 }, staff: { x: .5, y: -.5, dir: 1 }, variants: [{}, { a: '#4a7ac0' }] }),
 
-  F('clinic.chairs', ['clinic', 'bank', 'office', 'seating', 'waiting'], p => [(p.n || 3) * .5, .5, 1], p => {
+  F('clinic.chairs', ['waiting_room', 'clinic', 'bank', 'office', 'seating', 'waiting'], p => [(p.n || 3) * .5, .5, 1], p => {
     const n = p.n || 3, c = p.c || T; tube([.05, .2, .2], [n * .5 - .05, .2, .2], CH); post(.08, .1, 0, .2, CH); post(.08, .42, 0, .2, CH); post(n * .5 - .08, .42, 0, .2, CH); post(n * .5 - .08, .1, 0, .2, CH);
     for (let i = 0; i < n; i++) { const x = i * .5; bx(x + .05, .04, .45, .4, .07, .45, c); bx(x + .05, .04, .37, .4, .42, .08, lt(c, .08)); lw([x + .05, .46, .45], [x + .45, .46, .45], lt(c, .4)); }
   }, { seats: p => Array.from({ length: p.n || 3 }, (_, i) => ({ x: .25 + i * .5, y: .25, z: .45, dir: 1 })), variants: [{ n: 3 }, { n: 4, c: '#4a7ac0' }, { n: 2, c: '#e8843a' }] }),
 
-  F('clinic.exambed', ['clinic', 'exam', 'bed', 'nursestation'], [2, 1, 1], p => {
+  F('clinic.exambed', ['exam_room', 'clinic', 'exam', 'bed', 'nursestation'], [2, 1, 1], p => {
     const c = p.c || '#4a7ac0'; box(.1, .15, 0, 1.8, .7, .6, W); qy(.1, 1.9, .85, 0, .08, '#8a9098'); frameY(.2, .95, .85, .14, .52, '#aab2ba'); frameY(1.05, 1.8, .85, .14, .52, '#aab2ba');
     box(.05, .12, .6, 1.9, .76, .12, c, { t: lt(c, .12) }); fq([[.05, .12, .72], [.55, .12, .9], [.55, .88, .9], [.05, .88, .72]], lt(c, .2)); qz(.6, 1.95, .2, .8, .725, '#f8fbf8', '#e4eeee'); cyl(.1, .5, .86, .08, .02, '#f8fbf8', { ol: false });
     box(1.3, .95, 0, .5, .3 - .25, .2, CH, { ol: false }); 
   }, { use: { x: 1, y: 1.5 }, bed: { x: 1, y: .5, z: .72, dir: 0 }, variants: [{}, { c: '#3a3f4c' }, { c: T }] }),
 
-  F('clinic.bed', ['clinic', 'bed', 'ward', 'nursestation'], [2.5, 1.5, 2], p => {
+  F('clinic.bed', ['exam_room', 'clinic', 'bed', 'ward', 'nursestation'], [2.5, 1.5, 2], p => {
     const cc = p.cc || '#9fd0c8';
     posts(.03, .03, 2.44, .0, 0, 1.95, CH); tube([.03, .03, 1.95], [2.47, .03, 1.95], CH); qy(.03, p.half ? 1.3 : 2.47, .05, .35, 1.9, pleat(cc)); for (let x = .1; x < (p.half ? 1.3 : 2.47); x += .2) spx(x, .05, 1.93, 0, 0, '#8a9098');
     box(.2, .35, 0, .08, .9, 1.0, W); posts(.3, .4, 1.9, .8, 0, .4, CH); box(.25, .35, .4, 2.05, .9, .14, '#e4e8ec'); box(.28, .38, .54, 2.0, .84, .1, '#f8fbf8');
@@ -32,12 +32,12 @@ const clinic = [
     for (const [a, b] of [[.3, 1.2], [2.2, 1.2], [2.2, .4]]) wheel(a, b); qy(2.3, 2.36 + .14, 1.25, .5, .7, '#f8f4ea');
   }, { use: { x: 1.3, y: 1.8 }, bed: { x: 1.3, y: .8, z: .66, dir: 0 }, variants: [{}, { cc: '#f4c8c0', b: '#f1ede4', half: true }, { cc: '#a8b8e0', b: '#9fd0c8' }] }),
 
-  F('clinic.cabinet', ['clinic', 'medstation', 'shelf'], [1, .5, 2], p => {
+  F('clinic.cabinet', ['supply_cabinet', 'clinic', 'medstation', 'shelf'], [1, .5, 2], p => {
     box(0, 0, 0, 1, .5, 1.95, W); qy(0, 1, .5, 0, .08, '#8a9098'); frameY(.06, .49, .5, .14, .78, '#aab2ba'); frameY(.51, .94, .5, .14, .78, '#aab2ba'); spx(.45, .5, .5, 0, 0, '#5a6272'); spx(.55, .5, .5, 0, 0, '#5a6272');
     qy(.06, .94, .5, .86, 1.88, goods('med', 4, { seed: p.seed || 2, back: '#dceef0', board: '#f8fbf8' })); qy(.06, .94, .5, .86, 1.88, '#e4f6fa', 'glass'); frameY(.06, .94, .5, .86, 1.88, '#8a9aa4'); lw([.5, .5, .86], [.5, .5, 1.88], '#8a9aa4'); cross(.5, .5, .46, '#d63a3a'); lw([.15, .5, 1.8], [.25, .5, 1.5], '#f8feff');
   }, { use: { x: .5, y: 1 }, variants: [{ seed: 2 }, { seed: 7 }] }),
 
-  F('clinic.nurse', ['clinic', 'nursestation', 'computer', 'desk'], [2, 1, 1.4], p => {
+  F('clinic.nurse', ['chart_desk', 'clinic', 'nursestation', 'computer', 'desk'], [2, 1, 1.4], p => {
     const a = p.a || T; box(0, 0, 0, 2, .12, 1.3, W); qy(0, 2, .12, 1.1, 1.3, a); for (let i = 0; i < 4; i++) { qy(1.05 + i * .22, 1.23 + i * .22, .12, .82, 1.06, ['#f6e08a', '#9fd0e8', '#f4b8c8', '#b8e0a8'][i]); qy(1.07 + i * .22, 1.21 + i * .22, .12, .96, 1.02, '#f8f4ea'); }
     table(0, .12, 2, .6, .78, '#e4e8e4', { leg: CH, inset: .04 }); box(1.5, .16, 0, .46, .5, .66, W); frameY(1.54, 1.92, .66, .08, .32, '#aab2ba'); frameY(1.54, 1.92, .66, .36, .62, '#aab2ba');
     monitor(.3, .2, .78, .5, .36, { scr: '#f4fbfc', ink: a, seed: p.seed || 2 }); keyboard(.36, .5, .781); bx(1.0, .3, .78, .22, .28, .03, '#8a5a3a'); qz(1.02, 1.2, .32, .56, .811, '#f8f4ea'); bx(1.55, .25, .78, .2, .2, .08, '#f1ede4'); lw([1.57, .45, .88], [1.73, .45, .88], '#5a6272');

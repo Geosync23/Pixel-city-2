@@ -14,7 +14,7 @@ function still(x0, x1, y, z0, z1, k) {
 }
 const seat = (x, y, c, face) => { const back = () => { box(x + .04, face ? y + .1 : y + .62, .15, .42, .14, .95, c, { t: lt(c, .15) }); }; if (face) back(); bx(x + .06, y + .22, .3, .38, .4, .14, dk(c, .1), { t: lt(c, .05) }); bx(x, y + .2, .2, .06, .46, .42, '#2a2028'); bx(x + .44, y + .2, .2, .06, .46, .42, '#2a2028'); if (!face) back(); };
 const cinema = [
-  F('cinema.ticket', ['cinema', 'checkout', 'ticket'], [2, 1, 2.4], p => {
+  F('cinema.ticket', ['till', 'cinema', 'checkout', 'ticket'], [2, 1, 2.4], p => {
     const c = p.c || RED;
     box(0, 0, 0, 2, 1, 1.0, c, { l: PAT.vstripes(dk(c, .18), dk(c, .28), 6) }); qy(0, 2, 1, 0, .1, '#2a1a20'); qy(0, 2, 1, .9, 1.0, GOLD); box(.6, 1, .92, .8, .12, .05, GOLD);
     qy(.1, 1.9, 0, 1.0, 1.9, '#3a2a30'); glow(() => qy(.1, 1.9, 1, 1.0, 1.9, '#ffe6a0', 'glass'));
@@ -22,7 +22,7 @@ const cinema = [
     box(-.05, -.05, 1.9, 2.1, 1.1, .46, c); lit(() => signY('TICKETS', .1, 1.9, 1.05, 1.92, 2.34, '#2a1a20', '#ffd060', { frame: false })); bulbs(0, 2, 1.05, 1.91, 10); bulbs(0, 2, 1.05, 2.35, 10);
   }, { vb: [-.3, -.3, 0, 2.3, 1.4, 2.6], use: { x: 1, y: 1.5 }, staff: { x: 1, y: .45, dir: 1 }, light: { x: 1, y: 1.6, z: 0, r: 2.5 }, variants: [{}, { c: '#2a3a6a' }] }),
 
-  F('cinema.concession', ['cinema', 'checkout', 'counter', 'snacks'], [3.5, .5, 2], p => {
+  F('cinema.concession', ['till', 'cinema', 'checkout', 'counter', 'snacks'], [3.5, .5, 2], p => {
     const c = p.c || RED;
     counter(0, 0, 3.5, .5, 1, c, '#f1ede4', { panels: false }); qy(0, 3.5, .5, .1, .92, PAT.vstripes('#f1ede4', c, 4)); lit(() => qy(1.3, 2.5, .5, .2, .8, goods('snacks', 2, { seed: 4, back: '#3a2a20', board: GOLD }))); qy(1.3, 2.5, .5, .2, .8, '#e4f6fa', 'glass'); frameY(1.3, 2.5, .5, .2, .8, GOLD);
     // popcorn machine
@@ -37,7 +37,7 @@ const cinema = [
     const k = p.frame || 0; box(.05, 0, .6, .9, .06, 1.5, '#2a2028'); lit(() => { still(.12, .88, .06, .95, 2.02, k); qy(.12, .88, .06, .68, .95, ['#2a1f35', '#f4fbfc', '#f8f4ea', '#f6e04a'][k % 4]); lw([.2, .06, .86], [.8, .06, .86], ['#f6e04a', '#141a33', '#d63a3a', '#1e3a34'][k % 4]); lw([.3, .06, .78], [.7, .06, .78], ['#f6e04a', '#141a33', '#d63a3a', '#1e3a34'][k % 4]); }); frameY(.1, .9, .06, .66, 2.04, GOLD); bulbs(.1, .9, .06, 2.07, 5);
   }, { wall: true, mount: .6, solid: false, frames: 4, variants: [{ frame: 0 }, { frame: 1 }, { frame: 2 }, { frame: 3 }] }),
 
-  F('cinema.seats', ['cinema', 'seating'], p => [(p.n || 4) * .5, 1, 1.1], p => { const n = p.n || 4; for (let i = 0; i < n; i++) seat(i * .5, 0, p.c || RED, p.face); if (!p.face) for (let i = 0; i < n; i++) { spx(i * .5 + .25, .76, .95, 0, 0, GOLD); } },
+  F('cinema.seats', ['seat', 'cinema', 'seating'], p => [(p.n || 4) * .5, 1, 1.1], p => { const n = p.n || 4; for (let i = 0; i < n; i++) seat(i * .5, 0, p.c || RED, p.face); if (!p.face) for (let i = 0; i < n; i++) { spx(i * .5 + .25, .76, .95, 0, 0, GOLD); } },
     { seats: p => Array.from({ length: p.n || 4 }, (_, i) => ({ x: .25 + i * .5, y: .42, z: .44, dir: p.face ? 1 : 3 })), variants: [{ n: 4 }, { n: 6 }, { n: 2, c: '#2a3a6a' }, { n: 4, face: true }] }),
 
   F('cinema.screen', ['cinema', 'screen'], p => [p.w || 6, .3, 3.3], p => {

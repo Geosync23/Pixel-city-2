@@ -1,0 +1,13 @@
+# Venue fixture art (src/art/venue/, 205 assets `furn.<venue>.*`) — condensed
+List ids/sizes/tags: `node -e "import('./src/art/venue/<file>.js').then(m=>m.default.forEach(a=>console.log(a.id,JSON.stringify(typeof a.size=='function'?a.size({}):a.size),(a.tags||[]).join(','),a.wall?'WALL@'+a.mount:'')))"`.
+Files: generic, grocery (+cornerstore), cafe (+bakery), restaurant (diner/ramen/pizza/restaurant + kitchen.*), gym, shops (clothing + homegoods), books (bookstore + library), office, clinic, bar, cinema, courier (+warehouse), bank.
+Each file's `galleryItems` has composed reference rooms: room.grocery, room.cornerstore, room.cafe, room.bakery, room.diner, room.ramen, room.pizza, room.restaurant, room.gym, room.clothing, room.homegoods,
+room.library, room.bookstore, room.office, room.clinic, room.bar, room.cinema.lobby, room.cinema.hall, room.courier, room.bank — preview `node tools/gallery.mjs room.cafe --scale 3 --out r` and read the `compose()` source for a known-good layout.
+Conventions: front is +y. Counters: customer at `use` (+y side), worker at `staff {x,y,dir}` (-y side). Work desks: staff == use. `seats [{x,y,z,dir}]` (may depend on params). Wall items: wall:true + `mount`.
+Extra fields: `pose {x,y,z,dir,anim}` (gym machines, fitting booth, stage), `bed {x,y,z,dir}` (clinic beds), `overhead: true` (hanging, non-solid), `flat: true` (floor decals: place first), `frames: n` (p.frame animation), `uses(p)` (bank.teller).
+The interior builder exposes these on fixtures: fx.use, fx.seats, fx.staff, fx.pose, fx.bed, fx.uses.
+Checkout tags: `checkout`/`till` on every shop counter (opens the venue shop), `reception`, `host`. Other function tags: computer, bookshelf, fitting, catalog, realtor, atm, seat, cookstation, liftstation...
+Job station tags (src/data/jobs.js workLoop.stations) are on fixtures: barista till/espresso_machine/pickup_counter/pastry_case/cafe_table; grocery stockroom/shelf/till/produce_stand/cart_bay;
+line cook ticket_rail/pass_window/prep_counter/grill/fryer/dish_sink (kitchen.*); office own_desk/printer/meeting_room/boss_office/coffee_machine/filing_cabinet; courier sorting_bench/depot_scanner/parcel_locker (marked_door is outdoors);
+trainer front_desk/weights/treadmill/yoga_studio/towel_station; librarian return_cart/bookshelf_section/front_desk/reading_room/story_corner; nurse reception/waiting_room/exam_room/supply_cabinet/chart_desk;
+warehouse truck_bay/ship_ramp (courier.dockdoor)/colour_pallet (courier.pallet with band)/manifest_board (courier.sign kind 'board')/forklift; bartender bar_counter/beer_taps/cocktail_station/glass_washer/bar_stool.

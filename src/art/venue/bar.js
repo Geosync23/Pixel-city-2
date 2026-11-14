@@ -5,7 +5,7 @@ import generic from './generic.js';
 const NEON = ['#ff4a8a', '#4ad8f0', '#f6e04a', '#7af08a', '#b07af8', '#ff8a40'];
 const amp = (x, y, z, w, h, c) => { box(x, y, z, w, .4, h, c || '#2a2733'); qy(x + .05, x + w - .05, y + .4, z + .05, z + h - .14, '#4a4038', '#3a3028'); frameY(x + .05, x + w - .05, y + .4, z + .05, z + h - .14, '#8a8478'); for (let i = 0; i < 4; i++) spx(x + .1 + i * .08, y + .4, z + h - .07, 0, 0, '#d5dbe0'); lit(() => spx(x + w - .1, y + .4, z + h - .07, 0, 0, '#ff5a4a')); };
 const bar = [
-  F('bar.counter', ['bar', 'barstation', 'counter', 'checkout'], p => [p.w || 3, .5, 1.2], p => {
+  F('bar.counter', ['bar_counter', 'beer_taps', 'cocktail_station', 'bar', 'barstation', 'counter', 'checkout'], p => [p.w || 3, .5, 1.2], p => {
     const w = p.w || 3, c = p.c || '#5a3020', a = p.a || '#ff4a8a';
     box(0, 0, 0, w, .5, 1.05, c, { l: PAT.planks(dk(c, .18), 6) }); qy(0, w, .5, 0, .1, '#2a1a18'); tube([0, .56, .22], [w, .56, .22], '#d8a848'); for (let x = .2; x < w; x += .8) lw([x, .5, .22], [x, .56, .22], '#d8a848');
     lit(() => lw([0, .5, .98], [w, .5, .98], a)); glow(() => lw([0, .5, .92], [w, .5, .92], dk(a, .3)));
@@ -26,10 +26,15 @@ const bar = [
     for (let i = 0; i < 6; i++) bottle(.2 + i * (w - .4) / 5, .4, 1.0, ['#5a8a4a', '#c8842a', '#e4f6fa', '#8a3a2a', '#3a5a3a', '#d8d8e0'][i], .18);
   }, { variants: [{}, { w: 4, a: '#ff4a8a', name: 'THE NIGHT OWL', seed: 6 }, { w: 2, a: '#f6e04a', name: 'BAR', seed: 9 }] }),
 
-  F('bar.stool', ['bar', 'seating', 'stool'], [.5, .5, .8], p => stool(.25, .25, .75, p.c || '#8a2a3a', { ring: true, leg: '#d8a848' }),
+  F('bar.glasswasher', ['bar', 'glass_washer', 'sink'], [1, .5, 1.3], p => {
+    const c = '#c4c9ce'; box(0, 0, 0, 1, .5, .95, c); qy(0, 1, .5, 0, .1, '#5a6272'); qy(.08, .92, .5, .2, .8, '#aab2ba'); frameY(.08, .92, .5, .2, .8, '#5a6272'); tube([.2, .52, .72], [.8, .52, .72], '#e4e8ec'); lit(() => { spx(.2, .5, .86, 0, 0, '#5af08a'); spx(.3, .5, .86, 0, 0, '#6ad0f0'); });
+    box(-.02, -.02, .95, 1.04, .54, .05, '#2a2028'); box(.08, .08, 1.0, .5, .36, .1, '#4a8ad0', { t: '#3a6aa8' }); for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) cyl(.17 + i * .16, .18 + j * .16, 1.1, .05, .12, '#e4f6fa', { ol: false, t: '#c8e6f0' }); bx(.7, .15, 1.0, .2, .2, .04, '#f1ede4');
+  }, { use: { x: .5, y: 1 }, staff: { x: .5, y: -.5, dir: 1 } }),
+
+  F('bar.stool', ['bar_stool', 'bar', 'seating', 'stool'], [.5, .5, .8], p => stool(.25, .25, .75, p.c || '#8a2a3a', { ring: true, leg: '#d8a848' }),
     { seats: [{ x: .25, y: .25, z: .75, dir: 3 }], variants: [{}, { c: '#2e3440' }, { c: '#3f6a5a' }] }),
 
-  F('bar.hightable', ['bar', 'table', 'seating'], [1.5, .5, 1.2], p => {
+  F('bar.hightable', ['bar_stool', 'bar', 'table', 'seating'], [1.5, .5, 1.2], p => {
     stool(.22, .25, .75, p.c || '#8a2a3a', { ring: true }); rtable(.75, .25, .3, 1.1, '#3a2a28', { leg: '#8a9098' });
     cyl(.68, .3, 1.1, .04, .12, '#f2c860', { ol: false, t: '#f8f4ea' }); cyl(.86, .22, 1.1, .04, .1, '#e87aa0', { ol: false }); candle(.75, .15, 1.1);
     stool(1.28, .25, .75, p.c || '#8a2a3a', { ring: true });

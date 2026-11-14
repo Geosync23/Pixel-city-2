@@ -158,6 +158,8 @@ function housekeeping() {
     if (v.keep) continue;
     if (Math.abs(dx - dy) > mx + 7 || Math.abs(dx + dy) > my + 7 || (v.stuck > 12 && !v.byPlayer && !onScreen(v.x, v.y, 60))) release(v);
   }
+  let amb = 0; for (const v of T.list) if (!v.keep) amb++;
+  if (amb > target + 5) for (let i = T.list.length - 1; i >= 0; i--) { const v = T.list[i]; if (!v.keep && !onScreen(v.x, v.y, 70)) { release(v); break; } }
   // buses entering range
   for (const b of buses) { if (b.veh) continue; const q = loopAt(b.loop, b.u, tmp), dx = q.x - fx, dy = q.y - fy; if (dx * dx + dy * dy < (simR + 4) * (simR + 4) && T.list.length < CAP + 6 && (refill || !onScreen(q.x, q.y, 90)) && clearLane(q.x, q.y, 5)) busReal(b); }
   // taxi stands

@@ -60,7 +60,7 @@ const clothing = [
     lit(() => lw([.05, .04, 2.14], [w - .05, .04, 2.14], '#fff2c4'));
   }, { wall: true, mount: .3, solid: false, use: { x: 1, y: .8 }, variants: [{ seed: 1 }, { seed: 6, c: '#3a3f4c' }, { seed: 3, w: 3 }] }),
 
-  F('clothing.counter', ['clothing', 'checkout', 'counter'], [2, .5, 1], p => {
+  F('clothing.counter', ['till', 'clothing', 'checkout', 'counter'], [2, .5, 1], p => {
     const c = p.c || '#f1ede4'; counter(0, 0, 2, .5, 1, c, p.top || '#3a3f4c', { panels: false }); qy(.1, 1.9, .5, .15, .85, dk(c, .08)); signY(p.name || 'MODA', .5, 1.5, .5, .3, .74, dk(c, .08), p.ink || '#c0392b', { frame: false });
     till(.2, .08, 1); for (let i = 0; i < 3; i++) box(.85 + i * .04, .12, 1, .3, .08, .34 - i * .03, ['#f4b8c8', '#f1ede4', '#3a3f4c'][i], { ol: false }); lw([.9, .2, 1.34], [1.0, .2, 1.42], '#d8a848'); lw([1.0, .2, 1.42], [1.1, .2, 1.34], '#d8a848');
     box(1.45, .12, 1, .3, .26, .1, '#3c64ad', { l: PAT.stripes('#3c64ad', '#f1ede4', 2) }); cyl(1.85, .25, 1, .06, .1, '#d8a848', { ol: false });
@@ -134,7 +134,7 @@ const home = [
     qy(1.2, 1.45, 2.22, .1, .26, '#f6e04a'); lw([1.23, 2.22, .18], [1.41, 2.22, .18], '#c0392b');
   }, { bed: { x: .95, y: 1.3, z: .52, dir: 1 }, light: { x: 2.1, y: .8, z: 0, r: 2 }, variants: [{}, { c: '#f1ede4', b: '#e8a0b0', rc: '#c8b8e8' }, { c: '#3a3f4c', b: '#c0563a', lc: '#f1ede4' }] }),
 
-  F('homegoods.counter', ['homegoods', 'checkout', 'counter'], [2, .5, 1], p => {
+  F('homegoods.counter', ['till', 'homegoods', 'checkout', 'counter'], [2, .5, 1], p => {
     const c = p.c || '#3a5a8a'; counter(0, 0, 2, .5, 1, c, '#f1ede4', { panels: false }); lit(() => lw([.05, .5, .12], [1.95, .5, .12], '#6ad0f0')); signY(p.name || 'HOME+', .3, 1.7, .5, .3, .78, c, '#f6e04a', { frame: false });
     till(.2, .08, 1); monitor(.9, .1, 1, .42, .3, { scr: '#2a8a6a' }); carton(1.5, .1, 1, .36, .3, .26, '#f1ede4', { label: '#3c64ad' });
   }, { vb: [-.3, -.3, 0, 2.3, .8, 1.7], use: { x: .5, y: 1 }, staff: { x: .5, y: -.5, dir: 1 }, variants: [{}, { c: '#c0563a', name: 'VOLT' }] }),

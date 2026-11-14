@@ -22,7 +22,7 @@ const rest = [
     bench(1.5, 0, 1, 2, c);
   }, { seats: [{ x: .3, y: .28, z: .45, dir: 0 }, { x: .3, y: .74, z: .45, dir: 0 }, { x: 1.7, y: .28, z: .45, dir: 2 }, { x: 1.7, y: .74, z: .45, dir: 2 }], variants: [{}, { c: '#2f8f8a', empty: true }, { c: '#5a3a6a', tc: '#3a2a2a' }, { c: '#8a5a3a', tc: '#d2a26a' }] }),
 
-  F('diner.counter', ['diner', 'counter', 'checkout', 'seating'], p => [p.w || 3, 1, 1.05], p => {
+  F('diner.counter', ['till', 'diner', 'counter', 'checkout', 'seating'], p => [p.w || 3, 1, 1.05], p => {
     const w = p.w || 3, c = p.c || '#c8352f';
     box(0, 0, 0, w, .5, .95, '#d5dbe0', { l: PAT.planks('#c4cad0', 3) }); qy(0, w, .5, 0, .1, '#4a4458'); qy(0, w, .5, .55, .75, c); lw([0, .5, .65], [w, .5, .65], lt(c, .4));
     box(-.03, -.02, .95, w + .06, .58, .08, '#f1ede4'); lw([-.03, .56, .99], [w + .03, .56, .99], '#aab2ba');
@@ -83,7 +83,7 @@ const rest = [
     tube([1.3, 1.52, 0], [1.4, 1.2, 1.5], '#b07444'); cyl(1.42, 1.2, 1.5, .14, .02, '#d2a26a'); // peel
   }, { use: { x: .75, y: 2 }, light: { x: .75, y: 2, z: 0, r: 2.5 }, variants: [{}, { c: '#e8dcc4' }] }),
 
-  F('pizza.counter', ['pizza', 'counter', 'checkout'], [2.5, .5, 1.5], p => {
+  F('pizza.counter', ['till', 'pizza', 'counter', 'checkout'], [2.5, .5, 1.5], p => {
     const c = p.c || '#3f8a55';
     counter(0, 0, 2.5, .5, 1, '#f1ede4', '#d8d2c4', { panels: false }); qy(0, 2.5, .5, .1, .92, PAT.vstripes('#f1ede4', c, 4)); qy(0, 2.5, .5, .5, .92, '#f1ede4'); signY('PIZZA', .6, 1.9, .5, .47, .91, '#f1ede4', '#c0392b', { frame: false });
     // warmer with slices
@@ -143,14 +143,14 @@ const rest = [
     qy(.08, .92, 1, .16, .7, dk(ST, .12)); lit(() => { spx(.2, 1, .8, 0, 0, '#ff5a4a'); spx(.7, 1, .8, 0, 0, '#5af08a'); }); frameY(.12, .46, 1, .2, .6, '#7d858e'); frameY(.54, .88, 1, .2, .6, '#7d858e');
   }, { use: { x: .5, y: 1.5 } }),
 
-  F('kitchen.prep', [...KT, 'prepstation', 'cookstation'], [2, 1, 1], p => {
+  F('kitchen.prep', ['prep_counter', ...KT, 'prepstation', 'cookstation'], [2, 1, 1], p => {
     table(0, 0, 2, 1, .9, ST, { leg: '#7d858e', thick: true }); bx(.06, .06, .25, 1.88, .88, .04, dk(ST, .12)); cyl(.4, .5, .29, .2, .3, '#8a9098'); bx(1.1, .25, .29, .5, .5, .25, '#f1ede4'); 
     bx(.2, .35, .9, .6, .45, .04, '#d2a26a'); ball(.38, .55, .98, .07, '#e04a3a', { ol: false }); ball(.55, .5, .98, .06, '#6fb858', { ol: false }); tube([.65, .7, .95], [.85, .62, .95], '#d5dbe0');
     for (let i = 0; i < 4; i++) { cyl(1.1 + i * .22, .3, .9, .09, .1, '#d5dbe0', { t: ['#e04a3a', '#6fb858', '#f2c860', '#f1ede4'][i] }); }
     bx(1.2, .6, .9, .5, .28, .03, '#f1ede4'); plate(1.35, .74, .93, '#f4f0e8', '#c88838'); 
   }, { use: { x: 1, y: 1.5 }, variants: [{}] }),
 
-  F('kitchen.pass', [...KT, 'pass', 'servestation'], [2, .5, 2], p => {
+  F('kitchen.pass', ['ticket_rail', 'pass_window', ...KT, 'pass', 'servestation'], [2, .5, 2], p => {
     steel(2, .5, 1); qy(.08, .98, .5, .2, .9, dk(ST, .1)); qy(1.02, 1.92, .5, .2, .9, dk(ST, .1)); box(-.03, -.02, 1, 2.06, .58, .06, lt(ST, .3));
     plate(.35, .25, 1.06, '#f4f0e8', '#c88838'); plate(.8, .28, 1.06, '#f4f0e8', '#6fb858'); plate(1.3, .25, 1.06, '#f4f0e8', '#e8843a'); cyl(1.75, .25, 1.06, .07, .05, '#d5dbe0'); spx(1.75, .25, 1.13, 0, 0, '#d8a848');
     post(.03, .25, 1.06, 1.85, '#7d858e'); post(1.97, .25, 1.06, 1.85, '#7d858e'); box(0, .05, 1.82, 2, .42, .1, ST);
@@ -158,7 +158,7 @@ const rest = [
     for (let i = 0; i < 5; i++) { qy(.2 + i * .34, .36 + i * .34, .48, 1.62, 1.82, '#f8f4ea'); lw([.23 + i * .34, .48, 1.74], [.33 + i * .34, .48, 1.74], i % 2 ? '#d63a3a' : '#8a8478'); }
   }, { use: { x: 1, y: 1 }, staff: { x: 1, y: -.5, dir: 1 }, variants: [{}] }),
 
-  F('kitchen.dishpit', [...KT, 'dishstation', 'sink'], [2, 1, 1.6], p => {
+  F('kitchen.dishpit', ['dish_sink', ...KT, 'dishstation', 'sink'], [2, 1, 1.6], p => {
     steel(2, 1, .9); box(0, 0, .9, 2, .1, .4, ST);
     qz(.1, .9, .2, .9, .901, '#8a9098'); qz(.16, .84, .26, .84, .901, '#6fb6d8', '#9fd0e8'); frameZ(.1, .9, .2, .9, .901, '#7d858e'); for (let i = 0; i < 5; i++) spx(.5, .55, .9, [-4, 2, 5, -1, 3][i], [0, 1, -1, 2, 2][i], '#f4fbfc');
     tube([.5, .14, .9], [.5, .14, 1.5], '#aab2ba'); tube([.5, .14, 1.5], [.5, .45, 1.4], '#aab2ba'); tube([.5, .45, 1.4], [.5, .45, 1.2], '#3a3f4c');

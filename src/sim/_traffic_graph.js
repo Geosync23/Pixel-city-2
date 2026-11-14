@@ -9,7 +9,7 @@
 //         -> { edges, offs, len, pts: [[x, y]...] lane-centre waypoints (start, each turn corner, end), from: a, to: b } | null
 export function buildGraph(world) {
   const nodes = [], edges = [], nmap = new Map(), key = (x, y) => Math.round(x * 2) * 4096 + Math.round(y * 2);
-  const mkNode = (x, y, dead) => { const n = { i: nodes.length, x, y, hx: 0, hy: 0, signal: false, dead, out: [], occ: 0, occX: false, occAx: '', gx: 2, gy: 2, lights: [], pre: '', preT: 0, phase: 0 }; nodes.push(n); nmap.set(key(x, y), n); return n; };
+  const mkNode = (x, y, dead) => { const n = { i: nodes.length, x, y, hx: 0, hy: 0, signal: false, dead, out: [], occ: 0, occT: 0, occX: false, occAx: '', gx: 2, gy: 2, lights: [], pre: '', preT: 0, phase: 0 }; nodes.push(n); nmap.set(key(x, y), n); return n; };
   const rById = new Map(world.roads.map(r => [r.id, r]));
   for (const it of world.intersections) {
     const n = nmap.get(key(it.x, it.y)) || mkNode(it.x, it.y, false); n.signal = n.signal || !!it.signal;

@@ -9,7 +9,7 @@ const upright = (x, y, z, c) => { bx(x, y, z, .18, .05, .26, c); qy(x + .03, x +
 /** green banker's lamp */
 const banker = (x, y, z) => { cyl(x, y, z, .07, .02, '#d8a848', { ol: false }); post(x, y, z, z + .2, '#d8a848'); bx(x - .12, y - .05, z + .2, .24, .12, .08, '#2f8a55'); lw([x - .12, y + .07, z + .27], [x + .12, y + .07, z + .27], '#6fd098'); glow(() => { bx(x - .12, y - .05, z + .2, .24, .12, .08, '#9cf2b0'); qz(x - .2, x + .2, y - .05, y + .3, z + .01, '#ffe6a0', 'glass'); }); lit(() => lw([x - .1, y + .07, z + .2], [x + .1, y + .07, z + .2], '#fff2c4')); };
 const books = [
-  F('books.shelf', [...BL, 'shelf', 'bookshelf', 'shelvestation'], p => [p.w || 2, .5, 2.3], p => {
+  F('books.shelf', ['bookshelf_section', ...BL, 'shelf', 'bookshelf', 'shelvestation'], p => [p.w || 2, .5, 2.3], p => {
     const w = p.w || 2, c = p.c || '#8a5a3a';
     box(0, 0, 0, w, .5, 2.2, c, { l: goods('books', 5, { seed: p.seed || 1, back: dk(c, .55), board: lt(c, .1), pal: p.pal }) });
     qy(0, PX, .5, 0, 2.2, c); qy(w - PX, w, .5, 0, 2.2, c); qy(0, w, .5, 0, .1, dk(c, .3)); box(-.03, -.02, 2.2, w + .06, .56, .08, dk(c, .08));
@@ -28,7 +28,7 @@ const books = [
     for (const x of [.06, .44]) { spx(x, .9, 0, 0, -1, '#2a2733'); spx(x, .9, 0, 1, -1, '#2a2733'); }
   }, { variants: [{}, { c: '#5a3a28' }] }),
 
-  F('library.table', ['library', 'bookstore', 'table', 'seating', 'reading'], [2, 2, 1.2], p => {
+  F('library.table', ['reading_room', 'library', 'bookstore', 'table', 'seating', 'reading'], [2, 2, 1.2], p => {
     const c = p.c || '#8a5a3a', cc = p.cc || '#5a3a28';
     chair(.25, 0, 1, cc); chair(1.25, 0, 1, cc);
     table(0, .5, 2, 1, .75, c, { thick: true }); lw([0, 1, .75], [2, 1, .75], dk(c, .2));
@@ -37,14 +37,14 @@ const books = [
     chair(.25, 1.5, 3, cc); chair(1.25, 1.5, 3, cc);
   }, { seats: [{ x: .5, y: .25, z: .45, dir: 1 }, { x: 1.5, y: .25, z: .45, dir: 1 }, { x: .5, y: 1.75, z: .45, dir: 3 }, { x: 1.5, y: 1.75, z: .45, dir: 3 }], light: { x: 1, y: 1, z: 0, r: 2 }, variants: [{}, { c: '#5a3a28', cc: '#3f6a5a', seed: 5 }] }),
 
-  F('library.desk', ['library', 'libstation', 'checkout', 'counter'], [2.5, .5, 1.1], p => {
+  F('library.desk', ['front_desk', 'library', 'libstation', 'checkout', 'counter'], [2.5, .5, 1.1], p => {
     const c = p.c || '#6a4a30'; counter(0, 0, 2.5, .5, 1.0, c, lt(c, .3), { pw: .62 });
     signY(p.name || 'LIBRARY', .5, 2.0, .5, .32, .78, '#2f4a3a', '#f6e8c8');
     monitor(.25, .08, 1, .42, .3, { scr: '#2a6a5a' }); bx(.85, .15, 1, .12, .12, .08, '#3a3f4c'); bx(.87, .17, 1.08, .08, .08, .06, '#8a5a3a'); // date stamp
     bookstack(1.2, .12, 1, 4, 2); bookstack(1.55, .14, 1, 2, 5); banker(2.2, .2, 1);
   }, { vb: [-.3, -.3, 0, 2.8, .8, 1.7], use: { x: 1.4, y: 1 }, staff: { x: .6, y: -.5, dir: 1 }, variants: [{}, { name: 'RETURNS', c: '#8a5a3a' }] }),
 
-  F('library.cart', ['library', 'bookstore', 'bookcart', 'shelvestation'], [1, .5, 1.1], p => {
+  F('library.cart', ['return_cart', 'library', 'bookstore', 'bookcart', 'shelvestation'], [1, .5, 1.1], p => {
     const c = p.c || '#7d858e'; posts(.04, .06, .92, .38, .06, 1.0, c);
     for (let i = 0; i < 3; i++) { const z = .12 + i * .34; box(.02, .04, z, .96, .42, .04, lt(c, .2)); if (i < 2 || !p.empty) qy(.06, .94, .46, z + .04, z + .3, goods('books', 1, { seed: (p.seed || 2) + i, back: '#00000000', board: lt(c, .2) })); }
     tube([.04, .06, 1.0], [.04, .44, 1.0], '#3a3f4c'); for (const [a, b] of [[.08, .44], [.92, .44], [.92, .08]]) { spx(a, b, 0, 0, -1, '#2a2733'); spx(a, b, 0, 1, -1, '#2a2733'); spx(a, b, 0, 0, -2, '#2a2733'); }
@@ -70,7 +70,7 @@ const books = [
     post(1, .25, .9, 1.3, '#8a9098'); box(.6, .22, 1.2, .8, .05, .44 - .2, p.sc || '#c0392b'); 
   }, { use: { x: 1, y: 1.5 }, variants: [{}, { c: '#f1ede4', seed: 3, sc: '#3c64ad' }] }),
 
-  F('bookstore.till', ['bookstore', 'checkout', 'counter'], [2, .5, 1], p => {
+  F('bookstore.till', ['till', 'bookstore', 'checkout', 'counter'], [2, .5, 1], p => {
     const c = p.c || '#3f5a4a'; counter(0, 0, 2, .5, 1, c, '#d2a26a', { pw: .5 }); signY('BOOKS', .35, 1.65, .5, .3, .76, '#f6e8c8', c);
     till(.2, .08, 1); bookstack(.8, .14, 1, 3, 1); cyl(1.3, .25, 1, .07, .12, '#3c64ad', { ol: false }); for (let i = 0; i < 4; i++) post(1.26 + i * .03, .25, 1.12, 1.26, ['#c0392b', '#f2c230', '#3f8a55', '#2a2733'][i]);
     box(1.6, .12, 1, .3, .06, .3, '#f1ede4', { ol: false }); qy(1.64, 1.86, .18, 1.06, 1.26, '#e87aa0', '#f2c230');
@@ -81,7 +81,7 @@ const books = [
     lw([.08, .25, .8], [.42, .25, 1.18], '#d8a848');
   }, {}),
 
-  F('library.returns', ['library', 'returns'], [1, .5, 1.1], p => {
+  F('library.returns', ['return_cart', 'library', 'returns'], [1, .5, 1.1], p => {
     const c = p.c || '#3c5a8a'; box(0, 0, 0, 1, .5, 1.05, c); qy(0, 1, .5, 0, .08, dk(c, .5)); qy(.15, .85, .5, .78, .88, '#1e2028'); lw([.15, .5, .78], [.85, .5, .78], '#d5dbe0'); signY('IN', .2, .8, .5, .25, .69, '#f1ede4', c);
   }, { use: { x: .5, y: 1 }, variants: [{}, { c: '#8a3a3a' }] }),
 
@@ -90,6 +90,12 @@ const books = [
     for (let i = 0; i < 4; i++) { const z = .4 + i * .3; box(.08, .08, z, .34, .34, .26, '#f1ede4', { l: goods('mags', 1, { seed: i + (p.seed || 1), back: '#f1ede4', board: '#8a9098', pal: BC }), r: goods('mags', 1, { seed: i + 9, back: '#d8d2c4', board: '#8a9098', pal: BC }), ol: false }); }
     cyl(.25, .25, 1.6, .1, .05, '#c0392b', { ol: false });
   }, { use: { x: .25, y: 1 }, variants: [{ seed: 1 }, { seed: 5 }] }),
+
+  F('library.storycorner', ['library', 'story_corner', 'seating', 'kids'], [3, 3, 1], p => {
+    const pts = []; for (let a = 0; a < 20; a++) pts.push([1.5 + Math.cos(a / 20 * 6.283) * 1.4, 1.5 + Math.sin(a / 20 * 6.283) * 1.4, .01]); fq(pts, '#e8c860'); const p2 = pts.map(q => [1.5 + (q[0] - 1.5) * .8, 1.5 + (q[1] - 1.5) * .8, .01]); fq(p2, '#6fb6a8'); const p3 = pts.map(q => [1.5 + (q[0] - 1.5) * .45, 1.5 + (q[1] - 1.5) * .45, .01]); fq(p3, '#e87a6a');
+    sofa(1, .1, 1, .8, '#7a55b0'); bookstack(2.2, .5, 0, 5, 2);
+    [[.7, 1.5, '#f2c230'], [1.3, 2.0, '#4a90e8'], [2.0, 1.9, '#9ccc4a'], [2.4, 1.3, '#e87aa0'], [1.5, 1.4, '#e8843a']].forEach(([x, y, c]) => cyl(x, y, .01, .2, .1, c, { t: lt(c, .2) }));
+  }, { solid: false, use: { x: 1.5, y: .5 }, staff: { x: 1.5, y: .55, dir: 1 }, seats: [{ x: 1.5, y: .55, z: .42, dir: 1, staff: true }, { x: .7, y: 1.5, z: .1, dir: 3 }, { x: 1.3, y: 2, z: .1, dir: 3 }, { x: 2, y: 1.9, z: .1, dir: 3 }, { x: 2.4, y: 1.3, z: .1, dir: 3 }, { x: 1.5, y: 1.4, z: .1, dir: 3 }] }),
 
   F('books.piles', [...BL, 'decor'], [.5, .5, .7], p => { const s = p.seed || 1; bookstack(.03, .04, 0, 6 + s % 4, s); bookstack(.22, .28, 0, 3 + s % 3, s + 3); },
     { variants: [{ seed: 1 }, { seed: 2 }, { seed: 7 }] }),

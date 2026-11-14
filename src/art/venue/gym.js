@@ -8,7 +8,7 @@ const plateY = (x, y, z, r, c) => { box(x - r, y, z - r, 2 * r, .06, 2 * r, c ||
 const barbellY = (x, y0, y1, z, cols) => { tube([x, y0, z], [x, y1, z], CH); (cols || ['#c0392b', '#3c64ad']).forEach((c, i) => { plateY(x, y0 + .08 + i * .07, z, .2 - i * .04, c); }); (cols || ['#c0392b', '#3c64ad']).slice().reverse().forEach((c, i, a) => { plateY(x, y1 - .14 - (a.length - 1 - i) * .07, z, .2 - (a.length - 1 - i) * .04, c); }); };
 const dumbbell = (x, y, z, c) => { bx(x, y, z, .08, .1, .1, c); bx(x + .16, y, z, .08, .1, .1, c); lw([x + .08, y + .1, z + .06], [x + .16, y + .1, z + .06], CH); };
 const gym = [
-  F('gym.treadmill', ['gym', 'cardio', 'workout'], [2, 1, 1.5], p => {
+  F('gym.treadmill', ['treadmill', 'gym', 'cardio', 'workout'], [2, 1, 1.5], p => {
     const c = p.c || '#3c64ad';
     box(.1, .15, 0, 1.8, .7, .18, MD); qz(.3, 1.85, .22, .78, .181, (x, y) => (Math.floor(x * 16) % 3 === 0) ? '#3a3a46' : '#25252e'); bx(.1, .15, .18, .25, .7, .1, c);
     post(.2, .2, .28, 1.2, CH); tube([.2, .2, 1.0], [.9, .2, .95], M);
@@ -71,7 +71,7 @@ const gym = [
     lw([.5, .7, 2.3], [.5, .7, 1.8], CH); cyl(.5, .7, .75, .2, 1.05, c, { t: dk(c, .2) }); lw([.36, .84, 1.5], [.64, .84, 1.5], '#f1ede4'); lw([.36, .84, 1.44], [.64, .84, 1.44], dk(c, .3)); lw([.36, .84, 1.0], [.64, .84, 1.0], dk(c, .3));
   }, { use: { x: .5, y: 1.5 }, pose: { x: .5, y: 1.4, z: 0, dir: 3, anim: 'punch' }, variants: [{}, { c: '#2e3440' }, { c: '#3c64ad' }] }),
 
-  F('gym.mat', ['gym', 'yoga', 'workout'], [2, 1, .1], p => {
+  F('gym.mat', ['yoga_studio', 'gym', 'yoga', 'workout'], [2, 1, .1], p => {
     const c = p.c || '#7a55b0'; if (p.rolled) { for (let i = 0; i < 3; i++) { const k = [c, '#3fae6a', '#e8843a'][i]; box(.2, .1 + i * .28, 0, 1.4, .24, .22, k, { t: lt(k, .15) }); lw([1.6, .12 + i * .28, .12], [1.6, .3 + i * .28, .12], dk(k, .4)); } return; }
     box(.1, .15, 0, 1.8, .7, .03, c, { t: lt(c, .1) }); lw([.2, .25, .03], [1.8, .25, .03], lt(c, .35)); lw([.2, .75, .03], [1.8, .75, .03], lt(c, .35)); if (p.block) { bx(.3, .3, .03, .2, .14, .1, '#4a90e8'); cyl(1.6, .5, .03, .06, .2, '#e87aa0', { ol: false }); }
   }, { solid: false, flat: true, use: { x: 1, y: .5 }, pose: { x: 1, y: .5, z: .03, dir: 1, anim: 'yoga' }, variants: [{}, { c: '#2f8f8a', block: true }, { c: '#e87aa0' }, { rolled: true }] }),
@@ -79,7 +79,7 @@ const gym = [
   F('gym.mirror', ['gym', 'clothing', 'mirror', 'decor'], p => [p.w || 2, .1, 2.2], p => { const w = p.w || 2; qy(0, w, .03, .2, 2.2, '#8a9098'); mirrorY(.05, w - .05, .04, .25, 2.15, '#6a7078'); if (w > 1.5) lw([w / 2, .04, .25], [w / 2, .04, 2.15], '#8a9aa4'); tube([.1, .1, .95], [w - .1, .1, .95], p.bar === false ? '#8a9aa4' : '#d2a26a'); },
     { wall: true, mount: .2, solid: false, variants: [{ w: 2 }, { w: 3 }, { w: 1, bar: false }] }),
 
-  F('gym.reception', ['gym', 'checkout', 'reception'], [2.5, .5, 1.1], p => {
+  F('gym.reception', ['front_desk', 'gym', 'checkout', 'reception'], [2.5, .5, 1.1], p => {
     const c = p.c || '#2e3440', a = p.a || '#f2c230';
     counter(0, 0, 2.5, .5, 1.05, c, '#d2a26a', { panels: false }); qy(0, 2.5, .5, .1, .2, a); signY(p.name || 'FIT CLUB', .2, 2.3, .5, .35, .85, c, a, { frame: false }); lit(() => lw([.2, .5, .32], [2.3, .5, .32], a));
     monitor(.3, .1, 1.05, .42, .3, { scr: '#3a6ea5' }); for (let i = 0; i < 4; i++) box(1.2, .1, 1.05 + i * .06, .34, .3, .06, i % 2 ? '#f1ede4' : '#9fd0e8', { ol: i === 3 });
@@ -101,7 +101,7 @@ const gym = [
     posts(.05, .05, .9, .9, 0, .5, CH); frameZ(.05, .95, .05, .95, .5, CH); ball(.35, .35, .38, .3, p.a || '#4a90e8'); ball(.68, .6, .34, .26, p.b || '#e87aa0'); ball(.45, .55, .82, .24, p.c || '#9ccc4a'); frameZ(.05, .95, .05, .95, .25, CH);
   }, { variants: [{}, { a: '#f2c230', b: '#7a55b0', c: '#c0392b' }] }),
 
-  F('gym.towels', ['gym', 'decor', 'shelf'], [1, .5, 1.5], p => {
+  F('gym.towels', ['towel_station', 'gym', 'decor', 'shelf'], [1, .5, 1.5], p => {
     const c = '#d2a26a'; box(0, 0, 0, 1, .5, 1.45, c, { l: goods('folded', 3, { seed: p.seed || 2, back: dk(c, .5), board: lt(c, .2), pal: p.pal || ['#f1ede4', '#9fd0e8', '#f1ede4', '#6fb6d8'] }) }); qy(0, 1, .5, 0, .08, dk(c, .5));
     bottle(.2, .25, 1.45, '#4a90e8', .14); bottle(.35, .25, 1.45, '#9ccc4a', .14); plant(.75, .25, 1.45, .6);
   }, { use: { x: .5, y: 1 }, variants: [{}, { pal: ['#f2c230', '#f1ede4', '#3a3f4c'], seed: 5 }] }),

@@ -16,7 +16,8 @@
 //
 // Gameplay hooks into furniture by function tag:
 //   registerFixture('fridge', (fx, scene) => ({ label: 'Fridge', use(G) {...} }))   // return an interactable (x,y,spot filled in for you) or null
-//   A fixture fx = { ob, asset, tags, x, y (centre), use: {x,y} world spot or null, seats: [{x,y,z,dir,lie}], staff: {x,y,dir}|null, item (the def entry) }
+//   A fixture fx = { ob, asset, tags, x, y (centre), use: {x,y} world spot or null, seats: [{x,y,z,dir,lie,stand,staff}], staff: {x,y,dir}|null,
+//     pose: {x,y,z,dir,anim}|null (body position while using a machine/booth/stage), bed: {x,y,z,dir}|null (lying spot), uses: [{x,y}]|null, item (the def entry) }
 //   scene.fixtures lists them all; scene.byTag(tag) filters.
 // Travel: enterRoom(roomId, doorPoiId?) from the city; exitRoom() to go back out.
 import { G } from '../core/game.js';
@@ -56,7 +57,9 @@ export function buildRoom(def, id) {
     else ob = W.place(a, O + it.x, O + it.y, { p: it.p || {}, flip, z: it.z, solid: it.solid });
     ob.data = it;
     const L = q => { if (!q) return null; const lx = flip ? q.y : q.x, ly = flip ? q.x : q.y; const o = { x: ob.x + lx, y: ob.y + ly, z: q.z || 0 }; if (q.dir !== undefined) o.dir = flip ? [1, 0, 3, 2][q.dir] : q.dir; if (q.lie) o.lie = true; return o; };
-    const fx = { ob, asset: a, item: it, tags: (a.tags || []).concat(it.tags || []), x: (ob.B[0] + ob.B[3]) / 2, y: (ob.B[1] + ob.B[4]) / 2, use: L(a.use), seats: (a.seats || []).map(L), staff: L(a.staff) };
+    const P = it.p || {}, fnv = v => typeof v === 'function' ? v(P) : v; let st = a.seatsFor ? a.seatsFor(P) : fnv(a.seats); if (!Array.isArray(st)) st = [];
+    const LL = q => { const o = L(q); if (o && q) { if (q.stand) o.stand = true; if (q.staff) o.staff = true; if (q.anim) o.anim = q.anim; } return o; };
+    const fx = { ob, asset: a, item: it, tags: (a.tags || []).concat(it.tags || []), x: (ob.B[0] + ob.B[3]) / 2, y: (ob.B[1] + ob.B[4]) / 2, use: L(fnv(a.use)), seats: st.map(LL), staff: LL(fnv(a.staff)), pose: LL(fnv(a.pose)), bed: LL(fnv(a.bed)), uses: a.uses ? a.uses(P).map(L) : null };
     if (!fx.use && !it.wall) { // default use spot: in front (+y, or +x when flipped), else any free neighbour
       const c = flip ? [[ob.B[3] + .4, fx.y], [fx.x, ob.B[4] + .4]] : [[fx.x, ob.B[4] + .4], [ob.B[3] + .4, fx.y]]; c.push([fx.x, ob.B[1] - .4], [ob.B[0] - .4, fx.y]); fx._auto = c;
     } else if (!fx.use && it.wall) fx.use = it.wall === 'y' ? { x: fx.x, y: O + .6 } : { x: O + .6, y: fx.y };

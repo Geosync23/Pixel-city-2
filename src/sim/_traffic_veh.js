@@ -81,13 +81,13 @@ export function step(v, dt) {
   const n = e.to;
   if (!n.dead && v.inNode !== n) {
     const line = (e.s1 - d * ((ax ? n.hx : n.hy) + 1.4) - v.s) * d - hl;
-    if (line <= -1) { leaveNode(v); n.occ++; v.inNode = n; }
+    if (line <= -1) { leaveNode(v); if (!n.occ) n.occT = T.time; n.occ++; v.inNode = n; }
     else if (line < 16 && dStop >= line + hl) {
       if (v.pre && n.signal) { n.pre = e.axis; n.preT = T.time + 1.2; }
       const sg = !n.signal ? 2 : ax ? n.gx : n.gy, turn = !!v.ne && v.ne.axis !== e.axis;
       let go = sg === 2 || (sg === 1 && line < 1.2 && v.v > 3);
-      if (go && !(n.occ === 0 || (!n.occX && !turn && n.occAx === e.axis))) go = v.gho > 0;
-      if (!go) adv = Math.min(adv, line - .3); else if (line < 1) { leaveNode(v); n.occ++; n.occAx = e.axis; if (turn) n.occX = true; v.inNode = n; }
+      if (go && !(n.occ === 0 || (!n.occX && !turn && n.occAx === e.axis))) go = v.gho > 0 || T.time - n.occT > 9;
+      if (!go) adv = Math.min(adv, line - .3); else if (line < 1) { leaveNode(v); if (!n.occ) n.occT = T.time; n.occ++; n.occAx = e.axis; if (turn) n.occX = true; v.inNode = n; }
     }
   }
   let vm = v.vmax; if (v.cornerOn) vm = Math.min(vm, 5); else if (v.ne && v.ne.axis !== e.axis && (v.turnS - v.s) * d < 4) vm = Math.min(vm, 4.2);

@@ -21,7 +21,7 @@ function fridge(w, h, kind, o) {
 }
 
 const grocery = [
-  F('grocery.produce', ['grocery', 'produce', 'shelf'], [2, 1, 1], p => {
+  F('grocery.produce', ['produce_stand', 'grocery', 'produce', 'shelf'], [2, 1, 1], p => {
     const c = p.items.map(k => PROD[k]), w = '#b88a54';
     box(0, 0, 0, 2, 1, .5, w, { l: PAT.planks(dk(w, .18), 5), r: PAT.planks(dk(w, .36), 5) });
     qy(0, 2, 1, 0, .08, dk(w, .55)); qx(2, 0, 1, 0, .08, dk(w, .62));
@@ -70,7 +70,7 @@ const grocery = [
     box(0, .4, 1.54, 1.5, .1, .46, '#5a3a28'); signY('BREAD', 0, 1.5, .5, 1.54, 2.0, '#5a3a28', '#f6d890');
   }, { use: { x: .75, y: 1 }, variants: [{ seed: 0 }, { seed: 1 }] }),
 
-  F('grocery.checkout', ['grocery', 'checkout'], [2.5, 1, 1], p => {
+  F('grocery.checkout', ['till', 'grocery', 'checkout'], [2.5, 1, 1], p => {
     const c = p.c || '#d8d2c4', ac = p.ac || '#3f8a55';
     // cashier pedestal (back) with till
     box(1.3, 0, 0, .7, .35, .95, dk(c, .1)); 
@@ -96,7 +96,7 @@ const grocery = [
     const z = .06 + (p.n || 5) * .1 + .04; tube([.1, .23, z], [.1, .23, z + .12], '#3a3f4c'); tube([.4, .23, z], [.4, .23, z + .12], '#3a3f4c'); tube([.1, .23, z + .12], [.4, .23, z + .12], '#3a3f4c');
   }, { use: { x: .25, y: 1 }, variants: [{ c: K.red }, { c: K.green, n: 4 }, { c: K.blue, n: 3 }] }),
 
-  F('grocery.trolley', ['grocery', 'trolley'], p => [.5 + (p.n || 1) * .5, .5, 1], p => {
+  F('grocery.trolley', ['cart_bay', 'grocery', 'trolley'], p => [.5 + (p.n || 1) * .5, .5, 1], p => {
     const n = p.n || 1, hc = p.c || K.red;
     for (let i = 0; i < n; i++) {
       const x = i * .28;
@@ -129,7 +129,7 @@ const grocery = [
     textY(p.a || 'FRUIT', .5, .3, 2.24, '#fff8e0'); textY(p.b || 'VEG', .5, .3, 1.86, '#f6e08a');
   }, { solid: false, overhead: true, vb: [-.2, 0, 1.4, 2.2, .6, 2.8], variants: [{ n: 1, a: 'FRUIT', b: 'VEG' }, { n: 2, a: 'CANS', b: 'PASTA', c: '#8a3a3a' }, { n: 3, a: 'SNACKS', b: 'DRINKS', c: '#3c5a9a' }, { n: 4, a: 'DAIRY', b: 'FROZEN', c: '#2f7f9a' }] }),
 
-  F('grocery.crates', ['grocery', 'decor', 'produce'], [1, .5, .9], p => {
+  F('grocery.crates', ['stockroom', 'grocery', 'decor', 'produce'], [1, .5, .9], p => {
     const w = '#c8a068', it = p.items || ['apple', 'orange', 'lettuce'];
     const crate = (x, y, z, k) => { box(x, y, z, .48, .46, .26, w, { l: PAT.siding(dk(w, .18), 4), r: PAT.siding(dk(w, .36), 4), t: heap(PROD[k], 9, x * 7) }); frameZ(x, x + .48, y, y + .46, z + .26, dk(w, .4)); };
     crate(0, .02, 0, it[0]); crate(.5, .02, 0, it[1]); crate(.1, .02, .28, it[2]); if (p.tall) crate(.5, .02, .28, it[0]);
@@ -155,7 +155,7 @@ function atm(p) {
   lit(() => { qy(.05, .45, .5, 1.42, 1.62, '#f4f0e8'); qy(.05, .45, .5, 1.42, 1.47, '#f6c040'); spx(.25, .5, 1.58, -2, 1, c); spx(.25, .5, 1.58, -1, 0, c); spx(.25, .5, 1.58, 0, 1, c); spx(.25, .5, 1.58, 1, 1, c); spx(.25, .5, 1.58, 2, 2, c); });
 }
 const corner = [
-  F('cornerstore.counter', ['cornerstore', 'checkout'], [2, .5, 1], p => {
+  F('cornerstore.counter', ['till', 'cornerstore', 'checkout'], [2, .5, 1], p => {
     const c = p.c || '#3f7a6a';
     counter(0, 0, 2, .5, 1, c, '#e8e2d4', { panels: false });
     // candy rack on the customer face

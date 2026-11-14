@@ -11,7 +11,7 @@ function ochair(x, y, dir, c, hi) {
 }
 const papers = (x, y, z) => { qz(x, x + .2, y, y + .26, z, '#f8f4ea'); lw([x + .04, y + .06, z], [x + .16, y + .06, z], '#8a8478'); lw([x + .04, y + .14, z], [x + .14, y + .14, z], '#8a8478'); };
 const office = [
-  F('office.cubicle', ['office', 'computer', 'deskjob', 'desk', 'seating'], [2, 1.5, 1.4], p => {
+  F('office.cubicle', ['own_desk', 'office', 'computer', 'deskjob', 'desk', 'seating'], [2, 1.5, 1.4], p => {
     const c = p.pc || '#8a9ab0', d = p.dc || '#e8dcc4', flat = p.open;
     if (!flat) { box(0, 0, 0, .08, 1.5, 1.35, c, { r: PAT.stucco(dk(c, .3)) }); box(.08, 0, 0, 1.92, .08, 1.35, c, { l: PAT.stucco(dk(c, .12)) }); lw([.08, .08, 1.35], [2, .08, 1.35], lt(c, .4)); }
     if (!flat) { qy(1.2, 1.7, .08, .85, 1.2, '#f6e08a'); qy(1.25, 1.45, .08, .95, 1.1, '#e87aa0'); qy(.2, .5, .08, .9, 1.2, '#f8f4ea'); lw([.24, .08, 1.1], [.46, .08, 1.1], '#3c64ad'); lw([.24, .08, 1.02], [.4, .08, 1.02], '#8a8478'); }
@@ -21,14 +21,14 @@ const office = [
     ochair(.65, .8, 3, p.cc || '#3a4a6a');
   }, { use: { x: .9, y: 1.4 }, seats: [{ x: .9, y: 1.05, z: .46, dir: 3 }], variants: [{}, { scr: '#2a8a6a', cc: '#c0563a', dual: true, seed: 3 }, { pc: '#a8a090', plant: true, scr: '#f4f0e8', cup: '#3f8a55', seed: 6 }, { open: true, dc: '#d2a26a', seed: 8 }] }),
 
-  F('office.bossdesk', ['office', 'desk', 'boss', 'computer'], [2.5, 2, 1.3], p => {
+  F('office.bossdesk', ['boss_office', 'office', 'desk', 'boss', 'computer'], [2.5, 2, 1.3], p => {
     const c = p.c || '#6a4028'; ochair(1, .05, 1, '#2a2733', true);
     box(.1, .7, 0, 2.3, .9, .7, c); qy(.1, 2.4, 1.6, 0, .08, dk(c, .5)); for (let i = 0; i < 3; i++) frameY(.2 + i * .74, .84 + i * .74, 1.6, .16, .6, dk(c, .35)); box(.05, .65, .7, 2.4, 1.0, .07, lt(c, .12));
     monitor(1.5, .85, .77, .5, .36, { scr: '#2a3a4a', ink: '#5af08a' }); lamp(.35, .95, .77, .45, '#2f8a55', { r: .12, base: '#d8a848' }); papers(.75, 1.05, .771); box(1.0, 1.45, .77, .5, .06, .12, '#d8a848', { ol: false }); qy(1.04, 1.46, 1.51, .8, .86, '#2a2733');
     bx(2.0, 1.2, .77, .2, .2, .1, '#2a2733'); cup(.6, 1.4, .77, '#f1ede4');
   }, { use: { x: 1.25, y: 2.1 }, seats: [{ x: 1.25, y: .3, z: .46, dir: 1 }], staff: { x: 1.25, y: .3, dir: 1 }, variants: [{}, { c: '#2e3440' }] }),
 
-  F('office.meeting', ['office', 'table', 'seating', 'meeting'], [3, 2, 1.1], p => {
+  F('office.meeting', ['meeting_room', 'office', 'table', 'seating', 'meeting'], [3, 2, 1.1], p => {
     const c = p.c || '#d2a26a', cc = p.cc || '#3a4a6a';
     ochair(.8, 0, 1, cc); ochair(1.7, 0, 1, cc); ochair(0, .75, 0, cc);
     bx(1.2, .8, 0, .6, .4, .68, dk(c, .35)); box(.6, .55, .68, 1.8, .9, .07, c); 
@@ -59,7 +59,7 @@ const office = [
     qy(.1, .5, .95, .74, .86, '#2a2733'); lit(() => { qy(.12, .36, .95, .76, .84, '#6ad0f0'); spx(.42, .95, .8, 0, 0, '#5af08a'); }); for (let i = 0; i < 4; i++) spx(.6 + i * .08, .95, .8, 0, 0, '#8a8478');
   }, { vb: [-.3, -.3, 0, 1.5, 1.3, 1.5], use: { x: .5, y: 1.5 }, variants: [{}] }),
 
-  F('office.filing', ['office', 'bank', 'clinic', 'filing', 'decor'], p => [p.w || 1, .5, p.h || 1.4], p => {
+  F('office.filing', ['filing_cabinet', 'office', 'bank', 'clinic', 'filing', 'decor'], p => [p.w || 1, .5, p.h || 1.4], p => {
     const w = p.w || 1, h = p.h || 1.4, c = p.c || '#8a9aa8', n = Math.round((h - .1) / .32), cols = Math.round(w / .5);
     box(0, 0, 0, w, .5, h, c); qy(0, w, .5, 0, .08, dk(c, .5));
     for (let k = 0; k < cols; k++) for (let i = 0; i < n; i++) { const x = k * .5, z = .1 + i * (h - .14) / n, zh = (h - .14) / n - .04; frameY(x + .04, x + .46, .5, z, z + zh, dk(c, .4)); lw([x + .18, .5, z + zh * .6], [x + .32, .5, z + zh * .6], '#e4e8ec'); qy(x + .19, x + .31, .5, z + zh * .25, z + zh * .45, '#f1ede4'); }
@@ -74,7 +74,7 @@ const office = [
     plant(2.7, .75, 1.16, .6, { flower: '#e87aa0' }); bx(.3, .65, 1.16, .3, .2, .03, '#f8f4ea'); cyl(.9, .75, 1.16, .05, .1, '#3a3f4c', { ol: false }); post(.9, .75, 1.26, 1.36, '#3c64ad');
   }, { vb: [-.3, -.3, 0, 3.3, 1.3, 1.9], use: { x: 1.5, y: 1.5 }, staff: { x: 1.4, y: -.4, dir: 1 }, variants: [{}, { c: '#2e3440', a: '#e8843a', name: 'BAYWORKS' }] }),
 
-  F('office.coffee', ['office', 'coffee', 'kitchenette'], [1.5, .5, 1.9], p => {
+  F('office.coffee', ['coffee_machine', 'office', 'coffee', 'kitchenette'], [1.5, .5, 1.9], p => {
     const c = p.c || '#f1ede4'; counter(0, 0, 1.5, .5, .95, c, '#5a6272', { pw: .5 });
     box(.1, .08, .95, .34, .3, .44, '#2a2733'); qy(.16, .38, .38, 1.0, 1.2, '#1e1a20'); cup(.27, .32, .95, '#f1ede4'); lit(() => { spx(.38, .38, 1.32, 0, 0, '#5af08a'); spx(.34, .38, 1.32, 0, 0, '#ff5a4a'); }); steam(.27, .32, 1.1, 2);
     cyl(.65, .25, .95, .09, .24, '#d5dbe0'); post(.65, .25, 1.19, 1.25, '#2a2733'); for (let i = 0; i < 3; i++) cup(.95 + i * .13, .2, .95, ['#c0563a', '#3c64ad', '#f2c230'][i]); box(1.1, .25, .95, .3, .18, .1, '#8a5a3a', { t: heap2(['#f4f0e8', '#f4b8c8', '#c8a070'], 8, 1) });

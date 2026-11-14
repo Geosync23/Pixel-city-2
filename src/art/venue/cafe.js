@@ -19,7 +19,7 @@ function glassCase(x, y, z, w, d, h, s, o) {
   lw([x + .1, y + d, z + h - .08], [x + .3, y + d, z + h * .4], '#f8feff');
 }
 const cafe = [
-  F('cafe.bar', ['cafe', 'bakery', 'baristastation', 'counter'], [2.5, .5, 1], p => {
+  F('cafe.bar', ['espresso_machine', 'pickup_counter', 'cafe', 'bakery', 'baristastation', 'counter'], [2.5, .5, 1], p => {
     const c = p.c || W;
     counter(0, 0, 2.5, .5, 1, c, p.top || '#e8dcc4', { pw: .5 }); if (p.tile) qy(0, 2.5, .5, .1, .9, PAT.ftile ? PAT.brick(p.tile, lt(p.tile, .5)) : p.tile);
     espresso(.15, .06, 1, p.mc || '#c0392b');
@@ -29,14 +29,14 @@ const cafe = [
     box(2.05, .12, 1, .3, .26, .05, '#5a3a28'); cup(2.14, .26, 1.05, '#f4f0e8'); cup(2.28, .22, 1.05, '#9fd0e8');
   }, { vb: [-.3, -.3, 0, 2.8, .8, 1.8], use: { x: 2, y: 1 }, staff: { x: .6, y: -.5, dir: 1 }, variants: [{}, { c: '#3f6a5a', mc: '#d5dbe0', top: '#f1ede4' }, { c: '#e8dcc4', tile: '#6fa8b8', mc: '#3a3f4c', top: '#8a5a3a' }] }),
 
-  F('cafe.till', ['cafe', 'bakery', 'checkout', 'counter'], [1.5, .5, 1], p => {
+  F('cafe.till', ['till', 'cafe', 'bakery', 'checkout', 'counter'], [1.5, .5, 1], p => {
     const c = p.c || W; counter(0, 0, 1.5, .5, 1, c, p.top || '#e8dcc4', { pw: .5 });
     till(.2, .08, 1); cyl(.75, .3, 1, .07, .16, '#b4dbe8', { t: '#f2c230' }); spx(.75, .3, 1.06, 0, 0, '#f2c230'); spx(.75, .3, 1.06, 1, 1, '#d5dbe0'); // tip jar
     box(.95, .1, 1, .4, .3, .04, '#5a3a28'); for (let i = 0; i < 3; i++) ball(1.05 + i * .1, .25, 1.09, .06, ['#e0b468', '#c88838', '#8a4a2a'][i], { ol: false });
     signY('TO GO', .1, 1.4, .5, .28, .78, '#2f3a34', '#f4f0e8');
   }, { vb: [-.3, -.3, 0, 1.8, .8, 1.6], use: { x: .5, y: 1 }, staff: { x: .5, y: -.5, dir: 1 }, variants: [{}, { c: '#3f6a5a', top: '#f1ede4' }] }),
 
-  F('cafe.pastrycase', ['cafe', 'bakery', 'display', 'shelf'], [1.5, .5, 1.3], p => {
+  F('cafe.pastrycase', ['pastry_case', 'cafe', 'bakery', 'display', 'shelf'], [1.5, .5, 1.3], p => {
     const c = p.c || W; box(0, 0, 0, 1.5, .5, .55, c); qy(0, 1.5, .5, 0, .08, dk(c, .5)); frameY(.08, 1.42, .5, .16, .46, dk(c, .34));
     glassCase(0, 0, .55, 1.5, .5, .7, p.seed || 1);
   }, { use: { x: .75, y: 1 }, variants: [{ seed: 1 }, { seed: 5, c: '#3f6a5a' }, { seed: 9, c: '#e8dcc4' }] }),
@@ -50,7 +50,7 @@ const cafe = [
     cyl(1.3, .07, 1.56, .08, .1, '#f4f0e8', { ol: false, t: '#6a4a30' }); 
   }, { wall: true, mount: 1.45, solid: false, vb: [-.1, 0, 1.4, 2.1, .3, 2.6], variants: [{}, { name: 'BREAD', b: '#2a2733' }, { kind: 'lit' }] }),
 
-  F('cafe.tableset', ['cafe', 'bakery', 'table', 'seating'], [2, 1, 1], p => {
+  F('cafe.tableset', ['cafe_table', 'cafe', 'bakery', 'table', 'seating'], [2, 1, 1], p => {
     const c = p.c || '#d2a26a', cc = p.cc || '#3f6a5a';
     chair(0, .25, 0, cc); if (p.sq) table(.6, .1, .8, .8, .75, c, { leg: '#4a4458' }); else rtable(1, .5, .38, .75, c);
     cup(.85, .5, .75); if (!p.empty) { plate(1.12, .45, .75, '#f4f0e8', '#e0b468'); cup(1.1, .68, .75, '#9fd0e8'); }
@@ -114,7 +114,7 @@ const cafe = [
     sack(0, .04, 0, .5); sack(.5, .04, 0, .5); sack(.22, .04, .24, .5); if (p.n > 3) sack(.3, .04, .48, .46);
   }, { variants: [{ n: 3 }, { n: 4, lc: '#3c64ad' }] }),
 
-  F('bakery.counter', ['bakery', 'cafe', 'checkout', 'counter'], [2.5, .5, 1.3], p => {
+  F('bakery.counter', ['till', 'bakery', 'cafe', 'checkout', 'counter'], [2.5, .5, 1.3], p => {
     const c = p.c || '#e8dcc4'; box(0, 0, 0, 2.5, .5, .55, c, { l: PAT.planks(dk(c, .18), 6) }); qy(0, 2.5, .5, 0, .08, dk(c, .5));
     glassCase(0, 0, .55, 1.6, .5, .5, p.seed || 2); box(1.6, 0, .55, .9, .5, .45, c); box(1.56, -.02, 1.0, .98, .56, .06, '#8a5a3a');
     till(1.75, .1, 1.06); box(.15, .08, 1.09, .5, .3, .16, '#c8a068', { t: '#8a6a40' }); for (let b = 0; b < 5; b++) tube([.22 + b * .08, .28, 1.2], [.24 + b * .09, .16, 1.6], b % 2 ? '#d8a050' : '#c88838');
