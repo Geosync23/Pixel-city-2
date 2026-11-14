@@ -2,6 +2,11 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-14, NEW ACCOUNT — first session)
+- **LEAD SWITCH PLANNED (owner msgs 67-70):** this session's lead runs on Opus and /model will not stick. When the 4 running workers finish, the Opus lead integrates them,
+  publishes, commits, and creates a NEW lead session configured with Fable 5.2 (create_session model claude-fable-5-2, same repo/branch). No new workers are started in the old
+  session meanwhile (the new lead starts the queue incl. the Opus QA/data lane). FIRST TASK of the new Fable lead: REVIEW everything the Opus-lead session did — `git log a1d2ffc..HEAD`,
+  the lead's own edits (src/scenes/rooms/unique_rooms.js, public_places.js call sites, src/sim/activities.js vkey/PUB_ALIAS + 4 bar activities in src/data/activities.js, CLAUDE.md/playbook
+  changes) and each worker's output (reports unique_food, bladder_bath, unique_shops, lobbies, conservatory, unique_homes) — then report findings to the owner.
 - **New lead on the new account.** Branch `ccr-e622e92c-7t3ejy` (started from `claude/pixel-city-life-sim-21h2e3` @ a1d2ffc; push here). Artifact: https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
   (Stage 14 republished, version 1794695918-0180).
 - **Team (owner msg 68): 3 Fable 5.2 + 1 Opus QA & data worker.** Transition: currently 4 Fable running; when the NEXT Fable worker finishes, its slot goes to the Opus QA/data lane (don't stop anyone).

@@ -223,6 +223,6 @@ define('Bay Thread Co-op Market', 46, 'grocery_m', {
     V('grocery.gondola', 8, 2, { kind: 'cereal', name: 'GRAINS', hc: '#8a5a3a', seed: 2 }, FL(U)), V('grocery.gondola', 8, 4, { kind: 'cans', name: 'BEANS', hc: '#3f6a4a', seed: 5 }, FL()),
     V('grocery.gondola', 10, 2, { kind: 'drinks', name: 'OILS', hc: '#d8a03a', seed: 8 }, FL()), V('grocery.gondola', 10, 4, { kind: 'household', name: 'REFILL', hc: '#2f8f8a', seed: 9 }, FL(U)),
     P('barrel', 0, 2.5, { fill: '#e8d8a0', tag: 1 }), P('barrel', 0, 3, { fill: '#8a5a3a', tag: 1 }), P('barrel', 0, 3.5, { fill: '#c8842a' }),
-    V('grocery.checkout', 1.5, 7.5, null, CK), P('tasting', 5.5, 7.5, null, U), P('flower.buckets', 9.5, 7, { c: '#8a5a3a' }, U), V('grocery.baskets', 5, 9.5),
+    V('grocery.checkout', 1.5, 7.5, null, CK), P('tasting', 5.5, 7.5, null, U), P('flower.buckets', 9.5, 7, { c: '#8a5a3a' }, U), V('grocery.baskets', 5, 9.5), V('grocery.trolley', 10.5, 9, { n: 1 }), V('generic.plant', 11.5, 6, { s: 1.5 }),
     HG(3, 2, 'basket'), HG(6.5, 6.5, 'basket', { c: '#f2c230', seed: 3 }), HG(9, 6.5, 'basket', { seed: 6 }), HL(4, 4.5, 'shade', '#3f6a4a'), HL(9.5, 3.5, 'shade', '#3f6a4a')],
   npc: [S(7.2, 3.2, 2), S(11.2, 5, 2)], exits: [{ x: 7.5, y: 9.5 }] }));

@@ -47,3 +47,4 @@
 32. (msg 67) Asked (discussion only, no change yet) whether to split the team: Fable 5.2 for complex engineering/lead, Opus for easier tasks. Wants the LEAD on Fable 5.2 — says the session keeps switching back.
 33. (msg 68) Team becomes 3 Fable 5.2 workers + 1 Opus QA & data worker. Transition naturally: let running workers finish; the next free Fable slot becomes the Opus QA/data lane.
 34. (msg 69) Used /model to pick Fable for the lead; it reverts to Opus.
+35. (msg 70) Keep the Opus lead for now; when the running workers finish, move the lead to a NEW session created on Fable 5.2. The new Fable lead first REVIEWS everything this (Opus-lead) session did (commits since a1d2ffc).
