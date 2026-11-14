@@ -85,8 +85,8 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
       if (li < L.length && t > .4 + li * 2.9) { const l = L[li++]; caption(l.speaker === 'pa' ? 'Captain' : l.speaker === 'narrator' ? null : short(l.speaker), fill(l.text), 3500); }
       if (!inside() && fl && fl.phase === 'roll' && fl.v < 12 && G.camTarget === fl.cam) G.camTarget = null; // legacy flow only: pan to the arrivals curb (the airport-interior opening cuts to the cabin instead)
       // end the shot as the plane starts to pull off the runway (never linger until it despawns)
-      if (fl && fl.turn) { tOff = tOff || t; if (t - tOff > 1.6) return next(); }
-      if (t > Math.min(14, (SEQ.landing.durationSec || 12) + 2) || (!fl && t > 8) || (fl && fl.done)) next();
+      if (fl && fl.turn) { tOff = tOff || t; if (t - tOff > 1.4) return next(); }
+      if (t > Math.min(18, (SEQ.landing.durationSec || 12) + 6) || (!fl && t > 8) || (fl && fl.done)) next();
     },
     exit() {
       // when the opening continues inside the plane, cut to black instantly so the old curb-side view never flashes between the landing shot and the cabin

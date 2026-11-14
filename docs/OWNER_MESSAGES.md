@@ -221,3 +221,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 51 — Intro landing: plane in the grass, plane disappears
 > Now there's a plane in the grass. and the intro text plays long enough to see our plane dissappear. Just have it start to pull off the runway
+
+## 52 — Landing plane: turn at the end of the runway
+> The plane needs to wait until its at the end of the runway. Then turn not translate on an axis

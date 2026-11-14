@@ -25,6 +25,10 @@ class PlaneEnt {
   sprite() {
     const f = this.f; if (!f) return null;
     try {
+      if (f.ay) { // turned onto the y axis (taxiing off the runway): the mirrored sprite, nose toward f.ay (+1 = +y)
+        if (this.shadow) return assetSprite(f.sa, { dir: f.ay }, true, f.sa.id + '|Y' + f.ay);
+        return assetSprite(f.a, Object.assign({}, f.pDown, { dir: f.ay }), true, f.a.id + '|' + f.vi + '|Y' + f.ay);
+      }
       if (this.shadow) return assetSprite(f.sa, f.sp, false, f.sa.id + '|' + f.dir);
       return assetSprite(f.a, f.gear ? f.pDown : f.pUp, false, f.a.id + '|' + f.vi + '|' + f.dir + '|' + (f.gear ? 1 : 0));
     } catch (e) { return null; }
@@ -45,7 +49,7 @@ function make(kind, variant, dir) {
   flights.push(f); return f;
 }
 function sync(f) {
-  const e = f.pool.e, s = f.pool.s, x = f.cx - f.L / 2, y = f.cy - f.span / 2;
+  const e = f.pool.e, s = f.pool.s, x = f.cx - (f.ay ? f.span : f.L) / 2, y = f.cy - (f.ay ? f.L : f.span) / 2;
   e.x = x; e.y = y; e.z = f.gz + f.alt; e.hidden = false; e.alpha = f.fade;
   s.x = x; s.y = y; s.z = f.gz + .02; s.hidden = false; s.alpha = f.fade * Math.max(.22, Math.min(.8, .8 - f.alt / 50));
   f.cam.x = f.cx; f.cam.y = f.cy; f.cam.z = f.gz + f.alt * .6;
@@ -75,10 +79,12 @@ function step(f, dt) {
       f.cx -= f.v * dt; const d = f.cx - A.touchdown;
       if (d <= 0) { f.alt = 0; f.phase = 'roll'; G.emit('plane:landed', f); } else f.alt = d * .13 * (d < 14 ? .45 + .55 * d / 14 : 1);
     } else {
-      f.v = Math.max(5, f.v - 9 * dt); f.cx -= f.v * dt;
-      // near the exit the plane starts to pull off the runway toward the taxiway (drifts sideways), then fades once it is well clear
-      if (f.cx < A.exit + 26) { f.turn = true; const ty = (AP.taxiway && AP.taxiway.c) || A.c + 14; f.cy += Math.sign(ty - A.c) * Math.min(2.6, f.v * .45) * dt; }
-      if (f.cx < A.exit + 2 || Math.abs(f.cy - A.c) > 12) { f.fade -= dt / 1.1; if (f.fade <= 0) return free(f); }
+      // roll out to the END of the runway, stop, TURN 90 degrees toward the taxiway (swap to the y-axis sprite), then taxi off and fade
+      const R = AP.runways[0], endX = R.a + f.L / 2 + 4, ty = (AP.taxiway && AP.taxiway.c) || A.c + 14, sy = Math.sign(ty - A.c) || 1;
+      if (!f.ay) {
+        const left = f.cx - endX; f.v = left > 9 ? Math.max(15, f.v - 6 * dt) : Math.max(left > .3 ? 5 : 0, f.v - 14 * dt); f.cx = Math.max(endX, f.cx - f.v * dt);
+        if (f.cx <= endX + .01) { f.hold = (f.hold || 0) + dt; if (f.hold > .5) { f.ay = sy; f.turn = true; f.v = 0; } }
+      } else { f.v = Math.min(4.5, f.v + 3 * dt); f.cy += f.ay * f.v * dt; if (Math.abs(f.cy - A.c) > 10) { f.fade -= dt / 1.2; if (f.fade <= 0) return free(f); } }
     }
   } else if (f.kind === 'takeoff') {
     if (f.fade < 1 && f.phase === 'roll') f.fade = Math.min(1, f.fade + dt * 1.5);
