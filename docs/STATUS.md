@@ -1,5 +1,5 @@
 # Status — what exists right now (update whenever something lands)
-Last updated: stage 6 (airport interior opening) + riders on scooters. Public-places pass in progress.
+Last updated: stage 7 (public places pass).
 
 ## Engine & tools (lead-written) — src/engine, src/core, tools/
 - `raster.js` pixel rasteriser (16 px/unit, 2:1 iso, glow/lit light layer, flip mode, patterns, 3x5 font, season helpers); `world.js` (vertex-height terrain, ground types, objects, nav grid 0.5u, pois, decals);
@@ -29,7 +29,8 @@ Last updated: stage 6 (airport interior opening) + riders on scooters. Public-pl
 - rail: trains on viaduct, cutaway ride scene, Central Station hall, passes.
 - airport interior: plane cabin, concourse, tram, terminal; new opening sequence.
 - stalls + welcome glow (src/sim/stalls.js), addresses (src/sim/addresses.js).
+- public places: 53 generic enterable venues + 8 walk-up windows converted from existing buildings, 5 extra groceries, 50 new food/gift items; phone map shows street names + addresses.
 
 ## Known issues / debts
-weather setWeather('clear') doesn't clear isWet(); item icons missing; MapleCab shows fare on free first ride; story recipes/discounts/keepsakes not wired into cooking/shop/home; seated player may sort behind flipped sofa;
+generic eateries reuse the pizza counter art (a taqueria shows "PIZZA"): needs a neutral or per-cuisine counter sign; weather setWeather('clear') doesn't clear isWet(); item icons missing; MapleCab shows fare on free first ride; story recipes/discounts/keepsakes not wired into cooking/shop/home; seated player may sort behind flipped sofa;
 duplicate "Discovered" toast; bus headways long; terminal has no glass roof; cabin passengers hidden by seat backs; no full human playthrough/QA pass yet; mobile layout only spot-checked; GitHub push blocked.

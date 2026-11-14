@@ -1,5 +1,7 @@
 // Phone app: Map (city minimap with pan/zoom, pins, transit lines, place cards) + the on-screen waypoint arrow.
 // ctx.arg: { place: id } selects and centres that place.
+// Street names (G.address.streets()) are drawn along the roads: arterials at every zoom, streets from zoom 2, small streets from zoom 3; label layout is cached per zoom.
+// District names are large faint labels (zoomed out). Place cards show the street address. The "Streets" chip opens a searchable street list (tap -> centre on it).
 // Waypoint: setWaypoint(placeOrId | null) stores G.state.phone.waypoint = { id, name, x, y } and emits 'waypoint'(place | null);
 //           a DOM arrow (#ph-way) at the screen edge points to it with the distance while the player is in the city; arriving clears it.
 import { G } from '../core/game.js';
@@ -10,7 +12,10 @@ import { TRANSIT_SERVICE } from '../data/venues.js';
 import { el, iconCanvas, empty, btn, chip, allPlaces, isKnown, place, placeCat, CATS, CAT_BY_ID, openState, cityPos, distTo, homePlace, money, safe, timeInfo } from './phone_util.js';
 
 const INK = '#2a2733', CREAM = '#fff4dc';
-let base = null, baseWorld = null, view = { cx: 192, cy: 192, z: 2 }, sel = null, needCenter = true, hidden = {}, pins = [], cv = null, footEl = null, ctxRef = null, wayEl = null;
+let base = null, baseWorld = null, view = { cx: 192, cy: 192, z: 2 }, sel = null, needCenter = true, hidden = {}, pins = [], cv = null, footEl = null, ctxRef = null, wayEl = null, selStreet = null, streetsOpen = false;
+const FONT = '"Pixelify Sans", system-ui, sans-serif', lbl = { key: '', w: null, list: [] }, dist = { w: null, list: [] };
+const streets = () => (G.address && G.address.streets ? G.address.streets() || [] : []);
+const addrOf = p => (p && p.poi && p.poi.address) || (G.address && p ? (G.address.of(p) || {}).text : '') || '';
 const cityWorld = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.world : null; };
 const S = () => G.state.phone;
 
@@ -43,6 +48,33 @@ function ensureBase(w) {
     for (let y = 0; y < w.h; y++) for (let x = 0; x < w.w; x++) { g.fillStyle = COL[w.gt[y * w.w + x]] || '#b9b2a2'; g.fillRect(x, y, 1, 1); } base = c; }
   baseWorld = w; return base;
 }
+/* ---------- street + district labels ---------- */
+// layout in map pixels (world * zoom), independent of panning -> cached per zoom level
+function streetLabels(g, w, z) {
+  const sts = streets(), key = z.toFixed(2) + '|' + sts.length; if (lbl.key === key && lbl.w === w) return lbl.list;
+  const out = [], boxes = [], rank = s => (s.kind === 'arterial' ? 0 : s.kind === 'street' ? 1 : 2), fits = b => !boxes.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
+  g.font = '700 11px ' + FONT;
+  for (const s of sts.slice().sort((a, b) => rank(a) - rank(b) || (b.b - b.a) - (a.b - a.a))) {
+    if (z < [0, 1.9, 3][rank(s)]) continue; const len = (s.b - s.a) * z, tw = Math.ceil(g.measureText(s.name).width); if (len < tw + 10) continue;
+    const n = Math.max(1, Math.floor(len / (tw + 230))), step = len / n;
+    for (let i = 0; i < n; i++) { const al = s.a * z + step * (i + .5), c = s.c * z, hw = tw / 2 + 4, b = s.axis === 'x' ? [al - hw, c - 8, al + hw, c + 8] : [c - 8, al - hw, c + 8, al + hw]; if (!fits(b)) continue; boxes.push(b); out.push({ t: s.name, x: s.axis === 'x' ? al : c, y: s.axis === 'x' ? c : al, v: s.axis !== 'x', hw, art: rank(s) === 0 }); }
+  }
+  lbl.key = key; lbl.w = w; lbl.list = out; return out;
+}
+function districtLabels(w) {
+  if (dist.w === w) return dist.list; const acc = {};
+  if (w.districtAt) for (let y = 2; y < w.h; y += 4) for (let x = 2; x < w.w; x += 4) { const k = w.districtAt(x, y); if (!k) continue; const a = acc[k] || (acc[k] = [0, 0, 0]); a[0] += x; a[1] += y; a[2]++; }
+  dist.w = w; dist.list = (w.districts || []).filter(d => acc[d.key] && acc[d.key][2] > 6).map(d => ({ t: String(d.name || d.key).toUpperCase().split('').join('\u200a'), x: acc[d.key][0] / acc[d.key][2], y: acc[d.key][1] / acc[d.key][2] })); return dist.list;
+}
+function drawLabels(g, w, z, W, H) {
+  const ox = W / 2 - view.cx * z, oy = H / 2 - view.cy * z; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+  if (z <= 3.4) { g.font = '700 ' + (z < 1.6 ? 12 : z < 2.6 ? 16 : 20) + 'px ' + FONT; for (const d of districtLabels(w)) { const x = Math.round(d.x * z + ox), y = Math.round(d.y * z + oy); if (x < -90 || y < -20 || x > W + 90 || y > H + 20) continue; g.globalAlpha = .7; g.strokeStyle = CREAM; g.lineWidth = 4; g.strokeText(d.t, x, y); g.globalAlpha = .55; g.fillStyle = INK; g.fillText(d.t, x, y); } g.globalAlpha = 1; }
+  if (selStreet) { g.strokeStyle = '#f08a2c'; g.lineWidth = Math.max(3, z); g.globalAlpha = .75; g.beginPath(); for (const s of streets()) { if (s.name !== selStreet) continue; if (s.axis === 'x') { g.moveTo(s.a * z + ox, s.c * z + oy); g.lineTo(s.b * z + ox, s.c * z + oy); } else { g.moveTo(s.c * z + ox, s.a * z + oy); g.lineTo(s.c * z + ox, s.b * z + oy); } } g.stroke(); g.globalAlpha = 1; }
+  g.font = '700 11px ' + FONT;
+  for (const l of streetLabels(g, w, z)) { const x = Math.round(l.x + ox), y = Math.round(l.y + oy), m = l.hw + 8; if (x < -m || y < -m || x > W + m || y > H + m) continue;
+    g.save(); g.translate(x, y); if (l.v) g.rotate(-Math.PI / 2); g.strokeStyle = l.t === selStreet ? '#fff0b8' : 'rgba(255,244,220,.92)'; g.lineWidth = 3; g.strokeText(l.t, 0, 1); g.fillStyle = l.art || l.t === selStreet ? INK : '#4a4658'; g.fillText(l.t, 0, 1); g.restore(); }
+  g.textAlign = 'left';
+}
 function draw() {
   const w = cityWorld(); if (!cv || !w || !cv.isConnected) return; const box = cv.parentElement, W = box.clientWidth, H = box.clientHeight; if (!W || !H) return;
   if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
@@ -53,6 +85,7 @@ function draw() {
     for (const r of w.busRoutes || []) { g.setLineDash([6, 4]); poly(r.path, r.color || '#3f7fd0', 2, true); } g.setLineDash([]);
     if (w.rail && w.rail.path) { poly(w.rail.path, INK, 6, true); poly(w.rail.path, '#e0453a', 2, true); }
   }
+  drawLabels(g, w, z, W, H);
   g.font = '700 12px "Pixelify Sans", system-ui, sans-serif'; g.textBaseline = 'middle';
   const label = (t, x, y, strong) => { const tw = Math.ceil(g.measureText(t).width); g.fillStyle = strong ? INK : CREAM; g.fillRect(x - 3, y - 8, tw + 6, 16); if (!strong) { g.strokeStyle = INK; g.lineWidth = 1; g.strokeRect(x - 2.5, y - 7.5, tw + 5, 15); } g.fillStyle = strong ? CREAM : INK; g.fillText(t, x, y + 1); };
   const stamp = (id, x, y) => { const c = iconCanvas(id); g.drawImage(c, x - 8, y - 8); };
@@ -83,12 +116,30 @@ function showCard() {
   const cat = CAT_BY_ID[placeCat(p)], os = openState(p), v = p.venue, wp = getWaypoint(), isWp = wp && wp.id === p.id, ctx = ctxRef;
   const c = el('div.ph-placecard', null,
     el('div.t', null, el('div', null, el('b', { text: p.name }), el('br'), el('small', { text: [cat.name, p.districtName].filter(Boolean).join(' · ') + ` · ~${Math.round(distTo(p))} m` })), el('button.ph-link', { text: 'x', 'aria-label': 'Close card', onclick: () => { sel = null; showCard(); draw(); } })),
+    addrOf(p) ? el('small.ph-addr', { text: addrOf(p) }) : null,
     v && v.blurb ? el('small', { text: v.blurb }) : null,
     os.open !== null ? el('div', null, chip(os.open ? 'OPEN' : 'CLOSED', os.open ? 'good' : 'bad'), ' ', el('small', { text: os.hours })) : null,
     p.kind === 'station' ? el('small', { text: `Light rail: ${money(FARES.train.single)} flat, a train every ${TRANSIT_SERVICE.train.headwayMinutes.offPeak} min or so.` }) : null,
     el('div.ph-btns', null, btn(isWp ? 'Clear waypoint' : 'Set waypoint', () => { setWaypoint(isWp ? null : p); if (!isWp) ctx.tip('Waypoint set. Follow the arrow.'); showCard(); draw(); }, isWp ? '' : 'pri', 'ui.pin'),
       G.phone.isUnlocked('taxi') ? btn('Call cab here', () => ctx.open('taxi', { place: p.id }), '', 'transport.taxi') : null));
   footEl.append(c);
+}
+/* ---------- street search ---------- */
+function streetList() { const by = new Map(); for (const s of streets()) { const e = by.get(s.name); if (!e || s.b - s.a > e.b - e.a) by.set(s.name, s); } return [...by.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })); }
+function goStreet(s) { selStreet = s.name; sel = null; const m = (s.a + s.b) / 2; view.cx = s.axis === 'x' ? m : s.c; view.cy = s.axis === 'x' ? s.c : m; view.z = Math.max(view.z, 3); streetsOpen = false; if (ctxRef) ctxRef.refresh(); }
+function streetsPanel() {
+  const w = cityWorld(), list = el('div', { style: { overflowY: 'auto', flex: '1', minHeight: '0', display: 'flex', flexDirection: 'column', gap: '4px' } }), all = streetList();
+  const fill = q => { list.replaceChildren(); q = q.trim().toLowerCase(); const rows = all.filter(s => !q || s.name.toLowerCase().includes(q));
+    for (const s of rows) { const m = (s.a + s.b) / 2, k = w && w.districtAt ? w.districtAt(s.axis === 'x' ? m : s.c, s.axis === 'x' ? s.c : m) : '', d = k && (w.districts || []).find(x => x.key === k);
+      list.append(el('button', { style: { textAlign: 'left', minHeight: '40px', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }, onclick: () => goStreet(s) }, el('b', { text: s.name }), el('small', { text: (d ? d.name : '') + (s.kind === 'arterial' ? ' · main road' : '') }))); }
+    if (!rows.length) list.append(el('small', { text: 'No street by that name.' })); };
+  const inp = el('input', { type: 'search', placeholder: 'Search streets...', 'aria-label': 'Search streets', style: { minHeight: '40px', padding: '4px 8px', border: '2px solid #2a2733', font: 'inherit', background: '#fffdf4' }, oninput: () => fill(inp.value) });
+  for (const ev of ['pointerdown', 'pointerup', 'wheel']) inp.addEventListener(ev, e => e.stopPropagation());
+  fill('');
+  const panel = el('div.ph-streets', { style: { position: 'absolute', left: '8px', top: '8px', bottom: '8px', width: 'min(260px, calc(100% - 64px))', background: '#fff4dc', border: '2px solid #2a2733', boxShadow: '3px 3px 0 #2a2733', padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: '3', touchAction: 'pan-y' } },
+    el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, el('b', { text: 'Streets' }), el('button.ph-link', { text: 'x', 'aria-label': 'Close streets', onclick: () => { streetsOpen = false; if (ctxRef) ctxRef.refresh(); } })), inp, list);
+  for (const ev of ['pointerdown', 'pointermove', 'pointerup', 'wheel']) panel.addEventListener(ev, e => e.stopPropagation());
+  return panel;
 }
 function attach(box, ctx) {
   const pts = new Map(); let moved = 0, pinch = 0;
@@ -119,12 +170,13 @@ export default {
     const w = cityWorld(); if (!w) return b.append(empty('ui.pin', 'No map data yet', 'Step outside and the city map will load.'));
     ctxRef = ctx; footEl = ctx.foot; const a = ctx.arg;
     if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) { sel = p.id; view.cx = p.x; view.cy = p.y; view.z = Math.max(view.z, 3); needCenter = false; hidden[placeCat(p)] = false; } }
-    if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; }
+    if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; }
     const present = new Set(allPlaces().map(placeCat));
-    b.append(el('div.ph-legend', { role: 'group', 'aria-label': 'Filter' }, CATS.filter(c => present.has(c.id)).map(c => el('button.ph-chip' + (hidden[c.id] ? '.off' : ''), { 'aria-pressed': hidden[c.id] ? 'false' : 'true', onclick: () => { hidden[c.id] = !hidden[c.id]; ctx.refresh(); } }, el('i', { style: { background: c.color } }), c.name))));
+    b.append(el('div.ph-legend', { role: 'group', 'aria-label': 'Filter' }, streets().length ? el('button.ph-chip' + (streetsOpen ? '.on' : ''), { 'aria-pressed': streetsOpen ? 'true' : 'false', onclick: () => { streetsOpen = !streetsOpen; ctx.refresh(); } }, 'Streets') : null, CATS.filter(c => present.has(c.id)).map(c => el('button.ph-chip' + (hidden[c.id] ? '.off' : ''), { 'aria-pressed': hidden[c.id] ? 'false' : 'true', onclick: () => { hidden[c.id] = !hidden[c.id]; ctx.refresh(); } }, el('i', { style: { background: c.color } }), c.name))));
     cv = el('canvas', { 'aria-label': 'City map' });
     const box = el('div.ph-map', null, cv, el('div.ph-map-ctl', null, el('button', { text: '+', 'aria-label': 'Zoom in', onclick: () => zoomBy(1.5) }), el('button', { text: '-', 'aria-label': 'Zoom out', onclick: () => zoomBy(1 / 1.5) }),
       el('button', { 'aria-label': 'Centre on me', onclick: () => { const c = cityPos(); view.cx = c.x; view.cy = c.y; draw(); } }, el('span', { text: '◎' }))));
+    if (streetsOpen) box.append(streetsPanel());
     b.append(box); attach(box, ctx); showCard();
     requestAnimationFrame(() => { clampView(); draw(); }); setTimeout(draw, 250);
   },

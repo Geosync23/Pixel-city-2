@@ -20,3 +20,4 @@
 - Airport interior + new opening (Stage 6 published, artifact version 1794674822-3cd0).
 - Owner: pace usage (don't stop workers, don't downgrade models); write extensive docs + self-check rules -> CLAUDE.md, LEAD_PLAYBOOK, STATUS, HISTORY, OWNER_NOTES created.
 - Running: public-places pass (generic enterable venues, walk-up counters, more groceries, street names + addresses on the phone map).
+- Public-places pass landed: 61 buildings converted (53 enterable, 8 walk-up), groceries near every starter home, street names + addresses on the phone map. Stage 7 published.

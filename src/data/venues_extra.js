@@ -82,7 +82,7 @@ const NEW = [
   dish('gen_sambusa', 'Lentil Sambusa', [E('ethiopian')], 4, { hunger: 16, fun: 3 }, 5, 'snack', 'golden triangle pastry', TA),
   dish('gen_kbbq_set', 'BBQ Grill Set', [E('kbbq')], 18, { hunger: 62, fun: 12, social: 6 }, 28, 'main', 'tabletop grill, sliced beef'),
   dish('gen_bibimbap', 'Bibimbap', [E('kbbq')], 11, { hunger: 48, fun: 6 }, 15, 'main', 'stone bowl, egg on top'),
-  dish('gen_soul_plate', 'Fried Chicken Plate', [E('soul')], 12, { hunger: 56, fun: 9, moodlet: 'comfort_food' }, 18, 'main', 'fried chicken, greens, cornbread'),
+  dish('gen_soul_plate', 'Fried Chicken Plate', [E('soul')], 12, { hunger: 56, fun: 9 }, 18, 'main', 'fried chicken, greens, cornbread'),
   dish('gen_mac_cheese', 'Baked Mac & Cheese', [E('soul')], 6, { hunger: 30, fun: 6 }, 9, 'snack', 'golden crusted macaroni', TA),
   dish('gen_sweet_tea', 'Sweet Tea', [E('soul')], 2.5, { fun: 5, energy: 3 }, 3, 'drink', 'mason jar, lemon wedge', TA),
   dish('gen_bagel_lox', 'Lox & Schmear Bagel', [E('bagels'), E('deli')], 8, { hunger: 34, fun: 6 }, 8, 'main', 'bagel, salmon, cream cheese', TA),
