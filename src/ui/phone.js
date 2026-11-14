@@ -74,7 +74,7 @@ function notify(o) {
   if (isOpen && current() && current().app === app && app !== 'messages') e.read = 1;
   S.log.unshift(e); if (S.log.length > 40) S.log.length = 40;
   G.emit('phone:notify', e); syncBadge();
-  if (e.pri !== 'low' && S.settings.banners !== false && !e.read && !G.onTitle) { queue.push(e); pump(); safe(() => G.audio.sfx('notify'), 0); }
+  if (e.pri !== 'low' && S.settings.banners !== false && !e.read && !G.onTitle) { if (isOpen && e.pri !== 'high') tip(`${e.title}: ${e.text}`); else { queue.push(e); pump(); } safe(() => G.audio.sfx('notify'), 0); }
   if (isOpen && !stack.length) refresh();
   return e;
 }
@@ -86,7 +86,7 @@ function pump() {
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
   showing = b; bannerBox.append(b); requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
-  if (!sticky) setTimeout(done, queue.length > 2 ? 2600 : 5200);
+  if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }
 
 /* ---------- views ---------- */
@@ -158,6 +158,7 @@ function open(appId, arg) {
     isOpen = true; G.modal++; depth = G.modal; layer.classList.add('open'); layer.setAttribute('aria-hidden', 'false'); stack = [];
     const p = G.player; if (p && !p.pose && !G.busy && !G.cutscene) { p.pose = PHONE.openAnim || 'phone'; posed = true; }
     body.style.fontSize = (S.settings.text || 15) + 'px';
+    queue.length = 0; if (showing && !showing.classList.contains('sticky')) showing.lastChild.click();
     G.emit('phone:open', appId || null);
   }
   if (appId) openApp(appId, arg); else { stack = []; render(true); }

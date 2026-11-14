@@ -17,12 +17,22 @@ import * as m14 from './story/story.js';
 import * as m15 from './story/texts.js';
 import * as m16 from './ui/creator.js';
 import * as m17 from './ui/hud.js';
-import * as m18 from './ui/phone_util.js';
-import * as m19 from './ui/shop.js';
-import * as m20 from './ui/title.js';
-import * as m21 from './world/city.js';
-import * as m22 from './world/minimap.js';
-const mods = [[m0, './scenes/interior.js'], [m1, './scenes/rooms/zz_dev_home.js'], [m2, './scenes/rooms/zz_testroom.js'], [m3, './sim/activities.js'], [m4, './sim/inventory.js'], [m5, './sim/messages.js'], [m6, './sim/money.js'], [m7, './sim/needs.js'], [m8, './sim/places.js'], [m9, './sim/planner.js'], [m10, './sim/weather.js'], [m11, './story/cast.js'], [m12, './story/dialogue.js'], [m13, './story/intro.js'], [m14, './story/story.js'], [m15, './story/texts.js'], [m16, './ui/creator.js'], [m17, './ui/hud.js'], [m18, './ui/phone_util.js'], [m19, './ui/shop.js'], [m20, './ui/title.js'], [m21, './world/city.js'], [m22, './world/minimap.js']];
+import * as m18 from './ui/phone.js';
+import * as m19 from './ui/phone_bank.js';
+import * as m20 from './ui/phone_delivery.js';
+import * as m21 from './ui/phone_jobs.js';
+import * as m22 from './ui/phone_map.js';
+import * as m23 from './ui/phone_messages.js';
+import * as m24 from './ui/phone_planner.js';
+import * as m25 from './ui/phone_settings.js';
+import * as m26 from './ui/phone_taxi.js';
+import * as m27 from './ui/phone_util.js';
+import * as m28 from './ui/phone_wellness.js';
+import * as m29 from './ui/shop.js';
+import * as m30 from './ui/title.js';
+import * as m31 from './world/city.js';
+import * as m32 from './world/minimap.js';
+const mods = [[m0, './scenes/interior.js'], [m1, './scenes/rooms/zz_dev_home.js'], [m2, './scenes/rooms/zz_testroom.js'], [m3, './sim/activities.js'], [m4, './sim/inventory.js'], [m5, './sim/messages.js'], [m6, './sim/money.js'], [m7, './sim/needs.js'], [m8, './sim/places.js'], [m9, './sim/planner.js'], [m10, './sim/weather.js'], [m11, './story/cast.js'], [m12, './story/dialogue.js'], [m13, './story/intro.js'], [m14, './story/story.js'], [m15, './story/texts.js'], [m16, './ui/creator.js'], [m17, './ui/hud.js'], [m18, './ui/phone.js'], [m19, './ui/phone_bank.js'], [m20, './ui/phone_delivery.js'], [m21, './ui/phone_jobs.js'], [m22, './ui/phone_map.js'], [m23, './ui/phone_messages.js'], [m24, './ui/phone_planner.js'], [m25, './ui/phone_settings.js'], [m26, './ui/phone_taxi.js'], [m27, './ui/phone_util.js'], [m28, './ui/phone_wellness.js'], [m29, './ui/shop.js'], [m30, './ui/title.js'], [m31, './world/city.js'], [m32, './world/minimap.js']];
 export async function initModules(G) {
   mods.sort((a, b) => (a[0].order ?? 100) - (b[0].order ?? 100));
   for (const [m, f] of mods) if (typeof m.init === 'function') { try { await m.init(G); } catch (e) { console.error('init failed: ' + f, e); throw e; } }

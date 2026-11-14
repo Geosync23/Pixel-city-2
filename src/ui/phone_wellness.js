@@ -1,0 +1,54 @@
+// Phone app: Wellness (Me: mood, needs, fitness, moodlets, a daily tip; Skills; Journal). Reads G.needs / G.skills defensively.
+import { G } from '../core/game.js';
+import { NEEDS, SKILLS, SKILL_MAX_LEVEL, FITNESS } from '../data/needs.js';
+import * as TEXTS from '../story/texts.js';
+import { el, iconEl, empty, tabs, btn, card, section, kv, bar, chip, dur, dayOf, allPlaces, isKnown, placeCat, openState, distTo, safe, cap } from './phone_util.js';
+import { moodletIcon } from './_icons.js';
+
+let tab = 'me';
+const N = () => G.needs;
+const BAND_COL = { full: 'var(--good)', ok: '#5fb84f', low: 'var(--gold)', critical: 'var(--bad)' };
+const TIPS = ['A shower before work is worth more than five more minutes in bed.', 'Cooking at home is cheaper than eating out, and trains your Cooking.', 'A walk in the park lifts Fun and Fitness at once.', 'Friends top up your Social need faster than anything else.', 'The light rail is a flat fare however far you go.', 'Sleep before midnight and mornings feel a lot kinder.', 'The library has free computers and quiet corners to study.'];
+function suggestion(k) {
+  const cat = { hunger: 'food', fun: 'fun' }[k]; if (!cat) return null; let best = null, bd = 1e9;
+  for (const p of allPlaces()) { if (!isKnown(p.id) || placeCat(p) !== cat || !openState(p).open) continue; const d = distTo(p); if (d < bd) { bd = d; best = p; } }
+  return best ? { p: best, text: `${k === 'hunger' ? 'Hungry?' : 'Bored?'} ${best.name} is open, about ${Math.max(1, Math.round(bd / 40))} min away.` } : null;
+}
+function meTab(b, ctx) {
+  const mood = safe(() => N().mood(), 50), tier = safe(() => N().moodTier(), { id: 'okay', label: 'Okay' });
+  b.append(el('div.ph-hero.pink', null, iconEl('mood.' + tier.id, 3), el('div', null, el('small', { text: 'Mood' }), el('b', { text: tier.label, style: { fontSize: '20px' } }), bar(mood, 100, '#e0608e', `Mood ${Math.round(mood)} of 100`))));
+  const c = card(); let low = null;
+  for (const d of safe(() => N().defs, NEEDS)) { const v = safe(() => N().get(d.id), 0), band = safe(() => N().band(d.id), { id: 'ok', label: '' }); if ((band.id === 'low' || band.id === 'critical') && (!low || v < low.v)) low = { k: d.id, v };
+    c.append(el('div.ph-need', null, iconEl('need.' + d.id, 2), el('div.l', null, el('span', { text: d.name }), el('small', { text: `${band.label} · ${Math.round(v)}` })), bar(v, 100, BAND_COL[band.id] || 'var(--good)', `${d.name} ${Math.round(v)} of 100`))); }
+  b.append(c);
+  const sg = low && suggestion(low.k); if (sg) b.append(card(el('p', { text: sg.text }), btn('Show on map', () => ctx.open('map', { place: sg.p.id }), '', 'ui.pin')));
+  const fit = safe(() => N().fitness(), null);
+  if (fit !== null) b.append(card(el('div.ph-need', null, iconEl('need.fitness', 2), el('div.l', null, el('span', { text: 'Fitness' }), el('small', { text: `${safe(() => N().fitnessLabel(), '')} · ${Math.round(fit)}` })), bar(fit, FITNESS.max, 'var(--accent)', `Fitness ${Math.round(fit)}`))));
+  const ml = safe(() => N().moodlets(), []);
+  b.append(section('Moodlets'));
+  if (!ml.length) b.append(el('p.ph-note', { text: 'Nothing special going on. A calm day.' }));
+  else b.append(el('div.ph-chips', null, ml.map(m => el('button.ph-chip' + (m.mood < 0 ? '.bad' : '.good'), { onclick: () => ctx.tip(`${m.name}: ${m.desc || ''}`) }, iconEl(moodletIcon(m.id, m.mood), 1), m.name, m.left ? el('small', { text: ' ' + dur(m.left) }) : null))));
+  b.append(section('Tip of the day'), card(el('p', { text: TIPS[dayOf(G.state.t) % TIPS.length] })));
+}
+function skillsTab(b) {
+  const S = G.skills; if (!S) return b.append(empty('ui.star', 'Skills are warming up', 'Practice makes progress. Check back soon.'));
+  for (const d of safe(() => S.defs, SKILLS)) { const lvl = safe(() => S.level(d.id), 1), nx = safe(() => S.next(d.id), null);
+    b.append(card(el('div.ph-need', null, iconEl('skill.' + d.id, 2), el('div.l', null, el('span', { text: d.name }), el('small', { text: lvl >= SKILL_MAX_LEVEL ? 'Max level' : `Level ${lvl}` })), bar(nx ? nx.into : 1, nx ? nx.need : 1, 'var(--blue)', `${d.name} level ${lvl}`)), el('small', { text: d.desc + (nx ? ` (${Math.round(nx.need - nx.into)} xp to level ${lvl + 1})` : '') }))); }
+}
+function journalTab(b) {
+  const known = allPlaces().filter(p => isKnown(p.id) && p.kind !== 'busstop' && p.kind !== 'taxistand').length, total = allPlaces().filter(p => p.kind !== 'busstop' && p.kind !== 'taxistand').length;
+  b.append(card(kv('Days in Maple Bay', String(dayOf(G.state.t) + 1)), kv('Places discovered', `${known} / ${total}`), kv('People you know', String(safe(() => G.social.known().length, 0) || '-')), kv('Books read', String(Object.keys(safe(() => G.state.inv.books, {})).length))));
+  const got = safe(() => G.journal.list(), null) || (TEXTS.ACHIEVEMENTS || []).filter(a => G.state.flags && (G.state.flags['ach_' + a.id] || G.state.flags[a.id]));
+  b.append(section('Firsts & achievements'));
+  if (!got.length) b.append(empty('ui.trophy', 'Your story starts here', 'Small firsts and proud moments get written down in this journal.'));
+  else for (const a of got) b.append(card(el('b', { text: a.name }), el('small', { text: a.desc || '' })));
+}
+export default {
+  id: 'wellness',
+  badge: () => { let n = 0; for (const d of NEEDS) if (safe(() => N().band(d.id).id, 'ok') === 'critical') n++; return n; },
+  render(b, ctx) {
+    if (!N()) return b.append(empty('ui.heart', 'Wellness is syncing', 'Your needs and mood will show up here in a moment.'), card(el('b', { text: 'Tip of the day' }), el('p', { text: TIPS[dayOf(G.state.t) % TIPS.length] })));
+    b.append(tabs([{ id: 'me', name: 'Me' }, { id: 'skills', name: 'Skills' }, { id: 'journal', name: 'Journal' }], tab, t => { tab = t; ctx.refresh(); }));
+    (tab === 'me' ? meTab : tab === 'skills' ? skillsTab : journalTab)(b, ctx);
+  },
+};
