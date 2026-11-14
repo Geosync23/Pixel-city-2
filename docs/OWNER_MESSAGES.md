@@ -268,3 +268,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 59 — Workers on Fable 5.2
 > Restart workers wirh Fable 5.2
+
+## 60 — Team size question
+> How large is the team going to be for the next steps

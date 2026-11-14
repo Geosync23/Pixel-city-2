@@ -37,3 +37,4 @@
 22. Asked how many workers were running and to stop once they report back (msg 44) — none running; clean stop for the account move.
 23. (msg 58) New account: new lead took over; publish a new artifact, then start 2g unique interiors + many more enterable buildings.
 24. (msg 59) Workers run on Fable 5.2 from now on (the running 2g-1 worker was restarted on it).
+25. (msg 60) Asked how large the team will be for the next steps — answered: one Fable worker at a time + the lead (standing pacing rule); offered to run 2 in parallel if he wants faster.
