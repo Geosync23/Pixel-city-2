@@ -314,3 +314,19 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 74 — Wait for the workers
 > Lets wait thanks
+
+## 75 — New Fable 5.2 lead session: take over, review the previous session, start the queue (first message of this session, 2026-11-14; delivered as the session's start-up task)
+> You are taking over as LEAD on "Maple Bay", an isometric pixel-art city life sim, from the previous lead session (which ran on Opus; the owner wants the lead on Fable 5.2). Everything you need is in this repository. Work on branch ccr-e622e92c-7t3ejy (push there).
+>
+> Before doing anything else, read in this order:
+> 1. CLAUDE.md — your standing orders
+> 2. docs/HANDOFF.md — the "Now" section is current (Wave A finished, Stage 15 published, no workers running)
+> 3. docs/LEAD_PLAYBOOK.md, docs/STATUS.md, docs/BACKLOG.md, the end of docs/HISTORY.md
+> 4. docs/OWNER_NOTES.md, the latest entries of docs/OWNER_MESSAGES.md (msgs 58-74 are from today) and docs/LEAD_JOURNAL.md
+>
+> Then:
+> - npm install, node tools/build.mjs, one tools/shot.mjs smoke test.
+> - The playable artifact is https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG — to republish from this session, read it first with the Artifact tool (action: read, url) and then publish dist/index.html with that url.
+> - FIRST TASK (owner's request): review everything the previous lead session did — `git log --oneline a1d2ffc..HEAD`, the previous lead's own code changes and each worker's output and report (HANDOFF lists them). Report findings to the owner plainly (what is solid, what is risky or wrong, what was never verified), fix anything clearly broken, then start the queue in HANDOFF: the nav-arrow fix first (owner msg 72), the Opus QA & data lane, then the signature showpieces.
+>
+> Keep the standing orders: up to 3 Fable workers + 1 Opus QA/data worker at once on disjoint files, log every owner message verbatim in docs/OWNER_MESSAGES.md, keep docs/HANDOFF.md current, commit and push after every step, and tell the owner plainly what you verified yourself versus what a worker reported.

@@ -1,25 +1,24 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 ~23:55 UTC) — WAVE A DONE; HANDING THE LEAD TO A NEW FABLE 5.2 SESSION
-- **Running workers: NONE.** Everything integrated, committed, pushed. Stage 15 published to https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (version 1794700378-bed4).
-- Branch `ccr-e622e92c-7t3ejy` (continues `claude/pixel-city-life-sim-21h2e3` from a1d2ffc). A new session may get a different branch: start it from this branch's head.
-- **Team rule (owner msgs 59-68):** up to 4 workers at once = 3 Fable 5.2 (`model: "fable"`) + 1 Opus QA & data lane (`model: "opus"`). ~10x usage: favour quality. Disjoint files per worker; the lead owns shared hooks.
-- **FIRST TASK for the new Fable lead (owner msg 70): REVIEW everything the previous (Opus-lead) session did**, then report findings to the owner:
-  `git log --oneline a1d2ffc..HEAD`; the lead's own code: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom/registerInfo), uniqueRoom call sites in src/sim/public_places.js,
-  src/sim/activities.js (vkey/PUB_ALIAS + fixture-id tags), src/data/activities.js (15 new venue activities with venues ['*']), src/data/validate.mjs ('*' skip); CLAUDE.md/playbook edits;
-  and each worker's output: docs/reports/unique_food.md, unique_shops.md, lobbies.md, bladder_bath.md, unique_homes.md, conservatory.md (read each report's "not verified" + "gaps").
-- **THEN, in order (fill slots up to 3 Fable + 1 Opus):**
-  1. NAV ARROW EVERYWHERE (owner msg 72, BIBLE update 15) — top priority, Fable.
-  2. Opus QA & data lane: QA sweep of all new rooms/lobbies/homes/conservatory (walk, use, screenshot, defect list); small open items; data chores.
-  3. Signature showpieces (BIBLE update 14): S2 new Museum -> S3 Observatory -> S4 Grand hotel -> S5 Arena -> S6 Aquarium -> S7 fish market + lighthouse -> S8 City Hall (replace the interim Town Hall lobby: drop `cityhall` from CLASS in src/sim/lobbies.js) -> S9 natatorium.
-  4. Wave B: 2i clothes/hair/laundry | 2j traits/skills/mini-games | university | post offices. Wave C: 2k city events | 3 jobs (writer + engine) | 4b relationships/romance. Wave D: 4c goods + MANY home-goods stores
-     (big-box home improvement, department stores, furniture showrooms...; map expansion OK, BIBLE update 13) | home design + shipping | 4 needs + Opportunities | 5 art. Wave E: 6 QA.
-- **Lead TODOs:** wire placeInfo() (unique_rooms.js) into src/sim/guide.js entries (blurb/signature/try-this for 53 places + 46 lobbies + conservatory); add conservatory activity ids to "Things To Try";
-  lobby wants read_noticeboard / lobby_coffee activities; closed offices keep the door glow at night (stalls.js); red-check table sets repeat (taqueria/soul kitchen); extra unique home listings need door pois in src/world/_blocks.js;
-  tour times not in the planner.
+## Now (updated 2026-11-15 ~00:45 UTC) — FABLE LEAD SESSION; 4 WORKERS RUNNING
+- Lead is now a Fable 5.2 session on the same branch `ccr-e622e92c-7t3ejy`. Last published build: Stage 15 (version 1794700378-bed4) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
+  (from this session: Artifact `action: read` on that url first, then publish dist/index.html with `url`).
+- **Review of the previous session: DONE** (docs/LEAD_JOURNAL.md section H). Nothing broken found; 124 rooms swept clean; unverified items handed to the QA lane.
+- **RUNNING (launched ~00:40 UTC; a completion notice arrives per worker; if this session restarted they are gone — check the owned files and re-brief "these files exist; continue"):**
+  1. NAV ARROW EVERYWHERE (Fable, owner msg 72 / BIBLE update 15). Owns: src/ui/phone_map.js, src/sim/navigator.js, new src/ui/navarrow.js, nav hooks in src/sim/rail.js, src/scenes/trainride.js, src/sim/transit.js, src/sim/traffic.js, src/ui/phone_taxi.js.
+  2. OPUS QA & DATA lane. Writes docs/reports/qa_wave_a.md. Owns: src/sim/guide.js, src/ui/phone_guide.js, src/data/activities.js, src/sim/stalls.js + small fixes in places_food*/places_shops*/lobbies* rooms, src/sim/lobbies.js, src/sim/bladder.js.
+     Chores: wire placeInfo into the guide; conservatory in Things To Try; read_noticeboard + lobby_coffee activities; closed-office door glow.
+  3. S3 OBSERVATORY (Fable). Owns new: src/sim/observatory.js, src/scenes/rooms/observatory*.js, src/data/observatory.js, src/art/showpiece/observatory*.js, _obs_lib.js. Converts bld.civic.observatory in place.
+  4. S2 MUSEUM (Fable). Owns new: src/sim/museum.js, src/scenes/rooms/museum*.js, src/data/museum.js, src/art/showpiece/museum*.js, _mus_lib.js + ADD-ONLY edit of src/world/_blocks.js (new building on a free lot).
+- **When each finishes (playbook loop):** docs/reports/<system>.md, build, 1-2 screenshots viewed by the lead, STATUS/BACKLOG/HISTORY, commit + push, publish a stage, rewrite this section, start the next queued item within ~10-15 min.
+- **Queue after these (3 Fable + 1 Opus):** S4 Grand hotel -> S5 Arena -> S6 Aquarium -> S7 fish market + lighthouse -> S8 City Hall (drop `cityhall` from CLASS in src/sim/lobbies.js) -> S9 natatorium.
+  Opus lane next: QA of nav arrow + observatory + museum; small open items below.
+  Then Wave B: 2i clothes/hair/laundry | 2j traits/skills/mini-games | university | post offices. Wave C: 2k city events | 3 jobs (writer + engine) | 4b relationships/romance. Wave D: 4c goods + MANY home-goods stores
+  (big-box home improvement, department stores, furniture showrooms...; map expansion OK, BIBLE update 13) | home design + shipping | 4 needs + Opportunities | 5 art. Wave E: 6 QA.
+- **Lead TODOs left:** red-check table sets repeat (taqueria/soul kitchen); extra unique home listings need door pois in src/world/_blocks.js (after the museum worker releases that file); conservatory tour times not in the planner.
 - **Small open items:** Circle app releases immediately; `app.*` icons; city-bench sit; two "Beacon" buildings; SkyDeck telescope discovery; weather isWet bug; show music never heard; fuel tanks near runway end;
-  bus headways/walk speed; calendar "Add to planner" duplicates; NPCs mention Living Tips; MapleCab fare on free first ride. Nobody has done a full hand playthrough from New Game yet.
+  bus headways/walk speed; calendar "Add to planner" duplicates; NPCs mention Living Tips; MapleCab fare on free first ride; a tip banner can cover the clock/needs bar in portrait. Nobody has done a full hand playthrough from New Game yet.
 
 ## Previous "Now" (old account, Stage 14 clean stop) — kept for reference
 - **Running worker: NONE. No timers pending. Nothing half-done on disk.** Everything is integrated, published (Stage 14, artifact version `1794695264-28f5`) and pushed.

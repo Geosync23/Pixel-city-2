@@ -6,7 +6,7 @@
 - **Workers**: sub-agents launched with the Agent tool (background). Each owns specific files/folders, verifies its own work, and returns a final report.
 
 ## The loop
-1. Pick the next items of `docs/BACKLOG.md` / the HANDOFF wave plan. Write briefs (template below). Up to FOUR Fable 5.2 workers in parallel on disjoint files. Tell the owner in one or two sentences.
+1. Pick the next items of `docs/BACKLOG.md` / the HANDOFF wave plan. Write briefs (template below). Up to 3 Fable 5.2 workers + 1 Opus QA & data worker in parallel on disjoint files. Tell the owner in one or two sentences.
 2. While it runs: answer the owner, record feedback in docs, do small fixes yourself that don't touch the worker's files (build + one screenshot max), commit.
 3. When the worker reports: write `docs/reports/<system>.md` (condensed API + gotchas), run `node tools/build.mjs`, take 1-2 screenshots of the new thing
    (`node tools/shot.mjs --dist --url "?scene=..." --w 1000 --h 640 --out name`, then Read the PNG), commit, publish the stage, update STATUS/BACKLOG/HISTORY.

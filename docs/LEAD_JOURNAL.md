@@ -89,3 +89,19 @@ that built it. No one has done a full New Game playthrough by hand, a mobile-lay
   (4) he reacts best to visible, lively, physical things (crowds, the airport, the train) and wants menus replaced by in-world interaction wherever sensible.
 - Final window: guide app (189k-token worker) and a trimmed fix pack (142k) both fit after the owner reported 26% used; I verified the guide cover and the new plane cabin by screenshot, the rest is worker-reported. Stopped cleanly with no workers running.
 - Final window total: six workers (performance resume, guide, fix pack 1, fix pack 2, icons, apps) plus many small lead fixes fit inside one 5-hour window by keeping briefs tight (150-200k tokens each). Stopped cleanly after Stage 14.
+
+## H. Review of the previous (Opus-lead) session, by the new Fable lead (2026-11-15; commits a1d2ffc..c5dd78c, ~5,200 lines, 50 files)
+What I ran myself:
+- Build, `src/data/validate.mjs`, city smoke screenshot: all pass.
+- A scripted sweep that enters every room added in Wave A (53 `pub:<n>`, 46 `lobby:<n>`, 24 home rooms incl. bathrooms, the conservatory = 124 rooms): 0 build failures, 0 console warnings (no missing assets),
+  every room has an exit, every interactable's use spot is path-reachable from the spawn (real A*, snap 1.5 units).
+- All 53 enterable public places resolve to a unique builder (none falls back to the generic template). 100 guide infos registered (53 + 46 + conservatory); every place and lobby has a Wander entry.
+- Activities in a converted room: the Taproom offers darts / pool / watch the match / bar hang-out / linger; `play_darts` started and raised fun (30 -> 39 in the test window).
+- Looked at: portrait city HUD (6 need bars fit at 390 px), conservatory entrance with the tour group, one office lobby, Juniper Court in portrait.
+The previous lead's own code (unique_rooms.js, uniqueRoom call sites, vkey/PUB_ALIAS, 15 '*' activities, validate '*' skip): read line by line; correct and small. Two things to know, neither a bug today:
+ (1) `uniqueRoom` swallows a builder exception with console.warn and silently falls back to the generic room — a future typo in a places_*.js builder would not fail loudly (the sweep above would show it as a warning);
+ (2) activities with venues ['*'] fire in ANY non-home interior that carries the fixture tag (train, airport, lobbies) — intended, but new fixture tags must be chosen with that in mind.
+Not wrong but unfinished (already listed as lead TODOs; now assigned to the Opus QA/data lane): guide entries still show the generic template blurb (placeInfo not wired into guide.js); lobby activities; closed-office door glow.
+NOT verified by anyone (worker reports say so; now in the QA lane's brief): real pointer drags in Decorate in the new homes/bathrooms; old-save migration of homes with real furniture; buying/eating/services actually
+played in the new rooms; night look of most rooms; NPC behaviour around the new seats/bathrooms; the conservatory chain end to end by hand; any audio. Still no full New Game playthrough by hand.
+Docs: CLAUDE.md / playbook edits are consistent; playbook step 1 still says "FOUR Fable workers" (rule is 3 Fable + 1 Opus) — corrected. `dist/index.html` is tracked in git (3 MB per build) — left as is.
