@@ -23,3 +23,4 @@
 8. Interests chosen at start split "fun"; every activity has a mechanic; animations + visible impact for progress bars (unpacking!); furniture/plant/clothes stores; hundreds of goods incl. functional ones
    (bicycle, skateboard, switchable lamps); online ordering with multi-day shipping; real home design mode (phone app); physical shopping with baskets + counter, buy menu still available; big sensible grocery aisles with other shoppers.
 9. Small fixes requested: scroll judder (done), stalls sell (done), unique street names + addresses (done), train on two tracks (done), scooters without riders (done).
+10. Performance venues: concert hall (orchestra comes out and plays), movie theater with a ~1-minute clip that actually plays, a theater show; full simulated flow (ticket, audience pours in, sit, show, leave).

@@ -115,3 +115,8 @@ credit and pay for attending.
   rack/display -> character holds it / basket -> pay at the counter) and the buy menu at the counter. GROCERY STORES are big with sensible aisles; each shelf
   SECTION is clickable and opens a small picker for that section's items (not every product rendered individually) -> basket -> checkout. Other shoppers active.
   Everything displayed must be buyable; layouts must make sense.
+
+## Direction update 7 — performance venues (showpieces)
+CONCERT HALL (orchestra walks on, tunes, plays a short piece; animated sections; synthesised music), MOVIE THEATER (a ~1-minute animated pixel short actually plays on the
+screen; several films in rotation), THEATER (a short stage show: curtain, sets, actors, lighting). All share one flow that is fully built, animated and simulated:
+buy a ticket -> the audience pours in and sits -> you sit with them -> the show happens -> applause -> everyone leaves. Simple, but real.
