@@ -289,3 +289,7 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 66 — "Signature interiors" means the big showpieces
 > By signature interiors I mean the special unique big ones like the concert hall etc
+
+## 67 — Split the team by model? Lead should be Fable
+> Would it help (not now let these workers finish) two divide the team? Complex engineering tools and leads are Fable 5.2 then other easier tasks are opus? Don't do it lets talk
+> You as the leader should be running Fable 5.2 it keeps switching tou back

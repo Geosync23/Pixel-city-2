@@ -450,7 +450,7 @@ const art = [
       qy(x - .06, x + .06, .97, .52, .6, '#f4f0e8'); }
     lit(() => { for (let x = .04; x < w - .9; x += 1.2) lw([x + .1, 1, .95], [x + .3, 1, .68], '#f4fbfc'); }); frameY(.02, w - .86, 1, .5, 1.1, '#8a9098'); lw([w - .86, 1, .5], [w - .86, 0, .5], '#8a9098');
     bx(0, 0, 1.1, w - .84, 1, .04, '#e8ecee'); box(w - .84, 0, .5, .84, 1, .5, c, { t: p.top || '#d2a26a' });
-    till(w - .6, .3, 1.0); box(.2, .3, 1.14, .3, .3, .06, '#d8dce0'); bx(.3, .28, 1.2, .1, .06, .2, '#8a9098'); qz(.18, .52, .28, .62, 1.3, '#e8ecee');
+    if (!p.notill) till(w - .6, .3, 1.0); box(.2, .3, 1.14, .3, .3, .06, '#d8dce0'); bx(.3, .28, 1.2, .1, .06, .2, '#8a9098'); qz(.18, .52, .28, .62, 1.3, '#e8ecee');
     if (!fish) { qz(1.0, 1.5, .3, .7, 1.15, '#b07444'); for (let i = 0; i < 3; i++) box(1.06 + i * .14, .4, 1.15, .08, .08, .06, deli ? '#e8a0a0' : '#f2d040', { ol: false }); post(1.3, .6, 1.15, 1.3, '#d63a3a'); }
   }, { staff: p => ({ x: (p.w || 3) - .45, y: -.5, dir: 1 }), use: p => ({ x: (p.w || 3) - .45, y: 1.5 }), variants: [{}, { kind: 'deli', stripe: '#c0392b' }, { kind: 'fish', c: '#3c64ad' }] }),
 
@@ -505,4 +505,7 @@ const art = [
     frameY(.03, w - .03, .47, .7, 1.06, BR); frameZ(.03, w - .03, .03, .47, 1.06, BR);
   }, { use: p => ({ x: (p.w || 1.5) / 2, y: 1 }), light: { x: .75, y: .6, z: 0, r: 1.2 } }),
 ];
+const cheeseCounter = art.find(a => a.id === 'furn.pshop.cheese.counter');
+// same glass case without a till: a deli / cheese service counter that is NOT the shop's checkout
+art.push(Object.assign({}, cheeseCounter, { id: 'furn.pshop.deli.case', tags: ['counter', 'tasting_board', 'shelf', 'browse'], draw: p => cheeseCounter.draw(Object.assign({ notill: true }, p)), variants: [{ kind: 'deli', stripe: '#a82a2a' }] }));
 export default art;
