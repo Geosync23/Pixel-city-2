@@ -157,14 +157,14 @@ function rebuildCand() {
   cfx = X.fx; cfy = X.fy; cand.length = 0; candR.length = 0; candTot = 0; const R = ((G.W / 2 + M_SPAWN) / 16 + (G.H / 2 + M_SPAWN) / 8) / 2 + 5, x0 = cfx - R, x1 = cfx + R, y0 = cfy - R, y1 = cfy + R;
   for (let i = 0; i < NET.length; i++) { const k = NET[i], a = Math.max(k.x0, x0), b = Math.min(k.x1, x1), c = Math.max(k.y0, y0), d = Math.min(k.y1, y1); if (a >= b || c >= d) continue; cand.push(i); candR.push(a, c, b, d, candTot += Math.max(b - a, d - c) * Math.min(3, Math.sqrt(Math.min(b - a, d - c)))); }
 }
-function carrierZone(x, y) { for (let i = 0; i < CZ.length; i += 2) if (Math.abs(CZ[i] - x) + Math.abs(CZ[i + 1] - y) < 34) return true; return false; }
+function carrierZone(x, y) { for (let i = 0; i < CZ.length; i += 2) if (Math.abs(CZ[i] - x) + Math.abs(CZ[i + 1] - y) < 24) return true; return false; }
 function mkWalker(c, wk, x, y) {
   const d = wk.district || world.districtAt(x, y) || 'downtown', h = X.hour, soft = wk.kind === 'path' || wk.kind === 'promenade' || wk.kind === 'boardwalk', rush = X.wd < 5 && ((h >= 7 && h < 9.5) || (h >= 16.5 && h < 18.5)), r = rnd();
   let kind = 'stroll', outfit, sp = rr(1.35, 2);
   if (soft && h > 5.5 && h < 21 && r < (X.wet ? .05 : .2)) { kind = 'jogger'; outfit = 'gymwear'; sp = rr(3.3, 4.1); }
   else if ((d === 'downtown' || d === 'arts' || d === 'railyard' || d === 'airport') && h > 6 && h < 20 && r < (rush ? .55 : .22)) { kind = 'commuter'; outfit = rnd() < .6 ? 'office' : undefined; sp = rr(2.4, 3); }
   else if ((d === 'harbor' || d === 'railyard') && !soft && h > 5 && h < 19 && r < .32) { kind = 'worker'; outfit = 'dockworker'; sp = rr(1.7, 2.2); }
-  else { const q = rnd(); if (q < .025) { kind = 'police'; outfit = 'police'; sp = 1.25; } else if (q < .06 && h > 7 && h < 20) { kind = 'courier'; outfit = 'courier'; sp = 2.8; } else if (q < .06 + (X.night ? .22 : .07) + (d === 'maplewood' || d === 'hillcrest' || d === 'park' ? .05 : 0)) { kind = 'dogwalker'; sp = rr(1.4, 1.8); } else if (q < .32) kind = 'phone'; else if (q < .5) kind = 'pair'; else if (q < .82 && carrierZone(x, y)) { kind = 'carrier'; sp = rr(1.4, 1.8); } }
+  else { const q = rnd(); if (q < .025) { kind = 'police'; outfit = 'police'; sp = 1.25; } else if (q < .06 && h > 7 && h < 20) { kind = 'courier'; outfit = 'courier'; sp = 2.8; } else if (q < .06 + (X.night ? .12 : .035) + (d === 'maplewood' || d === 'hillcrest' || d === 'park' ? .035 : 0)) { kind = 'dogwalker'; sp = rr(1.4, 1.8); } else if (q < .3) kind = 'phone'; else if (q < .41) kind = 'pair'; else if (q < .62 && carrierZone(x, y)) { kind = 'carrier'; sp = rr(1.4, 1.8); } }
   put(c, x, y); dress(c, d, outfit); c.kind = kind; c.ww = wk.i; const age = c.spec.age; c.spd = sp * (age === 'elder' ? .72 : age === 'kid' ? .9 : 1); c.run = kind === 'jogger'; c.carry = kind === 'carrier'; c.side = rnd() < .5 ? 1 : -1;
   c.mood = kind === 'commuter' || kind === 'courier' ? 'busy' : pick(['ok', 'ok', 'happy', 'happy', 'tired']);
   if (kind === 'dogwalker') c.pet = leash(c);
@@ -185,7 +185,7 @@ const evActive = e => { const t = G.now(), h = t.hf; return (eventOnDay(e, t.day
 function mkAnchors() {
   const add = (t, x, y, p, o) => ANCH.push(Object.assign({ t, x, y, p, slots: null, occ: [], seed: frac(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453 + 1), qT: 3, q: false, hold: 0, room: '', ev: null, d: world.districtAt(x, y) || 'downtown' }, o));
   for (const p of world.pois) {
-    if (p.type === 'bench') add('bench', p.x, p.y, p); else if (p.type === 'busstop') add('bus', p.x, p.y, p); else if (p.type === 'stall') { add('stall', p.x, p.y, p); CZ.push(p.x, p.y); }
+    if (p.type === 'bench') add('bench', p.x, p.y, p); else if (p.type === 'busstop') add('bus', p.x, p.y, p); else if (p.type === 'stall') { add('stall', p.x, p.y, p); if (p.venue === 'market_stalls') CZ.push(p.x, p.y); }
     else if (p.type === 'landmark') add('landmark', p.x, p.y, p); else if (p.type === 'spot' && p.kind !== 'cats') add(p.kind, p.x, p.y, p);
     else if (p.type === 'door' && p.id) { const room = p.room || p.id.slice(5); add(/^home/.test(room) ? 'home' : 'door', p.x, p.y, p, { room }); if (/grocery|cornerstore|bakery/.test(room)) CZ.push(p.x, p.y); }
   }
@@ -249,7 +249,7 @@ function settle(c, a, i) {
   const s = a.slots[i]; c.x = s.x; c.y = s.y; c.zoff = s.z; c.z = world.heightAt(s.x, s.y) + s.z; c.dir = s.dir; c.seated = s.seated; const p = pick(s.anims); c.pose = p === 'stand' ? null : p;
   c.st = s.wander ? WANDER : STATIC; c.sl = s; c.kind = s.kind; c.moving = false; c.wait = 0; c.tx = s.x; c.ty = s.y; c.run = !!s.wander; c.carry = false; c.path = null; c.link = null; if (s.wander) c.spd = rr(2.6, 3.4);
 }
-function seat(a, i) { if (nAct >= CAP - 8) return; const c = alloc(); if (!c) return; const s = a.slots[i]; put(c, s.x, s.y); dress(c, a.d, undefined, s.age || (a.t === 'bus' || a.t === 'door' || a.t === 'chess' || a.t === 'fishing' ? 'adult' : undefined)); c.anchor = a; c.slot = i; a.occ[i] = c; c.mood = pick(['ok', 'happy', 'happy']); settle(c, a, i); }
+function seat(a, i) { const c = alloc(); if (!c) return; const s = a.slots[i]; put(c, s.x, s.y); dress(c, a.d, undefined, s.age || (a.t === 'bus' || a.t === 'door' || a.t === 'chess' || a.t === 'fishing' ? 'adult' : undefined)); c.anchor = a; c.slot = i; a.occ[i] = c; c.mood = pick(['ok', 'happy', 'happy']); settle(c, a, i); }
 function recruit(a, i) {
   const s = a.slots[i]; let b = null, bd = 81;
   for (let k = 0; k < pool.length; k++) { const c = pool[k]; if (!c.active || c.st !== WALK || c.mate || c.lead || c.pet || c.anchor || c.keep || (c.kind !== 'stroll' && c.kind !== 'phone') || (s.age ? c.spec.age !== s.age : c.spec.age === 'kid')) continue; const dx = c.x - s.x, dy = c.y - s.y, d = dx * dx + dy * dy; if (d < bd) { bd = d; b = c; } }
@@ -265,7 +265,7 @@ function tickAnchors() {
     if (!a.slots) a.slots = mkSlots(a);
     const S = a.slots, O = a.occ, w = Math.min(S.length, want(a)); let n = 0, last = -1, ff = -1;
     for (let i = 0; i < S.length; i++) { const c = O[i]; if (c && (!c.active || c.anchor !== a)) O[i] = null; if (O[i]) { n++; last = i; } else if (ff < 0) ff = i; }
-    if (n < w && ff >= 0) { const s = S[ff]; if (prefill || !onScreen(s.x, s.y, 6)) seat(a, ff); else if (rec > 0 && !s.wander && recruit(a, ff)) rec--; }
+    if (n < w && ff >= 0) { const s = S[ff]; if (prefill) { for (let i = ff; i < S.length && n < w; i++) if (!O[i]) { seat(a, i); n++; } } else if (!onScreen(s.x, s.y, 6)) seat(a, ff); else if (rec > 0 && !s.wander && recruit(a, ff)) rec--; }
     else if (n > w && last >= 0 && rnd() < .3) { const c = O[last]; if (c.st === STATIC || c.st === WANDER) unseat(c); }
     else if (a.q && n > 0 && (a.qT -= .5) <= 0) { a.qT = rr(5, 11); advance(a); }
     else if (!a.q && n > 0 && rnd() < .006) { const c = O[last]; if (c.st === STATIC && onScreen(c.x, c.y, 0)) unseat(c); }
@@ -316,7 +316,8 @@ function setup(scene) {
 function manage() {
   for (let i = 0; i < pool.length; i++) { const c = pool[i]; if (c.active && !c.keep && !onScreen(c.x, c.y, M_GONE)) freeCit(c); }
   if (prefill || (anchT -= 1) <= 0) { anchT = 2; tickAnchors(); }
-  let deficit = target - nAct, tries = prefill ? 500 : 4; while (deficit > 0 && tries-- > 0) if (spawnWalker()) deficit = target - nAct;
+  const wcap = Math.min(target, CAP - 10); if (prefill) for (let i = 0; i < pool.length && nAct > target; i++) { const c = pool[i]; if (c.active && !c.keep && !c.anchor) freeCit(c); }
+  let deficit = wcap - nAct, tries = prefill ? 500 : 4; while (deficit > 0 && tries-- > 0) if (spawnWalker()) deficit = wcap - nAct;
   if (!prefill) { doorLife(deficit); if (deficit < -4) for (let i = 0; i < pool.length; i++) { const c = pool[i]; if (c.active && !c.keep && !c.anchor && !c.lead && !onScreen(c.x, c.y, 12)) { freeCit(c); break; } } }
   prefill = false;
 }

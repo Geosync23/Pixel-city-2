@@ -14,6 +14,7 @@ const EAT = ['cafe', 'bakery', 'diner', 'ramen', 'pizza', 'restaurant'];
 const SEAT_ANIMS = { eat: ['eat', 'drink', 'talk', 'eat', 'sit', 'phone'], bar: ['drink', 'talk', 'drink', 'sit'], library: ['read', 'read', 'read', 'sit'], bookstore: ['read', 'sit'], office: ['type'], cinema: ['sit', 'sit', 'eat'], clinic: ['sit', 'read', 'phone'], other: ['sit', 'phone', 'read'] };
 const LINEKEY = { cafe: 'cafe', bakery: 'cafe', diner: 'eating', ramen: 'eating', pizza: 'eating', restaurant: 'eating', gym: 'workout', grocery: 'shopping', cornerstore: 'shopping', clothing: 'shopping', homegoods: 'shopping', bookstore: 'shopping', library: 'library', bar: 'bar', cinema: 'cinema' };
 const BROWSE = /shelf|rack|produce|display|case|magazine|catalog|freezer|cooler|bin|table_display|mannequin/, COUNTER = /^(checkout|till|reception|host|host_stand|front_desk|bar_counter|ticket|teller|pickup_counter)$/;
+const AMAP = { run: 'treadmill', cycle: 'treadmill', punch: 'lift', squat: 'lift', press: 'lift', yoga: 'stand', sing: 'talk', serve: 'work', browse: 'stand', watch: 'sit' };
 const key = s => (s.x * 4 | 0) + ',' + (s.y * 4 | 0);
 const baseVenue = id => VENUE_BY_ID[id] ? id : VENUE_BY_ID[id.split(/[_:.]/)[0]] ? id.split(/[_:.]/)[0] : '';
 
@@ -38,7 +39,7 @@ function buildSpots(sc) {
   if (Array.isArray(def.npcSpots) && def.npcSpots.length) {
     for (const s of def.npcSpots) {
       const p = sc.toWorld(s.x, s.y), k = s.kind || (s.anim === 'work' ? 'staff' : 'customer'), seat = seatFor(p.x, p.y), sitting = s.seated !== undefined ? s.seated : (seat ? !seat.stand : s.z > .2) && /sit|eat|drink|read|type|talk|phone/.test(s.anim || 'sit');
-      add({ kind: k === 'staff' || k === 'worker' ? 'staff' : k === 'dance' || k === 'dancer' ? 'dance' : k === 'queue' ? 'queue' : sitting ? 'seat' : 'stand', x: seat && sitting ? seat.x : p.x, y: seat && sitting ? seat.y : p.y, z: seat && sitting ? seat.z : (s.z || 0), dir: s.dir !== undefined ? s.dir : seat && seat.dir !== undefined ? seat.dir : 1, anims: s.anim ? [s.anim] : sitting ? seatAnims : ['stand', 'phone'], seated: sitting, fx: seat ? seat._fx : null, night: s.night, outfit: s.outfit });
+      add({ kind: k === 'staff' || k === 'worker' ? 'staff' : k === 'dance' || k === 'dancer' ? 'dance' : k === 'queue' ? 'queue' : sitting ? 'seat' : 'stand', x: seat && sitting ? seat.x : p.x, y: seat && sitting ? seat.y : p.y, z: seat && sitting ? seat.z : (s.z || 0), dir: s.dir !== undefined ? s.dir : seat && seat.dir !== undefined ? seat.dir : 1, anims: s.anim && !(s.anim === 'sit' && sitting && k !== 'staff') ? [AMAP[s.anim] || s.anim] : sitting ? seatAnims : ['stand', 'phone'], seated: sitting, fx: seat ? seat._fx : null, night: s.night, outfit: s.outfit });
     }
     return out;
   }
