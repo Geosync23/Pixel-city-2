@@ -162,3 +162,5 @@ Lantern Row Night Festival, Harbor Day (boat parade + pier fireworks), Summer St
   5-6 in spring + summer, the same rhythm continuing through autumn and winter (so the year has ~10-11, with seasonal ones in their seasons).
 - FINAL cadence (owner msg 41, supersedes the line above): the 5-6 big events are SPREAD ACROSS THE WHOLE YEAR (56 days) — about one every 9-10 days, at least one per season
   (e.g. Spring Blossom Parade; Lantern Row Night Festival; Harbor Day + Summer Street Fair; Autumn Harvest Festival; Winter Lights Parade).
+- HARD RULE (owner msg 42): big events are DYNAMIC and happen IN THE WORLD — never cutscenes, never separate locked-away scenes. Parades move along real streets (traffic rerouted), crowds line real
+  sidewalks, stalls stand in real plazas; the player walks through freely and can join, watch or ignore.

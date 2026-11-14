@@ -191,3 +191,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 41 — Events: spread across the year
 > Actually spread them across the year
+
+## 42 — Events are dynamic, in-world
+> Also they need to.be dynamic not cut scenes or locked away static scenes. They happen in world

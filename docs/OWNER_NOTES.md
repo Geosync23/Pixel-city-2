@@ -33,3 +33,4 @@
 17. Big playtest (msg 36): loves the airport interior. Long list of fixes + new systems -> BIBLE update 11 / backlog 2f-2j. Key preferences: Talk only via button; relationships slower with daily cap; every interior unique; far more enterable buildings (lobbies); absurd amounts of clothes/hair; realistic chores (laundry, bladder); app store; navigator by need; university.
 18. Guide app is top priority: comprehensive, fun, visual like a guide book; needs a better name than 'things to do' (working name: Wander).
 19. Guide entries need active links (waypoint; add scheduled events to planner). Add 5-6 big staged events (street festivals, parades) across the first 6 months — design now, build later.
+20. Big events: spread across the whole year (5-6); must be dynamic and in-world, not cutscenes or separate scenes.\n
