@@ -16,7 +16,7 @@ import { anySpec } from './rooms/_airport_life.js';
 
 export const order = 67;
 const OX = 4, OY = 4, LEN = 9, DEP = 4, DOOR = 3.5, DW = 1.6, T0 = 1.1, RIDE = 10, RAMP = 2.2, VMAX = 24, TOTAL = VMAX * (RIDE - RAMP), A1 = TOTAL * .2, A2 = TOTAL * .8, PAX = 5;
-const DEST = { terminal: { room: 'int:airport:terminal', x: 36.5, y: 2.9, name: 'Main Terminal and Baggage Claim', short: 'TERMINAL' }, concourse: { room: 'int:airport:concourse', x: 61.5, y: 3.2, name: 'Gates B1 to B6', short: 'GATES B' } };
+const DEST = { terminal: { room: 'int:airport:terminal', x: 36.5, y: 2.9, name: 'Main Terminal and Baggage Claim', short: 'MAIN' }, concourse: { room: 'int:airport:concourse', x: 61.5, y: 3.2, name: 'Gates B1 to B6', short: 'GATES' } };
 
 function makeScene() {
   const W = new World(LEN + 8, DEP + 8, { name: 'airtram', bg: '#14151d' }); W.skirt = 0; W.zmax = 3; W.bakeTerrainNav(); W.block(0, 0, W.w, W.h); W.free(OX + .5, OY + .5, OX + LEN, OY + DEP);
@@ -44,13 +44,15 @@ function makeScene() {
   };
   sc.env = t => { const o = ambient(t, G.state.weather); return { amb: mix('#ffffff', '#d6e0f0', o.dark * .5), dark: .15 + o.dark * .5, bg: '#14151d', night: o.night }; };
   sc.spawn = () => ({ x: OX + DOOR + DW / 2, y: OY + 1.4, dir: 1 });
+  let z0 = 0;
   sc.onEnter = opts => {
+    z0 = G.zoom; G.setZoom(G.zoom - 1);
     st.to = (opts && opts.to) || G.state.flags.airtramTo || 'terminal'; if (!DEST[st.to]) st.to = 'terminal'; G.state.flags.airtramTo = st.to;
     Object.assign(st, { t: 0, s: 0, v: 0, door: 1, done: false, said: 0 }); wall.p = Object.assign({}, wall.p, { text: DEST[st.to].short }); wall._key = null; fill();
     camT.x = G.player.x; camT.y = G.player.y; camT.z = 0; G.camTarget = camT; G.snapCam && G.snapCam(); G.emit('ride:start', 'airtram', st.to);
     caption('Tram', 'Doors closing. Next stop: ' + DEST[st.to].name + '.', 3400);
   };
-  sc.onExit = () => { st.done = true; if (G.camTarget === camT) G.camTarget = null; };
+  sc.onExit = () => { st.done = true; if (z0) G.setZoom(z0); z0 = 0; if (G.camTarget === camT) G.camTarget = null; };
 
   /* ---- backdrop: tunnel / airfield sliding by (drawn under the car) ---- */
   const plane = asset('veh.airport.airliner'), shadow = (() => { try { return asset('veh.airport.airliner.shadow'); } catch (e) { return null; } })();
@@ -65,15 +67,15 @@ function makeScene() {
       ctx.save(); ctx.beginPath(); [[xa, -60], [xb, -60], [xb, 70], [xa, 70]].forEach((q, i) => { const s = P(q[0], q[1], 0); if (i) ctx.lineTo(s[0], s[1]); else ctx.moveTo(s[0], s[1]); }); ctx.closePath(); ctx.clip();
       ctx.fillStyle = col('#6fae5a'); ctx.fillRect(0, 0, G.W, G.H);
       for (let k = Math.floor((c - 50) / 7); k < (c + 60) / 7; k++) { const x = X(k * 7), y = ((k * 37) % 23) - 40 + (k % 2) * 62; band(x, x + 1.6, y, y + .8, col('#62a04f')); }
-      band(lo, hi, OY - 16, OY - 8, col('#4a4f5a')); band(lo, hi, OY - 15.7, OY - 15.5, col('#e8e2d0')); band(lo, hi, OY - 8.5, OY - 8.3, col('#e8e2d0'));
-      for (let k = Math.floor((c - 50) / 5); k < (c + 60) / 5; k++) { const x = X(k * 5); band(x, x + 2.4, OY - 12.15, OY - 11.85, col('#e8e2d0')); ctx.fillStyle = '#9fc4ff'; const s = P(x, OY - 7.7, .1), s2 = P(x, OY - 16.3, .1); ctx.fillRect(s[0], s[1] - 1, 2, 2); ctx.fillRect(s2[0], s2[1] - 1, 2, 2); }
+      band(lo, hi, OY - 14, OY - 6, col('#4a4f5a')); band(lo, hi, OY - 13.7, OY - 13.5, col('#e8e2d0')); band(lo, hi, OY - 6.5, OY - 6.3, col('#e8e2d0'));
+      for (let k = Math.floor((c - 50) / 5); k < (c + 60) / 5; k++) { const x = X(k * 5); band(x, x + 2.4, OY - 10.15, OY - 9.85, col('#e8e2d0')); ctx.fillStyle = '#9fc4ff'; const s = P(x, OY - 5.7, .1), s2 = P(x, OY - 14.3, .1); ctx.fillRect(s[0], s[1] - 1, 2, 2); ctx.fillRect(s2[0], s2[1] - 1, 2, 2); }
       band(lo, hi, OY + DEP + 4, OY + DEP + 7.5, col('#5a5f6a')); band(lo, hi, OY + DEP + 5.65, OY + DEP + 5.85, col('#f2c230'));
       band(lo, hi, OY - 1.2, OY + DEP + 1.2, col('#8d949c')); for (let k = Math.floor((c - 50) / 2); k < (c + 60) / 2; k++) { const x = X(k * 2); band(x, x + .35, OY - 1.2, OY + DEP + 1.2, col('#7a818a')); }
       band(lo, hi, OY - 1.4, OY - 1.2, col('#c9d0d6')); band(lo, hi, OY + DEP + 1.2, OY + DEP + 1.4, col('#c9d0d6'));
-      const tau = st.t - T0, vp = Math.max(0, 11 * (tau - 1.2)), xp = A1 + 12 + .5 * 11 * Math.max(0, tau - 1.2) ** 2, zp = vp > 44 ? (vp - 44) * (vp - 44) * .02 : 0, px = X(xp);
+      const tau = st.t - T0, rel = dir > 0 ? -30 + 2.3 * Math.max(0, tau - 2.6) ** 2 : -34 + 15 * Math.max(0, tau - 2.4), zp = dir > 0 ? Math.max(0, tau - 6.2) ** 2 * 1.7 : Math.max(0, tau - 5) ** 2 * 2, px = OX + rel;
       if (px > lo - 30 && px < hi + 10) try {
-        if (shadow) { const sh = assetSprite(shadow, { dir: 1 }), q = P(px, OY - 20.5, 0); ctx.globalAlpha = Math.max(.25, 1 - zp * .06); ctx.drawImage(sh.c, q[0] + sh.x, q[1] + sh.y); ctx.globalAlpha = 1; }
-        const sp = assetSprite(plane, { dir: 1, gear: zp < 4 }), q = P(px, OY - 20.5, zp + Math.min(1, zp * .3)); ctx.drawImage(sp.c, q[0] + sp.x, q[1] + sp.y);
+        if (shadow) { const sh = assetSprite(shadow, { dir: 1 }), q = P(px, OY - 18.5, 0); ctx.globalAlpha = Math.max(.25, 1 - zp * .06); ctx.drawImage(sh.c, q[0] + sh.x, q[1] + sh.y); ctx.globalAlpha = 1; }
+        const sp = assetSprite(plane, { dir: 1, gear: zp < 4 }), q = P(px, OY - 18.5, zp); ctx.drawImage(sp.c, q[0] + sp.x, q[1] + sp.y);
       } catch (e) { }
       ctx.restore();
     }

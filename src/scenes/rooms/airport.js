@@ -63,7 +63,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
   const items = [WY('airport.cabin.wall', 0, { n: 19 }), WY('airport.cabin.door', 19), WY('airport.cabin.bulkhead', 20.5, { w: 1.5 }), WX('airport.cabin.bulkhead', 0, { w: 5 }),
     A('cabin.aisle', 0, 2, { len: 22 }), A('cabin.bins', 0, 0, { len: 19, open: 1, seed: 4 }, { z: 1.72, solid: false }), A('cabin.galley', 20.5, .5), A('cabin.galley', 20.5, 3.5)];
   for (let i = 0; i < 17; i++) { items.push(A('cabin.seats', 1.5 + i, .5, { c: i < 3 ? '#2f7f86' : NAVY }), A('cabin.seats', 1.5 + i, 3, { c: i < 3 ? '#2f7f86' : NAVY })); }
-  mkRoom({ id: 'airport:plane', name: 'Maple Air MB 417', venue: 'airport', w: 22, d: 5, zoom: 1, music: 'quiet', noCrowd: true, floor: GT.f_carpet, wall: { color: '#e6eaee', trim: '#8e9aaa', h: 2.2 }, bg: '#10131c',
+  mkRoom({ id: 'airport:plane', name: 'Maple Air MB 417', venue: 'airport', w: 22, d: 5, zoom: 0, music: 'quiet', noCrowd: true, floor: GT.f_carpet, wall: { color: '#e6eaee', trim: '#8e9aaa', h: 2.2 }, bg: '#10131c',
     items, npc: [Object.assign(S(19.2, 2.2, 2, 'stand', 'staff'), { outfit: 'pilot', key: 'attendant', label: 'Flight attendant' })],
     exits: [{ x: 19.75, y: .9, label: 'Leave the plane', use: G => G.go('int:airport:concourse', { x: 6.5 + O, y: 2.3 + O, dir: 1 }) }], spawn: { x: 18.6, y: 2.5, dir: 2 },
     setup(sc, G) {
@@ -120,7 +120,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
       for (const q of GATES) sc.add('desk' + q.g, 'Gate ' + q.g, () => toast(q.arr ? 'Gate B1 - MB 417 from Seattle has arrived. That was you!' : 'Gate ' + q.g + ' to ' + q.dest + '. "Boarding passes only, please."'));
       // flight boards
       const fids = W.objs.filter(o => o.data && o.data.fids); let ft = 0, fo = 0;
-      const boards = () => { const b = gate.flight(), ph = gate.st.phase, rows = []; for (let i = 0; i < 4; i++) { const f = FL[(fo + i) % FL.length], isB = f[2] === 'B6', dest = isB ? b.dest : f[1], stt = isB ? (ph === 'board' || ph === 'hold' ? 'BOARD' : ph === 'gap' ? 'CLOSED' : 'GO GATE') : f[3]; rows.push([f[0] + ' ' + dest.padEnd(9).slice(0, 9) + f[2] + ' ' + stt, isB ? (ph === 'gap' ? '#ff8a70' : '#7df0a0') : f[4]]); } for (const o of fids) sc.setP(o, { rows, title: 'DEPARTURES  ' + G.now().clock }); };
+      const boards = () => { const b = gate.flight(), ph = gate.st.phase, rows = []; for (let i = 0; i < 3; i++) { const f = FL[(fo + i) % FL.length], isB = f[2] === 'B6', dest = isB ? b.dest : f[1], stt = isB ? (ph === 'board' || ph === 'hold' ? 'BOARD' : ph === 'gap' ? 'CLOSED' : 'GO GATE') : f[3]; rows.push([f[0] + ' ' + dest.padEnd(9).slice(0, 9) + f[2] + ' ' + stt, isB ? (ph === 'gap' ? '#ff8a70' : '#7df0a0') : f[4]]); } for (const o of fids) sc.setP(o, { rows, title: 'DEPARTURES  ' + G.now().clock }); };
       // boarding gate B6
       const g6 = GATES[5], sign = sc.fx('signB6'), door = sc.fx('doorB6');
       const gate = sc.gate = gateCycle(sc, { door: { x: g6.x + 6.5 + O, y: .5 + O }, head: { x: g6.x + 6.5 + O, y: 1.5 + O }, step: [0, .6], from: { x: g6.x + 6.6 + O, y: 5.4 + O }, n: 7, flights: BOARD,
@@ -162,7 +162,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
   // atrium
   items.push(A('decal', 4.5, 3.5, { kind: 'carpet', w: 10, d: 10, c: '#2f6f8a' }), V('station.shaft', 2.5, 2, null, { shaft: true }), V('station.shaft', 11, 1, null, { shaft: true }), A('fountain', 8.5, 7.5, null, { k: 'fountain', n: 'seats' }),
     A('tree', 2.4, 3, { kind: 'ficus', bench: 1 }, { n: 'seats' }), A('tree', 14.6, 2.6, { kind: 'palm', bench: 1 }, { n: 'seats' }), A('tree', 1.6, 9.6, { kind: 'maple' }), A('tree', 14.8, 13, { kind: 'ficus' }), A('planter', 5.5, 1, { len: 3, flowers: 1 }), A('planter', 10.5, 1, { len: 3 }),
-    A('shop.counter', 7.6, 13.6, { kind: 'info', w: 3 }, { k: 'info', n: 'staff', tags: ['info_desk'] }), A('beacon', 11, 13.6), A('fids', 11.6, 15.2, { w: 5, title: 'ARRIVALS', rows: [['1358 SEATTLE   BELT 2', '#7df0a0'], ['1405 DENVER    BELT 1'], ['1412 HONOLULU  BELT 3'], ['1431 CHICAGO   ON TIME']] }, { k: 'fids' }),
+    A('shop.counter', 7.6, 13.6, { kind: 'info', w: 3 }, { k: 'info', n: 'staff', tags: ['info_desk'] }), A('beacon', 11, 13.6), A('fids', 11.6, 15.2, { w: 5, title: 'ARRIVALS', rows: [['1358 SEATTLE   BELT 2', '#7df0a0'], ['1405 DENVER    BELT 1'], ['1412 HONOLULU  BELT 3']] }, { k: 'fids' }),
     A('mobile', 3.5, 16, { w: 6, d: 4, seed: 5 }, { z: 3.1, solid: false }), A('sign', 3, 12.6, { text: '< EXIT - TAXI - RAIL', w: 5.5, c: '#3fa45b' }, { z: 2.6, solid: false }), A('column', 18.6, 5), A('column', 18.6, 15.2));
   // south hall
   items.push(A('shop.back', 2.5, 18.4, { kind: 'coffee', w: 4 }), A('shop.counter', 3, 19.7, { kind: 'coffee', w: 3 }, { k: 'cafe', n: 'staff use', outfit: 'cook' }), V('cafe.tableset', 8, 19.2, null, { n: 'seats' }), V('cafe.tableset', 8, 21.4, { c: '#f1ede4', cc: '#c0563a' }, { n: 'seats' }), V('cafe.tableset', 11, 20.3, null, { n: 'seats' }),
@@ -175,7 +175,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
   for (const [x, y] of [[22.5, 9.5], [31.5, 9.5]]) npc.push(cl(x + 1, y + 3.5, 3), cl(x + 2.1, y + 3.6, 3, 'phone'), cl(x + 4.9, y + 3.5, 3), cl(x + 6, y + 3.6, 3), cl(x + 1.5, y - .5, 1), cl(x + 3.2, y - .55, 1, 'phone'), cl(x + 5.4, y - .5, 1));
   npc.push(cl(24, 7.5, 3), cl(26.2, 7.6, 3, 'phone'), cl(28.4, 7.5, 3), cl(21.8, 5.5, 0), cl(30, 11, 2));
   [[8.9], [9.8, 'kid'], [10.7], [11.6], [12.4]].forEach(([y, age], i) => npc.push(Object.assign(S(16.3, y, 0, i === 1 ? 'wave' : 'stand'), { role: 'greeter', p: 1, age, key: 'greet' + i })));
-  items.push(A('namesign', 16.7, 8.65, { text: 'PEMBERTON', c: '#e8f0ff' }, { flip: true }), A('namesign', 16.7, 10.45, { text: 'WELCOME', text2: 'HOME!', c: '#f2a7c3' }, { flip: true }), A('namesign', 16.7, 12.15, { text: 'MR BAO' }, { flip: true }));
+  items.push(A('namesign', 16.5, 8.5, { text: 'MR P.', c: '#e8f0ff' }, { flip: true }), A('namesign', 16.5, 10.5, { text: 'HI', text2: 'MOM', c: '#f2a7c3' }, { flip: true }), A('namesign', 16.5, 12, { text: 'BAO' }, { flip: true }));
   npc.push(S(13.2, 16.5, 3), S(14.6, 16.7, 3, 'phone'), S(9.2, 15, 3), S(22.6, 20.2, 3), S(27.2, 20.2, 3, 'talk'), S(31.8, 20.3, 3), S(4.5, 20.9, 3), S(4.7, 21.6, 3, 'phone'), S(16, 21.1, 3), S(37, 20.2, 3), S(5.5, 6.2, 0, 'talk'), S(6.3, 6.4, 2, 'talk'), S(13.4, 11.8, 1, 'phone'),
     S(34.4, 2.6, 1), S(36.8, 2.4, 1, 'phone'), S(24.3, 2.85, 3), S(29, 2.85, 3), Object.assign(S(12.8, 5.2, 1, 'talk', 'staff'), { outfit: 'pilot' }), Object.assign(S(13.6, 5.3, 2, 'talk', 'staff'), { outfit: 'pilot' }));
   mkRoom({ id: 'airport:terminal', name: 'Maple Bay International', venue: 'airport', w: 40, d: 24, zoom: 0, music: 'quiet', noCrowd: true, floor: GT.f_stone, floors: [{ x0: 20, y0: 0, x1: 40, y1: 17.3, floor: GT.f_tile }, { x0: 0, y0: 17.6, x1: 19, y1: 24, floor: GT.f_wood }],

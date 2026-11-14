@@ -12,7 +12,9 @@ import { toast, bubble } from '../ui/kit.js';
 import { caption, skipButton } from '../ui/goals.js';
 
 export const order = 115;
-const TUNE = { CABIN_MAX: 42, CABIN_LEFT: 3, BAG_DELAY: 5, MSG_AT_X: 15 };
+const TUNE = { CABIN_MAX: 42, CABIN_LEFT: 3, BAG_DELAY: 5, MSG_AT_X: 15, CLOCK: .12 };
+// the game clock crawls during the airport steps (so it is still about 2 PM at the curb and needs do not drain during the tutorial)
+const slow = on => { if (on) { if (G.state.speed === 1) G.state.speed = TUNE.CLOCK; } else if (G.state.speed === TUNE.CLOCK) G.state.speed = 1; };
 const safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const room = () => (G.scene && G.scene.roomId) || '';
 const near = (q, r) => Math.hypot(G.player.x - q.x, G.player.y - q.y) < r;
@@ -32,7 +34,7 @@ export function init() {
     const unseat = () => { const p = G.player, sc = G.scene, m = sc && sc.cabin && sc.cabin.mine; if (p.pose === 'sit') { p.pose = null; if (m && room() === 'airport:plane') { p.x = m.row + .75; p.y = m.y; } } p.poseOpts = null; p.zoff = 0; p.z = 0; };
     I.register({ id: 'cabin',
       async enter(c) {
-        const my = ++run; t = 0; ph = 'load'; said = 0; bye = 0;
+        const my = ++run; t = 0; ph = 'load'; said = 0; bye = 0; slow(true);
         await G.go('int:airport:plane'); if (my !== run || !at('cabin')) return;
         const cab = G.scene.cabin, p = G.player, m = cab.mine; cab.reset(); p.stop(); p.x = m.x; p.y = m.y; p.zoff = m.z; p.z = m.z; p.dir = 0; p.pose = 'sit'; p.poseOpts = { seated: true }; p.hidden = false; safe(() => G.snapCam());
         cut = G.cutscene = { update() { } }; ph = 'wait'; safe(() => G.phone.lock('taxi'));
@@ -52,7 +54,7 @@ export function init() {
         } else { const a = cab.attendant; if (a && !bye && near(a, 2.8)) { bye = 1; a.pose = 'wave'; a._hold = 4; bubble(a, 'Thanks for flying with us. Welcome to Maple Bay!'); } }
       },
       done: () => room() === 'airport:concourse',
-      exit() { run++; if (cut && G.cutscene === cut) G.cutscene = null; cut = null; if (ph) unseat(); if (un) un(); un = null; caption(); ph = ''; },
+      exit() { run++; slow(false); if (cut && G.cutscene === cut) G.cutscene = null; cut = null; if (ph) unseat(); if (un) un(); un = null; caption(); ph = ''; },
     }, { before: 'curb' });
   }
   /* ---------- concourse ---------- */
@@ -60,7 +62,7 @@ export function init() {
     let offs = [], t = 0, cur = '', ok = false, run = 0;
     I.register({ id: 'concourse',
       async enter(c) {
-        const my = ++run; ok = false; t = 0; cur = '';
+        const my = ++run; ok = false; t = 0; cur = ''; slow(true);
         if (room() !== 'airport:concourse') { await G.go('int:airport:concourse'); if (my !== run || !at('concourse')) return; }
         const s = ST(); goal('ap_tram', 'Follow the signs to the tram', 'The tram to Baggage Claim leaves from the far end of Concourse B.'); safe(() => G.phone.lock('taxi'));
         if (!s.c0) { s.c0 = 1; caption(null, 'Maple Bay International - Concourse B.', 3400); }
@@ -78,7 +80,7 @@ export function init() {
         if (h[0] !== cur) { cur = h[0]; c.hint(h[1], h[2]); }
       },
       done: () => !!G.scene && (G.scene.id === 'airtram' || room() === 'airport:terminal'),
-      exit() { run++; for (const f of offs) f(); offs = []; ok = false; goalEnd('ap_tram', !!G.scene && (G.scene.id === 'airtram' || room() === 'airport:terminal')); },
+      exit() { run++; slow(false); for (const f of offs) f(); offs = []; ok = false; goalEnd('ap_tram', !!G.scene && (G.scene.id === 'airtram' || room() === 'airport:terminal')); },
     }, { before: 'curb' });
   }
   /* ---------- tram ride ---------- */
@@ -86,12 +88,12 @@ export function init() {
     let run = 0;
     I.register({ id: 'tramride',
       async enter(c) {
-        const my = ++run;
+        const my = ++run; slow(true);
         if (!(G.scene && G.scene.id === 'airtram') && room() !== 'airport:terminal') { await G.go('int:airport:terminal', { x: 36.5, y: 2.9, dir: 1 }); if (my !== run) return; }
         if (G.scene && G.scene.id === 'airtram') c.hint('The tram shuttles between the gates and the Main Terminal. Watch the windows!');
       },
       done: () => room() === 'airport:terminal',
-      exit() { run++; },
+      exit() { run++; slow(false); },
     }, { before: 'curb' });
   }
   /* ---------- baggage claim -> exit ---------- */
@@ -106,7 +108,7 @@ export function init() {
     };
     I.register({ id: 'baggage',
       async enter(c) {
-        const my = ++run; ok = false; t = 0; tb = -1; cur = ''; bag = null; it = null;
+        const my = ++run; ok = false; t = 0; tb = -1; cur = ''; bag = null; it = null; slow(true);
         if (room() !== 'airport:terminal') { await G.go('int:airport:terminal', { x: 36.5, y: 2.9, dir: 1 }); if (my !== run || !at('baggage')) return; }
         sc = G.scene; const s = ST(); safe(() => G.phone.lock('taxi'));
         if (s.bag) { goal('ap_exit', 'Head through customs to the exit'); G.player.carry = true; G.player.poseOpts = { item: 'bag', itemColor: '#f2c230' }; } else { goal('ap_bag', 'Collect your bag at carousel 2', 'Baggage claim is just past the tram platform. Carousel 2.'); caption(null, 'Main Terminal. Baggage claim first, then the exit.', 3600); }
@@ -127,7 +129,7 @@ export function init() {
         if (h[0] !== cur) { cur = h[0]; c.hint(h[1], h[2]); }
       },
       done: () => !!G.scene && G.scene.id === 'city',
-      exit() { run++; ok = false; clear(); if (sc) sc.canLeave = null; const out = !!G.scene && G.scene.id === 'city'; goalEnd('ap_bag', !!ST().bag); goalEnd('ap_exit', out); const p = G.player; p.carry = false; if (p.poseOpts && p.poseOpts.item) p.poseOpts = null; sc = null; },
+      exit() { run++; slow(false); ok = false; clear(); if (sc) sc.canLeave = null; const out = !!G.scene && G.scene.id === 'city'; goalEnd('ap_bag', !!ST().bag); goalEnd('ap_exit', out); const p = G.player; p.carry = false; if (p.poseOpts && p.poseOpts.item) p.poseOpts = null; sc = null; },
     }, { before: 'curb' });
     G.introAirport = { TUNE, state: ST, grabBag: () => { if (at('baggage') && !ST().bag) { if (!bag && sc) bag = sc.claim[1].add({ mine: 1 }); grab(); return true; } return false; } };
   }

@@ -39,7 +39,7 @@ export default [
       } else { // info
         qy(.1, w - .1, Y, .15, 2.1, lt(c, .1)); screenY(.3, w - .3, Y + .01, 1.0, 1.95, '#16243a'); lit(() => { for (let i = 0; i < 5; i++) lw([.4, Y + .02, 1.1 + i * .17], [w - .4 - (i % 2) * .5, Y + .02, 1.1 + i * .17], '#6ea8ff'); we(Y + .02, w / 2, 1.5, .12, .12, '#ffd35a'); });
       }
-      box(0, 0, 2.2, w, .55, .5, k.f); signY(p.name || k.name, .15, w - .15, .56, 2.26, 2.64, k.f, k.fg, { lit: true, frame: false }); glow(() => qy(.2, w - .2, .55, 2.2, 2.24, '#fff2c4'));
+      const fc = kind === 'rental' && p.c ? p.c : k.f; box(0, 0, 2.2, w, .55, .5, fc); signY(p.name || k.name, .15, w - .15, .56, 2.26, 2.64, fc, k.fg, { lit: true, frame: false }); glow(() => qy(.2, w - .2, .55, 2.2, 2.24, '#fff2c4'));
       if (kind === 'noodle') for (let x = .2; x < w - .3; x += .5) { qy(x, x + .44, .56, 1.75, 2.2, '#b0302a'); lit(() => we(.57, x + .22, 1.98, .08, .08, '#ffe2a0')); }
     } },
   { id: 'furn.airport.shop.counter', kind: 'furniture', tags: T(['shop_counter']), size: p => [p.w || 3, .5, 1.05], vb: p => [0, 0, 0, p.w || 3, p.kind === 'noodle' ? 1.15 : .52, 1.85],

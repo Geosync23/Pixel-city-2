@@ -113,10 +113,10 @@ export default [
     } },
   { id: 'furn.airport.fids', kind: 'furniture', tags: T(['fids', 'flight_board']), size: p => [p.w || 3, .4, 2.75], variants: [{ w: 3, rows: [['1420 LISBON', '#7df0a0'], ['1435 TOKYO'], ['1450 PARIS', '#ff8a70']] }, { w: 5, title: 'DEPARTURES', rows: [['1420 LISBON  B6 BOARD', '#7df0a0'], ['1435 TOKYO   B2 ON TIME'], ['1450 PARIS   B4 DELAYED', '#ff8a70'], ['1505 OSLO    B5 ON TIME']] }],
     draw(p) {
-      const w = p.w || 3, nc = Math.floor((w * 16 - 8) / 4), rows = (p.rows || []).slice(0, 4).map(r => [String(r[0]).slice(0, nc), r[1] || '#e8f0ff']);
+      const w = p.w || 3, nc = Math.floor((w * 16 - 8) / 4), rows = (p.rows || []).slice(0, 3).map(r => [String(r[0]).slice(0, nc), r[1] || '#e8f0ff']);
       box(.15, .12, 0, .16, .16, 1.0, STEEL, { ol: false }); box(w - .31, .12, 0, .16, .16, 1.0, STEEL, { ol: false }); box(0, .05, 0, w, .3, .08, '#59616e', { ol: false });
-      box(0, .08, .95, w, .24, 1.8, '#1c222b'); lit(() => { qy(.06, w - .06, .32, 1.0, 2.7, '#18202c'); qy(.06, w - .06, .32, 2.38, 2.7, YEL); for (let i = 0; i < 4; i += 2) qy(.06, w - .06, .32, 2.3 - (i + 1) * .34, 2.3 - i * .34, '#1f2a3a'); });
-      lit(() => textY((p.title || 'DEPARTURES').slice(0, nc), .12, .33, 2.63, '#1c222b')); rowsY(rows, .12, .33, 2.26, .34);
+      box(0, .08, .95, w, .24, 1.8, '#1c222b'); lit(() => { qy(.06, w - .06, .32, 1.0, 2.7, '#18202c'); qy(.06, w - .06, .32, 2.38, 2.7, YEL); qy(.06, w - .06, .32, 1.46, 1.9, '#1f2a3a'); });
+      lit(() => textY((p.title || 'DEPARTURES').slice(0, nc), .12, .33, 2.63, '#1c222b')); rowsY(rows, .12, .33, 2.25, .43);
       qx(w, .08, .32, .95, 2.75, '#11161d');
     } },
   { id: 'furn.airport.sign', kind: 'furniture', tags: T(['sign', 'wayfinding', 'overhead']), solid: false, overhead: true, size: p => [p.w || 4, .15, .6], vb: p => [0, 0, 0, p.w || 4, .15, 1.6],

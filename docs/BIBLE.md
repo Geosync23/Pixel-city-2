@@ -111,3 +111,7 @@ credit and pay for attending.
 - HOME DESIGN MODE: a real decoration mode (also launched from a phone app): move/rotate everything, hang wall decor, big catalogue.
 - CITY: keep the layout (the owner loves it). Add enterable places mainly by CONVERTING existing non-enterable buildings (ground floor becomes a storefront, or swap the
   building for a fitting one); expand at the edges if needed. Never remove what exists.
+- Shopping clarification: KEEP the buy menu for stalls/carts/counters and all online shopping. Larger stores offer BOTH: physical browsing (click an item on a
+  rack/display -> character holds it / basket -> pay at the counter) and the buy menu at the counter. GROCERY STORES are big with sensible aisles; each shelf
+  SECTION is clickable and opens a small picker for that section's items (not every product rendered individually) -> basket -> checkout. Other shoppers active.
+  Everything displayed must be buyable; layouts must make sense.
