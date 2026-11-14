@@ -296,3 +296,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 68 — Team: 3 Fable + 1 Opus QA/data
 > Ok add an Opus QA and data worker as a fourth and cut down a Fable worker once it makes sense let then finish
+
+## 69 — /model keeps reverting
+> I used slash model and still it reverts to opus
