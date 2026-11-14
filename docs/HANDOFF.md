@@ -2,8 +2,9 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-14 ~21:25 UTC)
-- **Running worker:** none at the moment of writing (performance venues FINISHED ~21:20 UTC, Stage 9 published). A wake-up is scheduled ~15 min later to launch item 2f (playtest fix pack + navigator);
-  if you are reading this and no worker is running, launch 2f now.
+- **Running worker:** none at the moment of writing. A wake-up is scheduled for ~21:25 UTC to launch the GUIDE APP worker (owner msg 37: prioritised; working name "Wander — the Maple Bay guidebook";
+  very comprehensive, fun, visual like a guide book; auto-built from game content: places, shops, stalls, venues, shows, events, activities/mini-games, transit; chapters + by district + near me + Things to try checklist with stamps).
+  If no worker is running when you read this, launch it. THEN 2f fix pack + navigator, then the rest in the order below.
 - **NEXT (owner's playtest, BIBLE update 11 — do these BEFORE the older queue):** 2f playtest fix pack + navigator (walkways keep right, deboarding order, plane-shaped cabin, station stairs, train flat-fee ticket,
   train flicker overhead, sit on any chair, item icons, tap goal -> waypoint, tap need -> nearest place, Map "what do you need" navigator with foot/bus/train, planner feeds Goals)
   -> 2g unique interiors + many more enterable buildings (lobbies; separate bathrooms; toilets + bladder need) -> 2h apps (app store, Properties, Living Tips, Things To Do guide)

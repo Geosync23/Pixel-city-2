@@ -31,3 +31,4 @@
 15. Pacing clarified: not worried about weekly usage at all; wants steady continuous progress, not start-stop. One worker at a time, no long pauses; just avoid slamming the 5-hour window.
 16. Handoff strategy: no new sessions; keep handoff notes constantly current in the repo and re-read after compaction (docs/HANDOFF.md).
 17. Big playtest (msg 36): loves the airport interior. Long list of fixes + new systems -> BIBLE update 11 / backlog 2f-2j. Key preferences: Talk only via button; relationships slower with daily cap; every interior unique; far more enterable buildings (lobbies); absurd amounts of clothes/hair; realistic chores (laundry, bladder); app store; navigator by need; university.
+18. Guide app is top priority: comprehensive, fun, visual like a guide book; needs a better name than 'things to do' (working name: Wander).

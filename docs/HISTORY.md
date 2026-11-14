@@ -35,3 +35,4 @@
 - 5-hour limit hit again ~18:00 UTC with ONE worker running (performance venues cut off; resets 21:00 UTC). Owner sent big playtest notes (msg 36) -> BIBLE update 11, backlog 2f-2j.
 - Lead quick fixes from msg 36: traffic-light arm street names, Talk-button-only, Jules -> Nora, relationship rate x0.4 + daily cap 5. Performance worker resumed 21:02 UTC.
 - Performance venues landed (cinema films, Symphony Hall, Lantern Playhouse). Stage 9 published.
+- Owner msg 37: guide app prioritised ahead of the fix pack.

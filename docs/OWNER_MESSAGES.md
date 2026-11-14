@@ -176,3 +176,6 @@ Very short operational messages are included too, so the sequence is complete. A
 > You should have to push the talk button to talk to people. Clicking them is too much trouble when navigating. And happens to much accidentally when walking around.
 >
 > Lers expiration the guide app or things to do app. Something that lists all the activities and places and things to do. Its a things to do app. A place to be guided to all the content you've made. Everything. Like the arcade games and all shops ets.
+
+## 37 — Prioritize the guide app
+> Great please though make the things to do app (name is something better) is prioritized. It needs to be very comprehensive. Fun snd visual like a guide book
