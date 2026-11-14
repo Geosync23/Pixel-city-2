@@ -1,10 +1,9 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 ~21:15 UTC)
-- **Running worker:** showpieces B — performance venues (RESUMED at 21:02 UTC after a 5-hour-limit cut-off; its files exist: src/sim/shows.js, _shows_*.js, src/scenes/rooms/performance.js, src/art/performance/).
-  When it reports: playbook loop (docs/reports/shows.md, build, 1-2 screenshots, commit + push, publish, update STATUS/BACKLOG/HISTORY + this file), then start the next item ~15-20 min later
-  (the limit was hit even with one worker, so leave a slightly longer gap and keep lead usage light).
+## Now (updated 2026-11-14 ~21:25 UTC)
+- **Running worker:** none at the moment of writing (performance venues FINISHED ~21:20 UTC, Stage 9 published). A wake-up is scheduled ~15 min later to launch item 2f (playtest fix pack + navigator);
+  if you are reading this and no worker is running, launch 2f now.
 - **NEXT (owner's playtest, BIBLE update 11 — do these BEFORE the older queue):** 2f playtest fix pack + navigator (walkways keep right, deboarding order, plane-shaped cabin, station stairs, train flat-fee ticket,
   train flicker overhead, sit on any chair, item icons, tap goal -> waypoint, tap need -> nearest place, Map "what do you need" navigator with foot/bus/train, planner feeds Goals)
   -> 2g unique interiors + many more enterable buildings (lobbies; separate bathrooms; toilets + bladder need) -> 2h apps (app store, Properties, Living Tips, Things To Do guide)

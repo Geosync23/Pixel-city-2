@@ -1,0 +1,10 @@
+# Performance venues — notes (src/sim/shows.js + _shows_*.js, src/scenes/rooms/performance.js, art src/art/performance/)
+- Shared engine `G.shows`: venues(), schedule(venueId, day?), buy(venueId, showId), tickets(), openBoxOffice(venueId), enterHall(venueId), waitFor(ticket), startNow(venueId, showId|programmeId?) (debug), state(), leave(),
+  attendWith(npcId), sitFree(seat)/standFree() (every hall seat is sittable any time), volume(v), debugSpeed, TUNE. Events show:ticket / show:doors / show:start / show:end ({venue, showId, prog, left?}). State G.state.shows.
+- Flow: box office -> wait in lobby -> doors (15 game-min before) -> audience streams in and sits -> you sit -> lights dim -> 60-70 s show -> applause -> everyone files out. Moodlets movie_magic / inspired / great_night_out.
+- The Orpheum: `cinema` lobby (patched at runtime) + `cinema:screen1` (100 seats). 4 films drawn live on a 112x64 canvas: The Last Ferry, Maple & Moon, Captain Pigeon, Signal 9. Daily 12:30, 14:45, 17:00, 19:15, 21:30. $9.
+- Maple Bay Symphony Hall: door `door:concerthall` at (192, 52.75) — CONVERTED the `bld.civic.museum` building (so the future museum needs another building); rooms `concerthall`, `concerthall:hall` (228 seats);
+  25-piece orchestra + conductor animated from score note events; 3 pieces (Harbour Lights Waltz, Snow on Maple Street, Overture to a Bright Morning). 19:30 daily + 14:00 Sat/Sun. $24-26.
+- The Lantern Playhouse: door `door:playhouse` at (190, 82.75) (the `bld.arts.theatre` building); rooms `playhouse`, `playhouse:hall` (120 seats); 3 shows (The Understudy, Platform Six, Maple Bay My Bay). 20:00 daily + 15:00 Sun. $16-18.
+- Music: self-contained WebAudio sequencer in _shows_audio.js (G.audio does not exist). Art ids `furn.perf.*` (seats, stage, proscenium, curtain, backdrop, organ, chandelier, boxoffice, poster, marquee, ...).
+- Gaps: flat (not raked) seating; showtimes not in the planner's event feed (read G.shows.schedule); attendWith untested with a real NPC; music never heard (headless); marquee text clipped; no volume control in phone.

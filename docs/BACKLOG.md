@@ -3,7 +3,8 @@ DONE: engine, art sets (chars, airport ext, transit, home, venue fixtures), data
 DONE too: airport interior + new opening; unique street names + addresses; riders on two-wheelers; lead docs (CLAUDE.md, LEAD_PLAYBOOK, STATUS, HISTORY, OWNER_NOTES).
 DONE too: public places pass (61 conversions, groceries near homes, street names + addresses on the phone map) — docs/reports/public_places.md.
 DONE too: showpieces A — mall (Maple Bay Galleria) + SkyDeck (docs/reports/showpieces_a.md).
-RUNNING: item 2b — performance venues (src/sim/shows.js, src/scenes/rooms/performance.js, src/art/performance/). PACING (clarified): steady and continuous — one worker at a time, next one starts within ~10-15 min of the last finishing. NEXT: item 2b — PERFORMANCE VENUES (BIBLE update 7): concert hall with orchestra, cinema hall playing ~1-min animated pixel shorts (upgrade `cinema:hall`), theater with a stage show; shared ticket -> audience enters -> sit -> show -> applause -> exit flow. THEN item 2c — museum, botanical conservatory, hotel lobby (+ rooftop bar), POST OFFICES (BIBLE update 10: main + branches, queue/counter/packing, send packages, letters from home mailbox, collect slips, story hook).
+DONE too: showpieces B — performance venues (docs/reports/shows.md). NOTE: the museum building was converted into Symphony Hall, so item 2c's museum needs a different building or an expansion lot.
+RUNNING: (see docs/HANDOFF.md). ORDER NOW: 2f -> 2g -> 2h -> 2i -> 2j -> 2c -> 3 -> 4b -> 4c -> 4 -> 5 -> 6.
 
 NEXT (in order):
 1. [DONE] "Public places pass" (owner feedback): street names drawn on the phone Map app (world.roads names; label along roads when zoomed in, list/search optional); EVERY cafe / restaurant / shop-looking building

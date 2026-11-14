@@ -228,7 +228,7 @@ export function init() {
   S = G.defineState('shows', () => ({ tickets: [], seen: {}, count: 0, live: null })); G.shows = api;
   G.on('load', () => {
     S = G.state.shows || (G.state.shows = { tickets: [], seen: {}, count: 0, live: null }); if (run) { const r = run; run = null; release(); safe(() => r.dir.cleanup()); }
-    const L = S.live; if (L) { S.live = null; const i = S.tickets.findIndex(k => k.id === L.id); if (i >= 0) S.tickets.splice(i, 1); if (L.price) safe(() => G.money.add(L.price, 'Ticket refund')); setTimeout(() => toast('You left mid-show: the box office refunded your ticket.', 'info', 4200), 1500); }
+    const L = S.live; if (L) { S.live = null; const i = S.tickets.findIndex(k => k.id === L.id); if (i >= 0) { const k = S.tickets.splice(i, 1)[0]; if (k.appt && G.planner) safe(() => G.planner.remove(k.appt)); } if (L.price) safe(() => G.money.add(L.price, 'Ticket refund')); setTimeout(() => toast('You left mid-show: the box office refunded your ticket.', 'info', 4200), 1500); }
   });
   safe(() => convert(getCity()));
   G.on('scene', s => {

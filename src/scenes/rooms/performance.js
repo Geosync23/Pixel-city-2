@@ -82,7 +82,7 @@ const KITS = { vln1: { k: 'vln' }, vln2: { k: 'vln' }, vla: { k: 'vla' }, vc: { 
   tbn: { k: 'tbn', anim: 'eat' }, tuba: { k: 'tuba' }, timp: { k: 'timp', stand: 1, inst: [0, .3] }, perc: { k: 'perc', stand: 1, inst: [0, .3] }, harp: { k: 'harp', inst: [0, .12] }, cond: { k: 'cond', stand: 1 } };
 // [section, x, y] in room coords on the stage (y 5.2 front row .. 1.2 riser back)
 const ORCH = [['vln1', 7.5, 5.2], ['vln1', 8.9, 5.2], ['vln1', 10.3, 5.2], ['vc', 15.7, 5.2], ['vc', 17.1, 5.2], ['vln2', 6.6, 4.25], ['vln2', 8, 4.25], ['vln2', 9.4, 4.25], ['vla', 16.6, 4.25], ['vla', 18, 4.25], ['cb', 19.6, 4], ['cb', 20.9, 4],
-  ['fl', 10.3, 3.5], ['ob', 11.7, 3.5], ['cl', 14.3, 3.5], ['bsn', 15.7, 3.5], ['harp', 5.8, 3.2], ['hn', 9, 2.2], ['hn', 10.2, 2.2], ['tpt', 12.4, 2.2], ['tpt', 13.6, 2.2], ['tbn', 15.8, 2.2], ['tuba', 17, 2.2], ['timp', 13, 1.25], ['perc', 15.8, 1.25]];
+  ['fl', 10.3, 3.5], ['ob', 11.7, 3.5], ['cl', 14.3, 3.5], ['bsn', 15.7, 3.5], ['harp', 5.8, 3.2], ['hn', 9, 2.45], ['hn', 10.2, 2.45], ['tpt', 12.4, 2.45], ['tpt', 13.6, 2.45], ['tbn', 15.8, 2.45], ['tuba', 17, 2.45], ['timp', 13, 1.45], ['perc', 15.8, 1.45]];
 const STAGE_Z = .6, stageZ = y => STAGE_Z + (y < 1.8 ? .5 : y < 2.8 ? .25 : 0), PRE = 22;
 class Mus {
   constructor(spec, sec, x, y, z) { this.spec = spec; this.sec = sec; this.K = KITS[sec]; this.tx = x; this.ty = y; this.tz = z; this.x = x; this.y = y; this.z = z; this.dir = 1; this.st = 0; this.t = Math.random() * 5; this.on = false; this.n = 0; this.seated = false; this.moving = false; this.hidden = true; this.bow = false; this.bb = [-.22, -.22, .22, .22, 1.5]; this.bubbleH = 1.9; }
@@ -95,7 +95,7 @@ class Mus {
 }
 function concertDir(sc, hall) {
   const r = R.rng(4242), W = (x, y) => sc.toWorld(x, y), mus = [], wingL = W(3.5, 0).x, wingR = W(22.5, 0).x, oy = W(0, 0).y;
-  ORCH.forEach(([sec, x, y], i) => { const p = W(x, y), m = new Mus(mkSpec(r, { style: 'business', topColor: i % 5 === 3 ? '#7a2a3a' : '#f4f0e8', bottomColor: '#1e1a22' }), sec, p.x, p.y, stageZ(y)); m.left = x < 13; m.at = .4 + (i % 13) * .62 + (m.left ? 0 : .3); mus.push(m); sc.ents.push(m);
+  ORCH.forEach(([sec, x, y], i) => { const p = W(x, y), m = new Mus(mkSpec(r, { style: 'business', topColor: i % 5 === 3 ? '#7a2a3a' : '#f4f0e8', bottomColor: '#1e1a22' }), sec, p.x, p.y, stageZ(y) + .03); m.left = x < 13; m.at = .4 + (i % 13) * .62 + (m.left ? 0 : .3); mus.push(m); sc.ents.push(m);
     const K = KITS[sec]; if (K.inst) sc.ents.push({ x: p.x + K.inst[0], y: p.y + K.inst[1], z: m.tz, bb: [-.3, -.1, .3, .1, 1], sprite: () => pixSprite('inst' + K.k, KIT_SB, () => drawKit(K.k, 'inst')) }); });
   const cp = W(13, 6.1), cond = new Mus(mkSpec(r, { style: 'business', age: 'elder', top: 'coat', topColor: '#16131a', bottomColor: '#16131a' }), 'cond', cp.x, cp.y, STAGE_Z + .22); sc.ents.push(cond);
   const walk = (m, dt, tx, ty, tz, spd = 2.4) => { const dx = tx - m.x, dy = ty - m.y, d = Math.hypot(dx, dy), st = spd * dt; m.z += (tz - m.z) * Math.min(1, dt * 6); if (d <= st) { m.x = tx; m.y = ty; m.moving = false; return true; } m.x += dx / d * st; m.y += dy / d * st; m.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 0 : 2) : (dy > 0 ? 1 : 3); m.moving = true; return false; };
@@ -132,7 +132,7 @@ defineRoom({ id: 'concerthall:hall', name: 'Symphony Hall — Auditorium', w: 26
   wall: { color: '#e4d4b4', trim: '#b8862a', rail: 1.2, h: 5.6 },
   items: [V('perf.stage', 3, .5, { w: 20, d: 6.5, h: .6, c: '#b08050' }), WY('perf.organ', 7, { w: 12, h: 5.4 }), WY('perf.panel', 3.4, { w: 3, h: 5 }), WY('perf.panel', 19.6, { w: 3, h: 5 }), WY('perf.panel', .3, { w: 2.6, h: 5 }), WY('perf.panel', 23.1, { w: 2.6, h: 5 }),
     WX('perf.panel', 1, { w: 3, h: 5 }), WX('perf.sidebox', 8.6, { w: 3.6 }), WX('perf.sidebox', 13, { w: 3.6 }), WX('generic.exit', 18.6),
-    V('perf.stage', 8, .8, { w: 10, d: 1, h: .5, c: '#8a5a34' }, { z: STAGE_Z, solid: false }), V('perf.stage', 8, 1.8, { w: 10, d: 1, h: .25, c: '#8a5a34' }, { z: STAGE_Z, solid: false }), V('perf.podium', 12.5, 5.7, null, { z: STAGE_Z, solid: false }), V('perf.piano', 3.5, 4, null, { z: STAGE_Z, solid: false }),
+    ...ORCH.filter(o => o[2] < 2.8).map(([s, x, y]) => V('perf.stage', x - (y < 1.8 ? 1.2 : .6), y < 1.8 ? .8 : 1.8, { w: y < 1.8 ? 2.4 : 1.2, d: 1, h: y < 1.8 ? .5 : .25, c: '#8a5a34' }, { z: STAGE_Z, solid: false })), V('perf.podium', 12.5, 5.7, null, { z: STAGE_Z, solid: false }), V('perf.piano', 3.5, 4, null, { z: STAGE_Z, solid: false }),
     ...ORCH.filter(o => !KITS[o[0]].stand).map(([s, x, y]) => V('perf.chair', x - .3, y - .32, { c: '#8a6a4a', stand: s !== 'harp' }, { z: stageZ(y), solid: false })), ...ORCH.filter(o => KITS[o[0]].stand).map(([s, x, y]) => V('perf.chair', x - .3, y - .32, { nochair: true }, { z: stageZ(y), solid: false })),
     ...seatRows('perf.seats', CROWS, [[2, 12], [9.5, 14], [18, 12]], CH), V('perf.chandelier', 6, 12), V('perf.chandelier', 18, 12), V('perf.rope', 10.4, 19.9), V('perf.rope', 13.6, 19.9), V('generic.plant', .5, 20.3), V('generic.plant', 25, 20.3)],
   exits: [{ x: 13, y: 20.5, label: 'Lobby', use: lobbyOf('concerthall', 1.9, 7.8) }],
