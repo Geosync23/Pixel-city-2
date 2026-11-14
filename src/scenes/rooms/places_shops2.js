@@ -66,7 +66,7 @@ define('Wax & Wane Records', 40, 'records', {
   items: [PY('record.wall', .5, { w: 4, seed: 2 }, 1), neon('y', 5, { kind: 'note', c: '#f6e04a', c2: '#b07af8' }), PX('record.wall', 1.5, { w: 3, seed: 8 }, 1), PX('sign', 5.2, { text: 'WAX & WANE', bg: '#1e1a28', fg: '#f6e04a', lit: 1 }, 2.05),
     P('record.bin', 1, 2, { seed: 1, name: 'ROCK' }, U), P('record.bin', 3, 2, { seed: 2, name: 'SOUL' }), P('record.bin', 1, 4, { seed: 3, name: 'JAZZ' }), P('record.bin', 3, 4, { seed: 4, name: 'FUNK' }, U),
     P('record.bin', 1, 6, { seed: 5, name: 'NEW IN' }, U), P('record.bin', 3, 6, { seed: 6, name: '$1 BIN', c: '#5a3a28' }),
-    V('bar.speaker', 6, 0), V('bookstore.till', 6.5, 1.5, { c: '#3a2a48' }, CK), V('bar.speaker', 8, 0), V('home.stereo', 9, 0, { on: true }),
+    V('bar.speaker', 6, 0), V('clothing.counter', 6.5, 1.5, { c: '#3a2a48', top: '#d8a848', name: 'WAX', ink: '#f6e04a' }, CK), V('bar.speaker', 8, 0), V('home.stereo', 9, 0, { on: true }),
     P('record.listen', 6.5, 4, { a: '#f6e04a' }, U), P('record.listen', 8, 4, { a: '#b07af8', seed: 6 }, U),
     V('generic.sofa', 6.5, 6.5, { c: '#5a3a6a' }, { n: 'seats' }), V('diner.jukebox', 9, 6, null, U), V('home.plant.snake', 9.5, 8.5),
     HL(2.5, 3.5, 'shade', '#d8a848'), HL(2.5, 5.5, 'shade', '#d8a848'), HL(7.5, 5, 'lantern', '#f6e8a0', { r: .3 })],
@@ -79,7 +79,7 @@ define('B-Side Records', 42, 'records', {
   tryThis: ['Flip through the 45s', 'Try the listening deck in the corner', 'Pick up the shop guitar'], activities: ['record_bin', 'listening_station', 'music', 'instrument'] },
 () => ({ w: 7, d: 7, music: 'bar', floor: GT.f_concrete, wall: { color: '#7a5244', pattern: 'brick', trim: '#2a2733' },
   items: [PY('record.wall', .3, { w: 2, seed: 5 }, 1.15), PY('sign', 2.6, { text: 'B-SIDE', bg: '#2a2733', fg: '#ff8a3a', lit: 1 }, 1.9), WY('home.wall.poster', 5, { seed: 2 }, 1.7), WX('home.wall.poster', 2, { seed: 1 }), WX('home.wall.poster', 3.1, { seed: 4 }), WX('home.wall.poster', 4.2, { seed: 6 }), neon('x', 5.2, { kind: 'note', c: '#ff8a3a', c2: '#f6e04a' }),
-    V('home.stereo', 0, 0, { on: true }), V('bookstore.till', 2.5, 1, { c: '#2a2733' }, CK), P('record.listen', 5.5, 0, { a: '#ff8a3a' }, U),
+    V('home.stereo', 0, 0, { on: true }), V('clothing.counter', 2.5, 1, { c: '#2a2733', top: '#c8a068', name: 'B-SIDE', ink: '#ff8a3a' }, CK), P('record.listen', 5.5, 0, { a: '#ff8a3a' }, U),
     P('record.bin', .5, 2.5, { seed: 7, c: '#c8a068', name: 'B-SIDES' }, U), P('record.bin', .5, 4.5, { seed: 9, c: '#c8a068', name: '45S' }, U), P('record.bin', 5, 2.5, { kind: 'box', seed: 3 }, FL(U)),
     V('bar.stool', 3.5, 4, { c: '#ff8a3a' }, { n: 'seats' }), V('home.guitar', 6.5, 5.5), V('bar.speaker', 0, 6.5), V('books.piles', 6.5, 6.5),
     HL(1.5, 4, 'bulb'), HL(4, 2.5, 'bulb'), HL(5.5, 5.5, 'bulb')],
@@ -110,7 +110,7 @@ define('Ink & Ivy Comics & Zines', 49, 'comics', {
     V('books.lowshelf', .5, 0, { seed: 2, c: '#c0392b' }, BBU), V('books.lowshelf', 2.5, 0, { seed: 6, c: '#c0392b' }, BB), V('cornerstore.magrack', 5, 0, { seed: 2 }, BBU), V('cornerstore.magrack', 6, 0, { seed: 5 }, BB),
     P('comic.figures', 7.5, 0, null, U), P('comic.figures', 8.5, 0, { seed: 3, c: '#c0392b' }), V('cinema.arcade', 10, 0, null, U),
     P('record.bin', 1, 2.5, { kind: 'box', seed: 1 }, U), P('record.bin', 3.5, 2.5, { kind: 'box', seed: 4, c: '#5a6272' }), P('record.bin', 1, 4.5, { kind: 'box', seed: 7 }, U), P('record.bin', 3.5, 4.5, { kind: 'box', seed: 9, c: '#5a6272' }),
-    V('bookstore.till', 7, 2.5, { c: '#c0392b' }, CK),
+    V('clothing.counter', 7, 2.5, { c: '#c0392b', top: '#f6e04a', name: 'COMICS', ink: '#f6e04a' }, CK),
     V('cafe.armchair', 8, 5, { c: '#3c64ad' }, NOOK()), V('cafe.armchair', 9.5, 5, { c: '#f2c230' }, NOOK()), V('cafe.lowtable', 8.5, 6.5), V('generic.floorlamp', 10.5, 4), V('books.piles', 10.5, 6.5),
     V('cinema.standee', 6, 5, { frame: 2 }), P('toy.robot', 0, 6.5, { c: '#3c64ad' }), V('bookstore.spinner', 0, 2.5, { seed: 3 }, BB), V('bookstore.spinner', 0, 4.5, { seed: 6 }, BB),
     HL(2.5, 4, 'shade', '#c0392b'), HL(5, 4, 'shade', '#3c64ad'), HL(9, 6, 'lantern', '#f6e04a')],
@@ -144,7 +144,7 @@ define('Post Corner Pharmacy', 34, 'pharmacy', {
     V('grocery.gondola', .5, 3.5, { kind: 'med', name: 'COLD+FLU', hc: '#3c64ad', seed: 1 }, U), V('grocery.gondola', 2.5, 3.5, { kind: 'household', name: 'SKIN', hc: '#e87aa0', seed: 3 }),
     V('grocery.gondola', .5, 5.5, { kind: 'med', name: 'VITAMINS', hc: '#e8843a', seed: 6 }, U), V('grocery.gondola', 2.5, 5.5, { kind: 'household', name: 'BABY', hc: '#6fb6d8', seed: 8 }),
     V('bookstore.spinner', 7.5, 2.5, { seed: 3 }), V('clinic.scale', 10.5, 2.5), V('clinic.chairs', 8, 4, { c: '#3f8a55' }, { n: 'seats', ns: 2 }), V('clinic.magtable', 9.5, 4),
-    V('grocery.promo', 6, 5, { name: 'SPF', c: '#f2c230' }), V('cornerstore.shelf', 7.5, 6.5, { seed: 2 }, U), V('grocery.baskets', 3.5, 8.5), V('generic.plant', 10.5, 8.5),
+    V('grocery.gondola', 5.5, 3.5, { kind: 'household', name: 'BEAUTY', hc: '#b07ad8', seed: 12 }, U), V('grocery.promo', 6, 5, { name: 'SPF', c: '#f2c230' }), V('cornerstore.shelf', 7.5, 6.5, { seed: 2 }, U), V('grocery.baskets', 3.5, 8.5), V('generic.plant', 10.5, 8.5),
     HL(2.5, 4.5, 'tube'), HL(5, 3, 'tube'), HL(8, 5.5, 'tube'), HL(4.5, 7, 'tube')],
   npc: [S(5, 4.2, 3), S(4.4, 1, 3, 'work', 'staff')], exits: [{ x: 5, y: 8.5 }] }));
 
@@ -160,7 +160,7 @@ define('Paws & Whiskers Pet Supply', 35, 'pets', {
     P('pet.pen', 4.5, 4, { name: 'ADOPT ME' }, U), P('pet.birdcage', 3, 2.5), P('pet.birdcage', 3.5, 2.5, { bird: '#f2c230', c: '#c4c9ce' }),
     P('pet.foodbags', 0, 2.5, null, FL(U)), P('pet.foodbags', 0, 3.5, { seed: 2, three: 1 }, FL()), V('grocery.gondola', 0, 5, { kind: 'cans', name: 'CHOW', hc: '#e8843a', seed: 4 }, FL()),
     P('shelf', 1.5, 4.5, { w: 1.5, h: 1.6, kind: 'snacks', rows: 3, pal: 'pet', name: 'TOYS', hc: '#7a55b0' }, U), V('home.petbed', 2, 6.5, { c: '#e87aa0' }), V('home.petbed', 2, 7.5, { c: '#6fb6d8' }),
-    V('home.aquarium', 8.5, 4.5), P('shelf', 9.5, 5.5, { kind: 'household', pal: 'pet', name: 'GROOMING', hc: '#2f8f8a' }, U), V('generic.plant', 11.5, 8.5),
+    V('home.aquarium', 8.5, 4.5), P('pet.foodbags', 10.5, 7.5, { seed: 1 }), P('pet.birdcage', 0, 8, { bird: '#6fb6d8' }), P('shelf', 9.5, 5.5, { kind: 'household', pal: 'pet', name: 'GROOMING', hc: '#2f8f8a' }, U), V('generic.plant', 11.5, 8.5),
     HL(5.5, 4.5, 'shade', '#2f8f8a'), HL(2, 3.5, 'tube'), HL(9, 4, 'tube')],
   npc: [S(6.8, 6.2, 3), S(1.5, 1.2, 3), S(10.4, 6.6, 3)], exits: [{ x: 7.5, y: 8.5 }] }));
 
@@ -189,7 +189,7 @@ define('Salt & Co. Chandlery & Hardware', 54, 'hardware', {
     P('shelf', 2, 3, { kind: 'cans', pal: 'oil', name: 'VARNISH', hc: '#2f4a6a', c: '#8a9098' }, U), V('homegoods.techshelf', 4, 3, { name: 'TOOLS', hc: '#e8843a' }),
     P('hw.bins', 2, 5, { name: 'NAILS', seed: 7, c: '#2f4a6a' }), P('shelf', 4, 5, { kind: 'household', name: 'MARINE', hc: '#2f8f8a', c: '#8a9098' }, U),
     V('homegoods.counter', 9.5, 2.5, { c: '#2f4a6a', name: 'CHANDLER' }, CK), V('homegoods.kiosk', 12.5, 2.5),
-    P('barrel', 7.5, 3, { fill: '#b8bcc0', tag: 1 }), P('barrel', 8, 3, { fill: '#c8683f', tag: 1 }), P('hw.rope', 8, 5, { seed: 3 }), V('homegoods.demotable', 10, 5.5, { c: '#8a9098' }, U),
+    P('barrel', 7.5, 3, { fill: '#b8bcc0', tag: 1 }), P('barrel', 8, 3, { fill: '#c8683f', tag: 1 }), P('hw.rope', 8, 5, { seed: 3 }), P('crate', .5, 7, { items: ['#e8643a', '#f2c230', '#3c64ad'] }), P('barrel', 2, 7, { fill: '#d8c090', tag: 1 }), P('barrel', 2.5, 7, { fill: '#8a9098' }), P('hw.lumber', 12, 4.5, { seed: 6 }), P('crate', 11.5, 7, { items: ['#c8a068', '#b8bcc0', '#8a5a3a'] }), V('homegoods.demotable', 10, 5.5, { c: '#8a9098' }, U),
     HG(7, 2, 'buoy'), HG(9, 4, 'buoy', { c: '#f2c230' }), HG(6.5, 6, 'buoy', { c: '#3c64ad' }), HL(3, 4, 'tube'), HL(5, 6.5, 'tube'), HL(10.5, 4, 'tube')],
   npc: [S(1.4, 3, 2), S(8.6, 6.2, 3)], exits: [{ x: 7, y: 7.5 }] }));
 

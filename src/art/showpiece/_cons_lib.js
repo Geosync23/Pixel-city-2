@@ -19,13 +19,13 @@ export function trunk(a, b, w, c, rings = 3) {
 }
 /** a feather frond: an arc from (cx,cy,z) heading angle a (world xy), with comb leaflets hanging below the rib */
 export function frond(cx, cy, z, a, len, rise, droop, c, cd, lf = 3) {
-  let prev = null; const N = Math.max(5, Math.round(len * 8)), CC = C(c), CD = C(cd), CL = C(lt(c, .25));
+  let prev = null; const N = Math.max(6, Math.round(len * 15)), CC = C(c), CD = C(cd), CL = C(lt(c, .25));
   for (let i = 0; i <= N; i++) {
     const t = i / N, s = PW(cx + Math.cos(a) * len * t, cy + Math.sin(a) * len * t, z + rise * Math.sin(t * Math.PI * .7) - droop * t * t), X = Math.round(s[0]), Y = Math.round(s[1]);
-    if (lf && i > 0) { const L = Math.max(1, Math.round(lf * Math.sin(Math.min(1, t * 1.1 + .08) * Math.PI))); for (let k = 1; k <= L; k++) px(X, Y + k, (i + k) % 3 === 0 ? CD : k === L ? CD : CC); }
+    if (lf && i > 0) { const L = Math.max(1, Math.round(lf * Math.sin(Math.min(1, t * 1.1 + .08) * Math.PI))); for (let k = 1; k <= L; k++) px(X, Y + k, (i % 3 === 0) ? CD : k === L ? CD : CC); }
     if (prev) line(prev, [X, Y], c); prev = [X, Y];
   }
-  for (let i = 1; i < N; i += 2) { const t = i / N, s = PW(cx + Math.cos(a) * len * t, cy + Math.sin(a) * len * t, z + rise * Math.sin(t * Math.PI * .7) - droop * t * t); px(Math.round(s[0]), Math.round(s[1]) - 1, CL); }
+  for (let i = 1; i < N; i += 1) { const t = i / N, s = PW(cx + Math.cos(a) * len * t, cy + Math.sin(a) * len * t, z + rise * Math.sin(t * Math.PI * .7) - droop * t * t); px(Math.round(s[0]), Math.round(s[1]) - 1, CL); }
 }
 /** a crown of fronds. o: { n, len, rise, droop, lf, cols, r (rng), a0, spread (0..1 length jitter) } */
 export function rosette(cx, cy, z, o) {

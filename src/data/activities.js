@@ -56,7 +56,7 @@ export const FUNCTION_TAGS = {
   homeFixed: ['moving_box', 'delivery_box', 'front_door', 'wardrobe', 'toilet', 'sink'], // props placed by the game, not sold
   venue: ['till', 'shelf', 'seat', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'fitting_room', 'book_browse',
     'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'study_desk', 'reading_nook', 'public_computer',
-    'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen'],
+    'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen', 'record_bin', 'listening_station', 'pet_pen', 'fish_tank', 'toy_demo', 'flower_display', 'tasting_board', 'artwork', 'pen_tester', 'flash_wall', 'browse'],
   world: ['bench', 'duck_pond', 'fishing_spot', 'ferris_wheel', 'jog_path', 'viewpoint', 'garden_plot', 'swing',
     'picnic_spot', 'busker', 'street_cat'],
   none: ['self'], // activities started from the backpack or phone
@@ -259,6 +259,30 @@ export const ACTIVITIES = [
     perHour: { fun: 90 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Something from 1962. Of course.' },
   { id: 'watch_game', name: 'Watch the Match', tag: 'screen', where: 'venue', venues: ['*'], minutes: { min: 15, default: 45, max: 120 },
     perHour: { fun: 25, social: 10 }, requires: { venueOpen: true }, social: true, anim: 'stand', flavour: 'The whole room groans at once.' },
+
+  // ============================================================ SHOP BROWSING (lead, from the 2g-2 shop rooms; any interior with the fixture)
+  { id: 'dig_crates', name: 'Dig Through the Crates', tag: 'record_bin', where: 'venue', venues: ['*'], minutes: { min: 7, default: 15, max: 45 },
+    perHour: { fun: 30 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Every crate has one record you did not know you needed.' },
+  { id: 'listen_station', name: 'Listen at the Station', tag: 'listening_station', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
+    perHour: { fun: 36 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Headphones on, world off.' },
+  { id: 'meet_animals', name: 'Meet the Animals', tag: 'pet_pen', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
+    perHour: { fun: 40, social: 15 }, requires: { venueOpen: true }, anim: 'stand', social: true, flavour: 'A puppy has chosen you. You did not get a say.' },
+  { id: 'watch_fish', name: 'Watch the Fish', tag: 'fish_tank', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
+    perHour: { fun: 24 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'The little orange one is clearly in charge.' },
+  { id: 'play_display', name: 'Play with the Display', tag: 'toy_demo', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
+    perHour: { fun: 36 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'For research purposes. Obviously.' },
+  { id: 'smell_flowers', name: 'Smell the Flowers', tag: 'flower_display', where: 'venue', venues: ['*'], minutes: { min: 3, default: 5, max: 15 },
+    perHour: { fun: 30 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Peonies. It is always the peonies.' },
+  { id: 'taste_samples', name: 'Taste the Samples', tag: 'tasting_board', where: 'venue', venues: ['*'], minutes: { min: 3, default: 5, max: 15 },
+    perHour: { fun: 24, hunger: 30 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Just one more little cube.' },
+  { id: 'contemplate_art', name: 'Contemplate the Art', tag: 'artwork', where: 'venue', venues: ['*'], minutes: { min: 7, default: 15, max: 45 },
+    perHour: { fun: 20 }, requires: { venueOpen: true }, anim: 'stand', xpPerHour: { creativity: 6 }, flavour: 'You nod slowly, like someone who gets it.' },
+  { id: 'test_pens', name: 'Test the Pens', tag: 'pen_tester', where: 'venue', venues: ['*'], minutes: { min: 3, default: 5, max: 15 },
+    perHour: { fun: 24 }, requires: { venueOpen: true }, anim: 'stand', xpPerHour: { creativity: 6 }, flavour: 'Your signature, forty times, in forty inks.' },
+  { id: 'flip_flash', name: 'Flip Through the Flash', tag: 'flash_wall', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
+    perHour: { fun: 24 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'A swallow? An anchor? A tiny cactus?' },
+  { id: 'browse_wares', name: 'Browse', tag: 'browse', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
+    perHour: { fun: 18 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Just looking. Mostly.' },
 
   // ============================================================ CAFES & SEATS
   { id: 'linger', name: 'Linger a While', tag: 'seat', where: 'venue', venues: ['cafe', 'bakery', 'diner', 'ramen', 'pizza', 'restaurant', 'bar'],
