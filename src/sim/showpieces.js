@@ -81,7 +81,7 @@ function ride(up = true) {
       ctx.save(); ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
       ctx.drawImage(far, wx, mid - (PANO_H - HZ) + sh - Math.round((52 - fl) * .5));
       ctx.fillStyle = night ? '#141a36' : time === 'dusk' ? '#4a3a52' : '#6a7f8c'; ctx.fillRect(wx, mid + HZ - Math.round((52 - fl) * .5) + sh, ww, wh);
-      for (const [x, w, h, c] of TW) { const top = Math.round(mid + 22 + (fl - h) * 3.2) + sh; ctx.fillStyle = night ? '#1c2440' : c; ctx.fillRect(wx + x, top, w, 400); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(wx + x + w - 4, top, 4, 400); ctx.fillStyle = night ? '#2a3458' : '#dfe8ee'; ctx.fillRect(wx + x, top, w, 2);
+      for (const [x, w, h, c] of TW) { const top = Math.round(mid + (fl - h) * 3.2) + sh; ctx.fillStyle = night ? '#1c2440' : c; ctx.fillRect(wx + x, top, w, 400); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(wx + x + w - 4, top, 4, 400); ctx.fillStyle = night ? '#2a3458' : '#dfe8ee'; ctx.fillRect(wx + x, top, w, 2);
         for (let r = 0; r < h; r++) { const y = top + 5 + r * 6; if (y < wy - 4 || y > wy + wh) continue; for (let i = 3; i < w - 6; i += 5) { const on = ((r * 7 + i * 3 + h) % 5) < (night ? 3 : 1); ctx.fillStyle = on && time !== 'day' ? '#ffd98a' : night ? '#101830' : '#9fd0e8'; ctx.fillRect(wx + x + i, y, 3, 3); } } }
       ctx.restore();
       ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.moveTo(wx + 30, wy); ctx.lineTo(wx + 52, wy); ctx.lineTo(wx + 18, wy + wh); ctx.lineTo(wx, wy + wh); ctx.lineTo(wx, wy + 60); ctx.fill();

@@ -92,7 +92,7 @@ function buildDef() {
   [[18.9, 'SALE'], [26.9, null], [34.9, 'MBG'], [41, null]].forEach(([x, t], i) => A('mall.banner', x, 8.45, t ? { text: t, c: i ? '#2f7f86' : '#b8342e' } : {}, { z: 2 })); for (const y of [16.5, 22.4]) A('mall.banner', 8.45, y, {}, { z: 2, flip: true });
   for (let k = 0; k < 4; k++) A('airport.barrier', 12 + k * 8, 11.85, { len: 8 }); A('airport.barrier', 11.85, 12, { len: 8 }, { flip: true }); A('airport.barrier', 11.85, 20, { len: 8 }, { flip: true }); A('airport.barrier', 11.85, 28, { len: 4 }, { flip: true });
   return { id: 'deptstore', name: 'Maple Bay Galleria', w: W, d: D, zoom: 0, music: 'shop', noCrowd: true, showpiece: 'mall', floor: GT.f_stone, floors: [{ x0: 12, y0: 12, x1: W, y1: D, floor: GT.void }], bg: '#15141d',
-    wall: { color: '#f1e8d6', trim: '#8e98a8', h: 3.2, rail: 2.9 }, items, npcSpots: spots, exits: [{ x: 8.5, y: 31.4, label: 'Exit to the street' }, { x: 43.2, y: 8.5, label: 'Exit to the street' }], setup };
+    wall: { color: '#f1e8d6', trim: '#8e98a8', h: 3.2, rail: 2.9 }, items, npcSpots: spots, exits: [{ x: 8.5, y: 31.4, label: 'Exit to the street', poi: 'door:deptstore' }, { x: 43.2, y: 8.5, label: 'Exit to the street', poi: 'door:deptstore' }], setup };
 }
 const hf = () => G.now().hf, isOpen = () => { const h = hf(); return h >= MALL_HOURS[0] && h < MALL_HOURS[1]; };
 const closedMsg = name => toast(`${name} is closed. The Galleria is open ${MALL_HOURS[0]}:00 - ${MALL_HOURS[1]}:00.`, 'info');

@@ -27,3 +27,4 @@
 - Owner direction update 8: City Guide app + more events/live music (queued as 2d).
 - Fixed vehicle draw-order flicker (render.js behind(): diagonal separation uses centre depth; flipping pairs 14 -> 4 in a 25 s rush-hour test). Queued trip planner; noted future city expansion.
 - Owner direction update 10: post offices (queued in 2c).
+- Showpieces A landed: Maple Bay Galleria mall + SkyDeck observation deck, 83 new items. Stage 8 published.

@@ -26,7 +26,7 @@ const KID_LINES = ['The cars look like ANTS!', 'I can see the airport! A plane! 
 
 /* ---------------- lobby ---------------- */
 defineRoom({ id: 'skydeck_lobby', name: 'Beacon Tower — SkyDeck Lobby', w: 12, d: 9, music: 'quiet', noCrowd: true, showpiece: 'skydeck', floor: GT.f_tile, floors: [{ x0: 2, y0: 0, x1: 8, y1: 3, floor: GT.f_darkwood }],
-  wall: { color: '#e9e4da', trim: '#39424e', h: 3, rail: 2.6 }, exits: [{ x: 6, y: 8.5, label: 'Exit to the street' }],
+  wall: { color: '#e9e4da', trim: '#39424e', h: 3, rail: 2.6 }, exits: [{ x: 6, y: 8.5, label: 'Exit to the street', poi: 'door:skydeck_lobby' }],
   items: [
     { id: 'furn.skydeck.liftdoor', wall: 'y', at: 2.4, p: { floor: '1' }, lift: 'up' }, { id: 'furn.skydeck.liftdoor', wall: 'y', at: 5.4, p: { floor: '38' }, lift: 'up' },
     { id: 'furn.airport.sign', x: 2.6, y: .2, z: 2.45, p: { text: 'SKYDECK  LEVEL 52 ^', w: 5, c: '#39424e' }, solid: false },

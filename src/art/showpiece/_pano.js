@@ -44,6 +44,7 @@ export function pano(put, o) {
   if (D) for (let v = 14; v < HZ; v += 1) L(() => r(372 - (HZ - v) * .5, v, (HZ - v) + 1, .6, '#ffd08a', 0));
   if (N) for (let v = 16; v < HZ; v += 2) r(316 - (HZ - v) * .2, v, 4, .6, '#8a94c0', 0);
   lights(412, 546, HZ, HZ + 2.4, .05, '#ffe2a0', 21);
+  lights(0, 236, 0, 13, .014, '#ffd98a', 45); lights(526, PANO_W, 0, 9.5, .012, '#ffe2a0', 47);
   /* ---- Hillcrest: houses up a green hill, radio mast ---- */
   col(14, 126, 12, u => 14 - Math.pow((u - 70) / 56, 2) * 14, GR2, GR);
   for (const [u, v] of [[36, 15], [50, 19], [61, 22], [77, 23], [88, 20], [99, 17], [109, 14], [45, 14], [68, 17], [84, 15]]) house(u, v, ['#f0e6d2', '#e8d0b8', '#dfe8ee'][(u + v) % 3], ['#8a5a4a', '#5a6a84', '#a8563a'][u % 3]);
