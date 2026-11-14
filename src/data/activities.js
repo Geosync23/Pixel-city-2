@@ -56,7 +56,7 @@ export const FUNCTION_TAGS = {
   homeFixed: ['moving_box', 'delivery_box', 'front_door', 'wardrobe', 'toilet', 'sink'], // props placed by the game, not sold
   venue: ['till', 'shelf', 'seat', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'fitting_room', 'book_browse',
     'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'study_desk', 'reading_nook', 'public_computer',
-    'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank'],
+    'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen'],
   world: ['bench', 'duck_pond', 'fishing_spot', 'ferris_wheel', 'jog_path', 'viewpoint', 'garden_plot', 'swing',
     'picnic_spot', 'busker', 'street_cat'],
   none: ['self'], // activities started from the backpack or phone
@@ -249,6 +249,16 @@ export const ACTIVITIES = [
     flavour: 'The space bar sticks. The listings are fresh.' },
   { id: 'browse_books', name: 'Browse the Shelves', tag: 'book_browse', where: 'venue', venues: ['bookstore', 'library'], minutes: { min: 10, default: 20, max: 60 },
     perHour: { fun: 9 }, requires: { venueOpen: true }, anim: 'read', flavour: 'That new-book smell. And that old-book smell.' },
+
+  // ============================================================ BAR GAMES (lead, 2g follow-up; work in any venue room that has the fixture, incl. converted pub:<n> rooms)
+  { id: 'play_pool', name: 'Shoot Pool', tag: 'pool', where: 'venue', venues: ['*'], minutes: { min: 10, default: 20, max: 60 },
+    perHour: { fun: 45, social: 20 }, requires: { venueOpen: true }, social: true, anim: 'stand', flavour: 'Called the corner pocket. Missed the corner pocket.' },
+  { id: 'play_darts', name: 'Throw Darts', tag: 'darts', where: 'venue', venues: ['*'], minutes: { min: 5, default: 15, max: 45 },
+    perHour: { fun: 40 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Treble twenty. Well, the wall next to it.' },
+  { id: 'play_jukebox', name: 'Put a Song On', tag: 'jukebox', where: 'venue', venues: ['*'], minutes: { min: 3, default: 5, max: 5 }, fixed: true,
+    perHour: { fun: 90 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Something from 1962. Of course.' },
+  { id: 'watch_game', name: 'Watch the Match', tag: 'screen', where: 'venue', venues: ['*'], minutes: { min: 15, default: 45, max: 120 },
+    perHour: { fun: 25, social: 10 }, requires: { venueOpen: true }, social: true, anim: 'stand', flavour: 'The whole room groans at once.' },
 
   // ============================================================ CAFES & SEATS
   { id: 'linger', name: 'Linger a While', tag: 'seat', where: 'venue', venues: ['cafe', 'bakery', 'diner', 'ramen', 'pizza', 'restaurant', 'bar'],

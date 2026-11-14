@@ -35,6 +35,9 @@ const hm = m => { m = Math.round(m); return m < 60 ? `${m} min` : m % 60 ? `${Ma
 const clockOf = h => String(Math.floor(h) % 24).padStart(2, '0') + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0');
 const money = n => (G.money ? G.money.fmt(n) : '$' + n);
 const weatherKind = () => (G.weather && G.weather.current && (G.weather.current() || {}).kind) || G.state.weather || 'clear';
+// converted public places (pub:<n>, see public_places.js) behave like the classic venue they were built as
+const PUB_ALIAS = { cafe: 'cafe', bakery: 'bakery', diner: 'diner', eatery: 'restaurant', restaurant: 'restaurant', bar: 'bar', books: 'bookstore', boutique: 'clothing' };
+const vkey = rid => { if (!rid || !rid.startsWith('pub:')) return rid; const p = G.publicPlaces && G.publicPlaces.get(rid); return (p && (PUB_ALIAS[p.tpl] || p.tpl)) || rid; };
 const isHome = sc => { const r = (sc && sc.roomId) || ''; return r.startsWith('home') || r === 'devhome' || !!(sc && sc.def && (sc.def.home || (sc.def.tags || []).includes('home'))); };
 const invCount = id => (G.inv ? G.inv.count(id) + (isHome(G.scene) ? G.inv.fridge.count(id) : 0) : 0);
 
@@ -43,7 +46,7 @@ const HOME_T = ['bed', 'fridge', 'stove', 'microwave', 'sofa', 'tv', 'computer',
 const VENUE_T = FUNCTION_TAGS.venue.filter(t => !['till', 'shelf', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'taxi_rank'].includes(t));
 const RAW = [...new Set([...HOME_T, ...VENUE_T, 'bath', 'seating', 'booth', 'fitting', 'cardio', 'yoga', 'lockers', 'reading', 'moving', 'boxes', 'armchair'])];
 function tagsFor(fx, scene) {
-  const T = new Set(fx.tags), out = new Set(), id = fx.asset.id || '', rid = scene.roomId || '', homeAsset = T.has('home');
+  const T = new Set(fx.tags), out = new Set(), id = fx.asset.id || '', rid = vkey(scene.roomId || ''), homeAsset = T.has('home');
   if (homeAsset || isHome(scene)) {
     for (const t of HOME_T) if (T.has(t)) out.add(t);
     if (id.includes('bathtub') || (!homeAsset && T.has('bath'))) out.add('bath');
@@ -55,6 +58,8 @@ function tagsFor(fx, scene) {
     for (const t of VENUE_T) if (T.has(t)) out.add(t);
     if (T.has('seating') || T.has('booth')) { out.add('seat'); if (rid === 'bar') out.add('bar_stool'); }
     if (T.has('fitting')) out.add('fitting_room');
+    if (/bar\.pool/.test(id)) out.add('pool'); if (/dartboard/.test(id)) out.add('darts'); if (/jukebox/.test(id)) out.add('jukebox');
+    if (/(^|\.)(pf\.tv)$/.test(id) && ((fx.item && fx.item.p) || {}).kind === 'sport') out.add('screen');
     if (rid === 'gym') { if (T.has('cardio')) out.add('treadmill'); if (T.has('yoga') && !T.has('decor')) out.add('yoga_studio'); if (T.has('lockers')) out.add('locker_shower'); }
     if (rid === 'library') { if (T.has('reading')) out.add('study_desk'); if (T.has('armchair')) out.add('reading_nook'); if (T.has('computer')) out.add('public_computer'); }
     if ((rid === 'library' || rid === 'bookstore') && T.has('bookshelf')) out.add('book_browse');
@@ -62,8 +67,8 @@ function tagsFor(fx, scene) {
   return [...out];
 }
 function forTags(tags, scene) {
-  const rid = (scene && scene.roomId) || '', home = isHome(scene), city = scene && !scene.indoor;
-  return ACTIVITIES.filter(a => tags.includes(a.tag) && (a.where === 'home' ? home : a.where === 'venue' ? (a.venues || []).includes(rid) : a.where === 'world' ? city : true));
+  const rid = vkey((scene && scene.roomId) || ''), home = isHome(scene), city = scene && !scene.indoor;
+  return ACTIVITIES.filter(a => tags.includes(a.tag) && (a.where === 'home' ? home : a.where === 'venue' ? ((a.venues || []).includes(rid) || ((a.venues || []).includes('*') && scene && scene.indoor && !home)) : a.where === 'world' ? city : true));
 }
 
 /* ---------- requirements ---------- */

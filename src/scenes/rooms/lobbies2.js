@@ -12,11 +12,11 @@ export const LOBBY_SPECS = {
   twotone: [
     { name: 'Garnet Exchange', sign: 'GARNET', kind: O, style: 'corp', v: 0, w: 11, d: 8, f: 'gate', c: { fl: 'f_stone', cf: 'f_carpet', wc: '#e8dcd0', wt: '#5a2f3f', m: 'brass', a: '#e8c06a', s: '#7a2f3a', wd: '#6a3040', lgc: '#5a2f3f', dkc: '#6a3040', ch: 'deco', tc: '#d8c8b0' },
       blurb: 'A garnet-red trading house lobby: wine-coloured panelling, brass gates and brokers pretending not to run.', sig: 'Brass security gates', tryThis: ['Wait on the red sofa', 'Check the felt directory'] },
-    { name: 'Harbor Trust Building', sign: 'HARBOR TRUST', kind: O, style: 'deco', w: 12, d: 8, lifts: 2, c: { fl: 'f_check', wc: '#e4dcc8', wt: '#2f4a3f', m: 'brass', pc: '#2f4a3f', lc: '#2f4a3f', dkc: '#2f4a3f', cc: '#2f4a3f', s: '#2f5a4a', mc: '#cfe0d4', ik: 'star', ic: '#2f4a3f' },
+    { name: 'Harbor Trust Building', sign: 'TRUST', kind: O, style: 'deco', w: 12, d: 8, lifts: 2, c: { fl: 'f_check', wc: '#e4dcc8', wt: '#2f4a3f', m: 'brass', pc: '#2f4a3f', lc: '#2f4a3f', dkc: '#2f4a3f', cc: '#2f4a3f', s: '#2f5a4a', mc: '#cfe0d4', ik: 'star', ic: '#2f4a3f' },
       blurb: 'Built in 1929 and proud of it: green marble, a brass sunburst, lifts with dial indicators and a chequerboard floor polished by ninety years of good shoes.', sig: 'The brass sunburst wall', tryThis: ['Watch the lift dials sweep', 'Sit on the green settee', 'Read the directory board'] },
     { name: 'Northgate Centre', sign: 'NORTHGATE', kind: O, style: 'corp', v: 1, w: 10, d: 8, c: { fl: 'f_tile', cf: 'f_carpet', wc: '#dfe8e8', wt: '#2f6f6f', m: 'steel', a: '#2f8f8a', s: '#2f8f8a', wd: '#c8b890', lgc: '#2f6f6f', desk: 'steel', dkc: '#dfe8e8', dir: 'digital', scr: '#1b4a4a' },
       blurb: 'A tidy teal-and-steel lobby where the lifts are on the side wall and the queue belts are always perfectly straight.', sig: 'Side-wall lift bank', tryThis: ['Take a seat by the water cooler', 'Scroll the digital directory'] },
-    { name: 'Hollis Price Chambers', sign: 'HOLLIS PRICE', kind: O, style: 'corp', v: 0, w: 12, d: 9, mir: true, f: 'books nopatch', c: { fl: 'f_darkwood', wc: '#3f5a4a', wt: '#3a2a1e', m: 'brass', a: '#e8c06a', s: '#5a2f3f', wd: '#5a3a28', lgc: '#3a2a1e', desk: 'green', ch: 'crystal', sk: 'globe', lift: 'deco', lc: '#3a2a1e', rd: '#8a5a3a' },
+    { name: 'Hollis Price Chambers', sign: 'HOLLIS', kind: O, style: 'corp', v: 0, w: 12, d: 9, mir: true, f: 'books nopatch', c: { fl: 'f_darkwood', wc: '#3f5a4a', wt: '#3a2a1e', m: 'brass', a: '#e8c06a', s: '#5a2f3f', wd: '#5a3a28', lgc: '#3a2a1e', desk: 'green', ch: 'crystal', sk: 'globe', lift: 'deco', lc: '#3a2a1e', rd: '#8a5a3a' },
       blurb: 'Barristers\' chambers with bottle-green walls, a law library in the lobby and a silence you could file.', sig: 'The lobby law library', tryThis: ['Browse the bylaws', 'Sink into the burgundy sofa'] },
   ],
   round: [
@@ -38,9 +38,9 @@ export const LOBBY_SPECS = {
       blurb: 'A research institute in warm board-marked concrete with timber benches, four big columns and one very well-used vending machine.', sig: 'Four concrete columns', tryThis: ['Rest on a timber bench', 'Look up a department'] },
   ],
   setback: [
-    { name: 'The Lanternworks Building', sign: 'LANTERNWORKS', kind: O, style: 'deco', w: 13, d: 9, lifts: 3, c: { fl: 'f_stone', wc: '#3a3440', wt: '#d8a848', m: 'brass', pc: '#2a2430', lc: '#2a2430', s: '#7a2f3a', mc: '#3a3440', ik: 'compass', ic: '#2a2733', r2: '#e8dcc0' },
+    { name: 'The Lanternworks Building', sign: 'LANTERN', kind: O, style: 'deco', w: 13, d: 9, lifts: 3, c: { fl: 'f_stone', wc: '#3a3440', wt: '#d8a848', m: 'brass', pc: '#2a2430', lc: '#2a2430', s: '#7a2f3a', mc: '#3a3440', ik: 'compass', ic: '#2a2733', r2: '#e8dcc0' },
       blurb: 'Black stone and brass from the days when the Lanternworks lit the whole bay. Three dial-top lifts, two chandeliers, one doorman who has seen everything.', sig: 'Three brass lifts in a row', tryThis: ['Stand on the compass inlay', 'Sit on the wine-red settee', 'Find a tenant on the felt board'] },
-    { name: 'Carrow & Finch Tower', sign: 'CARROW FINCH', kind: O, style: 'deco', w: 11, d: 8, mir: true, lifts: 2, c: { fl: 'f_tile', wc: '#f1e6d0', wt: '#c0704a', m: 'copper', pc: '#5a3a30', lc: '#5a3a30', dkc: '#5a3a30', cc: '#5a3a30', s: '#2f3f72', mc: '#f1e6d0', ik: 'diamond', ic: '#5a3a30', r2: '#f1e6d0' },
+    { name: 'Carrow & Finch Tower', sign: 'CARROW', kind: O, style: 'deco', w: 11, d: 8, mir: true, lifts: 2, c: { fl: 'f_tile', wc: '#f1e6d0', wt: '#c0704a', m: 'copper', pc: '#5a3a30', lc: '#5a3a30', dkc: '#5a3a30', cc: '#5a3a30', s: '#2f3f72', mc: '#f1e6d0', ik: 'diamond', ic: '#5a3a30', r2: '#f1e6d0' },
       blurb: 'Cream walls, copper lifts and a diamond floor: the prettiest way in Maple Bay to be told that Mr Finch is in a meeting.', sig: 'Copper lift doors', tryThis: ['Admire the diamond floor', 'Wait on the blue settee'] },
   ],
   banded: [
