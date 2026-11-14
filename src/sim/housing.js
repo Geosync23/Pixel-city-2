@@ -5,6 +5,9 @@
 //   items:   [{ uid, itemId, asset, x, y, flip } | { uid, itemId, asset, wall: 'y'|'x', at }]   placed furniture (room coords of the min corner;
 //             `inc: 1` = came with the home: movable, but not sellable and it stays behind when you move). Art params come from VIS[itemId].
 //             `r: 'bath'` = the piece stands in the home's BATHROOM (room `home:<id>:bath`, coords are that room's); no `r` = the main room.
+//   shellV: n                          version of the home's shell (SHELLS[id].v) the furniture was laid out for. Lower than the shell's -> migrateShell() on load:
+//                                      landlord's pieces go to their new slots, everything else stays where it still fits, else moves to the nearest free
+//                                      spot, else goes into storage (never lost); the player gets one toast about it.
 //   bathV: 1                           bathrooms-as-rooms migration done (old saves: showers/tubs move from the main room to the bathroom slots, see migrateBath)
 //   storage: [itemId]                  owned but not placed            stay: [itemId]  stored pieces that belong to the home
 //   boxes:   [{ uid, k: 'm' (moving) | 'd' (delivery), label, items: [itemId], gives?: [{ item, qty }], intro? }]   unopened boxes standing in the home
@@ -40,6 +43,7 @@ import { MORTGAGE, SELL_BACK, DELIVERY } from '../data/economy.js';
 import { asset, assetSize } from '../art/registry.js';
 import { SHELLS, STORY_HOMES, withExit, bathDoorItems, bathDef } from '../scenes/rooms/homes.js';
 import { toast } from '../ui/kit.js';
+import { GT } from '../engine/world.js';
 
 export const order = 60;
 
@@ -72,8 +76,8 @@ export function visual(itemId) {
 }
 
 let S = null;
-const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1, bathV: 1 });
-function norm() { S = G.state.home; if (!S || typeof S !== 'object') S = G.state.home = blank(); const old = S.bathV === undefined; const b = blank(); for (const k in b) if (S[k] === undefined) S[k] = b[k]; if (S.id && !SHELLS[S.id]) S.id = null; if (old) { S.bathV = 0; } if (!S.bathV) migrateBath(); return S; }
+const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1, bathV: 1, shellV: 0 });
+function norm() { S = G.state.home; if (!S || typeof S !== 'object') S = G.state.home = blank(); const old = S.bathV === undefined; const b = blank(); for (const k in b) if (S[k] === undefined) S[k] = b[k]; if (S.id && !SHELLS[S.id]) S.id = null; if (old) { S.bathV = 0; } if (!S.bathV) migrateBath(); if (S.id && (S.shellV || 1) < shellV(S.id)) migrateShell(); return S; }
 /* ---------- rooms of a home: 'main' | 'bath' ---------- */
 const BATH_TAGS = ['shower', 'bath'];
 const isBathGood = itemId => { const it = ITEM_BY_ID[itemId]; return !!it && BATH_TAGS.includes(it.tag); };
@@ -112,12 +116,15 @@ function sizeOfDef(i) { let a; try { a = asset(i.id); } catch (e) { return [1, 1
 function rectOfDef(i) { const s = sizeOfDef(i); return [i.x, i.y, i.x + s[0], i.y + s[1]]; }
 function solidDef(i) { if (i.wall || i.solid === false) return false; try { return asset(i.id).solid !== false; } catch (e) { return false; } }
 const hit = (a, b) => a[0] < b[2] - EPS && b[0] < a[2] - EPS && a[1] < b[3] - EPS && b[1] < a[3] - EPS;
-function keepRects(sh) { const out = [], wr = (b) => (b.wall === 'y' ? [b.at - .1, 0, b.at + 1.1, 1.5] : [0, b.at - .1, 1.5, b.at + 1.1]); if (sh.door) out.push(wr(sh.door)); else out.push([sh.exit.x - 1, sh.exit.y - 1.5, sh.exit.x + 1, sh.exit.y + .5]); if (sh.bathDoor) out.push(wr(sh.bathDoor)); return out; }
+const voidRects = sh => (sh.floors || []).filter(f => f.floor === GT.void).map(f => [Math.floor(f.x0), Math.floor(f.y0), Math.ceil(f.x1), Math.ceil(f.y1)]);   // holes in the floor plan (L-shaped rooms)
+/** stretches of a back wall hidden behind a full-height block of the shell (nothing can hang there) */
+const wallCover = (sh, wall) => (sh.fixed || []).filter(i => !i.wall && i.id.includes('build.block')).map(rectOfDef).filter(r => (wall === 'y' ? r[1] : r[0]) < EPS).map(r => (wall === 'y' ? [r[0], r[2]] : [r[1], r[3]]));
+function keepRects(sh) { const out = [], wr = (b) => { const o = b.off || 0; return b.wall === 'y' ? [b.at - .1, o, b.at + 1.1, o + 1.5] : [o, b.at - .1, o + 1.5, b.at + 1.1]; }; if (sh.door) out.push(wr(sh.door)); else out.push([sh.exit.x - 1, sh.exit.y - 1.5, sh.exit.x + 1, sh.exit.y + .5]); if (sh.bathDoor) out.push(wr(sh.bathDoor)); return out; }
 function spawnOf(sh) { return sh.door ? (sh.door.wall === 'y' ? [sh.door.at + .5, .9] : [.9, sh.door.at + .5]) : [sh.exit.x, sh.exit.y - .2]; }
 /** which of the rects can be walked up to from the door (rects = solids; all of them block) */
-function reach(sh, rects) {
+function reach(sh, rects, blocked = []) {
   const W = sh.w * 2, D = sh.d * 2, g = new Uint8Array(W * D);
-  for (const r of rects) for (let y = Math.max(0, Math.floor(r[1] * 2 + EPS)); y < Math.min(D, Math.ceil(r[3] * 2 - EPS)); y++) for (let x = Math.max(0, Math.floor(r[0] * 2 + EPS)); x < Math.min(W, Math.ceil(r[2] * 2 - EPS)); x++) g[y * W + x] = 1;
+  for (const r of rects.concat(blocked)) for (let y = Math.max(0, Math.floor(r[1] * 2 + EPS)); y < Math.min(D, Math.ceil(r[3] * 2 - EPS)); y++) for (let x = Math.max(0, Math.floor(r[0] * 2 + EPS)); x < Math.min(W, Math.ceil(r[2] * 2 - EPS)); x++) g[y * W + x] = 1;
   const sp = spawnOf(sh), q = [Math.min(D - 1, Math.floor(sp[1] * 2)) * W + Math.min(W - 1, Math.floor(sp[0] * 2))]; if (g[q[0]]) return rects.map(() => false); g[q[0]] = 2;
   while (q.length) { const c = q.pop(), x = c % W, y = (c - x) / W; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= D) continue; const k = ny * W + nx; if (!g[k]) { g[k] = 2; q.push(k); } } }
   return rects.map(r => { for (let y = Math.floor(r[1] * 2 + EPS) - 1; y <= Math.ceil(r[3] * 2 - EPS); y++) for (let x = Math.floor(r[0] * 2 + EPS) - 1; x <= Math.ceil(r[2] * 2 - EPS); x++) if (x >= 0 && y >= 0 && x < W && y < D && g[y * W + x] === 2) return true; return false; });
@@ -128,6 +135,7 @@ function check(c, ignore, room = curRoom()) {
   if (v.wall) {
     if (!c.wall) return 'This hangs on a wall';
     const L = c.wall === 'y' ? sh.w : sh.d, w = v.size[0]; if (c.at < -EPS || c.at + w > L + EPS) return 'Off the end of the wall';
+    for (const s of wallCover(sh, c.wall)) if (c.at < s[1] - EPS && s[0] < c.at + w - EPS) return 'A wall is in the way';
     if (v.a.id.includes('fairylights')) return null;
     for (const i of items) if (i.wall === c.wall && !i.id.includes('fairylights')) { const s = sizeOfDef(i)[0]; if (c.at < i.at + s - EPS && i.at < c.at + w - EPS) return 'Something already hangs there'; }
     return null;
@@ -135,11 +143,12 @@ function check(c, ignore, room = curRoom()) {
   if (c.wall) return 'This stands on the floor';
   const s = c.flip ? [v.size[1], v.size[0]] : v.size, r = [c.x, c.y, c.x + s[0], c.y + s[1]];
   if (r[0] < -EPS || r[1] < -EPS || r[2] > sh.w + EPS || r[3] > sh.d + EPS) return 'Outside the room';
+  const voids = voidRects(sh); for (const k of voids) if (hit(r, k)) return 'Outside the room';
   if (!v.solid) return null;
   const solids = items.filter(solidDef).map(rectOfDef);
   for (const o of solids) if (hit(r, o)) return 'Something is in the way';
   for (const k of keepRects(sh)) if (hit(r, k)) return 'Keep the doorway clear';
-  const before = reach(sh, solids), after = reach(sh, solids.concat([r]));
+  const before = reach(sh, solids, voids), after = reach(sh, solids.concat([r]), voids);
   if (!after[solids.length]) return 'You could not get to it there';
   for (let i = 0; i < solids.length; i++) if (before[i] && !after[i]) return 'That would block the way';
   return null;
@@ -170,7 +179,7 @@ function roomDef(id, room) {
   const list = sh.fixed.map(i => Object.assign({ fixed: true }, i)).concat(bath ? [] : bathDoorItems(sh));
   for (const it of mine ? S.items : included(id).items) if (inRoom(it, room)) list.push(defOf(it));
   if (mine && S.boxes.length && !bath) {
-    const solids = list.filter(solidDef).map(rectOfDef).concat(keepRects(sh)), spots = sh.boxes.slice();
+    const solids = list.filter(solidDef).map(rectOfDef).concat(keepRects(sh), voidRects(sh)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
     for (const b of S.boxes) {
       const sz = b.k === 'm' ? 1 : .5; let at = null;
@@ -184,11 +193,49 @@ function roomDef(id, room) {
   return withExit({ name: h.name, home: mine, homeId: id, w: sh.w, d: sh.d, floor: sh.floor, floors: sh.floors, wall: sh.wall, items: list }, sh, 'home:' + id);
 }
 
+/* ---------- shell versions: the building was rebuilt (SHELLS[id].v went up) -> re-fit the furniture of an old save ---------- */
+function shellV(id) { return (SHELLS[id] && SHELLS[id].v) || 1; }
+let note = null;                                     // one toast about the re-fit, shown on the next scene change
+const fixedMass = (sh, x, y) => (sh.fixed || []).some(i => { if (i.wall || !i.id.includes('build.') || !solidDef(i)) return false; const r = rectOfDef(i); return x > r[0] && x < r[2] && y > r[1] && y < r[3]; });
+function fits(itemId, pos, room) {
+  if (check(Object.assign({ itemId }, pos), undefined, room)) return false; const v = visual(itemId);
+  if (!v.wall && !v.solid) { const s = pos.flip ? [v.size[1], v.size[0]] : v.size; if (fixedMass(shOf(S.id, room), pos.x + s[0] / 2, pos.y + s[1] / 2)) return false; }   // a rug under a wall
+  return true;
+}
+function nearest(it, room) {
+  const sh = shOf(S.id, room), v = visual(it.itemId), out = [];
+  if (v.wall) { const w0 = it.wall === 'x' ? 'x' : 'y'; for (const w of [w0, w0 === 'y' ? 'x' : 'y']) { const L = (w === 'y' ? sh.w : sh.d) - v.size[0]; for (let at = 0; at <= L + EPS; at += .5) out.push({ pos: { wall: w, at }, d: Math.abs(at - (it.at || 0)) + (w === w0 ? 0 : 100) }); } }
+  else { const ox = it.x || 0, oy = it.y || 0; for (const flip of [!!it.flip, !it.flip]) { const s = flip ? [v.size[1], v.size[0]] : v.size; for (let y = 0; y <= sh.d - s[1] + EPS; y += .5) for (let x = 0; x <= sh.w - s[0] + EPS; x += .5) out.push({ pos: { x, y, flip }, d: Math.hypot(x - ox, y - oy) + (flip === !!it.flip ? 0 : .75) }); } }
+  out.sort((a, b) => a.d - b.d);
+  const solids = v.wall || !v.solid ? null : roomDef(S.id, room).items.filter(solidDef).map(rectOfDef).concat(voidRects(sh), keepRects(sh));
+  for (const c of out) {
+    if (solids) { const s = c.pos.flip ? [v.size[1], v.size[0]] : v.size, r = [c.pos.x, c.pos.y, c.pos.x + s[0], c.pos.y + s[1]]; if (solids.some(o => hit(r, o))) continue; }   // cheap test first
+    if (fits(it.itemId, c.pos, room)) return c.pos;
+  }
+  return null;
+}
+function migrateShell() {
+  const id = S.id; S.shellV = shellV(id); if (!id || !S.items.length) return;
+  const all = S.items, boxes = S.boxes, slots = included(id).items.slice(), stored = []; let moved = 0; S.items = []; S.boxes = [];
+  const rank = it => (it.inc ? 0 : visual(it.itemId).wall ? 3 : visual(it.itemId).solid ? 1 : 2);
+  for (const it of all.slice().sort((a, b) => rank(a) - rank(b))) {
+    const v = visual(it.itemId); let room = it.r === 'bath' && shOf(id, 'bath') ? 'bath' : 'main', pos = null; const was = JSON.stringify(posOf(v, it)) + room;
+    if (it.inc) { const k = slots.findIndex(s => s.itemId === it.itemId); if (k >= 0) { const s = slots.splice(k, 1)[0], rm = s.r === 'bath' ? 'bath' : 'main', p = posOf(v, s); if (fits(it.itemId, p, rm)) { pos = p; room = rm; } } }   // landlord's pieces: to their new places
+    if (!pos && fits(it.itemId, posOf(v, it), room)) pos = posOf(v, it);                                                    // still fine where it stands
+    if (!pos) pos = nearest(it, room);                                                                                      // nearest free spot
+    if (!pos) { (it.inc ? S.stay : S.storage).push(it.itemId); stored.push(nameOf(it.itemId)); continue; }                  // no room at all: into storage
+    delete it.x; delete it.y; delete it.flip; delete it.wall; delete it.at; delete it.r; Object.assign(it, pos); if (room === 'bath') it.r = 'bath';
+    S.items.push(it); if (JSON.stringify(pos) + room !== was) moved++;
+  }
+  S.boxes = boxes;
+  if (moved || stored.length) note = `${HOME_BY_ID[id].name} has been rebuilt: ` + (moved ? `${moved} of your things ${moved === 1 ? 'was' : 'were'} moved to fit the new layout` : '') + (moved && stored.length ? ', and ' : '') + (stored.length ? `${stored.join(', ')} ${stored.length === 1 ? 'is' : 'are'} in storage (Decorate to place ${stored.length === 1 ? 'it' : 'them'})` : '') + '.';
+}
+
 /* ---------- moving in / out ---------- */
 function moveIn(id, owned, o = {}) {
   const prev = S.id, carry = prev ? S.items.filter(i => !i.inc).map(i => i.itemId).concat(S.storage) : S.storage.slice();
   const inc = included(id);
-  S.id = id; S.owned = !!owned; S.items = inc.items.map(i => Object.assign({ uid: uid('f') }, i)); S.stay = inc.rest.slice(); S.storage = [];
+  S.id = id; S.owned = !!owned; S.shellV = shellV(id); S.items = inc.items.map(i => Object.assign({ uid: uid('f') }, i)); S.stay = inc.rest.slice(); S.storage = [];
   if (!prev) S.boxes = [];
   if (o.intro) for (const b of MOVING_BOXES) S.boxes.push({ uid: uid('b'), k: 'm', label: b.label, items: [], gives: b.gives, intro: 1 });
   while (carry.length && S.boxes.length < 7) S.boxes.push({ uid: uid('b'), k: 'm', label: 'FURNITURE', items: carry.splice(0, 4) });
@@ -342,7 +389,7 @@ export function init() {
   G.on('shop:buy', drain);
   G.on('minutes', () => { if (S.pending.length) land(false); });
   G.on('hour', homeMood);
-  G.on('scene', s => { if (s && s.id === 'city') lockDoors(s.world); else homeMood(); });
+  G.on('scene', s => { if (s && s.id === 'city') lockDoors(s.world); else homeMood(); if (note) { const n = note; note = null; setTimeout(() => toast(n, 'info', 7000), 900); } });
   const city = G.sceneCache.get('city'); if (city) lockDoors(city.world);
   let ctx = null;
   G.on('activity:start', (id, c) => { ctx = id === 'unpack_boxes' || id === 'assemble_furniture' ? c : null; });

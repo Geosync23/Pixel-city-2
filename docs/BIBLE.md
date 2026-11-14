@@ -182,3 +182,10 @@ Showpiece track (one big worker each, highest priority for free slots after Wave
  S5 Arena (existing bld.civic.arena) — basketball games + concerts with crowds, concourse food, scoreboard.
  S6 Aquarium (NEW, harbor) — tunnel tank, touch pool, jellyfish room.
  S7 Harbor fish market hall + lighthouse climb (existing). S8 City Hall rotunda (existing; story/civic). S9 Natatorium / public pool (existing bld.civic.pool). S10 University (already planned 2j; existing bld.arts.unihall).
+
+## Direction update 15 — navigation arrow follows you everywhere (owner msg 72) — TOP PRIORITY for the next worker
+- The trip chooser (walk/train/bus/cab estimates) is "perfect" — keep it.
+- The waypoint arrow must NEVER disappear: when the target is off-screen it sits at the screen EDGE pointing the way; it works in every scene (city, Central Station hall, platforms, airport, any interior),
+  pointing to the exit/door/stairs that leads toward the next leg, so the player goes "from space to space".
+- Every mode is guided end to end: walk to the cab / bus stop / station entrance -> through the station to the right platform -> board -> ride -> get off -> walk to the destination door. No leg relies on text notes alone.
+- On a train or bus: a red arrow marks your station/stop on approach, and a clear "This is your stop" notice pops up (sound + banner). The player still gets off themselves.

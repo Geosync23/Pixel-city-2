@@ -27,7 +27,7 @@ function partition(p) {
   if (p.glass) {
     const hb = p.base === undefined ? .5 : p.base;
     box(0, y0, 0, L, th, hb, c, { l: wp(p, .1), r: wp(p, .26), t: tr });
-    qy(0, L, y0 + th / 2, hb, h, '#cfeaf2', 'glass'); for (let x = 0; x <= L + .01; x += 1) lw([Math.min(x, L - .02), y0 + th / 2, hb], [Math.min(x, L - .02), y0 + th / 2, h], tr);
+    qy(0, L, y0 + th / 2, hb, h, (u, v) => (((u - v) % 9 === 0) ? '#e3f4fa' : null)); for (let x = 0; x <= L + .01; x += 1) lw([Math.min(x, L - .02), y0 + th / 2, hb], [Math.min(x, L - .02), y0 + th / 2, h], tr);
     lw([0, y0 + th / 2, h], [L, y0 + th / 2, h], tr); for (let x = .3; x < L; x += 1) { lw([x, y0 + th / 2, h - .2], [x + .16, y0 + th / 2, h - .5], '#f4fbfd'); }
   } else box(0, y0, 0, L, th, h, c, { l: wp(p, .1), r: wp(p, .26), t: p.cap || CUT });
   qy(0, L, y0 + th, 0, .2, tr); qx(L, y0, y0 + th, 0, .2, dk(tr, .15));
@@ -60,7 +60,7 @@ function stairs(p) {
 }
 function railing(p) {
   const L = p.len || 2, st = p.style || 'iron', y = .3;
-  if (st === 'glass') { const m = p.c || '#c2cad0'; qy(0, L, y, .08, .86, '#cfeaf2', 'glass'); for (let x = 0; x <= L + .01; x += 1) { const xx = Math.min(x, L - .04); b(xx, y - .02, 0, .05, .06, .92, m); } lw([0, y, .9], [L, y, .9], lt(m, .3)); lw([0, y, .08], [L, y, .08], dk(m, .2)); for (let x = .3; x < L; x += 1) lw([x, y, .7], [x + .14, y, .42], '#f4fbfd'); return; }
+  if (st === 'glass') { const m = p.c || '#c2cad0'; qy(0, L, y, .08, .86, (u, v) => (((u - v) % 9 === 0) ? '#e3f4fa' : null)); for (let x = 0; x <= L + .01; x += 1) { const xx = Math.min(x, L - .04); b(xx, y - .02, 0, .05, .06, .92, m); } lw([0, y, .9], [L, y, .9], lt(m, .3)); lw([0, y, .08], [L, y, .08], dk(m, .2)); for (let x = .3; x < L; x += 1) lw([x, y, .7], [x + .14, y, .42], '#f4fbfd'); return; }
   if (st === 'stone') { const c = p.c || '#efe8da'; b(0, y - .1, 0, L, .3, .12, c); for (let x = .12; x < L - .05; x += .25) { cyl(x, y + .05, .12, .05, .5, c, { ol: false }); } b(0, y - .12, .62, L, .34, .12, c, { t: lt(c, .3) }); lw([0, y + .22, .62], [L, y + .22, .62], dk(c, .3)); return; }
   if (st === 'picket') { const c = p.c || '#f8f5ee'; lw([0, y, .3], [L, y, .3], dk(c, .25)); lw([0, y, .62], [L, y, .62], dk(c, .25)); for (let x = .06; x < L - .05; x += .19) { qy(x, x + .11, y + .02, 0, .78, c); dot(x + .05, y + .02, .84, c); lw([x + .11, y + .02, 0], [x + .11, y + .02, .78], dk(c, .22)); } return; }
   const c = p.c || (st === 'wood' ? '#7a5238' : '#3a3440');
@@ -118,10 +118,10 @@ function beam(p) {
   for (let x = .25; x < L; x += .5) { dot(x, .4, .03, lt(c, .4)); dot(x, .4, .29, lt(c, .4)); } lw([0, .4, 0], [L, .4, 0], dk(c, .5));
 }
 function arch(p) {
-  const W = p.w || 3, c = p.c || '#f4efe4', H = p.h || 1.1, top = .16, hz = H - top, n = Math.max(5, Math.round(hz * 8)), y0 = .12, th = .26;
+  const W = p.w || 3, c = p.c || '#f4efe4', H = p.h || 1.1, top = p.top || .42, hz = H - top, n = Math.max(5, Math.round(hz * 8)), y0 = .12, th = .26;
   for (let k = 0; k < n; k++) { const z0 = (k / n) * hz, zc = ((k + .5) / n) * hz, half = (W / 2) * Math.sqrt(Math.max(0, 1 - (zc / hz) * (zc / hz))), sw = W / 2 - half;
     if (sw > .03) { b(0, y0, z0, sw, th, hz / n + .01, c, { l: dk(c, .08), r: dk(c, .2) }); b(W - sw, y0, z0, sw, th, hz / n + .01, c, { l: dk(c, .08) }); } }
-  box(0, y0, hz, W, th, top, c, { t: CUT, l: dk(c, .08), ol: false }); lw([0, y0 + th, H], [W, y0 + th, H], dk(c, .3)); lw([0, y0 + th, hz], [W, y0 + th, hz], dk(c, .16));
+  box(0, y0, hz, W, th, top, c, { t: CUT, l: dk(c, .08), ol: false }); lw([0, y0 + th, H], [W, y0 + th, H], dk(c, .3)); lw([0, y0 + th, hz], [W, y0 + th, hz], p.trim || dk(c, .25)); lw([0, y0 + th, hz + .06], [W, y0 + th, hz + .06], p.trim || dk(c, .25));
   b(W / 2 - .1, y0 + th, hz - .12, .2, .04, .26, dk(c, .1));
 }
 
@@ -200,7 +200,7 @@ export default [
   A('windowseat', ['seat', 'sofa', 'living'], { size: p => [p.len || 2, 1, .5], vb: p => [0, 0, 0, p.len || 2, 1, .9], use: p => ({ x: (p.len || 2) / 2, y: 1.35 }), seatsFor: p => { p = p || {}; const L = p.len || 2, o = []; for (let x = .5; x < L; x += 1) o.push({ x, y: .55, z: .5, dir: 1 }); return o; },
     variants: [{}, { len: 3, c: FAB.teal }, { len: 2, c: FAB.mustard, wood: '#f1eee6' }], draw: windowSeat }),
   A('lemontree', ['plant'], { size: [.5, .5, 1.8], vb: [-.3, -.3, 0, .8, .8, 2], variants: [{}, { pot: '#f1eee6', seed: 9 }], draw: lemonTree }),
-  A('gardenbed', ['garden'], { size: p => [p.len || 2, 1, .35], vb: p => [0, 0, 0, p.len || 2, 1, .8], use: p => ({ x: (p.len || 2) / 2, y: 1.35 }), variants: [{}, { len: 3, seed: 5 }], draw: gardenBed }),
+  A('gardenbed', ['homegarden'], { size: p => [p.len || 2, 1, .35], vb: p => [0, 0, 0, p.len || 2, 1, .8], use: p => ({ x: (p.len || 2) / 2, y: 1.35 }), variants: [{}, { len: 3, seed: 5 }], draw: gardenBed }),
   A('step', ['floor'], { solid: false, size: p => [p.w || 3, p.d || 3, .02], vb: p => [0, 0, -.25, p.w || 3, p.d || 3, .2], variants: [{ sunk: true }, { raise: true, c: '#7a5238', boards: true, edge: '#5e3f30' }, { sunk: true, w: 5, d: 4, c: '#5a6a8a', edge: '#c9a24a' }], draw: step }),
   A('lightpool', ['floor'], { solid: false, size: p => [p.w || 3, p.d || 2, .02], variants: [{}, { w: 4, d: 3, nx: 4, ny: 3 }], draw: lightPool }),
   A('paint', ['floor'], { solid: false, size: p => [p.w || 3, p.d || 3, .02], variants: [{}, { w: 4, d: 4, seed: 3 }], draw: paint }),

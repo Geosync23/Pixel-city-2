@@ -142,16 +142,16 @@ function koipond(p) {
   for (const q of POND.pads) { pad(q[0], q[1], .02, 4, 0); pad(q[0] + .35, q[1] + .2, .02, 3, 0); } lotus(POND.pads[0][0], POND.pads[0][1], .04, '#ffd0e0'); lotus(POND.pads[3][0], POND.pads[3][1], .04); lotus(POND.pads[5][0] + .3, POND.pads[5][1] + .2, .04, '#ffd0e0');
 }
 function rail(L, h, y) {
-  for (let i = 0; i <= 6; i++) { const x = i * L / 6, z = archZ(i / 6, h); for (const o of [0, .0625]) lw([Math.min(L - .07, x + o), y, z], [Math.min(L - .07, x + o), y, z + .78], o ? dk(RED, .2) : RED); dot(Math.min(L - .07, x), y, z + .84, GOLD); dot(Math.min(L - .07, x), y, z + .84, GOLD, 1, 0); }
+  const NP = Math.round(L / 1.15); for (let i = 0; i <= NP; i++) { const x = i * L / NP, z = archZ(i / NP, h); for (const o of [0, .0625]) lw([Math.min(L - .07, x + o), y, z], [Math.min(L - .07, x + o), y, z + .78], o ? dk(RED, .2) : RED); dot(Math.min(L - .07, x), y, z + .84, GOLD); dot(Math.min(L - .07, x), y, z + .84, GOLD, 1, 0); }
   let a = null, b = null; for (let i = 0; i <= 28; i++) { const t = i / 28, q = S2(t * L, y, archZ(t, h) + .7), m = S2(t * L, y, archZ(t, h) + .36); if (a) { line(a, q, RED); line([a[0], a[1] + 1], [q[0], q[1] + 1], dk(RED, .25)); line(b, m, dk(RED, .12)); } a = q; b = m; }
 }
 function bridge(p) {
-  const L = p.len || 7, D = 1.5, h = p.h || POND.bridge.h, N = 21;
+  const L = p.len || 9, D = 1.5, h = p.h || POND.bridge.h, N = 27;
   for (const t of [.28, .72]) for (const y of [.2, D - .2]) for (const o of [0, .0625]) lw([t * L + o, y, 0], [t * L + o, y, archZ(t, h)], '#5a2a24');
   rail(L, h, .12);
   for (let i = 0; i < N; i++) { const x0 = i * L / N, x1 = (i + 1) * L / N, z0 = archZ(i / N, h), z1 = archZ((i + 1) / N, h); fq([[x0, .12, z0], [x1, .12, z1], [x1, D - .1, z1], [x0, D - .1, z0]], i % 2 ? '#a8744a' : '#9a6840'); fq([[x0, D - .1, z0], [x1, D - .1, z1], [x1, D - .1, Math.max(0, z1 - .14)], [x0, D - .1, Math.max(0, z0 - .14)]], dk(RED, .28)); }
 }
-function bridgerail(p) { rail(p.len || 7, p.h || POND.bridge.h, .06); }
+function bridgerail(p) { rail(p.len || 9, p.h || POND.bridge.h, .06); }
 
 /* ---------- furniture ---------- */
 function bench() {
@@ -225,7 +225,7 @@ function shelf(p) {
 function banner(p) {
   const s = p.season === undefined ? 0 : p.season, t = ['TULIP TIME', 'SUNFLOWER DAYS', 'GOLDEN MUMS', 'WINTER LIGHTS'][s], c = ['#d86a8f', '#e8a81a', '#b8562a', '#b8242e'][s];
   for (const x of [0, 3.9]) { box(x, .05, 0, .1, .1, 2.4, IRON, { ol: false }); dot(x + .05, .1, 2.46, GOLD); } qy(.1, 3.9, .1, 1.5, 2.3, c); qy(.1, 3.9, .101, 2.22, 2.3, GOLD); qy(.1, 3.9, .101, 1.5, 1.56, GOLD);
-  const tw = R.textW(t) / 16; textY(t, 2 - tw / 2, .102, 2.1, CREAM); textY('FLOWER SHOW', 2 - R.textW('FLOWER SHOW') / 32, .102, 1.86, lt(c, .6));
+  const tw = R.textW(t) / 16; textY(t, 2 - tw / 2, .102, 2.17, CREAM); textY('FLOWER SHOW', 2 - R.textW('FLOWER SHOW') / 32, .102, 1.72, lt(c, .6));
   if (s === 3) lit(() => { for (let x = .15; x < 3.9; x += .22) dot(x, .102, 1.48, ['#ffe070', '#7ad8ff', '#ff7a6a'][Math.round(x / .22) % 3], 0, 1); });
 }
 function mister(p) {
@@ -256,8 +256,8 @@ export default [
   A('waterfall', ['water_feature', 'cons_waterfall'], [5, 2.5, 3.7], waterfall, { frames: 4, vb: [-.4, -.2, 0, 5.4, 3, 4.4], variants: [{ frame: 0 }, { frame: 1 }] }),
   A('stream', ['water_feature'], p => [2, p.len || 8, .05], stream, { frames: 4, flat: true, solid: false, vb: p => [-.3, -.1, 0, 2.3, (p.len || 8) + .1, .4], variants: [{ len: 8, slabs: [3] }, { len: 5, frame: 2 }] }),
   A('koipond', ['water_feature', 'pond'], [POND.w, POND.d, .05], koipond, { frames: 4, flat: true, solid: false, vb: [-.4, -.4, 0, POND.w + .4, POND.d + .4, .5], variants: [{ frame: 0 }] }),
-  A('bridge', ['bridge'], p => [p.len || 7, 1.5, .05], bridge, { flat: true, solid: false, vb: p => [-.1, -.1, 0, (p.len || 7) + .1, 1.6, 1.7] }),
-  A('bridgerail', ['bridge'], p => [p.len || 7, .12, 1.5], bridgerail, { solid: false, vb: p => [-.1, -.1, 0, (p.len || 7) + .1, .3, 1.7] }),
+  A('bridge', ['bridge'], p => [p.len || 9, 1.5, .05], bridge, { flat: true, solid: false, vb: p => [-.1, -.1, 0, (p.len || 9) + .1, 1.6, 1.7] }),
+  A('bridgerail', ['bridge'], p => [p.len || 9, .12, 1.5], bridgerail, { solid: false, vb: p => [-.1, -.1, 0, (p.len || 9) + .1, .3, 1.7] }),
   A('bench', ['cons_bench'], [1.6, .6, .95], bench, { seats: [{ x: .45, y: .36, z: .45, dir: 1 }, { x: 1.15, y: .36, z: .45, dir: 1 }], use: { x: .8, y: .95 } }),
   A('plaque', ['cons_plaque'], [.5, .5, .8], plaque, { solid: false, use: { x: .25, y: .85 }, variants: [{}, { c: '#b8562a' }] }),
   A('lamp', ['lamp'], [.5, .5, 2.7], lamp, { light: { x: .25, y: .25, z: 0, r: 3.4 } }),

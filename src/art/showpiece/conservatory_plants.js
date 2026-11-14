@@ -58,7 +58,7 @@ function bamboo(p) {
 }
 function maple(p) { // Japanese maple (koi garden): always crimson
   const r = rng(p.seed || 6), c = .4; trunk([c, c, 0], [c + .1, c, 1.1], 3, '#5a4034', 0); lw([c + .1, c, 1.1], [c - .35, c, 1.6], '#5a4034'); lw([c + .1, c, 1.1], [c + .55, c, 1.55], '#5a4034');
-  const B = []; for (let i = 0; i < 12; i++) B.push([c + .1 + (r() - .5) * 1.2, c + (r() - .5) * .8, 1.4 + r() * .7, .3 + r() * .2]); B.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
+  const B = []; for (let i = 0; i < 16; i++) B.push([c + .1 + (r() - .5) * 1.1, c + (r() - .5) * .7, 1.4 + r() * .7, .36 + r() * .2]); B.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
   B.forEach((b, i) => ball(b[0], b[1], b[2], b[3], ['#c8402f', '#d9562b', '#b8342e', '#e0703a'][i % 4], { squash: .7, ol: i < 5 }));
 }
 

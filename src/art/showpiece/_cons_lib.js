@@ -44,7 +44,7 @@ export function bedBase(w, d, h, soil, curb = STONE) {
 }
 
 /* ---------- koi pond + bridge geometry (local pond coords; the room uses these for nav and the koi) ---------- */
-export const POND = { w: 10, d: 7, bridge: { x0: 1.5, x1: 8.5, y0: 2.75, y1: 4.25, h: .62 }, pads: [[2.2, 1.6], [3.4, 2.0], [7.3, 1.7], [6.4, 5.3], [2.6, 5.4], [8.0, 4.9], [4.9, 1.2], [5.3, 5.9]] };
+export const POND = { w: 10, d: 7, bridge: { x0: .5, x1: 9.5, y0: 3, y1: 4.5, h: .62 }, pads: [[2.2, 1.6], [3.4, 2.0], [7.3, 1.7], [6.4, 5.3], [2.6, 5.4], [8.0, 4.9], [4.9, 1.2], [5.3, 5.9]] };
 /** signed "insideness" of the pond outline: > 0 inside the water, the value is roughly the distance to the shore in units */
 export function pondIn(x, y, w = POND.w, d = POND.d) {
   const u = (x - w / 2) / (w / 2), v = (y - d / 2) / (d / 2), th = Math.atan2(v, u), rr = .93 + .06 * Math.sin(th * 3 + .6) + .035 * Math.cos(th * 5);
