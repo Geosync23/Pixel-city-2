@@ -158,3 +158,5 @@ APPS: an APP STORE on the phone — lots of apps covering the game's systems, ne
 5-6 large staged events sprinkled through the first six in-game months (a month = 14 days): street festivals and parades that physically happen in the city — route/street closed to traffic,
 floats/marching band/performers, dense crowds, stalls and activities, a possible story moment; listed in the guide app with "Add to planner". Candidates: Spring Blossom Parade (Main St),
 Lantern Row Night Festival, Harbor Day (boat parade + pier fireworks), Summer Street Fair / Pride on the River Walk, Autumn Harvest Festival (Central Park), Winter Lights Parade + tree lighting (City Hall Plaza).
+- Cadence (owner: "scale it proportionally"): game year = 56 days (4 x 14-day seasons); "first six months" = first half-year = spring + summer (28 days). So ~one big event every 5 game days:
+  5-6 in spring + summer, the same rhythm continuing through autumn and winter (so the year has ~10-11, with seasonal ones in their seasons).

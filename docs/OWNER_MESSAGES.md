@@ -185,3 +185,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 39 — City events (design now, build later)
 > Also we should create events. Steeet festivals, parades, etc. 5 or 6 of these sprinkleed in yhe first 6 months. These can be added later but lets add it to the design
+
+## 40 — Events cadence
+> Oh I didn't know the calender. Just scale it proportionally
