@@ -248,7 +248,7 @@ const T = ['conservatory', 'cons'];
 const A = (id, tags, size, draw, x) => Object.assign({ id: 'furn.cons.' + id, kind: 'furniture', tags: T.concat(tags), size, draw, variants: [{}] }, x);
 export default [
   A('glasswall', ['wall', 'window'], p => [p.w || 4, .12, 5.2], glasswall, { wall: true, mount: 0, solid: false, vb: p => [0, 0, 0, p.w || 4, 1.6, 5.3], variants: [{ w: 8, time: 'day', season: 1 }, { w: 8, time: 'dusk', season: 2, u0: 9 }, { w: 8, time: 'night', season: 0, u0: 20 }, { w: 8, time: 'day', season: 3, u0: 30 }, { w: 4, time: 'day', season: 0, wx: 'rain' }] }),
-  A('partition', ['screen'], p => [p.w || 4, .2, 2.5], partition, { variants: [{ w: 4 }, { w: 2 }] }),
+  A('partition', ['glass_partition'], p => [p.w || 4, .2, 2.5], partition, { variants: [{ w: 4 }, { w: 2 }] }),
   A('arch', ['archway'], p => [p.w || 2, .3, 3.2], arch, { solid: false, variants: [{ name: 'PALM HOUSE' }, { w: 3, name: 'DESERT HOUSE' }] }),
   A('gate', ['cons_gate'], p => [p.w || 3.5, .3, 1.2], gate, { solid: false, vb: p => [-.1, -1, 0, (p.w || 3.5) + .1, .5, 1.4], variants: [{}, { open: 1 }] }),
   A('shaft', ['light'], [5, 5, .02], shaft, { flat: true, solid: false }),

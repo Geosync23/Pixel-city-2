@@ -128,7 +128,7 @@ class Koi {
   constructor(i, ox, oy) { this.i = i; this.pat = i % KOI.length; this.big = i === 0; this.ox = ox; this.oy = oy; this.a = Math.random() * 6.28; this.sp = .3 + Math.random() * .35; this.t = Math.random() * 9; this.turn = 0; this.v = .3; this.z = .03; this.bb = [-.1, -.1, .1, .1, .04];
     do { this.lx = 1 + Math.random() * (POND.w - 2); this.ly = 1 + Math.random() * (POND.d - 2); } while (pondIn(this.lx, this.ly) < .5); this.x = ox + this.lx; this.y = oy + this.ly; this.jx = (Math.random() - .5) * 1.1; this.jy = (Math.random() - .5) * .9; }
   sprite() { const sx = Math.cos(this.a) - Math.sin(this.a), sy = (Math.cos(this.a) + Math.sin(this.a)) / 2, d = ((Math.round(Math.atan2(sy, sx) / (Math.PI * 2) * 16) % 16) + 16) % 16, f = Math.floor(this.t * (3 + this.v * 5)) & 1; return pixSprite('koi|' + this.pat + '|' + d + '|' + f + (this.big ? 'B' : ''), [-9, -7, 9, 7], () => drawKoi(this.pat, d, f, this.big)); }
-  update(dt, feed) {
+  tick(dt, feed) {
     this.t += dt; let v = this.sp, want = null;
     if (feed) { const tx = feed.x + this.jx, ty = feed.y + this.jy, dd = Math.hypot(tx - this.lx, ty - this.ly); want = Math.atan2(ty - this.ly, tx - this.lx); v = dd > .5 ? 1.5 + this.sp : .25; if (dd < .5) want += 1.3; }
     else { this.turn += (Math.random() - .5) * dt * 3; this.turn *= 1 - dt * .8; this.a += this.turn * dt; }
@@ -151,7 +151,7 @@ class Fly {
   constructor(i, B, perches) { this.sp = BUTTERFLIES[i % BUTTERFLIES.length]; this.si = i % BUTTERFLIES.length; this.B = B; this.perches = perches; this.x = B[0] + Math.random() * (B[2] - B[0]); this.y = B[1] + Math.random() * (B[3] - B[1]); this.h = .6 + Math.random() * 1.4; this.z = this.h; this.t = Math.random() * 9; this.bb = [-.1, -.1, .1, .1, .2]; this.rest = 0; this.vx = 0; this.vy = 0; this.pickT(); }
   pickT() { if (this.perches.length && Math.random() < .3) { const p = pick(this.perches); this.tx = p.x + (Math.random() - .5) * p.r; this.ty = p.y + (Math.random() - .5) * p.r; this.tz = p.z; this.land = true; } else { this.tx = this.B[0] + Math.random() * (this.B[2] - this.B[0]); this.ty = this.B[1] + Math.random() * (this.B[3] - this.B[1]); this.tz = .5 + Math.random() * 1.8; this.land = false; } }
   sprite() { const f = this.rest > 0 ? (Math.floor(this.t * 1.2) % 3 === 0 ? 0 : 2) : Math.floor(this.t * 10) % 2; return pixSprite('bfly|' + this.si + '|' + f, [-4, -5, 5, 2], () => drawFly(this.sp, f)); }
-  update(dt) {
+  tick(dt) {
     this.t += dt; if (this.rest > 0) { if ((this.rest -= dt) <= 0) this.pickT(); return; }
     const dx = this.tx - this.x, dy = this.ty - this.y, dz = this.tz - this.h, d = Math.hypot(dx, dy) || 1e-6, sp = 1.1;
     this.vx += (dx / d * sp - this.vx) * dt * 2 + (Math.random() - .5) * dt * 5; this.vy += (dy / d * sp - this.vy) * dt * 2 + (Math.random() - .5) * dt * 5;
@@ -164,7 +164,7 @@ class Puff {
   constructor(src) { this.src = src; this.bb = [-.1, -.1, .1, .1, .2]; this.k = Math.floor(Math.random() * 3); this.reset(true); }
   reset(first) { const s = pick(this.src); this.x = s.x + (Math.random() - .5) * s.w; this.y = s.y + (Math.random() - .5) * s.d; this.z0 = s.z; this.up = s.up; this.life = 2.5 + Math.random() * 3; this.age = first ? Math.random() * this.life : 0; this.dx = (Math.random() - .5) * .3; }
   sprite() { return pixSprite('puff|' + this.k, [-9, -5, 9, 5], () => drawPuff(this.k)); }
-  update(dt) { this.age += dt; if (this.age > this.life) this.reset(); const t = this.age / this.life; this.z = this.z0 + this.up * t; this.x += this.dx * dt; this.alpha = .75 * Math.sin(Math.PI * t); }
+  tick(dt) { this.age += dt; if (this.age > this.life) this.reset(); const t = this.age / this.life; this.z = this.z0 + this.up * t; this.x += this.dx * dt; this.alpha = .75 * Math.sin(Math.PI * t); }
 }
 
 /* ---------------- walking staff ---------------- */
@@ -246,7 +246,7 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
       // water + mist frames
       if ((ft += dt) > .22) { ft = 0; fb++; for (const o of anim) { const div = o.data.anim === 3 ? 1 : 2; if (fb % div === 0) setP(o, { frame: (fb / div) % (o.a.frames || 4) }); } if ((seas === 3 || sc._wx) && fb % 3 === 0) { wf = (wf + 1) % 4; for (const o of sky) setP(o, { frame: wf }); } }
       if (feed && (feed.t -= dt) <= 0) feed = null;
-      for (let i = 0; i < koi.length; i++) koi[i].update(dt, feed); for (let i = 0; i < flies.length; i++) flies[i].update(dt); for (let i = 0; i < puffs.length; i++) puffs[i].update(dt);
+      for (let i = 0; i < koi.length; i++) koi[i].tick(dt, feed); for (let i = 0; i < flies.length; i++) flies[i].tick(dt); for (let i = 0; i < puffs.length; i++) puffs[i].tick(dt);
       // the arched bridge lifts whoever is on it
       const p = G.player; if (!G.busy) { const z = onBridge(p); if (z > 0 || p._consZ) { p.zoff = z; p._consZ = z > 0; } }
       for (let i = 0; i < wk.list.length; i++) { const c = wk.list[i].ch; if (!c.hidden) c.z = onBridge(c); }
