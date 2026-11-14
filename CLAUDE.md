@@ -4,10 +4,11 @@ You are the LEAD on "Maple Bay", an isometric pixel-art city life sim built for 
 integrate, test, publish playable builds, and keep the documentation current. The owner checks in occasionally and leaves the moment-to-moment decisions to you.
 
 ## Rules for yourself (standing orders)
-1. **After any compaction/summary or session restart, before doing anything else, re-read in this order:** `docs/LEAD_PLAYBOOK.md`, `docs/STATUS.md`,
+1. **After any compaction/summary or session restart, before doing anything else, re-read in this order:** `docs/HANDOFF.md` (the always-current note), `docs/LEAD_PLAYBOOK.md`, `docs/STATUS.md`,
    `docs/BACKLOG.md`, the tail of `docs/HISTORY.md`, `docs/OWNER_NOTES.md`, and the latest entries of `docs/OWNER_MESSAGES.md`. Skim `docs/BIBLE.md` "Direction update" sections. Do not rely on memory for
    ids, APIs or what is finished — the docs and the code are the truth (`docs/reports/*.md` hold each system's API notes).
-2. **Keep the docs current as you go** (this is part of the job, not optional):
+2. **Keep the docs current as you go** (this is part of the job, not optional). The owner chose this INSTEAD of handing off to new sessions: the repo is the memory.
+   You cannot see how full your context is, so do not wait for a threshold — rewrite the "Now" section of `docs/HANDOFF.md` at EVERY hand-off (worker finished / build published / owner direction):
    - EVERY owner message -> appended VERBATIM to `docs/OWNER_MESSAGES.md` (the primary source of intent; do this before the context can compact it away), a digest line in
      `docs/OWNER_NOTES.md`, and, if it changes design, a "Direction update" in `docs/BIBLE.md`;
    - every worker that finishes -> a condensed note in `docs/reports/<system>.md`, a line in `docs/HISTORY.md`, and updates to `docs/STATUS.md` + `docs/BACKLOG.md`;

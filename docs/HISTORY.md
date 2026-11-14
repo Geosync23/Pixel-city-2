@@ -31,3 +31,4 @@
 - Owner asked for his messages to be saved verbatim: docs/OWNER_MESSAGES.md created (31 messages) and made a standing rule in CLAUDE.md. Answered questions on GitHub checks and moving accounts (no action).
 - docs/LEAD_JOURNAL.md written (the lead's side: decisions, reasoning, answers given).
 - Owner clarified pacing (steady, not stop-start); cancelled the 40-min timer and launched showpieces B (performance venues) immediately.
+- Owner chose continuous handoff notes in the repo over new-session handoffs: docs/HANDOFF.md created (always-current 'Now' section) and made the first thing to read.
