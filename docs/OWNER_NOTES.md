@@ -45,3 +45,4 @@
 30. (msg 65) Asked where the signature interiors sit in the plan; interiors must have activities attached and appear in the Wander guide.
 31. (msg 66) "Signature interiors" = the big showpiece places (like the concert hall), not the small shops.
 32. (msg 67) Asked (discussion only, no change yet) whether to split the team: Fable 5.2 for complex engineering/lead, Opus for easier tasks. Wants the LEAD on Fable 5.2 — says the session keeps switching back.
+33. (msg 68) Team becomes 3 Fable 5.2 workers + 1 Opus QA & data worker. Transition naturally: let running workers finish; the next free Fable slot becomes the Opus QA/data lane.

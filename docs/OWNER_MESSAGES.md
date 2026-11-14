@@ -293,3 +293,6 @@ Very short operational messages are included too, so the sequence is complete. A
 ## 67 — Split the team by model? Lead should be Fable
 > Would it help (not now let these workers finish) two divide the team? Complex engineering tools and leads are Fable 5.2 then other easier tasks are opus? Don't do it lets talk
 > You as the leader should be running Fable 5.2 it keeps switching tou back
+
+## 68 — Team: 3 Fable + 1 Opus QA/data
+> Ok add an Opus QA and data worker as a fourth and cut down a Fable worker once it makes sense let then finish

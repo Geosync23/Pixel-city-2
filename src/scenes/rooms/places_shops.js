@@ -185,7 +185,7 @@ define('Salt & Co. Provisions', 51, 'bodega', {
     V('cornerstore.counter', 6.5, 2, { c: '#2f4a6a' }, CK),
     P('icefish', 3, 3, null, U), P('crate', 0, 2, { items: ['#f6e04a', '#8cc84a', '#e04a3a'] }, FL(U)), P('crate', 0, 3.5, { items: ['#c8a070', '#e8d8b0'] }, FL()),
     P('barrel', 0, 5, { fill: '#5a8a4a', tag: 1 }), P('barrel', 0, 5.5, { fill: '#f1ede4', tag: 1 }), P('barrel', 0, 6, { fill: '#d8c090' }),
-    P('hw.rope', 6.5, 4.5, { seed: 2 }, U), V('grocery.produce', 1.5, 5.5, { items: ['potato', 'onion', 'carrot', 'lemon', 'apple', 'potato', 'onion', 'lime'] }, U),
+    P('hw.rope', 6.5, 4.5, { seed: 2 }, U), V('grocery.produce', 1.5, 5, { items: ['potato', 'onion', 'carrot', 'lemon', 'apple', 'potato', 'onion', 'lime'] }, U),
     HG(2, 2, 'buoy'), HG(5.5, 5, 'buoy', { c: '#f2c230' }), HL(4, 3, 'shade', '#2f4a6a'), HG(8, 3.5, 'buoy', { c: '#3c64ad' })],
   npc: [S(5.6, 3.4, 2), S(1.5, 1.4, 3)], exits: [{ x: 5.5, y: 6.5 }] }));
 

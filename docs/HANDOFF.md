@@ -4,7 +4,9 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 ## Now (updated 2026-11-14, NEW ACCOUNT — first session)
 - **New lead on the new account.** Branch `ccr-e622e92c-7t3ejy` (started from `claude/pixel-city-life-sim-21h2e3` @ a1d2ffc; push here). Artifact: https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
   (Stage 14 republished, version 1794695918-0180).
-- **Team: up to 4 Fable 5.2 workers in parallel** (owner msgs 59-62; ~10x usage now -> briefs favour quality). Disjoint files per worker; lead owns shared hooks.
+- **Team (owner msg 68): 3 Fable 5.2 + 1 Opus QA & data worker.** Transition: currently 4 Fable running; when the NEXT Fable worker finishes, its slot goes to the Opus QA/data lane (don't stop anyone).
+  Opus lane queue: (1) QA sweep of every new room (26 food rooms, shops, lobbies, homes, bathrooms): walk/enter/use/screenshot, list defects; (2) small open items list below; (3) data: red-check table sets variety, watch_kitchen activity, `app.*` icons spec; (4) docs upkeep checks.
+- (old line) **Team: up to 4 Fable 5.2 workers in parallel** (owner msgs 59-62; ~10x usage now -> briefs favour quality). Disjoint files per worker; lead owns shared hooks.
 - **RUNNING — Wave A (2g), 4 workers:**
   - 2g-1 DONE (26 rooms — only 26 food places exist; docs/reports/unique_food.md). Was: owns src/scenes/rooms/places_food*.js, src/art/venue/places_food_art.js, docs/reports/unique_food.md (registers via unique_rooms.js; told NOT to edit public_places.js).
   - S1 CONSERVATORY (running, took 2g-1's slot): owns src/sim/conservatory.js, src/scenes/rooms/conservatory*.js, src/art/showpiece/conservatory*.js, src/data/conservatory.js, docs/reports/conservatory.md.
