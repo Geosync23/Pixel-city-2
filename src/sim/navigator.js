@@ -32,7 +32,7 @@ const T = {
   groceries: i => i.shop.includes('ingredient') || /supermarket|grocer|corner shop|bodega|delicatessen|mini mart|provisions/.test(i.type),
   coffee: i => /caf[eé]|coffee|tea house|bakery|juice/.test(i.type) || (i.menu && i.fns.includes('espresso')),
   hygiene: i => i.fns.includes('locker_shower') || /\bgym\b|laundr|salon|barber|\bspa\b|bath|pool/.test(i.type),
-  fun: i => i.vt === 'leisure' || ['shows', 'arts', 'outdoors'].includes(i.ch) || i.also.includes('shows') || /arcade|cinema|theat|bowling|karaoke|museum|gallery/.test(i.type) || (i.kind === 'spot' && i.fns.length > 0),
+  fun: i => i.vt === 'leisure' || (['shows', 'arts', 'outdoors'].includes(i.ch) && i.vt !== 'shop') || i.also.includes('shows') || /arcade|cinema|theat|bowling|karaoke|museum|gallery/.test(i.type) || (i.kind === 'spot' && i.fns.length > 0),
   social: i => /\bbar\b|\bpub\b|caf[eé]|club|tea house|diner|beer|wine|cocktail/.test(i.type) || i.fns.includes('bar_stool') || i.fns.includes('dancefloor'),
   shopping: i => (i.vt === 'shop' || i.ch === 'shop' || /mall|market/.test(i.type)) && i.kind !== 'spot',
   transit: i => i.kind === 'station' || i.kind === 'busstop' || i.kind === 'taxistand',
@@ -69,7 +69,7 @@ function busOption(from, D, walk) {
     for (const i of near(from)) for (const j of near(D)) {
       if (i === j) continue; const k = (j - i + n) % n; let ride = 0; for (let m = 0; m < k; m++) ride += man(S[(i + m) % n], S[(i + m + 1) % n]);
       const wa = man(S[i], from) * WALK, wb = man(S[j], D) * WALK, nb = safe(() => G.transit.nextBuses(S[i].id).find(b => b.route === r.id), null), wait = nb ? nb.minutes : 20, rm = ride / BUS_V + k * .5, total = wa + Math.max(wait - wa, 0) + rm + wb;
-      if (wa + wb > walk * .8) continue;
+      if (wa + wb > walk * .6) continue;
       if (!best || total < best.minutes) best = { mode: 'bus', label: 'Bus ' + r.name, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('bus'), 1.5), route: r.id, line: r.name, stops: k, wait, toward: S[j > i ? n - 1 : j].name, board: pt(S[i]), alight: pt(S[j]), walkA: wa, walkB: wb, ride: rm };
     }
   }
@@ -99,7 +99,7 @@ export function routeTo(dest, from = cityPos()) {
   if (typeof dest === 'string') dest = place(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
   const D = pt(dest), dist = man(D, from), walk = dist * WALK, out = [{ mode: 'walk', label: 'Walk', minutes: walk, cost: 0, dist }];
   if (hasBike()) out.push({ mode: 'bike', label: 'Bike', minutes: walk / 2.2, cost: 0, dist });
-  for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((o.minutes < walk * .9 && o.minutes < walk - 2) || dist > 170)) out.push(o);
+  for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1))) out.push(o);
   if (dist > 25 && G.transit && G.transit.fare) { const fare = safe(() => D.id ? G.transit.fare(D.id) : G.transit.fare('taxi', from, D), null); if (fare != null && isFinite(fare)) out.push({ mode: 'cab', label: 'Cab', minutes: dist / CAB_V + 4, cost: safe(() => G.state.flags.firstCabFree, false) ? 0 : fare, free: !!safe(() => G.state.flags.firstCabFree, false) }); }
   for (const o of out) { o.dest = D; o.minutes = Math.max(1, Math.round(o.minutes)); o.text = describe(o); o.costText = o.free ? 'Free - prepaid' : o.cost ? money(o.cost) : 'free'; if (o.wait != null) o.next = o.wait < 1.5 ? 'leaving now' : 'next in ' + mins(o.wait); }
   return out;
@@ -118,7 +118,7 @@ export function start(o) {
   St.trip = { mode: o.mode, dest: o.dest, board: o.board, alight: o.alight, stops: o.stops, line: o.line, toward: o.toward, route: o.route || null, from: o.from || null, to: o.to || null, walkA: Math.round(o.walkA), walkB: Math.max(1, Math.round(o.walkB)), stage: 0, at: false };
   setWP(o.board); G.emit('nav:start', St.trip); render(); return St.trip;
 }
-function onRideEnd(kind) { const t = trip(); if (!t || t.stage >= 2 || (kind && kind !== t.mode && kind !== 'train' && kind !== 'bus')) return; t.stage = 2; t.at = false; const c = safe(() => cityPos(), null); if (c && man(c, t.dest) < 5) return end('arrived'); setWP(t.dest.id || t.dest); G.emit('nav:stage', t); render(); }
+function onRideEnd(kind) { const t = trip(); if (!t || t.stage >= 2 || (kind && kind !== t.mode && kind !== 'train' && kind !== 'bus')) return; t.stage = 2; t.at = false; const c = safe(() => cityPos(), null); if (c && man(c, t.dest) < 5) { setWP(null); return end('arrived'); } setWP(t.dest.id || t.dest); G.emit('nav:stage', t); render(); }
 function tripText(t) {
   const veh = t.mode === 'bus' ? `${t.line} bus toward ${t.toward}` : `${t.line} toward ${t.toward}`, parts = [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${stopsTxt(t.stops)})`], [2, `walk ${mins(t.walkB)}`]];
   const box = el('span'); parts.forEach(([s, txt], i) => { if (i) box.append(' -> '); box.append(el(s === t.stage ? 'b' : 'span', { style: s < t.stage ? 'opacity:.5;text-decoration:line-through' : '', text: txt })); }); return box;
