@@ -67,6 +67,7 @@ function sendWelcome() {
 }
 
 /* ---------- step: arrival_plane_cinematic (exterior landing shot) ---------- */
+const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps.indexOf('cabin') >= 0); } catch (e) { return false; } };
 {
   let cut = null, fl = null, t = 0, li = 0, z0 = 0, unSkip = null;
   register({ id: 'arrival_plane_cinematic',
@@ -81,10 +82,13 @@ function sendWelcome() {
     update(dt) {
       if (!cut) return; t += dt; const L = SEQ.landing.lines;
       if (li < L.length && t > .4 + li * 3.7) { const l = L[li++]; caption(l.speaker === 'pa' ? 'Captain' : l.speaker === 'narrator' ? null : short(l.speaker), fill(l.text), 3500); }
-      if (fl && fl.phase === 'roll' && fl.v < 12 && G.camTarget === fl.cam) G.camTarget = null; // pan to the arrivals curb
+      if (!inside() && fl && fl.phase === 'roll' && fl.v < 12 && G.camTarget === fl.cam) G.camTarget = null; // legacy flow only: pan to the arrivals curb (the airport-interior opening cuts to the cabin instead)
       if (t > Math.min(12, SEQ.landing.durationSec || 12) || (!fl && t > 8)) next();
     },
-    exit() { if (G.cutscene === cut) G.cutscene = null; cut = null; G.camTarget = null; G.player.hidden = false; if (z0) safe(() => G.setZoom(z0)); if (unSkip) unSkip(); unSkip = null; caption(); if (G.planes) G.planes.quiet = false; },
+    exit() {
+      // when the opening continues inside the plane, cut to black instantly so the old curb-side view never flashes between the landing shot and the cabin
+      if (inside() && G.fadeEl) { const f = G.fadeEl; f.style.transition = 'none'; f.classList.add('on'); void f.offsetWidth; f.style.transition = ''; }
+      if (G.cutscene === cut) G.cutscene = null; cut = null; G.camTarget = null; G.player.hidden = false; if (z0) safe(() => G.setZoom(z0)); if (unSkip) unSkip(); unSkip = null; caption(); if (G.planes) G.planes.quiet = false; },
   });
 }
 

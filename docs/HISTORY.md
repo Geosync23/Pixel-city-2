@@ -45,3 +45,4 @@
 - 21:57 UTC: owner reported 41% used; fix pack 2 + navigator worker launched; plan to continue one worker at a time until ~85%.
 - Fix pack 2 + navigator landed (stairs, train flicker, need matching, Maps navigator with walk/bus/train/cab). Stage 12 published.
 - 22:24 UTC: item-icons worker launched.
+- Lead fix (owner msg 49): the old curb view no longer flashes between the landing shot and the cabin (intro.js: camera stays on the plane; instant cut to black before the cabin loads). Traced: fade is on from the step change until the cabin is shown.
