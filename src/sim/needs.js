@@ -1,10 +1,10 @@
 // Needs, moodlets, mood, fitness stat and skills. Numbers come from src/data/needs.js.
 //
-// State slice G.state.needs = { v: {hunger, energy, hygiene, fun, social}, fitness, exDay (last abs day with exercise),
+// State slice G.state.needs = { v: {hunger, energy, hygiene, fun, social, bladder}, fitness, exDay (last abs day with exercise),
 //   ml: { moodletId: untilT | -1 (until removed) }, xp: { skillId: xp }, sib (abs day of last sibling check-in), wet (outdoor wet minutes) }
 //
 // G.needs
-//   get(k) -> 0..100        add(k, d) -> new value      set(k, v)        all() -> { hunger, energy, hygiene, fun, social }
+//   get(k) -> 0..100        add(k, d) -> new value      set(k, v)        all() -> { hunger, energy, hygiene, fun, social, bladder }  (bladder: see src/sim/bladder.js; old saves get its start value on load)
 //   band(k) -> { id: 'full'|'ok'|'low'|'critical', label, moodlet }       defs -> NEEDS data array
 //   mood() -> 0..100        moodTier() -> { id, label, xpMult, workPerf } (data MOOD.tiers)
 //   moodlets() -> [{ id, name, desc, icon, mood, left (game minutes | null), source }]   (need bands + timed + conditional)

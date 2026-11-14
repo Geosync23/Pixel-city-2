@@ -53,7 +53,7 @@ export const ANIMS = ['stand', 'walk', 'sit', 'sleep', 'eat', 'drink', 'phone', 
 export const FUNCTION_TAGS = {
   home: ['bed', 'fridge', 'stove', 'microwave', 'sofa', 'tv', 'computer', 'bookshelf', 'game', 'music', 'shower', 'bath',
     'exercise', 'instrument', 'easel', 'plant', 'rug', 'decor'],
-  homeFixed: ['moving_box', 'delivery_box', 'front_door', 'wardrobe'], // props placed by the game, not sold
+  homeFixed: ['moving_box', 'delivery_box', 'front_door', 'wardrobe', 'toilet', 'sink'], // props placed by the game, not sold
   venue: ['till', 'shelf', 'seat', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'fitting_room', 'book_browse',
     'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'study_desk', 'reading_nook', 'public_computer',
     'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank'],
@@ -109,6 +109,14 @@ export const ACTIVITIES = [
   { id: 'bath', name: 'Soak in the Bath', tag: 'bath', where: 'home', minutes: { min: 15, default: 40, max: 60 },
     perHour: { hygiene: 110, fun: 10, energy: 4 }, tierScales: ['perHour.hygiene', 'perHour.fun'], anim: 'sit',
     flavour: 'Bubbles up to your chin.' },
+
+  // Toilets and sinks work anywhere a fixture carries the tag (homes, story homes, office-lobby restrooms): wired by src/sim/bladder.js.
+  { id: 'use_toilet', name: 'Use the Toilet', tag: 'toilet', where: 'anywhere', minutes: { min: 4, default: 4, max: 4 },
+    perHour: { bladder: 1500 }, anim: 'sit', note: '4 min = +100 bladder. bladder.js adds the small hygiene cost and the "relieved" moodlet.',
+    flavour: 'A quiet moment.' },
+  { id: 'wash_hands', name: 'Wash Your Hands', tag: 'sink', where: 'anywhere', minutes: { min: 1, default: 1, max: 1 },
+    perHour: { hygiene: 360 }, anim: 'work', note: '1 min = +6 hygiene (+3 more right after a toilet visit, see bladder.js).',
+    flavour: 'Twenty seconds. Sing the chorus.' },
 
   // ============================================================ HOME: fun & skills
   { id: 'watch_tv', name: 'Watch TV', tag: 'tv', where: 'home', minutes: { min: 15, default: 60, max: 180 },

@@ -1,6 +1,6 @@
 // Phone app: BAY BASICS — the living-tips handbook (app id 'tips') + the gentle in-game tutorial layer G.tips. Styles in phone_apps.css.
 // State G.state.tips = { seen: {tipId: 1}, read: {tipId: 1}, last: t of the last tip notification }
-// G.tips = { all() -> [tip], get(id), show(id) -> bool (one-time "Tip: ..." notification, max one per game hour), seen(id), go(tip) }
+// G.tips = { register(tip) (add a tip from another system), all() -> [tip], get(id), show(id) -> bool (one-time "Tip: ..." notification, max one per game hour), seen(id), go(tip) }
 // Deep link: G.phone.open('tips', { tip: id } | { topic: id }).
 // A tip: { id, topic, title, text, go?: { app, arg } | { find: navigator query } | { place: id }, goLabel? }
 import { G } from '../core/game.js';
@@ -131,7 +131,7 @@ function wire() {
 }
 export function init() {
   injectCss(); G.defineState('tips', () => ({ seen: {}, read: {}, last: -999 }));
-  G.tips = { all: () => TIPS.slice(), get: id => BY_ID[id] || null, show, seen: id => !!S().seen[id], go, topics: () => TOPICS.map(t => ({ id: t[0], name: t[1] })) };
+  G.tips = { register: t => { if (t && t.id && !BY_ID[t.id]) { TIPS.push(t); BY_ID[t.id] = t; } return t; }, all: () => TIPS.slice(), get: id => BY_ID[id] || null, show, seen: id => !!S().seen[id], go, topics: () => TOPICS.map(t => ({ id: t[0], name: t[1] })) };
   if (!G.phone || !G.phone.registerApp) return;
   G.phone.registerApp(Object.assign(regDef('tips'), { render, ownsLog: false })); wire();
 }

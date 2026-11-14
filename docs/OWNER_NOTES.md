@@ -43,3 +43,4 @@
 28. (msg 63) Asked whether the signature (unique) interiors are done.
 29. (msg 64) Starter apartments must differ from each other; every buyable/rentable property unique (no repeated layouts). Wave D: lots of interesting stores for home goods — a big home-improvement store (Home-Depot-like), department stores, furniture stores, etc. Expanding the map is fine when it makes sense.
 30. (msg 65) Asked where the signature interiors sit in the plan; interiors must have activities attached and appear in the Wander guide.
+31. (msg 66) "Signature interiors" = the big showpiece places (like the concert hall), not the small shops.

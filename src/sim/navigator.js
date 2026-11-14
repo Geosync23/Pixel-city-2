@@ -25,7 +25,7 @@ let gi = null, giN = -1;
 function guideOf(id) { const all = safe(() => G.guide.all(), []); if (!gi || giN !== all.length) { gi = new Map(); giN = all.length; for (const e of all) if (e.placeId && !gi.has(e.placeId)) gi.set(e.placeId, e); } return gi.get(id); }
 function info(p) {
   const v = p.venue || {}, o = v.offers || {}, g = guideOf(p.id) || {};
-  return { vt: v.type || '', menu: !!o.menu, shop: o.shop || [], svc: o.services || [], fns: (o.functions || []).concat(p.functions || []), type: String(g.type || '').toLowerCase(), ch: g.chapter || '', also: g.also || [], acts: g.acts || [], kind: p.kind };
+  return { vt: v.type || '', menu: !!o.menu, shop: o.shop || [], svc: o.services || [], fns: (o.functions || []).concat(p.functions || []), type: String(g.type || '').toLowerCase(), ch: g.chapter || '', also: g.also || [], acts: g.acts || [], kind: p.kind, id: p.id, roomId: p.roomId };
 }
 const T = {
   food: i => i.menu || i.vt === 'food' || (i.ch === 'eat' && i.kind !== 'spot'),
@@ -37,9 +37,12 @@ const T = {
   shopping: i => (i.vt === 'shop' || i.ch === 'shop' || /mall|market/.test(i.type)) && i.kind !== 'spot',
   transit: i => i.kind === 'station' || i.kind === 'busstop' || i.kind === 'taxistand',
 };
+// bladder: any place with a restroom. G.bladder.hasRestroom(roomId) knows which rooms have a counter / toilet; park pavilions come from the SOURCES hook below.
+T.bladder = i => i.fns.includes('restroom') || i.kind === 'station' || i.kind === 'airport' || (i.kind === 'venue' && safe(() => G.bladder.hasRestroom(i.roomId || i.id), null) !== false && (safe(() => G.bladder.hasRestroom(i.roomId || i.id), false) || i.menu || i.svc.length > 0));
+const SOURCES = {};   // kind -> [fn(from) -> extra rows {id, name, x, y, d?, open?, note?}]  (G.nav.addSource)
 T.hunger = i => T.food(i) || T.groceries(i); T.energy = T.coffee;
 export const matches = (p, kind) => !!(p && T[kind] && T[kind](info(p)));
-const HOME_NOTE = { hunger: 'cook from your fridge', food: 'cook from your fridge', energy: 'sleep or nap', hygiene: 'shower', fun: 'TV, games, music', home: '' };
+const HOME_NOTE = { hunger: 'cook from your fridge', food: 'cook from your fridge', energy: 'sleep or nap', hygiene: 'shower', fun: 'TV, games, music', bladder: 'your bathroom', home: '' };
 const fridgeFood = () => safe(() => G.inv.fridge.items().some(s => G.inv.isFood(G.inv.item(s.id))), false);
 const row = (p, from, extra) => Object.assign({ id: p.id, name: p.name, x: p.x, y: p.y, d: man(p, from), open: safe(() => openState(p).open, null), note: '' }, extra);
 
@@ -55,6 +58,7 @@ export function find(kind, n = 4, from = cityPos()) {
   out.sort((a, b) => (a.open === false) - (b.open === false) || a.d - b.d); out.length = Math.min(out.length, n);
   if (kind === 'social') for (const id of safe(() => G.social.known(), []).slice(0, 12)) { const w = safe(() => G.social.whereIs(id.id || id), null); if (!w || !isFinite(w.x) || (w.sceneId && w.sceneId !== 'city' && !w.placeId)) continue; const nm = safe(() => G.social.npc(id.id || id).name, null) || String(id.id || id); const pl = w.placeId && place(w.placeId);
     out.push({ id: pl ? pl.id : { x: w.x, y: w.y, name: nm }, name: nm + (w.name ? ' is at ' + w.name : ''), x: w.x, y: w.y, d: man(w, from), open: null, note: 'friend', friend: true }); if (out.filter(o => o.friend).length >= 2) break; }
+  for (const fn of SOURCES[kind] || []) for (const q of safe(() => fn(from), []) || []) if (q && isFinite(q.x) && isFinite(q.y)) out.push(Object.assign({ d: man(q, from), open: null, note: '' }, q));
   if (home && kind in HOME_NOTE && (kind !== 'hunger' && kind !== 'food' || fridgeFood())) out.push(row(home, from, { name: 'Home', note: HOME_NOTE[kind], home: true, open: null }));
   return out.sort((a, b) => (a.open === false) - (b.open === false) || a.d - b.d);
 }

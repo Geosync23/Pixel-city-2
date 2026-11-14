@@ -171,3 +171,14 @@ Lantern Row Night Festival, Harbor Day (boat parade + pier fireworks), Summer St
 - Wave D (goods/home) needs MANY interesting stores to buy home goods: a big-box home-improvement store (warehouse aisles, lumber, paint mixing, garden centre), department stores (several floors/sections),
   several furniture showrooms of different styles, plant nursery, kitchenware, lighting, rugs/textiles, electronics, thrift/antiques — each physical (pick from displays, pay at the counter) and different.
 - Expanding the map is allowed whenever it makes sense (owner: "please feel free"): new districts/lots at the edges for big-box stores, the university, a museum etc. Never re-lay-out what exists.
+
+## Direction update 14 — SIGNATURE INTERIORS = the big showpieces (owner msg 66)
+"Signature interiors" means the special, unique, big places like Symphony Hall. Done so far: airport terminal + cabin, Central Station, Maple Bay Galleria mall, SkyDeck, Symphony Hall, cinema, Lantern Playhouse.
+Showpiece track (one big worker each, highest priority for free slots after Wave A; each with in-world activities, crowds, a story hook and a Wander guide entry):
+ S1 Botanical Conservatory (existing bld.civic.conservatory) — glass palm house, biomes, koi pond, seasonal flower show.
+ S2 Museum of Maple Bay (NEW building — the old museum became Symphony Hall; new lot at the map edge or Arts district) — natural history hall with a skeleton, art wing, city history, special exhibitions.
+ S3 Observatory (existing bld.civic.observatory) — dome, telescope at night, planetarium show.
+ S4 Grand hotel (NEW or converted downtown tower) — lobby, concierge, restaurant, rooftop bar.
+ S5 Arena (existing bld.civic.arena) — basketball games + concerts with crowds, concourse food, scoreboard.
+ S6 Aquarium (NEW, harbor) — tunnel tank, touch pool, jellyfish room.
+ S7 Harbor fish market hall + lighthouse climb (existing). S8 City Hall rotunda (existing; story/civic). S9 Natatorium / public pool (existing bld.civic.pool). S10 University (already planned 2j; existing bld.arts.unihall).

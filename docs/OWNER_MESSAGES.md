@@ -286,3 +286,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 65 — Where are the signature interiors in the plan; activities; Maple Bay guide
 > Ok where are signature interiors in the plan of action?  Also these interiors have activities attached yes? Need to be int the maple bay guide if they aren't now
+
+## 66 — "Signature interiors" means the big showpieces
+> By signature interiors I mean the special unique big ones like the concert hall etc

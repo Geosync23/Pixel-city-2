@@ -5,7 +5,7 @@
 //   Every need is a number 0..100 (100 = fully satisfied). Decay values are points per GAME HOUR
 //   and are negative. A typical day (16 h awake, 8 h asleep) costs roughly:
 //     hunger 84 (three normal meals refill ~100), energy 88 (8 h on the starter mattress refills 88),
-//     hygiene 56 (one shower refills 60), fun 56, social 40.
+//     hygiene 56 (one shower refills 60), fun 56, social 40, bladder ~310 (five short toilet visits).
 //   Design intent: needs are a gentle rhythm, not a threat. A player who eats three times, sleeps
 //   once and showers once never sees a red bar.
 //
@@ -21,9 +21,12 @@
 //   atZero        what happens when the need hits 0. Always gentle; nobody dies in Maple Bay.
 //                 { type: 'pass_out' | 'status', ... } — see each entry.
 //
-// BLADDER: deliberately NOT included. In an open-world city with long walks and train rides it
-// would mostly generate "run home" errands and toilet-hunting in facades that are not enterable.
-// It adds annoyance, not decisions. Hygiene already covers the bathroom fantasy.
+// BLADDER (added after an owner playtest: "TOILETS + a BLADDER/bathroom need"): 100 = empty and comfortable, 0 = bursting.
+//   Decays 17/h awake and 5/h asleep, so a day costs ~310 (16 h awake + 8 h asleep) plus ~10-16 per drink (BLADDER.drink):
+//   about five toilet visits a day, six if you like your coffee. It never passes you out and there is no "accident":
+//   below 30 you get a mild "Need to Go", below 12 "Bursting" (you hurry, and it is hard to concentrate), at 0 only a toast.
+//   Toilets are everywhere on purpose: your own bathroom, every venue with a counter ("Restroom"), stations, park pavilions.
+//   Logic lives in src/sim/bladder.js.
 
 export const NEED_MIN = 0;
 export const NEED_MAX = 100;
@@ -99,7 +102,32 @@ export const NEEDS = [
     atZero: { type: 'status', moodlet: 'lonely', siblingCheckInCall: { social: 15, maxPerDay: 1 },
       message: 'Your sibling calls: "Hey stranger. You okay? Come over this week."' },
   },
+  {
+    id: 'bladder', name: 'Bladder', icon: 'toilet roll, white and blue',
+    start: 70, decayAwake: -17, decayAsleep: -5,
+    bands: [
+      { id: 'full', min: 85, label: 'Comfortable', moodlet: null },
+      { id: 'ok', min: 30, label: 'Fine', moodlet: null },
+      { id: 'low', min: 12, label: 'Need to go', moodlet: 'need_to_go' },
+      { id: 'critical', min: 0, label: 'Bursting', moodlet: 'bursting' },
+    ],
+    // No pass-out and no accident. At 0 'bursting' simply stays on (you walk a little faster and learn/work a little worse)
+    // until you find any toilet: home, a venue restroom, a station or a park pavilion.
+    atZero: { type: 'status', moodlet: 'bursting',
+      message: 'You cannot think about anything else. Any restroom will do: tap the Bladder bar to find the nearest one.' },
+  },
 ];
+
+// Bladder tuning (used by src/sim/bladder.js). `drink` = points taken off the bladder need by one drink, by kind.
+export const BLADDER = {
+  drink: { default: 10, water: 8, caffeine: 14, alcohol: 16, soup: 4 },
+  toiletMinutes: 4,        // a home / fixture toilet visit (activity `use_toilet`: +100 over these minutes)
+  restroomMinutes: 5,      // a public "Restroom" visit (fade out / fade in), hand-washing included
+  restroomHygiene: 3,      // hygiene gained in a public restroom (you wash your hands there)
+  unwashedHygiene: -3,     // hygiene lost by using a toilet...
+  washHygiene: 6,          // ...and gained by "Wash hands" at any sink (+3 more right after a toilet visit)
+  relievedBelow: 35,       // using a toilet when the need was under this gives the 'relieved' moodlet
+};
 
 // ---------------------------------------------------------------------------------------------
 // MOODLETS — small named status effects. Shown as chips in the Wellness app.
@@ -131,6 +159,9 @@ export const MOODLETS = {
   a_bit_lonely: { name: 'A Bit Lonely', desc: 'It would be nice to talk to someone.', mood: -6, workPerf: -2, walkSpeed: 1, minutes: null, source: 'need' },
   lonely:       { name: 'Lonely', desc: 'The city feels very big today.', mood: -14, workPerf: -6, walkSpeed: 1, minutes: null, source: 'need' },
 
+  need_to_go:   { name: 'Need to Go', desc: 'You are starting to look for a restroom sign.', mood: -4, workPerf: -2, walkSpeed: 1, minutes: null, source: 'need' },
+  bursting:     { name: 'Bursting', desc: 'Quick little steps. Nothing else matters right now.', mood: -12, workPerf: -10, walkSpeed: 1.1, xpMult: 0.85, minutes: null, source: 'need' },
+  relieved:     { name: 'Relieved', desc: 'Ahh. The world is a kinder place again.', mood: 4, workPerf: 1, walkSpeed: 1, minutes: 60, source: 'activity' },
   // --- food & drink ---
   caffeinated:  { name: 'Caffeinated', desc: 'Buzzing. More coffee only gives half the kick while this lasts.', mood: 2, workPerf: 3, walkSpeed: 1.05, minutes: 180, source: 'item', caffeineGainMult: 0.5 },
   home_cooked:  { name: 'Home Cooked', desc: 'You made that. With your own hands.', mood: 4, workPerf: 0, walkSpeed: 1, minutes: 240, source: 'item' },
