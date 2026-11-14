@@ -62,7 +62,7 @@ const LAY = {
       b.wx('generic.window', 1, { w: 1, cross: false, plant: true });
       b.seat('generic.bench', 0, 2, { c: C.s }, { flip: true, keep: true }, 1);
       b.f('lobby.inlay', half(b.ex - .5), 1.5, { kind: 'stripe', w: 1, d: D - 2.5, c: C.r, c2: C.r2 });
-      corners(b, L, !L.mir, !!L.mir); b.f('lobby.umbrella', b.ex + 1, D - 1, { c: METAL[C.m] });
+      corners(b, L, true, false); b.f('lobby.umbrella', b.ex + 1, D - 1, { c: METAL[C.m] });
       if (L.has('bike')) b.f('lobby.bike', W - 2, D - 1.5, { c: C.a, basket: L.n % 2 === 0 }, { keep: true }); if (L.has('pkg')) b.f('courier.pile', W - 1.5, D - 2.5, {}, { keep: true });
       b.s(3.5, .8, 3); b.s(1.2, 1.3, 1, 'phone'); b.s(b.ex - 1.3, D - 1.4, 0); b.s(W - 1.3, 1.2, 3);
     } else if (v === 1) {
@@ -288,6 +288,7 @@ export function lobbyRoom(L) {
   const fs = String(L.f || '').split(/\s+/).filter(Boolean); L.has = k => fs.includes(k); L.c = L.c || {};
   const b = builder(L), C = L.c; (LAY[L.style] || LAY.walkup)(b, L);
   const ex = L.mir ? L.w - b.ex : b.ex, res = L.kind === 'res';
+  if (b.npc.length > 10) { const st = b.npc.filter(q => q.kind === 'staff'), cu = b.npc.filter(q => q.kind !== 'staff'); b.npc.length = 0; b.npc.push(...st, ...cu.slice(0, 10 - st.length)); } // 4-10 people per lobby
   return {
     id: L.id, name: res ? L.name + ' — Lobby' : L.name, w: L.w, d: L.d, lobby: L, music: res || L.style === 'civic' ? 'quiet' : 'office', floor: GT[C.fl || 'f_tile'], floors: b.floors,
     wall: { color: C.wc || '#e9e4da', pattern: C.wp || 'plain', color2: C.w2, trim: C.wt || '#5a4a3a', h: C.h || (res ? 2.8 : 3.1), rail: C.rail0 },

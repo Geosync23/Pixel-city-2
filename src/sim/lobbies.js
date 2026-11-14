@@ -57,6 +57,8 @@ function ensure(w) {
   const blds = w.objs.filter(ob => ob.a && ob.a.kind === 'building' && ob.B), doors = w.pois.filter(p => (p.type === 'door' || p.type === 'stall') && !p.lobby);
   const dist = (p, ob) => Math.hypot(Math.max(ob.B[0] - p.x, 0, p.x - ob.B[3]), Math.max(ob.B[1] - p.y, 0, p.y - ob.B[4]));
   const owned = new Set(); for (const p of doors) { let b = null, bd = 3.2; for (const ob of blds) { const d = dist(p, ob); if (d < bd) { bd = d; b = ob; } } if (b) owned.add(b); }
+  // Beacon Tower: showpieces.js gives the tallest door-less downtown tower the SkyDeck door. Reserve the same tower when that has not happened yet (lazy build), so ids never shift.
+  if (!w.pois.some(p => p.id === 'door:skydeck_lobby')) { let best = null; for (const ob of blds) { if (!/^bld\.downtown\.tower/.test(ob.id)) continue; if (w.pois.some(p => p.type === 'door' && p.x > ob.B[0] - 2 && p.x < ob.B[3] + 2 && p.y > ob.B[1] - 2 && p.y < ob.B[4] + 2)) continue; if (!best || ob.size[2] > best.size[2] + .01) best = ob; } if (best) owned.add(best); }
   const claimed = new Set(G.publicPlaces ? G.publicPlaces.list().map(p => p.ob) : []);
   const start = doors.find(p => /^door:(cafe|bakery|grocery)/.test(p.id) && !w.isBlocked(p.x, p.y)) || doors.find(p => !w.isBlocked(p.x, p.y)), ok = start ? flood(w, start.x, start.y) : (x, y) => !w.isBlocked(x, y);
   const taken = doors.map(p => ({ x: p.x, y: p.y })), free = (x, y) => !taken.some(q => Math.hypot(q.x - x, q.y - y) < 1.6);
