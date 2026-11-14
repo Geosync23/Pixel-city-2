@@ -101,7 +101,7 @@ function pumpkin(p) {
   else if (t === 1) one(.26, .24, .23, p.c || '#e8843a', p.carved !== false); else one(.27, .27, .17, p.c || '#e8843a', p.carved);
 }
 function boxes(p) {
-  const r = rng(p.seed || 1), n = p.n || 3, cb = '#c9a36a', tape = '#e9d9a8';
+  const r = rng(p.seed || 1), n = p.n || (p.tier != null ? 3 - tier(p) : 3), cb = '#c9a36a', tape = '#e9d9a8';
   const one = (x, y, z, w, d, h, label, open) => { const c = [cb, '#b8925a', '#d2ad74'][r() * 3 | 0]; box(x, y, z, w, d, h, c, { t: open ? '#6f5438' : lt(c, .15) }); if (!open) { lw([x + w / 2, y, z + h], [x + w / 2, y + d, z + h], tape); lw([x + w / 2, y + d, z + h], [x + w / 2, y + d, z + h - .12], tape); } else { fq([[x, y, z + h], [x + w, y, z + h], [x + w + .0, y - .12, z + h + .14], [x, y - .12, z + h + .14]], lt(c, .2)); qx(x + w, y, y + d, z + h, z + h + .01, c); }
     if (label && w * 16 >= label.length * 4 + 1) textY(label, x + (w - (label.length * 4 - 1) / 16) / 2, y + d, z + h * .72, dk(c, .55)); };
   shadow(0, 1.04, 0, 1.04);
@@ -151,7 +151,14 @@ export default [
   S('fireplace', 'living', ['fireplace', 'decor'], { size: [2, .5, 1.25], vb: [-.3, -.3, 0, 2.3, 1, 2.5], light: { x: 1, y: 1.1, z: 0, r: 3.5 }, use: { x: 1, y: 1.1 }, variants: [{ tier: 0 }, { tier: 1 }, { tier: 2 }, { tier: 1, on: false, c: '#7fa08c' }], draw: fireplace }),
   S('xmastree', 'decor', ['seasonal', 'xmas', 'winter'], { size: [1, 1, 2.2], vb: [-.3, -.3, 0, 1.3, 1.3, 2.6], light: { x: .5, y: .8, z: 0, r: 2.5 }, variants: T3, draw: xmasTree }),
   S('pumpkin', 'decor', ['seasonal', 'halloween', 'autumn'], { size: [.5, .5, .4], solid: false, variants: [{ tier: 0 }, { tier: 1 }, { tier: 2 }, { tier: 1, carved: false, c: '#e9dcc0' }], draw: pumpkin }),
-  S('boxes', 'decor', ['boxes', 'moving'], { size: [1, 1, .9], variants: [{ n: 3, seed: 1 }, { n: 2, seed: 4 }, { n: 1, seed: 2 }], draw: boxes }),
+  S('boxes', 'decor', ['boxes', 'moving', 'moving_box'], { size: [1, 1, .9], use: { x: .5, y: 1.3 }, variants: [{ tier: 0, seed: 1 }, { tier: 1, seed: 4 }, { tier: 2, seed: 2 }, { n: 3, seed: 7 }], draw: boxes }),
+  S('parcel', 'decor', ['boxes', 'delivery', 'delivery_box'], { size: [.5, .5, .4], use: { x: .25, y: .8 }, variants: [{ tier: 0 }, { tier: 1 }, { tier: 2 }, { tier: 1, c: '#f1eee6' }], draw(p) {
+    const t = tier(p), c = p.c || ['#c9a36a', '#b8925a', '#3f6f8a'][t], w = [.34, .42, .44][t], h = [.22, .3, .34][t], x = (.5 - w) / 2;
+    shadow(x, x + w + .05, .08, .5); box(x, .08, 0, w, .36, h, c, { t: lt(c, .15) });
+    if (t === 2) { lw([x + w / 2, .44, 0], [x + w / 2, .44, h], GOLD); lw([x + w / 2, .08, h], [x + w / 2, .44, h], GOLD); lw([x, .26, h], [x + w, .26, h], GOLD); dot(x + w / 2, .26, h + .04, GOLD, -1, 0); dot(x + w / 2, .26, h + .04, GOLD, 1, 0); dot(x + w / 2, .26, h + .02, GOLD); }
+    else { lw([x + w / 2, .08, h], [x + w / 2, .44, h], '#e9d9a8'); lw([x + w / 2, .44, h], [x + w / 2, .44, h - .1], '#e9d9a8'); qy(x + .04, x + .18, .44, h * .3, h * .7, '#f8f5ee'); lw([x + .06, .44, h * .5], [x + .16, .44, h * .5], '#59607a'); if (t) { qy(x + w - .14, x + w - .04, .44, h * .5, h * .8, FAB.red); } }
+    if (t === 1) { box(x + .04, .12, h, .2, .16, .1, '#d2ad74', { t: '#e0bd84' }); }
+  } }),
   S('shoerack', 'decor', ['shoerack', 'hall', 'storage'], { size: [1, .5, .6], vb: [-.3, -.3, 0, 1.3, 1, 1.1], use: { x: .5, y: .85 }, variants: T3, draw: shoeRack }),
   S('doormat', 'decor', ['doormat', 'hall', 'rug'], { size: [1, .5, .02], vb: [-.1, -.1, 0, 1.1, .6, .1], solid: false, variants: [{ tier: 0 }, { tier: 1 }, { tier: 2 }, { tier: 1, c: '#7a8a6a', c2: '#3f5a3a' }], draw: doormat }),
   S('cattree', 'decor', ['pet', 'cattree'], { size: [1, 1, 1.9], vb: [-.3, -.3, 0, 1.3, 1.3, 2.4], variants: [{ tier: 0, cat: true }, { tier: 1, cat: true, catc: '#8d8f9c' }, { tier: 2, cat: true, cat2: true }, { tier: 1 }], draw: catTree }),
