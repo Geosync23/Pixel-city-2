@@ -39,7 +39,7 @@ const T = {
   transit: i => i.kind === 'station' || i.kind === 'busstop' || i.kind === 'taxistand',
 };
 // bladder: any place with a restroom. G.bladder.hasRestroom(roomId) knows which rooms have a counter / toilet; park pavilions come from the SOURCES hook below.
-T.bladder = i => i.fns.includes('restroom') || i.kind === 'station' || i.kind === 'airport' || (i.kind === 'venue' && safe(() => G.bladder.hasRestroom(i.roomId || i.id), null) !== false && (safe(() => G.bladder.hasRestroom(i.roomId || i.id), false) || i.menu || i.svc.length > 0));
+T.bladder = i => { if (i.fns.includes('restroom') || i.kind === 'airport') return true; if (i.kind !== 'venue' && !i.roomId) return false; const h = safe(() => G.bladder.hasRestroom(i.roomId || i.id), null); return h === true || (h == null && i.kind === 'venue' && (i.menu || i.svc.length > 0 || i.shop.length > 0)); };
 const SOURCES = {};   // kind -> [fn(from) -> extra rows {id, name, x, y, d?, open?, note?}]  (G.nav.addSource)
 T.hunger = i => T.food(i) || T.groceries(i); T.energy = T.coffee;
 export const matches = (p, kind) => !!(p && T[kind] && T[kind](info(p)));

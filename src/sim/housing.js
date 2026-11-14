@@ -4,6 +4,8 @@
 //   id, owned,                         current home id (data/homes.js) + whether it is owned (money.js bills rent or upkeep from these)
 //   items:   [{ uid, itemId, asset, x, y, flip } | { uid, itemId, asset, wall: 'y'|'x', at }]   placed furniture (room coords of the min corner;
 //             `inc: 1` = came with the home: movable, but not sellable and it stays behind when you move). Art params come from VIS[itemId].
+//             `r: 'bath'` = the piece stands in the home's BATHROOM (room `home:<id>:bath`, coords are that room's); no `r` = the main room.
+//   bathV: 1                           bathrooms-as-rooms migration done (old saves: showers/tubs move from the main room to the bathroom slots, see migrateBath)
 //   storage: [itemId]                  owned but not placed            stay: [itemId]  stored pieces that belong to the home
 //   boxes:   [{ uid, k: 'm' (moving) | 'd' (delivery), label, items: [itemId], gives?: [{ item, qty }], intro? }]   unopened boxes standing in the home
 //   pending: [{ id, t }]               bought, arriving at abs minute t
@@ -22,7 +24,10 @@
 //   check({ itemId, x, y, flip } | { itemId, wall, at }, ignoreUid?) -> null | reason string
 //   place(itemId, pos, { quiet? }) -> uid | null      move(uid, pos, opts) -> bool      rotate(uid, opts) -> bool
 //   store(uid, opts) -> bool    sell(uid | itemId, opts) -> price | 0     sellPrice(itemId)
-//   visual(itemId) -> { id (asset id), a (asset), p, wall, solid, z, mount, size: [w, d, h] }      roomDef(homeId) -> room def for interior.js
+//   visual(itemId) -> { id (asset id), a (asset), p, wall, solid, z, mount, size: [w, d, h] }      roomDef(homeId, room?) -> room def for interior.js
+//   ROOMS OF A HOME: 'main' and 'bath' (SHELLS[id].bath). room() -> the one you are standing in. isHome() is true in both; check/place/move/rotate, shell()
+//   and roomDef(yourHomeId) (room omitted) all act on the room you are standing in, so Decorate works in the bathroom too. Showers and bathtubs placed while
+//   in the main room are plumbed into the bathroom automatically (they only work there).
 //   guestSpots() -> [{ x, y, z, dir, seat: true, fx } | { x, y, stand: true }]  free seats + standing spots in the current home scene (world coords)
 //   openListings() / showCard(homeId) / decorate()   provided by src/ui/furnish.js
 // Events: 'home:move'(homeId, prevId), 'home:furnish'(), 'home:delivery'(box), 'home:unpack'(box, introBoxesDone), 'home:bought'(homeId)
@@ -33,7 +38,7 @@ import { HOMES, HOME_BY_ID, SIZE_CLASSES, MOVING_BOXES, MOVING_BOXES_DONE_MOODLE
 import { ITEM_BY_ID } from '../data/items.js';
 import { MORTGAGE, SELL_BACK, DELIVERY } from '../data/economy.js';
 import { asset, assetSize } from '../art/registry.js';
-import { SHELLS, STORY_HOMES, withExit } from '../scenes/rooms/homes.js';
+import { SHELLS, STORY_HOMES, withExit, bathDoorItems, bathDef } from '../scenes/rooms/homes.js';
 import { toast } from '../ui/kit.js';
 
 export const order = 60;
@@ -67,12 +72,38 @@ export function visual(itemId) {
 }
 
 let S = null;
-const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1 });
-function norm() { S = G.state.home; if (!S || typeof S !== 'object') S = G.state.home = blank(); const b = blank(); for (const k in b) if (S[k] === undefined) S[k] = b[k]; if (S.id && !SHELLS[S.id]) S.id = null; return S; }
+const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1, bathV: 1 });
+function norm() { S = G.state.home; if (!S || typeof S !== 'object') S = G.state.home = blank(); const old = S.bathV === undefined; const b = blank(); for (const k in b) if (S[k] === undefined) S[k] = b[k]; if (S.id && !SHELLS[S.id]) S.id = null; if (old) { S.bathV = 0; } if (!S.bathV) migrateBath(); return S; }
+/* ---------- rooms of a home: 'main' | 'bath' ---------- */
+const BATH_TAGS = ['shower', 'bath'];
+const isBathGood = itemId => { const it = ITEM_BY_ID[itemId]; return !!it && BATH_TAGS.includes(it.tag); };
+const bathScene = () => !!S && !!S.id && !!G.scene && G.scene.id === 'int:home:' + S.id + ':bath';
+const curRoom = () => (bathScene() ? 'bath' : 'main');
+const shOf = (id, room) => { const sh = SHELLS[id]; return sh && room === 'bath' ? sh.bath : sh; };
+const inRoom = (it, room) => (room === 'bath' ? it.r === 'bath' : !it.r);
+/** first free spot for a bathroom piece: its slot, else anywhere it fits (uses check() against the bathroom) */
+function bathSpot(itemId, ignore) {
+  const b = shOf(S.id, 'bath'); if (!b) return null; const tag = (ITEM_BY_ID[itemId] || {}).tag, sl = b.slots && b.slots[tag], c = [];
+  if (sl) c.push({ x: sl[0], y: sl[1], flip: !!sl[2] });
+  for (const k in b.slots || {}) if (k !== tag) c.push({ x: b.slots[k][0], y: b.slots[k][1], flip: !!b.slots[k][2] });
+  for (let y = 0; y <= b.d - 1; y += .5) for (let x = 0; x <= b.w - 1; x += .5) c.push({ x, y, flip: false }, { x, y, flip: true });
+  for (const pos of c) if (!check(Object.assign({ itemId }, pos), ignore, 'bath')) return pos;
+  return null;
+}
+/** old saves kept the shower / bathtub in the main room: move them into the bathroom (or into storage when there is no room for them) */
+function migrateBath() {
+  S.bathV = 1; if (!S.id || !shOf(S.id, 'bath')) return;
+  for (const it of S.items.slice()) {
+    if (it.r || it.wall || !isBathGood(it.itemId)) continue;
+    const i = S.items.indexOf(it); S.items.splice(i, 1);                 // take it out so it does not collide with itself
+    const pos = bathSpot(it.itemId);
+    if (pos) { it.x = pos.x; it.y = pos.y; it.flip = pos.flip; it.r = 'bath'; S.items.push(it); } else (it.inc ? S.stay : S.storage).push(it.itemId);
+  }
+}
 const uid = p => p + (S.n++);
 const nameOf = id => (ITEM_BY_ID[id] ? ITEM_BY_ID[id].name : id);
 const fmt = n => (G.money ? G.money.fmt(n) : '$' + n);
-const isHome = sid => !!S.id && (sid === undefined ? (G.scene && G.scene.id) : sid) === 'int:home:' + S.id;
+const isHome = sid => { if (!S.id) return false; const s = sid === undefined ? (G.scene && G.scene.id) : sid; return s === 'int:home:' + S.id || s === 'int:home:' + S.id + ':bath'; };
 const changed = quiet => { G.emit('home:furnish'); if (!quiet) refresh(); };
 
 /* ---------- geometry ---------- */
@@ -81,7 +112,7 @@ function sizeOfDef(i) { let a; try { a = asset(i.id); } catch (e) { return [1, 1
 function rectOfDef(i) { const s = sizeOfDef(i); return [i.x, i.y, i.x + s[0], i.y + s[1]]; }
 function solidDef(i) { if (i.wall || i.solid === false) return false; try { return asset(i.id).solid !== false; } catch (e) { return false; } }
 const hit = (a, b) => a[0] < b[2] - EPS && b[0] < a[2] - EPS && a[1] < b[3] - EPS && b[1] < a[3] - EPS;
-function keepRects(sh) { if (sh.door) { const at = sh.door.at; return [sh.door.wall === 'y' ? [at - .1, 0, at + 1.1, 1.5] : [0, at - .1, 1.5, at + 1.1]]; } return [[sh.exit.x - 1, sh.exit.y - 1.5, sh.exit.x + 1, sh.exit.y + .5]]; }
+function keepRects(sh) { const out = [], wr = (b) => (b.wall === 'y' ? [b.at - .1, 0, b.at + 1.1, 1.5] : [0, b.at - .1, 1.5, b.at + 1.1]); if (sh.door) out.push(wr(sh.door)); else out.push([sh.exit.x - 1, sh.exit.y - 1.5, sh.exit.x + 1, sh.exit.y + .5]); if (sh.bathDoor) out.push(wr(sh.bathDoor)); return out; }
 function spawnOf(sh) { return sh.door ? (sh.door.wall === 'y' ? [sh.door.at + .5, .9] : [.9, sh.door.at + .5]) : [sh.exit.x, sh.exit.y - .2]; }
 /** which of the rects can be walked up to from the door (rects = solids; all of them block) */
 function reach(sh, rects) {
@@ -91,9 +122,9 @@ function reach(sh, rects) {
   while (q.length) { const c = q.pop(), x = c % W, y = (c - x) / W; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= D) continue; const k = ny * W + nx; if (!g[k]) { g[k] = 2; q.push(k); } } }
   return rects.map(r => { for (let y = Math.floor(r[1] * 2 + EPS) - 1; y <= Math.ceil(r[3] * 2 - EPS); y++) for (let x = Math.floor(r[0] * 2 + EPS) - 1; x <= Math.ceil(r[2] * 2 - EPS); x++) if (x >= 0 && y >= 0 && x < W && y < D && g[y * W + x] === 2) return true; return false; });
 }
-function check(c, ignore) {
-  const sh = SHELLS[S.id]; if (!sh) return 'You have no home yet';
-  const v = visual(c.itemId), items = roomDef(S.id).items.filter(i => !(ignore && i.uid === ignore));
+function check(c, ignore, room = curRoom()) {
+  const sh = shOf(S.id, room); if (!sh) return 'You have no home yet';
+  const v = visual(c.itemId), items = roomDef(S.id, room).items.filter(i => !(ignore && i.uid === ignore));
   if (v.wall) {
     if (!c.wall) return 'This hangs on a wall';
     const L = c.wall === 'y' ? sh.w : sh.d, w = v.size[0]; if (c.at < -EPS || c.at + w > L + EPS) return 'Off the end of the wall';
@@ -126,17 +157,19 @@ function included(id) {
   if (incCache[id]) return incCache[id];
   const sh = SHELLS[id], h = HOME_BY_ID[id], used = {}, items = [], rest = [];
   for (const itemId of h.included || []) {
-    const it = ITEM_BY_ID[itemId], k = it && sh.slots[it.tag] && !used[it.tag] ? it.tag : !used.extra && sh.slots.extra ? 'extra' : null;
-    if (!k) { rest.push(itemId); continue; } used[k] = 1; const s = sh.slots[k], v = visual(itemId);
-    items.push(v.wall ? { itemId, asset: v.id, wall: 'y', at: s[0], inc: 1 } : { itemId, asset: v.id, x: s[0], y: s[1], flip: !!s[2], inc: 1 });
+    const it = ITEM_BY_ID[itemId], bs = sh.bath && sh.bath.slots, inBath = !!(it && bs && bs[it.tag] && !used[it.tag]);
+    const k = inBath ? it.tag : it && sh.slots[it.tag] && !used[it.tag] ? it.tag : !used.extra && sh.slots.extra ? 'extra' : null;
+    if (!k) { rest.push(itemId); continue; } used[k] = 1; const s = inBath ? bs[k] : sh.slots[k], v = visual(itemId);
+    const o = v.wall ? { itemId, asset: v.id, wall: 'y', at: s[0], inc: 1 } : { itemId, asset: v.id, x: s[0], y: s[1], flip: !!s[2], inc: 1 }; if (inBath) o.r = 'bath'; items.push(o);
   }
   return incCache[id] = { items, rest };
 }
-function roomDef(id) {
-  const sh = SHELLS[id], h = HOME_BY_ID[id], mine = S.id === id;
-  const list = sh.fixed.map(i => Object.assign({ fixed: true }, i));
-  for (const it of mine ? S.items : included(id).items) list.push(defOf(it));
-  if (mine && S.boxes.length) {
+function roomDef(id, room) {
+  const mine = S.id === id; if (!room) room = mine ? curRoom() : 'main'; if (room === 'bath' && !SHELLS[id].bath) room = 'main';
+  const sh = shOf(id, room), h = HOME_BY_ID[id], bath = room === 'bath';
+  const list = sh.fixed.map(i => Object.assign({ fixed: true }, i)).concat(bath ? [] : bathDoorItems(sh));
+  for (const it of mine ? S.items : included(id).items) if (inRoom(it, room)) list.push(defOf(it));
+  if (mine && S.boxes.length && !bath) {
     const solids = list.filter(solidDef).map(rectOfDef).concat(keepRects(sh)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
     for (const b of S.boxes) {
@@ -147,6 +180,7 @@ function roomDef(id) {
   }
   const flat = i => (!i.wall && !solidDef(i) && sizeOfDef(i)[2] < .1 ? 0 : 1);
   list.sort((a, b) => flat(a) - flat(b));
+  if (bath) return Object.assign(bathDef(id, list), { home: mine });
   return withExit({ name: h.name, home: mine, homeId: id, w: sh.w, d: sh.d, floor: sh.floor, floors: sh.floors, wall: sh.wall, items: list }, sh, 'home:' + id);
 }
 
@@ -234,16 +268,21 @@ const posOf = (v, pos) => (v.wall ? { wall: pos.wall, at: pos.at } : { x: pos.x,
 function place(itemId, pos, o = {}) {
   let from = S.storage, i = from.indexOf(itemId); if (i < 0) { from = S.stay; i = from.indexOf(itemId); } if (i < 0) return null;
   const inc = from === S.stay, sl = slots(); if (!inc && sl.used >= sl.max) { if (!o.quiet) toast('This home is full: store something first.', 'bad'); return null; }
-  const v = visual(itemId), why = check(Object.assign({ itemId }, pos)); if (why) { if (!o.quiet) toast(why, 'bad'); return null; }
-  from.splice(i, 1); const it = Object.assign({ uid: uid('f'), itemId, asset: v.id }, posOf(v, pos)); if (inc) it.inc = 1; S.items.push(it); changed(o.quiet); return it.uid;
+  const v = visual(itemId); let room = o.room || curRoom();
+  if (room === 'main' && isBathGood(itemId) && shOf(S.id, 'bath')) {       // showers and tubs are plumbed into the bathroom wherever you drop them
+    const bp = bathSpot(itemId); if (!bp) { if (!o.quiet) toast('The bathroom has no room for it: store something in there first.', 'bad'); return null; }
+    pos = bp; room = 'bath'; if (!o.quiet) toast(`${nameOf(itemId)} goes in the bathroom: the plumber has fitted it there.`, 'info', 3600);
+  }
+  const why = check(Object.assign({ itemId }, pos), undefined, room); if (why) { if (!o.quiet) toast(why, 'bad'); return null; }
+  from.splice(i, 1); const it = Object.assign({ uid: uid('f'), itemId, asset: v.id }, posOf(v, pos)); if (inc) it.inc = 1; if (room === 'bath') it.r = 'bath'; S.items.push(it); changed(o.quiet); return it.uid;
 }
 function move(id, pos, o = {}) {
-  const it = S.items.find(i => i.uid === id); if (!it) return false; const v = visual(it.itemId), why = check(Object.assign({ itemId: it.itemId }, pos), id); if (why) { if (!o.quiet) toast(why, 'bad'); return false; }
+  const it = S.items.find(i => i.uid === id); if (!it) return false; const v = visual(it.itemId), why = check(Object.assign({ itemId: it.itemId }, pos), id, it.r === 'bath' ? 'bath' : 'main'); if (why) { if (!o.quiet) toast(why, 'bad'); return false; }
   delete it.x; delete it.y; delete it.flip; delete it.wall; delete it.at; Object.assign(it, posOf(v, pos)); changed(o.quiet); return true;
 }
 function rotate(id, o = {}) {
   const it = S.items.find(i => i.uid === id); if (!it) return false;
-  if (it.wall) { const sh = SHELLS[S.id], w = it.wall === 'y' ? 'x' : 'y', L = w === 'y' ? sh.w : sh.d, sz = visual(it.itemId).size[0]; for (let at = Math.min(it.at, L - sz); at >= 0; at -= .5) if (move(id, { wall: w, at }, { quiet: true })) { changed(o.quiet); return true; } return false; }
+  if (it.wall) { const sh = shOf(S.id, it.r === 'bath' ? 'bath' : 'main'), w = it.wall === 'y' ? 'x' : 'y', L = w === 'y' ? sh.w : sh.d, sz = visual(it.itemId).size[0]; for (let at = Math.min(it.at, L - sz); at >= 0; at -= .5) if (move(id, { wall: w, at }, { quiet: true })) { changed(o.quiet); return true; } return false; }
   return move(id, { x: it.x, y: it.y, flip: !it.flip }, o);
 }
 function store(id, o = {}) { const i = S.items.findIndex(x => x.uid === id); if (i < 0) return false; const it = S.items.splice(i, 1)[0]; (it.inc ? S.stay : S.storage).push(it.itemId); changed(o.quiet); return true; }
@@ -258,7 +297,7 @@ function ambience() { const h = HOME_BY_ID[S.id]; let a = (h && h.perk && h.perk
 function homeMood() { if (!isHome() || !G.needs || !G.needs.addMoodlet) return; const a = ambience(), t = AMBIENCE_TIERS.find(x => a >= x.min); if (t) try { G.needs.addMoodlet(t.moodlet, 2); } catch (e) { /* unknown moodlet */ } }
 
 /* ---------- scene helpers ---------- */
-function refresh() { if (!isHome() || G.busy) return null; return G.go('int:home:' + S.id, { fresh: true, x: G.player.x, y: G.player.y, dir: G.player.dir, fade: false }); }
+function refresh() { if (!isHome() || G.busy) return null; return G.go(G.scene.id, { fresh: true, x: G.player.x, y: G.player.y, dir: G.player.dir, fade: false }); }
 function goHome() { if (!S.id) return Promise.resolve(null); G.state.flags.lastDoor = 'door:home:' + S.id; return G.go('int:home:' + S.id, { fresh: true }); }
 function guestSpots() {
   const sc = G.scene, out = []; if (!sc || !sc.fixtures) return out; const P = G.player;
@@ -296,7 +335,7 @@ export function init() {
     canEnter: roomId => !whyNot(roomId), whyNot, invite: (roomId, hours = 3) => { G.state.flags['invited:' + roomId] = G.state.t + hours * 60; },
     addFurniture, deliverNow: () => land(true), unpack: id => { const r = unpack(id); if (r) refresh(); return r; },
     storage: () => S.storage.concat(S.stay), items: () => S.items, boxes: () => S.boxes, slots, ambience,
-    check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => SHELLS[id || S.id],
+    check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => (id ? SHELLS[id] : shOf(S.id, curRoom())), room: curRoom,
   };
   G.on('load', () => { norm(); drain(); });
   G.on('game:new', o => { norm(); start((o && o.homeId) || S.id || 'juniper_court'); });

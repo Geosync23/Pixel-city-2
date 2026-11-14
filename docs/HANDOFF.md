@@ -6,12 +6,13 @@ Rule: this file is updated every time a worker finishes, a build is published, o
   (Stage 14 republished, version 1794695918-0180).
 - **Team: up to 4 Fable 5.2 workers in parallel** (owner msgs 59-62; ~10x usage now -> briefs favour quality). Disjoint files per worker; lead owns shared hooks.
 - **RUNNING — Wave A (2g), 4 workers:**
-  - 2g-1 food & drink unique rooms: owns src/scenes/rooms/places_food*.js, src/art/venue/places_food_art.js, docs/reports/unique_food.md (registers via unique_rooms.js; told NOT to edit public_places.js).
+  - 2g-1 DONE (26 rooms — only 26 food places exist; docs/reports/unique_food.md). Was: owns src/scenes/rooms/places_food*.js, src/art/venue/places_food_art.js, docs/reports/unique_food.md (registers via unique_rooms.js; told NOT to edit public_places.js).
   - 2g-2 shops/services/groceries unique rooms: places_shops*.js, src/art/venue/places_shop_art.js, docs/reports/unique_shops.md.
   - 2g-3 apartment + office lobbies (25+): src/sim/lobbies.js (order 60), src/scenes/rooms/lobbies*.js, src/art/venue/lobby_art.js, docs/reports/lobbies.md.
   - 2g-4 bladder need + toilets + home bathrooms as own rooms + venue/park restrooms: src/sim/bladder.js; may edit data/needs.js, sim/needs.js, data/activities.js, sim/activities.js, HUD needs file, rooms/homes.js, sim/housing.js, interior.js (additive), navigator need data. docs/reports/bladder_bath.md.
   - Lead-owned hook added: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom + registerInfo/placeInfo/allInfo for guide blurbs) + call sites in src/sim/public_places.js.
   - Owner msg 65: interiors must have activities + be in the Wander guide. Workers 2g-1/2/3 were told to tag signature fixtures with existing activity tags, list NEW activities in their reports, and registerInfo() per place.
+    LEAD TODO once 2g-4 releases src/data/activities.js + src/sim/activities.js: venue activities match by room id, so NONE (linger, bar_hang_out, open_mic, watch_live_music) fire in `pub:` rooms — widen matching (venue type / tags) + bar_stool rule; add play_pool, play_darts, play_jukebox, watch_game, watch_kitchen (table in unique_food.md). Also small: tablecloth sets repeat (taqueria/soul kitchen both red-check).
     LEAD TODO after Wave A: wire placeInfo() into src/sim/guide.js entries (blurb/signature/try-this), add the new activities the workers list to data/activities.js, verify in the guide app.
   - If a worker is gone after a restart: check its files above, then brief a new worker "these files exist; continue".
 - **PLAN (waves of up to 4; next wave's workers start as slots free up):**

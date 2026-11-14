@@ -73,7 +73,7 @@ const A = [
     const c = p.c || '#5a3a28', sc = p.sc || '#c0392b', b1 = p.b1 || '#c0392b', b2 = p.b2 || '#f0e4c0';
     stool(1, .25, .45, sc); stool(.25, 1, .45, sc);
     table(.5, .5, 1, 1, .75, c, { thick: true });
-    cyl(1, 1, .75, .32, .1, '#c8ccd0', { t: (x, y) => (x + y) % 2 === 0 && false ? b1 : b1 });
+    cyl(1, 1, .75, .32, .1, '#c8ccd0', { t: b1 });
     lit(() => { cyl(1, 1, .84, .27, .01, b1, { ol: false, t: b1 }); fq([[1, .73, .86], [1.27, 1, .86], [1, 1.27, .86], [1, 1, .86]], b2); lw([1, .73, .86], [1, 1.27, .86], '#8a9098'); for (let i = 0; i < 5; i++) spx(1, 1, .86, -5 + i * 2, [1, -1, 2, 0, -2][i], i % 2 ? '#f6e04a' : '#5af07a'); });
     for (const [x, y] of [[.72, .68], [1.3, .7], [.7, 1.3], [1.32, 1.3]]) cyl(x, y, .75, .07, .03, '#f1ede4', { ol: false, t: '#e8dcc4' });
     steam(1, 1, .98, 2, 2);
@@ -150,7 +150,7 @@ const A = [
       else { qy(.05, w - .05, .06, 1.55, 2.3, '#1b2630'); textY(p.text || 'MENU', .12, .06, 2.26, p.c || '#f6e04a'); for (let r = 0; r < 4; r++) { lw([.12, .06, 1.98 - r * .1], [.12 + (w - .6) * (.5 + hash2(r, 3) * .5), .06, 1.98 - r * .1], '#cfe0e8'); lw([w - .3, .06, 1.98 - r * .1], [w - .12, .06, 1.98 - r * .1], p.c || '#f6e04a'); } }
     });
     frameY(.05, w - .05, .06, 1.55, 2.3, '#4a4f5c');
-  }, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'sport' }, { kind: 'menu', text: 'BOBA', c: '#4ad8f0' }, { kind: 'ocean' }] }),
+  }, { wall: true, mount: .9, solid: false, variants: [{ kind: 'sport' }, { kind: 'menu', text: 'BOBA', c: '#4ad8f0' }, { kind: 'ocean' }] }),
 
   /* ---- strings along a wall (kind: picado | flags | lanterns) ---- */
   F('pf.bunting', ['pf', 'decor'], p => [p.w || 3, .1, 2.7], p => {
@@ -162,7 +162,7 @@ const A = [
       else if (k === 'flags') fq([[a + .03, .04, z - .03], [b - .03, .04, z - .03], [m, .04, z - .3]], col);
       else { qy(a + .04, b - .04, .04, z - .36, z - .04, col); for (const [u, v] of [[.3, .12], [.7, .12], [.5, .22], [.3, .3], [.7, .3]]) spx(a + (b - a) * u, .04, z - v, 0, 0, lt(col, .6)); }
     }
-  }, { wall: true, mount: 2.1, solid: false, variants: [{ kind: 'picado' }, { kind: 'flags' }, { kind: 'lanterns' }] }),
+  }, { wall: true, mount: .9, solid: false, variants: [{ kind: 'picado' }, { kind: 'flags' }, { kind: 'lanterns' }] }),
 
   /* ---- hanging cloth banner / noren with a word on it ---- */
   F('pf.banner', ['pf', 'decor', 'sign'], p => [Math.max(1, Math.ceil(((textW(String(p.text || 'OPEN')) + 8) / 16) * 2) / 2), .1, 2.5], p => {
@@ -171,7 +171,7 @@ const A = [
     signY(t, .05, w - .05, .05, 1.92, 2.3, c, fg, { frame: false }); lw([.1, .05, 1.86], [w - .1, .05, 1.86], p.a || '#d8a848');
     const n = Math.max(2, Math.round(w / .5)); for (let i = 1; i < n; i++) lw([w * i / n, .05, 1.5], [w * i / n, .05, 1.8], dk(c, .45));
     for (let i = 0; i < n; i++) spx(w * (i + .5) / n, .05, 1.68, 0, 0, p.a || '#d8a848');
-  }, { wall: true, mount: 1.5, solid: false, variants: [{ text: 'TEA' }, { text: 'SAKE', c: '#8a2a2a' }] }),
+  }, { wall: true, mount: .9, solid: false, variants: [{ text: 'TEA' }, { text: 'SAKE', c: '#8a2a2a' }] }),
 
   /* ---- drum coffee roaster with a cooling tray ---- */
   F('pf.roaster', ['pf', 'cookstation', 'roaster'], [1.5, 1.5, 2.4], p => {

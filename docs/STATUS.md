@@ -29,6 +29,7 @@ Last updated: stage 14 (apps) — CLEAN STOP before the account move.
 - rail: trains on viaduct, cutaway ride scene, Central Station hall, passes.
 - airport interior: plane cabin, concourse, tram, terminal; new opening sequence.
 - stalls + welcome glow (src/sim/stalls.js), addresses (src/sim/addresses.js).
+- unique food & drink rooms: 26 hand-made (docs/reports/unique_food.md).
 - public places: 53 generic enterable venues + 8 walk-up windows converted from existing buildings, 5 extra groceries, 50 new food/gift items; phone map shows street names + addresses.
 
 - showpieces A: mall `deptstore` (10 shops + food court, 83 new items) and SkyDeck (`skydeck_lobby`, `skydeck`) — docs/reports/showpieces_a.md.

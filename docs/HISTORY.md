@@ -58,3 +58,4 @@
 - 2026-11-14 (new account): 2g split into 2g-1..2g-4; worker 2g-1 (unique food & drink interiors, ~33 pub rooms + taqueria PIZZA sign fix) launched.
 - 2026-11-14: owner msg 59 -> stopped the 2g-1 worker (no files written yet) and relaunched it on Fable 5.2; workers use Fable from now on.
 - 2026-11-14: owner msgs 61-62 -> team of up to 4 Fable workers, ~10x usage. Lead added src/scenes/rooms/unique_rooms.js hook. Wave A launched: 2g-1 food, 2g-2 shops, 2g-3 lobbies, 2g-4 bladder+bathrooms. Wave plan B-E in HANDOFF.
+- 2026-11-14: 2g-1 landed — 26 unique food & drink rooms (places_food.js, places_food2.js, 19 new furn.pf.* fixtures, guide info registered). Worker eval 26/26 pass; lead viewed taqueria, Mama Opal's, Halo Donuts. Activity matching for pub rooms is a lead TODO.
