@@ -233,3 +233,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 55 — Walkway arrows
 > You fixed the walkway movment in the airports but the arrows are still the old way
+
+## 56 — Thanks
+> Thank you for your superb work
