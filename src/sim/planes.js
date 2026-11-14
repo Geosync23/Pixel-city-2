@@ -75,8 +75,10 @@ function step(f, dt) {
       f.cx -= f.v * dt; const d = f.cx - A.touchdown;
       if (d <= 0) { f.alt = 0; f.phase = 'roll'; G.emit('plane:landed', f); } else f.alt = d * .13 * (d < 14 ? .45 + .55 * d / 14 : 1);
     } else {
-      f.v = Math.max(9, f.v - 9 * dt); f.cx -= f.v * dt;
-      if (f.cx < A.exit + 8) { f.fade -= dt / 1.1; if (f.fade <= 0) return free(f); }
+      f.v = Math.max(5, f.v - 9 * dt); f.cx -= f.v * dt;
+      // near the exit the plane starts to pull off the runway toward the taxiway (drifts sideways), then fades once it is well clear
+      if (f.cx < A.exit + 26) { f.turn = true; const ty = (AP.taxiway && AP.taxiway.c) || A.c + 14; f.cy += Math.sign(ty - A.c) * Math.min(2.6, f.v * .45) * dt; }
+      if (f.cx < A.exit + 2 || Math.abs(f.cy - A.c) > 12) { f.fade -= dt / 1.1; if (f.fade <= 0) return free(f); }
     }
   } else if (f.kind === 'takeoff') {
     if (f.fade < 1 && f.phase === 'roll') f.fade = Math.min(1, f.fade + dt * 1.5);
@@ -96,6 +98,7 @@ function step(f, dt) {
 export function init() {
   G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights, clear: () => { for (const f of flights.slice()) free(f); } }; // clear(): remove every active flight (the intro wants an empty runway)
   G.on('scene', (s) => { if (s && s.id !== 'city') for (const f of flights.slice()) free(f); });
+  G.on('scene', (s) => { if (!s || s.id !== 'city' || s._acGrass) return; s._acGrass = true; const w = s.world; for (const ob of w.objs) { if (!/^veh\.airport\.(airliner|turboprop|bizjet|cargo|helicopter)/.test(ob.id)) continue; const t = w.tileType((ob.B[0] + ob.B[3]) / 2, (ob.B[1] + ob.B[4]) / 2); if (t === 1 || t === 16 || t === 20) ob.hidden = true; } });
   G.addSystem({ name: 'planes', update(dt, gm) {
     if (!G.scene || G.scene.id !== 'city' || !city()) return;
     for (let i = flights.length - 1; i >= 0; i--) step(flights[i], Math.min(dt, .1));

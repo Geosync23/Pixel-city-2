@@ -47,3 +47,4 @@
 - 22:24 UTC: item-icons worker launched.
 - Lead fix (owner msg 49): the old curb view no longer flashes between the landing shot and the cabin (intro.js: camera stays on the plane; instant cut to black before the cabin loads). Traced: fade is on from the step change until the cabin is shown.
 - Lead fix (owner msg 50): the opening landing clears all other aircraft first (G.planes.clear()); tested: 2 flights before, only the landing during.
+- Lead fix (owner msg 51): landing plane now starts to pull off toward the taxiway and the opening shot ends 1.6 s into that turn (plane still fully visible; traced: turn at 10.0 s, cut at 11.6 s); captions tightened; static aircraft parked on grass are hidden (planes.js).

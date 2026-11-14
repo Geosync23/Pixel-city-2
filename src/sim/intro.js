@@ -67,12 +67,13 @@ function sendWelcome() {
 }
 
 /* ---------- step: arrival_plane_cinematic (exterior landing shot) ---------- */
+let tOff = 0;
 const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps.indexOf('cabin') >= 0); } catch (e) { return false; } };
 {
   let cut = null, fl = null, t = 0, li = 0, z0 = 0, unSkip = null;
   register({ id: 'arrival_plane_cinematic',
     async enter(c) {
-      const my = token; t = 0; li = 0; fl = null;
+      const my = token; t = 0; li = 0; fl = null; tOff = 0;
       if (c.fresh || !G.scene || G.scene.id !== 'city') { G.player.hidden = true; await G.go('city', { poi: 'spawn:airport' }); if (!live(my)) return; }
       G.player.hidden = true; cut = G.cutscene = { update() {} }; z0 = G.zoom;
       if (G.planes) { G.planes.quiet = true; if (G.planes.clear) G.planes.clear(); fl = G.planes.landNow('airliner'); if (fl) G.camTarget = fl.cam; }
@@ -81,9 +82,11 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
     },
     update(dt) {
       if (!cut) return; t += dt; const L = SEQ.landing.lines;
-      if (li < L.length && t > .4 + li * 3.7) { const l = L[li++]; caption(l.speaker === 'pa' ? 'Captain' : l.speaker === 'narrator' ? null : short(l.speaker), fill(l.text), 3500); }
+      if (li < L.length && t > .4 + li * 2.9) { const l = L[li++]; caption(l.speaker === 'pa' ? 'Captain' : l.speaker === 'narrator' ? null : short(l.speaker), fill(l.text), 3500); }
       if (!inside() && fl && fl.phase === 'roll' && fl.v < 12 && G.camTarget === fl.cam) G.camTarget = null; // legacy flow only: pan to the arrivals curb (the airport-interior opening cuts to the cabin instead)
-      if (t > Math.min(12, SEQ.landing.durationSec || 12) || (!fl && t > 8)) next();
+      // end the shot as the plane starts to pull off the runway (never linger until it despawns)
+      if (fl && fl.turn) { tOff = tOff || t; if (t - tOff > 1.6) return next(); }
+      if (t > Math.min(14, (SEQ.landing.durationSec || 12) + 2) || (!fl && t > 8) || (fl && fl.done)) next();
     },
     exit() {
       // when the opening continues inside the plane, cut to black instantly so the old curb-side view never flashes between the landing shot and the cabin

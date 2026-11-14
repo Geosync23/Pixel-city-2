@@ -218,3 +218,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 50 — Intro: another plane on the runway
 > Theres often anotjer planet on the runway for the opening landing animation
+
+## 51 — Intro landing: plane in the grass, plane disappears
+> Now there's a plane in the grass. and the intro text plays long enough to see our plane dissappear. Just have it start to pull off the runway
