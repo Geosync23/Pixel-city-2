@@ -37,3 +37,4 @@
 - Performance venues landed (cinema films, Symphony Hall, Lantern Playhouse). Stage 9 published.
 - Owner msg 37: guide app prioritised ahead of the fix pack.
 - Owner msgs 38-39: guide app active links; big city events added to the design (backlog 2k).
+- 21:25 UTC: owner asked to stop after running workers (none were running) ahead of moving the project to another account; scheduled launch cancelled; clean stop point documented in HANDOFF.md.

@@ -34,3 +34,4 @@
 18. Guide app is top priority: comprehensive, fun, visual like a guide book; needs a better name than 'things to do' (working name: Wander).
 19. Guide entries need active links (waypoint; add scheduled events to planner). Add 5-6 big staged events (street festivals, parades) across the first 6 months — design now, build later.
 20. Big events: spread across the whole year (5-6); must be dynamic and in-world, not cutscenes or separate scenes.\n21. Plans to move the project to another Claude account at the end of this session — keep everything handoff-ready (HANDOFF.md has a MOVING section).
+22. Asked how many workers were running and to stop once they report back (msg 44) — none running; clean stop for the account move.

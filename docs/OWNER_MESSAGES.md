@@ -197,3 +197,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 43 — Moving accounts at the end of this session
 > Were going to move the project to anotjer account at the end of this session. Please keep that in mind
+
+## 44 — Stop after the running workers
+> Ok tell me when the workers ( how many running now? ) report back and have them stop there.

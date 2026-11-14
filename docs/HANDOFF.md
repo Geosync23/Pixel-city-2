@@ -1,20 +1,26 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 ~21:25 UTC)
-- **Running worker:** none at the moment of writing. A wake-up is scheduled for ~21:25 UTC to launch the GUIDE APP worker (owner msg 37: prioritised; working name "Wander — the Maple Bay guidebook";
-  very comprehensive, fun, visual like a guide book; auto-built from game content: places, shops, stalls, venues, shows, events, activities/mini-games, transit; chapters + by district + near me + Things to try checklist with stamps; EVERY entry has active links: "Take me there" sets a waypoint, scheduled events/shows have "Add to planner" (owner msg 38)).
-  If no worker is running when you read this, launch it. THEN 2f fix pack + navigator, then the rest in the order below.
-- **NEXT (owner's playtest, BIBLE update 11 — do these BEFORE the older queue):** 2f playtest fix pack + navigator (walkways keep right, deboarding order, plane-shaped cabin, station stairs, train flat-fee ticket,
-  train flicker overhead, sit on any chair, item icons, tap goal -> waypoint, tap need -> nearest place, Map "what do you need" navigator with foot/bus/train, planner feeds Goals)
-  -> 2g unique interiors + many more enterable buildings (lobbies; separate bathrooms; toilets + bladder need) -> 2h apps (app store, Properties, Living Tips, Things To Do guide)
-  -> 2i clothes/hair/laundry -> 2j traits/skills/mini-games + university -> then 2c (museum, conservatory, hotel, post offices), 3 jobs, 4b romance, 4c goods, 5 art, 6 QA. Details in docs/BACKLOG.md.
-- **Lead already fixed from msg 36:** traffic-light arm names (now the crossed street, not always MAIN); talking only via the Talk prompt/E (taps on people ignored); Jules renamed Nora (display name; id stays `jules`);
-  relationship gain x0.4 with a +5/day cap per person (REL_RATE / REL_DAILY_CAP in src/sim/social.js; story awards with raw:true exempt).
-- **Live build:** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757; base_version for the next publish = the version printed by the last publish (see docs/HISTORY.md tail) or call get_artifact.
-- **Git:** branch claude/pixel-city-life-sim-21h2e3, pushing works; commit + push after every step. No PR.
-- **Pacing:** one worker at a time, steady; owner doesn't care about total usage, wants continuous progress without slamming the 5-hour window.
-- **Other open small things:** two "Beacon" buildings; taqueria counter shows PIZZA; telescope discovery unverified; weather isWet bug; MapleCab fare shown on free ride.
+## Now (updated 2026-11-14 21:25 UTC) — CLEAN STOP POINT FOR THE ACCOUNT MOVE
+- **Running worker: NONE.** The last worker (performance venues) finished at ~21:05 UTC and its work is integrated, published (Stage 9) and pushed. The scheduled launch of the next worker was CANCELLED at the
+  owner's request (msg 44: stop after the running workers report back). No timers or scheduled wake-ups are pending. Nothing is half-done on disk.
+- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794690529-2e20` (Stage 9). The new account must publish its own artifact (see MOVING section below).
+- **NEXT, in order (nothing started):**
+  1. GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
+     venue, show, event, activity/mini-game, transit line; chapters + by district + near me; "Things to try" checklist with stamps; active links: "Take me there" waypoint, "Add to planner" for scheduled shows/events
+     (use G.shows.schedule, data/calendar.js events, G.places, G.publicPlaces.list(), G.showpieces.mall.shops(), G.planner.add, G.phone.registerApp / setWaypoint)).
+  2. 2f playtest fix pack + navigator (BIBLE update 11): walkways keep right; deboarding — stand when the line reaches your row; plane-shaped cabin shell; station stairs; train flat-fee ticket; train flicker overhead;
+     sit on any chair; real item icons; tap goal -> waypoint; tap need -> nearest place; Map "what do you need?" navigator with foot/bike, bus, train (merges the trip planner 2e); planner feeds the Goals list.
+  3. 2g unique interiors (no repeated templates) + many more enterable buildings (apartment/office lobbies) + separate bathroom rooms + toilets/bladder need.
+  4. 2h remaining apps: app store with release notifications, Properties browser, Living Tips.   5. 2i clothes/hair/laundry system.   6. 2j traits/skills/mini-games + university campus.
+  7. 2c museum (needs a new building — the old museum became Symphony Hall), botanical conservatory, hotel lobby, post offices.   8. 2k big in-world city events (5-6 across the year, dynamic, never cutscenes).
+  9. 3 jobs expansion (15 new jobs, story arcs for all 25).   10. 4b relationships/vignettes/romance.   11. 4c goods, physical shopping, home design, activity mechanics, interests.   12. 4 new needs + Opportunities.
+  13. 5 resume cut-off art (icons, building sets, props, terrain/water, audio, weather, title/creator polish).   14. 6 full QA/playthrough, mobile pass, balance.   FUTURE: city 50-100% larger.
+- **Lead fixes already in from msg 36:** traffic-light arm names; talking only via the Talk prompt/E; Jules renamed Nora (id stays `jules`); relationship gain x0.4 with +5/day cap (REL_RATE / REL_DAILY_CAP in src/sim/social.js).
+- **Open small things:** two "Beacon" buildings; taqueria counter shows PIZZA; SkyDeck telescope discovery unverified; weather isWet bug; MapleCab shows a fare on the free first ride; show music never heard by anyone (headless tests);
+  concert marquee text clipped.
+- **Git:** branch claude/pixel-city-life-sim-21h2e3, everything pushed. No PR opened (owner hasn't asked).
+- **Pacing rule:** ONE worker at a time, steady; even one worker has hit the 5-hour limit, so leave ~15-20 min between workers and keep lead usage light. Owner doesn't care about total usage, only about steady progress.
 
 ## How to resume cold
 1. Read CLAUDE.md -> this file -> docs/LEAD_PLAYBOOK.md -> docs/STATUS.md -> docs/BACKLOG.md -> tail of docs/HISTORY.md -> docs/OWNER_NOTES.md (digest) / OWNER_MESSAGES.md (verbatim) / LEAD_JOURNAL.md (why).

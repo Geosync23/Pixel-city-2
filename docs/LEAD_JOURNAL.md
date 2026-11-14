@@ -76,3 +76,14 @@ Companion to `docs/OWNER_MESSAGES.md` (numbers in brackets refer to the owner's 
 I have personally looked at: the engine test town, city screenshots (airport curb, downtown night, Market Square, traffic at rush hour), starter studio, diner, cafe, Central Station, the train ride, the airport
 concourse, one generic eatery, the mall food-court corner, the SkyDeck at night, and several measured evals (camera steps, sort flips, stall counts, addresses). Everything else is as reported by the worker
 that built it. No one has done a full New Game playthrough by hand, a mobile-layout pass, or a balance pass.
+
+## G. Final entries before the account move (2026-11-14 evening)
+- Performance venues shipped as Stage 9; I verified one screenshot of the orchestra mid-concert; the worker ran all ten programmes in its own tests. Nobody has heard the audio.
+- Owner's playtest (msg 36) praised the airport interior and listed many fixes/systems; I fixed four immediately (sign names, Talk-button-only, Jules -> Nora, relationship rate + daily cap) and queued the rest as 2f-2j.
+  On "streets named multiple times": the street data is unique; the repeated word was the traffic-light arm's default "MAIN" text, now fixed.
+- Guide app made top priority (msgs 37-38); big city events added to the design (msgs 39-42): 5-6 across the whole year, dynamic and in-world, never cutscenes.
+- Owner will move the project to another Claude account at the end of this session (msgs 43-44) and asked for work to stop once running workers reported back. None were running, so I cancelled the scheduled
+  guide-app launch and left a clean stop point: everything integrated, published and pushed; HANDOFF.md says exactly what to start next.
+- Lessons for the next lead: (1) even ONE worker can exhaust the 5-hour window — briefs must demand economy and there should be a gap between workers; (2) workers' reports are honest about what they did not
+  verify — relay that to the owner; (3) the owner plays on a tablet/phone in portrait and sends many small voice-typed messages — log each verbatim, answer briefly, and batch small fixes;
+  (4) he reacts best to visible, lively, physical things (crowds, the airport, the train) and wants menus replaced by in-world interaction wherever sensible.
