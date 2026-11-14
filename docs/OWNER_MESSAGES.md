@@ -110,3 +110,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 31 — Save the conversation
 > Yeah, don't worry, we're not going to move anytime soon. I'm just asking what would tail. But you say the conversation's lost. Before memory's gone, can't you make a detailed accounting of the conversation and save it on Git? Specifically, save all of my texts, especially the longer ones where I've just dumped on you with all the ideas. I'm sure you could actually just put those in one file, right?
+
+## 32 — Save the lead's side too
+> Okay, go ahead and do that. Might as well get that done now, just so we have it saved before you go back to your memory.

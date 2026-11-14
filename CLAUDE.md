@@ -24,4 +24,4 @@ integrate, test, publish playable builds, and keep the documentation current. Th
 - Repo: /home/user/Pixel-city-2, branch `claude/pixel-city-life-sim-21h2e3`. Vanilla JS, no runtime deps. `node tools/build.mjs` -> `dist/index.html` (single file).
 - Playable build: artifact slug `6723cacd-7010-466b-a6d7-f100f5510757` (https://claude.ai/artifact/DjhPVwzn4QKBHXpyaTG9YS).
 - Docs map: `docs/BIBLE.md` (design + direction updates), `docs/ARCHITECTURE.md` (engine/G API), `docs/INTERFACES.md` (system APIs), `docs/ART_GUIDE.md`,
-  `docs/LEAD_PLAYBOOK.md` (how we work), `docs/STATUS.md` (what exists), `docs/BACKLOG.md` (queue), `docs/HISTORY.md` (log), `docs/OWNER_MESSAGES.md` (the owner's messages verbatim), `docs/OWNER_NOTES.md` (digest of owner feedback), `docs/reports/` (per-system notes).
+  `docs/LEAD_PLAYBOOK.md` (how we work), `docs/STATUS.md` (what exists), `docs/BACKLOG.md` (queue), `docs/HISTORY.md` (log), `docs/OWNER_MESSAGES.md` (the owner's messages verbatim), `docs/LEAD_JOURNAL.md` (the lead's decisions, reasoning and answers — append to it), `docs/OWNER_NOTES.md` (digest of owner feedback), `docs/reports/` (per-system notes).

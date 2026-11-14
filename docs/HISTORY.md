@@ -29,3 +29,4 @@
 - Owner direction update 10: post offices (queued in 2c).
 - Showpieces A landed: Maple Bay Galleria mall + SkyDeck observation deck, 83 new items. Stage 8 published.
 - Owner asked for his messages to be saved verbatim: docs/OWNER_MESSAGES.md created (31 messages) and made a standing rule in CLAUDE.md. Answered questions on GitHub checks and moving accounts (no action).
+- docs/LEAD_JOURNAL.md written (the lead's side: decisions, reasoning, answers given).
