@@ -182,3 +182,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 38 — Guide app: active links
 > And it has active links for waypoints or if its a scheduled event, you can add it to your planner
+
+## 39 — City events (design now, build later)
+> Also we should create events. Steeet festivals, parades, etc. 5 or 6 of these sprinkleed in yhe first 6 months. These can be added later but lets add it to the design

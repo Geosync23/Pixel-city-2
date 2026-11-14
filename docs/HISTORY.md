@@ -36,3 +36,4 @@
 - Lead quick fixes from msg 36: traffic-light arm street names, Talk-button-only, Jules -> Nora, relationship rate x0.4 + daily cap 5. Performance worker resumed 21:02 UTC.
 - Performance venues landed (cinema films, Symphony Hall, Lantern Playhouse). Stage 9 published.
 - Owner msg 37: guide app prioritised ahead of the fix pack.
+- Owner msgs 38-39: guide app active links; big city events added to the design (backlog 2k).

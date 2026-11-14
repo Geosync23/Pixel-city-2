@@ -153,3 +153,8 @@ CHARACTER DEPTH: traits + more skills; more activities to get skilled at, each w
 UNIVERSITY: a small campus (quad, lecture hall, commons) where you enrol and take classes.
 APPS: an APP STORE on the phone — lots of apps covering the game's systems, new ones "release" with a notification instead of silently unlocking; a PROPERTIES browser app (find/rent/buy better homes); a LIVING TIPS app explaining systems
 (laundry etc.), plus in-game tutorials and characters mentioning them; the THINGS TO DO guide app listing ALL content (every shop, arcade game, activity, place).
+
+## Direction update 12 — big city events (build later)
+5-6 large staged events sprinkled through the first six in-game months (a month = 14 days): street festivals and parades that physically happen in the city — route/street closed to traffic,
+floats/marching band/performers, dense crowds, stalls and activities, a possible story moment; listed in the guide app with "Add to planner". Candidates: Spring Blossom Parade (Main St),
+Lantern Row Night Festival, Harbor Day (boat parade + pier fireworks), Summer Street Fair / Pride on the River Walk, Autumn Harvest Festival (Central Park), Winter Lights Parade + tree lighting (City Hall Plaza).
