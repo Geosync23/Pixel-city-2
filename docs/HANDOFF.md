@@ -1,14 +1,17 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 21:30 UTC) — FINAL STRETCH BEFORE THE ACCOUNT MOVE
-- **Plan for this 5-hour window (started 21:00 UTC; owner reported 26% used at ~21:27):** (1) guide app worker [RUNNING since 21:29 UTC], (2) a TRIMMED playtest fix pack worker if usage allows
-  (ask the owner for the meter reading when worker 1 reports; skip/trim if above ~60%), (3) clean stop with ~10% reserve: playbook loop, rewrite this section, push, tell the owner the final commit.
-- **Running worker:** GUIDE APP — "Wander — the Maple Bay guidebook" (app id `guide`). Files it owns: src/ui/phone_guide.js, src/ui/phone_guide.css, src/sim/guide.js, src/sim/_guide_*.js.
-  If this session ends before it reports, those files may be partial: check whether `node tools/build.mjs` passes and whether the app opens (`G.phone.open('guide')`), then finish from the brief in docs/BACKLOG.md / owner msgs 37-38.
-- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794690529-2e20` (Stage 9). The new account must publish its own artifact (see MOVING section below).
+## Now (updated 2026-11-14 21:42 UTC) — FINAL STRETCH BEFORE THE ACCOUNT MOVE
+- **Done this window:** Wander guidebook app (Stage 10 published, version `1794692270-3939`; docs/reports/guide.md).
+- **Running worker (LAST one this window):** TRIMMED PLAYTEST FIX PACK, launched 21:40 UTC. It may EDIT EXISTING FILES. Items in order: (1) airport walkways keep right [src/scenes/rooms/airport.js, _airport_life.js],
+  (2) deboarding: player released when the line reaches their row [src/sim/intro_airport.js], (3) plane-shaped cabin shell [src/art/airport_interior/cabin.js + airport:plane room], (4) station stairs/elevators usable
+  [src/sim/rail.js], (5) flat-fee train ticket required [src/sim/rail.js], (6) sit in any chair [src/sim/activities.js], (7) tap goal -> waypoint [src/ui/goals.js] + tap need -> nearest place [src/ui/hud.js],
+  (8) planner appointments in the Goals widget [src/ui/goals.js]. It reports DONE/PARTIAL/NOT STARTED per item. If this session ends before it reports: run `node tools/build.mjs` and `git diff --stat` to see what it
+  touched, test those items, and finish the remainder.
+- **After it reports:** playbook loop, publish, rewrite this section as a clean stop, push, tell the owner the final commit. Do NOT launch another worker this window.
+- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794692270-3939` (Stage 10). The new account must publish its own artifact (see MOVING section below).
 - **NEXT, in order (nothing started):**
-  1. GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
+  1. [DONE] GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
      venue, show, event, activity/mini-game, transit line; chapters + by district + near me; "Things to try" checklist with stamps; active links: "Take me there" waypoint, "Add to planner" for scheduled shows/events
      (use G.shows.schedule, data/calendar.js events, G.places, G.publicPlaces.list(), G.showpieces.mall.shops(), G.planner.add, G.phone.registerApp / setWaypoint)).
   2. 2f playtest fix pack + navigator (BIBLE update 11): walkways keep right; deboarding — stand when the line reaches your row; plane-shaped cabin shell; station stairs; train flat-fee ticket; train flicker overhead;

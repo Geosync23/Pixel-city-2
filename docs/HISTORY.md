@@ -40,3 +40,4 @@
 - 21:25 UTC: owner asked to stop after running workers (none were running) ahead of moving the project to another account; scheduled launch cancelled; clean stop point documented in HANDOFF.md.
 - 21:29 UTC: owner (msg 45) chose to keep working this window before the move; guide app worker launched; plan = guide app, then trimmed fix pack if usage allows, then clean stop.
 - Wander guidebook app landed (272 entries, stamp book, waypoint/planner links). Stage 10 published.
+- 21:40 UTC: trimmed playtest fix pack worker launched (last worker before the account move).
