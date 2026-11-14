@@ -11,3 +11,4 @@ NEXT (in order):
 5. Resume interrupted artists (icons! item icons are placeholders; terrain/water; audio; weather; title/creator polish; oldtown/downtown/residential/civic/harbor/props building sets) — check what each left on disk first.
 6. QA/review passes: full playthrough from New Game, mobile layout, performance, save/load, balance.
 Known issues: weather setWeather('clear') doesn't clear isWet(); seated player may sort behind flipped sofa; shop ignores story discounts; MapleCab shows fare on the free first ride.
+- duplicate 'Discovered: X' toast when a place has two pois; addresses exist (G.address, poi.address) — phone Map/place cards/planner should display them and street names.

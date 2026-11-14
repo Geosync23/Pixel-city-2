@@ -85,8 +85,9 @@ export default [
     } },
   { id: 'furn.airport.gatesign', kind: 'furniture', tags: T(['gate_sign']), wall: true, mount: 2.55, solid: false, size: [3, .1, .8], variants: [{ gate: 'B4', text: 'PARIS', status: 'BOARDING' }, { gate: 'B2', text: 'TOKYO', status: 'DELAYED' }],
     draw(p) {
-      const Y = .08; box(0, 0, 0, 3, .08, .8, '#1c222b', { ol: false }); lit(() => { qy(.05, 2.95, Y, .05, .75, '#18202c'); qy(.08, .78, Y, .1, .7, YEL); }); lit(() => { textY(p.gate || 'B4', .16, Y + .01, .56, '#1c222b'); textY((p.text || 'PARIS').slice(0, 9), .9, Y + .01, .68, '#ffffff'); textY((p.flight || 'MB 204').slice(0, 9), .9, Y + .01, .3, '#9fb0c8'); });
-      lit(() => textY((p.status || 'ON TIME').slice(0, 10), .16 + 0, Y + .01, -.0 + .02, 'rgba(0,0,0,0)')); const sc = STATC[p.status || 'ON TIME'] || '#e8f0ff'; lit(() => { qy(2.2, 2.9, Y + .005, .08, .2, sc); });
+      const Y = .08, sc = STATC[p.status || 'ON TIME'] || '#e8f0ff'; box(0, 0, 0, 3, .08, .8, '#1c222b', { ol: false });
+      lit(() => { qy(.05, 2.95, Y, .05, .75, '#18202c'); qy(.08, .78, Y, .1, .7, YEL); });
+      lit(() => { textY(p.gate || 'B4', .2, Y + .01, .56, '#1c222b'); textY((p.text || 'PARIS').slice(0, 8), .9, Y + .01, .7, '#ffffff'); textY((p.status || 'ON TIME').slice(0, 8), .9, Y + .01, .34, sc); });
     } },
   { id: 'furn.airport.gatedoor', kind: 'furniture', tags: T(['boarding_door', 'door']), wall: true, mount: 0, solid: false, size: [2, .1, 2.5], variants: [{}, { open: 1 }],
     draw(p) {
@@ -112,10 +113,10 @@ export default [
     } },
   { id: 'furn.airport.fids', kind: 'furniture', tags: T(['fids', 'flight_board']), size: p => [p.w || 3, .4, 2.75], variants: [{ w: 3, rows: [['1420 LISBON', '#7df0a0'], ['1435 TOKYO'], ['1450 PARIS', '#ff8a70']] }, { w: 5, title: 'DEPARTURES', rows: [['1420 LISBON  B6 BOARD', '#7df0a0'], ['1435 TOKYO   B2 ON TIME'], ['1450 PARIS   B4 DELAYED', '#ff8a70'], ['1505 OSLO    B5 ON TIME']] }],
     draw(p) {
-      const w = p.w || 3, nc = Math.floor((w * 16 - 8) / 4), rows = (p.rows || []).slice(0, 5).map(r => [String(r[0]).slice(0, nc), r[1] || '#e8f0ff']);
+      const w = p.w || 3, nc = Math.floor((w * 16 - 8) / 4), rows = (p.rows || []).slice(0, 4).map(r => [String(r[0]).slice(0, nc), r[1] || '#e8f0ff']);
       box(.15, .12, 0, .16, .16, 1.0, STEEL, { ol: false }); box(w - .31, .12, 0, .16, .16, 1.0, STEEL, { ol: false }); box(0, .05, 0, w, .3, .08, '#59616e', { ol: false });
-      box(0, .08, .95, w, .24, 1.8, '#1c222b'); lit(() => { qy(.06, w - .06, .32, 1.0, 2.7, '#18202c'); qy(.06, w - .06, .32, 2.38, 2.7, YEL); for (let i = 0; i < 5; i += 2) qy(.06, w - .06, .32, 2.02 - i * .26 - .02, 2.02 - i * .26 + .26 - .02, '#1f2a3a'); });
-      lit(() => textY((p.title || 'DEPARTURES').slice(0, nc), .12, .33, 2.63, '#1c222b')); rowsY(rows, .12, .33, 2.28, .26);
+      box(0, .08, .95, w, .24, 1.8, '#1c222b'); lit(() => { qy(.06, w - .06, .32, 1.0, 2.7, '#18202c'); qy(.06, w - .06, .32, 2.38, 2.7, YEL); for (let i = 0; i < 4; i += 2) qy(.06, w - .06, .32, 2.3 - (i + 1) * .34, 2.3 - i * .34, '#1f2a3a'); });
+      lit(() => textY((p.title || 'DEPARTURES').slice(0, nc), .12, .33, 2.63, '#1c222b')); rowsY(rows, .12, .33, 2.26, .34);
       qx(w, .08, .32, .95, 2.75, '#11161d');
     } },
   { id: 'furn.airport.sign', kind: 'furniture', tags: T(['sign', 'wayfinding', 'overhead']), solid: false, overhead: true, size: p => [p.w || 4, .15, .6], vb: p => [0, 0, 0, p.w || 4, .15, 1.6],
@@ -131,7 +132,7 @@ export default [
       if (k === 'gate') { qz(0, w, 0, d, .01, c); qz(.06, w - .06, .06, d - .06, .011, dk(c, .18)); const s = Math.min((w - .3) / ((p.text || 'B4').length * 4 - 1), (d - .3) / 5); floorText(p.text || 'B4', (w - ((p.text || 'B4').length * 4 - 1) * s) / 2, (d - 5 * s) / 2, s, '#ffffff'); }
       else if (k === 'arrow') { const dr = p.dir < 0 ? -1 : 1, m = d / 2, a = dr > 0 ? w - .1 : .1, b = dr > 0 ? w - .7 : .7, t = dr > 0 ? .15 : w - .15; qz(Math.min(t, b), Math.max(t, b), m - .12, m + .12, .012, p.c || YEL); fq([[a, m, .012], [b, m - .38, .012], [b, m + .38, .012]], p.c || YEL); }
       else if (k === 'line') qz(0, w, d / 2 - .06, d / 2 + .06, .012, p.c || YEL);
-      else { const c2 = p.c2 || '#e9c46a', c3 = dk(c, .22), c4 = lt(c, .14); qz(0, w, 0, d, .01, (x, y) => { if (x < .12 || y < .12 || x > w - .12 || y > d - .12) return c3; const u = Math.floor((x + y) * 2), v = Math.floor((x - y + 40) * 2); if ((u % 6 === 0) || (v % 6 === 0)) return c2; return ((u + v) & 1) ? c : c4; }); }
+      else { const c2 = p.c2 || lt(c, .38), c3 = dk(c, .22), c4 = lt(c, .14); qz(0, w, 0, d, .01, (x, y) => { if (x < .12 || y < .12 || x > w - .12 || y > d - .12) return c3; const u = Math.floor((x + y) * 4), v = Math.floor((x - y + 80) * 4); if ((u % 12 === 0) || (v % 12 === 0)) return c2; return (((u / 2 | 0) + (v / 2 | 0)) & 1) ? c : c4; }); }
     } },
   { id: 'furn.airport.column', kind: 'furniture', tags: T(['column']), size: p => [.5, .5, p.h || 3.6], variants: [{}, { h: 3 }],
     draw(p) { const h = p.h || 3.6; cyl(.25, .25, 0, .2, h, WH); cyl(.25, .25, 0, .24, .15, STEEL, { ol: false }); cyl(.25, .25, 1.0, .21, .12, TEAL, { ol: false }); cyl(.25, .25, h - .3, .28, .3, '#dfe4e9', { ol: false }); glow(() => cyl(.25, .25, h - .42, .21, .1, '#fff2c4', { ol: false })); } },
