@@ -4,7 +4,7 @@ DONE too: airport interior + new opening; unique street names + addresses; rider
 DONE too: public places pass (61 conversions, groceries near homes, street names + addresses on the phone map) — docs/reports/public_places.md.
 DONE too: showpieces A — mall (Maple Bay Galleria) + SkyDeck (docs/reports/showpieces_a.md).
 DONE too: showpieces B — performance venues (docs/reports/shows.md). NOTE: the museum building was converted into Symphony Hall, so item 2c's museum needs a different building or an expansion lot.
-RUNNING: (see docs/HANDOFF.md). DONE too: the Wander guidebook app (docs/reports/guide.md). 2f DONE except item icons (docs/reports/fixpack1.md, fixpack2.md; trip planner 2e done as G.nav). ORDER NOW: item icons -> 2g -> 2h -> 2i -> 2j -> 2c -> 3 -> 4b -> 4c -> 4 -> 5 -> 6.
+RUNNING: (see docs/HANDOFF.md). DONE too: the Wander guidebook app (docs/reports/guide.md). 2f DONE except item icons (docs/reports/fixpack1.md, fixpack2.md; trip planner 2e done as G.nav). DONE too: item icons (docs/reports/icons.md) and 2h apps (docs/reports/apps.md). ORDER NOW (see docs/HANDOFF.md): 2g unique interiors -> 2g -> 2h -> 2i -> 2j -> 2c -> 3 -> 4b -> 4c -> 4 -> 5 -> 6.
 
 NEXT (in order):
 1. [DONE] "Public places pass" (owner feedback): street names drawn on the phone Map app (world.roads names; label along roads when zoomed in, list/search optional); EVERY cafe / restaurant / shop-looking building

@@ -1,5 +1,5 @@
 # Status — what exists right now (update whenever something lands)
-Last updated: stage 13 (item icons) + intro/landing/walkway fixes.
+Last updated: stage 14 (apps) — CLEAN STOP before the account move.
 
 ## Engine & tools (lead-written) — src/engine, src/core, tools/
 - `raster.js` pixel rasteriser (16 px/unit, 2:1 iso, glow/lit light layer, flip mode, patterns, 3x5 font, season helpers); `world.js` (vertex-height terrain, ground types, objects, nav grid 0.5u, pois, decals);
@@ -36,6 +36,8 @@ Last updated: stage 13 (item icons) + intro/landing/walkway fixes.
 - guide: 'Wander' guidebook app (272 auto-built entries, What's On, Stamp Book, waypoint + planner links) — docs/reports/guide.md.
 - fix pack 1: walkways keep right, deboarding order, plane-shaped cabin, station stairs (partial), flat-fee train tickets, sit anywhere (partial), goal/need waypoints, planner in Goals — docs/reports/fixpack1.md.
 - fix pack 2 + navigator: station stairs, train flicker fix, data-driven need->place matching, Maps 'Where to?' navigator with walk/bus/train/cab routes and multi-leg trips (G.nav) — docs/reports/fixpack2.md.
+- apps: Appy store with release notifications, Nestly properties browser, Bay Basics tips (G.tips), mini apps (showtime, transit, wallet, closet, friends, weather) — docs/reports/apps.md.
+- navigator G.nav, Wander guide G.guide, item icons: see docs/reports/fixpack2.md, guide.md, icons.md.
 
 ## Known issues / debts
 generic eateries reuse the pizza counter art (a taqueria shows "PIZZA"): needs a neutral or per-cuisine counter sign; weather setWeather('clear') doesn't clear isWet(); item icons missing; MapleCab shows fare on free first ride; story recipes/discounts/keepsakes not wired into cooking/shop/home; seated player may sort behind flipped sofa;

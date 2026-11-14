@@ -88,3 +88,4 @@ that built it. No one has done a full New Game playthrough by hand, a mobile-lay
   verify — relay that to the owner; (3) the owner plays on a tablet/phone in portrait and sends many small voice-typed messages — log each verbatim, answer briefly, and batch small fixes;
   (4) he reacts best to visible, lively, physical things (crowds, the airport, the train) and wants menus replaced by in-world interaction wherever sensible.
 - Final window: guide app (189k-token worker) and a trimmed fix pack (142k) both fit after the owner reported 26% used; I verified the guide cover and the new plane cabin by screenshot, the rest is worker-reported. Stopped cleanly with no workers running.
+- Final window total: six workers (performance resume, guide, fix pack 1, fix pack 2, icons, apps) plus many small lead fixes fit inside one 5-hour window by keeping briefs tight (150-200k tokens each). Stopped cleanly after Stage 14.

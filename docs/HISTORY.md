@@ -53,3 +53,4 @@
 - Lead fix (owner msg 55): walkway chevrons now point in the direction of travel (gates.js); checked in a gallery render for both directions.
 - Item icons landed (365/365 items, 558 icons). Stage 13 published.
 - 22:52 UTC: apps worker launched (app store, Properties browser, Living Tips) — the last worker of this window.
+- Apps landed (Appy store, Nestly, Bay Basics, mini apps). Stage 14 published (artifact version 1794695264-28f5). CLEAN STOP for the account move: no workers running, everything pushed.
