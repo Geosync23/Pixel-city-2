@@ -72,7 +72,7 @@ export function ambientLine(c, ctx) {
   if (ctx && ctx.reaction) s = fromPool(A.reactions[ctx.reaction], c);
   if (!s && ctx && ctx.event && r < .6) s = fromPool(A.events[ctx.event], c);
   if (!s && ctx && ctx.venue && r < .7) s = fromPool(A.venue[ctx.venue], c);
-  if (!s && X.hour >= 23 || X.hour < 4) s = s || (r < .3 ? fromPool(A.reactions.late_night, c) : null);
+  if (!s && (X.hour >= 23 || X.hour < 4) && r < .3) s = fromPool(A.reactions.late_night, c);
   if (!s) s = r < .3 ? fromPool(A.district[c.district], c) : r < .5 ? fromPool(A.timeOfDay[dayPart()], c) : r < .68 ? fromPool(A.weather[weatherKey()], c) : r < .84 ? fromPool(A.season[['spring', 'summer', 'autumn', 'winter'][X.season]], c) : fromPool(A.district[c.district], c);
   return s || fromPool(A.timeOfDay[dayPart()], c) || 'Lovely day in Maple Bay.';
 }

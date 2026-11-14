@@ -25,7 +25,7 @@ const isWater = (x, y) => { const t = world.tileType(x, y); return t === GT.wate
 const SOFT = new Set([GT.grass, GT.park, GT.lawn, GT.dirt, GT.soil, GT.sand]);
 const softCell = (x, y) => !world.isBlocked(x, y) && SOFT.has(world.tileType(x, y));
 
-function alloc(kind) { for (const a of pool) if (!a.active) { a.active = true; a.hidden = false; a.kind = kind; a.variant = ri(VARS[kind] || 1); a.st = IDLE; a.anim = 'stand'; a.wait = rnd() * 3; a.owner = null; a.hab = null; a.air = false; a._sk = -1; nAct++; return a; } return null; }
+function alloc(kind) { for (const a of pool) if (!a.active) { a.active = true; a.hidden = false; a.kind = kind; a.variant = ri(VARS[kind] || 1); a.st = IDLE; a.anim = 'stand'; a.wait = rnd() * 3; a.owner = null; a.hab = null; a.air = false; a.alpha = 1; a._sk = -1; nAct++; return a; } return null; }
 function free(a) { if (!a.active) return; a.active = false; a.hidden = true; a.owner = null; a.hab = null; nAct--; }
 const place = (a, x, y) => { a.x = x; a.y = y; a.gz = a.z = world.heightAt(x, y); };
 

@@ -37,7 +37,7 @@ function buildSpots(sc) {
   const seatAnims = SEAT_ANIMS[EAT.includes(venueId) ? 'eat' : SEAT_ANIMS[venueId] ? venueId : 'other'];
   if (Array.isArray(def.npcSpots) && def.npcSpots.length) {
     for (const s of def.npcSpots) {
-      const p = sc.toWorld(s.x, s.y), k = s.kind || (s.anim === 'work' ? 'staff' : 'customer'), seat = seatFor(p.x, p.y), sitting = s.seated !== undefined ? s.seated : !!seat && !seat.stand && /sit|eat|drink|read|type|talk|phone/.test(s.anim || 'sit');
+      const p = sc.toWorld(s.x, s.y), k = s.kind || (s.anim === 'work' ? 'staff' : 'customer'), seat = seatFor(p.x, p.y), sitting = s.seated !== undefined ? s.seated : (seat ? !seat.stand : s.z > .2) && /sit|eat|drink|read|type|talk|phone/.test(s.anim || 'sit');
       add({ kind: k === 'staff' || k === 'worker' ? 'staff' : k === 'dance' || k === 'dancer' ? 'dance' : k === 'queue' ? 'queue' : sitting ? 'seat' : 'stand', x: seat && sitting ? seat.x : p.x, y: seat && sitting ? seat.y : p.y, z: seat && sitting ? seat.z : (s.z || 0), dir: s.dir !== undefined ? s.dir : seat && seat.dir !== undefined ? seat.dir : 1, anims: s.anim ? [s.anim] : sitting ? seatAnims : ['stand', 'phone'], seated: sitting, fx: seat ? seat._fx : null, night: s.night, outfit: s.outfit });
     }
     return out;
