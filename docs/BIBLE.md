@@ -86,3 +86,14 @@ Every job (all 25) gets: its own NARRATIVE ARC with a small cast (boss, coworker
 work, messages, occasional off-shift beats), UNIQUE MECHANICS (short tactile interactions; a few jobs get a real mini-game), UNIQUE MOMENTS (one-off
 events) and UNIQUE AMBIENCE. The player can always SHOW UP AND SKIP a shift (clear choice at clock-in: "Work the shift" / "Skip to the end") and still gets
 credit and pay for attending.
+
+## Direction update 5 — deeper relationships, vignettes, romance
+- Keep the main narrative; add IN-DEPTH relationship arcs for each family member and friend. Format: VIGNETTES — they invite you out for an evening / to hang out,
+  and during it a piece of what's going on in their life unfolds; many such nuggets connect over time into a larger personal story per character.
+  Writing: more verbose, more human, some genuinely emotional and real. Choices are remembered.
+- PACING: a constant gentle stream — a few small narrative bits per day (texts, run-ins, favours) and a deeper vignette every few days — never dominating;
+  the game stays free-roam and everything waits for the player.
+- EXPANDED SOCIAL INTERACTIONS: more verbs that depend on context/history; visible relationship meters; friendship and romance as separate tracks.
+- ROMANCE: meet people anywhere (introduce yourself to strangers) or via a DATING APP (phone + computer: profiles, matching, setting up dates). Interacting a certain
+  way (flirting, choices) takes a relationship down the romantic path: ask on a date (appointments at real venues), dating -> partners -> ask to MOVE IN (partner lives
+  in your home with a routine) -> PROPOSE and get MARRIED (a wedding scene). Children: maybe later, not now.
