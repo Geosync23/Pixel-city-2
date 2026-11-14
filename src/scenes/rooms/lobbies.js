@@ -34,17 +34,20 @@ function builder(L) {
   };
   return b;
 }
-/** a lift bank behind security gates in the back corner (right, or left when mirrored). The lifts are decorative; the gates carry the interaction. Returns x0 of the zone. */
+/** a lift bank behind security gates in the back corner (right, or left when mirrored). The lifts are decorative; the gates carry the interaction. Returns x0 of the zone.
+ *  (World.place snaps to a half-tile grid, so every coordinate in these layouts is a multiple of .5.) */
 function gate(b, L, n, lp) {
-  const W = b.W, zw = n * 1.8 + .4, x0 = half(W - zw), nt = Math.min(3, n), tw = nt * .8 + .25, tx = x0 + half((W - x0 - tw) / 2), mc = METAL[L.c.m] || '#8a9098';
-  for (let i = 0; i < n; i++) b.wy('lobby.lift', x0 + .3 + i * 1.8, Object.assign({ floor: 1 + (L.n * 3 + i * 7) % 24 }, lp), { gated: true });
-  b.f('lobby.rail', x0 - .2, 0, { w: 2.5, c: mc }, { flip: true });
-  if (tx - x0 > .2) b.f('lobby.rail', x0, 2.1, { w: r2(tx - x0), c: mc }); if (W - tx - tw > .2) b.f('lobby.rail', r2(tx + tw), 2.1, { w: r2(W - tx - tw), c: mc });
+  const W = b.W, zw = n * 2, x0 = W - zw, nt = Math.min(3, n), tw = nt + .5, tx = x0 + half((zw - tw) / 2), mc = METAL[L.c.m] || '#8a9098';
+  for (let i = 0; i < n; i++) b.wy('lobby.lift', x0 + i * 2, Object.assign({ floor: 1 + (L.n * 3 + i * 7) % 24 }, lp), { gated: true });
+  b.f('lobby.rail', x0 - .5, 0, { w: 2.5, c: mc }, { flip: true });
+  if (tx - x0 > .2) b.f('lobby.rail', x0, 2, { w: tx - x0, c: mc }); if (W - tx - tw > .2) b.f('lobby.rail', tx + tw, 2, { w: W - tx - tw, c: mc });
   b.f('lobby.turnstile', tx, 2, { n: nt, c: L.c.tc });
   b.patch(x0, 0, W, 2.5, L.c.gf || 'f_stone');
   return x0;
 }
 const plantP = (L, i) => [{ kind: 'palm', s: 1.5, pot: '#f1ede4' }, { kind: 'snake', s: 1.4, pot: '#3a3f4c' }, { s: 1.6, leaf: '#3f7a48', pot: METAL[L.c.m] || '#d8a848' }, { flower: '#e87aa0', s: 1.2, pot: '#6fa8b8' }, {}][(L.n + i) % 5];
+/** plants in the two front corners (never mirrored, so they cannot collide) */
+const corners = (b, L, left = true, right = true, p) => { if (left) b.f('generic.plant', 0, b.D - 1, p || plantP(L, 0), { keep: true }); if (right) b.f('generic.plant', b.W - .5, b.D - 1, p || plantP(L, 2), { keep: true }); };
 
 const LAY = {
   /* ---------------- residential ---------------- */
@@ -52,234 +55,232 @@ const LAY = {
     const { W, D } = b, C = L.c, v = L.v || 0, st = { c: C.dc || '#6a5a4a', open: !L.has('stairdoor'), arch: L.has('arch'), dc: C.dc2, rail: C.rail }, sc = { m: C.m, kind: C.sk };
     if (v === 0) {
       b.ex = W / 2 + .5;
-      b.wy('lobby.stairs', .4, st).wy('lobby.sconce', 1.65, sc).wy('lobby.mailboxes', 2.1, { w: 2, m: C.m, rows: C.rows || 3, seed: L.n });
-      if (L.has('lift')) { b.wy('lobby.lift', W - 2.1, { style: 'cage', m: C.m, floor: 1 + L.n % 4 }); b.wx('lobby.board', D - 2.2, { kind: 'cork', w: 1.5, seed: L.n }); }
-      else { b.wy('lobby.board', W - 2, { kind: 'cork', w: 1.5, seed: L.n }); b.wx('lobby.intercom', D - 1.4, { m: C.m, seed: L.n }); }
-      if (W >= 9) b.wy('generic.picture', 4.5, { kind: L.n % 4, w: 1 });
-      b.wx('generic.window', .8, { w: 1, cross: false, plant: true });
-      b.seat('generic.bench', .25, 2, { c: C.s }, { flip: true, keep: true }, 1);
-      b.f('lobby.inlay', b.ex - .6, 1.5, { kind: 'stripe', w: 1.2, d: D - 2.5, c: C.r, c2: C.r2 });
-      b.f('generic.plant', W - .75, D - 1.25, plantP(L, 0)); b.f('lobby.umbrella', b.ex + 1.1, D - .9, { c: METAL[C.m] });
-      if (L.has('bike')) b.f('lobby.bike', W - 2, 2, { c: C.a, basket: L.n % 2 === 0 }); if (L.has('pkg')) b.f('courier.pile', W - 1.5, 3, {});
-      b.s(3.1, .8, 3); b.s(1.1, 1.3, 1, 'phone'); b.s(b.ex - 1.3, D - 1.4, 0); b.s(W - 1.3, 1.2, 3);
+      b.wy('lobby.stairs', .5, st).wy('lobby.sconce', 2, sc).wy('lobby.mailboxes', 2.5, { w: 2, m: C.m, rows: C.rows || 3, seed: L.n });
+      if (L.has('lift')) { b.wy('lobby.lift', W - 2.5, { style: 'cage', m: C.m, floor: 1 + L.n % 4 }); b.wx('lobby.board', D - 2, { kind: 'cork', w: 1.5, seed: L.n }); }
+      else { b.wy('lobby.board', W - 2, { kind: 'cork', w: 1.5, seed: L.n }); b.wx('lobby.intercom', D - 1.5, { m: C.m, seed: L.n }); }
+      if (W >= 9) b.wy('generic.picture', 5, { kind: L.n % 4, w: 1 });
+      b.wx('generic.window', 1, { w: 1, cross: false, plant: true });
+      b.seat('generic.bench', 0, 2, { c: C.s }, { flip: true, keep: true }, 1);
+      b.f('lobby.inlay', half(b.ex - .5), 1.5, { kind: 'stripe', w: 1, d: D - 2.5, c: C.r, c2: C.r2 });
+      corners(b, L, !L.mir, !!L.mir); b.f('lobby.umbrella', b.ex + 1, D - 1, { c: METAL[C.m] });
+      if (L.has('bike')) b.f('lobby.bike', W - 2, D - 1.5, { c: C.a, basket: L.n % 2 === 0 }, { keep: true }); if (L.has('pkg')) b.f('courier.pile', W - 1.5, D - 2.5, {}, { keep: true });
+      b.s(3.5, .8, 3); b.s(1.2, 1.3, 1, 'phone'); b.s(b.ex - 1.3, D - 1.4, 0); b.s(W - 1.3, 1.2, 3);
     } else if (v === 1) {
-      const sx = half(W / 2 - .6); b.ex = W / 2 + (W >= 7 ? 1 : .5);
-      b.wy('lobby.board', .4, { kind: 'cork', w: 1.5, seed: L.n + 3 }).wy('lobby.sconce', sx - .5, sc).wy('lobby.stairs', sx, st).wy('lobby.sconce', sx + 1.3, sc);
-      b.seat('generic.bench', W - 2, .25, { c: C.s }, null, 1);
-      b.wx('lobby.mailboxes', 1.2, { w: 2, m: C.m, rows: C.rows || 3, seed: L.n }).wx('lobby.intercom', 3.5, { m: C.m, seed: L.n }); if (D >= 7) b.wx('generic.window', 4.4, { w: 1, cross: false, plant: true });
+      const sx = half(W / 2 - .75); b.ex = W / 2 + (W >= 7 ? 1 : .5);
+      b.wy('lobby.board', .5, { kind: 'cork', w: 1.5, seed: L.n + 3 }); if (sx >= 2.5) b.wy('lobby.sconce', sx - .5, sc); b.wy('lobby.stairs', sx, st).wy('lobby.sconce', sx + 1.5, sc);
+      b.seat('generic.bench', W - 2, 0, { c: C.s }, null, 1);
+      b.wx('lobby.mailboxes', 1, { w: 2, m: C.m, rows: C.rows || 3, seed: L.n }).wx('lobby.intercom', 3.5, { m: C.m, seed: L.n }); if (D >= 7) b.wx('generic.window', 4.5, { w: 1, cross: false, plant: true });
       b.patch(b.ex - 1.5, D - 2, b.ex + 1.5, D, C.mat || 'f_mat');
-      b.f('lobby.inlay', sx - .4, 1.5, { kind: C.ik || 'checker', w: 2, d: D - 3.5, c: C.r, c2: C.r2, s: .5 });
-      b.f('generic.plant', W - .75, D - 1.25, plantP(L, 1)); b.f('lobby.umbrella', b.ex - 1.4, D - .9, { c: METAL[C.m] });
+      b.f('lobby.inlay', sx - .5, 1.5, { kind: C.ik || 'checker', w: 2.5, d: D - 3.5, c: C.r, c2: C.r2, s: .5 });
+      corners(b, L, !!L.mir, !L.mir, plantP(L, 1)); b.f('lobby.umbrella', b.ex - 1.5, D - 1, { c: METAL[C.m] });
       if (L.has('bike')) b.f('lobby.bike', .5, D - 1.5, { c: C.a }); if (L.has('pkg')) b.f('courier.pile', W - 1.5, 2.5, {});
-      b.s(.8, 2.2, 2, 'stand', 'customer', true); b.s(sx + .6, 1.3, 1, 'phone'); b.s(b.ex + 1, D - 1.7, 3); b.s(1.2, 1.2, 3);
+      b.s(.8, 2.2, 2, 'stand', 'customer', true); b.s(sx + .75, 1.3, 1, 'phone'); b.s(b.ex + 1, D - 1.7, 3); b.s(1.2, 1.2, 3);
     } else {
       b.ex = W / 2 - .5;
-      b.wy('lobby.lift', .5, { style: 'cage', m: C.m, floor: 2 + L.n % 3 }).wy('lobby.stairs', 2.4, st).wy('lobby.sconce', 3.75, sc).wy('lobby.board', 4.3, { kind: 'cork', w: 1.5, seed: L.n });
-      if (W >= 9) b.wy('generic.picture', 6.2, { kind: 2, c: METAL[C.m], w: 1 });
-      b.wx('lobby.mailboxes', 1, { w: 2.5, m: C.m, rows: 3, seed: L.n }).wx('lobby.sconce', 3.7, sc); if (L.has('panel')) b.wy('lobby.panel', 6, { kind: 'wood', w: W - 6, c: C.pc || '#5a3a28' });
+      b.wy('lobby.lift', .5, { style: 'cage', m: C.m, floor: 2 + L.n % 3 }).wy('lobby.stairs', 2.5, st).wy('lobby.sconce', 4, sc).wy('lobby.board', 4.5, { kind: 'cork', w: 1.5, seed: L.n });
+      if (L.has('panel')) b.wy('lobby.panel', 6, { kind: 'wood', w: W - 6, c: C.pc || '#5a3a28' }); if (W >= 9) b.wy('generic.picture', 6.5, { kind: 2, c: METAL[C.m], w: 1 });
+      b.wx('lobby.mailboxes', 1, { w: 2.5, m: C.m, rows: 3, seed: L.n }).wx('lobby.sconce', 4, sc);
       if (L.has('nodesk')) b.seat('generic.bench', W - 2, 1.5, { c: C.s }, null, 2); else b.staff('lobby.podium', W - 2, 2, { name: 'DOORMAN', c: C.pc || '#5a4030', a: METAL[C.m] }, { label: 'Doorman' });
-      b.f('lobby.inlay', b.ex - 1.5, 2.6, { kind: C.ik || 'border', w: 3, d: 2, c: C.r, c2: C.r2, c3: METAL[C.m] }); b.f('lobby.chandelier', b.ex - .5, 3, { kind: C.ch || 'crystal', m: C.m });
+      b.f('lobby.inlay', half(b.ex - 1.5), 2.5, { kind: C.ik || 'border', w: 3, d: 2, c: C.r, c2: C.r2, c3: METAL[C.m] }); b.f('lobby.chandelier', half(b.ex - .5), 3, { kind: C.ch || 'crystal', m: C.m });
       b.seat('lobby.settee', W - 2.5, D - 2.5, { c: C.s, a: METAL[C.m] }, null, 1);
-      b.f('generic.plant', W - .75, .25, plantP(L, 2)); b.f('lobby.umbrella', b.ex + 1.1, D - .9, { c: METAL[C.m] });
-      b.s(1.3, 1.1, 3); b.s(.8, 2.3, 2, 'stand', 'customer', true); b.s(b.ex - 1.4, D - 1.5, 0, 'phone');
+      b.f('generic.plant', W - .5, 0, plantP(L, 2)); b.f('lobby.umbrella', b.ex + 1, D - 1, { c: METAL[C.m] });
+      b.s(1.5, 1.1, 3); b.s(.8, 2.3, 2, 'stand', 'customer', true); b.s(b.ex - 1.4, D - 1.5, 0, 'phone');
     }
   },
   court(b, L) {
     const { W, D } = b, C = L.c, v = L.v || 0;
     if (v === 0) {
       const mxm = half(W / 2 - 1.5);
-      b.wy('lobby.stairs', .5, { c: C.dc, dc: C.dc2 }).wy('lobby.mailboxes', mxm, { w: 3, m: C.m, rows: C.rows || 3, seed: L.n }).wy('lobby.stairs', W - 1.7, { c: C.dc, open: true, rail: C.rail });
+      b.wy('lobby.stairs', .5, { c: C.dc, dc: C.dc2 }).wy('lobby.mailboxes', mxm, { w: 3, m: C.m, rows: C.rows || 3, seed: L.n }).wy('lobby.stairs', W - 2, { c: C.dc, open: true, rail: C.rail });
       b.f('lobby.packages', 2, 0, { w: 1, seed: L.n, c: C.pk });
-      if (W >= 10) b.seat('generic.bench', mxm + 3.25, .25, { c: C.s }, null, 1); else b.seat('generic.bench', W - 2.5, D - 2, { c: C.s }, null, 1);
-      b.wx('generic.window', .7, { w: 1, cross: false, plant: true }).wx('lobby.board', 2.3, { kind: 'cork', w: 1.5, seed: L.n }); if (D >= 6) b.wx('lobby.sconce', 4.4, { m: C.m, kind: C.sk });
-      b.f('generic.rug', 1.5, 2, { w: W - 3, d: 1.2, c: C.r, c2: C.r2 });
-      b.f('generic.plant', W - .75, D - 1.25, plantP(L, 0)); b.f('generic.plant', .25, D - 1.25, plantP(L, 2), { keep: true }); b.f('lobby.umbrella', b.ex + 1.2, D - .9, { c: METAL[C.m] });
+      if (W >= 10) b.seat('generic.bench', mxm + 3, 0, { c: C.s }, null, 1); else b.seat('generic.bench', W - 2.5, D - 2, { c: C.s }, null, 1);
+      b.wx('generic.window', .5, { w: 1, cross: false, plant: true }).wx('lobby.board', 2.5, { kind: 'cork', w: 1.5, seed: L.n }); if (D >= 6) b.wx('lobby.sconce', 4.5, { m: C.m, kind: C.sk });
+      b.f('generic.rug', 1.5, 2, { w: W - 3, d: 1, c: C.r, c2: C.r2 });
+      corners(b, L); b.f('lobby.umbrella', b.ex + 1.5, D - 1, { c: METAL[C.m] });
       if (L.has('bike')) b.f('lobby.bike', 1, D - 1.5, { c: C.a, basket: true });
-      b.s(W / 2, .8, 3); b.s(W - 1.1, 1.3, 1, 'phone'); b.s(W - 2.5, 2.6, 2); b.s(1.2, 1.3, 1);
+      b.s(W / 2, .8, 3); b.s(W - 1.2, 1.3, 1, 'phone'); b.s(W - 4, 3.4, 2); b.s(1.2, 1.3, 1);
     } else {
       const ww = W >= 10 ? 3 : 2, wp = { w: ww, z0: .3, z1: 2.3, c: C.wf || '#f1ede4', seed: L.n };
-      b.wy('generic.window', W >= 10 ? .5 : 1, wp).wy('generic.doorway', W / 2 - 1, { w: 2, c: C.dc || '#8a6a4a', dark: '#5a8a6a' }, { tags: ['lobby_door'], label: 'Courtyard', text: 'A shared courtyard: washing lines, a lemon tree in a tub, somebody practising the trumpet badly. Residents only.' }).wy('generic.window', W - (W >= 10 ? 3.5 : 3), wp);
-      b.seat('generic.bench', 1, .25, { c: C.s }, null, 1); b.seat('generic.bench', W - 2.5, .25, { c: C.s }, null, 1);
-      b.wx('lobby.mailboxes', .8, { w: 2.5, m: C.m, rows: C.rows || 3, seed: L.n }).wx('lobby.stairs', 3.6, { c: C.dc, open: true, rail: C.rail }); if (D >= 6) b.wx('lobby.intercom', 5.1, { m: C.m, seed: L.n });
-      b.f('lobby.inlay', W / 2 - 2, 1.5, { kind: C.ik || 'diamond', w: 4, d: D - 2.5, c: C.r, c2: C.r2, c3: METAL[C.m], s: 1 });
-      b.f('generic.plant', W - .75, D - 1.25, plantP(L, 1)); b.f('lobby.packages', W - 1.5, 2, { w: 1.5, seed: L.n, c: C.pk }, { flip: true });
+      b.wy('generic.window', W >= 10 ? .5 : 1, wp).wy('generic.doorway', half(W / 2 - 1), { w: 2, c: C.dc || '#8a6a4a', dark: '#5a8a6a' }, { tags: ['lobby_door'], label: 'Courtyard', text: 'A shared courtyard: washing lines, a lemon tree in a tub, somebody practising the trumpet badly. Residents only.' }).wy('generic.window', W - (W >= 10 ? 3.5 : 3), wp);
+      b.seat('generic.bench', 1, 0, { c: C.s }, null, 1); b.seat('generic.bench', W - 2.5, 0, { c: C.s }, null, 1);
+      b.wx('lobby.mailboxes', 1, { w: 2.5, m: C.m, rows: C.rows || 3, seed: L.n }).wx('lobby.stairs', 3.5, { c: C.dc, open: true, rail: C.rail }); if (D >= 6) b.wx('lobby.intercom', 5, { m: C.m, seed: L.n });
+      b.f('lobby.inlay', half(W / 2 - 2), 1.5, { kind: C.ik || 'diamond', w: 4, d: D - 2.5, c: C.r, c2: C.r2, c3: METAL[C.m], s: 1 });
+      corners(b, L, false, true, plantP(L, 1)); b.f('courier.pile', W - 1.5, 2, {}, { keep: true });
       if (L.has('bike')) b.f('lobby.bike', W - 3.5, D - 1.5, { c: C.a });
-      b.s(.8, 2, 2, 'stand', 'customer', true); b.s(W / 2 + .3, 1.2, 1); b.s(b.ex + 1.5, D - 1.6, 3, 'phone'); b.s(.9, 4.2, 2, 'stand', 'customer', true);
+      b.s(.8, 2.2, 2, 'stand', 'customer', true); b.s(W / 2 + .3, 1.2, 1); b.s(b.ex + 1.5, D - 1.6, 3, 'phone'); b.s(.8, 4.2, 2, 'stand', 'customer', true);
     }
   },
   loft(b, L) {
     const { W, D } = b, C = L.c, v = L.v || 0, win = { c: '#3a3f4c', z0: .3, z1: 2.3, seed: L.n };
     if (v === 0) {
-      b.wy('lobby.lift', .5, { style: 'freight', floor: 1 + L.n % 3 }).wy('lobby.stairs', 2.4, { c: '#4a4f5c', dc: C.dc2 || '#8a9aa8' }).wy('generic.window', 4, Object.assign({ w: W >= 10 ? 3 : 2 }, win));
+      b.wy('lobby.lift', .5, { style: 'freight', floor: 1 + L.n % 3 }).wy('lobby.stairs', 2.5, { c: '#4a4f5c', dc: C.dc2 || '#8a9aa8' }).wy('generic.window', 4, Object.assign({ w: W >= 10 ? 3 : 2 }, win));
       b.f('courier.parcellocker', W - 2.5, 0, {}, { tags: ['lobby_packages'] });
-      b.wx('lobby.mailboxes', .8, { w: 2.5, m: 'steel', rows: 4, seed: L.n }).wx('lobby.board', 3.8, { kind: 'cork', w: 2, seed: L.n }); if (D >= 8) b.wx('lobby.sconce', 6.3, { m: 'black', kind: 'tube' });
+      b.wx('lobby.mailboxes', 1, { w: 2.5, m: 'steel', rows: 4, seed: L.n }).wx('lobby.board', 4, { kind: 'cork', w: 2, seed: L.n }); if (D >= 8) b.wx('lobby.sconce', 6.5, { m: 'black', kind: 'tube' });
       b.f('lobby.column', 3, 2.5, { kind: C.col || 'steel' }); b.f('lobby.column', W - 3.5, 2.5, { kind: C.col || 'steel' });
-      b.f('generic.rug', 3.25, 3.5, { w: 3.5, d: 2.2, c: C.r, c2: C.r2, inner: C.r3 });
-      b.seat('generic.sofa', 4, 3.5, { c: C.s }, null, 2); b.f('clinic.magtable', 4.5, 4.6); b.seat('generic.sofa', 2.5, 4.5, { c: C.s2 || C.s, w: 1 }, { flip: true }, 1);
+      b.f('generic.rug', 3.5, 3.5, { w: 3.5, d: 2.5, c: C.r, c2: C.r2, inner: C.r3 });
+      b.seat('generic.sofa', 4, 3.5, { c: C.s }, null, 2); b.f('clinic.magtable', 4.5, 4.5); b.seat('generic.sofa', 2.5, 4.5, { c: C.s2 || C.s, w: 1 }, { flip: true }, 1);
       b.f('lobby.bike', W - 2, 3.5, { c: C.a }); b.f('lobby.bike', W - 2, 4, { c: '#2f8f8a', basket: true }); if (L.has('bike')) b.f('lobby.bike', W - 2, 4.5, { c: '#f2c230' });
       b.f('lobby.chandelier', 4.5, 4, { kind: 'industrial', c: C.a }); b.f('lobby.chandelier', W - 2.5, 1.5, { kind: 'industrial', c: C.a });
-      b.f('generic.plant', W - .75, D - 1.25, plantP(L, 2)); b.f('generic.plant', .25, D - 1.25, plantP(L, 0), { keep: true });
-      b.s(1.3, 1.1, 3); b.s(.8, 2, 2, 'stand', 'customer', true); b.s(W - 2.6, 3.4, 0); b.s(W - 1.5, 1.1, 3, 'phone');
+      corners(b, L);
+      b.s(1.5, 1.1, 3); b.s(.8, 2.2, 2, 'stand', 'customer', true); b.s(W - 2.6, 3.4, 0); b.s(W - 1.5, 1.1, 3, 'phone');
     } else {
       b.wy('lobby.mailboxes', .5, { w: 3, m: C.m || 'steel', rows: 4, seed: L.n }).wy('lobby.lift', 4, { style: 'freight', floor: 2 }).wy('lobby.stairs', 6, { c: '#4a4f5c', open: true, rail: '#2a2733' });
-      if (W >= 10) b.wy('lobby.board', 7.8, { kind: 'cork', w: 1.5, seed: L.n });
-      b.wx('generic.window', 1, Object.assign({ w: 3 }, win)).wx('generic.window', 4.4, Object.assign({ w: 3 }, win));
+      if (W >= 10) b.wy('lobby.board', 8, { kind: 'cork', w: 1.5, seed: L.n });
+      b.wx('generic.window', 1, Object.assign({ w: 3 }, win)).wx('generic.window', 4.5, Object.assign({ w: 3 }, win));
       b.f('lobby.column', 3.5, 2.5, { kind: C.col || 'wood' }); b.f('lobby.column', W - 3, 5, { kind: C.col || 'wood' });
       b.f('generic.rug', 1, 3.5, { w: 3, d: 2.5, c: C.r, c2: C.r2, inner: C.r3 });
-      b.seat('generic.sofa', 1.5, 3.5, { c: C.s }, null, 2); b.f('clinic.magtable', 2, 4.6); b.f('generic.floorlamp', 1, 3.5, {});
+      b.seat('generic.sofa', 1.5, 3.5, { c: C.s }, null, 2); b.f('clinic.magtable', 2, 4.5); b.f('generic.floorlamp', 1, 3.5, {});
       b.seat('office.meeting', W - 4, 2, {}, null, 2); b.f('lobby.packages', W - 2.5, D - 3, { w: 2, seed: L.n, c: '#7d858e' });
       b.f('lobby.bike', .5, D - 1.5, { c: C.a }, { keep: true });
       b.f('lobby.chandelier', 2, 4, { kind: 'industrial', c: C.a }); b.f('lobby.chandelier', W - 3, 2.5, { kind: 'industrial', c: C.a });
-      b.f('generic.plant', W - .75, .25, plantP(L, 2)); b.f('generic.plant', W - .75, D - 1.25, plantP(L, 0));
-      b.s(2, .8, 3); b.s(4.8, 1.1, 3, 'phone'); b.s(W - 1.5, D - 1.8, 3); b.s(b.ex + 1.4, D - 1.5, 2);
+      b.f('generic.plant', W - .5, 0, plantP(L, 2)); corners(b, L, false, true);
+      b.s(2, .8, 3); b.s(5, 1.1, 3, 'phone'); b.s(W - 1.5, D - 1.8, 3); b.s(b.ex + 1.4, D - 1.5, 2);
     }
   },
   resgrand(b, L) {
     const { W, D } = b, C = L.c, mw = W >= 10 ? 3 : 2, lx = mw + 1;
-    b.wy('lobby.mailboxes', .5, { w: mw, m: C.m, rows: 3, seed: L.n }).wy('lobby.lift', lx, { style: C.lift || 'cage', m: C.m, floor: 3 }).wy('lobby.sconce', lx + 1.6, { m: C.m, kind: C.sk }).wy('lobby.stairs', lx + 2, { c: C.dc, open: true, arch: L.has('arch'), rail: C.rail });
-    if (W - (lx + 3.4) >= 1.6) b.wy('lobby.board', W - 1.9, { kind: 'cork', w: 1.5, seed: L.n });
+    b.wy('lobby.mailboxes', .5, { w: mw, m: C.m, rows: 3, seed: L.n }).wy('lobby.lift', lx, { style: C.lift || 'cage', m: C.m, floor: 3 }).wy('lobby.sconce', lx + 2, { m: C.m, kind: C.sk }).wy('lobby.stairs', lx + 2.5, { c: C.dc, open: true, arch: L.has('arch'), rail: C.rail });
+    if (W - (lx + 4) >= 2) b.wy('lobby.board', W - 2, { kind: 'cork', w: 1.5, seed: L.n });
     b.staff('lobby.desk', W - 3, 2, { style: C.desk || 'wood', w: 2.5, name: C.dn || 'CONCIERGE', a: METAL[C.m], c: C.dkc }, { label: C.dl || 'Concierge' });
-    b.wx('generic.picture', 1, { kind: 3, w: 1.5, c: METAL[C.m] }).wx('lobby.sconce', 2.7, { m: C.m, kind: C.sk }).wx('generic.window', D - 2.6, { w: 2, curtain: C.cur || '#c0563a', seed: 4 });
-    b.seat('lobby.settee', .25, 2.5, { c: C.s, a: METAL[C.m] }, { flip: true, keep: true }, 1);
+    b.wx('generic.picture', 1, { kind: 3, w: 1.5, c: METAL[C.m] }).wx('lobby.sconce', 2.5, { m: C.m, kind: C.sk }).wx('generic.window', D - 2.5, { w: 2, curtain: C.cur || '#c0563a', seed: 4 });
+    b.seat('lobby.settee', 0, 2.5, { c: C.s, a: METAL[C.m] }, { flip: true, keep: true }, 1);
     if (L.has('fountain')) { b.seat('airport.fountain', half(W / 2 - 1.5), 3, {}, null, 1); b.ex = W - 2; }
-    else { b.f('lobby.inlay', W / 2 - 1.5, 2.5, { kind: C.ik || 'star', w: 3, d: 2.5, c: C.r, c2: C.r2, c3: METAL[C.m] }); b.ex = W / 2 - .5; }
-    b.f('lobby.chandelier', W / 2 - .5, 3.2, { kind: C.ch || 'crystal', m: C.m });
-    b.f('generic.plant', W - .75, .25, { kind: 'palm', s: 1.5, pot: METAL[C.m] }); b.f('generic.plant', W - .75, D - 1.25, { kind: 'palm', s: 1.5, pot: METAL[C.m] }); b.f('generic.plant', .25, D - 1.25, plantP(L, 3), { keep: true });
-    b.s(lx + .8, 1.1, 3); b.s(1.5, 1.1, 3, 'phone'); b.s(b.ex - 1.3, D - 1.5, 0); b.s(W - 1.8, 3.4, 3);
+    else { b.f('lobby.inlay', half(W / 2 - 1.5), 2.5, { kind: C.ik || 'star', w: 3, d: 2.5, c: C.r, c2: C.r2, c3: METAL[C.m] }); b.ex = half(W / 2 - .5); }
+    b.f('lobby.chandelier', half(W / 2 - .5), 3, { kind: C.ch || 'crystal', m: C.m });
+    b.f('generic.plant', W - .5, 0, { kind: 'palm', s: 1.5, pot: METAL[C.m] }); corners(b, L, true, true, { kind: 'palm', s: 1.5, pot: METAL[C.m] });
+    b.s(lx + 1, 1.1, 3); b.s(1.5, 1.1, 3, 'phone'); b.s(b.ex - 1.3, D - 1.5, 0); b.s(W - 1.8, 3.4, 3);
   },
   /* ---------------- offices ---------------- */
   deco(b, L) {
-    const { W, D } = b, C = L.c, n = L.lifts || 2, lx = 4.2, end = lx + n * 1.9 - .3, mc = METAL[C.m];
-    b.ex = W / 2 + .5;
+    const { W, D } = b, C = L.c, n = L.lifts || 2, lx = 4, end = lx + n * 2, mc = METAL[C.m];
+    b.ex = half(W / 2 + .5);
     b.wy('lobby.panel', .5, { kind: 'sunburst', w: 3, c: C.pc, c2: mc });
-    b.wy('lobby.sconce', lx - .5, { m: C.m, kind: 'fan' }); for (let i = 0; i < n; i++) b.wy('lobby.lift', lx + i * 1.9, { style: 'deco', m: C.m, c: C.lc, floor: 2 + i * 5 + L.n % 4 }); b.wy('lobby.sconce', end + .05, { m: C.m, kind: 'fan' });
-    const dirBack = W - end - .5 >= 2.4; if (dirBack) b.wy('lobby.board', W - 2.5, { kind: 'felt', w: 2, m: C.m, seed: L.n });
-    b.wx('lobby.restroom', 1.2, { dc: '#8a5a3a', c: '#5a4030' }).wx('lobby.sconce', 2.4, { m: C.m, kind: 'fan' });
-    if (dirBack) b.wx('lobby.panel', 3, { kind: 'marble', w: 3, c: C.mc || '#e8e4dc', c2: mc, seed: L.n }); else b.wx('lobby.board', 3.2, { kind: 'felt', w: 2, m: C.m, seed: L.n });
-    b.wx('generic.clock', D - 2, { c: mc, h: 3, m: 40 });
+    b.wy('lobby.sconce', lx - .5, { m: C.m, kind: 'fan' }); for (let i = 0; i < n; i++) b.wy('lobby.lift', lx + i * 2, { style: 'deco', m: C.m, c: C.lc, floor: 2 + i * 5 + L.n % 4 }); b.wy('lobby.sconce', end, { m: C.m, kind: 'fan' });
+    const dirBack = W - end - .5 >= 2.5; if (dirBack) b.wy('lobby.board', W - 2.5, { kind: 'felt', w: 2, m: C.m, seed: L.n });
+    b.wx('generic.clock', 1, { c: mc, h: 3, m: 40 }).wx('lobby.restroom', 3, { dc: '#8a5a3a', c: '#5a4030' }).wx('lobby.sconce', 4, { m: C.m, kind: 'fan' });
+    if (dirBack) b.wx('lobby.panel', 4.5, { kind: 'marble', w: 2, c: C.mc || '#e8e4dc', c2: mc, seed: L.n }); else b.wx('lobby.board', 4.5, { kind: 'felt', w: 2, m: C.m, seed: L.n });
     b.staff('lobby.desk', .5, 1.5, { style: 'deco', w: 3, name: L.sign, a: mc, c: C.dkc }, { label: 'Reception' });
-    b.f('lobby.column', 3.5, 2.5, { kind: 'deco', a: mc, c: C.cc }); b.f('lobby.column', half(end + .4), 2.5, { kind: 'deco', a: mc, c: C.cc });
+    b.f('lobby.column', 3.5, 2.5, { kind: 'deco', a: mc, c: C.cc }); b.f('lobby.column', end, 2.5, { kind: 'deco', a: mc, c: C.cc });
     b.f('lobby.inlay', b.ex - 1.5, 3.5, { kind: C.ik || 'star', w: 3, d: 3, c: C.ic || '#2a2733', c2: C.r2 || '#e8e4dc', c3: mc, s: 1 });
     b.f('lobby.chandelier', b.ex - .5, 4.5, { kind: 'deco', m: C.m }); if (W >= 13) b.f('lobby.chandelier', 2, 4.5, { kind: 'deco', m: C.m });
-    b.seat('lobby.settee', W - 2.5, D - 3.5, { c: C.s, a: mc }, null, 1); b.seat('lobby.settee', .25, D - 4, { c: C.s, a: mc }, { flip: true, keep: true }, 1);
-    b.f('generic.plant', W - .75, .25, { kind: 'palm', s: 1.5, pot: mc }); b.f('generic.plant', .25, D - 1.25, { kind: 'palm', s: 1.5, pot: mc }, { keep: true });
-    b.s(b.ex + 1.4, D - 1.5, 3, 'stand', 'staff'); b.s(lx + .8, 1.1, 3); b.s(lx + 2.6, 1.3, 1, 'phone'); b.s(dirBack ? W - 1.5 : 1, dirBack ? 1.1 : 4.2, dirBack ? 3 : 2, 'stand', 'customer', !dirBack);
+    b.seat('lobby.settee', W - 2.5, D - 3.5, { c: C.s, a: mc }, null, 1); b.seat('lobby.settee', 1, D - 3.5, { c: C.s, a: mc }, null, 1);
+    b.f('generic.plant', W - .5, 0, { kind: 'palm', s: 1.5, pot: mc }); corners(b, L, true, true, { kind: 'palm', s: 1.5, pot: mc });
+    b.s(b.ex + 1.4, D - 1.5, 3, 'stand', 'staff'); b.s(lx + 1, 1.1, 3); b.s(lx + 3, 1.3, 1, 'phone'); if (dirBack) b.s(W - 1.5, 1.1, 3); else b.s(.8, 5.7, 2, 'stand', 'customer', true);
   },
   brutal(b, L) {
     const { W, D } = b, C = L.c, x0 = gate(b, L, 3, { style: 'steel', c: C.lc || '#6a6a68' });
-    b.wy('lobby.panel', .5, { kind: 'relief', w: Math.min(3, x0 - 1.2), c: C.pc || '#9a9a96', c2: C.a, seed: L.n });
-    b.wx('lobby.board', 1.2, { kind: 'digital', w: 2, seed: L.n, c: C.scr, a: C.a }).wx('lobby.sconce', 3.5, { m: 'steel', kind: 'tube' }).wx('lobby.restroom', 4.2, { c: '#5a5a58', dc: C.rd || '#c8c4bc' }).wx('lobby.sconce', 5.5, { m: 'steel', kind: 'tube' });
+    b.wy('lobby.panel', .5, { kind: 'relief', w: Math.min(3, x0 - 1.5), c: C.pc || '#9a9a96', c2: C.a, seed: L.n });
+    b.wx('lobby.sconce', 2.5, { m: 'steel', kind: 'tube' }).wx('lobby.board', 3, { kind: 'digital', w: 2, seed: L.n, c: C.scr, a: C.a }).wx('lobby.restroom', 5.5, { c: '#5a5a58', dc: C.rd || '#c8c4bc' }).wx('lobby.sconce', 7, { m: 'steel', kind: 'tube' });
     b.staff('lobby.podium', x0 - 1.5, 2, { name: 'SECURITY', c: C.pd || '#3a3f4c', a: C.a }, { label: 'Security desk' });
-    b.seat('generic.bench', 1, 4.5, { c: C.s }, null, 1); b.f('airport.planter', .5, 5.5, {}); b.seat('generic.bench', 1, 6.5, { c: C.s }, null, 1);
-    b.f('lobby.column', 4.5, 4, { kind: 'concrete', c: C.cc }); b.f('lobby.column', W - 2.5, 4, { kind: 'concrete', c: C.cc });
-    if (D >= 10) { b.f('lobby.column', 4.5, 7, { kind: 'concrete', c: C.cc }); b.f('lobby.column', W - 2.5, 7, { kind: 'concrete', c: C.cc }); }
-    b.f('lobby.inlay', 5.5, 4.5, { kind: 'stripe', w: W - 8.5, d: D - 6, c: C.r || '#5a5a58', c2: C.a });
-    b.f('lobby.chandelier', W / 2 + 1, 5, { kind: 'ring', m: 'black' }); b.f('generic.bin', W - .75, D - 1.25, {});
-    if (L.has('vend')) b.f('generic.vending', W - 1.25, 5.5, { c: '#3c64ad', kind: 'snacks', seed: 5 }, { flip: true });
-    b.s(1, 2.2, 2, 'stand', 'customer', true); b.s(x0 - 2.6, 3.4, 0, 'phone'); b.s(half(x0 + 3), 3.4, 3); b.s(b.ex + 1.5, D - 1.6, 3);
+    b.seat('generic.bench', 1.5, 4.5, { c: C.s }, null, 1); b.f('airport.planter', 1, 5.5, {}); b.seat('generic.bench', 1.5, 6.5, { c: C.s }, null, 1);
+    b.f('lobby.column', 5, 4, { kind: 'concrete', c: C.cc }); b.f('lobby.column', W - 2.5, 4, { kind: 'concrete', c: C.cc });
+    if (D >= 10) { b.f('lobby.column', 5, 7, { kind: 'concrete', c: C.cc }); b.f('lobby.column', W - 2.5, 7, { kind: 'concrete', c: C.cc }); }
+    b.f('lobby.inlay', 6, 4.5, { kind: 'stripe', w: W - 9, d: D - 6, c: C.r || '#5a5a58', c2: C.a });
+    b.f('lobby.chandelier', half(W / 2 + 1), 5, { kind: 'ring', m: 'black' }); b.f('generic.bin', W - .5, D - 1, {}, { keep: true });
+    if (L.has('vend')) b.f('generic.vending', 0, D - 2.5, { c: '#3c64ad', kind: 'snacks', seed: 5 }, { flip: true, keep: true });
+    b.s(.8, 4, 2, 'stand', 'customer', true); b.s(x0 - 2.6, 3.4, 0, 'phone'); b.s(x0 + 3, 3.4, 3); b.s(b.ex + 1.5, D - 1.6, 3);
   },
   glass(b, L) {
-    const { W, D } = b, C = L.c, n = L.lifts || 3, x0 = gate(b, L, n, { style: 'glass', c: '#c8ccd0' }), mc = METAL[C.m] || '#b8bcc0';
+    const { W, D } = b, C = L.c, n = L.lifts || 3, x0 = gate(b, L, n, { style: 'glass', c: '#c8ccd0' }), ky = half(D / 2 + .5);
     if (L.has('mural')) b.wy('lobby.panel', .5, { kind: 'mural', w: Math.min(4, x0 - 1), cols: C.cols, seed: L.n }); else b.wy('lobby.panel', 1, { kind: 'logo', w: 3, name: L.sign, c: C.lc || '#2e3440', c2: C.a });
-    if (x0 - 4.6 >= 2.2) b.wy('generic.window', 4.4, { w: 2, z0: .3, z1: 2.3, c: '#5a6272', seed: L.n });
-    if (L.has('green')) b.wx('airport.greenwall', 1, { w: 4, text: L.sign }); else b.wx('generic.window', 1, { w: 3, z0: .3, z1: 2.3, c: '#5a6272', seed: L.n + 2 }).wx('lobby.sconce', 4.3, { m: 'steel', kind: 'tube' });
-    b.wx('lobby.board', 5.4, { kind: 'digital', w: 2, seed: L.n, c: C.scr, a: C.a }).wx('lobby.restroom', 7.7, {});
+    if (x0 - 5 >= 2) b.wy('generic.window', 4.5, { w: 2, z0: .3, z1: 2.3, c: '#5a6272', seed: L.n });
+    if (L.has('green')) b.wx('airport.greenwall', 1, { w: 4, text: L.sign }); else b.wx('generic.window', 1, { w: 3, z0: .3, z1: 2.3, c: '#5a6272', seed: L.n + 2 }).wx('lobby.sconce', 4.5, { m: 'steel', kind: 'tube' });
+    b.wx('lobby.board', 5.5, { kind: 'digital', w: 2, seed: L.n, c: C.scr, a: C.a }).wx('lobby.restroom', 7.5, {});
     b.staff('lobby.desk', .5, 1.5, { style: 'glass', w: 3.5, name: L.has('mural') ? L.sign : 'WELCOME', a: C.a, c: C.dkc, flower: C.a }, { label: 'Reception' });
     if (L.has('fountain')) b.seat('airport.fountain', half(x0 - 1.5), 4, {}, null, 2); else if (L.has('tree')) b.seat('airport.tree', half(x0 - 1), 4.5, {}, null, 2);
     b.patch(.5, D - 4, 4.5, D - 1, C.lf || 'f_carpet');
-    b.seat('generic.sofa', 1, D - 3.5, { c: C.s, w: 3 }, null, 2); b.f('clinic.magtable', 2, D - 2.4); b.f('generic.plant', .25, D - 1.25, plantP(L, 0), { keep: true });
-    if (L.has('coffee')) { b.staff('lobby.coffeebar', W - 3, half(D / 2 + .5), { c: C.kc, a: C.ka, name: C.kn }, { label: C.kl || 'Coffee kiosk' }); b.s(W - 1.8, half(D / 2 + .5) + 1.5, 3); }
-    else { b.seat('generic.sofa', W - 3, half(D / 2 + .5), { c: C.s2 || C.s }, null, 1); b.f('generic.floorlamp', W - .75, half(D / 2 + .5), {}); }
-    if (L.has('bike')) b.f('lobby.bike', W - 2, D - 1.5, { c: C.a });
-    b.f('lobby.chandelier', W / 2 - 1, D / 2 + 1, { kind: 'ring', m: C.m || 'steel' }); b.f('lobby.chandelier', W / 2 + 2, D / 2 - .5, { kind: 'ring', m: C.m || 'steel' });
-    b.f('generic.plant', W - .75, D - 1.25, plantP(L, 1));
-    b.s(2.2, 3, 3); b.s(.9, 6.4, 2, 'stand', 'customer', true); b.s(half(x0 + n * .9), 3.4, 3, 'phone'); b.s(b.ex - 1.5, D - 1.5, 0);
+    b.seat('generic.sofa', 1, D - 3.5, { c: C.s, w: 3 }, null, 2); b.f('clinic.magtable', 2, D - 2.5); corners(b, L);
+    if (L.has('coffee')) { b.staff('lobby.coffeebar', W - 3, ky, { c: C.kc, a: C.ka, name: C.kn }, { label: C.kl || 'Coffee kiosk' }); b.s(W - 1.8, ky + 1.5, 3); }
+    else { b.seat('generic.sofa', W - 3, ky, { c: C.s2 || C.s }, null, 1); b.f('generic.floorlamp', W - .5, ky, {}); }
+    if (L.has('bike')) b.f('lobby.bike', W - 2.5, D - 1.5, { c: C.a });
+    b.f('lobby.chandelier', half(W / 2 - 1), half(D / 2 + 1), { kind: 'ring', m: C.m || 'steel' }); b.f('lobby.chandelier', half(W / 2 + 2), half(D / 2 - .5), { kind: 'ring', m: C.m || 'steel' });
+    b.s(2.2, 3, 3); b.s(.8, 6.6, 2, 'stand', 'customer', true); b.s(x0 + n, 3.4, 3, 'phone'); b.s(b.ex - 1.5, D - 1.5, 0);
   },
   corp(b, L) {
     const { W, D } = b, C = L.c, v = L.v || 0, mc = METAL[C.m] || '#d8a848', lp = { style: C.lift || 'steel', c: C.lc, m: C.m };
     if (!L.has('nopatch')) b.patch(1, 3, W - 1, D - 1, C.cf || 'f_carpet');
     if (v === 0) {
       const x0 = L.has('gate') ? gate(b, L, 2, lp) : W - 4;
-      if (!L.has('gate')) { b.wy('lobby.lift', W - 4, Object.assign({ floor: 4 }, lp)).wy('lobby.lift', W - 2.1, Object.assign({ floor: 11 }, lp)); }
-      b.wy('lobby.panel', .3, { kind: 'wood', w: Math.min(4, x0 - .8), c: C.wd || '#8a5a3a', h: 1.2 }).wy('lobby.panel', .8, { kind: 'logo', w: 3, name: L.sign, c: C.lgc || '#2e3440', c2: C.a, z0: 1.55 });
-      if (L.has('books')) for (let x = 4.5; x + 2 <= x0 - .4; x += 2) b.f('books.shelf', x, 0, {}, { tags: ['lobby_books'] });
-      else if (L.has('chart') && x0 - 4.6 >= 2.2) b.wy('lobby.panel', 4.5, { kind: 'chart', w: 2 }); else if (x0 - 4.6 >= 1.2) b.wy('generic.picture', 4.6, { kind: 3, w: 1.5, c: mc });
-      b.wx('lobby.board', 1, { kind: C.dir || 'felt', w: 2, m: C.m, seed: L.n, a: C.a }).wx('generic.picture', 3.4, { kind: L.n % 3, c: mc }).wx('lobby.restroom', D - 3, { dc: C.rd }).wx('lobby.sconce', D - 1.6, { m: C.m, kind: C.sk });
+      if (!L.has('gate')) { b.wy('lobby.lift', W - 4, Object.assign({ floor: 4 }, lp)).wy('lobby.lift', W - 2, Object.assign({ floor: 11 }, lp)); }
+      b.wy('lobby.panel', .5, { kind: 'wood', w: Math.min(4, x0 - 1), c: C.wd || '#8a5a3a', h: 1.2 }).wy('lobby.panel', 1, { kind: 'logo', w: 3, name: L.sign, c: C.lgc || '#2e3440', c2: C.a, z0: 1.55 });
+      if (L.has('books')) for (let x = 4.5; x + 2 <= x0 - .5; x += 2) b.f('books.shelf', x, 0, {}, { tags: ['lobby_books'] });
+      else if (L.has('chart') && x0 - 5 >= 2) b.wy('lobby.panel', 4.5, { kind: 'chart', w: 2 }); else if (x0 - 5 >= 1.5) b.wy('generic.picture', 4.5, { kind: 3, w: 1.5, c: mc });
+      b.wx('generic.picture', 1, { kind: L.n % 3, c: mc }).wx('lobby.board', 3, { kind: C.dir || 'felt', w: 2, m: C.m, seed: L.n, a: C.a, c: C.scr }).wx('lobby.restroom', D - 3, { dc: C.rd }).wx('lobby.sconce', D - 1.5, { m: C.m, kind: C.sk });
       b.staff('lobby.desk', .5, 1.5, { style: C.desk || 'wood', w: 3, name: 'RECEPTION', a: mc, c: C.dkc }, { label: 'Reception' });
-      b.seat('generic.sofa', 1, D - 3.5, { c: C.s }, null, 1); b.f('clinic.magtable', 1.5, D - 2.4); b.f('generic.floorlamp', 3.25, D - 3.5, { c: C.a, base: mc });
-      b.seat('clinic.chairs', W - 3, D - 3, {}, null, 2); b.f('generic.cooler', W - .75, D - 3, {}); b.f('generic.plant', W - .75, D - 1.25, plantP(L, 2));
-      b.f('lobby.chandelier', W / 2, D / 2 + .5, { kind: C.ch || 'ring', m: C.m });
-      b.s(2, 3, 3); b.s(1, 2, 2, 'stand', 'customer', true); b.s(L.has('gate') ? half(x0 + 2) : W - 3.2, L.has('gate') ? 3.4 : 1.1, 3, 'phone'); b.s(b.ex + 1.5, D - 1.5, 2);
+      b.seat('generic.sofa', 1, D - 3.5, { c: C.s }, null, 1); b.f('clinic.magtable', 1.5, D - 2.5); b.f('generic.floorlamp', 3.5, D - 3.5, { c: C.a, base: mc });
+      b.seat('clinic.chairs', W - 3, D - 3, {}, null, 2); b.f('generic.cooler', W - .5, D - 3, {}); corners(b, L, false, true);
+      b.f('lobby.chandelier', half(W / 2), half(D / 2 + .5), { kind: C.ch || 'ring', m: C.m });
+      b.s(2, 3, 3); b.s(.8, 4, 2, 'stand', 'customer', true); b.s(L.has('gate') ? x0 + 2 : W - 3, L.has('gate') ? 3.4 : 1.1, 3, 'phone'); b.s(b.ex + 1.5, D - 1.5, 2);
     } else {
-      b.ex = W / 2 + 1;
-      b.wx('lobby.lift', 1.2, Object.assign({ floor: 6 }, lp)).wx('lobby.lift', 3.1, Object.assign({ floor: 14 }, lp)).wx('lobby.sconce', 5, { m: C.m, kind: C.sk }).wx('generic.picture', D - 2.4, { kind: 1, c: mc });
-      b.wy('lobby.panel', 2, { kind: 'wood', w: W - 5.5, c: C.wd || '#8a5a3a', h: 1.2 }).wy('lobby.panel', W / 2 - 1.5, { kind: 'logo', w: 3, name: L.sign, c: C.lgc || '#2e3440', c2: C.a, z0: 1.55 });
-      b.wy('lobby.board', W - 3.3, { kind: C.dir || 'digital', w: 2, m: C.m, seed: L.n, a: C.a, c: C.scr }).wy('lobby.restroom', W - 1.1, { dc: C.rd });
+      b.ex = half(W / 2 + 1);
+      b.wx('lobby.lift', 1, Object.assign({ floor: 6 }, lp)).wx('lobby.lift', 3, Object.assign({ floor: 14 }, lp)).wx('lobby.sconce', 5, { m: C.m, kind: C.sk }).wx('generic.picture', D - 2.5, { kind: 1, c: mc });
+      b.wy('lobby.panel', 2, { kind: 'wood', w: W - 5.5, c: C.wd || '#8a5a3a', h: 1.2 }).wy('lobby.panel', half(W / 2 - 1.5), { kind: 'logo', w: 3, name: L.sign, c: C.lgc || '#2e3440', c2: C.a, z0: 1.55 });
+      b.wy('lobby.board', W - 3.5, { kind: C.dir || 'digital', w: 2, m: C.m, seed: L.n, a: C.a, c: C.scr }).wy('lobby.restroom', W - 1, { dc: C.rd });
       b.staff('lobby.desk', half(W / 2 - 1.5), 1.5, { style: C.desk || 'steel', w: 3, name: 'RECEPTION', a: C.a, c: C.dkc }, { label: 'Reception' });
       b.f('generic.queuepost', 1, 5, { n: 2, kind: 'belt', c: C.a });
-      b.seat('generic.sofa', W - 3, D - 3.5, { c: C.s }, null, 1); b.f('clinic.magtable', W - 2.5, D - 2.4); b.seat('clinic.chairs', W - 3, D - 5.5, {}, null, 1);
-      b.f('generic.plant', W - .75, 1.5, plantP(L, 1)); b.f('generic.plant', .25, D - 1.25, plantP(L, 0), { keep: true }); b.f('generic.cooler', 1.5, D - 1.25, {}, { keep: true });
-      b.f('lobby.chandelier', W / 2, D / 2 + .5, { kind: C.ch || 'ring', m: C.m });
-      b.s(half(W / 2), 3, 3); b.s(1, 2, 2, 'phone', 'customer', true); b.s(W - 2.3, 1.1, 3); b.s(b.ex - 1.6, D - 1.5, 0);
+      b.seat('generic.sofa', W - 3, D - 3.5, { c: C.s }, null, 1); b.f('clinic.magtable', W - 2.5, D - 2.5); b.seat('clinic.chairs', W - 3, D - 5.5, {}, null, 1);
+      b.f('generic.plant', W - .5, 3, plantP(L, 1)); corners(b, L, !L.mir, !!L.mir); b.f('generic.cooler', L.mir ? W - 2 : 1.5, D - 1, {}, { keep: true });
+      b.f('lobby.chandelier', half(W / 2), half(D / 2 + .5), { kind: C.ch || 'ring', m: C.m });
+      b.s(half(W / 2), 3, 3); b.s(.8, 2, 2, 'phone', 'customer', true); b.s(W - 2.5, 1.1, 3); b.s(b.ex - 1.6, D - 1.5, 0);
     }
   },
   cowork(b, L) {
     const { W, D } = b, C = L.c; b.ex = 8.5;
-    b.wy('lobby.stairs', .5, { c: '#4a5a4a', open: true, rail: '#2a2733' }).wy('office.whiteboard', 2.2, {}).wy('lobby.panel', 4.6, { kind: 'mural', w: 4, cols: C.cols, seed: 5 }).wy('lobby.restroom', 9.1, {}).wy('lobby.board', 10.6, { kind: 'cork', w: 2, seed: 9 });
-    b.wx('generic.window', 1, { w: 3, z0: .3, z1: 2.3, c: '#3a3f4c', seed: 3 }).wx('generic.picture', 4.6, { kind: 2, c: '#d8a848' }).wx('lobby.board', 6.8, { kind: 'digital', w: 2, seed: 2, c: '#2f4a3f', a: C.a });
+    b.wy('lobby.stairs', .5, { c: '#4a5a4a', open: true, rail: '#2a2733' }).wy('office.whiteboard', 2, {}).wy('lobby.panel', 4.5, { kind: 'mural', w: 4, cols: C.cols, seed: 5 }).wy('lobby.restroom', 9, {}).wy('lobby.board', 10.5, { kind: 'cork', w: 2, seed: 9 });
+    b.wx('generic.window', 1, { w: 3, z0: .3, z1: 2.3, c: '#3a3f4c', seed: 3 }).wx('generic.picture', 4.5, { kind: 2, c: '#d8a848' }).wx('lobby.board', 7, { kind: 'digital', w: 2, seed: 2, c: '#2f4a3f', a: C.a });
     b.seat('office.meeting', 3, 2, {}, null, 3); b.seat('office.meeting', 7.5, 2, {}, null, 2, 3);
     b.staff('lobby.coffeebar', .5, 5.5, { c: '#2f5a4a', a: '#f4e9cf', name: 'BEAN BAR' }, { label: 'Bean Bar', keep: true }); b.s(1.7, 7, 3, 'stand', 'customer', true);
     b.staff('lobby.desk', W - 3, 5.5, { style: 'steel', w: 2.5, name: 'SHED 5', a: C.a, c: '#e8e4dc' }, { label: 'Community desk' });
-    b.f('generic.rug', 4, 5.2, { w: 3.5, d: 2.5, c: C.r, c2: C.r2, inner: '#4f7a6a' }); b.seat('generic.sofa', 4.5, 5.5, { c: C.s, w: 3 }, null, 2); b.f('clinic.magtable', 5.5, 6.6);
+    b.f('generic.rug', 4, 5, { w: 3.5, d: 2.5, c: C.r, c2: C.r2, inner: '#4f7a6a' }); b.seat('generic.sofa', 4.5, 5.5, { c: C.s, w: 3 }, null, 2); b.f('clinic.magtable', 5.5, 6.5);
     b.f('lobby.bike', W - 2, 3.5, { c: C.a }); b.f('lobby.bike', W - 2, 4, { c: '#f2c230', basket: true }); b.f('generic.lockers', 11.5, 2.5, { w: 1, c: '#8a9098', open: true });
     for (const [x, y] of [[4, 2.5], [8.5, 2.5], [5.5, 6]]) b.f('lobby.chandelier', x, y, { kind: 'industrial', c: C.a });
-    b.f('generic.plant', W - .75, D - 1.25, { s: 1.6, leaf: '#3f7a48', pot: '#d8a848' }); b.f('generic.plant', 3.5, D - 1.25, { kind: 'snake', s: 1.4, pot: '#3a3f4c' }); b.f('generic.plant', 6.5, .25, {});
-    b.s(3.2, 1, 3); b.s(10.5, 7, 1, 'phone');
+    b.f('generic.plant', W - .5, D - 1, { s: 1.6, leaf: '#3f7a48', pot: '#d8a848' }); b.f('generic.plant', 3.5, D - 1, { kind: 'snake', s: 1.4, pot: '#3a3f4c' }); b.f('generic.plant', 6.5, 0, {});
+    b.s(3.5, 1, 3); b.s(10.5, 7.2, 1, 'phone');
   },
   media(b, L) {
-    const { W, D } = b, C = L.c; b.ex = 5;
-    b.wy('lobby.panel', .5, { kind: 'screens', w: 3, seed: 6 }).wy('generic.door', 4.1, { kind: 'staff', dc: '#5a6272' }, { tags: ['lobby_door'], label: 'Studio A', text: 'The red light is on. Somewhere behind this door the six o\'clock news is being read by a man with extremely good hair.' }).wy('lobby.panel', 3.85, { kind: 'onair', w: 1.5 }).wy('lobby.lift', 6, { style: 'steel', floor: 3 }).wy('lobby.restroom', 7.9, {});
-    b.wx('lobby.panel', 1, { kind: 'awards', w: 2, c: '#3a3f4c', c2: '#e8c06a' }).wx('lobby.panel', 3.4, { kind: 'logo', w: 3, name: 'MBTV', c: '#b8342e', c2: '#fff2c4' });
+    const { W, D } = b; b.ex = 5;
+    b.wy('lobby.panel', .5, { kind: 'screens', w: 3, seed: 6 }).wy('generic.door', 4, { kind: 'staff', dc: '#5a6272' }, { tags: ['lobby_door'], label: 'Studio A', text: 'The red light is on. Somewhere behind this door the six o\'clock news is being read by a man with extremely good hair.' }).wy('lobby.panel', 4, { kind: 'onair', w: 1.5 }).wy('lobby.lift', 6, { style: 'steel', floor: 3 }).wy('lobby.restroom', 8, {});
+    b.wx('lobby.panel', 1, { kind: 'awards', w: 2, c: '#3a3f4c', c2: '#e8c06a' }).wx('lobby.panel', 3.5, { kind: 'logo', w: 3, name: 'MBTV', c: '#b8342e', c2: '#fff2c4' });
     b.staff('lobby.desk', .5, 1.5, { style: 'glass', w: 3, name: 'MBTV', a: '#b8342e', flower: '#f2c230' }, { label: 'Reception' });
-    b.f('generic.rug', 5, 3.5, { w: 3, d: 2, c: '#2e3440', c2: '#b8342e', inner: '#3a4252' }); b.seat('generic.sofa', 5.5, 3.5, { c: '#b8342e' }, null, 2); b.f('clinic.magtable', 6, 4.6);
-    b.f('lobby.chandelier', 4, 3.5, { kind: 'ring', m: 'black' }); b.f('generic.plant', W - .75, D - 1.25, { kind: 'snake', s: 1.4, pot: '#3a3f4c' }); b.f('generic.plant', .25, D - 1.25, { kind: 'palm', s: 1.5, pot: '#f1ede4' });
-    b.s(2, 3, 3); b.s(6.8, 1.1, 3, 'phone'); b.s(1, 4.4, 2); b.s(3.3, D - 1.5, 0);
+    b.f('generic.rug', 5, 3.5, { w: 3, d: 2, c: '#2e3440', c2: '#b8342e', inner: '#3a4252' }); b.seat('generic.sofa', 5.5, 3.5, { c: '#b8342e' }, null, 2); b.f('clinic.magtable', 6, 4.5);
+    b.f('lobby.chandelier', 4, 3.5, { kind: 'ring', m: 'black' }); b.f('generic.plant', W - .5, D - 1, { kind: 'snake', s: 1.4, pot: '#3a3f4c' }); b.f('generic.plant', 0, D - 1, { kind: 'palm', s: 1.5, pot: '#f1ede4' });
+    b.s(2, 3, 3); b.s(7, 1.1, 3, 'phone'); b.s(.8, 4.6, 2); b.s(3.3, D - 1.5, 0);
   },
   harbor(b, L) {
-    const { W, D } = b, C = L.c; b.ex = 3.5;
-    b.wy('lobby.panel', .5, { kind: 'chart', w: 2 }).wy('lobby.stairs', 2.9, { c: '#7a2f2f', open: true, rail: '#d8a848' }).wy('lobby.panel', 4.3, { kind: 'buoy', w: 1, bg: '#e6dcc0' }).wy('lobby.board', 5.6, { kind: 'safety', w: 2, title: 'TIDES', c: '#2f5f9f', seed: 3 });
-    b.wx('generic.window', .8, { w: 1, cross: false, plant: true }).wx('generic.picture', 2.4, { kind: 'sea', w: 1 }).wx('lobby.restroom', 3.9, { dc: '#8a5a3a', c: '#5a4030' });
+    const { W, D } = b; b.ex = 3.5;
+    b.wy('lobby.panel', .5, { kind: 'chart', w: 2 }).wy('lobby.stairs', 3, { c: '#7a2f2f', open: true, rail: '#d8a848' }).wy('lobby.panel', 4.5, { kind: 'buoy', w: 1, bg: '#e6dcc0' }).wy('lobby.board', 5.5, { kind: 'safety', w: 2, title: 'TIDES', c: '#2f5f9f', seed: 3 });
+    b.wx('generic.window', 1, { w: 1, cross: false, plant: true }).wx('generic.picture', 2.5, { kind: 'sea', w: 1 }).wx('lobby.restroom', 4, { dc: '#8a5a3a', c: '#5a4030' });
     b.staff('lobby.desk', W - 3, 2, { style: 'wood', w: 2.5, name: 'HARBOR', a: '#d8a848', c: '#7a4e2d', shade: '#2f5f9f' }, { label: 'Harbor desk' });
-    b.seat('generic.bench', .25, 1.5, { c: '#8a5a3a' }, { flip: true, keep: true }, 1);
-    b.f('generic.rug', 2, 3, { w: 3, d: 1.5, c: '#2f3f72', c2: '#e8c06a' }); b.f('lobby.umbrella', W - .9, D - .9, { c: '#d8a848' }); b.f('generic.plant', .25, D - 1.25, plantP(L, 2)); b.f('lobby.chandelier', 3, 2.5, { kind: 'industrial', c: '#2f5f9f' });
-    b.s(1.5, 1.1, 3); b.s(6.4, 1.2, 3, 'phone'); b.s(W - 1.8, 3.4, 3);
+    b.seat('generic.bench', 0, 1.5, { c: '#8a5a3a' }, { flip: true, keep: true }, 1);
+    b.f('generic.rug', 2, 3, { w: 3, d: 1.5, c: '#2f3f72', c2: '#e8c06a' }); b.f('lobby.umbrella', W - .5, D - 1, { c: '#d8a848' }); b.f('generic.plant', 0, D - 1, plantP(L, 2)); b.f('lobby.chandelier', 3, 2.5, { kind: 'industrial', c: '#2f5f9f' });
+    b.s(1.5, 1.1, 3); b.s(6.5, 1.2, 3, 'phone'); b.s(W - 1.8, 3.4, 3);
   },
   plant(b, L) {
     const { W, D } = b, C = L.c;
-    b.wy('lobby.timeclock', .5, {}).wy('lobby.board', 1.8, { kind: 'safety', w: 2, title: C.bt || 'SAFETY', c: C.bc, seed: L.n }).wy('generic.door', 4.2, { kind: 'staff', dc: C.sd }, { tags: ['lobby_door'], label: C.dl || 'Shop floor', text: C.dt });
+    b.wy('lobby.timeclock', .5, {}).wy('lobby.board', 2, { kind: 'safety', w: 2, title: C.bt || 'SAFETY', c: C.bc, seed: L.n }).wy('generic.door', 4, { kind: 'staff', dc: C.sd }, { tags: ['lobby_door'], label: C.dl || 'Shop floor', text: C.dt });
     b.f('generic.vending', 5.5, 0, { c: '#3c64ad', kind: 'snacks', seed: L.n }); b.f('generic.cooler', 7, 0, {});
-    if (L.has('plane')) b.wy('lobby.panel', W - 2.4, { kind: 'plane', w: 2 });
-    b.wx('lobby.restroom', 1, {}).wx(L.has('plane') ? 'lobby.panel' : 'generic.picture', 2.4, L.has('plane') ? { kind: 'awards', w: 2, c: '#5a6272', c2: '#c4c9ce' } : { kind: 1, c: '#2a2733' }).wx('generic.clock', D - 2, {});
-    b.f('generic.lockers', .1, 4.5, { w: 2, c: C.lk }, { flip: true, keep: true });
+    if (L.has('plane')) b.wy('lobby.panel', W - 2.5, { kind: 'plane', w: 2 });
+    b.wx('lobby.restroom', 1, {}).wx(L.has('plane') ? 'lobby.panel' : 'generic.picture', 2.5, L.has('plane') ? { kind: 'awards', w: 2, c: '#5a6272', c2: '#c4c9ce' } : { kind: 1, c: '#2a2733' }).wx('generic.clock', D - 2, {});
+    b.f('generic.lockers', 0, 4.5, { w: 2, c: C.lk }, { flip: true, keep: true });
     b.staff('lobby.desk', W - 3, 2.5, { style: 'steel', w: 2.5, name: L.sign, a: C.a, c: C.dkc }, { label: 'Front office' });
-    if (L.has('sofa')) { b.seat('generic.sofa', 2, 4, { c: C.s }, null, 2); b.f('clinic.magtable', 2.5, 5.1); } else { b.seat('clinic.chairs', 2, 3.5, {}, null, 2); b.seat('clinic.chairs', 4, 3.5, {}, null, 1); }
-    b.f('lobby.inlay', b.ex - .6, 3, { kind: 'stripe', w: 1.2, d: D - 4, c: '#f2c230', c2: '#2a2733' }); b.f('generic.bin', W - .75, D - 1.25, { recycle: true }); b.f('generic.plant', W - .75, 1, plantP(L, 1));
+    if (L.has('sofa')) { b.seat('generic.sofa', 2, 4, { c: C.s }, null, 2); b.f('clinic.magtable', 2.5, 5); } else { b.seat('clinic.chairs', 2, 3.5, {}, null, 2); b.seat('clinic.chairs', 4, 3.5, {}, null, 1); }
+    b.f('lobby.inlay', half(b.ex - .5), 4.5, { kind: 'stripe', w: 1, d: D - 5.5, c: '#f2c230', c2: '#2a2733' }); b.f('generic.bin', W - .5, D - 1, { recycle: true }, { keep: true }); b.f('generic.plant', W - .5, 1, plantP(L, 1));
     b.s(1, 1.1, 3); b.s(6, 1.1, 3, 'phone'); b.s(W - 1.8, 4, 3); b.s(b.ex + 1.4, D - 1.5, 2);
   },
   civic(b, L) {
-    const { W, D } = b, C = L.c, mc = METAL.brass; b.ex = 8.5;
-    b.wy('lobby.panel', .5, { kind: 'flags', w: 3 }).wy('lobby.stairs', 4, { c: '#b89a70', open: true, arch: true, rail: mc, text: 'UP' }).wy('lobby.sconce', 5.3, { kind: 'fan' })
-      .wy('generic.doorway', 6, { w: 2, c: '#8a5a3a', dark: '#5a3a28' }, { tags: ['lobby_door'], label: 'Council Chamber', text: 'The Council is in session. Through the door: a gavel, a cough, and a forty-minute debate about duck pond signage.' }).wy('lobby.sconce', 8.3, { kind: 'fan' })
-      .wy('lobby.board', 9, { kind: 'cork', w: 2.5, seed: 7 }).wy('lobby.lift', 12, { style: 'deco', floor: 2 }).wy('lobby.restroom', 14.4, { dc: '#8a5a3a', c: '#5a4030' });
-    b.wx('lobby.panel', .8, { kind: 'marble', w: 2, c: '#e8dcc0', c2: mc }).wx('lobby.board', 3.2, { kind: 'felt', w: 2, title: 'OFFICES', seed: 4 }).wx('generic.picture', 5.6, { kind: 3, w: 1.5, c: mc }).wx('generic.clock', 7.6, { c: mc, h: 3, m: 40 });
+    const { W, D } = b, mc = METAL.brass; b.ex = 8.5;
+    b.wy('lobby.panel', .5, { kind: 'flags', w: 3 }).wy('lobby.stairs', 4, { c: '#b89a70', open: true, arch: true, rail: mc, text: 'UP' }).wy('lobby.sconce', 5.5, { kind: 'fan' })
+      .wy('generic.doorway', 6, { w: 2, c: '#8a5a3a', dark: '#5a3a28' }, { tags: ['lobby_door'], label: 'Council Chamber', text: 'The Council is in session. Through the door: a gavel, a cough, and a forty-minute debate about duck pond signage.' }).wy('lobby.sconce', 8, { kind: 'fan' })
+      .wy('lobby.board', 9, { kind: 'cork', w: 2.5, seed: 7 }).wy('lobby.lift', 12, { style: 'deco', floor: 2 }).wy('lobby.restroom', 14.5, { dc: '#8a5a3a', c: '#5a4030' });
+    b.wx('lobby.panel', 1, { kind: 'marble', w: 2, c: '#e8dcc0', c2: mc }).wx('lobby.board', 3.5, { kind: 'felt', w: 2, title: 'OFFICES', seed: 4 }).wx('generic.picture', 6, { kind: 3, w: 1.5, c: mc }).wx('generic.clock', 8, { c: mc, h: 3, m: 40 });
     b.staff('lobby.desk', 2, 2.5, { style: 'marble', w: 3, name: 'TOWN HALL', a: mc }, { label: 'Information desk' });
     b.staff('bank.teller', 12, 3.5, {}, { tags: ['lobby_desk'], label: 'Permits & Licences' }); b.f('generic.queuepost', 12.5, 5, { n: 2, kind: 'belt', c: '#b8342e' });
     b.f('lobby.inlay', 6.5, 3.5, { kind: 'compass', w: 4, d: 4, c: '#2f3f72', c2: '#e8dcc0', c3: '#b8342e' });
     for (const [x, y] of [[5, 3], [11, 3], [5, 7], [11, 7]]) b.f('lobby.column', x, y, { kind: 'marble', h: 3 });
-    b.seat('generic.bench', 1, 6, { c: '#8a5a3a' }, null, 1); b.seat('generic.bench', 3, 6, { c: '#8a5a3a' }, null, 1); b.seat('generic.bench', 12, 7, { c: '#8a5a3a' }, null, 1); b.seat('generic.bench', 14, 7, { c: '#8a5a3a' }, null, 1);
+    b.seat('generic.bench', 1.5, 6.5, { c: '#8a5a3a' }, null, 1); b.seat('generic.bench', 3, 6.5, { c: '#8a5a3a' }, null, 1); b.seat('generic.bench', 12, 7, { c: '#8a5a3a' }, null, 1); b.seat('generic.bench', 13.5, 7, { c: '#8a5a3a' }, null, 1);
     b.f('lobby.chandelier', 8, 2, { kind: 'crystal' }); b.f('lobby.chandelier', 8, 6, { kind: 'crystal' });
-    b.f('generic.plant', W - .75, D - 1.25, { kind: 'palm', s: 1.5, pot: mc }); b.f('generic.plant', .25, D - 1.25, { kind: 'palm', s: 1.5, pot: mc });
-    b.s(10.2, 1.1, 3); b.s(12.8, 5.9, 3); b.s(7, 1.2, 1, 'phone'); b.s(3.5, 4.3, 3); b.s(1, 4.2, 2);
+    b.f('generic.plant', W - .5, D - 1, { kind: 'palm', s: 1.5, pot: mc }); b.f('generic.plant', 0, D - 1, { kind: 'palm', s: 1.5, pot: mc });
+    b.s(13, 1.1, 3); b.s(13.5, 5.9, 3); b.s(7, 1.2, 1, 'phone'); b.s(3.5, 4.3, 3); b.s(.8, 4.6, 2);
   },
 };
 

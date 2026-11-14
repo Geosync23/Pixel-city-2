@@ -1,7 +1,7 @@
 // Lobby fixtures (apartment + office lobbies, see scenes/rooms/lobbies.js). ids `furn.lobby.*`.
 // Wall pieces (wall: true): mailboxes, lift, stairs, restroom, board, panel, sconce, intercom, timeclock.
 // Floor pieces: desk, podium, turnstile, rail, packages, coffeebar, column, bike, umbrella, settee.   Flat / overhead: inlay, chandelier.
-import { box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, PAT, textY, signY, spx, hash2 } from '../../engine/raster.js';
+import { at, box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, PAT, textY, signY, spx, hash2 } from '../../engine/raster.js';
 import { F, K, bx, tube, post, frameY, frameZ, table, monitor, plant, carton, lamp, screenLines, PX } from './_lib.js';
 
 const METAL = { brass: '#d8a848', steel: '#b8bcc0', bronze: '#9a6a3a', black: '#3a3f4c', copper: '#c0704a', white: '#e8e4dc' };
@@ -44,7 +44,8 @@ function liftDoors(x0, x1, y, z1, p, c) {
   if (st === 'deco') { for (const s of [-1, 1]) { const cx = mid + s * (x1 - x0) / 4; for (let k = 0; k < 4; k++) { lw([cx, y, .25 + k * .22], [cx - .22, y, .5 + k * .22], dk(dc, .35)); lw([cx, y, .25 + k * .22], [cx + .22, y, .5 + k * .22], dk(dc, .35)); } fq(arcY(cx, y, z1 - .42, .2, 0, Math.PI, 8), lt(dc, .35)); for (let k = 1; k < 6; k++) lw([cx, y, z1 - .42], [cx + Math.cos(k * Math.PI / 6) * .2, y, z1 - .42 + Math.sin(k * Math.PI / 6) * .2], dk(dc, .3)); } }
   else for (const x of [x0 + .08, mid + .08]) frameY(x, x + (x1 - x0) / 2 - .16, y, .2, z1 - .2, lt(dc, .25));
 }
-function lift(p) {
+function lift(p) { const c0 = p.c || ({ deco: '#3a3440', cage: '#5a4030', freight: '#5a6272' })[p.style] || '#8a8478'; qy(0, 2, .03, 0, 2.45, c0); lw([0, .03, 2.45], [2, .03, 2.45], dk(c0, .4)); at(.2, 0, 0, () => lift0(p)); }
+function lift0(p) {
   const st = p.style || 'steel', c = p.c || (st === 'deco' ? '#3a3440' : st === 'cage' ? '#5a4030' : st === 'freight' ? '#5a6272' : '#8a8478'), b = mt(p, st === 'deco' || st === 'cage' ? 'brass' : 'steel');
   qy(0, 1.6, .04, 0, 2.45, c);
   if (st === 'deco') { qy(.08, 1.52, .05, 2.02, 2.4, dk(c, .15)); for (const [a, z] of [[.02, 2.45], [.1, 2.52]]) qy(a, 1.6 - a, .04, z, z + .08, b); frameY(.06, 1.54, .05, 0, 2.42, b); }
@@ -53,7 +54,8 @@ function lift(p) {
   else lit(() => { qy(.55, 1.05, .06, 2.1, 2.32, '#1e2028'); textY(String(p.floor || 1), .7, .06, 2.3, st === 'freight' ? '#5af08a' : '#ff8a40'); spx(.98, .06, 2.2, 0, 0, '#5af08a'); spx(.98, .06, 2.2, 1, 1, '#5af08a'); spx(.98, .06, 2.2, -1, 1, '#5af08a'); });
   qy(1.45, 1.55, .06, .9, 1.2, b); lit(() => spx(1.5, .06, 1.1, 0, 0, '#f6e04a')); spx(1.5, .06, .98, 0, 0, '#2a2733');
 }
-function stairs(p) {
+function stairs(p) { qy(0, 1.5, .03, 0, 2.0, p.c || '#6a5a4a'); at(.15, 0, 0, () => stairs0(p)); }
+function stairs0(p) {
   const c = p.c || '#6a5a4a', op = p.open;
   qy(0, 1.2, .04, 0, 2.0, c);
   if (op) {
@@ -144,14 +146,14 @@ function podium(p) {
   box(-.03, .12, 1.1, 1.06, .5, .05, lt(c, .2)); bx(.08, .16, 1.15, .84, .1, .3, '#1e2028'); lit(() => { for (let i = 0; i < 3; i++) qy(.11 + i * .27, .35 + i * .27, .26, 1.19, 1.41, ['#3a5a4a', '#4a5a6a', '#3a4a5a'][i], '#5a6a7a'); });
 }
 function turnstile(p) {
-  const n = p.n || 2, c = p.c || '#c4c9ce', lane = .8, w = n * lane + .25;
-  for (let i = 0; i <= n; i++) { const x = i * lane; box(x, 0, 0, .25, .5, .95, c, { t: lt(c, .3) }); qy(x + .04, x + .21, .5, .55, .8, '#2a2733'); lit(() => { spx(x + .12, .5, .7, 0, 0, i % 2 ? '#5af08a' : '#ff5a4a'); spx(x + .12, .5, .7, 1, 0, i % 2 ? '#5af08a' : '#ff5a4a'); }); qz(x + .04, x + .21, .1, .3, .96, '#2a2733'); }
-  for (let i = 0; i < n; i++) { const x = i * lane + .25; qy(x + .02, x + lane / 2 - .14, .25, .2, .85, '#bfe4ee', '#cfeef4'); qy(x + lane / 2 - .11, x + lane - .27, .25, .2, .85, '#bfe4ee', '#cfeef4'); frameY(x + .02, x + lane / 2 - .14, .25, .2, .85, '#8ab4c4'); frameY(x + lane / 2 - .11, x + lane - .27, .25, .2, .85, '#8ab4c4'); }
+  const n = p.n || 2, c = p.c || '#c4c9ce';
+  for (let i = 0; i <= n; i++) { const x = i + .05; box(x, 0, 0, .4, .5, .95, c, { t: lt(c, .3) }); qy(x + .08, x + .32, .5, .55, .8, '#2a2733'); lit(() => { spx(x + .2, .5, .7, 0, 0, i % 2 ? '#5af08a' : '#ff5a4a'); spx(x + .2, .5, .7, 1, 0, i % 2 ? '#5af08a' : '#ff5a4a'); }); qz(x + .08, x + .32, .1, .3, .96, '#2a2733'); }
+  for (let i = 0; i < n; i++) { const x = i + .45; qy(x + .02, x + .28, .25, .2, .85, '#bfe4ee', '#cfeef4'); qy(x + .32, x + .58, .25, .2, .85, '#bfe4ee', '#cfeef4'); frameY(x + .02, x + .28, .25, .2, .85, '#8ab4c4'); frameY(x + .32, x + .58, .25, .2, .85, '#8ab4c4'); }
 }
 function rail(p) {
-  const w = p.w || 2, c = p.c || '#8a9098';
-  if (p.kind === 'rope') { for (let x = .1; x <= w; x += Math.max(.9, (w - .2) / Math.max(1, Math.round((w - .2) / 1.2)))) { cyl(x, .1, 0, .08, .03, K.brass, { ol: false }); tube([x, .1, .03], [x, .1, .85], K.brass); ball(x, .1, .88, .04, K.brass, { ol: false }); } for (let x = .1; x < w - .3; x += .1) spx(x, .1, .78 - Math.sin(((x - .1) % 1.2) / 1.2 * Math.PI) * .12, 0, 0, p.rc || '#b8342e'); return; }
-  qy(0, w, .1, .08, .9, '#bfe4ee', '#cfeef4'); for (let x = 0; x <= w + .001; x += w / Math.max(1, Math.round(w))) post(Math.min(x, w), .1, 0, .95, c); tube([0, .1, .95], [w, .1, .95], c); lw([0, .1, .08], [w, .1, .08], c);
+  const w = p.w || 2, c = p.c || '#8a9098', Y = .25;
+  if (p.kind === 'rope') { for (let x = .1; x <= w; x += Math.max(.9, (w - .2) / Math.max(1, Math.round((w - .2) / 1.2)))) { cyl(x, Y, 0, .08, .03, K.brass, { ol: false }); tube([x, Y, .03], [x, Y, .85], K.brass); ball(x, Y, .88, .04, K.brass, { ol: false }); } for (let x = .1; x < w - .3; x += .1) spx(x, Y, .78 - Math.sin(((x - .1) % 1.2) / 1.2 * Math.PI) * .12, 0, 0, p.rc || '#b8342e'); return; }
+  qy(0, w, Y, .08, .9, '#bfe4ee', '#cfeef4'); for (let x = 0; x <= w + .001; x += w / Math.max(1, Math.round(w))) post(Math.min(x, w), Y, 0, .95, c); tube([0, Y, .95], [w, Y, .95], c); lw([0, Y, .08], [w, Y, .08], c);
 }
 function packages(p) {
   const w = p.w || 1.5, c = p.c || '#8a6a4a';
@@ -159,7 +161,7 @@ function packages(p) {
   let k = 0; for (const z of [.1, .65, 1.2]) for (let x = .08; x < w - .3; k++) { const h = hash2(k, p.seed || 1, 2), ww = .26 + h * .3, hh = .16 + hash2(k, 7) * .26; if (x + ww > w - .06) break; if (h > .82) { bx(x, .1, z, ww, .3, .07, '#f4f0e8'); lw([x + .04, .4, z + .04], [x + ww - .04, .4, z + .04], '#b8342e'); } else carton(x, .08, z, ww, .34, hh, [K.card, '#d8b07a', '#b88a52', '#e8d8b8'][k % 4]); x += ww + .06; }
 }
 function coffeebar(p) {
-  const c = p.c || '#3a3f4c', a = p.a || '#d8a848', w = 2.4;
+  const c = p.c || '#3a3f4c', a = p.a || '#d8a848', w = 2.5;
   box(0, .35, 0, w, .5, 1.0, c); qy(0, w, .85, 0, .08, dk(c, .5)); for (let i = 0; i < 4; i++) frameY(i * .6 + .06, i * .6 + .54, .85, .14, .82, dk(c, .3)); box(-.04, .3, 1.0, w + .08, .6, .06, p.top || '#c89a62');
   box(.15, .4, 1.06, .5, .34, .42, '#b8bcc0'); qy(.2, .6, .74, 1.12, 1.3, '#2a2733'); lit(() => { spx(.26, .74, 1.4, 0, 0, '#5af08a'); spx(.32, .74, 1.4, 0, 0, '#ff8a40'); }); cyl(.3, .78, 1.06, .04, .08, '#f4f0e8', { ol: false }); cyl(.48, .78, 1.06, .04, .08, '#f4f0e8', { ol: false });
   box(1.0, .5, 1.06, .5, .28, .04, '#f4f0e8', { ol: false }); for (let i = 0; i < 4; i++) ball(1.08 + i * .11, .62, 1.14, .05, ['#c8904a', '#e8b86a', '#8a5a3a', '#e87aa0'][i], { ol: false }); qy(.98, 1.52, .8, 1.06, 1.34, '#bfe4ee', 'glass');
@@ -211,23 +213,23 @@ function inlay(p) {
 
 export default [
   F('lobby.mailboxes', ['lobby', 'lobby_mail'], p => [p.w || 2, .15, 1.9], mailboxes, W({ use: p => ({ x: (p.w || 2) / 2, y: .6 }), variants: [{}, { w: 3, m: 'steel', rows: 4 }, { w: 1.5, m: 'bronze', rows: 2, z0: .95 }, { w: 2.5, m: 'copper', rows: 3 }] })),
-  F('lobby.lift', ['lobby', 'lobby_lift'], [1.6, .2, 2.6], lift, W({ use: { x: .8, y: .6 }, variants: [{ style: 'steel' }, { style: 'deco', floor: 5 }, { style: 'cage' }, { style: 'glass' }, { style: 'freight' }, { style: 'deco', m: 'copper', c: '#2f4a3f', floor: 9 }] })),
-  F('lobby.stairs', ['lobby', 'lobby_stairs'], [1.2, .1, 2.3], stairs, W({ use: { x: .6, y: .6 }, variants: [{}, { open: true }, { open: true, arch: true, c: '#a8553f' }, { dc: '#a85a4a', c: '#5a4a3a' }] })),
+  F('lobby.lift', ['lobby', 'lobby_lift'], [2, .2, 2.6], lift, W({ use: { x: 1, y: .6 }, variants: [{ style: 'steel' }, { style: 'deco', floor: 5 }, { style: 'cage' }, { style: 'glass' }, { style: 'freight' }, { style: 'deco', m: 'copper', c: '#2f4a3f', floor: 9 }] })),
+  F('lobby.stairs', ['lobby', 'lobby_stairs'], [1.5, .1, 2.3], stairs, W({ use: { x: .75, y: .6 }, variants: [{}, { open: true }, { open: true, arch: true, c: '#a8553f' }, { dc: '#a85a4a', c: '#5a4a3a' }] })),
   F('lobby.restroom', ['toilet', 'lobby_restroom'], [1, .1, 2.2], restroom, W({ use: { x: .5, y: .6 }, variants: [{}, { dc: '#8a5a3a', c: '#5a4030' }] })),
   F('lobby.board', ['lobby', 'lobby_board'], p => [p.w || 1.5, .1, 2.1], board, W({ use: p => ({ x: (p.w || 1.5) / 2, y: .6 }), variants: [{ kind: 'cork' }, { kind: 'felt', w: 2 }, { kind: 'digital', w: 2 }, { kind: 'safety', w: 2 }, { kind: 'cork', w: 2.5, seed: 7 }] })),
   F('lobby.panel', ['lobby', 'decor'], p => [p.w || 2, .15, 2.6], panel, W({ variants: [{ kind: 'wood', w: 3 }, { kind: 'sunburst', w: 3, c: '#2f4a3f' }, { kind: 'relief', w: 3, c: '#9a9a96', c2: '#e8843a' }, { kind: 'marble', w: 3, c: '#e8e4dc' }, { kind: 'logo', w: 3, c: '#2e3440', c2: '#e8c06a', name: 'MAPLE BAY' }, { kind: 'screens', w: 3 }, { kind: 'onair', w: 1.5 }, { kind: 'chart', w: 2 }, { kind: 'buoy', w: 1 }, { kind: 'flags', w: 3 }, { kind: 'awards', w: 2 }, { kind: 'mural', w: 4 }, { kind: 'plane', w: 2 }] })),
-  F('lobby.sconce', ['lobby', 'lamp', 'decor'], [.4, .2, 2.2], sconce, W({ light: { x: .2, y: .3, z: 0, r: 2 }, variants: [{}, { kind: 'fan' }, { kind: 'tube', m: 'steel' }] })),
+  F('lobby.sconce', ['lobby', 'lamp', 'decor'], [.5, .2, 2.2], sconce, W({ light: { x: .2, y: .3, z: 0, r: 2 }, variants: [{}, { kind: 'fan' }, { kind: 'tube', m: 'steel' }] })),
   F('lobby.intercom', ['lobby', 'lobby_buzzer'], [.5, .1, 1.7], intercom, W({ use: { x: .25, y: .6 }, variants: [{}, { m: 'steel' }] })),
   F('lobby.timeclock', ['lobby', 'decor'], [1, .15, 2], timeclock, W({})),
   F('lobby.desk', ['lobby', 'lobby_desk'], p => [p.w || 2.5, .8, 1.15], desk, { vb: p => [-.3, -.3, 0, (p.w || 2.5) + .3, 1.1, 1.8], use: p => ({ x: (p.w || 2.5) / 2, y: 1.3 }), staff: p => ({ x: (p.w || 2.5) / 2, y: -.3, dir: 1 }), variants: [{ style: 'wood', name: 'CONCIERGE' }, { style: 'marble', w: 3, name: 'RECEPTION' }, { style: 'deco', name: 'HARBOR TRUST' }, { style: 'glass', w: 3.5, a: '#3aa0c8', name: 'WELCOME' }, { style: 'concrete', w: 3, name: 'KESSLER' }, { style: 'steel', name: 'FRONT DESK' }, { style: 'green', name: 'PORTER' }] }),
   F('lobby.podium', ['lobby', 'lobby_desk'], [1, .6, 1.2], podium, { vb: [-.3, -.3, 0, 1.3, .9, 1.6], use: { x: .5, y: 1.1 }, staff: { x: .5, y: -.25, dir: 1 }, variants: [{}, { c: '#5a4030', a: '#e8c06a', name: 'DOORMAN' }] }),
-  F('lobby.turnstile', ['lobby', 'lobby_gate'], p => [(p.n || 2) * .8 + .25, .5, 1], turnstile, { use: p => ({ x: ((p.n || 2) * .8 + .25) / 2, y: 1 }), variants: [{ n: 2 }, { n: 3 }, { n: 4, c: '#3a3f4c' }] }),
-  F('lobby.rail', ['lobby', 'decor'], p => [p.w || 2, .2, 1], rail, { variants: [{ w: 2 }, { w: 3, kind: 'rope' }, { w: 4, c: '#d8a848' }] }),
+  F('lobby.turnstile', ['lobby', 'lobby_gate'], p => [(p.n || 2) + .5, .5, 1], turnstile, { use: p => ({ x: ((p.n || 2) + .5) / 2, y: 1 }), variants: [{ n: 2 }, { n: 3 }, { n: 4, c: '#3a3f4c' }] }),
+  F('lobby.rail', ['lobby', 'decor'], p => [p.w || 2, .5, 1], rail, { variants: [{ w: 2 }, { w: 3, kind: 'rope' }, { w: 4, c: '#d8a848' }] }),
   F('lobby.packages', ['lobby', 'lobby_packages'], p => [p.w || 1.5, .5, 1.7], packages, { use: p => ({ x: (p.w || 1.5) / 2, y: 1 }), variants: [{}, { w: 2, seed: 4, c: '#7d858e' }, { w: 1, seed: 9 }] }),
-  F('lobby.coffeebar', ['lobby', 'lobby_coffee'], [2.4, .9, 2.35], coffeebar, { vb: [-.3, -.3, 0, 2.7, 1.2, 2.5], use: { x: 1.2, y: 1.4 }, staff: { x: 1.2, y: -.05, dir: 1 }, variants: [{}, { c: '#2f5a4a', a: '#f4e9cf', name: 'BEAN BAR' }, { c: '#8a4a34', a: '#f2c230', name: 'ESPRESSO' }] }),
+  F('lobby.coffeebar', ['lobby', 'lobby_coffee'], [2.5, .9, 2.35], coffeebar, { vb: [-.3, -.3, 0, 2.8, 1.2, 2.5], use: { x: 1.25, y: 1.4 }, staff: { x: 1.25, y: -.05, dir: 1 }, variants: [{}, { c: '#2f5a4a', a: '#f4e9cf', name: 'BEAN BAR' }, { c: '#8a4a34', a: '#f2c230', name: 'ESPRESSO' }] }),
   F('lobby.column', ['lobby', 'decor', 'column'], p => [.5, .5, p.h || 2.8], column, { variants: [{ kind: 'marble' }, { kind: 'deco' }, { kind: 'concrete' }, { kind: 'brick' }, { kind: 'steel' }, { kind: 'wood' }, { kind: 'marble', c: '#3f6a5a' }] }),
   F('lobby.bike', ['lobby', 'decor'], [1.5, .4, 1], bike, { variants: [{}, { c: '#2f8f8a', basket: true }, { c: '#f2c230' }] }),
-  F('lobby.umbrella', ['lobby', 'decor'], [.4, .4, .9], umbrella, { variants: [{}, { c: '#d8a848' }] }),
+  F('lobby.umbrella', ['lobby', 'decor'], [.5, .5, .9], umbrella, { variants: [{}, { c: '#d8a848' }] }),
   F('lobby.settee', ['lobby', 'seating', 'sofa'], p => [p.w || 2, .9, 1.25], settee, { seats: p => Array.from({ length: Math.round(p.w || 2) }, (_, i) => ({ x: .55 + i * (((p.w || 2) - 1.1) / Math.max(1, Math.round(p.w || 2) - 1)), y: .55, z: .42, dir: 1 })), variants: [{}, { c: '#2f5a4a', w: 3 }, { c: '#2f3f72', a: '#c4c9ce' }] }),
   F('lobby.chandelier', ['lobby', 'lamp', 'overhead', 'decor'], [1, 1, 3], chandelier, { solid: false, overhead: true, vb: [-.2, -.2, 1.7, 1.2, 1.2, 3.1], light: { x: .5, y: .5, z: 0, r: 4 }, variants: [{}, { kind: 'deco' }, { kind: 'ring', m: 'black' }, { kind: 'industrial' }, { kind: 'ring', m: 'brass' }] }),
   F('lobby.inlay', ['lobby', 'rug', 'decor'], p => [p.w || 3, p.d || 3, .02], inlay, { solid: false, flat: true, variants: [{ kind: 'star' }, { kind: 'compass', c: '#2f3f72', c3: '#b8342e' }, { kind: 'checker', w: 4, d: 3 }, { kind: 'border', w: 4, d: 2.5, c: '#7a2f3a', c2: '#e8dcc0' }, { kind: 'terrazzo', w: 4, d: 3, c: '#c0563a', c3: '#3f8a6a', c2: '#e8e4dc' }, { kind: 'herring', w: 4, d: 3, c: '#b07444', c2: '#c89a62' }, { kind: 'stripe', w: 5, d: 1.2, c: '#7a2f3a', c2: '#e8c06a' }, { kind: 'diamond', w: 4, d: 3, c: '#2a2733', c2: '#e8e4dc' }] }),

@@ -302,3 +302,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 70 — Plan B now, A when workers finish; review this chat's work
 > ok do B now and A when workers finish. But also okce you change over stsrt review of all actions this chat made
+
+## 71 — Link request
+> Most recent game link please
