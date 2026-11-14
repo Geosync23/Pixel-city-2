@@ -1,7 +1,7 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 ~23:55 UTC) — WAVE A DONE; HANDING THE LEAD TO A NEW FABLE 5.2 SESSION
+## Now (updated 2026-11-14 ~23:55 UTC) — WAVE A DONE; LEAD HANDED TO FABLE 5.2 SESSION session_014zyJYQteXnJcKbuHMU8eGe (https://claude.ai/code/session_014zyJYQteXnJcKbuHMU8eGe). The old Opus-lead session (session_014zyJYPuEyV5utw4Wzhz96r) stops leading.
 - **Running workers: NONE.** Everything integrated, committed, pushed. Stage 15 published to https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (version 1794700378-bed4).
 - Branch `ccr-e622e92c-7t3ejy` (continues `claude/pixel-city-life-sim-21h2e3` from a1d2ffc). A new session may get a different branch: start it from this branch's head.
 - **Team rule (owner msgs 59-68):** up to 4 workers at once = 3 Fable 5.2 (`model: "fable"`) + 1 Opus QA & data lane (`model: "opus"`). ~10x usage: favour quality. Disjoint files per worker; the lead owns shared hooks.
