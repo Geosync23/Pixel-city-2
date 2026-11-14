@@ -1,7 +1,8 @@
 // Navigator: "what do I need -> where is it -> how do I get there" (shared by the HUD need chooser and the phone Map app).
 // G.nav = {
 //   find(kind, n = 4, from?)  -> [{ id (place id | {x,y,name}), name, x, y, d (city units, manhattan), open: true|false|null, note, home?, friend? }]  closed places last.
-//        kinds: food groceries coffee home work fun shopping transit  +  the needs: hunger energy hygiene fun social
+//        kinds: food groceries coffee home work fun shopping transit  +  the needs: hunger energy hygiene fun social bladder (restrooms)
+//   addSource(kind, fn(from) -> rows)   extra rows for a kind that are not registered places (park restroom pavilions)
 //   matches(place, kind)      -> bool (data-driven: venue.offers {menu, shop[], services[], functions[]}, venue.type, guide entry type/chapter/acts, place kind)
 //   routeTo(place | id | {x,y,name}, from?) -> options [{ mode: walk|bike|bus|train|cab, label, minutes, cost, text, dest, board?, alight?, stops?, line?, toward?, wait? }]
 //   start(option)             walk/bike: waypoint to the destination. bus/train: MULTI-LEG trip (waypoint to the boarding stop first; after 'ride:end' it switches
@@ -154,6 +155,6 @@ export function init() {
     if (p && safe(() => G.phone.isOpen, false) && !trip()) { const o = routeTo(p); if (o.length > 1) { offerFor = pt(p); render(); } } else if (!p && offerFor) { offerFor = null; render(); }
   });
   G.on('phone:close', () => { offerFor = null; render(); }); G.on('phone:open', () => setTimeout(render, 0));
-  G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer };
+  G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer, addSource: (kind, fn) => { (SOURCES[kind] || (SOURCES[kind] = [])).push(fn); } };
   render();
 }
