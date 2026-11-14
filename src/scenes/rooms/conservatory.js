@@ -51,7 +51,7 @@ function build() {
   // light shafts (hidden at night)
   for (const [x, y] of [[14, 21], [21, 21.5], [13.5, 13.5], [22.5, 3], [29, 22], [30, 2], [14, 3.5], [31, 13]]) A('cons.shaft', x, y, {}, { shaft: 1 });
   // ---- tropical palm house
-  Cn('waterfall', 17.5, 0, {}, { anim: 3, tags: ['cons_waterfall'] }); Cn('stream', 19, 2.5, { len: 10.5, slabs: [3, 8.5] }, { anim: 2 });
+  Cn('waterfall', 17.5, 0, {}, { anim: 3 }); Cn('stream', 19, 2.5, { len: 10.5, slabs: [3, 8.5] }, { anim: 2 });
   Cn('bed', 13.5, 1, { w: 3.5, d: 3.5, kind: 'tropical', seed: 2 }); inBed('palm', 14, 1.5, { kind: 'coconut', h: 4.2, seed: 3 }); inBed('palm', 15.5, 2.5, { kind: 'date', h: 3.2, seed: 8 }); inBed('banana', 14, 3.5, { seed: 2 }); inBed('cycad', 16, 1.5, { seed: 2 });
   Cn('bed', 13.5, 7.5, { w: 4, d: 3.5, kind: 'tropical', seed: 5 }); inBed('palm', 14, 8, { kind: 'areca', h: 2.6, seed: 5 }); inBed('palm', 16, 9.5, { kind: 'coconut', h: 3.6, seed: 12, lean: -.4 }); inBed('treefern', 14.5, 10, { seed: 3, h: 1.6 }); inBed('banana', 16.5, 8, { seed: 5, h: 1.8 });
   Cn('bed', 23, 1, { w: 3.5, d: 3.5, kind: 'tropical', seed: 9 }); inBed('palm', 25, 1.5, { kind: 'coconut', h: 4.4, seed: 6 }); inBed('palm', 23.5, 3, { kind: 'date', h: 3, seed: 4 }); inBed('banana', 25.5, 3.5, { seed: 4 });
@@ -61,7 +61,7 @@ function build() {
   Cn('plaque', 15, 4.5, {}, { fact: 'coconut' }); Cn('plaque', 24.5, 4.5, {}, { fact: 'banana' }); Cn('plaque', 16.5, 11, {}, { fact: 'cycad' });
   S(18.3, 3.3, 0, { anim: 'phone' }); S(21.7, 3.4, 2); S(15.3, 5.4, 3, { p: .6 }); S(24.8, 5.4, 3, { p: .6 }); S(18.4, 7.6, 0, { busy: 1 }); S(21.6, 9.4, 2, { busy: 1, age: 'kid', lines: LINES.kid });
   // ---- lily pool (centre)
-  Cn('lilypool', 16.5, 13, {}, { anim: 2, tags: ['cons_pool'] }); Cn('plaque', 20, 20, {}, { fact: 'lily' });
+  Cn('lilypool', 16.5, 13, {}, { anim: 2 }); Cn('plaque', 20, 20, {}, { fact: 'lily' });
   S(15.6, 15, 0); S(15.8, 17.6, 0, { age: 'kid', lines: LINES.kid }); S(24.4, 16.6, 2, { anim: 'phone' }); S(24.4, 15, 2, { busy: 1 }); S(15.6, 13.8, 0, { busy: 1, anim: 'talk' }); S(14.9, 13.6, 0, { busy: 1, anim: 'talk' });
   Cn('bench', 24, 13.5); Cn('bench', 11.5, 18.5); Cn('barrow', 11.5, 12); Cn('lamp', 26, 19);
   // ---- entrance hall
@@ -87,7 +87,7 @@ function build() {
   // ---- orchid & fern grotto
   Cn('rock', 12, .5, { w: 1, d: 2, h: 1.6, moss: 1, seed: 3 }); Cn('rock', 12, 2.5, { w: 1, d: 2, h: 1.9, moss: 1, seed: 7 }); Cn('arch', 12, 4.5, { w: 2.5, name: 'GROTTO' }, { flip: true }); Cn('rock', 12, 7, { w: 1, d: 2, h: 1.8, moss: 1, seed: 9 }); Cn('rock', 11.5, 9, { w: 1.5, d: 1, h: 1.4, moss: 1, seed: 12 });
   Cn('bed', .5, .5, { w: 3, d: 2, kind: 'fern', seed: 4 }); inBed('treefern', 1, 1, { seed: 7, h: 2.2 }); inBed('treefern', 2.5, 1.5, { seed: 3, h: 1.4 });
-  Cn('orchidlog', 4, .5, {}, { tags: ['cons_plaque'], fact: 'orchid' }); Cn('sketchspot', 5, 2.5); Cn('plaque', 7, 1.5, {}, { fact: 'orchid' });
+  Cn('orchidlog', 4, .5); Cn('sketchspot', 5, 2.5); Cn('plaque', 7, 1.5, {}, { fact: 'orchid' });
   Cn('bed', 8, .5, { w: 3.5, d: 1.5, kind: 'orchid', seed: 5, gap: .1 }); Cn('sketchboard', 8.5, 2.5, { n: 0 }, { board: 1 });
   Cn('bed', .5, 4, { w: 1.5, d: 4.5, kind: 'fern', seed: 8 }); inBed('treefern', .5, 5.5, { seed: 5, h: 1.8 }); Cn('plaque', 2, 6, {}, { flip: true, fact: 'treefern' });
   Cn('rock', 5.5, 7.5, { w: 2, d: 1.5, h: 1.1, moss: 1, seed: 5 }); Cn('bench', 2.5, 8.5); Cn('lamp', 3.5, 4.5); Cn('lamp', 10.5, 4); Cn('treefern', 10.5, 7, { seed: 9, h: 1.7 });
@@ -125,7 +125,7 @@ function drawKoi(pat, d, f, big) {
 }
 const angDiff = (a, b) => { let d = (a - b) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 class Koi {
-  constructor(i, ox, oy) { this.i = i; this.pat = i % KOI.length; this.big = i === 0; this.ox = ox; this.oy = oy; this.a = Math.random() * 6.28; this.sp = .3 + Math.random() * .35; this.t = Math.random() * 9; this.turn = 0; this.z = .03; this.bb = [-.1, -.1, .1, .1, .04];
+  constructor(i, ox, oy) { this.i = i; this.pat = i % KOI.length; this.big = i === 0; this.ox = ox; this.oy = oy; this.a = Math.random() * 6.28; this.sp = .3 + Math.random() * .35; this.t = Math.random() * 9; this.turn = 0; this.v = .3; this.z = .03; this.bb = [-.1, -.1, .1, .1, .04];
     do { this.lx = 1 + Math.random() * (POND.w - 2); this.ly = 1 + Math.random() * (POND.d - 2); } while (pondIn(this.lx, this.ly) < .5); this.x = ox + this.lx; this.y = oy + this.ly; this.jx = (Math.random() - .5) * 1.1; this.jy = (Math.random() - .5) * .9; }
   sprite() { const sx = Math.cos(this.a) - Math.sin(this.a), sy = (Math.cos(this.a) + Math.sin(this.a)) / 2, d = ((Math.round(Math.atan2(sy, sx) / (Math.PI * 2) * 16) % 16) + 16) % 16, f = Math.floor(this.t * (3 + this.v * 5)) & 1; return pixSprite('koi|' + this.pat + '|' + d + '|' + f + (this.big ? 'B' : ''), [-9, -7, 9, 7], () => drawKoi(this.pat, d, f, this.big)); }
   update(dt, feed) {
@@ -223,7 +223,7 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
     // ---- sync with the clock / season / tickets
     let view = null, seas = -1, open = null, tick = 0, wf = 0, ft = 0, fb = 0, lastT = 0, gateOpen = null, hadRare = null, sk = -1, feed = null, bz = false;
     const sync = () => {
-      const n = G.now(), h = n.hf, v = h < 5.5 || h >= 20.5 ? 'night' : h < 7 || h >= 17.75 ? 'dusk' : 'day', wx = /rain|storm|drizzle/.test(String(G.state.weather || '')) ? 'rain' : null, s = n.season || 0, isOpen = h >= CONS_HOURS[0] && h < CONS_HOURS[1];
+      const n = G.now(), h = n.hf, am = ambient(G.state.t, 'clear'), v = am.dark >= .8 ? 'night' : am.dark > .02 || am.amb !== '#ffffff' ? 'dusk' : 'day', wx = /rain|storm|drizzle/.test(String(G.state.weather || '')) ? 'rain' : null, s = n.season || 0, isOpen = h >= CONS_HOURS[0] && h < CONS_HOURS[1];
       if (v !== view || s !== seas || wx !== sc._wx) { view = v; sc._wx = wx; for (const o of sky) setP(o, { time: v, season: s, wx, frame: 0 }); for (const o of shafts) o.hidden = v !== 'day' || !!wx; Wd.bg = v === 'night' ? '#0e1424' : v === 'dusk' ? '#3a2c3c' : s === 3 ? '#8a9aa8' : '#7fa8a0'; }
       if (s !== seas) { seas = s; for (const o of seasonal) setP(o, { season: s }); }
       const tk = !!(CS() && CS().hasTicket()), go = isOpen && tk; if (go !== gateOpen) { gateOpen = go; for (const o of gates) setP(o, { open: go ? 1 : 0 }); }
@@ -237,14 +237,14 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
       sc.life.open = isOpen;
     };
     sc.cons = { koi, flies, puffs, gardener: gard, docent: doc, tour, startTour, endTour, sync, feed(x, y, sec = 14) { feed = { x: x - PX, y: y - PY, t: sec }; }, feeding: () => !!feed, view: () => view, zoneAt: (x, y) => { for (const z of ZONES) if (x >= z.x0 && x < z.x1 && y >= z.y0 && y < z.y1) return z; return null; }, nodes: N };
-    sc.env = t => { const o = ambient(t, G.state.weather), k = o.dark || 0; return { amb: k > .5 ? '#7a84a8' : k > .15 ? '#f0cfb0' : '#ffffff', dark: Math.min(.85, k * .9), bg: Wd.bg, night: o.night }; };
+    sc.env = t => { const o = ambient(t, G.state.weather); return { amb: o.amb === '#ffffff' ? o.amb : R.mix(o.amb, '#ffffff', .22), dark: Math.min(.9, (o.dark || 0) * .92), bg: Wd.bg, night: o.night }; };
     sync();
     const onBridge = c => { const lx = c.x - O - PX, ly = c.y - O - PY, t = (lx - BR.x0) / (BR.x1 - BR.x0); return t > 0 && t < 1 && ly > BR.y0 - .1 && ly < BR.y1 + .1 ? archZ(t) : 0; };
     const u0 = sc.update; sc.update = (dt, gm) => {
       u0(dt, gm); cr.update(dt); wk.update(dt);
       if ((tick -= dt) <= 0) { tick = 1.5; sync(); }
       // water + mist frames
-      if ((ft += dt) > .22) { ft = 0; fb++; for (const o of anim) { const k = o.data.anim; if (fb % (k === 4 ? 2 : k === 3 ? 1 : 2) === 0) setP(o, { frame: Math.floor(fb / (k === 2 ? 2 : k === 4 ? 2 : 1)) % (o.a.frames || 4) }); } if ((seas === 3 || sc._wx) && fb % 3 === 0) { wf = (wf + 1) % 4; for (const o of sky) setP(o, { frame: wf }); } }
+      if ((ft += dt) > .22) { ft = 0; fb++; for (const o of anim) { const div = o.data.anim === 3 ? 1 : 2; if (fb % div === 0) setP(o, { frame: (fb / div) % (o.a.frames || 4) }); } if ((seas === 3 || sc._wx) && fb % 3 === 0) { wf = (wf + 1) % 4; for (const o of sky) setP(o, { frame: wf }); } }
       if (feed && (feed.t -= dt) <= 0) feed = null;
       for (let i = 0; i < koi.length; i++) koi[i].update(dt, feed); for (let i = 0; i < flies.length; i++) flies[i].update(dt); for (let i = 0; i < puffs.length; i++) puffs[i].update(dt);
       // the arched bridge lifts whoever is on it

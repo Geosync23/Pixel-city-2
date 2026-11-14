@@ -7,7 +7,9 @@
 //   kind            'starter_studio' | 'apartment' | 'loft' | 'house' | 'villa' | 'penthouse'.
 //   district        district id;  station = nearest train station id (venues.js STATIONS).
 //   where           one-line location hint for level designers.
-//   sizeClass       key of SIZE_CLASSES (floor area, furniture slots, utilities).
+//   sizeClass       key of SIZE_CLASSES (furniture slots, utilities; its `tiles` is only a rough class size).
+//   tiles           [w, d] real floor size of this home's main room (src/scenes/rooms/homes.js SHELLS: every home is a different size and shape).
+//   layout          one or two sentences on what makes this floor plan its own (shown in the listing).
 //   rentPerWeek     weekly rent if rented (null = cannot be rented).
 //   buyPrice        purchase price (null = cannot be bought). Mortgage terms: economy.js MORTGAGE.
 //   upkeepPerWeekOwned  maintenance + building fee per week once OWNED (replaces rent).
@@ -57,41 +59,46 @@ const STUDIO_ROOMS = [
 
 export const HOMES = [
   // ------------------------------------------------------------------ starter studios (pick one at game start)
-  { id: 'juniper_court', name: 'Juniper Court', kind: 'starter_studio', district: 'oldtown', station: 'st_oldtown',
+  { id: 'juniper_court', tiles: [7, 9],
+    layout: 'L-shaped walk-up: the stairwell cuts a corner out of the room. Bare brick, a bay window seat, the bakery flue warming one corner; tiny tiled shower room.', name: 'Juniper Court', kind: 'starter_studio', district: 'oldtown', station: 'st_oldtown',
     where: 'Old Town, second floor of a brick rowhouse above the market street',
     sizeClass: 'studio', rentPerWeek: 160, buyPrice: null, upkeepPerWeekOwned: null,
     rooms: STUDIO_ROOMS, maxGuests: 2, included: [...STARTER_KIT, 'bookshelf_t0'],
-    pros: ['Cafe, bakery, corner store and ramen within a minute\'s walk', 'Grandma lives around the corner', 'Saturday market on the doorstep'],
-    cons: ['Smallest windows of the four', 'Market set-up noise early on Saturdays'],
+    pros: ['Cafe, bakery, corner store and ramen within a minute\'s walk', 'A bay window seat, and the bakery flue keeps one corner warm', 'Grandma lives around the corner', 'Saturday market on the doorstep'],
+    cons: ['One window, and it looks at the neighbours\' bricks', 'Market set-up noise early on Saturdays'],
     perk: { id: 'bakery_mornings', desc: 'You wake to the smell of fresh bread.', effect: { wakeFunBonus: 3 } },
     unlock: { day: 0 }, blurb: 'Cobbles, brick and the best croissant in town downstairs.' },
-  { id: 'saltbox_lofts', name: 'Saltbox Lofts', kind: 'starter_studio', district: 'harbor', station: 'st_harbor',
+  { id: 'saltbox_lofts', tiles: [10, 6],
+    layout: 'One long, low room under a high whitewashed ceiling: two tall sea windows, a boarded sleeping nook with a porthole, galley at the far end; porthole shower room.', name: 'Saltbox Lofts', kind: 'starter_studio', district: 'harbor', station: 'st_harbor',
     where: 'Harborside, top corner of a converted net-loft on the boardwalk',
     sizeClass: 'studio', rentPerWeek: 150, buyPrice: null, upkeepPerWeekOwned: null,
     rooms: STUDIO_ROOMS, maxGuests: 2, included: [...STARTER_KIT, 'rug_t0'],
-    pros: ['Sea view and the pier next door', 'Two extra furniture slots (high ceilings)', 'Close to Pier 7 Freight and The Gilded Gull'],
+    pros: ['Tall sea windows, a porthole over the bed and the pier next door', 'Two extra furniture slots (high ceilings)', 'Close to Pier 7 Freight and The Gilded Gull'],
     cons: ['Nearest grocery is a train ride away', 'Foggy mornings'],
     perk: { id: 'sea_air', desc: 'Sea air does you good.', effect: { sleepEnergyMult: 1.05, extraFurnitureSlots: 2 } },
     unlock: { day: 0 }, blurb: 'Gulls for neighbours, sunrise for an alarm clock.' },
-  { id: 'easel_house', name: 'The Easel House', kind: 'starter_studio', district: 'arts', station: 'st_arts',
+  { id: 'easel_house', tiles: [8, 8],
+    layout: 'The mustard box in the corner is the bathroom and the room wraps around it: sleeping alcove, studio corner on paint-splattered concrete under a strip of north light.', name: 'The Easel House', kind: 'starter_studio', district: 'arts', station: 'st_arts',
     where: 'Arts Quarter, a mural-covered walk-up between the cinema and the campus green',
     sizeClass: 'studio', rentPerWeek: 170, buyPrice: null, upkeepPerWeekOwned: null,
     rooms: STUDIO_ROOMS, maxGuests: 3, included: [...STARTER_KIT, 'easel_t0'],
-    pros: ['Library, cinema, pizza and The Blue Heron on your street', 'Your old school friend works nearby', 'Room for one more guest'],
+    pros: ['Library, cinema, pizza and The Blue Heron on your street', 'A studio corner under north light (the floor is already paint-splattered)', 'Your old school friend works nearby', 'Room for one more guest'],
     cons: ['Highest starter rent', 'Lively street on Friday and Saturday nights'],
     perk: { id: 'creative_block', desc: 'The whole building hums with projects.', effect: { xpMultAtHome: { creativity: 1.1 } } },
     unlock: { day: 0 }, blurb: 'Paint on the stairs, music through the floor, inspiration included.' },
-  { id: 'birch_lane_flats', name: 'Birch Lane Flats', kind: 'starter_studio', district: 'maplewood', station: 'st_maplewood',
+  { id: 'birch_lane_flats', tiles: [9, 7],
+    layout: 'Garden-level dog-leg room with striped wallpaper: carpeted bed corner, a garden window full of pots, the bathroom tucked behind the kitchen wall.', name: 'Birch Lane Flats', kind: 'starter_studio', district: 'maplewood', station: 'st_maplewood',
     where: 'Maplewood, ground floor of a low block with a shared garden',
     sizeClass: 'studio', rentPerWeek: 130, buyPrice: null, upkeepPerWeekOwned: null,
     rooms: STUDIO_ROOMS, maxGuests: 2, included: [...STARTER_KIT, 'plant_t0'],
-    pros: ['Cheapest rent in town', 'FreshWay Market and the community garden nearby', 'Your sibling lives two streets away', 'Quiet nights'],
+    pros: ['Cheapest rent in town', 'Garden window with the landlady\'s pots', 'FreshWay Market and the community garden nearby', 'Your sibling lives two streets away', 'Quiet nights'],
     cons: ['Longest commute to Downtown and the Arts Quarter', 'Not much open after 21:00'],
     perk: { id: 'leafy_and_quiet', desc: 'Nothing but crickets.', effect: { sleepEnergyMult: 1.05 } },
     unlock: { day: 0 }, blurb: 'Leafy, quiet, friendly. The sensible choice (your sibling says so).' },
 
   // ------------------------------------------------------------------ moving up
-  { id: 'marlowe_1br', name: 'The Marlowe, Apt 5C', kind: 'apartment', district: 'downtown', station: 'st_central',
+  { id: 'marlowe_1br', tiles: [11, 9],
+    layout: 'Pre-war layout: a walled bedroom with its own doorway, chequered kitchen behind a breakfast bar, picture rail, a window on the skyline; chequered bathroom.', name: 'The Marlowe, Apt 5C', kind: 'apartment', district: 'downtown', station: 'st_central',
     where: 'Downtown, mid-rise two blocks from Central Station',
     sizeClass: 'small', rentPerWeek: 290, buyPrice: 9000, upkeepPerWeekOwned: 45,
     rooms: [
@@ -104,7 +111,8 @@ export const HOMES = [
     cons: ['City noise', 'No outdoor space'],
     perk: { id: 'central_living', desc: 'Everything is close.', effect: { taxiFareMultFromHome: 0.9 } },
     unlock: { day: 7 }, blurb: 'One bedroom in the middle of everything.' },
-  { id: 'cannery_loft', name: 'Cannery Row Loft', kind: 'loft', district: 'harbor', station: 'st_harbor',
+  { id: 'cannery_loft', tiles: [14, 10],
+    layout: 'One raw brick hall: arched factory windows on the bay, cast-iron columns under riveted beams, a sleeping platform of old boards, a sunlit studio nook.', name: 'Cannery Row Loft', kind: 'loft', district: 'harbor', station: 'st_harbor',
     where: 'Harborside, top floor of the old sardine cannery, brick and iron beams',
     sizeClass: 'medium', rentPerWeek: 360, buyPrice: 13000, upkeepPerWeekOwned: 60,
     rooms: [
@@ -119,7 +127,8 @@ export const HOMES = [
     cons: ['Drafty in winter', 'Groceries are still a train ride away'],
     perk: { id: 'north_light', desc: 'Artists pay extra for light like this.', effect: { xpMultAtHome: { creativity: 1.1 }, ambienceBonus: 2 } },
     unlock: { day: 14 }, blurb: 'Brick, beams and a wall of glass.' },
-  { id: 'sycamore_house', name: '12 Sycamore Street', kind: 'house', district: 'maplewood', station: 'st_maplewood',
+  { id: 'sycamore_house', tiles: [17, 12],
+    layout: 'A real house: kitchen-diner, fireplace lounge, walled main bedroom, stairs, and a back garden behind a picket fence with a vegetable bed; family bathroom with tub and shower.', name: '12 Sycamore Street', kind: 'house', district: 'maplewood', station: 'st_maplewood',
     where: 'Maplewood, yellow two-storey house with a porch and a small back garden',
     sizeClass: 'large', rentPerWeek: 480, buyPrice: 20000, upkeepPerWeekOwned: 85,
     rooms: [
@@ -136,7 +145,8 @@ export const HOMES = [
     cons: ['Long ride to nightlife', 'A lot of rooms to furnish'],
     perk: { id: 'home_garden', desc: 'A vegetable bed out back.', effect: { homeGardenPlot: true } },
     unlock: { day: 28 }, blurb: 'A porch swing, a garden, and room for everyone at dinner.' },
-  { id: 'villa_belvedere', name: 'Villa Belvedere', kind: 'villa', district: 'hillcrest', station: 'st_hillcrest',
+  { id: 'villa_belvedere', tiles: [18, 14],
+    layout: 'White stone and arches: terrace doors over the bay, an arch into the chef\'s kitchen, a columned loggia onto the balustraded terrace with lemon trees; stone bathroom.', name: 'Villa Belvedere', kind: 'villa', district: 'hillcrest', station: 'st_hillcrest',
     where: 'Hillcrest, terraced white villa just below the lookout',
     sizeClass: 'xlarge', rentPerWeek: null, buyPrice: 36000, upkeepPerWeekOwned: 140,
     rooms: [
@@ -155,7 +165,8 @@ export const HOMES = [
     cons: ['A lot of stairs up from the station', 'Highest upkeep outside the penthouse'],
     perk: { id: 'terrace_view', desc: 'The whole bay from your breakfast table.', effect: { homeViewpoint: true, ambienceBonus: 4 } },
     unlock: { day: 42 }, blurb: 'Terraces, lemon trees and the city at your feet.' },
-  { id: 'beacon_penthouse', name: 'The Beacon Penthouse', kind: 'penthouse', district: 'downtown', station: 'st_central',
+  { id: 'beacon_penthouse', tiles: [19, 13],
+    layout: 'Walls of glass on the skyline, a sunken lounge, a glazed master suite and a roof terrace; a bathroom with a view.', name: 'The Beacon Penthouse', kind: 'penthouse', district: 'downtown', station: 'st_central',
     where: 'Downtown, top two floors of the Beacon Tower, private lift',
     sizeClass: 'xlarge', rentPerWeek: null, buyPrice: 52000, upkeepPerWeekOwned: 180,
     rooms: [

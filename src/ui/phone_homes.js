@@ -115,7 +115,7 @@ function detail(b, ctx, id) {
   const c = el('div.ph-card');
   if (l.rent) c.append(kv('Rent', money(l.rent) + ' / week'));
   if (l.price) c.append(kv('Buy', `${money(l.price)} (${money(l.down)} down)`), kv('Upkeep once owned', money(h.upkeepPerWeekOwned || 0) + ' / week'));
-  c.append(kv('Utilities', money(sc.utilitiesPerWeek || 0) + ' / week'), kv('Size', `${sc.label || '?'} · ${(sc.tiles || []).join(' x ')} tiles · ${sc.furnitureSlots || '?'} furniture spots`),
+  c.append(kv('Utilities', money(sc.utilitiesPerWeek || 0) + ' / week'), kv('Size', `${sc.label || '?'} · ${(h.tiles || sc.tiles || []).join(' x ')} tiles · ${sc.furnitureSlots || '?'} furniture spots`), h.layout ? el('p.as-desc', { text: h.layout }) : null,
     kv('Rooms', (h.rooms || []).map(r => r.name).join(', ')), kv('Guests', 'Up to ' + (h.maxGuests || 2)));
   b.append(c, section('Close by')); const d = el('div.ph-card');
   if (n.work) d.append(kv(n.work.name, walkText(n.work.m))); if (n.station) d.append(kv(n.station.name, walkText(n.station.m))); if (n.bus) d.append(kv('Bus: ' + n.bus.name, walkText(n.bus.m))); if (n.grocery) d.append(kv(n.grocery.name, walkText(n.grocery.m)));

@@ -87,7 +87,7 @@ const MIX = { tropical: ['ear', 'bop', 'ginger', 'croton', 'fern', 'hibiscus', '
 function bed(p) {
   const w = p.w || 3, d = p.d || 2, k = p.kind || 'tropical', r = rng((p.seed || 1) * 7 + 3), h = bedBase(w, d, k === 'hedge' ? .25 : .35, k === 'desert' ? SAND : k === 'orchid' ? '#6a4a34' : SOIL), M = MIX[k] || MIX.tropical, L = [];
   const step = k === 'desert' ? .42 : k === 'hedge' ? .38 : k === 'fern' ? .5 : .62;
-  for (let y = .38; y < d - .3; y += step) for (let x = .38; x < w - .3; x += step) { if (p.gap && r() < p.gap) { r(); r(); continue; } L.push([Math.min(w - .32, x + (r() - .5) * .22), Math.min(d - .32, y + (r() - .5) * .22), M[Math.floor(r() * M.length)]]); }
+  for (let y = Math.min(.38, d / 2); y < Math.max(d - .3, d / 2 + .01); y += step) for (let x = Math.min(.38, w / 2); x < Math.max(w - .3, w / 2 + .01); x += step) { if (p.gap && r() < p.gap) { r(); r(); continue; } L.push([d < 1 ? x : Math.min(w - .32, x + (r() - .5) * .22), d < 1 ? y : Math.min(d - .32, y + (r() - .5) * .22), M[Math.floor(r() * M.length)]]); }
   L.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
   for (const l of L) at(l[0], l[1], h, () => PL[l[2]](r));
 }

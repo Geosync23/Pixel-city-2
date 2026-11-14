@@ -311,3 +311,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 73 — How long until the Fable lead session
 > How long are wr away from being able to get you to a new 5.2 session
+
+## 74 — Wait for the workers
+> Lets wait thanks
