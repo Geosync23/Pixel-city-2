@@ -116,3 +116,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 33 — What does "pacing pause" mean
 > Pacing pause. What does that mean? Those are two different things, right? Pacing is slowing down, pausing is stopping. Which have we done? Are we still working? Is it slower or have we paused?
+
+## 34 — Pacing clarified: steady, not stop-start
+> Start now Yeah, no, I just meant to work a little slower because what was happening is I'm not concerned about overall weekly usage at all. And in fact, I want to eat it up. Let's go. The issue is the 5-hour usage window keeps filling up very quickly. I know ultimately the quantity would be the same if we did all the work, filled it up, wait time, did all the work, filled it up, but I kind of wanted to see it come at a steady pace. So I'm asking you to merely slow the pace, not stop. That way we don't hit our 5-hour limit, as quickly or maybe at all. Maybe we pace enough that we don't hit it and then it resets again. I'm not worried about overall usage. Strictly want to see continued progress instead of it in, start and stop chunks.

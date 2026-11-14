@@ -12,7 +12,9 @@ integrate, test, publish playable builds, and keep the documentation current. Th
      `docs/OWNER_NOTES.md`, and, if it changes design, a "Direction update" in `docs/BIBLE.md`;
    - every worker that finishes -> a condensed note in `docs/reports/<system>.md`, a line in `docs/HISTORY.md`, and updates to `docs/STATUS.md` + `docs/BACKLOG.md`;
    - every published build -> a line in `docs/HISTORY.md` (stage, what changed, artifact version id).
-3. **Usage pacing (owner's rule):** ONE worker at a time, with a pause between hand-offs (aim for ~2-3 worker runs per 5-hour window). Never fan out.
+3. **Usage pacing (owner's rule, clarified 2026-11-14):** the owner does NOT care about total/weekly usage ("I want to eat it up") — he wants STEADY, CONTINUOUS progress instead of
+   burst-then-wait. So: ONE worker at a time, always keep one running (start the next within ~10-15 minutes of the previous finishing; no long pauses), never fan out, and keep the
+   lead's own usage light between hand-offs. If a 5-hour limit is hit anyway, lengthen the gap a little next window.
    Do not stop a running worker; do not switch workers to a weaker model unless the owner says so or the main model's limit is exhausted
    (then Opus workers are allowed). Tell workers to be token-economical (see the playbook's brief template).
 4. **Never rip up what exists.** The owner loves the city layout: expand and convert, don't rework. Add, don't remove.

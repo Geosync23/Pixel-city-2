@@ -28,3 +28,4 @@
 12. Vehicles flicker when passing (fixed: depth-sort rule). Map picks should offer Take Bus / Take Train with boarding + alighting stops, not only Take Cab (queued 2e). Future project: city 50-100% larger with new districts; may expand now if room is needed.
 13. Post offices with interiors: go there to send packages (wait in line); letters from home; packages arrive at home; story use (send something back home).
 14. Asked about CI checks (none set up; fine to forgo for now, 'don't change anything') and about moving to another account (not soon). Wants all his messages saved verbatim in git (done: OWNER_MESSAGES.md).
+15. Pacing clarified: not worried about weekly usage at all; wants steady continuous progress, not start-stop. One worker at a time, no long pauses; just avoid slamming the 5-hour window.
