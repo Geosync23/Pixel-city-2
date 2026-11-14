@@ -31,7 +31,7 @@ export function init() {
       spots.push({ x: f.x, y: f.y, z });
     }
     for (const p of taken) spots.push({ x: p.x, y: p.y, z: w.heightAt(p.x, p.y) });
-    for (const p of w.pois) if (p.type === 'door' || p.type === 'station') { const sp = { x: p.x, y: p.y, z: w.heightAt(p.x, p.y), poi: p, ok: true }; spots.push(sp); w.lights.push({ x: p.x, y: p.y, z: sp.z, r: 2, c: '#ffcf80' }); }
+    for (const p of w.pois) if (p.type === 'door' || p.type === 'station' || p.glow) { const sp = { x: p.x, y: p.y, z: w.heightAt(p.x, p.y), poi: p, ok: true }; spots.push(sp); w.lights.push({ x: p.x, y: p.y, z: sp.z, r: 2, c: '#ffcf80' }); }
     refresh();
   });
   G.on('hour', refresh); G.on('home:move', refresh); G.on('scene', refresh);
@@ -42,4 +42,4 @@ export function init() {
   });
 }
 // which doors can be entered right now (room exists; homes: yours, or story homes you may visit)
-function refresh() { for (const sp of spots) { const p = sp.poi; if (!p) continue; if (p.type === 'station') { sp.ok = true; continue; } let ok = ROOMS.has(p.room); if (ok && String(p.room).startsWith('home:') && G.housing) { const cur = G.housing.current && G.housing.current(); ok = !!(cur && cur.roomId === p.room) || (/sibling|grandma|friend/.test(p.room) && (!G.housing.canEnter || G.housing.canEnter(p.room))); } sp.ok = ok; } }
+function refresh() { for (const sp of spots) { const p = sp.poi; if (!p) continue; if (p.type === 'station' || p.glow) { sp.ok = true; continue; } let ok = ROOMS.has(p.room); if (ok && String(p.room).startsWith('home:') && G.housing) { const cur = G.housing.current && G.housing.current(); ok = !!(cur && cur.roomId === p.room) || (/sibling|grandma|friend/.test(p.room) && (!G.housing.canEnter || G.housing.canEnter(p.room))); } sp.ok = ok; } }

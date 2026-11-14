@@ -158,19 +158,25 @@ function openStation(stationId) {
     m.body.append(diagram(id, sel, s => { sel = s; sfx('click'); draw(); }, pl ? pl.via : null));
     const rows = el('div.rail-rows'), nt = nextTrains(id);
     for (const di of [0, 1]) { const a = nt.filter(q => q.dir === di).slice(0, 2); if (!a.length) continue; rows.append(el('div.rail-row', null, el('b', { text: di ? 'B' : 'A', style: { background: LINE[di].color } }), el('span', { text: 'toward ' + a[0].toward }), el('i', { text: (a[0].boarding ? 'boarding' : mins(a[0].minutes)) + (a[1] ? ', ' + mins(a[1].minutes) : '') }))); }
-    m.body.append(rows, el('div.rail-note', { text: free ? 'Transit pass: your rides are free.' : 'Single ride ' + fmt(price) + ', any distance. Free with a transit pass.' }));
+    const tk = tickets(), ok = free || tk > 0;
+    m.body.append(rows, el('div.rail-note', { text: free ? 'Pass valid: your rides are free.' : tk ? 'You have ' + tk + (tk === 1 ? ' ticket' : ' tickets') + '. One ticket = one ride, any distance.' : 'You need a ticket to board: ' + fmt(price) + ' flat, any distance. Free with a transit pass.' }));
     m.body.append(el('div.rail-sel', { text: pl ? 'To ' + N.byId[sel].name + ': ' + pl.line + ', ' + pl.stops + (pl.stops === 1 ? ' stop' : ' stops') + ', about ' + Math.round(pl.minutes) + ' min. ' + (pl.boarding ? 'Boarding now.' : 'Train in ' + mins(pl.wait) + '.') : 'Tap a station on the map to choose where to go.' }));
-    const go = el('button.primary', { text: pl ? 'Wait on platform' + (free ? '' : ' (' + fmt(price) + ')') : 'Wait on platform', disabled: !pl, onclick: () => { m.close(); ride(id, sel); } });
-    m.body.append(el('div.rail-btns', null, go, !free && el('button', { text: 'Tickets & passes', onclick: () => { m.close(); openTickets(() => openStation(id)); } })));
+    const go = el('button' + (ok ? '.primary' : ''), { text: !ok ? 'Wait on platform (ticket needed)' : free ? 'Wait on platform (pass valid)' : 'Wait on platform (uses 1 ticket)', 'data-act': 'board', disabled: !pl || !ok, onclick: () => { m.close(); ride(id, sel); } });
+    const buy = !free && el('button' + (ok ? '' : '.primary'), { text: 'Buy ticket ' + fmt(price), 'data-act': 'ticket', onclick: () => { if (buyTicket()) draw(); } });
+    m.body.append(el('div.rail-btns', null, buy, go, !free && el('button', { text: 'Tickets & passes', onclick: () => { m.close(); openTickets(() => openStation(id)); } })));
   };
   draw(); return m;
 }
+const tickets = () => (S && S.tickets) || 0;
+/** flat-fare single ticket (any distance); kept in G.state.rail.tickets until used */
+function buyTicket() { const ok = G.transit && G.transit.payFare ? G.transit.payFare('train') : !!(G.money && G.money.pay(FARES.train.single, 'Train ticket') !== false); if (!ok) return false; S.tickets = tickets() + 1; sfx('pay'); toast('Train ticket bought (' + fmt(FARES.train.single) + '). Good for one ride, any distance.', 'good'); return true; }
 function passes() { const P = FARES.transitPass || { price: 18, days: 7 }; return [{ id: 'day', name: 'Day pass', price: Math.round(FARES.train.single * 2.4), days: 1 }, { id: 'week', name: 'Weekly pass', price: P.price, days: P.days }]; }
 function buyPass(id) { const p = passes().find(q => q.id === id); if (!p || !G.money || G.money.pay(p.price, 'Transit pass') === false) return false; G.inv && G.inv.grant && G.inv.grant('transit', p.days); sfx('pay'); toast(p.name + ' bought: unlimited train and bus rides for ' + (p.days === 1 ? 'a day' : p.days + ' days') + '.', 'good'); return true; }
 function openTickets(after) {
   const m = modal({ title: 'Tickets & passes', cls: 'rail-win', onClose: () => after && after() });
   const until = G.inv && G.inv.accessUntil ? G.inv.accessUntil('transit') : 0, left = until - G.state.t;
-  m.body.append(el('div.rail-note', { text: hasPass() ? 'Your transit pass is valid for ' + (left > 1440 ? Math.ceil(left / 1440) + ' more days.' : Math.max(1, Math.round(left / 60)) + ' more hours.') : 'No pass yet. A single ride is ' + fmt(FARES.train.single) + ' (bus ' + fmt(FARES.bus.single) + ').' }));
+  m.body.append(el('div.rail-note', { text: hasPass() ? 'Your transit pass is valid for ' + (left > 1440 ? Math.ceil(left / 1440) + ' more days.' : Math.max(1, Math.round(left / 60)) + ' more hours.') : 'No pass yet. A single train ticket is ' + fmt(FARES.train.single) + ', any distance (bus ' + fmt(FARES.bus.single) + ').' + (tickets() ? ' Tickets in your pocket: ' + tickets() + '.' : '') }));
+  if (!hasPass()) m.body.append(el('div.rail-btns', null, el('button.primary', { text: 'Single ticket - ' + fmt(FARES.train.single) + ' (one ride)', 'data-act': 'ticket', onclick: () => { if (buyTicket()) m.close(); } })));
   m.body.append(el('div.rail-btns', null, passes().map(p => el('button', { text: p.name + ' - ' + fmt(p.price) + ' (' + (p.days === 1 ? '24 hours' : p.days + ' days') + ')', 'data-pass': p.id, onclick: () => { if (buyPass(p.id)) m.close(); } }))));
   return m;
 }
@@ -181,10 +187,11 @@ function ride(from, to, opts = {}) {
   return new Promise(res => {
     const N = net(); from = norm(from); to = norm(to); const pl = plan(from, to);
     if (!pl || G.busy || (G.transit && G.transit.ride)) { if (!pl) toast('Pick another station.'); return res(false); }
-    const price = opts.free || hasPass() ? 0 : FARES.train.single;
-    if (price && G.transit && G.transit.payFare && !G.transit.payFare('train')) return res(false);
+    const price = opts.free || hasPass() ? 0 : FARES.train.single; // a ticket (or pass) is required; callers without one buy at the gate
+    if (price && !tickets() && !buyTicket()) { toast('You need a train ticket (' + fmt(FARES.train.single) + ').'); return res(false); }
     const st = N.byId[from], inCity = G.scene && G.scene.id === 'city';
     const board = () => {
+      if (price) S.tickets = Math.max(0, tickets() - 1);
       G.camTarget = null; S.cur = { dir: pl.dir, train: pl.train, from, to }; S.rides = (S.rides || 0) + 1;
       if (G.transit && G.transit.beginRide) G.transit.beginRide({ kind: 'train', destination: to, from, fare: price, resolve: res }); else res(true);
       G.go('train', { ride: S.cur });
@@ -193,7 +200,7 @@ function ride(from, to, opts = {}) {
     const wait = pl.wait + .6; toast(inCity ? 'You head up to the platform. ' + pl.line + ' in ' + mins(pl.wait) + '.' : pl.line + ' toward ' + pl.toward + ' in ' + mins(pl.wait) + '.');
     if (inCity) G.camTarget = { x: st.x, y: st.y, z: st.platformZ || 6 };
     G.startActivity({ label: 'Waiting for the train', anim: 'phone', minutes: wait, rate: Math.max(2.5, wait / 4.5), hide: inCity, done: board,
-      cancel: () => { G.camTarget = null; if (price && G.money && G.money.add) G.money.add(price, 'Ticket refund'); res(false); } });
+      cancel: () => { G.camTarget = null; if (price) toast('You keep your ticket for later.'); res(false); } });
   });
 }
 async function alight(stationId) {
@@ -205,6 +212,7 @@ async function alight(stationId) {
   if (G.transit && G.transit.ride && G.transit.ride.kind === 'train') G.transit.endRide(true);
 }
 
+const stairs = [];
 export function init() {
   const boot = () => { S = G.defineState('rail', () => ({ rides: 0, cur: null })); };
   boot(); G.on('load', () => { S = G.state.rail || G.defineState('rail', () => ({ rides: 0, cur: null })); });
@@ -214,7 +222,17 @@ export function init() {
   if (carA) for (const D of N.dirs) for (let j = 0; j < NSETS; j++) { const set = { dir: D.di, train: j, cars: [], on: false }; for (let k = 0; k < CARS; k++) set.cars.push(mkCar(set, k)); sets.push(set); }
   G.addSystem({ name: 'rail', update: tick });
   for (const st of N.sts) if (st.id !== 'central') G.addInteractable({ scene: 'city', x: st.entrance.x, y: st.entrance.y, label: st.name + ' Station', h: 1.4, range: 1.8, hit: 16, use: () => openStation(st.id) });
+  // the visible stairs / elevators up to each platform are usable too (same panel as the entrance), with the welcome glow
+  try {
+    const w = N.w, cand = st => { let best = null; for (const ob of w.objs) { if (ob.id !== 'bld.rail.stairs' && ob.id !== 'bld.rail.elevator') continue; const B = ob.B, cx = (B[0] + B[3]) / 2, cy = (B[1] + B[4]) / 2; if (Math.hypot(cx - st.x, cy - st.y) > 16) continue;
+      let f = null, fd = 1e9; for (let x = Math.floor(B[0]) - 1; x <= B[3] + 1; x++) for (let y = Math.floor(B[1]) - 1; y <= B[4] + 1; y++) { const px = x + .5, py = y + .5; if (px > B[0] && px < B[3] && py > B[1] && py < B[4]) continue; if (w.isBlocked(px, py)) continue; const d = Math.hypot(px - st.entrance.x, py - st.entrance.y); if (d < fd) { fd = d; f = { x: px, y: py }; } }
+      if (f && fd > 1.5) (best = best || []).push({ ob, f, cx, cy, lift: ob.id === 'bld.rail.elevator' }); } return best || []; };
+    for (const st of N.sts) if (st.id !== 'central') for (const q of cand(st)) { const label = (q.lift ? 'Elevator to ' : 'Stairs to ') + st.name + ' platform';
+      G.addInteractable({ scene: 'city', x: q.f.x, y: q.f.y, label, h: 1.4, range: 1.8, hit: 18, use: () => openStation(st.id) }); stairs.push({ station: st.id, x: q.f.x, y: q.f.y, lift: q.lift });
+      if (w.poi) w.poi({ type: 'stairs', glow: true, id: 'stairs:' + st.id + ':' + stairs.length, name: label, x: q.f.x, y: q.f.y, station: st.id }); }
+  } catch (e) { console.warn('rail stairs: ' + e.message); }
   G.rail = {
+    stairs: () => stairs, buyTicket, tickets,
     V, DWELL, ACC, NSETS, get LOOP_MIN() { return N.dirs[0].T; }, lines: LINE,
     stations: () => N.sts, station: id => N.byId[norm(id)] || null, nextTrains, plan, trainState, timeTo, trains: t => sets.map(s => trainState(s.dir, s.train, t)),
     openStation, openTickets, buyPass, passes, diagram, ride, alight, sets: () => sets,

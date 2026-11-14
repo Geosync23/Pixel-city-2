@@ -32,13 +32,18 @@ function build() {
   const hud = document.getElementById('hud'); if (hud && hud.parentNode === root()) root().insertBefore(W, hud); else root().append(W);
 }
 function goalRow(g, cls) {
-  return el('button.gw-item' + (g.done ? '.done' : '') + (cls ? '.' + cls : ''), { 'data-g': g.id, onclick: () => { if (g.hint && !g.done) toast(g.hint, 'info', 3400); if (g.placeId && !g.done && G.phone && G.phone.setWaypoint) try { G.phone.setWaypoint(g.placeId); } catch (e) { /* unknown place */ } } },
-    el('span.gw-box'), el('span', { text: g.shown || g.text }));
+  return el('button.gw-item' + (g.done ? '.done' : '') + (cls ? '.' + cls : ''), { 'data-g': g.id, onclick: () => { if (g.hint && !g.done) toast(g.hint, 'info', 3400); if (g.placeId && !g.done) wayTo(g.placeId, !g.hint); } },
+    el('span.gw-box'), el('span', null, g.shown || g.text, g.placeId && !g.done ? pin() : null));
 }
+const pName = id => { try { const p = G.places && G.places.get && G.places.get(id); return p && p.name ? p.name : ''; } catch (e) { return ''; } };
+const pin = () => el('span.gw-pin', { title: 'Tap to set a waypoint', style: 'display:inline-block;width:6px;height:6px;margin:0 2px 1px 6px;background:#e0453a;border:1px solid #2a2733;border-radius:50% 50% 50% 0;transform:rotate(-45deg)' });
+function wayTo(placeId, say = true) { if (!G.phone || !G.phone.setWaypoint) return false; try { G.phone.setWaypoint(placeId); } catch (e) { return false; } if (say) toast('Waypoint set: ' + (pName(placeId) || 'follow the arrow') + '.', 'good', 2600); return true; }
 function appts() {
   const P = G.planner; if (!P || !P.list) return []; let L = [];
-  try { L = P.list(G.state.t - 240, G.state.t + 3 * 1440, { events: false }).filter(a => !a.event && a.s !== 3 && a.s !== 4 && a.t + (a.dur || 60) > G.state.t && !(a.data && a.data.beat && G.story && G.story.beat(a.data.beat) && G.story.beat(a.data.beat).st === 'done')).slice(0, 3); } catch (e) { L = []; }
-  return L;
+  try { L = P.list(G.state.t - 240, G.state.t + 3 * 1440, { events: false }).filter(a => !a.event && a.s !== 3 && a.s !== 4 && a.t + (a.dur || 60) > G.state.t && !(a.data && a.data.beat && G.story && G.story.beat(a.data.beat) && G.story.beat(a.data.beat).st === 'done')); } catch (e) { L = []; }
+  // the planner dictates this list: ALL of today's entries (any kind) in time order, then a peek at the next days
+  const d0 = Math.floor(G.state.t / 1440), today = L.filter(a => Math.floor(a.t / 1440) === d0).slice(0, 8), later = L.filter(a => Math.floor(a.t / 1440) !== d0).slice(0, Math.max(1, 3 - today.length));
+  L = today.concat(later); L.today = today.length; return L;
 }
 function render() {
   dirty = false; if (!W) return;
@@ -47,11 +52,11 @@ function render() {
   W.classList.toggle('empty', !all.length && !ap.length);
   if (gs().collapsed === undefined && innerWidth < 500) gs().collapsed = true;
   W.classList.toggle('shut', !!gs().collapsed);
-  W.head.replaceChildren(el('span', { text: gs().collapsed ? '+' : '-' }), el('span', { text: 'Goals' }), el('i', { text: goals.length ? `${goals.length - open}/${goals.length}` : '' }), opps.length || ap.length ? el('i', { text: '· ' + (opps.filter(o => !o.done).length + ap.length) + ' more' }) : null);
+  W.head.replaceChildren(el('span', { text: gs().collapsed ? '+' : '-' }), el('span', { text: 'Goals' }), el('i', { text: goals.length ? `${goals.length - open}/${goals.length}` : '' }), ap.today ? el('i', { text: '· ' + ap.today + ' today' }) : null, opps.length || ap.length > (ap.today || 0) ? el('i', { text: '· ' + (opps.filter(o => !o.done).length + ap.length - (ap.today || 0)) + ' more' }) : null);
   const B = W.body; B.replaceChildren();
   if (goals.length) { B.append(el('div.gw-sec', { text: 'Goals' })); let last = null; for (const g of goals) { if (g.listTitle && g.listTitle !== last) { last = g.listTitle; B.append(el('div.gw-list', { text: last })); } B.append(goalRow(g)); } }
   if (opps.length) { B.append(el('div.gw-sec', { text: 'Opportunities' })); for (const g of opps) B.append(goalRow(g, 'opp')); }
-  if (ap.length) { B.append(el('div.gw-sec', { text: 'Appointments' })); for (const a of ap) B.append(el('button.gw-item.appt', { onclick: () => G.phone && G.phone.open && G.phone.open('planner', { appt: a.id }) }, el('span.gw-box'), el('span', null, a.title, el('span.gw-when', { text: fmtWhen(a.t) + (a.s === 2 ? ' · now' : '') })))); }
+  if (ap.length) { B.append(el('div.gw-sec', { text: 'Appointments' })); for (const a of ap) B.append(el('button.gw-item.appt', { 'data-a': a.id, onclick: () => { if (!(a.placeId && wayTo(a.placeId)) && G.phone && G.phone.open) G.phone.open('planner', { appt: a.id }); } }, el('span.gw-box'), el('span', null, a.title, a.placeId ? pin() : null, el('span.gw-when', { text: fmtWhen(a.t) + (a.placeId && pName(a.placeId) && !a.title.includes(pName(a.placeId)) ? ' · ' + pName(a.placeId) : '') + (a.s === 2 ? ' · now' : '') })))); }
 }
 export function refresh() { dirty = true; }
 

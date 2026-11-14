@@ -39,7 +39,7 @@ export function init() {
         const cab = G.scene.cabin, p = G.player, m = cab.mine; cab.reset(); p.stop(); p.x = m.x; p.y = m.y; p.zoff = m.z; p.z = m.z; p.dir = 0; p.pose = 'sit'; p.poseOpts = { seated: true }; p.hidden = false; safe(() => G.snapCam());
         cut = G.cutscene = { update() { } }; ph = 'wait'; safe(() => G.phone.lock('taxi'));
         un = skipButton('Skip the wait', () => { if (ph === 'wait' && room() === 'airport:plane') G.scene.cabin.fast(); });
-        c.hint("Touchdown! Everyone's grabbing their bags - sit tight until the aisle clears.");
+        c.hint("Touchdown! Everyone's grabbing their bags - sit tight until the line reaches your row.");
       },
       update(dt, c) {
         if (ph !== 'wait' && ph !== 'free') return; if (room() !== 'airport:plane') return; const cab = G.scene.cabin; t += dt;
@@ -47,8 +47,8 @@ export function init() {
           if (said === 0 && t > .5) { said = 1; safe(() => G.audio.sfx('train_chime')); caption(null, 'Ding! The seatbelt sign blinks off.', 3000); cab.start(); }
           else if (said === 1 && t > 4.6) { said = 2; caption('Captain', 'Welcome to Maple Bay, folks. Local time is 2 PM. Thanks for flying Maple Air.', 4400); }
           else if (said === 2 && t > 13.5) { said = 3; caption(null, 'New city. New keys waiting. Almost there.', 3600); }
-          if (t > 2.5 && (cab.remaining() <= TUNE.CABIN_LEFT || t > TUNE.CABIN_MAX)) {
-            ph = 'free'; if (G.cutscene === cut) G.cutscene = null; cut = null; unseat(); if (un) un(); un = null;
+          if (t > 2.5 && (cab.myTurn() || t > TUNE.CABIN_MAX)) {
+            ph = 'free'; cab.release(); if (G.cutscene === cut) G.cutscene = null; cut = null; unseat(); if (un) un(); un = null;
             c.hint((touch() ? 'Your turn! Tap where you want to walk.' : 'Your turn! Click where you want to walk (or use WASD / the arrow keys).') + ' Head for the door at the front.', { x: 20.75, y: 1.9, h: 1.9 });
           }
         } else { const a = cab.attendant; if (a && !bye && near(a, 2.8)) { bye = 1; a.pose = 'wave'; a._hold = 4; bubble(a, 'Thanks for flying with us. Welcome to Maple Bay!'); } }

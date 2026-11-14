@@ -11,7 +11,7 @@
 // Autosave (only in a started game, never on dev ?scene= launches): after sleeping, on every scene change, every 2 game hours.
 // Keys: P pause, 1/2/3 speed, I/B backpack (inventory.js), Tab/N wellness panel, M/Q phone.
 import { G } from '../core/game.js';
-import { el, root, toast } from './kit.js';
+import { el, root, toast, modal } from './kit.js';
 import { iconEl, weatherIcon } from './_icons.js';
 import { NEEDS, FITNESS, SKILLS, SKILL_MAX_LEVEL } from '../data/needs.js';
 
@@ -62,7 +62,7 @@ function renderPanel() {
   const tier = N.moodTier(), mood = N.mood();
   P.append(el('div.hp-head', null, iconEl('mood.' + tier.id, 3), el('div.hp-mood', null, el('b', { text: `Feeling ${tier.label.toLowerCase()}` }), el('span', { text: `Mood ${mood}` + (tier.xpMult !== 1 ? ` · skill xp x${tier.xpMult}` : '') })), el('button.x', { 'aria-label': 'Close', onclick: () => togglePanel(false) }, 'x')));
   const g = el('div.hp-needs');
-  for (const n of NEEDS) { const v = N.get(n.id), b = N.band(n.id); g.append(el('div.hp-need.' + b.id, null, iconEl('need.' + n.id, 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: n.name }), el('span', { text: b.label }), el('em', { text: Math.round(v) })), bar(v, b.id)))); }
+  for (const n of NEEDS) { const v = N.get(n.id), b = N.band(n.id); g.append(el('div.hp-need.' + b.id, { 'data-need': n.id, title: 'Where can I fix this?', style: 'cursor:pointer', onclick: () => fixNeed(n) }, iconEl('need.' + n.id, 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: n.name }), el('span', { text: b.label }), el('em', { text: Math.round(v) })), bar(v, b.id)))); }
   const f = N.fitness(); g.append(el('div.hp-need.fit', null, iconEl('need.fitness', 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: FITNESS.name }), el('span', { text: N.fitnessLabel() }), el('em', { text: Math.round(f) })), bar(f, 'fit'))));
   P.append(g);
   const ml = N.moodlets();
@@ -70,6 +70,24 @@ function renderPanel() {
   if (G.skills) { const sk = el('div.hp-skills'); for (const s of SKILLS) { const l = G.skills.level(s.id), nx = G.skills.next(s.id); sk.append(el('div.hp-skill', { title: s.desc }, iconEl('skill.' + s.id, 1), el('span', { text: s.name }), el('b', { text: l >= SKILL_MAX_LEVEL ? 'MAX' : 'Lv ' + l }), bar(nx ? nx.into / nx.need * 100 : 100, 'xp'))); } P.append(el('div.hp-sub', { text: 'Skills' }), sk); }
   if (G.money && G.money.bills && !G.phone) { const b = G.money.bills(); P.append(el('div.hp-sub', { text: `Bills due Monday 08:00: ${fmt(b.total)}` })); }
   P.scrollTop = y;
+}
+// tap a need -> "Where can I fix this?": the nearest suitable places, each row sets a waypoint
+const FIX = { hunger: /food|restaurant|cafe|diner|noodle|pizza|bakery|grocer|market|stall|deli|ramen|burger|taco/, energy: /cafe|coffee|tea/, hygiene: /gym|bath|pool|\bspa\b/, fun: /cinema|arcade|theat|museum|club|bowling|music|karaoke|gallery|\bpark\b|show/, social: /cafe|\bbar\b|\bpub\b|club|plaza|\bpark\b/ };
+const HOME_TIP = { hunger: 'Home (cook)', energy: 'Home (sleep)', hygiene: 'Home (shower)', fun: 'Home (TV, games)' };
+function fixPlaces(id) {
+  const re = FIX[id] || FIX.fun, P = G.places, p = G.player; let x = p.x, y = p.y, out = [];
+  try { if (G.scene && G.scene.id !== 'city') { const d = String(G.state.flags.lastDoor || '').replace(/^door:/, ''), q = P.get(d) || P.get('door:' + d); if (q) { x = q.x; y = q.y; } } } catch (e) { }
+  try { out = P.list().filter((q, i, A) => q && isFinite(q.x) && ['venue', 'stall', 'spot'].includes(q.kind) && A.findIndex(o => o.name === q.name) === i && re.test(((q.kind || '') + ' ' + (q.type || '') + ' ' + (q.cat || '') + ' ' + (q.tags || []).join(' ') + ' ' + (q.name || '')).toLowerCase()) && !/^home/.test(q.id)).map(q => [Math.hypot(q.x - x, q.y - y), q]).sort((a, b) => a[0] - b[0]).slice(0, 3).map(a => ({ id: a[1].id, name: a[1].name, d: a[0] })); } catch (e) { out = []; }
+  if (id === 'fun' && G.guide && G.guide.near) try { for (const e of G.guide.near(x, y, 2, e => /show|venue|fun|try|event|music|art/.test(((e.chapter || '') + ' ' + (e.cat || '') + ' ' + (e.tags || []).join(' ')).toLowerCase()))) if (e.placeId && !out.some(o => o.id === e.placeId)) out.push({ id: e.placeId, name: e.title, d: Math.hypot(e.x - x, e.y - y) }); out = out.sort((a, b) => a.d - b.d).slice(0, 3); } catch (e) { }
+  if (id === 'social' && G.social && G.social.whereIs && G.social.friends) try { for (const f of G.social.friends()) { const w = G.social.whereIs(f.id || f); if (w && isFinite(w.x)) { out.unshift({ id: w.placeId || { x: w.x, y: w.y, name: f.name || 'Friend' }, name: (f.name || 'A friend') + (w.name ? ' at ' + w.name : ''), d: Math.hypot(w.x - x, w.y - y) }); break; } } out = out.slice(0, 3); } catch (e) { }
+  if (HOME_TIP[id]) try { const h = G.housing && G.housing.current && G.housing.current(), hp = h && (P.get('home:' + h.id) || P.get(h.placeId) || P.get(h.id)); if (hp) out.push({ id: hp.id, name: HOME_TIP[id], d: Math.hypot(hp.x - x, hp.y - y) }); } catch (e) { }
+  return out;
+}
+function fixNeed(n) {
+  const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
+  if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));
+  for (const q of L) m.body.append(el('button', { style: 'display:block;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', text: q.name + '  (' + Math.max(1, Math.round(q.d / 10)) * 10 + ' steps)', onclick: () => { try { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } catch (e) { toast('No route there yet.'); } m.close(); togglePanel(false); } }));
+  return m;
 }
 function togglePanel(on) { panelOpen = on === undefined ? !panelOpen : !!on; H.panel.classList.toggle('on', panelOpen); H.needs.classList.toggle('on', panelOpen); if (panelOpen) renderPanel(); }
 function pause(on) { on = on === undefined ? !pauseOn : !!on; if (on === pauseOn) return; pauseOn = on; G.modal += on ? 1 : -1; H.paused.classList.toggle('on', on); H.pauseB.classList.toggle('on', on); }

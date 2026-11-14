@@ -119,7 +119,7 @@ export function cabinLife(sc, o) {
   const mine = seats.reduce((a, b) => Math.hypot(b.x - o.seat.x, b.y - o.seat.y) < Math.hypot(a.x - o.seat.x, a.y - o.seat.y) ? b : a); mine.mine = true;
   const maxRow = Math.max(...seats.map(s => s.row));
   function reset() {
-    for (const p of pax) { const i = sc.ents.indexOf(p.ch); if (i >= 0) sc.ents.splice(i, 1); } pax.length = 0; st.on = false; st.t = 0; const r = rng(1234); let kid = false, strug = false;
+    for (const p of pax) { const i = sc.ents.indexOf(p.ch); if (i >= 0) sc.ents.splice(i, 1); } pax.length = 0; st.on = false; st.t = 0; st.free = false; st.freeT = 0; const r = rng(1234); let kid = false, strug = false;
     for (const s of seats) {
       if (s.mine || r() > .6 || (s.row === mine.row && (s.y > o.aisleY) === (mine.y > o.aisleY))) continue; const near = Math.abs(s.y - o.aisleY), isKid = !kid && s.row < mine.row - 1 && s.row > mine.row - 5 && near < 1 && s.y < o.aisleY, c = new Char(isKid ? specs().kid[1] : anySpec(r), s.x, s.y);
       if (isKid) kid = true; c.z = s.z; c.dir = 0; c.poseOpts = { seated: true }; c.pose = r() < .3 ? 'phone' : 'sit'; c.kind = 'traveller';
@@ -129,13 +129,18 @@ export function cabinLife(sc, o) {
     }
     st.left = pax.length;
   }
-  const blocked = (p, x0, x1) => { for (let i = 0; i < pax.length; i++) { const q = pax[i]; if (q !== p && (q.st === 3 || q.st === 4) && q.ch.x > x0 && q.ch.x < x1 && Math.abs(q.ch.y - o.aisleY) < .45) return true; } return false; };
+  const blocked = (p, x0, x1) => { for (let i = 0; i < pax.length; i++) { const q = pax[i]; if (q !== p && (q.st === 3 || q.st === 4) && q.ch.x > x0 && q.ch.x < x1 && Math.abs(q.ch.y - o.aisleY) < .45) return true; }
+    const pl = G.player; if (st.free && pl && !pl.hidden && pl.pose !== 'sit' && pl.x > x0 && pl.x < x1 && Math.abs(pl.y - o.aisleY) < .45) return true; return false; };
+  // deboarding is front-to-back: the player's turn comes when every row ahead has filed past; rows behind wait for release()
+  const behind = p => p.s.row < mine.row, backOff = () => st.freeT + 1.6 - (maxRow - mine.row) * TUNE.ROW_GAP;
+  function myTurn() { if (!st.on) return false; for (let i = 0; i < pax.length; i++) { const q = pax[i]; if (behind(q) || q.st >= 5) continue; if (q.st < 3 || q.ch.x < mine.row + 1.5) return false; } return true; }
+  function release() { if (!st.free) { st.free = true; st.freeT = st.t; } }
   function update(dt) {
     for (let i = 0; i < pax.length; i++) pax[i].ch.t += dt;
     if (!st.on) return; st.t += dt; let left = 0;
     for (let i = 0; i < pax.length; i++) {
       const p = pax[i], c = p.ch; if (p.st === 6) continue; left++;
-      if (p.st === 0) { if (st.t >= p.at) { p.st = 1; p.w = p.bag ? .9 : .4; c.poseOpts = null; c.z = 0; c.x = p.s.row + .72; c.pose = p.bag ? 'lift' : null; c.dir = p.s.y < o.aisleY ? 3 : 1; } }
+      if (p.st === 0) { if (behind(p) ? st.free && st.t >= p.at + backOff() : st.t >= p.at) { p.st = 1; p.w = p.bag ? .9 : .4; c.poseOpts = null; c.z = 0; c.x = p.s.row + .72; c.pose = p.bag ? 'lift' : null; c.dir = p.s.y < o.aisleY ? 3 : 1; } }
       else if (p.st === 1) { if ((p.w -= dt) <= 0) { p.st = 2; c.pose = null; if (p.bag) { c.carry = true; c.poseOpts = { item: 'bag', itemColor: p.bag }; } } }
       else if (p.st === 2) { const dy = o.aisleY - c.y, ad = Math.abs(dy); if (ad < .55 && blocked(p, c.x - .75, c.x + .6)) { c.moving = false; continue; } const s = Math.min(ad, 1.9 * dt); c.y += Math.sign(dy) * s; c.face(0, dy); c.moving = true; if (ad < .05) { p.st = 3; if (p.strug) { p.st = 4; p.w = 3.4; c.pose = 'lift'; c.poseOpts = null; c.dir = 3; c.moving = false; bubble(c, 'Hnngh... it fit on the way IN...'); } } }
       else if (p.st === 4) { if ((p.w -= dt) <= 0) { p.st = 3; c.pose = null; c.poseOpts = { item: 'bag', itemColor: p.bag }; bubble(c, 'Got it! Sorry, sorry!'); } }
@@ -148,7 +153,7 @@ export function cabinLife(sc, o) {
     }
     st.left = left;
   }
-  function fast() { for (const p of pax) { p.st = 6; p.ch.hidden = true; } st.left = 0; }
+  function fast() { for (const p of pax) { p.st = 6; p.ch.hidden = true; } st.left = 0; st.on = true; release(); }
   reset();
-  return { pax, st, mine, reset, update, fast, start() { st.on = true; st.t = 0; }, remaining: () => st.left };
+  return { pax, st, mine, reset, update, fast, myTurn, release, start() { st.on = true; st.t = 0; }, remaining: () => st.left };
 }

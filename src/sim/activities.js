@@ -298,6 +298,30 @@ function buildCity(scene) {
     const it = { scene: 'city', x: p.x, y: p.y, label: p.label || LABEL[tags[0]] || p.name || 'Spot', h: .8, range: 1.7, spot: p.spot || p.stand, poi: p, use: () => menu({ poi: p, tags, at: seat, title: p.name || LABEL[tags[0]] }) };
     cityRemovers.push(G.addInteractable(it));
   }
+  // bench / chair PROPS that carry seats but have no poi get a Sit spot too
+  try {
+    const taken = scene.world.pois.filter(p => p && worldTags(p).length), FL = [1, 0, 3, 2]; let n = 0;
+    for (const ob of scene.world.objs) {
+      const a = ob.a; if (!a || !a.seats || n >= 220) continue; let st = typeof a.seats === 'function' ? a.seats(ob.p || {}) : a.seats; if (!Array.isArray(st)) continue; st = st.filter(q => q && !q.lie); if (!st.length) continue;
+      const seats = st.map(q => ob.flip ? { x: ob.x + q.y, y: ob.y + q.x, z: (ob.z || 0) + (q.z || .45), dir: FL[q.dir || 0] } : { x: ob.x + q.x, y: ob.y + q.y, z: (ob.z || 0) + (q.z || .45), dir: q.dir || 0 });
+      const cx = seats.reduce((v, q) => v + q.x, 0) / seats.length, cy = seats.reduce((v, q) => v + q.y, 0) / seats.length; if (taken.some(p => Math.hypot(p.x - cx, p.y - cy) < 1.6)) continue; n++;
+      const poi = { type: 'bench', id: 'seat:' + n, name: 'Bench', x: cx, y: cy };
+      cityRemovers.push(G.addInteractable({ scene: 'city', x: cx, y: cy, label: 'Sit', h: .8, range: 1.7, poi, use: () => menu({ poi, tags: ['bench'], at: nearSeat(seats), title: 'Bench' }) }));
+    }
+  } catch (e) { console.warn('bench props: ' + e.message); }
+}
+const nearSeat = seats => { const p = G.player, ents = (G.scene && G.scene.ents) || [], free = seats.filter(q => !ents.some(c => c !== p && !c.hidden && Math.hypot(c.x - q.x, c.y - q.y) < .3)); return (free.length ? free : []).reduce((a, b) => !a || Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a, null); };
+/** generic "Sit": any fixture with a non-lying seat that no other activity claimed */
+function sitOn(fx) {
+  const seat = nearSeat(fx.seats.filter(q => !q.lie)); if (!seat) { toast('Every seat here is taken.'); return; } if (G.busy) return;
+  const p = G.player, t0 = G.state.t, rest = () => { const m = Math.max(0, Math.min(120, G.state.t - t0)); try { G.needs.add('energy', m * .08); G.needs.add('fun', m * .03); } catch (e) { } };
+  G.startActivity({ label: 'Sitting', anim: 'sit', minutes: 90, rate: 5, canCancel: true, done: rest, cancel: rest, at: { x: seat.x, y: seat.y, z: seat.z || 0, dir: seat.dir } });
+  if (seat.z) p.poseOpts = { seated: true };
+}
+function addSeats(sc) {
+  if (!sc || sc.id === 'city' || !Array.isArray(sc.fixtures) || !Array.isArray(sc.interactables)) return;
+  for (const fx of sc.fixtures) { if (!fx.seats || !fx.seats.some(q => !q.lie) || fx.tags.includes('bed') || fx.tags.includes('bath') || fx._sit || sc.interactables.some(it => it.fx === fx)) continue; fx._sit = true;
+    sc.interactables.push({ x: fx.x, y: fx.y, h: Math.min(1.2, fx.ob.size[2]), hit: 14, range: 1.8, spot: fx.use || undefined, fx, label: 'Sit', act: true, use: () => sitOn(fx) }); }
 }
 
 export function init() {
@@ -311,6 +335,7 @@ export function init() {
     seen.add(fx); const acts = forTags(tags, scene);
     return { label: !special && acts.length === 1 ? acts[0].name : LABEL[tags[0]] || 'Use', act: true, use: () => menu({ fx, tags }) };
   });
-  G.on('scene', s => { if (s && s.id === 'city') buildCity(s); });
+  G.on('scene', s => { if (s && s.id === 'city') buildCity(s); })
+  G.on('scene', s => { try { addSeats(s); } catch (e) { console.warn('seats: ' + e.message); } });
   G.on('activityEnd', () => { if (G.player) G.player.poseOpts = G.busy ? G.player.poseOpts : null; });
 }

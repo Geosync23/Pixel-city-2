@@ -60,7 +60,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
 
 /* ================= the plane ================= */
 {
-  const items = [WY('airport.cabin.wall', 0, { n: 19 }), WY('airport.cabin.door', 19), WY('airport.cabin.bulkhead', 20.5, { w: 1.5 }), WX('airport.cabin.bulkhead', 0, { w: 5 }),
+  const SH = { solid: false }, items = [A('cabin.tail', 0, 0, {}, SH), A('cabin.cove', 0, 0, { len: 22 }, { z: 2.2, solid: false }), A('cabin.skin', 0, 5, { len: 22, wing: 8 }, SH), A('cabin.nose', 22, 0, {}, SH), WY('airport.cabin.wall', 0, { n: 19, wing: [7, 12] }), WY('airport.cabin.door', 19), WY('airport.cabin.bulkhead', 20.5, { w: 1.5 }), WX('airport.cabin.bulkhead', 0, { w: 5 }),
     A('cabin.aisle', 0, 2, { len: 22 }), A('cabin.bins', 0, 0, { len: 19, open: 1, seed: 4 }, { z: 1.72, solid: false }), A('cabin.galley', 20.5, .5), A('cabin.galley', 20.5, 3.5)];
   for (let i = 0; i < 17; i++) { items.push(A('cabin.seats', 1.5 + i, .5, { c: i < 3 ? '#2f7f86' : NAVY }), A('cabin.seats', 1.5 + i, 3, { c: i < 3 ? '#2f7f86' : NAVY })); }
   mkRoom({ id: 'airport:plane', name: 'Maple Air MB 417', venue: 'airport', w: 22, d: 5, zoom: 0, music: 'quiet', noCrowd: true, floor: GT.f_carpet, wall: { color: '#e6eaee', trim: '#8e9aaa', h: 2.2 }, bg: '#10131c',
@@ -94,7 +94,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
   items.push(Object.assign(WY('airport.tram.pdoors', 57.5, { w: 6, text: 'TRAM > BAGGAGE CLAIM' }), { k: 'tram' }), A('decal', 57.5, .5, { kind: 'line', w: 6, d: .5 }), A('decal', 59.5, 1.4, { kind: 'arrow', w: 2, d: 1, dir: 1, c: '#2f8f96' }), A('column', 56.6, .4), A('column', 63.4, .4),
     A('seats', 57.2, 4.4, { n: 6, back: 1, c: ORNG }, { n: 'seats' }), win(WX, 1, 'takeoff', 3), WX('airport.greenwall', 7, { w: 6, text: 'MAPLE BAY' }));
   // spine: walkways, garden, coffee
-  for (const [a, b] of RUNS) { const len = b - a; items.push(A('walkway', a, 6.5, { len, dir: 1 }), A('walkway', a, 8, { len, dir: -1 }), A('walkway.rail', a, 6, { len, d: .5, at: .36 }), A('walkway.rail', a, 7.5, { len, d: .5 }), A('walkway.rail', a, 9, { len, d: .5, at: .02 }), A('decal', a - 2, 6.5, { kind: 'arrow', dir: 1 }), A('decal', b, 8, { kind: 'arrow', dir: -1 })); }
+  for (const [a, b] of RUNS) { const len = b - a; items.push(A('walkway', a, 6.5, { len, dir: -1 }), A('walkway', a, 8, { len, dir: 1 }), A('walkway.rail', a, 6, { len, d: .5, at: .36 }), A('walkway.rail', a, 7.5, { len, d: .5 }), A('walkway.rail', a, 9, { len, d: .5, at: .02 }), A('decal', a - 2, 8, { kind: 'arrow', dir: 1 }), A('decal', b, 6.5, { kind: 'arrow', dir: -1 })); }
   items.push(A('fids', 1.5, 7.4, { w: 5 }, { k: 'fids1', fids: 1 }), A('tree', 20.8, 6.9, { kind: 'ficus', bench: 1 }, { n: 'seats' }), A('raincurtain', 23.5, 6.3), A('pond', 23, 7.1, null, { k: 'pond' }), A('tree', 27.6, 6.9, { kind: 'maple' }),
     A('mobile', 22.5, 6.3, { w: 5, d: 3, seed: 3 }, { z: 2.9, solid: false }), A('shop.back', 41, 6.3, { kind: 'coffee', w: 4 }), A('shop.counter', 41.5, 7.7, { kind: 'coffee', w: 3 }, { k: 'coffee', n: 'staff use', outfit: 'cook' }), A('column', 54.75, 7.5));
   for (const [x, text, w, c] of [[2.5, 'TRAM + BAGGAGE >', 5], [20.3, '< B1-B3   B4-B6 >', 5, '#2f8f96'], [40.2, 'TRAM + BAGGAGE >', 5], [53.5, 'TRAM >', 3, '#2f8f96']]) items.push(A('sign', x, 5.55, { text, w, c }, { z: 2.6, solid: false }));
@@ -111,8 +111,8 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
     wall: { color: '#eef1f3', trim: '#9aa5b0', h: H }, items, npc, exits: [{ x: 60.5, y: 1.1, label: 'Tram to Baggage Claim', use: G => (G.airtram ? G.airtram.ride('terminal') : G.go('int:airport:terminal')) }], spawn: { x: 6.5, y: 2.3, dir: 1 },
     setup(sc, G) {
       const tick = plumbing(sc, G), W = sc.world;
-      sc.belts = []; for (const [a, b] of RUNS) sc.belts.push({ x0: a + O + .1, x1: b + O - .1, y0: 6.5 + O, y1: 7.5 + O, dir: 1 }, { x0: a + O + .1, x1: b + O - .1, y0: 8 + O, y1: 9 + O, dir: -1 });
-      sc.spots = { jet: { x: 6.5 + O, y: 2.3 + O }, belt: { x: 8.6 + O, y: 7 + O }, tram: { x: 60.5 + O, y: 1.2 + O }, coffee: { x: 43 + O, y: 8.75 + O }, pond: { x: 25 + O, y: 8.1 + O } };
+      sc.belts = []; for (const [a, b] of RUNS) sc.belts.push({ x0: a + O + .1, x1: b + O - .1, y0: 6.5 + O, y1: 7.5 + O, dir: -1 }, { x0: a + O + .1, x1: b + O - .1, y0: 8 + O, y1: 9 + O, dir: 1 });
+      sc.spots = { jet: { x: 6.5 + O, y: 2.3 + O }, belt: { x: 8.6 + O, y: 8.5 + O }, tram: { x: 60.5 + O, y: 1.2 + O }, coffee: { x: 43 + O, y: 8.75 + O }, pond: { x: 25 + O, y: 8.1 + O } };
       sc.add('coffee', 'Bay Brew coffee bar', shop(G, 'stand_coffee')); sc.add('noodle', 'Noodle bar', shop(G, 'ramen')); sc.add('news', 'News & Books', shop(G, 'bookstore')); sc.add('dutyfree', 'Duty free', shop(G, 'cornerstore'));
       sc.add('pond', 'Watch the koi', () => G.startActivity({ label: 'Watching the koi', anim: 'stand', minutes: 12, done: () => { try { G.needs.add('fun', 8); } catch (e) { } toast('Five koi. One of them is definitely the boss.', 'good'); } }));
       sc.interactables.push({ x: 2.5 + O, y: .4 + O, h: 1.8, hit: 16, range: 1.6, label: 'Watch the planes', use: () => G.startActivity({ label: 'Watching the planes', anim: 'stand', minutes: 15, done: () => { try { G.needs.add('fun', 9); } catch (e) { } toast(pick(['A Maple Air jet pushes back, slow as a ferry.', 'A tiny tug hauls a very long train of bags.', 'Wheels up - there goes the 2:40 to Lisbon.']), 'good'); } }) });
@@ -128,11 +128,11 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
       sc.paLines = ['The tram to Baggage Claim and the Main Terminal leaves from the east end of Concourse B.', 'Please keep your bags with you at all times. Unattended snacks will be eaten.', 'Passenger Wendell Okafor, please return to the noodle bar. You forgot your noodles.', 'Welcome to Maple Bay International. Local time is {clock}.', 'Maple Air flight MB 118 to Lisbon is delayed. We are very sorry. The plane is also sorry.'];
       // walkers
       const east = () => { const k = Math.random(), tail = [[56.6, 5.4], [60.5, 2.2], [60.5, 1.1]]; const st = Math.random() < .3 ? [[6.5, 2], [6.7, 5.7]] : [[.8, k < .75 ? 5.7 : 10.5]];
-        if (k < .5) return { pts: WP([...st, [7, 5.7], [7.7, 7], [20.4, 7], [20.6, 5.7], [29.4, 5.7], [29.7, 7], [40.3, 7], [40.6, 5.7], [45.4, 5.7], [45.7, 7], [54.3, 7], ...tail]) };
+        if (k < .5) return { pts: WP([...st, [7, 10.5], [7.7, 8.5], [20.4, 8.5], [20.6, 10.5], [29.4, 10.5], [29.7, 8.5], [40.3, 8.5], [40.6, 10.5], [45.4, 10.5], [45.7, 8.5], [54.3, 8.5], ...tail]) };
         if (k < .75) return { pts: WP([...st, [15 + Math.random() * 30, 5.7, Math.random() < .3 ? { wait: 4, pose: 'phone' } : null], [56.5, 5.7], ...tail]) };
         return { pts: WP([[.8, 10.5], [16.5 + Math.random() * 3, 12.6, { wait: 5, dir: 3 }], [22, 10.5], [44.6, 9.6, Math.random() < .4 ? { wait: 5, dir: 3 } : null], [55, 10.4], [58.5, 5.4], ...tail.slice(1)]) }; };
       const west = () => { const k = Math.random(), head = [[60.5, 1.2], [59.4, 4.4]];
-        if (k < .5) return { pts: WP([...head, [55.6, 8.5], [45.7, 8.5], [45.4, 10.5], [40.6, 10.5], [40.3, 8.5], [29.7, 8.5], [29.4, 10.5], [20.6, 10.5], [20.3, 8.5], [7.7, 8.5], [5.5, 10.4], [.8, 10.4]]) };
+        if (k < .5) return { pts: WP([...head, [55.6, 7], [45.7, 7], [45.4, 5.7], [40.6, 5.7], [40.3, 7], [29.7, 7], [29.4, 5.7], [20.6, 5.7], [20.3, 7], [7.7, 7], [5.5, 10.4], [.8, 10.4]]) };
         const g = pick(GATES.slice(1)); if (k < .8) return { pts: WP([...head, [56.5, 5.7], [g.x + 7.3, 5.7], [g.x + 7.1, 3 + Math.random(), { wait: 6, pose: 'phone' }], [g.x + 6.5, 1.3]]) };
         return { pts: WP([...head, [55.5, 10.5], [32 + Math.random() * 6, 10.6, Math.random() < .5 ? { wait: 4, pose: 'phone' } : null], [.8, 10.5]]) }; };
       const st = populate(sc, {}), wk = walkers(sc, { n: WALKERS.concourse, belts: sc.belts, route: () => (Math.random() < .55 ? east() : west()) });
