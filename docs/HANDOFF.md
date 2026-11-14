@@ -1,17 +1,14 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 21:58 UTC) — STILL WORKING THIS WINDOW (owner reported 41% used at ~21:55; account move comes after)
-- **Context note (22:05 UTC):** the owner warned the lead's memory is nearly full — a compaction is likely soon. After it: re-read CLAUDE.md + this file; the fix pack 2 worker's report will arrive as a message; do the playbook loop
-  (docs/reports/fixpack2.md, build, 1 screenshot, commit + push, publish with base_version from `get_artifact`), then launch the item-icons worker. Owner usage readings: 41% at 21:55, 46% at 22:03 (stop launching at ~85%).
-- **Calibration:** two economical workers (189k + 142k tokens) + lead integration cost ~15% of the 5-hour window. So run them one at a time back-to-back until the owner reports ~85%, then clean stop.
-- **Running worker:** FIX PACK 2 + NAVIGATOR, launched 21:57 UTC; may EDIT EXISTING FILES. Items: (1) verify/finish station stairs [src/sim/rail.js], (2) verify/fix city bench sitting [src/sim/activities.js],
-  (3) intro smoke test + cabin tail check [src/sim/intro_airport.js, src/art/airport_interior/cabin.js], (4) train flicker overhead [src/sim/rail.js sort boxes], (5) data-driven need->place matching [src/ui/hud.js, new src/sim/navigator.js],
-  (6) Maps navigator: "Where to?" chips + route card with WALK / BUS / TRAIN / CAB and multi-leg trip banner, `G.nav` [src/ui/phone_map.js, src/sim/navigator.js], (7) "Free — prepaid" taxi fare [src/ui/phone_taxi.js].
-  If the session ends before it reports: `node tools/build.mjs`, `git diff --stat`, test those items, finish the remainder.
-- **Queue for the rest of this window, one at a time, clean stop after each:** real item icons (backpack/shop colour squares) -> 2g unique interiors + more enterable buildings (lobbies, separate bathrooms, toilets/bladder)
-  -> 2h apps (app store, Properties browser, Living Tips). Stop launching when the owner reports ~85%.
-- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794692688-4db5` (Stage 11). The new account must publish its own artifact (see MOVING section below).
+## Now (updated 2026-11-14 22:25 UTC) — STILL WORKING THIS WINDOW (owner readings: 41% at 21:55, 46% at 22:03; stop launching at ~85%; account move comes after)
+- **Done this window:** performance venues (Stage 9), Wander guidebook (Stage 10), fix pack 1 (Stage 11), fix pack 2 + Maps navigator (Stage 12, artifact version `1794693873-7b6a`; docs/reports/fixpack2.md).
+- **Running worker:** ITEM ICONS (real 16x16 icons for all ~365 items + app/need/job icons), launched 22:24 UTC. It owns src/art/icons/ and may minimally edit src/ui/_icons.js.
+  If the session ends before it reports: `node tools/build.mjs`, `node tools/gallery.mjs icon. --scale 5 --out icons`, check the backpack shows real icons, finish coverage.
+- **After it reports:** playbook loop (docs/reports/icons.md, build, 1 screenshot of the backpack, commit + push, publish with base_version from get_artifact), then — if the owner's usage reading allows — next worker:
+  2g unique interiors + more enterable buildings (lobbies, separate bathrooms, toilets/bladder), then 2h apps (app store, Properties browser, Living Tips).
+- **Calibration:** an economical worker (~150-190k tokens) + lead integration costs roughly 6-8% of the 5-hour window.
+- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794693873-7b6a` (Stage 12). The new account must publish its own artifact (see MOVING section below).
 - **NEXT, in order (nothing started):**
   1. [DONE] GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
      venue, show, event, activity/mini-game, transit line; chapters + by district + near me; "Things to try" checklist with stamps; active links: "Take me there" waypoint, "Add to planner" for scheduled shows/events
