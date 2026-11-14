@@ -23,3 +23,4 @@
 - Public-places pass landed: 61 buildings converted (53 enterable, 8 walk-up), groceries near every starter home, street names + addresses on the phone map. Stage 7 published.
 - Owner asked to continue with showpiece interiors and for GitHub instructions. Launched showpieces A (mall + SkyDeck).
 - Owner direction update 7: concert hall, cinema with real short films, theater show (queued as showpieces B).
+- GitHub access fixed by the owner; branch pushed for the first time (full history).
