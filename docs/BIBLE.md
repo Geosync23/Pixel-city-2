@@ -74,3 +74,9 @@ Arts Quarter. Every couple of days a small story beat arrives on the phone (visi
   (from needs, people, places, events, jobs, the story); Appointments are scheduled ones in the planner. A stronger MAIN STORY — a gentle
   narrative adventure advanced at the player's own pace — leads through all the showpiece places while the life sim stays free-form.
 - **Housing ladder**: cool apartments and houses to slowly work up to. **Workplaces**: every job's workplace is interesting and enterable.
+
+## Direction update 3 — 15 more jobs (25 total), each with an interior workplace
+gate agent (airport concourse), baggage handler (airport baggage hall), station agent (Central Station), retail associate (shopping mall),
+museum guide (city museum), florist (botanical conservatory / flower shop), radio DJ (radio station studio), teacher (Maplewood school classroom),
+vet assistant (vet clinic), sous-chef (The Gilded Gull kitchen), hotel concierge (downtown hotel lobby), software developer (tech startup loft),
+reporter (Maple Bay Gazette newsroom; assignments around the city), hair stylist (salon; the player can also change hair there), firefighter (fire station).
