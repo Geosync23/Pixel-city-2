@@ -1,6 +1,8 @@
 # Backlog (lead's queue — one worker at a time; update as items land)
 DONE: engine, art sets (chars, airport ext, transit, home, venue fixtures), data, narrative data, city gen, sim core + HUD, phone, traffic/taxi/bus, housing, venue rooms, crowd, social, intro + story + planes, jobs (10), rail + Central Station, stalls sell + door glow (src/sim/stalls.js).
-RUNNING: airport interior + new opening (src/art/airport_interior, src/scenes/rooms/airport.js, src/sim/intro_airport.js).
+DONE too: airport interior + new opening; unique street names + addresses; riders on two-wheelers; lead docs (CLAUDE.md, LEAD_PLAYBOOK, STATUS, HISTORY, OWNER_NOTES).
+RUNNING: item 1 below (public places pass: src/sim/public_places.js, src/scenes/rooms/generic_venues.js, src/data/venues_extra.js, src/ui/phone_map.js).
+PACING: one worker at a time, pause between hand-offs (~2-3 runs per 5-hour window).
 NEXT (in order):
 1. "Public places pass" (owner feedback): street names drawn on the phone Map app (world.roads names; label along roads when zoomed in, list/search optional); EVERY cafe / restaurant / shop-looking building
    in the city is either enterable (generic template interiors with varied names/colours: cafe, diner, pizza, bakery, bar, boutique, bookshop, grocery small/medium) or has a walk-up counter that sells; 2-3 more grocery stores of
