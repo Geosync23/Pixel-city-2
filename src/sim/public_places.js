@@ -16,6 +16,7 @@ import { toast, choose } from '../ui/kit.js';
 import { ROOMS, enterRoom, registerFixture } from '../scenes/interior.js';
 import { room } from '../scenes/rooms/venues_lib.js';
 import { genericRoom } from '../scenes/rooms/generic_venues.js';
+import { uniqueRoom } from '../scenes/rooms/unique_rooms.js';
 import { GEN_TYPES, registerInstance } from '../data/venues_extra.js';
 import { VENUE_BY_ID } from '../data/venues.js';
 import { getCity } from '../world/_city.js';
@@ -95,7 +96,7 @@ function ensure(w) {
     if (used.has(name)) name += ' ' + (district[0].toUpperCase() + district.slice(1)); used.add(name);
     const id = (win ? 'pubw:' : 'pub:') + n, v = registerInstance(T.id, id, name, district, win ? { walkup: true } : null);
     const poi = w.poi(win ? { type: 'stall', id: 'stall:' + id, venue: id, name, x: sp.x, y: sp.y, district, pub: true } : { type: 'door', id: 'door:' + id, room: id, name, x: sp.x, y: sp.y, dir: sp.dir === undefined ? 1 : sp.dir, district, pub: true });
-    if (!win && !has(id)) capSpots(room(Object.assign(genericRoom(T.tpl, n, { name, sign: T.sign, kind: T.kind }), { id, venue: id })));
+    if (!win && !has(id)) capSpots(room(Object.assign(uniqueRoom({ id, n, name, type: T.id, tpl: T.tpl, kind: T.kind || '', district }) || genericRoom(T.tpl, n, { name, sign: T.sign, kind: T.kind }), { id, venue: id })));
     const pl = { id, n, name, type: T.id, tpl: T.tpl, kind: T.kind || '', cat: T.type, walkup: win, x: sp.x, y: sp.y, district, poi, venue: v, ob, get address() { return poi.address || (G.address && G.address.of(poi) || {}).text || ''; } };
     PL.push(pl); BY.set(id, pl);
   }
@@ -109,7 +110,7 @@ const api = {
   groceries() { const o = PL.filter(isGrocery).map(p => ({ id: p.id, name: p.name, x: p.x, y: p.y, size: p.tpl === 'bodega' ? 'small' : 'medium' })), w = built; for (const [rid, size] of [['grocery', 'large'], ['cornerstore', 'small']]) { const d = w && w.pois.find(p => p.id === 'door:' + rid); if (d) o.push({ id: rid, name: (VENUE_BY_ID[rid] || {}).name || rid, x: d.x, y: d.y, size }); } return o; },
   census() { const c = { total: PL.length, enterable: 0, walkup: 0, district: {}, template: {}, skipped }; for (const p of PL) { if (p.walkup) c.walkup++; else { c.enterable++; c.template[p.tpl] = (c.template[p.tpl] || 0) + 1; } c.district[p.district] = (c.district[p.district] || 0) + 1; } return c; },
   // debug: build + enter any template/layout: debugRoom('gen_restaurant', 3) (seed parity picks the layout)
-  debugRoom(typeId, seed = 1) { const T = GEN_TYPES[typeId]; if (!T) return null; const id = 'pub:dbg_' + typeId + '_' + seed; registerInstance(typeId, id, T.name + ' (test)', 'downtown'); if (!has(id)) room(Object.assign(genericRoom(T.tpl, seed, { name: T.name, sign: T.sign, kind: T.kind }), { id, venue: id })); return enterRoom(id); },
+  debugRoom(typeId, seed = 1) { const T = GEN_TYPES[typeId]; if (!T) return null; const id = 'pub:dbg_' + typeId + '_' + seed; registerInstance(typeId, id, T.name + ' (test)', 'downtown'); if (!has(id)) room(Object.assign(uniqueRoom({ id, n: seed, name: T.name, type: T.id, tpl: T.tpl, kind: T.kind || '', district: 'downtown' }) || genericRoom(T.tpl, seed, { name: T.name, sign: T.sign, kind: T.kind }), { id, venue: id })); return enterRoom(id); },
 };
 const fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 async function serviceMenu(v, scene) {

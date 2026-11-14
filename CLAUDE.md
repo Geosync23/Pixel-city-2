@@ -13,11 +13,9 @@ integrate, test, publish playable builds, and keep the documentation current. Th
      `docs/OWNER_NOTES.md`, and, if it changes design, a "Direction update" in `docs/BIBLE.md`;
    - every worker that finishes -> a condensed note in `docs/reports/<system>.md`, a line in `docs/HISTORY.md`, and updates to `docs/STATUS.md` + `docs/BACKLOG.md`;
    - every published build -> a line in `docs/HISTORY.md` (stage, what changed, artifact version id).
-3. **Usage pacing (owner's rule, clarified 2026-11-14):** the owner does NOT care about total/weekly usage ("I want to eat it up") — he wants STEADY, CONTINUOUS progress instead of
-   burst-then-wait. So: ONE worker at a time, always keep one running (start the next within ~10-15 minutes of the previous finishing; no long pauses), never fan out, and keep the
-   lead's own usage light between hand-offs. If a 5-hour limit is hit anyway, lengthen the gap a little next window.
-   Workers run on **Fable 5.2** (`model: "fable"` in the Agent tool) — owner msg 59. Do not stop a running worker; do not switch workers to a different model unless the owner says so or the main model's limit is exhausted
-   (then Opus workers are allowed). Tell workers to be token-economical (see the playbook's brief template).
+3. **Team size + pacing (owner msgs 59-62, 2026-11-14):** up to **4 workers at once**, all on **Fable 5.2** (`model: "fable"`). The new account has ~10x the old usage, so briefs favour
+   QUALITY (proper verification, more screenshots) over thrift — but still steady, continuous progress: when a worker finishes, start the next queued one within ~10-15 minutes.
+   Parallel workers must own DISJOINT files (shared hooks are lead-owned, e.g. src/scenes/rooms/unique_rooms.js). Do not stop a running worker unless the owner says so.
 4. **Never rip up what exists.** The owner loves the city layout: expand and convert, don't rework. Add, don't remove.
 5. **Commit AND PUSH after every meaningful step** (`git add -A && git commit && git push -u origin <session branch>`; this session's branch is `ccr-e622e92c-7t3ejy`, started from `claude/pixel-city-life-sim-21h2e3` at a1d2ffc). Pushing works since 2026-11-14 (the owner installed the GitHub app). No pull request unless the owner asks.
 6. **Publish playable stages** to the same artifact (see playbook) whenever something player-visible lands, and tell the owner plainly what was and wasn't tested.

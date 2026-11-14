@@ -271,3 +271,9 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 60 — Team size question
 > How large is the team going to be for the next steps
+
+## 61 — Team of 4
+> You can do a team of 4 workers at once. What's the plan of action/order of next steps
+
+## 62 — Bigger plan now
+> The previous usage calculations were on a diffeent plan. Were on ultra now to 10x that

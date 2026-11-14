@@ -57,3 +57,4 @@
 - 2026-11-14 (new account): new lead took over on branch ccr-e622e92c-7t3ejy (from a1d2ffc). npm install + build OK, smoke screenshot OK. Stage 14 republished as a NEW artifact https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (version 1794695918-0180).
 - 2026-11-14 (new account): 2g split into 2g-1..2g-4; worker 2g-1 (unique food & drink interiors, ~33 pub rooms + taqueria PIZZA sign fix) launched.
 - 2026-11-14: owner msg 59 -> stopped the 2g-1 worker (no files written yet) and relaunched it on Fable 5.2; workers use Fable from now on.
+- 2026-11-14: owner msgs 61-62 -> team of up to 4 Fable workers, ~10x usage. Lead added src/scenes/rooms/unique_rooms.js hook. Wave A launched: 2g-1 food, 2g-2 shops, 2g-3 lobbies, 2g-4 bladder+bathrooms. Wave plan B-E in HANDOFF.

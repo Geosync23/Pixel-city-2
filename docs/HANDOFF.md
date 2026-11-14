@@ -2,17 +2,25 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-14, NEW ACCOUNT — first session)
-- **New lead on the new account.** Branch `ccr-e622e92c-7t3ejy` (started from `claude/pixel-city-life-sim-21h2e3` @ a1d2ffc; push here). New playable artifact: https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
-  (Stage 14 republished, version 1794695918-0180). npm install + build + one smoke screenshot verified by the lead.
-- **2g split into four workers (one at a time):** 2g-1 unique rooms for every food & drink place (~33 of the 53 converted `pub:<n>` rooms; also fixes the taqueria "PIZZA" counter) ->
-  2g-2 unique rooms for the ~20 shops/services/groceries -> 2g-3 lobbies: many more enterable apartment + office buildings -> 2g-4 home bathrooms as their own room + toilets + bladder need.
-- **Workers use Fable 5.2** (owner msg 59; Agent tool `model: "fable"`).
-- **Running worker:** 2g-1 (food & drink unique interiors), restarted on Fable 5.2 (the first run was stopped before writing any files). Owns NEW files src/scenes/rooms/places_food*.js + docs/reports/unique_food.md; may edit ONLY the `genericRoom(...)` call site in src/sim/public_places.js
-  (hook: unique room builder first, generic template as fallback). If it is gone after a restart: check those files, then brief a new worker with "these files exist; continue".
-- After 2g: 2i clothes/hair/laundry -> 2j traits/skills/mini-games + university -> 2c museum/conservatory/hotel/post offices -> 2k big city events -> 3 jobs expansion -> 4b relationships -> 4c goods/home design -> 4 needs + Opportunities -> 5 art -> 6 QA.
-- **Small open items (warm-ups):** Circle app releases immediately (count only non-family); `app.*` icon art for new apps; confirm a sit on a city bench; two "Beacon" buildings; SkyDeck telescope discovery unverified;
-  weather isWet bug; nobody has HEARD the show music; fuel tanks near the runway end; bus headways long / walking slow; calendar "Add to planner" duplicates; NPCs should mention Living Tips; MapleCab fare on free first ride.
-- **Nobody has done a full hand playthrough from New Game yet** (item 6).
+- **New lead on the new account.** Branch `ccr-e622e92c-7t3ejy` (started from `claude/pixel-city-life-sim-21h2e3` @ a1d2ffc; push here). Artifact: https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
+  (Stage 14 republished, version 1794695918-0180).
+- **Team: up to 4 Fable 5.2 workers in parallel** (owner msgs 59-62; ~10x usage now -> briefs favour quality). Disjoint files per worker; lead owns shared hooks.
+- **RUNNING — Wave A (2g), 4 workers:**
+  - 2g-1 food & drink unique rooms: owns src/scenes/rooms/places_food*.js, src/art/venue/places_food_art.js, docs/reports/unique_food.md (registers via unique_rooms.js; told NOT to edit public_places.js).
+  - 2g-2 shops/services/groceries unique rooms: places_shops*.js, src/art/venue/places_shop_art.js, docs/reports/unique_shops.md.
+  - 2g-3 apartment + office lobbies (25+): src/sim/lobbies.js (order 60), src/scenes/rooms/lobbies*.js, src/art/venue/lobby_art.js, docs/reports/lobbies.md.
+  - 2g-4 bladder need + toilets + home bathrooms as own rooms + venue/park restrooms: src/sim/bladder.js; may edit data/needs.js, sim/needs.js, data/activities.js, sim/activities.js, HUD needs file, rooms/homes.js, sim/housing.js, interior.js (additive), navigator need data. docs/reports/bladder_bath.md.
+  - Lead-owned hook added: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom) + call sites in src/sim/public_places.js.
+  - If a worker is gone after a restart: check its files above, then brief a new worker "these files exist; continue".
+- **PLAN (waves of up to 4; next wave's workers start as slots free up):**
+  - Wave B: 2i clothes/hair/laundry (uses 2g-4 bathrooms/washers) | 2j traits + skills + in-world mini-games | 2j university campus (new lots at the city edge) | 2c museum + conservatory + hotel lobby + post offices.
+  - Wave C: 2k big city events (5-6/year, in-world parades/festivals) | 3 jobs expansion: writer (25 job arcs as data) | 3 jobs: 15 new jobs + workplaces + job-story engine | 4b relationships/vignettes/romance + dating app.
+  - Wave D: 4c goods catalogue + furniture/plant stores + physical shopping | 4c home design mode + online shipping | 4 new needs + Opportunities | 5 art catch-up (building sets, props, terrain/water, audio, weather, title/creator).
+  - Wave E: 6 QA — full New Game playthrough, mobile pass, performance, save/load, balance; plus the small open items below. FUTURE: city +50-100%.
+  - Publish a stage whenever a worker's player-visible work is integrated and checked.
+- **Small open items:** Circle app releases immediately; `app.*` icons for new apps; city-bench sit; two "Beacon" buildings; SkyDeck telescope discovery; weather isWet bug; show music never heard;
+  fuel tanks near runway end; bus headways/walk speed; calendar "Add to planner" duplicates; NPCs mention Living Tips; MapleCab fare on free first ride.
+- **Nobody has done a full hand playthrough from New Game yet** (Wave E).
 
 ## Previous "Now" (old account, Stage 14 clean stop) — kept for reference
 - **Running worker: NONE. No timers pending. Nothing half-done on disk.** Everything is integrated, published (Stage 14, artifact version `1794695264-28f5`) and pushed.
