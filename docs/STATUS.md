@@ -1,5 +1,5 @@
 # Status — what exists right now (update whenever something lands)
-Last updated: stage 9 (performance venues) + playtest quick fixes.
+Last updated: stage 10 (Wander guidebook app).
 
 ## Engine & tools (lead-written) — src/engine, src/core, tools/
 - `raster.js` pixel rasteriser (16 px/unit, 2:1 iso, glow/lit light layer, flip mode, patterns, 3x5 font, season helpers); `world.js` (vertex-height terrain, ground types, objects, nav grid 0.5u, pois, decals);
@@ -33,6 +33,7 @@ Last updated: stage 9 (performance venues) + playtest quick fixes.
 
 - showpieces A: mall `deptstore` (10 shops + food court, 83 new items) and SkyDeck (`skydeck_lobby`, `skydeck`) — docs/reports/showpieces_a.md.
 - shows: cinema with 4 real short films, Symphony Hall with animated orchestra (3 pieces), Lantern Playhouse (3 shows); shared ticket/audience/show engine G.shows — docs/reports/shows.md.
+- guide: 'Wander' guidebook app (272 auto-built entries, What's On, Stamp Book, waypoint + planner links) — docs/reports/guide.md.
 
 ## Known issues / debts
 generic eateries reuse the pizza counter art (a taqueria shows "PIZZA"): needs a neutral or per-cuisine counter sign; weather setWeather('clear') doesn't clear isWet(); item icons missing; MapleCab shows fare on free first ride; story recipes/discounts/keepsakes not wired into cooking/shop/home; seated player may sort behind flipped sofa;
