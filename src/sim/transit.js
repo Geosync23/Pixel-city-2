@@ -85,7 +85,7 @@ function finish(sp, ok = true) {
 }
 function rideTick(dt) {
   const r = ride; if (!r) { G.cutscene = null; return; } const v = r.vehicle, p = G.player; p.x = v.x; p.y = v.y; p.z = v.z; r.t += dt;
-  const extra = 4 - G.state.speed; if (extra > 0) G.advance(dt * extra);
+  const extra = 1.5 - G.state.speed; if (extra > 0) G.advance(dt * extra); // rides pass at 1.5 game-min per second
   if (!v.active) return finish(curbSpot(p.x, p.y, p.x, p.y), false);
   if (r.kind === 'taxi') { r.done += v.v * dt; r.progress = Math.min(1, r.done / r.total); if (r.t > r.total / 4 + 90 && !r.skipping) skipRide(); }
   if ((tD -= dt) <= 0) {
@@ -123,7 +123,7 @@ function skipRide() {
   const r = ride; if (!r || r.kind !== 'taxi' || r.skipping) return; r.skipping = true; const f = G.fadeEl; G.modal++; if (f) f.classList.add('on');
   setTimeout(() => {
     try {
-      if (ride === r) { const v = r.vehicle, rt = r.route; if (rt) { TX().setPlan(v, null); TX().place(v, rt.to.e, rt.to.off, rt.to.s); } v.v = 0; G.advance(Math.max(0, r.total - r.done) / 10 * 4); G.player.x = v.x; G.player.y = v.y; arriveTaxi(); G.snapCam(); }
+      if (ride === r) { const v = r.vehicle, rt = r.route; if (rt) { TX().setPlan(v, null); TX().place(v, rt.to.e, rt.to.off, rt.to.s); } v.v = 0; G.advance(Math.max(0, r.total - r.done) / 10 * 1.5); G.player.x = v.x; G.player.y = v.y; arriveTaxi(); G.snapCam(); }
     } finally { G.modal--; setTimeout(() => f && f.classList.remove('on'), 80); }
   }, 280);
 }

@@ -51,7 +51,7 @@ function makeScene(id, arg) { let f = G.scenes.get(id); if (!f) { const p = id.s
  * Switch scene. opts: { x, y (spawn), poi: id of a world poi to spawn at, dir, arg, fade: false to cut, fresh: rebuild scene }
  * Scenes are cached (city forever; the last few interiors).
  */
-G.go = (id, opts = {}) => new Promise(res => {
+G.go = (id, opts = {}) => new Promise((res, rej) => {
   const doIt = () => {
     const prev = G.scene; if (prev && prev.onExit) prev.onExit(id);
     let s = !opts.fresh && G.sceneCache.get(id); if (!s) { s = makeScene(id, opts.arg); G.sceneCache.set(id, s); if (G.sceneCache.size > 6) for (const k of G.sceneCache.keys()) { if (k !== 'city' && k !== id) { G.sceneCache.delete(k); break; } } }
@@ -60,8 +60,8 @@ G.go = (id, opts = {}) => new Promise(res => {
     p.x = sp.x; p.y = sp.y; p.zoff = 0; p.pose = null; p.path = null; if (opts.dir !== undefined) p.dir = opts.dir; else if (sp.dir !== undefined) p.dir = sp.dir; p.z = s.world.heightAt(p.x, p.y);
     G.target = null; G.pending = null; snapCam(); if (s.onEnter) s.onEnter(opts, prev); G.renderer.warm(s.world, G.cam); G.emit('scene', s, prev); res(s);
   };
-  if (opts.fade === false || !G.fadeEl) return doIt();
-  G.modal++; G.fadeEl.classList.add('on'); setTimeout(() => { try { doIt(); } finally { G.modal--; setTimeout(() => G.fadeEl.classList.remove('on'), 60); } }, 260);
+  if (opts.fade === false || !G.fadeEl) { try { return doIt(); } catch (e) { return rej(e); } }
+  G.modal++; G.fadeEl.classList.add('on'); setTimeout(() => { try { doIt(); } catch (e) { console.error(e); rej(e); } finally { G.modal--; setTimeout(() => G.fadeEl.classList.remove('on'), 60); } }, 260);
 });
 
 /* ---------- camera / coords ---------- */
