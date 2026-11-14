@@ -104,7 +104,8 @@ G.useInteractable = it => {
 function onTap(clx, cly) {
   if (G.modal || G.cutscene) return; if (G.busy) { return; }
   const w = G.toWorld(clx, cly), it = pick(w.px, w.py);
-  if (it) return G.useInteractable(it);
+  // people are only talked to through the Talk prompt/button (E), never by a stray tap while walking (owner request)
+  if (it && !(it.ent && /^talk/i.test(it.label || ''))) return G.useInteractable(it);
   G.pending = null; if (G.player.goTo(G.world, w.x, w.y, { snap: 10, limit: 30000 })) { const p = G.player.path; G.target = p && p.length ? p[p.length - 1] : null; }
 }
 

@@ -35,9 +35,10 @@ export function build(c) {
   }
   /* signals + signs */
   const rname = id => c.roads.find(q => q.id === id).name;
+  const sgn = nm => String(nm || '').replace(/ (St|Ave|Blvd|Dr|Rd|Ln|Way|Ct|Ter|Pkwy)$/, '').toUpperCase().slice(0, 9); // arm sign = the street you are crossing
   for (const n of c.nodes) {
     const cs = [[1, 1], [-1, -1], [1, -1], [-1, 1]].map(([sx, sy]) => [n.x + sx * (n.hx + .45) - .15, n.y + sy * (n.hy + .45) - .15]).filter(p => c.occAt(p[0], p[1]) === 2);
-    if (n.signal) cs.forEach((p, i) => { c.put('prop.road.trafficlight', p[0], p[1], { p: c.vp('prop.road.trafficlight', r, { state: i % 2 ? 'red' : 'green' }), flip: i >= 2 }); });
+    if (n.signal) cs.forEach((p, i) => { c.put('prop.road.trafficlight', p[0], p[1], { p: Object.assign(c.vp('prop.road.trafficlight', r, { state: i % 2 ? 'red' : 'green' }), { name: sgn((i >= 2 ? n.rx : n.ry).name) }), flip: i >= 2 }); });
     else if (cs.length) c.put('prop.road.sign.stop', cs[0][0], cs[0][1], { p: {} });
     const q = cs[cs.length - 1]; if (q) c.put('prop.road.sign.street', q[0] + (n.signal ? .5 : 0), q[1] + (cs.length === 1 ? .5 : 0), { p: { name: n.rx.name.toUpperCase(), cross: n.ry.name.toUpperCase() } });
   }

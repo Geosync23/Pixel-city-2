@@ -99,7 +99,7 @@ export const SHELLS = {
 /* ------------------------------------------------------------------ story homes (static, not the player's) */
 const table4 = (x, y, t = 1) => [F('table.4', x, y, T(t)), F('chair', x + .25, y - .55, T(t)), F('chair', x + 1.25, y - .55, T(t)), F('chair', x + .25, y + 1.05, back({ tier: t })), F('chair', x + 1.25, y + 1.05, back({ tier: t }))];
 const STORY = [
-  { id: 'home:sibling', name: "Jules & Theo's House", owner: 'jules', w: 12, d: 9, floor: GT.f_wood, wall: { color: '#f2d6a2', trim: '#8a5a3a', rail: 1 },
+  { id: 'home:sibling', name: "Nora & Theo's House", owner: 'jules', w: 12, d: 9, floor: GT.f_wood, wall: { color: '#f2d6a2', trim: '#8a5a3a', rail: 1 },
     floors: [{ x0: 0, y0: 0, x1: 5.2, y1: 2, floor: GT.f_check }], exits: [{ x: 6, y: 8.5, label: 'Leave' }],
     items: [F('rug', 8, 1.1, { p: { w: 3.5, d: 2.5, pat: 'stripe', tier: 1 } }), F('rug', .2, 5.6, { p: { w: 2.5, d: 2.5, pat: 'round', tier: 1 } }),
       F('kitchen.fridge', 0, 0), F('kitchen.stove', 1, 0), F('kitchen.counter', 2, 0, { p: { tier: 1, len: 2 } }), F('kitchen.sink', 4, 0), WY('kitchen.cabinet', 1), WY('kitchen.cabinet', 2), WY('kitchen.cabinet', 3),

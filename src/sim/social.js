@@ -71,9 +71,12 @@ const tierInfo = id => { const i = tierIdx(rel(id)), fam = isFamily(id); return 
 const specs = id => SPECS[id] || (SPECS[id] = CAST_BY_ID[id] ? buildSpecs(CAST_BY_ID[id]) : { base: (S.citizens[id] || (ANON && ANON.z) || {}).spec || {}, work: null });
 const allIds = () => CAST.map(c => c.id).concat(Object.keys(S.citizens));
 function meet(id) { const r = rec(id); if (!r || r.met || id === '_anon') return; r.met = 1; G.emit('npc:met', id); const c = info(id); if (c.group !== 'family') toast(`You met ${c.name}.`, 'good'); }
+export const REL_RATE = .4, REL_DAILY_CAP = 5; // tuning: gain multiplier and max points per person per day from ordinary interaction
 function addRel(id, d, o = {}) {
   const r = rec(id); if (!r || !d) return 0; const before = tierIdx(r.rel), old = r.rel;
   if (d > 0 && !o.raw && G.skills) d *= 1 + .04 * ((G.skills.level('charisma') || 1) - 1);
+  // owner tuning: relationships grow slowly, with a DAILY CAP per person for ordinary interaction (story/scripted awards pass raw:true and are exempt)
+  if (d > 0 && !o.raw && id !== '_anon') { d *= REL_RATE; const day = today(); if (r.gainDay !== day) { r.gainDay = day; r.gain = 0; } const left = Math.max(0, REL_DAILY_CAP - (r.gain || 0)); d = Math.min(d, left); r.gain = (r.gain || 0) + d; if (d <= 0) return 0; }
   const floor = isFamily(id) ? 40 : r.flags.acq ? 15 : 0; r.rel = id === '_anon' ? clamp(r.rel + d, 0, 12) : clamp(r.rel + d, Math.min(floor, old), 100); if (d < 0 && r.rel < floor) r.rel = Math.min(old, floor);
   r.rel = Math.round(r.rel * 10) / 10; const now = tierIdx(r.rel); if (now >= 1) r.flags.acq = 1;
   if (now !== before && id !== '_anon') { const c = info(id); G.emit(now > before ? 'friend:up' : 'friend:down', id, TIERS[now].id); if (now > before) toast(`${c.short} is now ${now === 3 ? 'a close friend' : now === 2 ? 'a friend' : 'an acquaintance'}!`, 'good'); }

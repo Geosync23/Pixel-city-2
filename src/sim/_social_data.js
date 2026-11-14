@@ -54,7 +54,7 @@ export const OUTDOOR = {
   'spot:mural_wall': { x: 234, y: 111, name: 'the mural wall' }, 'spot:tram_shed': { x: 270, y: 326, name: 'the old tram shed' }, 'spot:taxi_rank_airport': { x: 341, y: 104, name: 'the airport taxi rank' },
 };
 export const HOME_ROOM = { home_jules: 'home:sibling', home_nana: 'home:grandma', home_kit: 'home:friend' };
-export const HOME_LABEL = { home_jules: "Jules' house", home_nana: "Nana's house", home_kit: "Kit's place" };
+export const HOME_LABEL = { home_jules: "Nora' house", home_nana: "Nana's house", home_kit: "Kit's place" };
 export const venueName = id => (VENUES[id] && VENUES[id].name) || (OUTDOOR[id] && OUTDOOR[id].name) || (SPOTS[String(id).replace('spot:', '')] ? OUTDOOR[id] && OUTDOOR[id].name : null) || id;
 /** how hanging out works per venue: [anim, label, cost, needs] */
 export const HANG = {

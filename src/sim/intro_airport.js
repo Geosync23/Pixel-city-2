@@ -1,6 +1,6 @@
 // The airport opening: intro steps registered on G.intro between 'arrival_plane_cinematic' and 'curb' (see src/sim/intro.js).
 //   cabin     seated in the plane after landing; everyone deboards (scene.cabin choreography); then the MOVEMENT tutorial; walk out the door.
-//   concourse goal "Follow the signs to the tram": moving-walkway tip, first text from Jules (phone + quick-reply tutorial), talk / shop tip.
+//   concourse goal "Follow the signs to the tram": moving-walkway tip, first text from Nora (phone + quick-reply tutorial), talk / shop tip.
 //   tramride  the people-mover ride (scene 'airtram').
 //   baggage   "Collect your bag at carousel 2" (your yellow bag appears on the belt; tap it -> starter snacks + backpack window), then
 //             customs green channel -> arrivals hall -> exit doors -> city 'spawn:airport' where the existing 'curb' step takes over.
@@ -73,7 +73,7 @@ export function init() {
       update(dt, c) {
         if (!ok || room() !== 'airport:concourse') return; t += dt; const s = ST(), sc = G.scene, X = G.player.x - 1; let h;
         if (!s.msg && (X > TUNE.MSG_AT_X || t > 45)) { s.msg = 1; safe(() => G.messages.send({ from: 'jules', text: 'Are you on the ground yet?? My flight tracker froze. Classic.', replies: [{ label: 'Just landed!', value: 'landed', then: 'OK OK OK. Tram, bag, curb. I will text you properly at recess!' }, { label: 'Wheels down. Hunting for the tram.', value: 'tram', then: 'Follow the signs and do NOT get lost in duty free. Talk soon!' }] })); }
-        if (s.msg && !s.replied && X < 52) h = phoneOpen() ? ['reply', 'Open Messages and tap a reply to send it to Jules.', msgBtn] : ['phone', 'Bzzt! A text from your sibling. Tap your phone to read it.', '.hud-phone'];
+        if (s.msg && !s.replied && X < 52) h = phoneOpen() ? ['reply', 'Open Messages and tap a reply to send it to Nora.', msgBtn] : ['phone', 'Bzzt! A text from your sibling. Tap your phone to read it.', '.hud-phone'];
         else if (!s.belt && X < 19) h = ['belt', 'Follow the signs to the Tram. Step onto the moving walkway - it carries you along, and walking on it is even faster.', sc.spots.belt];
         else if (X < 38 && !s.talk && !s.shop) h = ['talk', 'No rush: tap a traveller to say hi, or tap a counter (coffee, noodles, books) to buy something. You have $' + Math.round(safe(() => G.state.player.money, 0)) + '.', sc.spots.coffee];
         else h = ['tram', 'Keep following the signs: the tram to Baggage Claim is at the far end of the concourse.', sc.spots.tram];

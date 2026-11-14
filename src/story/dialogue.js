@@ -431,7 +431,7 @@ export const NPC_LINES = {
     close: [
       'Thirty-one years I ran the Kettle. I can still hear the door bell.',
       'Your grandfather proposed over my lemon tart. He liked the tart.',
-      'I worry Jules thinks I am cross with her. I never was. Not once.',
+      'I worry Nora thinks I am cross with her. I never was. Not once.',
       'You came here for a fresh start. I have been hoping for one too.',
     ],
     family: [
@@ -462,13 +462,13 @@ export const NPC_LINES = {
   },
   theo: {
     friend: [
-      'Jules hasn\'t stopped smiling since you landed. It\'s unsettling.',
+      'Nora hasn\'t stopped smiling since you landed. It\'s unsettling.',
       'I build furniture to relax. The furniture doesn\'t relax.',
       'If you ever want a house, come see me. I do the boring bit kindly.',
     ],
     close: [
       'I never had a sibling. I\'m borrowing you, if that\'s all right.',
-      'Jules still keeps the Kettle\'s old menu in her sock drawer.',
+      'Nora still keeps the Kettle\'s old menu in her sock drawer.',
     ],
     family: [
       'Sunday roast is a standing invitation. Sitting, technically.',
@@ -517,7 +517,7 @@ export const NPC_LINES = {
     ],
     family: [
       'Nana still pinches my cheeks. I\'m twenty-four. I allow it.',
-      'Family dinner means Jules cooks, Theo carves, I eat.',
+      'Family dinner means Nora cooks, Theo carves, I eat.',
     ],
   },
   marlow: {

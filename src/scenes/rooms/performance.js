@@ -37,6 +37,7 @@ function mkHall(sc, cfg) {
   const entry = sc.toWorld(cfg.entry[0], cfg.entry[1]), crossY = cfg.crossY + O.y, f = sc.toWorld(cfg.focus[0], cfg.focus[1]);
   const hall = sc.perf = { venue: cfg.venue, seats, entry, focus: { x: f.x, y: f.y, z: cfg.focus[2] || 0 }, usher: null, dir: null,
     route: s => { const j = (Math.random() - .5) * .5; return [{ x: s.ax + j, y: crossY + (Math.random() - .5) * .6 }, { x: s.ax + j * .6, y: s.fy }, { x: s.x, y: s.fy, slow: 1 }]; } };
+  for (const st of seats) sc.interactables.push({ x: st.x, y: st.y, z: st.z - .2, h: .5, hit: 4, label: 'Sit', spot: { x: st.x, y: st.fy }, visible: () => !(G.shows && G.shows.run), use: () => G.shows && G.shows.sitFree(st) });
   const DARK = cfg.dark || '#3a3452';
   sc.env = t => { const b = ambientIndoor(t), L = sc.house === undefined ? 1 : sc.house; if (L >= .995) return b; return { amb: R.mix(DARK, b.amb, L), dark: b.dark + (1 - L) * (.92 - b.dark), bg: b.bg, night: b.night }; };
   sc.lights = (m, cam, pool) => { const L = 1 - (sc.house === undefined ? 1 : sc.house); if (L < .03 || !hall.dir || !hall.dir.lights) return; const ga = m.globalAlpha; try { hall.dir.lights(m, cam, pool, L); } finally { m.globalAlpha = ga; } };

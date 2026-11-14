@@ -2,10 +2,10 @@
 // Maple Bay — STORY  (src/story/story.js)
 // The light main storyline: 14 beats over the first four weeks (one every ~2 days)
 // plus 4 seasonal follow-ups, in three interleaved threads:
-//   'family'  — Jules, Theo, Pip, Milo: settling in, the school Summer Fair.
+//   'family'  — Nora, Theo, Pip, Milo: settling in, the school Summer Fair.
 //   'grandma' — Nana Bea: her recipes, the Copper Kettle tearoom, the lost brass bell.
 //   'friend'  — Kit: reconnecting, the open mic, finishing her first real song.
-// The quiet secret underneath: Jules turned down the tearoom years ago, Nana said one
+// The quiet secret underneath: Nora turned down the tearoom years ago, Nana said one
 // sharp thing, and each has believed ever since that the other never forgave her.
 // The bell and the fair bring them back to the same table.
 //
@@ -61,7 +61,7 @@ export const THREADS = {
 export const STORY_ITEMS = {
   nana_jam:          { name: "Nana's Plum Jam",        kind: 'food',      desc: 'Label reads "PLUM. EAT IT." in firm handwriting.' },
   milo_drawing:      { name: "Milo's Drawing",         kind: 'decor',     desc: 'You (tall), a train (long), a dinosaur (approving). Goes on the fridge.' },
-  leftover_roast:    { name: 'Tub of Leftover Roast',  kind: 'food',      desc: 'Theo packed it. Jules added more. Then Theo added more.' },
+  leftover_roast:    { name: 'Tub of Leftover Roast',  kind: 'food',      desc: 'Theo packed it. Nora added more. Then Theo added more.' },
   heron_coaster:     { name: 'Blue Heron Coaster',     kind: 'decor',     desc: 'Kit drew a tiny you on the back. The hair is accurate.' },
   cinnamon_knots:    { name: 'Box of Cinnamon Knots',  kind: 'food',      desc: 'Still warm. The box won\'t make it home full.' },
   fair_flyer:        { name: 'Summer Fair Flyer',      kind: 'decor',     desc: 'Designed by Pip. Eleven fonts. "BE THERE" underlined three times.' },
@@ -97,7 +97,7 @@ export const BEATS = [
     trigger: { minDay: 1, after: [], sendAt: '07:00' },
     delivery: {
       messages: [
-        { from: 'nana', text: 'Good morning my darling. Jules showed me how to do the messages. Come for breakfast. 4 Thimble Street, blue door. Pancakes. Love Nana' },
+        { from: 'nana', text: 'Good morning my darling. Nora showed me how to do the messages. Come for breakfast. 4 Thimble Street, blue door. Pancakes. Love Nana' },
         { from: 'nana', text: 'It is Nana.' },
       ],
       appointment: { title: "Breakfast at Nana's", place: 'home_nana', dayOffset: 0, from: '08:00', to: '11:30', with: ['nana'] },
@@ -136,14 +136,14 @@ export const BEATS = [
   },
   {
     id: 'f1_welcome_dinner', thread: 'family', title: 'Welcome Dinner on Sycamore Lane',
-    summary: 'Dinner at Jules and Theo\'s. Pip interviewed you. Milo drew you.',
+    summary: 'Dinner at Nora and Theo\'s. Pip interviewed you. Milo drew you.',
     trigger: { minDay: 2, after: [], sendAt: '16:00' },
     delivery: {
       messages: [
         { from: 'jules', text: 'Right. Official welcome dinner. Tomorrow, ours, 6ish. 12 Sycamore Lane, yellow house, bike on the lawn. Theo is doing The Roast.' },
         { from: 'jules', text: 'Pip has prepared questions for you. I\'m so sorry in advance.' },
       ],
-      appointment: { title: 'Welcome dinner at Jules & Theo\'s', place: 'home_jules', dayOffset: 1, from: '18:00', to: '21:00', with: ['jules', 'theo', 'pip', 'milo'] },
+      appointment: { title: 'Welcome dinner at Nora & Theo\'s', place: 'home_jules', dayOffset: 1, from: '18:00', to: '21:00', with: ['jules', 'theo', 'pip', 'milo'] },
     },
     scene: [
       { speaker: 'narrator', text: 'A yellow house, a porch swing, a bike on the lawn. Something smells amazing.' },
@@ -166,7 +166,7 @@ export const BEATS = [
       { speaker: 'milo', text: '...This is for you. That is you. That is a train. He is a dinosaur.', anim: 'stand' },
       { speaker: 'theo', text: 'High honor. I waited two years for a drawing.' },
       { speaker: 'jules', text: 'I meant to ask Nana tonight, but... she\'s busy Thursdays. I think.' },
-      { speaker: 'narrator', text: 'Jules is suddenly very interested in the dishes.' },
+      { speaker: 'narrator', text: 'Nora is suddenly very interested in the dishes.' },
       { speaker: 'theo', text: 'Take leftovers. This isn\'t a question. Sunday roast is a standing invite.' },
       { speaker: 'jules', text: 'I\'m really glad you\'re here. Text me when you\'re home. Humor me.' },
     ],
@@ -292,7 +292,7 @@ export const BEATS = [
           { speaker: 'pip', text: 'Responsible. I will put it in my report. With regret.' },
         ] },
       ] } },
-      { speaker: 'narrator', text: 'Sycamore Lane. Jules arrives ten minutes later, juggling folders.' },
+      { speaker: 'narrator', text: 'Sycamore Lane. Nora arrives ten minutes later, juggling folders.' },
       { speaker: 'jules', text: 'Lifesaver. Were they good? Don\'t answer, I can see Pip\'s face.', anim: 'wave' },
       { speaker: 'pip', text: 'Mom, can our stall be a pie stall? Like the Copper Kettle?' },
       { speaker: 'jules', text: '...We\'ll see, honey. Go wash your hands.' },
@@ -372,7 +372,7 @@ export const BEATS = [
       { speaker: 'nana', text: 'I said, "Then it ends with me." Sharp, like that. Over the dishes.' },
       { speaker: 'nana', text: 'I was sorry before the plate was dry. I never found a way to unsay it.' },
       { choice: { id: 'g3_listen', options: [
-        { text: 'Does Jules know you\'re sorry?', effects: { relationship: { nana: 3 }, flag: 'nana_confided' }, reply: [
+        { text: 'Does Nora know you\'re sorry?', effects: { relationship: { nana: 3 }, flag: 'nana_confided' }, reply: [
           { speaker: 'nana', text: 'She is busy on Thursdays. And Sundays. I can take a hint, darling.' },
         ] },
         { text: 'And the bell?', effects: { relationship: { nana: 2 }, flag: 'nana_confided' }, reply: [
@@ -399,7 +399,7 @@ export const BEATS = [
   // =========================================================== WEEK 3
   {
     id: 'f3_booth_building', thread: 'family', title: 'Building the Booth',
-    summary: 'You and Theo built a fair stall. Jules told you why she avoids talking about the Kettle.',
+    summary: 'You and Theo built a fair stall. Nora told you why she avoids talking about the Kettle.',
     trigger: { minDay: 14, after: ['f2_school_run', 'g3_sunday_baking'], sendAt: '12:30' },
     delivery: {
       messages: [
@@ -412,7 +412,7 @@ export const BEATS = [
       { speaker: 'pip', text: 'The plan says striped awning, a counter, and a hook for a bell.', anim: 'talk' },
       { speaker: 'narrator', text: 'An hour of sawdust. The booth stands. It leans slightly, with confidence.', anim: 'lift' },
       { speaker: 'theo', text: 'Structural lemonade. Back in a minute. Don\'t lean on anything.' },
-      { speaker: 'narrator', text: 'Jules comes out with a box of old paint. On top: a menu. THE COPPER KETTLE.' },
+      { speaker: 'narrator', text: 'Nora comes out with a box of old paint. On top: a menu. THE COPPER KETTLE.' },
       { speaker: 'jules', text: 'Pip found this in my sock drawer. Nothing is safe.', anim: 'sit' },
       { speaker: 'jules', text: 'Nana wanted me to have the shop. I said no. Badly. In her own kitchen.' },
       { speaker: 'jules', text: 'She closed it that winter. I\'ve never been sure she forgave me.' },
@@ -606,7 +606,7 @@ export const BEATS = [
   },
   {
     id: 'f4_summer_fair', thread: 'family', title: 'The Little Kettle',
-    summary: 'At the Summer Fair the bell rang again, and Jules and Nana finally said it out loud.',
+    summary: 'At the Summer Fair the bell rang again, and Nora and Nana finally said it out loud.',
     trigger: { minDay: 24, after: ['f3_booth_building', 'g5_the_bell', 'k4_rehearsal'], sendAt: '16:30' },
     delivery: {
       messages: [
@@ -634,7 +634,7 @@ export const BEATS = [
         { text: 'Nana. It\'s her bell.', effects: { relationship: { nana: 4 }, flag: 'bell_rung_nana' }, reply: [
           { speaker: 'nana', text: 'Thirty-one years. I know the wrist of it. Stand back.', anim: 'cheer' },
         ] },
-        { text: 'Jules. First day of the new shop.', effects: { relationship: { jules: 4 }, flag: 'bell_rung_jules' }, reply: [
+        { text: 'Nora. First day of the new shop.', effects: { relationship: { jules: 4 }, flag: 'bell_rung_jules' }, reply: [
           { speaker: 'jules', text: 'Me? Oh. Right. Nana, how do I... like this?', anim: 'cheer' },
           { speaker: 'nana', text: 'Like you mean it, honey.' },
         ] },
@@ -679,7 +679,7 @@ export const BEATS = [
       appointment: { title: "Kit's song at the Blue Heron", place: 'bar', dayOffset: 0, weekday: 'sun', from: '19:30', to: '23:30', with: ['kit', 'lou', 'jules', 'theo', 'nana', 'dez', 'noor', 'fenn'] },
     },
     scene: [
-      { speaker: 'narrator', text: 'The Heron is packed. Front table: Jules, Theo, Dez, and Nana with a sherry.' },
+      { speaker: 'narrator', text: 'The Heron is packed. Front table: Nora, Theo, Dez, and Nana with a sherry.' },
       { speaker: 'nana', text: 'I have not been in a bar since 1974. It is exactly as I left it.', anim: 'drink' },
       { speaker: 'lou', text: 'Ladies, gentlemen, regulars. Four weeks ago she had half a song.', anim: 'talk' },
       { speaker: 'lou', text: 'Tonight she has a whole one. Kit Navarro.' },

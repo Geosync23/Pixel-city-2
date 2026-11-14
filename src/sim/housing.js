@@ -268,7 +268,7 @@ function guestSpots() {
 }
 
 /* ---------- doors ---------- */
-const OWNER_NAME = { 'home:sibling': 'Jules', 'home:grandma': 'Nana Bea', 'home:friend': 'Kit' };
+const OWNER_NAME = { 'home:sibling': 'Nora', 'home:grandma': 'Nana Bea', 'home:friend': 'Kit' };
 function whyNot(roomId) {
   const hid = roomId.slice(5);
   if (HOME_BY_ID[hid]) return S.id === hid ? null : 'This is not your home.';

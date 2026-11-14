@@ -31,7 +31,7 @@ export function ground(c) {
   V('ramen', 'Noodle Lantern', ['bld.oldtown.ramen', ['ramen']], 92, 279); if (c.has('bld.civic.postoffice')) c.bld('bld.civic.postoffice', 117, 221, { p: c.vp('bld.civic.postoffice', c.sub(64), { w: 9, d: 7 }) });
   // Maplewood
   const gr = V('grocery', 'FreshWay Market', ['bld.civic.freshway', ['grocery']], 274, 186, { variant: 0 }); at('maplewood', 0, 1).feature = 'grocery';
-  V('home:sibling', "Jules' House", ['bld.res.sibling'], 275, 226); V('home:sycamore_house', '12 Sycamore Street', ['bld.res.gablehouse'], 344, 194, { p: { wall: '#f0d264' } });
+  V('home:sibling', "Nora' House", ['bld.res.sibling'], 275, 226); V('home:sycamore_house', '12 Sycamore Street', ['bld.res.gablehouse'], 344, 194, { p: { wall: '#f0d264' } });
   V('home:birch_lane_flats', 'Birch Lane Flats', ['bld.oldtown.apartment.garden', 'bld.res.duplex'], 206, 363, { flip: true, p: { name: 'BIRCH LANE' } });
   const sch = c.tag('school').find(a => a.kind === 'building') || (c.has('bld.civic.community') && 'bld.civic.community'); if (sch) { c.bld(sch, 308, 206, { p: c.vp(sch, c.sub(65), { w: 12, d: 8, name: 'MAPLEWOOD SCHOOL' }) }); at('maplewood', 1, 2).feature = 'school'; w.poi({ type: 'landmark', name: 'Maplewood Elementary', x: 314, y: 210 }); }
   at('maplewood', 1, 3).feature = 'park'; at('maplewood', 2, 2).feature = 'garden';

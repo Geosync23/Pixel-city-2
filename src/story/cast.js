@@ -186,7 +186,7 @@ const r = (days, from, to, place, anim) => ({ days, from, to, place, anim });
 export const CAST = [
   // ----------------------------------------------------------------- FAMILY
   {
-    id: 'jules', name: 'Jules', short: 'Jules', age: 34, pronouns: 'she/her', group: 'family',
+    id: 'jules', name: 'Nora', short: 'Nora', age: 34, pronouns: 'she/her', group: 'family',
     role: 'Your older sister, schoolteacher', district: 'maplewood', home: 'home_jules',
     work: { venue: 'spot:school', job: 'Third-grade teacher' },
     personality: ['warm', 'practical', 'stubborn'],
@@ -228,7 +228,7 @@ export const CAST = [
     ],
     look: 'Soft-spoken, round glasses, neat beard, knitted vest over a shirt. Sawdust on his cuffs at weekends.',
     spec: { skin: 'brown', hair: 'short', hairColor: '#1e1a18', top: 'vest', topColor: '#4f7a5b', bottom: 'slacks', bottomColor: '#55504a', hat: 'none', glasses: 'round', bag: 'briefcase', age: 'adult', outfit: 'office' },
-    background: 'Black American; grew up in Atlanta, came west for college and stayed for Jules.',
+    background: 'Black American; grew up in Atlanta, came west for college and stayed for Nora.',
     bio: 'Approves mortgages by day, builds wobbly furniture by night.',
     greetings: {
       low: ['Ah, the famous sibling. I was told to feed you on sight.', 'Welcome to the Bay. It grows on you. Like moss, but nicer.'],

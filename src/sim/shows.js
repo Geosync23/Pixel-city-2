@@ -42,6 +42,7 @@ export const VENUES = {
 };
 const CONVERT = [{ venue: 'concerthall', id: 'bld.civic.museum', sign: 'SYMPHONY HALL' }, { venue: 'playhouse', id: 'bld.arts.theatre', sign: 'LANTERN PLAYHOUSE' }];
 const REACT = { laugh: ['Ha!', 'Hahaha!', 'Pfft!', 'Heh.'], gasp: ['Oh!', '!', 'Whoa...'], aww: ['Aww.', 'Oh...', '*sniff*'], cheer: ['Bravo!', 'Woo!', 'Yes!', 'Encore!'] };
+let free = null; // { seat } when the player sits in a hall seat outside a show
 let S = null, run = null, lastLog = [], withNpc = null, unSkip = null;
 const now = () => G.state.t, fmtClock = t => { const m = Math.round(((t % DAY) + DAY) % DAY), h = Math.floor(m / 60); return (h < 10 ? '0' : '') + h + ':' + (m % 60 < 10 ? '0' : '') + (m % 60); };
 const pick = a => a[Math.floor(Math.random() * a.length)], safe = (f, d) => { try { return f(); } catch (e) { return d; } };
@@ -100,7 +101,7 @@ function enterHall(venueId) {
 const log = (r, ev) => { r.log.push([Math.round(r.t * 10) / 10, ev]); };
 function setLevel(r, v) { r.level = v; r.scene.house = v; }
 async function begin(v, tk) {
-  if (run) endRun(false); if (!ROOMS.has(v.hall)) { toast('The hall is closed for repairs.'); return null; }
+  if (free) standFree(); if (run) endRun(false); if (!ROOMS.has(v.hall)) { toast('The hall is closed for repairs.'); return null; }
   await G.go('int:' + v.hall, { fresh: true }); const scene = G.scene, hall = scene.perf; if (!hall) return null;
   const prog = v.progs.find(p => p.id === tk.prog) || v.progs[0];
   const r = run = { venue: v, ticket: tk, prog, scene, hall, dir: hall.dir, phase: 'doors', t: 0, pt: 0, aud: [], seated: 0, level: 1, mine: null, log: [], its: [], cam: { x: 0, y: 0, z: 0 }, dur: hall.dir.dur(prog), cues: [], m0: safe(() => G.state.player.money, 0), f0: safe(() => G.needs.get('fun'), 0) };
@@ -124,6 +125,8 @@ function populate(r) {
 function mkAud(r, spec, seat, at) { const e = r.hall.entry, a = new Char(spec, e.x, e.y); a.hidden = true; a.st = 0; a.at = at; a.seat = seat; a.pts = r.hall.route(seat); a.i = 0; a.spd = TUNE.walk * (.85 + Math.random() * .35); a.bubbleH = 1.5; a.rt = 0; r.aud.push(a); r.scene.ents.push(a); return a; }
 function sitAud(r, a) { const s = a.seat; a.x = s.x; a.y = s.y; a.z = s.z; a.dir = s.dir; a.pose = 'sit'; a.poseOpts = SEATED; a.moving = false; a.st = 2; r.seated++; a.idle = 2 + Math.random() * 8; }
 function sitPlayer(r, s) { if (run !== r || s.taken) return; const p = G.player; if (r.mine) r.mine.taken = null; p.stop(); G.pending = null; G.target = null; p.x = s.x; p.y = s.y; p.zoff = s.z; p.z = s.z; p.dir = s.dir; p.pose = 'sit'; p.poseOpts = SEATED; p.moving = false; r.mine = s; s.taken = 'player'; if (r.phase === 'doors') log(r, 'player seated'); }
+function sitFree(seat) { const p = G.player; if (run || !seat) return false; p.stop(); G.pending = null; G.target = null; p.x = seat.x; p.y = seat.y; p.zoff = seat.z; p.z = seat.z; p.dir = seat.dir; p.pose = 'sit'; p.poseOpts = SEATED; free = { seat }; return true; }
+function standFree() { const p = G.player, f = free; free = null; if (!f) return; p.pose = null; p.poseOpts = null; p.zoff = 0; p.x = f.seat.x; p.y = f.seat.fy; p.z = 0; }
 function standPlayer(r) { const p = G.player, s = r && r.mine; p.pose = null; p.poseOpts = null; p.zoff = 0; if (!s) return; s.taken = null; r.mine = null; p.x = s.x; p.y = s.fy; p.z = 0; }
 function react(r, kind) {
   const list = r.aud.filter(a => a.st === 2), k = kind === 'cheer' ? .7 : kind === 'laugh' ? .45 : .2; let b = 0; r.cues.push([Math.round(r.pt * 10) / 10, kind]); log(r, 'cue ' + kind);
@@ -216,6 +219,7 @@ const api = {
   state: () => (run ? { venue: run.venue.id, showId: run.ticket.id, prog: run.prog.id, phase: run.phase, t: Math.round(run.t * 10) / 10, audience: run.aud.length, seated: run.seated, mine: !!run.mine, level: Math.round(run.level * 100) / 100, dur: Math.round(run.dur) } : null),
   leave() { const r = run; if (!r) return false; const v = r.venue, mid = r.phase === 'dim' || r.phase === 'show' || r.phase === 'applause'; if (mid) { reward(r, r.phase === 'applause' ? .8 : Math.min(.6, r.pt / r.dur)); G.emit('show:end', { venue: v.id, showId: r.ticket.id, prog: r.prog.id, left: true }); } log(r, 'left early'); endRun(false); G.go('int:' + v.lobby); return true; },
   attendWith(npcId) { withNpc = npcId || null; return true; },
+  sitFree, standFree,
   seatHere(seat) { if (run) sitPlayer(run, seat || run.seat0); return !!run; },
   volume(v) { if (v !== undefined) setVolume(v); return AU.vol; },
   get log() { return lastLog; }, get run() { return run; },
@@ -229,13 +233,13 @@ export function init() {
   safe(() => convert(getCity()));
   G.on('scene', s => {
     if (s && s.id === 'city' && s.world) { convert(s.world); for (const c of CONVERT) { const p = s.world.pois.find(q => q.id === 'door:' + c.venue); if (p && !s.interactables.some(it => it.poi === p)) s.interactables.push({ x: p.x, y: p.y, label: p.name, h: 1.2, range: 1.3, poi: p, use: () => { if (ROOMS.has(p.room)) enterRoom(p.room, p.id); else toast("It's closed right now."); } }); } }
-    if (run && s !== run.scene) endRun(false);
-    const p = G.player; if (p && p.poseOpts === SEATED && !(run && run.mine)) { p.poseOpts = null; p.pose = null; }
+    if (run && s !== run.scene) endRun(false); free = null;
+    const p = G.player; if (p && p.poseOpts === SEATED && !(run && run.mine) && !free) { p.poseOpts = null; p.pose = null; }
   });
   G.on('room:build', sc => { if (sc && sc.roomId === 'cinema') safe(() => patchCinemaLobby(sc)); });
-  G.on('key', () => { if (run && run.mine && !G.cutscene && !G.busy) standPlayer(run); });
+  G.on('key', () => { if (free) standFree(); else if (run && run.mine && !G.cutscene && !G.busy) standPlayer(run); });
   G.addSystem({ name: 'shows', update: dt => step(dt) });
   // seat marker + stand up on tap
   G.overlays.push((ctx, cam) => { const r = run; if (!r || G.scene !== r.scene || r.mine || r.phase !== 'doors') return; const s = r.seat0, w = WS(s.x, s.y, s.z + 1.25), x = Math.round(w[0]) - cam.x, y = Math.round(w[1]) - cam.y + Math.round(Math.sin(G.time * 5) * 1.5); ctx.fillStyle = '#2a2733'; ctx.fillRect(x - 3, y - 5, 7, 4); ctx.fillRect(x - 2, y - 1, 5, 1); ctx.fillRect(x - 1, y, 3, 1); ctx.fillRect(x, y + 1, 1, 1); ctx.fillStyle = '#f6e04a'; ctx.fillRect(x - 2, y - 4, 5, 3); ctx.fillRect(x - 1, y - 1, 3, 1); ctx.fillRect(x, y, 1, 1); });
-  if (typeof window !== 'undefined') { addEventListener('pointerdown', e => { unlock(); if (run && run.mine && !G.cutscene && !G.modal && !G.busy && e.target === G.cv && (run.phase === 'doors' || run.phase === 'exit')) standPlayer(run); }, true); addEventListener('keydown', unlock, true); }
+  if (typeof window !== 'undefined') { addEventListener('pointerdown', e => { unlock(); if (free && !G.modal && e.target === G.cv) standFree(); else if (run && run.mine && !G.cutscene && !G.modal && !G.busy && e.target === G.cv && (run.phase === 'doors' || run.phase === 'exit')) standPlayer(run); }, true); addEventListener('keydown', unlock, true); }
 }
