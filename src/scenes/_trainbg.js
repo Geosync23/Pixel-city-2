@@ -88,7 +88,8 @@ function ground(th) {
 const DECK = () => strip(48, 192, () => {
   const r = rng(11); rect(0, 0, 48, 192, '#8d8a80'); for (let i = 0; i < 700; i++) rect(Math.floor(r() * 48), Math.floor(r() * 192), 1, 1, r() < .5 ? '#7a776e' : '#a09d92');
   rect(0, 0, 48, 5, '#b9b4a8'); rect(0, 5, 48, 1, '#8a857a'); rect(0, 186, 48, 6, '#b9b4a8'); rect(0, 185, 48, 1, '#8a857a');
-  for (const y0 of [100, 30]) { for (let x = 2; x < 48; x += 12) { rect(x, y0, 4, 36, '#6b5a4a'); rect(x, y0, 1, 36, '#7a6a5a'); } for (const y of [y0 + 6, y0 + 28]) { rect(0, y, 48, 2, '#c9ced6'); rect(0, y + 2, 48, 1, '#56636b'); } }
+  // one track, centred under the (deliberately wide) cutaway car: car spans v 40..120 px on this plane, rails at v 62 and 114 -> strip rows 70 and 122
+  { const y0 = 62; for (let x = 2; x < 48; x += 12) { rect(x, y0, 4, 70, '#6b5a4a'); rect(x, y0, 1, 70, '#7a6a5a'); } for (const y of [70, 122]) { rect(0, y, 48, 2, '#c9ced6'); rect(0, y + 2, 48, 1, '#56636b'); } }
 });
 
 export function createBackdrop() {
