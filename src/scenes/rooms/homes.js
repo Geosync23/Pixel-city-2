@@ -139,7 +139,7 @@ const STORY = [
   { id: 'home:grandma', name: "Nana Bea's", owner: 'nana', w: 10, d: 8, floor: GT.f_carpet, wall: { color: '#e6cfc0', color2: '#d9b8ac', pattern: 'stripes', trim: '#6a4428', rail: 1 },
     floors: [{ x0: 0, y0: 0, x1: 4.3, y1: 2, floor: GT.f_check }], exits: [], door: { wall: 'y', at: 4.6 }, bathDoor: { wall: 'x', at: 1.1 },
     bath: { w: 4, d: 4, floor: GT.f_lino, wall: { color: '#f0d0d8', color2: '#e6b8c4', pattern: 'stripes', trim: '#6a4428', rail: 1 }, exit: { x: 2.4, y: 3.5 },
-      items: [F('bath.mat', .5, 1.15, T(2)), F('bath.bathtub', 0, 0, { p: { tier: 1, c2: '#e9a8b8' } }), F('bath.toilet', 2.3, 0), F('bath.sink', 3, 0), WX('bath.towelrack', 1.6), F('plant.snake', .1, 3.2), F('plant.hanging', 3.3, 3, { z: 1.5 })] },
+      items: [F('bath.mat', .5, 1.15, T(2)), F('bath.bathtub', 0, 0, { p: { tier: 1, c2: '#e9a8b8' } }), F('bath.toilet', 2.3, 0), F('bath.sink', 3, 0), WX('bath.towelrack', 1.6), F('plant.snake', .1, 3.2)] },
     items: [F('rug', .7, 3.5, { p: { w: 2.5, d: 3, pat: 'persian', tier: 2 } }), F('doormat', 4.6, .6),
       F('kitchen.fridge', 0, 0, { p: { tier: 1 } }), F('kitchen.stove', 1, 0, T(1)), F('kitchen.counter', 2, 0, { p: { tier: 1, len: 1, drawers: true } }), F('kitchen.clutter', 3, 0), WY('kitchen.cabinet', 1), WY('kitchen.cabinet', 2), WY('wall.shelf', 3, { p: { tier: 1, seed: 2 }, mount: 1.5 }),
       WY('wall.door.front', 4.6, T(1)), F('piano', 6, 0, T(2)), WY('wall.photos', 6, { p: { tier: 2, seed: 7 }, mount: 1.5 }), F('stereo', 7.7, 0, T(0)), WY('wall.clock', 7.9, T(1)), F('bookshelf', 8.9, 0, T(1)),

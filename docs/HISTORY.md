@@ -60,3 +60,4 @@
 - 2026-11-14: owner msgs 61-62 -> team of up to 4 Fable workers, ~10x usage. Lead added src/scenes/rooms/unique_rooms.js hook. Wave A launched: 2g-1 food, 2g-2 shops, 2g-3 lobbies, 2g-4 bladder+bathrooms. Wave plan B-E in HANDOFF.
 - 2026-11-14: 2g-1 landed — 26 unique food & drink rooms (places_food.js, places_food2.js, 19 new furn.pf.* fixtures, guide info registered). Worker eval 26/26 pass; lead viewed taqueria, Mama Opal's, Halo Donuts. Activity matching for pub rooms is a lead TODO.
 - 2026-11-14: S1 Botanical Conservatory worker launched (first signature showpiece). Not publishing yet: other workers' half-done files (bladder HUD, lobbies) are in the tree.
+- 2026-11-14: 2g-4 landed — bladder need (6 bars + mood), toilets/wash hands, restrooms in all 79 venue rooms + park pavilion, every home's bathroom is its own room, old-save migration, need->restroom navigator. Lead verified: nearest-restroom list from the city, Marlowe bathroom door screenshot.
