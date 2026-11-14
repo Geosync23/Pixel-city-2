@@ -1,0 +1,13 @@
+# Backlog (lead's queue — one worker at a time; update as items land)
+DONE: engine, art sets (chars, airport ext, transit, home, venue fixtures), data, narrative data, city gen, sim core + HUD, phone, traffic/taxi/bus, housing, venue rooms, crowd, social, intro + story + planes, jobs (10), rail + Central Station, stalls sell + door glow (src/sim/stalls.js).
+RUNNING: airport interior + new opening (src/art/airport_interior, src/scenes/rooms/airport.js, src/sim/intro_airport.js).
+NEXT (in order):
+1. "Public places pass" (owner feedback): street names drawn on the phone Map app (world.roads names; label along roads when zoomed in, list/search optional); EVERY cafe / restaurant / shop-looking building
+   in the city is either enterable (generic template interiors with varied names/colours: cafe, diner, pizza, bakery, bar, boutique, bookshop, grocery small/medium) or has a walk-up counter that sells; 2-3 more grocery stores of
+   different sizes near each starter home (one really detailed supermarket exists: FreshWay); more restaurants; check the enterable-door glow reads well (src/sim/stalls.js) and that non-enterable doors look plain.
+2. Showpiece interiors: shopping mall (L-shaped concourse, ~10 small shops), skyscraper observation deck (+ story moment), museum, botanical conservatory, hotel lobby (+ rooftop bar?), laundromat, pharmacy, salon, arcade.
+3. 15 more jobs + workplaces (see BIBLE Direction update 3).
+4. New needs (Comfort, Outdoors, Inspiration) + consumable chains + Opportunities system + expanded main story through the showpieces.
+5. Resume interrupted artists (icons! item icons are placeholders; terrain/water; audio; weather; title/creator polish; oldtown/downtown/residential/civic/harbor/props building sets) — check what each left on disk first.
+6. QA/review passes: full playthrough from New Game, mobile layout, performance, save/load, balance.
+Known issues: weather setWeather('clear') doesn't clear isWet(); seated player may sort behind flipped sofa; shop ignores story discounts; MapleCab shows fare on the free first ride.
