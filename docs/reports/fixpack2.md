@@ -1,0 +1,11 @@
+# Fix pack 2 + navigator — notes (edited: src/sim/rail.js, src/ui/hud.js, src/ui/phone_map.js, src/ui/phone_taxi.js; new: src/sim/navigator.js)
+1. Station stairs — DONE: every street station has reachable interactables at the stair foot and the lift door (plus the entrance); "Stairs to <Station> platform" prompt confirmed at Hillcrest. Glow not visually confirmed.
+2. City bench sitting — PARTIAL: 87 Sit spots; seat positions computed inside the footprint for all 168 seat props (flip mapping already correct). An actual in-game sit was not completed in testing. Rowboats/airport shelters also get Sit spots (harmless).
+3. Intro smoke test — DONE: ?scene=city&intro ran cabin -> release at the player's row (24.5 s) -> concourse -> baggage -> curb with no errors (room changes via G.go, not walked). Cabin tail looks fine.
+4. Train flicker — DONE (measured): car sort z lifted above everything under its floor and its sort box stretched along the deck; flips per 300 frames 36 -> 2 (slope), 23-27 -> 15 (flat); max per pair 3 -> 1. Debug flag G.rail._noLift left in.
+5. Need -> place matching — DONE: HUD chooser uses `G.nav.find(need, 3)` (venue offers/type, guide entries, friends via G.social.whereIs, Home row). Home/Work rows untested (test state had no home/job).
+6. Navigator — DONE: `G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer }`, state G.state.nav.trip. Map app "Where to?" bar (Food, Groceries, Coffee, Home, Work, Fun, Shopping, Transit, Search) -> nearest places -> ROUTE CARD
+   with WALK / BIKE (if a bike item is owned) / BUS (stops, route, fare, next departure) / TRAIN (stations, line, stops, $2.50) / CAB. Choosing bus/train starts a multi-leg trip: waypoint to the boarding stop, trip banner, advances on ride:end, clears on arrival.
+   Waypoints set by other apps while the phone is open get a "How will you get there?" sheet. Not tested with a real ride end to end (events simulated).
+7. Taxi shows "Free — prepaid" on the first ride — DONE.
+Tuning notes: walking is slow (crossing the city ~2 game hours) and bus headways are long (up to 72 min), so the bus rarely wins — consider more buses / faster walk. Trip banner is tall on a 420 px phone (~140 px).

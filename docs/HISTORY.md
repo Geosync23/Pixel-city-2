@@ -43,3 +43,4 @@
 - 21:40 UTC: trimmed playtest fix pack worker launched (last worker before the account move).
 - Fix pack 1 landed (6 of 8 items done, 2 partial). Stage 11 published (artifact version 1794692688-4db5). CLEAN STOP for the account move: no workers running, everything pushed.
 - 21:57 UTC: owner reported 41% used; fix pack 2 + navigator worker launched; plan to continue one worker at a time until ~85%.
+- Fix pack 2 + navigator landed (stairs, train flicker, need matching, Maps navigator with walk/bus/train/cab). Stage 12 published.

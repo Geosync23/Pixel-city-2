@@ -125,12 +125,12 @@ function tripText(t) {
 }
 function render() {
   if (typeof document === 'undefined') return; const t = trip();
-  if (!bar) { bar = el('div', { id: 'nav-trip', role: 'status', style: 'position:fixed;left:50%;top:58px;transform:translateX(-50%);max-width:min(92vw,560px);background:#fff4dc;color:#2a2733;border:2px solid #2a2733;box-shadow:3px 3px 0 #2a2733;padding:5px 8px;font:13px/1.35 "Pixelify Sans",system-ui,sans-serif;display:none;gap:6px;align-items:center;flex-wrap:wrap;pointer-events:auto' }); for (const ev of ['pointerdown', 'pointerup', 'click']) bar.addEventListener(ev, e => e.stopPropagation()); root().append(bar); }
+  if (!bar) { bar = el('div', { id: 'nav-trip', role: 'status', style: 'position:fixed;left:0;right:0;margin:0 auto;width:fit-content;top:58px;max-width:min(92vw,560px);background:#fff4dc;color:#2a2733;border:2px solid #2a2733;box-shadow:3px 3px 0 #2a2733;padding:5px 8px;font:13px/1.35 "Pixelify Sans",system-ui,sans-serif;display:none;gap:6px;align-items:center;flex-wrap:wrap;pointer-events:auto' }); for (const ev of ['pointerdown', 'pointerup', 'click']) bar.addEventListener(ev, e => e.stopPropagation()); root().append(bar); }
   bar.replaceChildren(); const x = fn => el('button', { text: 'x', 'aria-label': 'Close', style: 'min-width:26px;min-height:26px;margin-left:auto', onclick: fn });
   if (offerFor) {
     const opts = routeTo(offerFor); bar.style.zIndex = '4000'; bar.style.display = 'flex'; bar.append(el('b', { text: `To ${offerFor.name}: how will you get there?` }), x(() => { offerFor = null; render(); }));
     for (const o of opts) bar.append(el('button', { 'data-nav': o.mode, title: o.text, style: 'min-height:30px;padding:2px 8px', text: `${o.label} · ${mins(o.minutes)} · ${o.costText}`, onclick: () => start(o) }));
-  } else if (t && !G.onTitle) { bar.style.zIndex = '40'; bar.style.display = 'flex'; bar.append(el('span', null, el('b', { text: `Trip to ${t.dest.name}: ` }), tripText(t)), x(cancel)); }
+  } else if (t && !G.onTitle && !safe(() => G.phone.isOpen, false)) { bar.style.zIndex = '40'; bar.style.display = 'flex'; bar.append(el('span', null, el('b', { text: `Trip to ${t.dest.name}: ` }), tripText(t)), x(cancel)); }
   else bar.style.display = 'none';
 }
 export function offer(p) { p = typeof p === 'string' ? place(p) : p; if (!p || !isFinite(p.x)) return []; const o = routeTo(p); if (o.length < 2) return o; offerFor = pt(p); render(); return o; }
@@ -149,7 +149,7 @@ export function init() {
     // a waypoint set from inside the phone (Wander's "Take me there", ...): offer the ways to get there
     if (p && safe(() => G.phone.isOpen, false) && !trip()) { const o = routeTo(p); if (o.length > 1) { offerFor = pt(p); render(); } } else if (!p && offerFor) { offerFor = null; render(); }
   });
-  G.on('phone:close', () => { if (offerFor) { offerFor = null; render(); } });
+  G.on('phone:close', () => { offerFor = null; render(); }); G.on('phone:open', () => setTimeout(render, 0));
   G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer };
   render();
 }
