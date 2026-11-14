@@ -227,3 +227,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 53 — Landing: keep it simple
 > Still looks weird just keep the plane going on the runway until the cut
+
+## 54 — Usage reading
+> We're at  65 percent.
