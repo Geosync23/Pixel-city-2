@@ -54,3 +54,4 @@
 - Item icons landed (365/365 items, 558 icons). Stage 13 published.
 - 22:52 UTC: apps worker launched (app store, Properties browser, Living Tips) — the last worker of this window.
 - Apps landed (Appy store, Nestly, Bay Basics, mini apps). Stage 14 published (artifact version 1794695264-28f5). CLEAN STOP for the account move: no workers running, everything pushed.
+- 2026-11-14 (new account): new lead took over on branch ccr-e622e92c-7t3ejy (from a1d2ffc). npm install + build OK, smoke screenshot OK. Stage 14 republished as a NEW artifact https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (version 1794695918-0180).

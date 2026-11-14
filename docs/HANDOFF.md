@@ -1,7 +1,19 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 23:15 UTC) — CLEAN STOP POINT FOR THE ACCOUNT MOVE
+## Now (updated 2026-11-14, NEW ACCOUNT — first session)
+- **New lead on the new account.** Branch `ccr-e622e92c-7t3ejy` (started from `claude/pixel-city-life-sim-21h2e3` @ a1d2ffc; push here). New playable artifact: https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
+  (Stage 14 republished, version 1794695918-0180). npm install + build + one smoke screenshot verified by the lead.
+- **2g split into four workers (one at a time):** 2g-1 unique rooms for every food & drink place (~33 of the 53 converted `pub:<n>` rooms; also fixes the taqueria "PIZZA" counter) ->
+  2g-2 unique rooms for the ~20 shops/services/groceries -> 2g-3 lobbies: many more enterable apartment + office buildings -> 2g-4 home bathrooms as their own room + toilets + bladder need.
+- **Running worker:** 2g-1 (food & drink unique interiors). Owns NEW files src/scenes/rooms/places_food*.js + docs/reports/unique_food.md; may edit ONLY the `genericRoom(...)` call site in src/sim/public_places.js
+  (hook: unique room builder first, generic template as fallback). If it is gone after a restart: check those files, then brief a new worker with "these files exist; continue".
+- After 2g: 2i clothes/hair/laundry -> 2j traits/skills/mini-games + university -> 2c museum/conservatory/hotel/post offices -> 2k big city events -> 3 jobs expansion -> 4b relationships -> 4c goods/home design -> 4 needs + Opportunities -> 5 art -> 6 QA.
+- **Small open items (warm-ups):** Circle app releases immediately (count only non-family); `app.*` icon art for new apps; confirm a sit on a city bench; two "Beacon" buildings; SkyDeck telescope discovery unverified;
+  weather isWet bug; nobody has HEARD the show music; fuel tanks near the runway end; bus headways long / walking slow; calendar "Add to planner" duplicates; NPCs should mention Living Tips; MapleCab fare on free first ride.
+- **Nobody has done a full hand playthrough from New Game yet** (item 6).
+
+## Previous "Now" (old account, Stage 14 clean stop) — kept for reference
 - **Running worker: NONE. No timers pending. Nothing half-done on disk.** Everything is integrated, published (Stage 14, artifact version `1794695264-28f5`) and pushed.
 - **Done in the final window (Stages 9-14):** performance venues; Wander guidebook; fix pack 1; fix pack 2 + Maps navigator (G.nav); item icons (365/365); apps (Appy store with releases, Nestly properties browser,
   Bay Basics living tips + G.tips, mini apps: showtime, transit, wallet, closet, friends, weather — docs/reports/apps.md); lead fixes for owner msgs 36 and 49-55 (see docs/HISTORY.md tail).
