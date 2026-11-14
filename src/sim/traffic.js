@@ -39,7 +39,7 @@ const DMUL = { downtown: { taxi: 3, sports: 2, truck: .5 }, railyard: { delivery
 const DDENS = { downtown: 1, oldtown: .7, harbor: .6, hillcrest: .3, maplewood: .36, arts: .7, railyard: .6, park: .5, airport: .6 };
 const timeF = h => h < 5 ? .07 : h < 7 ? .07 + (h - 5) * .4 : h < 9.5 ? 1 : h < 16 ? .62 : h < 19 ? 1 : h < 22 ? .5 : .2;
 
-const all = [], free = [], near = []; let nearW = 0, simR = 40, target = 0, refill = true, fx = 0, fy = 0, lfx = -999, lfy = -999, tA = 0, tB = 0, tP = 0;
+const all = [], free = [], near = []; let nearW = 0, simR = 40, mx = 25, my = 29, target = 0, refill = true, fx = 0, fy = 0, lfx = -999, lfy = -999, tA = 0, tB = 0, tP = 0;
 const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {};
 
 function onScreen(x, y, m) { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m && sy < G.H + m + 30; }
@@ -65,10 +65,10 @@ function release(v) {
 function clearLane(x, y, r) { for (const o of T.list) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r) return false; return true; }
 function trySpawn(prefill, h) {
   if (nearW <= 0) return false; const p = G.player;
-  for (let t = 0; t < 8; t++) {
+  for (let t = 0; t < 40; t++) {
     let r = Math.random() * nearW, e = near[0]; for (let i = 0; i < near.length; i++) { e = near[i]; r -= e.w * Math.min(e.len, 60); if (r <= 0) break; }
     const sp = graph.span(e), s = sp[0] + (sp[1] - sp[0]) * Math.random(), off = e.lanes > 1 && Math.random() < .5 ? 3 : 1, q = graph.lanePos(e, off, s, tmp), dx = fx - q.x, dy = fy - q.y;
-    if (dx * dx + dy * dy > simR * simR) continue;
+    if (Math.abs(dx - dy) > mx || Math.abs(dx + dy) > my) continue;
     if (!prefill) { if (onScreen(q.x, q.y, 80)) continue; if ((e.axis === 'x' ? dx : dy) * e.d < 0 && Math.random() < .85) continue; }
     if (!p.hidden && Math.abs(p.x - q.x) < 8 && Math.abs(p.y - q.y) < 8) continue; if (!clearLane(q.x, q.y, 7)) continue;
     const kind = pickKind(world.districtAt(q.x, q.y), h, ENV.season), o = {};
@@ -116,7 +116,7 @@ function buildLoops() {
     for (let b = 0; b < 2; b++) { const u = (L * (b / 2 + .13 * buses.length)) % L; let nsi = 0; while (nsi < stops.length && stops[nsi].u < u) nsi++; buses.push({ id: r.id + ':' + b, route: r.id, loop, u, veh: null, atStop: null, dwell: 0, hold: false, nsi: nsi % stops.length }); }
   }
 }
-function loopAt(loop, u, out) { let k = loop.cum.length - 1; while (k > 0 && loop.cum[k] > u) k--; const e = loop.edges[k]; return graph.lanePos(e, loop.offs[k], loop.sA[k] + e.d * (u - loop.cum[k]), out); }
+function loopAt(loop, u, out) { let k = loop.cum.length - 1; while (k > 0 && loop.cum[k] > u) k--; const e = loop.edges[k], q = graph.lanePos(e, loop.offs[k], loop.sA[k] + e.d * (u - loop.cum[k]), out); q.k = k; return q; }
 function busU(b) { const v = b.veh, l = b.loop; if (!v) return b.u; const k = v.planI, e = l.edges[k]; if (v.e !== e) return b.u; const len = (k + 1 < l.cum.length ? l.cum[k + 1] : l.L) - l.cum[k]; return b.u = l.cum[k] + Math.max(0, Math.min(len, (v.s - l.sA[k]) * e.d)); }
 function busTarget(b) { const s = b.loop.stops[b.nsi], v = b.veh; v.stop = { e: b.loop.edges[s.k], s: s.s }; v.onStop = busArrive; }
 function busArrive(v) { const b = v.bus; if (!b) return; const s = b.loop.stops[b.nsi]; b.atStop = s.id; b.dwell = DWELL; v.halt = true; G.emit('bus:arrive', b, s.id); }
@@ -127,7 +127,7 @@ function busAbstract(b, gm) {
   if (mv >= du) { b.u = s.u; b.atStop = s.id; b.dwell = DWELL; } else b.u = (b.u + mv) % l.L;
 }
 function busReal(b) {
-  const l = b.loop, q = loopAt(l, b.u, tmp), k = l.edges.indexOf(q.e) >= 0 ? (() => { let i = l.cum.length - 1; while (i > 0 && l.cum[i] > b.u) i--; return i; })() : 0;
+  const l = b.loop, q = loopAt(l, b.u, tmp), k = q.k;
   const v = spawn('bus', q, { keep: true, role: 'bus', bus: b, params: { route: l.num, dest: l.dest, color: l.route.color } }); if (!v) return;
   b.veh = v; setPlan(v, l, k, true); v.v = b.atStop ? 0 : v.vmax * .7; if (b.atStop) v.halt = true; else busTarget(b);
 }
@@ -146,7 +146,7 @@ function rebuildNear() {
   near.length = 0; nearW = 0;
   for (const e of graph.edges) { const ax = e.axis === 'x', lo = Math.min(e.s0, e.s1), hi = Math.max(e.s0, e.s1), a = ax ? fx : fy, dA = a < lo ? lo - a : a > hi ? a - hi : 0, dC = Math.abs((ax ? fy : fx) - e.c); if (dA * dA + dC * dC < simR * simR) { near.push(e); nearW += e.w * Math.min(e.len, 60); } }
   const h = G.now().hf, cf = G.weather && G.weather.crowdFactor ? G.weather.crowdFactor() : undefined, dk = world.districtAt(fx, fy);
-  target = Math.min(CAP, Math.round(26 * Math.pow(simR / 40, 1.4) * (DDENS[dk] || .5) * timeF(h) * (cf === undefined ? 1 : .5 + .6 * cf)));
+  target = Math.min(CAP, Math.round(22 * (mx * my / 725) * (DDENS[dk] || .5) * timeF(h) * (cf === undefined ? 1 : .5 + .6 * cf)));
   if (target < 1 && timeF(h) > .05 && Math.random() < .5) target = 1;
 }
 function housekeeping() {
@@ -156,7 +156,7 @@ function housekeeping() {
     if (v.bus) { if (d2 > (simR + 14) * (simR + 14) && v.role === 'bus') { busU(v.bus); release(v); } continue; }
     if (v.stand) { if (d2 > (simR + 12) * (simR + 12)) release(v); continue; }
     if (v.keep) continue;
-    if (d2 > (simR + 8) * (simR + 8) || (v.stuck > 12 && !v.byPlayer && !onScreen(v.x, v.y, 60))) release(v);
+    if (Math.abs(dx - dy) > mx + 7 || Math.abs(dx + dy) > my + 7 || (v.stuck > 12 && !v.byPlayer && !onScreen(v.x, v.y, 60))) release(v);
   }
   // buses entering range
   for (const b of buses) { if (b.veh) continue; const q = loopAt(b.loop, b.u, tmp), dx = q.x - fx, dy = q.y - fy; if (dx * dx + dy * dy < (simR + 4) * (simR + 4) && T.list.length < CAP + 6 && (refill || !onScreen(q.x, q.y, 90)) && clearLane(q.x, q.y, 5)) busReal(b); }
@@ -173,7 +173,7 @@ function fill(dt) {
   let amb = 0; for (const v of T.list) if (!v.keep) amb++;
   const h = G.now().hf;
   if (refill) { for (let i = 0; i < 60 && amb < target * .85; i++) if (trySpawn(true, h)) amb++; refill = false; return; }
-  if (amb < target && T.list.length < CAP + 6) trySpawn(false, h);
+  if (amb < target && T.list.length < CAP + 6) { trySpawn(false, h); if (amb < target - 8) trySpawn(false, h); }
 }
 
 /* ---------- setup ---------- */
@@ -203,7 +203,7 @@ function update(dt, gm) {
   for (let i = 0; i < buses.length; i++) if (!buses[i].veh) busAbstract(buses[i], gm);
   if (G.scene !== C) return;
   T.time += dt; T.lit = !!G.env && (G.env.dark || 0) > .35; signals();
-  const f = G.camTarget || G.player; fx = f.x; fy = f.y; simR = Math.max(40, Math.min(70, Math.max(G.W / 32, G.H / 16) + 22));
+  const f = G.camTarget || G.player; fx = f.x; fy = f.y; mx = G.W / 32 + 12; my = G.H / 16 + 12; simR = Math.max(34, Math.min(70, Math.hypot(mx, my) / 1.414 + 2));
   if (Math.abs(fx - lfx) + Math.abs(fy - lfy) > 30) { refill = true; for (let i = T.list.length - 1; i >= 0; i--) { const v = T.list[i]; if (!v.keep) release(v); } tB = 0; tA = 0; } lfx = fx; lfy = fy;
   if ((tP -= dt) <= 0) { tP = .15; const P = T.peds; P.length = 0; const E = C.ents, r2 = (simR + 6) * (simR + 6); for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.isVehicle || !e.spec || e.hidden) continue; const dx = e.x - fx, dy = e.y - fy; if (dx * dx + dy * dy < r2) P.push(e); } }
   if ((tB -= dt) <= 0) { tB = 1; rebuildNear(); }

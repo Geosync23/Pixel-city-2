@@ -1,0 +1,315 @@
+// Housing: which home is yours, what furniture you own and where it stands, deliveries, moving, renting/buying, doors.
+//
+// State G.state.home = {
+//   id, owned,                         current home id (data/homes.js) + whether it is owned (money.js bills rent or upkeep from these)
+//   items:   [{ uid, itemId, asset, x, y, flip } | { uid, itemId, asset, wall: 'y'|'x', at }]   placed furniture (room coords of the min corner;
+//             `inc: 1` = came with the home: movable, but not sellable and it stays behind when you move). Art params come from VIS[itemId].
+//   storage: [itemId]                  owned but not placed            stay: [itemId]  stored pieces that belong to the home
+//   boxes:   [{ uid, k: 'm' (moving) | 'd' (delivery), label, items: [itemId], gives?: [{ item, qty }], intro? }]   unopened boxes standing in the home
+//   pending: [{ id, t }]               bought, arriving at abs minute t
+//   mortgage: { home, left, weekly, weeks } | null,   n (uid counter) }
+//
+// G.housing
+//   current() -> { id, home (data), owned, state, roomId, door (city poi id) } | null       isHome(sceneId = current scene) -> bool
+//   homes() -> [{ id, home, available, current, owned, rent, price, down, canRent, canBuy, unlockDay }]
+//   rent(homeId) -> bool        buy(homeId, termIx = 1) -> bool (20% down + weekly mortgage bill)      payOff() -> bool      mortgage()
+//   start(homeId)               new-game move-in (starter kit, 3 moving boxes, first week's rent). Runs on 'game:new'({ homeId }).
+//   goHome() -> Promise         teleport inside your home          refresh() rebuild the home room in place (when standing in it)
+//   canEnter(roomId) -> bool    whyNot(roomId) -> string | null    invite(roomId, hours = 3)   (story homes: home:sibling / grandma / friend)
+//   addFurniture(itemId, { instant? }) -> bool     bought home good: arrives as a delivery box (next day 09:00), or straight to storage
+//   deliverNow()                land all pending deliveries        unpack(boxUid) -> [itemId]   box contents -> storage (+ gifts to bag/wardrobe)
+//   storage() -> [itemId] (incl. stay)     items() -> placed     slots() -> { used, max }     ambience() -> number
+//   check({ itemId, x, y, flip } | { itemId, wall, at }, ignoreUid?) -> null | reason string
+//   place(itemId, pos, { quiet? }) -> uid | null      move(uid, pos, opts) -> bool      rotate(uid, opts) -> bool
+//   store(uid, opts) -> bool    sell(uid | itemId, opts) -> price | 0     sellPrice(itemId)
+//   visual(itemId) -> { id (asset id), a (asset), p, wall, solid, z, mount, size: [w, d, h] }      roomDef(homeId) -> room def for interior.js
+//   guestSpots() -> [{ x, y, z, dir, seat: true, fx } | { x, y, stand: true }]  free seats + standing spots in the current home scene (world coords)
+//   openListings() / showCard(homeId) / decorate()   provided by src/ui/furnish.js
+// Events: 'home:move'(homeId, prevId), 'home:furnish'(), 'home:delivery'(box), 'home:unpack'(box, introBoxesDone), 'home:bought'(homeId)
+// Flags: G.state.flags.boxes_unpacked (count of intro moving boxes opened), flags['invited:<roomId>'] = abs minute the invitation ends.
+// City doors: on entering the city, door pois of homes get `poi.onUse` (info card for homes that are not yours) / `poi.locked` (story homes).
+import { G } from '../core/game.js';
+import { HOMES, HOME_BY_ID, SIZE_CLASSES, MOVING_BOXES, MOVING_BOXES_DONE_MOODLET, AMBIENCE_TIERS, MOVING } from '../data/homes.js';
+import { ITEM_BY_ID } from '../data/items.js';
+import { MORTGAGE, SELL_BACK, DELIVERY } from '../data/economy.js';
+import { asset, assetSize } from '../art/registry.js';
+import { SHELLS, STORY_HOMES, withExit } from '../scenes/rooms/homes.js';
+import { toast } from '../ui/kit.js';
+
+export const order = 60;
+
+/* ---------- item id -> furniture art (EVERY sellable home good needs a line here) ---------- */
+const V = (a, p, o) => Object.assign({ a, p: p || {} }, o);
+const T3 = (tag, a, extra) => ({ [tag + '_t0']: V(a, Object.assign({ tier: 0 }, extra)), [tag + '_t1']: V(a, Object.assign({ tier: 1 }, extra)), [tag + '_t2']: V(a, Object.assign({ tier: 2 }, extra)) });
+export const VIS = Object.assign({},
+  T3('fridge', 'kitchen.fridge'), T3('stove', 'kitchen.stove'), T3('microwave', 'kitchen.microwave'), T3('bookshelf', 'bookshelf'), T3('music', 'stereo'),
+  T3('shower', 'bath.shower'), T3('bath', 'bath.bathtub'), T3('easel', 'easel'), {
+    bed_t0: V('bed.floor', { tier: 0 }), bed_t1: V('bed.single', { tier: 1 }), bed_t2: V('bed.king', { tier: 2 }),
+    sofa_t0: V('sofa.2', { tier: 0, c: '#7a8450' }), sofa_t1: V('sofa.3', { tier: 1, c: '#d9a23a' }), sofa_t2: V('sofa.3', { tier: 2, c: '#2f7a80' }),
+    tv_t0: V('tv.small', { tier: 0 }), tv_t1: V('tv.medium', { tier: 1 }), tv_t2: V('tv.wall', { tier: 2 }),
+    computer_t0: V('laptop', { tier: 0 }), computer_t1: V('desk', { tier: 1 }), computer_t2: V('desk', { tier: 2 }),
+    game_t0: V('console', { tier: 0 }), game_t1: V('console', { tier: 1 }), game_t2: V('arcade', { tier: 2 }),
+    exercise_t0: V('yogamat', { tier: 0 }), exercise_t1: V('dumbbells', { tier: 1 }), exercise_t2: V('treadmill', { tier: 2 }),
+    instrument_t0: V('guitar', { tier: 0 }), instrument_t1: V('guitar', { tier: 1 }), instrument_t2: V('piano', { tier: 2 }),
+    plant_t0: V('plant.cactus', { tier: 0 }), plant_t1: V('plant.monstera', { tier: 1 }), plant_t2: V('plant.fiddle', { tier: 2 }),
+    rug_t0: V('rug', { tier: 0, w: 2, d: 1, pat: 'stripe' }), rug_t1: V('rug', { tier: 1, w: 3, d: 2, pat: 'plain' }), rug_t2: V('rug', { tier: 2, w: 3, d: 2, pat: 'persian' }),
+    decor_t0: V('wall.poster', { tier: 0 }), decor_t1: V('wall.art', { tier: 1, art: 'sea', w: 1.5, h: 1 }), decor_t2: V('wall.photos', { tier: 2, seed: 7 }),
+    decor_string_lights: V('wall.fairylights', { len: 2, warm: true }), decor_floor_lamp: V('lamp.floor', { tier: 1 }), decor_wall_clock: V('wall.clock', { tier: 1 }),
+    decor_aquarium: V('aquarium', { tier: 2 }), plant_fern: V('plant.hanging', { tier: 1 }, { z: 1.4 }),
+  });
+const FALLBACK = { plant: V('plant.snake'), rug: V('rug'), decor: V('wall.art'), sofa: V('sofa.2'), bed: V('bed.single') };
+const vcache = {};
+export function visual(itemId) {
+  if (vcache[itemId]) return vcache[itemId];
+  const it = ITEM_BY_ID[itemId], v = VIS[itemId] || (it && FALLBACK[it.tag]) || V('boxes');
+  let a; try { a = asset('furn.home.' + v.a); } catch (e) { a = asset('furn.home.boxes'); }
+  return vcache[itemId] = { id: a.id, a, p: v.p, wall: !!a.wall, solid: a.solid !== false, z: v.z, mount: v.mount, size: assetSize(a, v.p) };
+}
+
+let S = null;
+const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1 });
+function norm() { S = G.state.home; if (!S || typeof S !== 'object') S = G.state.home = blank(); const b = blank(); for (const k in b) if (S[k] === undefined) S[k] = b[k]; if (S.id && !SHELLS[S.id]) S.id = null; return S; }
+const uid = p => p + (S.n++);
+const nameOf = id => (ITEM_BY_ID[id] ? ITEM_BY_ID[id].name : id);
+const fmt = n => (G.money ? G.money.fmt(n) : '$' + n);
+const isHome = sid => !!S.id && (sid === undefined ? (G.scene && G.scene.id) : sid) === 'int:home:' + S.id;
+const changed = quiet => { G.emit('home:furnish'); if (!quiet) refresh(); };
+
+/* ---------- geometry ---------- */
+const EPS = .01;
+function sizeOfDef(i) { let a; try { a = asset(i.id); } catch (e) { return [1, 1, 1]; } const s = assetSize(a, i.p || {}); return i.flip && !i.wall ? [s[1], s[0], s[2]] : s; }
+function rectOfDef(i) { const s = sizeOfDef(i); return [i.x, i.y, i.x + s[0], i.y + s[1]]; }
+function solidDef(i) { if (i.wall || i.solid === false) return false; try { return asset(i.id).solid !== false; } catch (e) { return false; } }
+const hit = (a, b) => a[0] < b[2] - EPS && b[0] < a[2] - EPS && a[1] < b[3] - EPS && b[1] < a[3] - EPS;
+function keepRects(sh) { if (sh.door) { const at = sh.door.at; return [sh.door.wall === 'y' ? [at - .1, 0, at + 1.1, 1.5] : [0, at - .1, 1.5, at + 1.1]]; } return [[sh.exit.x - 1, sh.exit.y - 1.5, sh.exit.x + 1, sh.exit.y + .5]]; }
+function spawnOf(sh) { return sh.door ? (sh.door.wall === 'y' ? [sh.door.at + .5, .9] : [.9, sh.door.at + .5]) : [sh.exit.x, sh.exit.y - .2]; }
+/** which of the rects can be walked up to from the door (rects = solids; all of them block) */
+function reach(sh, rects) {
+  const W = sh.w * 2, D = sh.d * 2, g = new Uint8Array(W * D);
+  for (const r of rects) for (let y = Math.max(0, Math.floor(r[1] * 2 + EPS)); y < Math.min(D, Math.ceil(r[3] * 2 - EPS)); y++) for (let x = Math.max(0, Math.floor(r[0] * 2 + EPS)); x < Math.min(W, Math.ceil(r[2] * 2 - EPS)); x++) g[y * W + x] = 1;
+  const sp = spawnOf(sh), q = [Math.min(D - 1, Math.floor(sp[1] * 2)) * W + Math.min(W - 1, Math.floor(sp[0] * 2))]; if (g[q[0]]) return rects.map(() => false); g[q[0]] = 2;
+  while (q.length) { const c = q.pop(), x = c % W, y = (c - x) / W; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= D) continue; const k = ny * W + nx; if (!g[k]) { g[k] = 2; q.push(k); } } }
+  return rects.map(r => { for (let y = Math.floor(r[1] * 2 + EPS) - 1; y <= Math.ceil(r[3] * 2 - EPS); y++) for (let x = Math.floor(r[0] * 2 + EPS) - 1; x <= Math.ceil(r[2] * 2 - EPS); x++) if (x >= 0 && y >= 0 && x < W && y < D && g[y * W + x] === 2) return true; return false; });
+}
+function check(c, ignore) {
+  const sh = SHELLS[S.id]; if (!sh) return 'You have no home yet';
+  const v = visual(c.itemId), items = roomDef(S.id).items.filter(i => !(ignore && i.uid === ignore));
+  if (v.wall) {
+    if (!c.wall) return 'This hangs on a wall';
+    const L = c.wall === 'y' ? sh.w : sh.d, w = v.size[0]; if (c.at < -EPS || c.at + w > L + EPS) return 'Off the end of the wall';
+    if (v.a.id.includes('fairylights')) return null;
+    for (const i of items) if (i.wall === c.wall && !i.id.includes('fairylights')) { const s = sizeOfDef(i)[0]; if (c.at < i.at + s - EPS && i.at < c.at + w - EPS) return 'Something already hangs there'; }
+    return null;
+  }
+  if (c.wall) return 'This stands on the floor';
+  const s = c.flip ? [v.size[1], v.size[0]] : v.size, r = [c.x, c.y, c.x + s[0], c.y + s[1]];
+  if (r[0] < -EPS || r[1] < -EPS || r[2] > sh.w + EPS || r[3] > sh.d + EPS) return 'Outside the room';
+  if (!v.solid) return null;
+  const solids = items.filter(solidDef).map(rectOfDef);
+  for (const o of solids) if (hit(r, o)) return 'Something is in the way';
+  for (const k of keepRects(sh)) if (hit(r, k)) return 'Keep the doorway clear';
+  const before = reach(sh, solids), after = reach(sh, solids.concat([r]));
+  if (!after[solids.length]) return 'You could not get to it there';
+  for (let i = 0; i < solids.length; i++) if (before[i] && !after[i]) return 'That would block the way';
+  return null;
+}
+
+/* ---------- room definition ---------- */
+function defOf(it) {
+  const v = visual(it.itemId), d = { id: v.id, p: v.p, good: it.itemId, uid: it.uid };
+  if (v.wall) { d.wall = it.wall || 'y'; d.at = it.at || 0; if (v.mount !== undefined) d.mount = v.mount; } else { d.x = it.x; d.y = it.y; d.flip = !!it.flip; if (v.z !== undefined) d.z = v.z; }
+  return d;
+}
+const incCache = {};
+/** the home's `included` items at their default slots -> { items, rest } */
+function included(id) {
+  if (incCache[id]) return incCache[id];
+  const sh = SHELLS[id], h = HOME_BY_ID[id], used = {}, items = [], rest = [];
+  for (const itemId of h.included || []) {
+    const it = ITEM_BY_ID[itemId], k = it && sh.slots[it.tag] && !used[it.tag] ? it.tag : !used.extra && sh.slots.extra ? 'extra' : null;
+    if (!k) { rest.push(itemId); continue; } used[k] = 1; const s = sh.slots[k], v = visual(itemId);
+    items.push(v.wall ? { itemId, asset: v.id, wall: 'y', at: s[0], inc: 1 } : { itemId, asset: v.id, x: s[0], y: s[1], flip: !!s[2], inc: 1 });
+  }
+  return incCache[id] = { items, rest };
+}
+function roomDef(id) {
+  const sh = SHELLS[id], h = HOME_BY_ID[id], mine = S.id === id;
+  const list = sh.fixed.map(i => Object.assign({ fixed: true }, i));
+  for (const it of mine ? S.items : included(id).items) list.push(defOf(it));
+  if (mine && S.boxes.length) {
+    const solids = list.filter(solidDef).map(rectOfDef).concat(keepRects(sh)), spots = sh.boxes.slice();
+    for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
+    for (const b of S.boxes) {
+      const sz = b.k === 'm' ? 1 : .5; let at = null;
+      for (const s of spots) { const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] <= sh.w && r[3] <= sh.d && !solids.some(o => hit(r, o))) { at = s; solids.push(r); break; } }
+      if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : 'furn.home.parcel', x: at[0], y: at[1], box: b.uid, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
+    }
+  }
+  const flat = i => (!i.wall && !solidDef(i) && sizeOfDef(i)[2] < .1 ? 0 : 1);
+  list.sort((a, b) => flat(a) - flat(b));
+  return withExit({ name: h.name, home: mine, homeId: id, w: sh.w, d: sh.d, floor: sh.floor, floors: sh.floors, wall: sh.wall, items: list }, sh, 'home:' + id);
+}
+
+/* ---------- moving in / out ---------- */
+function moveIn(id, owned, o = {}) {
+  const prev = S.id, carry = prev ? S.items.filter(i => !i.inc).map(i => i.itemId).concat(S.storage) : S.storage.slice();
+  const inc = included(id);
+  S.id = id; S.owned = !!owned; S.items = inc.items.map(i => Object.assign({ uid: uid('f') }, i)); S.stay = inc.rest.slice(); S.storage = [];
+  if (!prev) S.boxes = [];
+  if (o.intro) for (const b of MOVING_BOXES) S.boxes.push({ uid: uid('b'), k: 'm', label: b.label, items: [], gives: b.gives, intro: 1 });
+  while (carry.length && S.boxes.length < 7) S.boxes.push({ uid: uid('b'), k: 'm', label: 'FURNITURE', items: carry.splice(0, 4) });
+  S.storage.push(...carry);
+  G.state.flags.lastHomeDoor = 'door:home:' + id;
+  if (G.places && G.places.discover) try { G.places.discover('home:' + id); } catch (e) { /* not a registered place */ }
+  G.emit('home:move', id, prev);
+}
+function start(homeId) {
+  norm(); if (!SHELLS[homeId]) return false; const keep = S.storage; Object.assign(S, blank(), { storage: keep || [] });
+  moveIn(homeId, false, { intro: true }); G.state.flags.boxes_unpacked = 0;
+  const h = HOME_BY_ID[homeId]; if (h.rentPerWeek && G.money) G.money.pay(h.rentPerWeek, 'First week rent — ' + h.name, { force: true, silent: true });
+  drain(); return true;
+}
+function equity() { const h = HOME_BY_ID[S.id]; return S.owned && h && h.buyPrice ? Math.max(0, Math.round(h.buyPrice * SELL_BACK.home - (S.mortgage ? S.mortgage.left : 0))) : 0; }
+const unlocked = h => G.now().day >= ((h.unlock && h.unlock.day) || 0);
+function homes() {
+  return HOMES.filter(h => SHELLS[h.id]).map(h => ({ id: h.id, home: h, available: unlocked(h), unlockDay: (h.unlock && h.unlock.day) || 0, current: S.id === h.id, owned: S.id === h.id && S.owned,
+    rent: h.rentPerWeek, price: h.buyPrice, down: h.buyPrice ? Math.round(h.buyPrice * MORTGAGE.downPayment) : null,
+    canRent: !!h.rentPerWeek && S.id !== h.id && unlocked(h), canBuy: !!h.buyPrice && !(S.id === h.id && S.owned) && unlocked(h) }));
+}
+async function afterMove(id, wasInside) { if (wasInside) { G.state.flags.lastDoor = 'door:home:' + id; await G.go('int:home:' + id, { fresh: true }); } }
+function rent(id) {
+  const h = HOME_BY_ID[id]; if (!h || !SHELLS[id] || !h.rentPerWeek) return false; if (S.id === id) { toast('You already live here.'); return false; }
+  if (!unlocked(h)) { toast('That listing is not on the market yet.'); return false; }
+  const eq = equity(), cost = h.rentPerWeek + (S.id ? MOVING.moveFee : 0);
+  if (G.money && !G.money.pay(cost, 'Lease — ' + h.name)) return false;
+  if (eq && G.money) G.money.add(eq, 'Sold ' + HOME_BY_ID[S.id].name);
+  S.mortgage = null; const inside = isHome(); moveIn(id, false); toast(`Welcome to ${h.name}! The van has dropped your boxes off.`, 'good', 4000); afterMove(id, inside); return true;
+}
+function buy(id, termIx = 1) {
+  const h = HOME_BY_ID[id]; if (!h || !SHELLS[id] || !h.buyPrice) return false; if (S.id === id && S.owned) { toast('You already own it.'); return false; }
+  if (!unlocked(h)) { toast('That listing is not on the market yet.'); return false; }
+  const term = MORTGAGE.terms[termIx] || MORTGAGE.terms[0], down = Math.round(h.buyPrice * MORTGAGE.downPayment), same = S.id === id, eq = same ? 0 : equity(), net = down + (S.id && !same ? MOVING.moveFee : 0) - eq;
+  if (net > 0 && G.money && !G.money.pay(net, 'Down payment — ' + h.name)) return false;
+  if (net < 0 && G.money) G.money.add(-net, 'Home sale balance');
+  const total = Math.round((h.buyPrice - down) * (1 + term.fee));
+  S.mortgage = { home: id, left: total, weekly: Math.ceil(total / term.weeks), weeks: term.weeks };
+  const inside = isHome(); if (same) S.owned = true; else moveIn(id, true);
+  toast(`${h.name} is yours. Mortgage: ${fmt(S.mortgage.weekly)} a week for ${term.weeks} weeks.`, 'good', 4500); G.emit('home:bought', id); if (!same) afterMove(id, inside); return true;
+}
+function payOff() { const m = S.mortgage; if (!m) return false; if (G.money && !G.money.pay(m.left, 'Mortgage paid off')) return false; S.mortgage = null; toast('Mortgage paid off. The place is all yours!', 'good'); return true; }
+
+/* ---------- deliveries & boxes ---------- */
+function addFurniture(itemId, o = {}) {
+  if (!ITEM_BY_ID[itemId]) return false;
+  if (!S.id || o.instant) { S.storage.push(itemId); G.emit('home:furnish'); return true; }
+  const h = HOME_BY_ID[S.id], fast = h.perk && h.perk.effect && h.perk.effect.freeSameDayDelivery, t = Math.floor(G.state.t);
+  S.pending.push({ id: itemId, t: fast ? t + DELIVERY.sameDayHours * 60 : (Math.floor(t / 1440) + 1) * 1440 + DELIVERY.homegoodsNextMorningHour * 60 });
+  if (!o.quiet) toast(`${nameOf(itemId)}: ${fast ? 'the doorman will have it upstairs in a few hours' : 'delivered to your home tomorrow at 09:00'}.`, 'info', 3600);
+  return true;
+}
+function land(all) {
+  const t = G.state.t, due = S.pending.filter(p => all || p.t <= t); if (!due.length) return 0;
+  S.pending = S.pending.filter(p => !due.includes(p));
+  for (const p of due) { if (S.boxes.length >= 8) { S.storage.push(p.id); continue; } const b = { uid: uid('b'), k: 'd', label: nameOf(p.id), items: [p.id] }; S.boxes.push(b); G.emit('home:delivery', b); }
+  const msg = due.length === 1 ? `${nameOf(due[0].id)} has been delivered.` : `${due.length} parcels have been delivered.`;
+  if (G.phone && G.phone.notify && !isHome()) G.phone.notify({ app: 'delivery', title: 'Nest & Wire', text: msg + ' Unpack at home.', icon: due[0].id }); else toast(msg, 'good');
+  if (isHome()) refresh(); return due.length;
+}
+function drain() { const o = G.state.owned; if (o && Array.isArray(o.furniture) && o.furniture.length) { for (const f of o.furniture.splice(0)) addFurniture(f.id || f, { quiet: true, instant: !S.id }); } }
+function unpack(boxUid) {
+  const i = S.boxes.findIndex(b => b.uid === boxUid); if (i < 0) return null; const b = S.boxes.splice(i, 1)[0], got = [];
+  for (const id of b.items) { S.storage.push(id); got.push(nameOf(id)); }
+  for (const g of b.gives || []) { const it = ITEM_BY_ID[g.item]; if (!it) continue; got.push(it.name + (g.qty > 1 ? ' x' + g.qty : ''));
+    if (it.category === 'homegood') for (let k = 0; k < (g.qty || 1); k++) S.storage.push(g.item);
+    else if (it.category === 'outfit') { if (G.wardrobe) G.wardrobe.add(g.item, true); else (G.state.owned.outfits || (G.state.owned.outfits = [])).push(g.item); }
+    else if (G.inv && !G.inv.add(g.item, g.qty || 1) && G.inv.fridge && G.inv.fridge.add) G.inv.fridge.add(g.item, g.qty || 1); }
+  if (b.intro) { const n = G.state.flags.boxes_unpacked = (G.state.flags.boxes_unpacked || 0) + 1; if (!S.boxes.some(x => x.intro) && G.needs) G.needs.addMoodlet(MOVING_BOXES_DONE_MOODLET); }
+  if (got.length) toast('Unpacked: ' + got.join(', ') + (b.items.length || (b.gives || []).some(g => (ITEM_BY_ID[g.item] || {}).category === 'homegood') ? '. Tap Decorate to place it.' : '.'), 'good', 4200);
+  G.emit('home:unpack', b, G.state.flags.boxes_unpacked || 0); G.emit('home:furnish'); return b.items;
+}
+
+/* ---------- furniture ---------- */
+function slots() { const h = HOME_BY_ID[S.id]; if (!h) return { used: 0, max: 0 }; return { used: S.items.filter(i => !i.inc).length, max: SIZE_CLASSES[h.sizeClass].furnitureSlots + ((h.perk && h.perk.effect && h.perk.effect.extraFurnitureSlots) || 0) }; }
+const posOf = (v, pos) => (v.wall ? { wall: pos.wall, at: pos.at } : { x: pos.x, y: pos.y, flip: !!pos.flip });
+function place(itemId, pos, o = {}) {
+  let from = S.storage, i = from.indexOf(itemId); if (i < 0) { from = S.stay; i = from.indexOf(itemId); } if (i < 0) return null;
+  const inc = from === S.stay, sl = slots(); if (!inc && sl.used >= sl.max) { if (!o.quiet) toast('This home is full: store something first.', 'bad'); return null; }
+  const v = visual(itemId), why = check(Object.assign({ itemId }, pos)); if (why) { if (!o.quiet) toast(why, 'bad'); return null; }
+  from.splice(i, 1); const it = Object.assign({ uid: uid('f'), itemId, asset: v.id }, posOf(v, pos)); if (inc) it.inc = 1; S.items.push(it); changed(o.quiet); return it.uid;
+}
+function move(id, pos, o = {}) {
+  const it = S.items.find(i => i.uid === id); if (!it) return false; const v = visual(it.itemId), why = check(Object.assign({ itemId: it.itemId }, pos), id); if (why) { if (!o.quiet) toast(why, 'bad'); return false; }
+  delete it.x; delete it.y; delete it.flip; delete it.wall; delete it.at; Object.assign(it, posOf(v, pos)); changed(o.quiet); return true;
+}
+function rotate(id, o = {}) {
+  const it = S.items.find(i => i.uid === id); if (!it) return false;
+  if (it.wall) { const sh = SHELLS[S.id], w = it.wall === 'y' ? 'x' : 'y', L = w === 'y' ? sh.w : sh.d, sz = visual(it.itemId).size[0]; for (let at = Math.min(it.at, L - sz); at >= 0; at -= .5) if (move(id, { wall: w, at }, { quiet: true })) { changed(o.quiet); return true; } return false; }
+  return move(id, { x: it.x, y: it.y, flip: !it.flip }, o);
+}
+function store(id, o = {}) { const i = S.items.findIndex(x => x.uid === id); if (i < 0) return false; const it = S.items.splice(i, 1)[0]; (it.inc ? S.stay : S.storage).push(it.itemId); changed(o.quiet); return true; }
+const sellPrice = itemId => Math.round(((ITEM_BY_ID[itemId] || {}).price || 0) * SELL_BACK.homegood);
+function sell(ref, o = {}) {
+  let itemId = null; const i = S.items.findIndex(x => x.uid === ref);
+  if (i >= 0) { if (S.items[i].inc) { if (!o.quiet) toast('That belongs to the landlord.', 'bad'); return 0; } itemId = S.items.splice(i, 1)[0].itemId; }
+  else { const j = S.storage.indexOf(ref); if (j < 0) return 0; itemId = S.storage.splice(j, 1)[0]; }
+  const p = sellPrice(itemId); if (G.money) G.money.add(p, 'Sold ' + nameOf(itemId)); changed(o.quiet); return p;
+}
+function ambience() { const h = HOME_BY_ID[S.id]; let a = (h && h.perk && h.perk.effect && h.perk.effect.ambienceBonus) || 0; for (const it of S.items) { const d = ITEM_BY_ID[it.itemId]; a += (d && d.bonus && d.bonus.ambience) || 0; } return a; }
+function homeMood() { if (!isHome() || !G.needs || !G.needs.addMoodlet) return; const a = ambience(), t = AMBIENCE_TIERS.find(x => a >= x.min); if (t) try { G.needs.addMoodlet(t.moodlet, 2); } catch (e) { /* unknown moodlet */ } }
+
+/* ---------- scene helpers ---------- */
+function refresh() { if (!isHome() || G.busy) return null; return G.go('int:home:' + S.id, { fresh: true, x: G.player.x, y: G.player.y, dir: G.player.dir, fade: false }); }
+function goHome() { if (!S.id) return Promise.resolve(null); G.state.flags.lastDoor = 'door:home:' + S.id; return G.go('int:home:' + S.id, { fresh: true }); }
+function guestSpots() {
+  const sc = G.scene, out = []; if (!sc || !sc.fixtures) return out; const P = G.player;
+  for (const fx of sc.fixtures) if (fx.tags.includes('seat') && !fx.tags.includes('bed')) for (const s of fx.seats) if (s && !s.lie && Math.hypot(s.x - P.x, s.y - P.y) > .4) out.push({ x: s.x, y: s.y, z: s.z, dir: s.dir, seat: true, fx });
+  const d = sc.def, W = sc.world; if (d) for (let y = 1.5; y < d.d; y += 1.5) for (let x = 1.5; x < d.w; x += 1.5) { const p = sc.toWorld(x, y); if (!W.isBlocked(p.x, p.y) && Math.hypot(p.x - P.x, p.y - P.y) > 1) out.push({ x: p.x, y: p.y, stand: true }); }
+  return out;
+}
+
+/* ---------- doors ---------- */
+const OWNER_NAME = { 'home:sibling': 'Jules', 'home:grandma': 'Nana Bea', 'home:friend': 'Kit' };
+function whyNot(roomId) {
+  const hid = roomId.slice(5);
+  if (HOME_BY_ID[hid]) return S.id === hid ? null : 'This is not your home.';
+  const st = STORY_HOMES[roomId]; if (!st) return null;
+  const inv = G.state.flags['invited:' + roomId]; if (inv === true || inv > G.state.t) return null;
+  const hr = G.now().hour, who = OWNER_NAME[roomId] || 'them';
+  if (hr < 8) return `Too early to knock on ${who}'s door.`; if (hr >= 21) return `It is late. ${who} will be asleep.`;
+  const rel = G.social && G.social.rel ? G.social.rel(st.owner) : null, need = roomId === 'home:friend' ? 20 : 0;
+  if (rel !== null && rel !== undefined && rel < need) return `You do not know ${who} well enough to drop by unannounced.`;
+  return null;
+}
+function lockDoors(world) {
+  for (const p of world.pois || []) {
+    if (p.type !== 'door' || !p.room || !String(p.room).startsWith('home:')) continue; const hid = p.room.slice(5);
+    if (STORY_HOMES[p.room]) p.locked = () => whyNot(p.room);
+    else if (HOME_BY_ID[hid]) p.onUse = () => { if (S.id === hid) return false; if (G.housing.showCard) G.housing.showCard(hid); else toast(`${HOME_BY_ID[hid].name}. Viewings at Bay Realty & Trust.`); return true; };
+  }
+}
+
+export function init() {
+  G.defineState('home', blank); norm();
+  G.housing = {
+    current: () => (S.id ? { id: S.id, home: HOME_BY_ID[S.id], owned: S.owned, state: S, roomId: 'home:' + S.id, door: 'door:home:' + S.id } : null),
+    isHome, homes, rent, buy, payOff, mortgage: () => S.mortgage, start, goHome, refresh, equity,
+    canEnter: roomId => !whyNot(roomId), whyNot, invite: (roomId, hours = 3) => { G.state.flags['invited:' + roomId] = G.state.t + hours * 60; },
+    addFurniture, deliverNow: () => land(true), unpack: id => { const r = unpack(id); if (r) refresh(); return r; },
+    storage: () => S.storage.concat(S.stay), items: () => S.items, boxes: () => S.boxes, slots, ambience,
+    check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => SHELLS[id || S.id],
+  };
+  G.on('load', () => { norm(); drain(); });
+  G.on('game:new', o => { norm(); start((o && o.homeId) || S.id || 'juniper_court'); });
+  G.on('shop:buy', drain);
+  G.on('minutes', () => { if (S.pending.length) land(false); });
+  G.on('hour', homeMood);
+  G.on('scene', s => { if (s && s.id === 'city') lockDoors(s.world); else homeMood(); });
+  const city = G.sceneCache.get('city'); if (city) lockDoors(city.world);
+  let ctx = null;
+  G.on('activity:start', (id, c) => { ctx = id === 'unpack_boxes' || id === 'assemble_furniture' ? c : null; });
+  G.on('activity:done', (id, r) => { const it = ctx && ctx.fx && ctx.fx.item; if ((id !== 'unpack_boxes' && id !== 'assemble_furniture') || !it || !it.box) return; ctx = null; if (r && r.completed) { unpack(it.box); setTimeout(refresh, 60); } });
+  const bills = () => G.money && G.money.addBillSource && !bills.done && (bills.done = true) && G.money.addBillSource(() => (S.mortgage ? [{ id: 'mortgage', label: 'Mortgage — ' + (HOME_BY_ID[S.mortgage.home] || {}).name, amount: Math.min(S.mortgage.weekly, S.mortgage.left) }] : []));
+  bills(); G.on('ready', bills);
+  G.on('bills:due', () => { const m = S.mortgage; if (!m) return; m.left -= Math.min(m.weekly, m.left); m.weeks = Math.max(0, m.weeks - 1); if (m.left <= 0) { S.mortgage = null; toast('Final mortgage payment made. The place is all yours!', 'good', 4000); } });
+  drain();
+}

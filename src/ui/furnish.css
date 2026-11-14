@@ -1,0 +1,28 @@
+#fz-top{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:5px 6px 5px 12px;z-index:30;white-space:nowrap}
+#fz-top .fz-slots{font-size:13px;opacity:.8}
+#fz-bot{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-top:2px solid var(--edge);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+.fz-act{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:2px solid var(--shade);flex-wrap:wrap;min-height:50px}
+.fz-act button{min-height:36px;padding:4px 10px}
+.fz-hint{flex:1 1 140px;font-size:13px;font-weight:700}
+.fz-hint.bad{color:var(--bad)}
+button.go{background:var(--good);color:#fff}
+.fz-tray{display:flex;gap:6px;padding:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fz-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:74px;max-width:86px;padding:5px 4px;position:relative;flex:none}
+.fz-item.on{background:var(--gold)}
+.fz-n{font-size:10px;line-height:1.1;font-weight:700;text-align:center;overflow:hidden;max-height:22px}
+.fz-c{position:absolute;top:1px;right:3px;font-size:11px}
+.fz-empty{font-size:13px;opacity:.75;padding:8px}
+#hud.fz-hide{display:none}
+.fz-list{max-width:min(520px,96vw)}
+.fz-home{border:2px solid var(--edge);background:#fffaf0;padding:8px;margin:8px 0;box-shadow:0 3px 0 var(--shade)}
+.fz-home.locked{opacity:.6}
+.fz-hrow{display:flex;gap:10px;align-items:flex-start}
+.fz-plan{flex:none;image-rendering:pixelated;border:2px solid var(--edge)}
+.fz-hinfo{min-width:0}
+.fz-sub{font-size:12px;opacity:.8;margin:2px 0}
+.fz-price{font-weight:700;color:var(--accent);margin:2px 0}
+.fz-blurb{font-size:13px;font-style:italic;margin:6px 0 4px}
+.fz-pros{margin:4px 0;padding-left:18px;font-size:12px}
+.fz-pros .pro{color:#2b6a36}.fz-pros .con{color:#8a3a2a}
+.fz-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.fz-tag{font-size:12px;font-weight:700;background:var(--shade);border:2px solid var(--edge);padding:2px 6px}

@@ -17,7 +17,7 @@ export class Veh {
   reset() {
     this.v = 0; this.off = 1; this.noff = 1; this.s = 0; this.lat = 0; this.turnS = 0; this.inNode = null; this.cornerOn = false; this.cx = 0; this.cy = 0; this.cax = 'x'; this.cd = 1;
     this.plan = null; this.offs = null; this.planI = 0; this.cyclic = false; this.stop = null; this.onStop = null; this.halt = false; this.parked = false; this.curb = 0; this.keep = false; this.pre = false;
-    this.stuck = 0; this.ghost = 0; this.pedWait = 0; this.honk = 1; this.byPlayer = false; this.bus = null; this.stand = null; this.taxiFree = false; this.role = ''; this.acc = 1; this.gap = 1.3; this.age = 0;
+    this.stuck = 0; this.gho = 0; this.ghost = false; this.pedWait = 0; this.honk = 1; this.byPlayer = false; this.bus = null; this.stand = null; this.taxiFree = false; this.role = ''; this.acc = 1; this.gap = 1.3; this.age = 0;
   }
   /** kind: { id, asset, vmax }, params: art params (color, route, free...) */
   setKind(kind, params) {
@@ -68,8 +68,8 @@ export function step(v, dt) {
   for (let i = 0; i < L.length; i++) {
     const o = L[i]; if (o === v) continue; const rx = o.x - v.x, ry = o.y - v.y, al = (ax ? rx : ry) * d; if (al < -6 || al > 24) continue;
     const la = Math.abs(ax ? ry : rx); if (la > 2.4) continue; const ohl = o.e.axis === e.axis ? o.len / 2 : o.wid / 2;
-    if (o.parked) { if (al > -hl - ohl - 1.5 && al < 10) dodge = 1; if (la < 1 && al > 0 && v.ghost <= 0) adv = Math.min(adv, al - hl - ohl - .5); continue; }
-    if (al <= .01 || la > 1.1 || v.ghost > 0) continue;
+    if (o.parked) { if (al > -hl - ohl - 1.5 && al < 10) dodge = 1; if (la < 1 && al > 0 && v.gho <= 0) adv = Math.min(adv, al - hl - ohl - .5); continue; }
+    if (al <= .01 || la > 1.1 || v.gho > 0) continue;
     adv = Math.min(adv, al - hl - ohl - v.gap);
   }
   const P = T.peds;
@@ -86,7 +86,7 @@ export function step(v, dt) {
       if (v.pre && n.signal) { n.pre = e.axis; n.preT = T.time + 1.2; }
       const sg = !n.signal ? 2 : ax ? n.gx : n.gy, turn = !!v.ne && v.ne.axis !== e.axis;
       let go = sg === 2 || (sg === 1 && line < 1.2 && v.v > 3);
-      if (go && !(n.occ === 0 || (!n.occX && !turn && n.occAx === e.axis))) go = v.ghost > 0;
+      if (go && !(n.occ === 0 || (!n.occX && !turn && n.occAx === e.axis))) go = v.gho > 0;
       if (!go) adv = Math.min(adv, line - .3); else if (line < 1) { leaveNode(v); n.occ++; n.occAx = e.axis; if (turn) n.occX = true; v.inNode = n; }
     }
   }
@@ -94,7 +94,7 @@ export function step(v, dt) {
   const tv = adv <= .02 ? 0 : Math.min(vm, Math.sqrt(14 * adv));
   if (tv > v.v) v.v = Math.min(tv, v.v + 4.5 * dt * v.acc); else v.v = Math.max(tv, v.v - 16 * dt);
   v.s += d * v.v * dt;
-  if (v.v < .3) { v.stuck += dt; v.pedWait += dt; if (v.stuck > 22 && !v.halt && !byPlayer) { v.ghost = 4; v.stuck = 0; } } else { v.stuck = 0; if (v.ghost > 0) v.ghost -= dt; if (v.v > 2) v.pedWait = 0; }
+  if (v.v < .3) { v.stuck += dt; v.pedWait += dt; if (v.stuck > (v.pre ? 7 : 22) && !v.halt && !byPlayer) { v.gho = 4; v.stuck = 0; } } else { v.stuck = 0; if (v.gho > 0) v.gho -= dt; if (v.v > 2) v.pedWait = 0; }
   v.byPlayer = byPlayer;
   if (byPlayer && v.v < .3) { v.honk -= dt; if (v.honk <= 0 && T.time > T.honkAt) { v.honk = 3 + Math.random() * 4; T.honkAt = T.time + 2.5; if (T.sfx) T.sfx('honk'); } }
   if (st && st.e === e && dStop < .25 && v.v < .6) { v.v = 0; v.stop = null; const f = v.onStop; v.onStop = null; if (f) f(v); if (v.e !== e) return; }
