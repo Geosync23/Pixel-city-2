@@ -122,3 +122,57 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 35 — Handoff notes instead of new sessions
 > You're also approaching your memory becoming full. I have a question for you. Like I said, I've been implementing a strategy on previous projects where when you get close to being full, you create a full handoff note and hand it off to start a new session and hand it off and make them the lead. I figured this as a tactic just simply to combat, you know, the casual, like I know that Anthropic has built in this feature of Claude already. Once you reach full memory, you'll compact your memory and continue. But a lot of details are lost, I've noticed in that process. So I implement this new method where you write notes and hand it off. But I don't think we need to do that if we have the GitHub repo to centralize this data. That's basically the same thing, right? As long as you're constantly writing handoff notes, especially as you see yourself getting close to being full in memory, I'd say at about 60, 70%, 80%, you know, start doing it more frequently. You just constantly update this section, this special section, the documentation that is basically the handoff notes, right? Wouldn't that effectively be the same thing? And that way, once you compact, and as soon as you reset, you have a standing order to read those notes and familiarize yourself with them so that you're basically equivalent to a new lead, right? Wouldn't it be the same? I think we can forego creating new sessions with this technique. Tell me if I'm wrong.
+
+## 36 — Big playtest notes (with two screenshots: an intersection where both traffic-light arms read "MAIN"; and Chandler St / Main / "Market" signs)
+> Continue, some play test notes for you: Quick needs app or function in the welness app-  brings you to the place closest place to take cate of that need you selcted
+>
+> When you create a wayppint on the map you should be abe.to choose how to get there (bus, train, foot/bike)
+>
+> Relationship meters fill up too fast, there also needs to be a daily limit
+>
+> Should be able to sit in any chair
+>
+> Train flickers a lot when you see it pass by overhead
+>
+> Rename jules character something else
+>
+> Airport interior is incredible. But the walkways are on the wrong side. I.e. they are placed correctly but it shoukd be right hand side for your direction.  Right side usa style not left side uk style.
+>
+> Also in intro when debaording you get up when the lines gets to you not when everyone is off. Also make the shell look like a plane not a box please.
+>
+> Stairs up to train starions dont work
+>
+> You should have to buy a ticket for the train. Flat fee.
+>
+> Main and main (screenshot attached)
+>
+> All resturatnts and interiors need to be unique. No more repeating  food places with differnt signs inside. Also i want more enterable buildings. A lot more. If its an apartments building then we can only go in the lobby . If its an office building l, lobby only (unless you work there).  But lets make as many enterable as possible.
+>
+> Lots of clothes. An absurd amount. Only 16 starting outfits then a ton to buy in stores. 100s of items.. Lots of hairstyles too. Same thing- some to start in the character creators and a lot more at barbers. And each store had differnt clothes just like each barber and stylist has differnt hair styles
+>
+> Need a deeper characters system with traits and skills. With this we need more activities to bevome skilled at. These activities need basic in game mini games (no abstraction, picutre in picture etc) or mechanics.
+>
+> Your planner should then dictate your goals list for quick viewing
+>
+> Lwts add to the city a little universiry where you can sign up and take classes. A little quad and a lecture hall and commons area.
+>
+> In your apartment the bathroom needs to be its own room
+>
+> Where do I get a better apartment? We need a properties  browser app. Lets have an app store. Instead of unlocking apps they release here new notifications to notify. Lots of apps for all kinds off stuff. Be creative. Lots of apps to stsrt that cover the games syste.s
+>
+> Full cloothrr system Need to change everyday at , dresser, or like thing. Must put dirty clothers in hamper. Take hapmber to laundry and cant wear that clothing until.igs clean again. Make an app with living tip explaining this stuff. Also tutorials in game and character mentioning. I want a lot of systems like this in the game. Think if more fun realistic thijgs. Also nees toilets and a bathroom need
+>
+> Map app doesn't properly show food establishments or anytbing until ou discover. Thats fine but again we nees ways to quickly create waypoint for needs lkke food , or to grocery store, or going to work etc . Maybe a navigator app seperate of maps. Lets actually make all this part of the map app :
+> You click what you generally need or want to do. It tells you where ro go via foot, bus, or train.
+>
+> You should be able to click a need in the needs drop fown for a the closest place to address that need.
+>
+> Some streets are named multiple times it seems ( see screenshot ignore text thats our chat)
+>
+> In goals drop down you should be able.to click a goal and get a waypoint
+>
+> Jtems in backpack shouldn't be color squares make kt more visually interesting and representative
+>
+> You should have to push the talk button to talk to people. Clicking them is too much trouble when navigating. And happens to much accidentally when walking around.
+>
+> Lers expiration the guide app or things to do app. Something that lists all the activities and places and things to do. Its a things to do app. A place to be guided to all the content you've made. Everything. Like the arcade games and all shops ets.

@@ -32,3 +32,4 @@
 - docs/LEAD_JOURNAL.md written (the lead's side: decisions, reasoning, answers given).
 - Owner clarified pacing (steady, not stop-start); cancelled the 40-min timer and launched showpieces B (performance venues) immediately.
 - Owner chose continuous handoff notes in the repo over new-session handoffs: docs/HANDOFF.md created (always-current 'Now' section) and made the first thing to read.
+- 5-hour limit hit again ~18:00 UTC with ONE worker running (performance venues cut off; resets 21:00 UTC). Owner sent big playtest notes (msg 36) -> BIBLE update 11, backlog 2f-2j.

@@ -137,3 +137,19 @@ Hillcrest lookout, seasonal festivals. The lead is asked to invent a good list b
 Post offices with interiors (a main one downtown + small branches): queue line, counters with clerks, PO boxes, packing table. SENDING A PACKAGE requires going there: pack,
 wait in line with other customers, pick destination/speed, pay. LETTERS are sent from home (mailbox) or street mailboxes. Orders/gifts arrive at home; missed/oversized parcels
 may need collecting. Tie into the story: an Opportunity to send something back to where you came from (care package, returning a keepsake); family can mail things to you.
+
+## Direction update 11 — playtest notes (2026-11-14 evening). Praise: "Airport interior is incredible."
+QUICK FIXES: moving walkways keep right (US style); deboarding: stand up when the queue reaches your row, not after everyone; plane cabin shell must look like a plane, not a box;
+station stairs must work; train requires a flat-fee ticket; traffic-light arms/street signs show the wrong/duplicate names ("MAIN and MAIN"); train flickers passing overhead; rename the character Jules;
+relationship meters fill too fast + daily cap; sit on ANY chair; talking requires pressing the Talk button (tapping people while walking is accidental); backpack items need real icons, not colour squares;
+tap a goal -> waypoint; tap a need -> nearest place that satisfies it.
+NAVIGATION: in the Map app, "what do you need / want to do?" (food, groceries, work, home, fun...) -> nearest suitable place + how to get there by foot/bike, bus or train; waypoints let you choose the mode.
+PLANNER drives the Goals list (today's appointments show in the quick list).
+UNIQUE INTERIORS: every restaurant/interior must be unique — no more repeated rooms with different signs. MANY more enterable buildings: apartment buildings = lobby only; office buildings = lobby only (unless you work there).
+CLOTHES & HAIR: an absurd amount — only ~16 starting outfits and a starter set of hairstyles in the creator, HUNDREDS of clothing items in stores (each store different stock), many more hairstyles at barbers/stylists (each different).
+FULL CLOTHING SYSTEM: change clothes daily at a dresser/wardrobe; worn clothes go in a hamper; take the hamper to do laundry (laundromat or own washer); dirty clothes can't be worn until clean. More fun realistic systems like this.
+TOILETS + a BLADDER/bathroom need. In apartments the BATHROOM IS ITS OWN ROOM.
+CHARACTER DEPTH: traits + more skills; more activities to get skilled at, each with an in-world mini-game/mechanic (no abstraction).
+UNIVERSITY: a small campus (quad, lecture hall, commons) where you enrol and take classes.
+APPS: an APP STORE on the phone — lots of apps covering the game's systems, new ones "release" with a notification instead of silently unlocking; a PROPERTIES browser app (find/rent/buy better homes); a LIVING TIPS app explaining systems
+(laundry etc.), plus in-game tutorials and characters mentioning them; the THINGS TO DO guide app listing ALL content (every shop, arcade game, activity, place).
