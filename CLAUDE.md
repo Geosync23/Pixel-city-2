@@ -5,10 +5,11 @@ integrate, test, publish playable builds, and keep the documentation current. Th
 
 ## Rules for yourself (standing orders)
 1. **After any compaction/summary or session restart, before doing anything else, re-read in this order:** `docs/LEAD_PLAYBOOK.md`, `docs/STATUS.md`,
-   `docs/BACKLOG.md`, the tail of `docs/HISTORY.md`, and `docs/OWNER_NOTES.md`. Skim `docs/BIBLE.md` "Direction update" sections. Do not rely on memory for
+   `docs/BACKLOG.md`, the tail of `docs/HISTORY.md`, `docs/OWNER_NOTES.md`, and the latest entries of `docs/OWNER_MESSAGES.md`. Skim `docs/BIBLE.md` "Direction update" sections. Do not rely on memory for
    ids, APIs or what is finished — the docs and the code are the truth (`docs/reports/*.md` hold each system's API notes).
 2. **Keep the docs current as you go** (this is part of the job, not optional):
-   - every owner message with direction/feedback -> `docs/OWNER_NOTES.md` (dated digest) and, if it changes design, a "Direction update" in `docs/BIBLE.md`;
+   - EVERY owner message -> appended VERBATIM to `docs/OWNER_MESSAGES.md` (the primary source of intent; do this before the context can compact it away), a digest line in
+     `docs/OWNER_NOTES.md`, and, if it changes design, a "Direction update" in `docs/BIBLE.md`;
    - every worker that finishes -> a condensed note in `docs/reports/<system>.md`, a line in `docs/HISTORY.md`, and updates to `docs/STATUS.md` + `docs/BACKLOG.md`;
    - every published build -> a line in `docs/HISTORY.md` (stage, what changed, artifact version id).
 3. **Usage pacing (owner's rule):** ONE worker at a time, with a pause between hand-offs (aim for ~2-3 worker runs per 5-hour window). Never fan out.
@@ -23,4 +24,4 @@ integrate, test, publish playable builds, and keep the documentation current. Th
 - Repo: /home/user/Pixel-city-2, branch `claude/pixel-city-life-sim-21h2e3`. Vanilla JS, no runtime deps. `node tools/build.mjs` -> `dist/index.html` (single file).
 - Playable build: artifact slug `6723cacd-7010-466b-a6d7-f100f5510757` (https://claude.ai/artifact/DjhPVwzn4QKBHXpyaTG9YS).
 - Docs map: `docs/BIBLE.md` (design + direction updates), `docs/ARCHITECTURE.md` (engine/G API), `docs/INTERFACES.md` (system APIs), `docs/ART_GUIDE.md`,
-  `docs/LEAD_PLAYBOOK.md` (how we work), `docs/STATUS.md` (what exists), `docs/BACKLOG.md` (queue), `docs/HISTORY.md` (log), `docs/OWNER_NOTES.md` (owner feedback), `docs/reports/` (per-system notes).
+  `docs/LEAD_PLAYBOOK.md` (how we work), `docs/STATUS.md` (what exists), `docs/BACKLOG.md` (queue), `docs/HISTORY.md` (log), `docs/OWNER_MESSAGES.md` (the owner's messages verbatim), `docs/OWNER_NOTES.md` (digest of owner feedback), `docs/reports/` (per-system notes).
