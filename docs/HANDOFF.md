@@ -31,6 +31,8 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 - **Git:** branch claude/pixel-city-life-sim-21h2e3, everything pushed. No PR opened (owner hasn't asked).
 - **Pacing rule:** ONE worker at a time, steady; even one worker has hit the 5-hour limit, so leave ~15-20 min between workers and keep lead usage light. Owner doesn't care about total usage, only about steady progress.
 
+- A ready-made first message for a new session is in docs/NEW_SESSION_PROMPT.md.
+
 ## How to resume cold
 1. Read CLAUDE.md -> this file -> docs/LEAD_PLAYBOOK.md -> docs/STATUS.md -> docs/BACKLOG.md -> tail of docs/HISTORY.md -> docs/OWNER_NOTES.md (digest) / OWNER_MESSAGES.md (verbatim) / LEAD_JOURNAL.md (why).
 2. `git status`, `git log --oneline | head`, `node tools/build.mjs` to confirm the tree is healthy.

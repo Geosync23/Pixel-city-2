@@ -236,3 +236,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 56 — Thanks
 > Thank you for your superb work
+
+## 57 — Starter prompt for the new account
+> Can you just make me a prompt to start off the new session on the new accouont
