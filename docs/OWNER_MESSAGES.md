@@ -179,3 +179,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 37 — Prioritize the guide app
 > Great please though make the things to do app (name is something better) is prioritized. It needs to be very comprehensive. Fun snd visual like a guide book
+
+## 38 — Guide app: active links
+> And it has active links for waypoints or if its a scheduled event, you can add it to your planner

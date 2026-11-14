@@ -3,7 +3,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 
 ## Now (updated 2026-11-14 ~21:25 UTC)
 - **Running worker:** none at the moment of writing. A wake-up is scheduled for ~21:25 UTC to launch the GUIDE APP worker (owner msg 37: prioritised; working name "Wander — the Maple Bay guidebook";
-  very comprehensive, fun, visual like a guide book; auto-built from game content: places, shops, stalls, venues, shows, events, activities/mini-games, transit; chapters + by district + near me + Things to try checklist with stamps).
+  very comprehensive, fun, visual like a guide book; auto-built from game content: places, shops, stalls, venues, shows, events, activities/mini-games, transit; chapters + by district + near me + Things to try checklist with stamps; EVERY entry has active links: "Take me there" sets a waypoint, scheduled events/shows have "Add to planner" (owner msg 38)).
   If no worker is running when you read this, launch it. THEN 2f fix pack + navigator, then the rest in the order below.
 - **NEXT (owner's playtest, BIBLE update 11 — do these BEFORE the older queue):** 2f playtest fix pack + navigator (walkways keep right, deboarding order, plane-shaped cabin, station stairs, train flat-fee ticket,
   train flicker overhead, sit on any chair, item icons, tap goal -> waypoint, tap need -> nearest place, Map "what do you need" navigator with foot/bus/train, planner feeds Goals)
