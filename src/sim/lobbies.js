@@ -1,5 +1,5 @@
 // Lobbies: gives apartment buildings and office buildings an enterable ground-floor lobby (and nothing more: upstairs is residents / staff only).
-// Runs after public_places (55) and before places (58) so the door pois flow into G.places, addresses, the phone map, the Wander guide and the welcome glow.
+// Runs after public_places (55) + showpieces (56) and before places (58) so the door pois flow into G.places, addresses, the phone map, the Wander guide and the welcome glow.
 // Converts in place: a door poi `door:lobby:<n>` (room `lobby:<n>`) at a street-connected doorstep of every apartment block / office building that has no door yet.
 // Nothing is moved, removed or saved (ids are stable: n = index of the building among all lobby-class buildings in city scan order).
 // Building classes (regex on the object id, see CLASS): downtown towers + office blocks, MBTV, harbor master, foundry, BayJet hangar, Town Hall, Shed 5 (offices);
@@ -19,7 +19,7 @@ import { specFor } from '../scenes/rooms/lobbies2.js';
 import { registerInfo } from '../scenes/rooms/unique_rooms.js';
 import { getCity } from '../world/_city.js';
 
-export const order = 56;
+export const order = 57;
 const PL = [], BY = new Map(); let built = null, skipped = [];
 const CLASS = [
   [/downtown\.tower\.twin/, 'twin'], [/downtown\.tower\.twotone/, 'twotone'], [/downtown\.tower\.round/, 'round'], [/downtown\.office\.brutalist/, 'brutalist'], [/downtown\.tower\.setback/, 'setback'],
