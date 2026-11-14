@@ -162,7 +162,6 @@ const LAY = {
     b.f('lobby.inlay', b.ex - 1.5, 3.5, { kind: C.ik || 'star', w: 3, d: 3, c: C.ic || '#2a2733', c2: C.r2 || '#e8e4dc', c3: mc, s: 1 });
     b.f('lobby.chandelier', b.ex - .5, 4.5, { kind: 'deco', m: C.m }); if (W >= 13) b.f('lobby.chandelier', 2, 4.5, { kind: 'deco', m: C.m });
     b.seat('lobby.settee', W - 2.5, D - 3.5, { c: C.s, a: mc }, null, 1); b.seat('lobby.settee', .25, D - 4, { c: C.s, a: mc }, { flip: true, keep: true }, 1);
-    b.f('lobby.rail', W - 2.5, D - 2.4, { w: 2.5, kind: 'rope', rc: C.s });
     b.f('generic.plant', W - .75, .25, { kind: 'palm', s: 1.5, pot: mc }); b.f('generic.plant', .25, D - 1.25, { kind: 'palm', s: 1.5, pot: mc }, { keep: true });
     b.s(b.ex + 1.4, D - 1.5, 3, 'stand', 'staff'); b.s(lx + .8, 1.1, 3); b.s(lx + 2.6, 1.3, 1, 'phone'); b.s(dirBack ? W - 1.5 : 1, dirBack ? 1.1 : 4.2, dirBack ? 3 : 2, 'stand', 'customer', !dirBack);
   },
@@ -218,7 +217,7 @@ const LAY = {
       b.wy('lobby.board', W - 3.3, { kind: C.dir || 'digital', w: 2, m: C.m, seed: L.n, a: C.a, c: C.scr }).wy('lobby.restroom', W - 1.1, { dc: C.rd });
       b.staff('lobby.desk', half(W / 2 - 1.5), 1.5, { style: C.desk || 'steel', w: 3, name: 'RECEPTION', a: C.a, c: C.dkc }, { label: 'Reception' });
       b.f('generic.queuepost', 1, 5, { n: 2, kind: 'belt', c: C.a });
-      b.seat('generic.sofa', W - 3, D - 3.5, { c: C.s }, null, 1); b.f('clinic.magtable', W - 2.5, D - 2.4); b.seat('clinic.chairs', W - 3, 4, {}, null, 1);
+      b.seat('generic.sofa', W - 3, D - 3.5, { c: C.s }, null, 1); b.f('clinic.magtable', W - 2.5, D - 2.4); b.seat('clinic.chairs', W - 3, D - 5.5, {}, null, 1);
       b.f('generic.plant', W - .75, 1.5, plantP(L, 1)); b.f('generic.plant', .25, D - 1.25, plantP(L, 0), { keep: true }); b.f('generic.cooler', 1.5, D - 1.25, {}, { keep: true });
       b.f('lobby.chandelier', W / 2, D / 2 + .5, { kind: C.ch || 'ring', m: C.m });
       b.s(half(W / 2), 3, 3); b.s(1, 2, 2, 'phone', 'customer', true); b.s(W - 2.3, 1.1, 3); b.s(b.ex - 1.6, D - 1.5, 0);
@@ -227,12 +226,12 @@ const LAY = {
   cowork(b, L) {
     const { W, D } = b, C = L.c; b.ex = 8.5;
     b.wy('lobby.stairs', .5, { c: '#4a5a4a', open: true, rail: '#2a2733' }).wy('office.whiteboard', 2.2, {}).wy('lobby.panel', 4.6, { kind: 'mural', w: 4, cols: C.cols, seed: 5 }).wy('lobby.restroom', 9.1, {}).wy('lobby.board', 10.6, { kind: 'cork', w: 2, seed: 9 });
-    b.wx('generic.window', 1, { w: 3, z0: .3, z1: 2.3, c: '#3a3f4c', seed: 3 }).wx('lobby.board', 4.6, { kind: 'digital', w: 2, seed: 2, c: '#2f4a3f', a: C.a });
+    b.wx('generic.window', 1, { w: 3, z0: .3, z1: 2.3, c: '#3a3f4c', seed: 3 }).wx('generic.picture', 4.6, { kind: 2, c: '#d8a848' }).wx('lobby.board', 6.8, { kind: 'digital', w: 2, seed: 2, c: '#2f4a3f', a: C.a });
     b.seat('office.meeting', 3, 2, {}, null, 3); b.seat('office.meeting', 7.5, 2, {}, null, 2, 3);
     b.staff('lobby.coffeebar', .5, 5.5, { c: '#2f5a4a', a: '#f4e9cf', name: 'BEAN BAR' }, { label: 'Bean Bar', keep: true }); b.s(1.7, 7, 3, 'stand', 'customer', true);
     b.staff('lobby.desk', W - 3, 5.5, { style: 'steel', w: 2.5, name: 'SHED 5', a: C.a, c: '#e8e4dc' }, { label: 'Community desk' });
     b.f('generic.rug', 4, 5.2, { w: 3.5, d: 2.5, c: C.r, c2: C.r2, inner: '#4f7a6a' }); b.seat('generic.sofa', 4.5, 5.5, { c: C.s, w: 3 }, null, 2); b.f('clinic.magtable', 5.5, 6.6);
-    b.f('lobby.bike', W - 2, .5, { c: C.a }); b.f('lobby.bike', W - 2, 1, { c: '#f2c230', basket: true }); b.f('generic.lockers', 11.5, 2.5, { w: 1, c: '#8a9098', open: true });
+    b.f('lobby.bike', W - 2, 3.5, { c: C.a }); b.f('lobby.bike', W - 2, 4, { c: '#f2c230', basket: true }); b.f('generic.lockers', 11.5, 2.5, { w: 1, c: '#8a9098', open: true });
     for (const [x, y] of [[4, 2.5], [8.5, 2.5], [5.5, 6]]) b.f('lobby.chandelier', x, y, { kind: 'industrial', c: C.a });
     b.f('generic.plant', W - .75, D - 1.25, { s: 1.6, leaf: '#3f7a48', pot: '#d8a848' }); b.f('generic.plant', 3.5, D - 1.25, { kind: 'snake', s: 1.4, pot: '#3a3f4c' }); b.f('generic.plant', 6.5, .25, {});
     b.s(3.2, 1, 3); b.s(10.5, 7, 1, 'phone');

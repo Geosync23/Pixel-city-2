@@ -7,6 +7,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 - **Team: up to 4 Fable 5.2 workers in parallel** (owner msgs 59-62; ~10x usage now -> briefs favour quality). Disjoint files per worker; lead owns shared hooks.
 - **RUNNING — Wave A (2g), 4 workers:**
   - 2g-1 DONE (26 rooms — only 26 food places exist; docs/reports/unique_food.md). Was: owns src/scenes/rooms/places_food*.js, src/art/venue/places_food_art.js, docs/reports/unique_food.md (registers via unique_rooms.js; told NOT to edit public_places.js).
+  - S1 CONSERVATORY (running, took 2g-1's slot): owns src/sim/conservatory.js, src/scenes/rooms/conservatory*.js, src/art/showpiece/conservatory*.js, src/data/conservatory.js, docs/reports/conservatory.md.
   - 2g-2 shops/services/groceries unique rooms: places_shops*.js, src/art/venue/places_shop_art.js, docs/reports/unique_shops.md.
   - 2g-3 apartment + office lobbies (25+): src/sim/lobbies.js (order 60), src/scenes/rooms/lobbies*.js, src/art/venue/lobby_art.js, docs/reports/lobbies.md.
   - 2g-4 bladder need + toilets + home bathrooms as own rooms + venue/park restrooms: src/sim/bladder.js; may edit data/needs.js, sim/needs.js, data/activities.js, sim/activities.js, HUD needs file, rooms/homes.js, sim/housing.js, interior.js (additive), navigator need data. docs/reports/bladder_bath.md.

@@ -85,7 +85,7 @@ function board(p) {
   } else if (k === 'digital') {
     bx(0, 0, z0 - .25, w, .06, z1 - z0 + .4, '#2a2733'); lit(() => { qy(.05, w - .05, .06, z0 - .2, z1 + .1, p.c || '#1b3a5a', p.c2); qy(.05, w - .05, .06, z1 - .06, z1 + .1, p.a || '#3aa0c8'); for (let r = 0, z = z1 - .16; z > z0 - .14; z -= .1, r++) { const l = (.35 + hash2(r, sd, 2) * .45) * (w - .5); lw([.12, .06, z], [.12 + l, .06, z], r % 4 === 0 ? '#ffd070' : '#d8eef8'); lw([w - .26, .06, z], [w - .12, .06, z], '#8ad0f0'); } });
   } else { // safety / notices behind glass
-    bx(0, 0, z0, w, .05, z1 - z0, '#d8dade'); qy(.05, w - .05, .05, z0 + .05, z1 - .05, '#f4f0e8'); signY(p.title || 'SAFETY FIRST', .08, w - .08, .05, z1 - .24, z1 - .07, p.c || '#2f8a55', '#f4fbfc', { frame: false });
+    bx(0, 0, z0, w, .05, z1 - z0, '#d8dade'); qy(.05, w - .05, .05, z0 + .05, z1 - .05, '#f4f0e8'); signY(p.title || 'SAFETY', .08, w - .08, .05, z1 - .24, z1 - .07, p.c || '#2f8a55', '#f4fbfc', { frame: false });
     const n = Math.max(2, Math.round(w / .45)); for (let i = 0; i < n; i++) { const x = .1 + i * (w - .2) / n; qy(x, x + (w - .2) / n - .06, .055, z0 + .1, z1 - .3, i % 3 === 1 ? '#f2c230' : '#ffffff'); screenLines(x + .03, x + (w - .2) / n - .09, .055, z0 + .12, z1 - .34, '#6a7078', i + sd); if (i % 3 === 1) fq([[x + .08, .056, z0 + .16], [x + .28, .056, z0 + .16], [x + .18, .056, z0 + .36]], '#2a2733'); }
     frameY(0, w, .05, z0, z1, '#8a9098');
   }
