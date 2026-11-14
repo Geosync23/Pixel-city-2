@@ -83,11 +83,11 @@ export default [
       const c = p.c || NAVY; counter(0, 0, 2, .6, 1.05, c, WH); qy(.1, 1.9, .6, .2, .9, lt(c, .08)); lit(() => qy(.1, 1.9, .6, .9, .96, '#8fe0e8')); signY(p.text || 'B4', .65, 1.35, .61, .35, .8, WH, c, { lit: true });
       box(.3, .1, 1.05, .45, .12, .34, '#1c222b', { ol: false }); lit(() => qy(.33, .72, .1, 1.1, 1.36, '#8fd0ff')); box(1.35, .15, 1.05, .3, .25, .1, '#59616e', { ol: false }); box(1.75, .2, 1.05, .08, .08, .45, STEEL, { ol: false }); lit(() => qy(1.72, 1.86, .3, 1.42, 1.5, '#7df0a0'));
     } },
-  { id: 'furn.airport.gatesign', kind: 'furniture', tags: T(['gate_sign']), wall: true, mount: 2.55, solid: false, size: [3, .1, .8], variants: [{ gate: 'B4', text: 'PARIS', status: 'BOARDING' }, { gate: 'B2', text: 'TOKYO', status: 'DELAYED' }],
+  { id: 'furn.airport.gatesign', kind: 'furniture', tags: T(['gate_sign']), wall: true, mount: 2.5, solid: false, size: [3, .1, 1], variants: [{ gate: 'B4', text: 'PARIS', status: 'BOARDING' }, { gate: 'B2', text: 'TOKYO', status: 'DELAYED' }],
     draw(p) {
-      const Y = .08, sc = STATC[p.status || 'ON TIME'] || '#e8f0ff'; box(0, 0, 0, 3, .08, .8, '#1c222b', { ol: false });
-      lit(() => { qy(.05, 2.95, Y, .05, .75, '#18202c'); qy(.08, .78, Y, .1, .7, YEL); });
-      lit(() => { textY(p.gate || 'B4', .2, Y + .01, .56, '#1c222b'); textY((p.text || 'PARIS').slice(0, 8), .9, Y + .01, .7, '#ffffff'); textY((p.status || 'ON TIME').slice(0, 8), .9, Y + .01, .34, sc); });
+      const Y = .08, sc = STATC[p.status || 'ON TIME'] || '#e8f0ff'; box(0, 0, 0, 3, .08, 1, '#1c222b', { ol: false });
+      lit(() => { qy(.05, 2.95, Y, .05, .95, '#18202c'); qy(.08, .78, Y, .12, .88, YEL); qy(.86, 2.92, Y, .5, .52, '#3a4658'); });
+      lit(() => { textY(p.gate || 'B4', .2, Y + .01, .68, '#1c222b'); textY((p.text || 'PARIS').slice(0, 8), .92, Y + .01, .93, '#ffffff'); textY((p.status || 'ON TIME').slice(0, 8), .92, Y + .01, .44, sc); });
     } },
   { id: 'furn.airport.gatedoor', kind: 'furniture', tags: T(['boarding_door', 'door']), wall: true, mount: 0, solid: false, size: [2, .1, 2.5], variants: [{}, { open: 1 }],
     draw(p) {
@@ -106,7 +106,7 @@ export default [
     } },
   { id: 'furn.airport.walkway.rail', kind: 'furniture', tags: T(['walkway']), size: p => [p.len || 8, p.d || .3, 1], variants: [{ len: 8 }, { len: 6, d: .5 }],
     draw(p) {
-      const L = p.len || 8, d = p.d || .3, ys = d > .4 ? [.06, d - .14] : [d / 2 - .04];
+      const L = p.len || 8, d = p.d || .3, ys = p.at !== undefined ? [p.at] : d > .4 ? [.06, d - .14] : [d / 2 - .04];
       box(0, 0, 0, L, d, .12, STEEL, { ol: false });
       for (const y of ys) { qy(.05, L - .05, y + .04, .12, .92, '#bfe3ee', 'glass'); for (let x = 0; x <= L; x += 2) lw([Math.min(x, L - .02), y + .04, .12], [Math.min(x, L - .02), y + .04, .92], '#8e9aaa'); box(0, y, .92, L, .08, .08, '#1f2630', { ol: false }); lw([0, y + .08, 1.0], [L, y + .08, 1.0], '#59616e'); }
       box(L - .12, 0, 0, .12, d, .6, STEEL, { ol: false }); box(0, 0, 0, .12, d, .6, STEEL, { ol: false });

@@ -97,3 +97,17 @@ credit and pay for attending.
 - ROMANCE: meet people anywhere (introduce yourself to strangers) or via a DATING APP (phone + computer: profiles, matching, setting up dates). Interacting a certain
   way (flirting, choices) takes a relationship down the romantic path: ask on a date (appointments at real venues), dating -> partners -> ask to MOVE IN (partner lives
   in your home with a routine) -> PROPOSE and get MARRIED (a wedding scene). Children: maybe later, not now.
+
+## Direction update 6 — interests, mechanics everywhere, physical shopping, hundreds of goods, home design
+- A FEW unique needs (not many). FUN is split into INTEREST categories chosen at character creation (gaming, music, art, reading, sport, cooking, nature, tech,
+  fashion, film...): activities matching your interests satisfy far more.
+- EVERY ACTIVITY HAS A MECHANIC where it makes sense (video games, computer/browsing, cooking, instruments, painting, exercise, social things): small simple
+  minigames, lots of them. Where a meter/progress bar remains it must have a good ANIMATION and visible IMPACT when done (e.g. unpacking: boxes open and vanish and
+  their contents visibly appear in the room).
+- SHOPPING ETHOS: fewer menus, more one-to-one interaction — walk up to a rack/shelf/display and click the actual item to buy it. Menus only where natural.
+- HUNDREDS of consumer goods: decor AND functional things that lead into activities (lamps you switch on/off, a bicycle or skateboard kept in the apartment and taken
+  out to ride, instruments, consoles, hobby gear...). Almost everything in the home is interactive. Several FURNITURE STORES, PLANT STORES (one in the mall), many
+  CLOTHES SHOPS, electronics, hobby shops. ONLINE ORDERING (phone/computer) with real multi-day shipping: the parcel arrives and you unpack it.
+- HOME DESIGN MODE: a real decoration mode (also launched from a phone app): move/rotate everything, hang wall decor, big catalogue.
+- CITY: keep the layout (the owner loves it). Add enterable places mainly by CONVERTING existing non-enterable buildings (ground floor becomes a storefront, or swap the
+  building for a fitting one); expand at the edges if needed. Never remove what exists.

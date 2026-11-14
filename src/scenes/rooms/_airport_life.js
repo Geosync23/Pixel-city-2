@@ -121,7 +121,7 @@ export function cabinLife(sc, o) {
   function reset() {
     for (const p of pax) { const i = sc.ents.indexOf(p.ch); if (i >= 0) sc.ents.splice(i, 1); } pax.length = 0; st.on = false; st.t = 0; const r = rng(1234); let kid = false, strug = false;
     for (const s of seats) {
-      if (s.mine || r() > .6) continue; const near = Math.abs(s.y - o.aisleY), isKid = !kid && s.row < mine.row - 1 && s.row > mine.row - 5 && near < 1 && s.y < o.aisleY, c = new Char(isKid ? specs().kid[1] : anySpec(r), s.x, s.y);
+      if (s.mine || r() > .6 || (s.row === mine.row && (s.y > o.aisleY) === (mine.y > o.aisleY))) continue; const near = Math.abs(s.y - o.aisleY), isKid = !kid && s.row < mine.row - 1 && s.row > mine.row - 5 && near < 1 && s.y < o.aisleY, c = new Char(isKid ? specs().kid[1] : anySpec(r), s.x, s.y);
       if (isKid) kid = true; c.z = s.z; c.dir = 0; c.poseOpts = { seated: true }; c.pose = r() < .3 ? 'phone' : 'sit'; c.kind = 'traveller';
       const p = { ch: c, s, st: 0, at: (maxRow - s.row) * TUNE.ROW_GAP + near * 1.1 + r() * .7, w: 0, kid: isKid, bag: r() < .7 ? BAGCOL[Math.floor(r() * BAGCOL.length)] : null, v: TUNE.AISLE * (.9 + r() * .25) };
       if (!strug && !isKid && s.row > mine.row + 1 && s.row < mine.row + 4 && near < 1) { p.strug = strug = true; p.bag = '#e08a2c'; }
