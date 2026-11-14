@@ -90,7 +90,7 @@ function buyTicket() {
   if (G.state.flags && G.state.flags.conservatory_pass) { toast('"A Friend of the Glasshouse! Go straight through."', 'good'); return true; }
   if (hasTicket()) { toast('"Your ticket is good all day. The gates are open for you."', 'info'); return true; }
   if (G.money && !G.money.pay(CONS_TICKET, 'Conservatory day ticket', { category: 'fun', venue: CONS_VENUES.place })) return false;
-  st().ticketDay = G.now().day; G.emit('conservatory:ticket'); const sc = scene(); if (sc && sc.cons) sc.cons.sync();
+  st().ticketDay = G.now().day; G.emit('conservatory:ticket'); stamp('x:cons_visit'); const sc = scene(); if (sc && sc.cons) sc.cons.sync();
   toast(`Garden day ticket (${fmt(CONS_TICKET)}). The gates either side of the lily pool are open for you.`, 'good', 3800); return true;
 }
 const nextTour = () => { const h = G.now().hf; return TOUR_TIMES.find(t => t > h && t < CONS_HOURS[1]) || null; };
@@ -169,11 +169,16 @@ function photograph(sc) {
   const tip = el('div', { text: 'Tap when the butterfly is in the ring with its wings open' }); Object.assign(tip.style, { position: 'fixed', left: '50%', bottom: '12%', transform: 'translateX(-50%)', zIndex: 56, background: '#f4ead0', color: '#2a2733', border: '2px solid #2a2733', padding: '6px 10px', fontSize: '14px', boxShadow: '3px 3px 0 #0006', textAlign: 'center', maxWidth: '90vw' });
   root().append(cv, tip); G.modal++; const ctx = cv.getContext('2d'), t0 = performance.now(); let done = false, frozen = null;
   const pos = t => { const land = (t % 4.2) > 2.9; return land ? { x: CW / 2 + Math.sin(t * 9) * .8, y: CH / 2 - 6, open: Math.sin(t * 3.2) > -.2, land } : { x: CW / 2 + Math.sin(t * 1.9 + 1) * 52 + Math.sin(t * 5.3) * 6, y: CH / 2 - 4 + Math.sin(t * 2.7) * 28 + Math.cos(t * 6.1) * 5, open: Math.floor(t * 9) % 2 === 0, land }; };
+  const pe = (cx, cy, rx, ry, c) => { ctx.fillStyle = c; for (let y = -Math.floor(ry); y <= Math.floor(ry); y++) { const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry)))); ctx.fillRect(Math.round(cx) - w, Math.round(cy) + y, w * 2 + 1, 1); } };
   const draw = (t, b) => {
-    ctx.fillStyle = '#2f6a48'; ctx.fillRect(0, 0, CW, CH); for (let i = 0; i < 26; i++) { const x = (i * 53) % CW, y = (i * 37) % CH; ctx.fillStyle = ['#3f8a55', '#2a5a40', '#58a868'][i % 3]; ctx.fillRect(x, y, 14 + (i % 4) * 5, 6 + (i % 3) * 3); }
-    ctx.fillStyle = '#4a9a50'; ctx.fillRect(CW / 2 - 1, CH / 2, 2, CH / 2); for (const [dx, dy, c] of [[0, 0, '#ffe070'], [-4, 0, '#f08ab0'], [4, 0, '#f08ab0'], [0, -4, '#f08ab0'], [0, 4, '#f08ab0'], [-3, -3, '#e86a9a'], [3, -3, '#e86a9a'], [-3, 3, '#e86a9a'], [3, 3, '#e86a9a']]) { ctx.fillStyle = c; ctx.fillRect(CW / 2 - 2 + dx, CH / 2 - 2 + dy, 4, 4); }
-    const X = Math.round(b.x), Y = Math.round(b.y), w = b.open ? 9 : 3; ctx.fillStyle = sp.c2; ctx.fillRect(X - w - 1, Y - 8, w + 1, 13); ctx.fillRect(X + 1, Y - 8, w + 1, 13); ctx.fillStyle = sp.c; ctx.fillRect(X - w, Y - 7, w, 7); ctx.fillRect(X + 1, Y - 7, w, 7); ctx.fillRect(X - w + 1, Y, w - 1, 4); ctx.fillRect(X + 1, Y, w - 1, 4);
-    if (b.open) { ctx.fillStyle = '#ffffffaa'; ctx.fillRect(X - w + 2, Y - 5, 2, 2); ctx.fillRect(X + w - 3, Y - 5, 2, 2); } ctx.fillStyle = '#2a2733'; ctx.fillRect(X, Y - 8, 1, 14); ctx.fillRect(X - 2, Y - 11, 1, 3); ctx.fillRect(X + 2, Y - 11, 1, 3);
+    for (let k = 0; k < 5; k++) { ctx.fillStyle = ['#1f4a38', '#25563e', '#2c6245', '#346e4c', '#3c7a52'][k]; ctx.fillRect(0, k * 22, CW, 22); }
+    for (let i = 0; i < 16; i++) { const x = (i * 47 + 13) % CW, y = (i * 29 + 7) % CH, sw = Math.sin(t * .6 + i) * 1.5; pe(x + sw, y, 13 + (i % 4) * 4, 5 + (i % 3) * 2, ['#2f7048', '#3f8a55', '#27603e', '#4a9a5c'][i % 4]); pe(x + sw - 2, y - 1, 6 + (i % 4) * 2, 2, ['#3f8a55', '#52a466', '#34744a', '#5cae6c'][i % 4]); }
+    for (let i = 0; i < 9; i++) { ctx.fillStyle = i % 2 ? '#8fd6a0' : '#f4f8c8'; ctx.globalAlpha = .35; ctx.fillRect((i * 37 + 20) % CW, (i * 53 + 11) % CH, 3, 3); ctx.globalAlpha = 1; }
+    ctx.fillStyle = '#4a9a50'; ctx.fillRect(CW / 2 - 1, CH / 2 + 2, 2, CH / 2); pe(CW / 2 + 9, CH / 2 + 22, 8, 3, '#58b060'); pe(CW / 2 - 9, CH / 2 + 34, 8, 3, '#4aa056');
+    for (let a = 0; a < 6; a++) pe(CW / 2 + Math.cos(a * 1.047) * 7, CH / 2 - 1 + Math.sin(a * 1.047) * 5, 5, 4, a % 2 ? '#f08ab0' : '#f4a0c0'); pe(CW / 2, CH / 2 - 1, 3, 2.5, '#ffe070');
+    const X = Math.round(b.x), Y = Math.round(b.y), w = b.open ? 11 : 3;
+    for (const sd of [-1, 1]) { pe(X + sd * (w / 2 + 1), Y - 5, w / 2 + 1.5, 6.5, sp.c2); pe(X + sd * (w / 2 + .5), Y + 3, w / 2.4 + 1, 4.5, sp.c2); pe(X + sd * (w / 2 + 1), Y - 5, Math.max(.5, w / 2 - .5), 5, sp.c); pe(X + sd * (w / 2 + .5), Y + 3, Math.max(.5, w / 2.4 - .6), 3, sp.c); if (b.open) { ctx.fillStyle = '#ffffffb0'; ctx.fillRect(X + sd * (w - 3) - 1, Y - 7, 2, 2); ctx.fillStyle = sp.c2; ctx.fillRect(X + sd * 4 - 1, Y + 3, 2, 2); } }
+    ctx.fillStyle = '#2a2733'; ctx.fillRect(X, Y - 9, 1, 15); ctx.fillRect(X - 2, Y - 12, 1, 3); ctx.fillRect(X + 2, Y - 12, 1, 3);
     // viewfinder
     ctx.strokeStyle = '#f4ead0'; ctx.lineWidth = 1; ctx.strokeRect(CW / 2 - 22.5, CH / 2 - 24.5, 45, 37); ctx.fillStyle = '#f4ead0'; for (const [x, y] of [[6, 6], [CW - 14, 6], [6, CH - 8], [CW - 14, CH - 8]]) { ctx.fillRect(x, y, 8, 1); ctx.fillRect(x + (x < 20 ? 0 : 7), y - (y < 20 ? 0 : 5), 1, 6); }
     ctx.fillStyle = '#e8483b'; ctx.fillRect(CW - 12, 12, 4, 4);
@@ -254,7 +259,7 @@ function talkGardener(g) {
 /* ---------- guide wiring ---------- */
 function patchGuide() {
   const e = safe(() => G.guide.get('place:conservatory')); if (!e) return;
-  e.price = fmt(CONS_TICKET) + ' garden ticket · hall, cafe and flower show free'; e.type = 'Botanical garden'; e.chapter = 'arts'; e.also = ['outdoors', 'sights', 'eat', 'shop']; e.tags = (e.tags || []).filter(t => !['garden', 'plants', 'butterflies', 'koi', 'tour', 'cafe'].includes(t)).concat(['garden', 'plants', 'butterflies', 'koi', 'tour', 'cafe']);
+  e.blurb = CORE_BLURB.conservatory; e.price = fmt(CONS_TICKET) + ' garden ticket · hall, cafe and flower show free'; e.type = 'Botanical garden'; e.chapter = 'arts'; e.also = ['outdoors', 'sights', 'eat', 'shop']; e.tags = (e.tags || []).filter(t => !['garden', 'plants', 'butterflies', 'koi', 'tour', 'cafe'].includes(t)).concat(['garden', 'plants', 'butterflies', 'koi', 'tour', 'cafe']);
   e.tryThis = ['Feed the koi', 'Photograph a butterfly', 'Sketch the orchids', 'Join the guided tour (10:00, 13:00, 16:00)', 'Read all twelve plaques', 'Sit and breathe', 'Buy a seedling'];
 }
 

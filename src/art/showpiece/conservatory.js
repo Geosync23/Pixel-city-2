@@ -41,6 +41,7 @@ function glasswall(p) {
   const w = p.w || 4, y = .1, time = p.time || 'day', s = p.season === undefined ? 1 : p.season, u0 = Math.round((p.u0 || 0) * 16), f = p.frame || 0, H = 4.2, n = Math.round(w * 16);
   qy(0, w, y, 0, .5, PAT.brick('#b8674e'));
   for (let i = 0; i < n; i++) { const q = PW((i + .5) / 16, y, .5), X = Math.floor(q[0]), Y = Math.round(q[1]); for (let v = 0; v < 60; v++) { const o = outside(u0 + i, v, time, s, f, p.wx); if (o[1]) lit(() => px(X, Y - 1 - v, C(o[0]))); else px(X, Y - 1 - v, C(o[0])); } }
+  if (p.ivy) { const r = rng(7 + u0); for (let i = 0; i < n; i++) { const q = PW((i + .5) / 16, y, .5), X = Math.floor(q[0]), Y = Math.round(q[1]), hgt = 22 + Math.sin((u0 + i) / 9) * 9 + Math.sin((u0 + i) / 3.1) * 4 + hash2(u0 + i, 3, 2) * 5; for (let v = 0; v < 60; v++) { const top = 59 - v, on = v < hgt || top < 10 + Math.sin((u0 + i) / 6) * 5 + hash2(u0 + i, 1, 9) * 4 || ((u0 + i + v) & 1 && hash2((u0 + i) >> 1, v >> 1, 4) > .55); if (!on) continue; const k = hash2((u0 + i) >> 1, v >> 1, 6); px(X, Y - 1 - v, C(k > .7 ? '#3f8a55' : k > .3 ? '#2f6f48' : '#245a40')); } } }
   // sheen
   for (let k = 0; k < w; k += 2) if ((k / 2 + (u0 >> 5)) % 2 === 0) { fq([[k + .55, y, 3.3], [k + .68, y, 3.3], [k + .3, y, 2.3], [k + .17, y, 2.3]], '#f4fcff', 'glass'); fq([[k + .85, y, 3.1], [k + .9, y, 3.1], [k + .7, y, 2.6], [k + .65, y, 2.6]], '#f4fcff', 'glass'); }
   // ironwork: transoms, mullions, arches, main ribs
@@ -77,7 +78,8 @@ function gate(p) {
   if (p.open) { for (const x of [.3, w - .3]) { for (let q = -.85; q <= .05; q += .18) lw([x, q, .08], [x, q, .8], IRON); lw([x, -.9, .8], [x, .1, .8], IRON_D); lw([x, -.9, .3], [x, .1, .3], IRON_D); } lit(() => qy(.02, .28, .31, .55, .8, '#4fbf6a')); }
   else { for (let x = .4; x < w - .3; x += .2) { lw([x, y, .08], [x, y, .8 + .08 * Math.sin((x - .3) / (w - .6) * Math.PI)], IRON); dot(x, y, .86 + .08 * Math.sin((x - .3) / (w - .6) * Math.PI), GOLD); } lw([.3, y, .8], [w - .3, y, .8], IRON_D); lw([.3, y, .3], [w - .3, y, .3], IRON_D); signY('TICKETS', w / 2 - 1, w / 2 + 1, y + .02, .36, .72, RED, CREAM); lit(() => qy(.02, .28, .31, .55, .8, '#e8483b')); }
 }
-function shaft() { for (let k = 0; k < 3; k++) { const x = k * 1.2; fq([[x, 0, .01], [x + .9, 0, .01], [x + 2.6, 5, .01], [x + 1.7, 5, .01]], '#fff8d0', 'glass'); } }
+function shade(p) { const w = p.w || 6, d = p.d || 6, f = (X, Y) => (((X + 2 * Y) & 3) === 0 ? '#1f3040' : ((X + Y) & 3) === 2 ? '#2a4a40' : null); R.fill([[0, 0, .005], [w, 0, .005], [w, d, .005], [0, d, .005]].map(q => PW(q[0], q[1], q[2])), f); }
+function shaft() { const f = (X, Y) => (((X + 2 * Y) & 3) === 0 ? '#fff6c8' : null); for (let k = 0; k < 3; k++) { const x = k * 1.2; R.fill([[x, 0, .01], [x + .9, 0, .01], [x + 2.6, 5, .01], [x + 1.7, 5, .01]].map(q => PW(q[0], q[1], q[2])), f); } }
 
 /* ---------- water ---------- */
 function ring(s, rad, c, f, gap = 3) { const n = Math.round(rad * 2.2); for (let i = 0; i < n; i++) { if ((i + f) % gap === 0) continue; const a = i / n * 6.283; px(Math.round(s[0] + Math.cos(a) * rad), Math.round(s[1] + Math.sin(a) * rad / 2), C(c)); } }
@@ -252,6 +254,7 @@ export default [
   A('arch', ['archway'], p => [p.w || 2, .3, 3.2], arch, { solid: false, variants: [{ name: 'PALM HOUSE' }, { w: 3, name: 'DESERT HOUSE' }] }),
   A('gate', ['cons_gate'], p => [p.w || 3.5, .3, 1.2], gate, { solid: false, vb: p => [-.1, -1, 0, (p.w || 3.5) + .1, .5, 1.4], variants: [{}, { open: 1 }] }),
   A('shaft', ['light'], [5, 5, .02], shaft, { flat: true, solid: false }),
+  A('shade', ['light'], p => [p.w || 6, p.d || 6, .01], shade, { flat: true, solid: false }),
   A('lilypool', ['water_feature', 'fountain', 'cons_pool'], [7, 7, .5], lilypool, { frames: 4, vb: [-.2, -.2, 0, 7.2, 7.2, 2.6], variants: [{ frame: 0 }, { frame: 2 }] }),
   A('waterfall', ['water_feature', 'cons_waterfall'], [5, 2.5, 3.7], waterfall, { use: { x: .8, y: 3.2 }, frames: 4, vb: [-.4, -.2, 0, 5.4, 3, 4.4], variants: [{ frame: 0 }, { frame: 1 }] }),
   A('stream', ['water_feature'], p => [2, p.len || 8, .05], stream, { frames: 4, flat: true, solid: false, vb: p => [-.3, -.1, 0, 2.3, (p.len || 8) + .1, .4], variants: [{ len: 8, slabs: [3] }, { len: 5, frame: 2 }] }),

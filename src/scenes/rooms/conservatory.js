@@ -46,8 +46,8 @@ const LINES = {
 
 /* ---------------- layout ---------------- */
 function build() {
-  for (let at = 0; at < W; at += 4) items.push({ id: 'furn.cons.glasswall', wall: 'y', at, p: { w: 4, u0: at }, sky: 1 });
-  for (let at = 0; at < D; at += 4) items.push({ id: 'furn.cons.glasswall', wall: 'x', at, p: { w: 4, u0: 50 + at }, sky: 1 });
+  for (let at = 0; at < W; at += 4) items.push({ id: 'furn.cons.glasswall', wall: 'y', at, p: Object.assign({ w: 4, u0: at }, at < 12 ? { ivy: 1 } : null), sky: 1 });
+  for (let at = 0; at < D; at += 4) items.push({ id: 'furn.cons.glasswall', wall: 'x', at, p: Object.assign({ w: 4, u0: 50 + at }, at < 8 ? { ivy: 1 } : null), sky: 1 });
   // light shafts (hidden at night)
   for (const [x, y] of [[14, 21], [21, 21.5], [13.5, 13.5], [22.5, 3], [29, 22], [30, 2], [14, 3.5], [31, 13]]) A('cons.shaft', x, y, {}, { shaft: 1 });
   // ---- tropical palm house
@@ -99,7 +99,9 @@ function build() {
   Cn('mesa', 35.5, .5); Cn('rock', 33, .5, { w: 2, d: 1, h: 1, c: '#c8764a', seed: 8 }); Cn('rock', 28, .5, { w: 1.5, d: 1, h: .8, c: '#c8764a', seed: 4 });
   Cn('cactus', 29, 1.5, { kind: 'saguaro', h: 3 }); Cn('cactus', 32.5, 2, { kind: 'saguaro', h: 2.4, seed: 5 }); Cn('cactus', 38.5, 4.5, { kind: 'organ', seed: 4 }); Cn('cactus', 30.5, 4, { kind: 'barrel', seed: 7 }); Cn('cactus', 36.5, 7.5, { kind: 'barrel', seed: 9 }); Cn('cactus', 33.5, 5, { kind: 'barrel', seed: 4 });
   Cn('cactus', 28.5, 3.5, { kind: 'prickly' }); Cn('cactus', 36.5, 4, { kind: 'prickly', seed: 3 }); Cn('cactus', 31.5, 8, { kind: 'agave', seed: 2, spike: 1 }); Cn('cactus', 38.5, 8.5, { kind: 'agave', seed: 6 }); Cn('cactus', 28.5, 8.5, { kind: 'yucca' }); Cn('cactus', 34.5, 3, { kind: 'aloe' }); Cn('cactus', 30, 9.5, { kind: 'aloe', seed: 5 });
-  Cn('bed', 28, 6.5, { w: 1.5, d: 1.5, kind: 'desert', seed: 7 }); Cn('bench', 36.5, 9.5); Cn('plaque', 30, 2.5, {}, { fact: 'saguaro' }); Cn('plaque', 31.5, 4.5, {}, { fact: 'barrel' }); Cn('lamp', 39, 10);
+  Cn('cactus', 39, 1, { kind: 'saguaro', h: 2.8, seed: 9 }); Cn('cactus', 31, 1, { kind: 'organ', seed: 7 }); Cn('cactus', 35, 6, { kind: 'prickly', seed: 5 }); Cn('cactus', 39, 6.5, { kind: 'yucca' }); Cn('cactus', 29.5, 6.5, { kind: 'barrel', seed: 2 }); Cn('cactus', 32.5, 9.5, { kind: 'barrel', seed: 5 }); Cn('cactus', 28, 4.5, { kind: 'aloe', seed: 3 });
+  Cn('rock', 37.5, 3.5, { w: 1.5, d: 1, h: .9, c: '#c8764a', seed: 6 }); Cn('rock', 34.5, 9.5, { w: 1.5, d: 1, h: .7, c: '#b89a7a', seed: 3 }); Cn('rock', 29, 9, { w: 1, d: 1, h: .6, c: '#c8764a', seed: 11 });
+  Cn('bed', 28, 6.5, { w: 1.5, d: 1.5, kind: 'desert', seed: 7 }); Cn('bed', 35.5, 3.5, { w: 1.5, d: 1.5, kind: 'desert', seed: 4 }); Cn('bench', 36.5, 9.5); Cn('plaque', 30, 2.5, {}, { fact: 'saguaro' }); Cn('plaque', 31.5, 4.5, {}, { fact: 'barrel' }); Cn('lamp', 39, 10);
   S(30.4, 3.5, 3, { p: .6 }); S(33, 6.8, 3); S(35.2, 4.4, 3, { anim: 'phone' }); S(37.6, 6.6, 0, { busy: 1 }); S(32, 5.5, 3, { busy: 1, age: 'kid', lines: LINES.kid });
   // ---- koi garden
   Cn('bed', 27, 11.5, { w: 3.5, d: .5, kind: 'hedge' }, { flip: true }); Cn('arch', 27, 15, { w: 2, name: 'KOI' }, { flip: true }); Cn('bed', 27, 17, { w: 3.5, d: .5, kind: 'hedge' }, { flip: true }); Cn('bed', 27, 20.5, { w: 13, d: 1, kind: 'hedge', seed: 3 });
@@ -182,12 +184,20 @@ function makeStaff(sc, spec, label, x, y) { const c = new Char(spec, x + O, y + 
 
 /* ---------------- the room ---------------- */
 defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'conservatory', venue: CONS_VENUES.place,
-  floor: GT.brickpave, bg: '#17222a', edge: '#4a3a34', wall: { color: '#b8674e', trim: '#3d7a68', h: .5 },
-  floors: [{ x0: 0, y0: 0, x1: 13, y1: 10, floor: GT.cobble }, { x0: 27, y0: 0, x1: 40, y1: 11, floor: GT.sand }, { x0: 0, y0: 10, x1: 11, y1: 20, floor: GT.gravel }, { x0: 0, y0: 20, x1: 13, y1: 28, floor: GT.f_wood }, { x0: 27, y0: 21, x1: 40, y1: 28, floor: GT.f_tile }, { x0: 27, y0: 11, x1: 40, y1: 21, floor: GT.f_stone }, { x0: 13, y0: 20, x1: 27, y1: 28, floor: GT.plaza }],
+  floor: GT.f_stone, bg: '#17222a', edge: '#4a3a34', wall: { color: '#b8674e', trim: '#3d7a68', h: .5 },
+  floors: [{ x0: 0, y0: 20, x1: 13, y1: 28, floor: GT.f_wood }, { x0: 27, y0: 21, x1: 40, y1: 28, floor: GT.f_tile }],
   exits: [{ x: 20, y: 27.5, label: 'Exit to Central Park', poi: 'door:conservatory' }], spawn: { x: 20, y: 26.6, dir: 3 }, items, npcSpots: spots, zones: ZONES,
   setup(sc) {
     const Wd = sc.world, setP = (o, q) => { o.p = Object.assign({}, o.p, q); o._key = null; }, objs = Wd.objs, by = k => objs.filter(o => o.data && o.data[k]);
     const sky = by('sky'), anim = by('anim'), seasonal = by('seasonal'), shafts = by('shaft'), gates = by('gate'), rare = by('rare'), board = by('board')[0], mist = by('mist');
+    // ---- floors: painted as one ground decal (indoor: no winter snow, unlike the outdoor ground types)
+    Wd.decal({ x0: O, y0: O, x1: O + W, y1: O + D, draw(Rr) { const h2 = Rr.hash2;
+      const brick = (x, y) => { const r = Math.floor(y * 4), xx = x * 2 + (r & 1) * .5, fx = xx - Math.floor(xx), fy = y * 4 - r; if (fx < .1 || fy < .16) return '#96584a'; const k = h2(Math.floor(xx), r, 4); return k > .7 ? '#c67a62' : k > .3 ? '#bd705a' : '#b26650'; };
+      const sand = (x, y) => { const k = h2(Math.floor(x * 16), Math.floor(y * 16), 7); return Math.sin(y * 7 + Math.sin(x * 1.7) * 2) > .95 ? '#dccb9a' : k < .07 ? '#d8c690' : k > .94 ? '#f4e8c4' : '#e8d8ac'; };
+      const gravel = (x, y) => { const k = h2(Math.floor(x * 16), Math.floor(y * 16), 9); return k < .12 ? '#c2b698' : k > .86 ? '#e6dcc4' : '#d6cbb0'; };
+      const slate = (x, y) => { const r = Math.floor(y / .75), xx = x + (r & 1) * .5, c = Math.floor(xx), fx = xx - c, fy = y / .75 - r; if (fx < .07 || fy < .09) return h2(Math.floor(x * 16), Math.floor(y * 16), 5) > .7 ? '#4f8a48' : '#3a4a48'; const k = h2(c, r, 3); return h2(Math.floor(x * 16), Math.floor(y * 8), 9) > .985 ? '#5f9a4a' : k > .66 ? '#5c6e68' : k > .33 ? '#536560' : '#4b5c5a'; };
+      const hall = (x, y) => { const fx = x / 2 - Math.floor(x / 2), fy = y / 2 - Math.floor(y / 2), ex = Math.min(fx, 1 - fx) * 2, ey = Math.min(fy, 1 - fy) * 2; if (ex + ey < .16) return '#2f6a58'; if (ex < .05 || ey < .05) return '#b3ab96'; return (Math.floor(x / 2) + Math.floor(y / 2)) & 1 ? '#ddd5c0' : '#d3cbb5'; };
+      for (const [x0, y0, x1, y1, f] of [[11, 10, 27, 20, brick], [13, 0, 27, 10, brick], [27, 0, 40, 11, sand], [0, 10, 11, 20, gravel], [0, 0, 13, 10, slate], [13, 20, 27, 28, hall]]) Rr.qz(O + x0, O + x1, O + y0, O + y1, 0, f); } }); Wd.version++;
     // ---- nav: water blocks, the bridge deck and the stepping slabs do not
     for (let gy = 0; gy < POND.d * 2; gy++) for (let gx = 0; gx < POND.w * 2; gx++) { const lx = gx / 2 + .25, ly = gy / 2 + .25; if (pondIn(lx, ly) > -.12) Wd.block(O + PX + gx / 2, O + PY + gy / 2, O + PX + gx / 2 + .5, O + PY + gy / 2 + .5); }
     Wd.free(O + PX + BR.x0, O + PY + BR.y0 + .5, O + PX + BR.x1, O + PY + BR.y1 - .5); Wd.free(O + PX + BR.x0 - .5, O + PY + BR.y0, O + PX + BR.x0, O + PY + BR.y1); Wd.free(O + PX + BR.x1, O + PY + BR.y0, O + PX + BR.x1 + .5, O + PY + BR.y1);
@@ -223,7 +233,7 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
     // ---- sync with the clock / season / tickets
     let view = null, seas = -1, open = null, tick = 0, wf = 0, ft = 0, fb = 0, lastT = 0, gateOpen = null, hadRare = null, sk = -1, feed = null, bz = false;
     const sync = () => {
-      const n = G.now(), h = n.hf, am = ambient(G.state.t, 'clear'), v = am.dark >= .8 ? 'night' : am.dark > .02 || am.amb !== '#ffffff' ? 'dusk' : 'day', wx = /rain|storm|drizzle/.test(String(G.state.weather || '')) ? 'rain' : null, s = n.season || 0, isOpen = h >= CONS_HOURS[0] && h < CONS_HOURS[1];
+      const n = G.now(), h = n.hf, am = ambient(G.state.t, 'clear'), v = am.dark >= .8 ? 'night' : am.dark > .02 || am.amb !== '#ffffff' ? 'dusk' : 'day', wx = /rain|storm|drizzle/.test(String(G.state.weather || '')) ? 'rain' : null, s = R.ENV.season || 0, isOpen = h >= CONS_HOURS[0] && h < CONS_HOURS[1];
       if (v !== view || s !== seas || wx !== sc._wx) { view = v; sc._wx = wx; for (const o of sky) setP(o, { time: v, season: s, wx, frame: 0 }); for (const o of shafts) o.hidden = v !== 'day' || !!wx; Wd.bg = v === 'night' ? '#0e1424' : v === 'dusk' ? '#3a2c3c' : s === 3 ? '#8a9aa8' : '#7fa8a0'; }
       if (s !== seas) { seas = s; for (const o of seasonal) setP(o, { season: s }); }
       const tk = !!(CS() && CS().hasTicket()), go = isOpen && tk; if (go !== gateOpen) { gateOpen = go; for (const o of gates) setP(o, { open: go ? 1 : 0 }); }
@@ -259,10 +269,10 @@ defineRoom({ id: 'conservatory', name: 'Maple Bay Botanical Conservatory', w: W,
       // docent + tour group
       if (doc._hold > 0 && !tour.on) { doc._hold -= dt; doc.t += dt; doc.moving = false; }
       else if (tour.on) {
-        if (doc.path) { doc.pose = null; doc.speed = tour.fast ? 3.3 : 1.5; doc.move(Wd, dt); if (!doc.path) { const st = TOUR[tour.i]; if (st) { doc.dir = st.dir; doc.pose = 'talk'; bubble(doc, st.say, 5200); tour.wait = tour.fast ? 1.5 : 9; if (Math.hypot(p.x - doc.x, p.y - doc.y) < 5.5 && tour.joined) { tour.seen++; tour.stops[st.zone] = 1; G.emit('conservatory:tourstop', st.zone); } } } }
-        else { doc.t += dt; doc.moving = false; if ((tour.wait -= dt) <= 0) { tour.i++; doc.pose = null; const st = TOUR[tour.i]; if (!st) endTour(); else if (!doc.goTo(Wd, st.x + O, st.y + O)) { doc.x = st.x + O; doc.y = st.y + O; } } }
+        if (doc.path) { doc.pose = null; doc.speed = tour.fast ? 3.3 : 1.5; doc.move(Wd, dt); if (!doc.path) { const st = TOUR[tour.i]; if (st) { doc.dir = st.dir; doc.pose = 'talk'; bubble(doc, st.say, 5200); tour.wait = tour.fast ? 2.5 : 9; tour.pend = st.zone; } } }
+        else { doc.t += dt; doc.moving = false; if (tour.pend && tour.joined && Math.hypot(p.x - doc.x, p.y - doc.y) < 5) { tour.seen++; tour.stops[tour.pend] = 1; G.emit('conservatory:tourstop', tour.pend); tour.pend = null; } if ((tour.wait -= dt) <= 0) { tour.pend = null; tour.i++; doc.pose = null; const st = TOUR[tour.i]; if (!st) endTour(); else if (!doc.goTo(Wd, st.x + O, st.y + O)) { doc.x = st.x + O; doc.y = st.y + O; } } }
         tour.group.forEach((c, i) => { if (c.hidden) return; const tx = doc.x - .5 + (i - 1) * .7, ty = doc.y + .9 + (i % 2) * .5; if ((c._rt = (c._rt || 0) - dt) <= 0 && Math.hypot(tx - c.x, ty - c.y) > 1.3) { c._rt = 1 + Math.random(); c.goTo(Wd, tx, ty); } if (c.path) c.move(Wd, dt); else { c.moving = false; c.t += dt; c.faceTo(doc.x, doc.y); } c.z = onBridge(c); });
-        if (tour.joined && !G.busy && !G.modal) { const d = Math.hypot(p.x - doc.x, p.y - doc.y); if (d > 2.4 && !p.path && (tour._ft = (tour._ft || 0) - dt) <= 0) { tour._ft = .8; p.goTo(Wd, doc.x - .3, doc.y + 1.3); } }
+        if (tour.joined && !G.busy && !G.modal) { const d = Math.hypot(p.x - doc.x, p.y - doc.y); if ((tour._ft = (tour._ft || 0) - dt) <= 0 && d > 2.2) { tour._ft = .7; if (!p.goTo(Wd, doc.x - .4, doc.y + 1.2)) p.goTo(Wd, doc.x, doc.y); } }
       } else { if (doc.path) doc.move(Wd, dt); else { doc.t += dt; doc.moving = false; doc.pose = null; doc.dir = 1; } }
     };
     const e0 = sc.onEnter; sc.onEnter = (o, pv) => { e0(o, pv); view = null; sync(); if (CS()) CS().arrived(sc); };

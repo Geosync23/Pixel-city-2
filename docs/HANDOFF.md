@@ -1,40 +1,25 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14, NEW ACCOUNT — first session)
-- **LEAD SWITCH PLANNED (owner msgs 67-70):** this session's lead runs on Opus and /model will not stick. When the 4 running workers finish, the Opus lead integrates them,
-  publishes, commits, and creates a NEW lead session configured with Fable 5.2 (create_session model claude-fable-5-2, same repo/branch). No new workers are started in the old
-  session meanwhile (the new lead starts the queue incl. the Opus QA/data lane). FIRST TASK of the new Fable lead: REVIEW everything the Opus-lead session did — `git log a1d2ffc..HEAD`,
-  the lead's own edits (src/scenes/rooms/unique_rooms.js, public_places.js call sites, src/sim/activities.js vkey/PUB_ALIAS + 4 bar activities in src/data/activities.js, CLAUDE.md/playbook
-  changes) and each worker's output (reports unique_food, bladder_bath, unique_shops, lobbies, conservatory, unique_homes) — then report findings to the owner.
-- **New lead on the new account.** Branch `ccr-e622e92c-7t3ejy` (started from `claude/pixel-city-life-sim-21h2e3` @ a1d2ffc; push here). Artifact: https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
-  (Stage 14 republished, version 1794695918-0180).
-- **Team (owner msg 68): 3 Fable 5.2 + 1 Opus QA & data worker.** Transition: currently 4 Fable running; when the NEXT Fable worker finishes, its slot goes to the Opus QA/data lane (don't stop anyone).
-  Opus lane queue: (1) QA sweep of every new room (26 food rooms, shops, lobbies, homes, bathrooms): walk/enter/use/screenshot, list defects; (2) small open items list below; (3) data: red-check table sets variety, watch_kitchen activity, `app.*` icons spec; (4) docs upkeep checks.
-- (old line) **Team: up to 4 Fable 5.2 workers in parallel** (owner msgs 59-62; ~10x usage now -> briefs favour quality). Disjoint files per worker; lead owns shared hooks.
-- **RUNNING — Wave A (2g), 4 workers:**
-  - 2g-1 DONE (26 rooms — only 26 food places exist; docs/reports/unique_food.md). Was: owns src/scenes/rooms/places_food*.js, src/art/venue/places_food_art.js, docs/reports/unique_food.md (registers via unique_rooms.js; told NOT to edit public_places.js).
-  - S1 CONSERVATORY (running, took 2g-1's slot): owns src/sim/conservatory.js, src/scenes/rooms/conservatory*.js, src/art/showpiece/conservatory*.js, src/data/conservatory.js, docs/reports/conservatory.md.
-  - 2g-2 DONE (27 rooms, 65 furn.pshop.* fixtures; docs/reports/unique_shops.md). Lead added 11 shop activities (dig_crates, listen_station, meet_animals, watch_fish, play_display, smell_flowers, taste_samples, contemplate_art, test_pens, flip_flash, browse_wares; venues ['*']). Not added: do_laundry (wait for 2i), pour_coffee. Was: 2g-2 shops/services/groceries unique rooms: places_shops*.js, src/art/venue/places_shop_art.js, docs/reports/unique_shops.md.
-  - 2g-3 DONE (46 lobbies: 23 apartment + 23 office incl. Town Hall as an interim 'civic' lobby — S8 City Hall showpiece should replace it: drop `cityhall` from CLASS in src/sim/lobbies.js; module order 57; docs/reports/lobbies.md). Gaps: door glow stays on for closed offices at night; 'lives here'/'works here' hooks unset. Was: 2g-3 apartment + office lobbies (25+): src/sim/lobbies.js (order 60), src/scenes/rooms/lobbies*.js, src/art/venue/lobby_art.js, docs/reports/lobbies.md.
-  - 2g-4 DONE (docs/reports/bladder_bath.md: G.bladder, bathrooms `bathDoor`/`bath` in SHELLS, 79 venue rooms get a restroom, G.nav.addSource). Was: 2g-4 bladder need + toilets + home bathrooms as own rooms + venue/park restrooms: src/sim/bladder.js; may edit data/needs.js, sim/needs.js, data/activities.js, sim/activities.js, HUD needs file, rooms/homes.js, sim/housing.js, interior.js (additive), navigator need data. docs/reports/bladder_bath.md.
-  - Lead-owned hook added: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom + registerInfo/placeInfo/allInfo for guide blurbs) + call sites in src/sim/public_places.js.
-  - Owner msg 65: interiors must have activities + be in the Wander guide. Workers 2g-1/2/3 were told to tag signature fixtures with existing activity tags, list NEW activities in their reports, and registerInfo() per place.
-    DONE by lead: converted `pub:` rooms now get venue activities (src/sim/activities.js vkey/PUB_ALIAS: linger, bar stool, stage, browse...), new activities play_pool/play_darts/play_jukebox/watch_game (venues ['*'] = any non-home interior with the fixture). Not added: watch_kitchen. Still open: red-check table sets repeat (taqueria/soul kitchen).
-    LEAD TODO after Wave A: wire placeInfo() into src/sim/guide.js entries (blurb/signature/try-this), add the new activities the workers list to data/activities.js, verify in the guide app.
-  - If a worker is gone after a restart: check its files above, then brief a new worker "these files exist; continue".
-- **PLAN (waves of up to 4; next wave's workers start as slots free up):**
-  - **NAV-ARROW FIX FIRST (owner msg 72, BIBLE update 15):** the FIRST worker the new Fable lead starts (after its review): waypoint arrow clamps to the screen edge, works in every scene/interior and leads room to room, every trip leg guided end to end (cab, bus, train via Central Station platforms), red arrow + "This is your stop" notice on trains/buses. Owns G.nav (src/sim/navigator.js) + the waypoint/arrow UI; read docs/reports/fixpack2.md, rail.md, transit.md/traffic.md.
-  - **SIGNATURE SHOWPIECES (owner msg 66 — top priority for free slots):** S1 Conservatory -> S2 new Museum -> S3 Observatory -> S4 Grand hotel -> S5 Arena -> S6 Aquarium -> S7 fish market + lighthouse -> S8 City Hall -> S9 natatorium (BIBLE update 14). The first two start in the first slots that free up from 2g-1/2g-2/2g-3.
-  - 2g-5 DONE (all 9 homes unique, shell versions + generic furniture migration, 17 furn.home.build.* pieces; docs/reports/unique_homes.md). Not done: extra listings (need door pois in src/world/_blocks.js); raised/sunken floors are visual only. Was: **2g-5 UNIQUE HOMES** (owner msg 64; BIBLE update 13) — every starter studio and every Nestly property its own layout/size/character, no repeats; optionally more unique listings (some in the new lobby buildings).
-  - Wave B: 2i clothes/hair/laundry (uses 2g-4 bathrooms/washers) | 2j traits + skills + in-world mini-games | 2j university campus (new lots at the city edge) | 2c museum + conservatory + hotel lobby + post offices.
-  - Wave C: 2k big city events (5-6/year, in-world parades/festivals) | 3 jobs expansion: writer (25 job arcs as data) | 3 jobs: 15 new jobs + workplaces + job-story engine | 4b relationships/vignettes/romance + dating app.
-  - Wave D: 4c goods catalogue + MANY home-goods stores (big-box home-improvement store, department stores, several furniture showrooms, nursery, kitchenware, lighting, electronics, antiques; map expansion at the edges OK) + physical shopping | 4c home design mode + online shipping | 4 new needs + Opportunities | 5 art catch-up (building sets, props, terrain/water, audio, weather, title/creator).
-  - Wave E: 6 QA — full New Game playthrough, mobile pass, performance, save/load, balance; plus the small open items below. FUTURE: city +50-100%.
-  - Publish a stage whenever a worker's player-visible work is integrated and checked.
-- **Small open items:** Circle app releases immediately; `app.*` icons for new apps; city-bench sit; two "Beacon" buildings; SkyDeck telescope discovery; weather isWet bug; show music never heard;
-  fuel tanks near runway end; bus headways/walk speed; calendar "Add to planner" duplicates; NPCs mention Living Tips; MapleCab fare on free first ride.
-- **Nobody has done a full hand playthrough from New Game yet** (Wave E).
+## Now (updated 2026-11-14 ~23:55 UTC) — WAVE A DONE; HANDING THE LEAD TO A NEW FABLE 5.2 SESSION
+- **Running workers: NONE.** Everything integrated, committed, pushed. Stage 15 published to https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (version 1794700378-bed4).
+- Branch `ccr-e622e92c-7t3ejy` (continues `claude/pixel-city-life-sim-21h2e3` from a1d2ffc). A new session may get a different branch: start it from this branch's head.
+- **Team rule (owner msgs 59-68):** up to 4 workers at once = 3 Fable 5.2 (`model: "fable"`) + 1 Opus QA & data lane (`model: "opus"`). ~10x usage: favour quality. Disjoint files per worker; the lead owns shared hooks.
+- **FIRST TASK for the new Fable lead (owner msg 70): REVIEW everything the previous (Opus-lead) session did**, then report findings to the owner:
+  `git log --oneline a1d2ffc..HEAD`; the lead's own code: src/scenes/rooms/unique_rooms.js (registerUnique/uniqueRoom/registerInfo), uniqueRoom call sites in src/sim/public_places.js,
+  src/sim/activities.js (vkey/PUB_ALIAS + fixture-id tags), src/data/activities.js (15 new venue activities with venues ['*']), src/data/validate.mjs ('*' skip); CLAUDE.md/playbook edits;
+  and each worker's output: docs/reports/unique_food.md, unique_shops.md, lobbies.md, bladder_bath.md, unique_homes.md, conservatory.md (read each report's "not verified" + "gaps").
+- **THEN, in order (fill slots up to 3 Fable + 1 Opus):**
+  1. NAV ARROW EVERYWHERE (owner msg 72, BIBLE update 15) — top priority, Fable.
+  2. Opus QA & data lane: QA sweep of all new rooms/lobbies/homes/conservatory (walk, use, screenshot, defect list); small open items; data chores.
+  3. Signature showpieces (BIBLE update 14): S2 new Museum -> S3 Observatory -> S4 Grand hotel -> S5 Arena -> S6 Aquarium -> S7 fish market + lighthouse -> S8 City Hall (replace the interim Town Hall lobby: drop `cityhall` from CLASS in src/sim/lobbies.js) -> S9 natatorium.
+  4. Wave B: 2i clothes/hair/laundry | 2j traits/skills/mini-games | university | post offices. Wave C: 2k city events | 3 jobs (writer + engine) | 4b relationships/romance. Wave D: 4c goods + MANY home-goods stores
+     (big-box home improvement, department stores, furniture showrooms...; map expansion OK, BIBLE update 13) | home design + shipping | 4 needs + Opportunities | 5 art. Wave E: 6 QA.
+- **Lead TODOs:** wire placeInfo() (unique_rooms.js) into src/sim/guide.js entries (blurb/signature/try-this for 53 places + 46 lobbies + conservatory); add conservatory activity ids to "Things To Try";
+  lobby wants read_noticeboard / lobby_coffee activities; closed offices keep the door glow at night (stalls.js); red-check table sets repeat (taqueria/soul kitchen); extra unique home listings need door pois in src/world/_blocks.js;
+  tour times not in the planner.
+- **Small open items:** Circle app releases immediately; `app.*` icons; city-bench sit; two "Beacon" buildings; SkyDeck telescope discovery; weather isWet bug; show music never heard; fuel tanks near runway end;
+  bus headways/walk speed; calendar "Add to planner" duplicates; NPCs mention Living Tips; MapleCab fare on free first ride. Nobody has done a full hand playthrough from New Game yet.
 
 ## Previous "Now" (old account, Stage 14 clean stop) — kept for reference
 - **Running worker: NONE. No timers pending. Nothing half-done on disk.** Everything is integrated, published (Stage 14, artifact version `1794695264-28f5`) and pushed.

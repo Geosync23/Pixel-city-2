@@ -1,5 +1,5 @@
 # Status — what exists right now (update whenever something lands)
-Last updated: stage 14 (apps) — CLEAN STOP before the account move.
+Last updated: stage 15 (Wave A: unique interiors, lobbies, homes, bladder, conservatory) — 2026-11-14.
 
 ## Engine & tools (lead-written) — src/engine, src/core, tools/
 - `raster.js` pixel rasteriser (16 px/unit, 2:1 iso, glow/lit light layer, flip mode, patterns, 3x5 font, season helpers); `world.js` (vertex-height terrain, ground types, objects, nav grid 0.5u, pois, decals);
@@ -30,6 +30,7 @@ Last updated: stage 14 (apps) — CLEAN STOP before the account move.
 - airport interior: plane cabin, concourse, tram, terminal; new opening sequence.
 - stalls + welcome glow (src/sim/stalls.js), addresses (src/sim/addresses.js).
 - bladder need + bathrooms as own rooms + restrooms everywhere (docs/reports/bladder_bath.md).
+- Botanical Conservatory showpiece (docs/reports/conservatory.md).
 - all 9 player homes unique (docs/reports/unique_homes.md).
 - 46 apartment + office lobbies (docs/reports/lobbies.md).
 - unique rooms for all 53 converted places: 26 food & drink + 27 shops/services/groceries (docs/reports/unique_food.md, unique_shops.md), with venue + browsing activities.

@@ -79,7 +79,7 @@ ACTIVITIES.forEach((a) => {
   ok(a.flavour && a.minutes && a.minutes.min <= a.minutes.default && a.minutes.default <= a.minutes.max, `${w}: minutes/flavour`);
   Object.keys(a.perHour || {}).forEach((k) => ok(needIds.includes(k), `${w}: perHour key '${k}'`));
   Object.keys(a.xpPerHour || {}).forEach((k) => ok(k === '$bookSkill' || skillIds.includes(k), `${w}: xp skill '${k}'`));
-  (a.venues || []).forEach((v) => { venue(v, w); ok(VENUE_BY_ID[v]?.offers.functions?.includes(a.tag), `${w}: venue ${v} lacks function tag '${a.tag}'`); });
+  (a.venues || []).forEach((v) => { if (v === '*') return; /* '*' = any non-home interior with the fixture (src/sim/activities.js) */ venue(v, w); ok(VENUE_BY_ID[v]?.offers.functions?.includes(a.tag), `${w}: venue ${v} lacks function tag '${a.tag}'`); });
   if (a.where === 'venue') ok(a.venues?.length, `${w}: needs venues`);
   [a.cost?.item, a.requires?.item].flat().filter(Boolean).forEach((i) => item(i, w));
   if (a.requires?.event) ok(EVENTS.some((e) => e.id === a.requires.event), `${w}: event`);
