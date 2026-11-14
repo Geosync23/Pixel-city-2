@@ -26,3 +26,4 @@
 10. Performance venues: concert hall (orchestra comes out and plays), movie theater with a ~1-minute clip that actually plays, a theater show; full simulated flow (ticket, audience pours in, sit, show, leave).
 11. City Guide app (visual guidebook: places by category + what's on + things to do); live music venues in bars/clubs; outdoor park concerts; lead to invent more events/activities. Asked what push vs pull request means (explained; no PR opened yet).
 12. Vehicles flicker when passing (fixed: depth-sort rule). Map picks should offer Take Bus / Take Train with boarding + alighting stops, not only Take Cab (queued 2e). Future project: city 50-100% larger with new districts; may expand now if room is needed.
+13. Post offices with interiors: go there to send packages (wait in line); letters from home; packages arrive at home; story use (send something back home).

@@ -132,3 +132,8 @@ Hillcrest lookout, seasonal festivals. The lead is asked to invent a good list b
 ## Direction update 9 — trip planner; future city expansion
 - Any destination picked on the map offers Take Cab, TAKE BUS and TAKE TRAIN; transit options show which stop/station to board at and where to get off.
 - FUTURE PROJECT (not now): make the city 50-100% larger with new districts and interesting areas. The lead may already expand at the edges when new content needs room.
+
+## Direction update 10 — post offices
+Post offices with interiors (a main one downtown + small branches): queue line, counters with clerks, PO boxes, packing table. SENDING A PACKAGE requires going there: pack,
+wait in line with other customers, pick destination/speed, pay. LETTERS are sent from home (mailbox) or street mailboxes. Orders/gifts arrive at home; missed/oversized parcels
+may need collecting. Tie into the story: an Opportunity to send something back to where you came from (care package, returning a keepsake); family can mail things to you.
