@@ -188,3 +188,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 40 — Events cadence
 > Oh I didn't know the calender. Just scale it proportionally
+
+## 41 — Events: spread across the year
+> Actually spread them across the year
