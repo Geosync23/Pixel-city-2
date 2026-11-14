@@ -51,3 +51,4 @@
 - Lead fix (owner msg 52): the landing plane rolls to the END of the runway, stops, TURNS 90 degrees (y-axis sprite) and starts taxiing; the opening shot cuts 1.4 s after the turn. Verified by trace (turn at 10.1 s) and a screenshot of the turned plane. Note: fuel tanks sit near the taxi path at the runway end — a planner tweak could move them.
 - Lead fix (owner msg 53): removed the runway-end turn; the plane keeps rolling straight and the opening cuts to the cabin 3.6 s after touchdown while it is still moving (traced: cut at 8.7 s, plane at v=9, fully visible). Ambient landings roll and fade near the runway end.
 - Lead fix (owner msg 55): walkway chevrons now point in the direction of travel (gates.js); checked in a gallery render for both directions.
+- Item icons landed (365/365 items, 558 icons). Stage 13 published.
