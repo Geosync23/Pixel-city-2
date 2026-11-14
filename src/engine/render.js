@@ -69,7 +69,7 @@ export class Renderer {
     this._ground(world, cam, ctx);
     if (hooks.under) hooks.under(ctx, cam);
     const L = [], vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4;
-    for (const ob of world.query(vx0, vy0, vx1, vy1)) { if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const w = WS(ob.x, ob.y, ob.z); L.push({ B: ob.B, spr, ax: w[0], ay: w[1], r: ob.sb, k: ob.k, ob }); }
+    for (const ob of world.query(vx0, vy0, vx1, vy1)) { if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const w = WS(ob.x, ob.y, ob.z); if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + w[0] - cam.x, spr.y + w[1] - cam.y); continue; } L.push({ B: ob.B, spr, ax: w[0], ay: w[1], r: ob.sb, k: ob.k, ob }); }
     for (const e of ents) {
       if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const w = WS(e.x, e.y, e.z), ax = Math.round(w[0]), ay = Math.round(w[1]);
       const r = [spr.x + ax, spr.y + ay, spr.x + ax + spr.w, spr.y + ay + spr.h]; if (r[2] < vx0 || r[0] > vx1 || r[3] < vy0 || r[1] > vy1) continue;

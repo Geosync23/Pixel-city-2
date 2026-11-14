@@ -1,0 +1,94 @@
+// Crowd internals shared by crowd.js / _crowd_animals.js / _crowd_rooms.js: the Cit entity, spec pools, helpers, ambient lines.
+import { G } from '../core/game.js';
+import { Char, charArt } from '../core/char.js';
+import { pixSprite } from '../engine/sprites.js';
+import { U } from '../engine/raster.js';
+import { GT } from '../engine/world.js';
+import { stepToward } from '../engine/nav.js';
+import { AMBIENT } from '../story/dialogue.js';
+import { bubble } from '../ui/kit.js';
+
+export const rnd = Math.random, ri = n => (rnd() * n) | 0, pick = a => a[(rnd() * a.length) | 0], rr = (a, b) => a + rnd() * (b - a);
+/** shared live context (filled by crowd.js) */
+export const X = { world: null, city: null, cits: [], fx: 0, fy: 0, frozen: false, mult: 1, wet: false, hour: 12, wd: 0, season: 0, night: false, cf: 1, playerOk: false, px: 0, py: 0, pmove: false, clear: true };
+/** is world point within m px of the screen (m < 0 shrinks) */
+export function onScreen(x, y, m) { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - X.world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m - 6 && sy < G.H + m + 34; }
+const BADT = new Set([GT.asphalt, GT.water, GT.deepwater, GT.void, GT.tarmac, GT.ballast]);
+/** free nav cell that is not road / water */
+export function okCell(x, y) { const w = X.world; return !w.isBlocked(x, y) && !BADT.has(w.tileType(x, y)); }
+export const isRoad = (x, y) => X.world.tileType(x, y) === GT.asphalt;
+export const dirOf = (dx, dy) => Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 0 : 2) : (dy > 0 ? 1 : 3);
+
+const FPS = { walk: 7, run: 10, stand: 1.2, talk: 4, type: 5, work: 4, lift: 3, treadmill: 10, dance: 6, eat: 3, drink: 2, wave: 5, cheer: 5, carry: 7, sleep: .6, read: .5, phone: .8, sit: .5 };
+const AI = {}; let AIN = 0, CID = 0; const cids = new WeakMap();
+export class Cit extends Char {
+  constructor() { super(null, 0, 0); this.isCitizen = true; this.active = false; this.hidden = true; this.alpha = 1; this.sid = 0; this.clear(); }
+  clear() {
+    this.kind = 'stroll'; this.st = 0; this.tx = 0; this.ty = 0; this.ww = -1; this.pw = -1; this.link = null; this.spd = 1.8; this.think = rnd() * .5; this.wait = 0; this.stuck = 0;
+    this.lead = null; this.mate = null; this.side = 1; this.anchor = null; this.slot = -1; this.sl = null; this.fade = 0; this.pet = null; this.mood = 'ok'; this.district = ''; this.path = null; this.goal = null;
+    this.pose = null; this.poseOpts = null; this.seated = false; this.carry = false; this.run = false; this.zoff = 0; this.hold = 0; this.sx = 0; this.chat = false; this.moving = false; this._sk = -1; this._spr = null; this.spot = null; this.stay = 0; this.named = false;
+  }
+  setSpec(s) { this.spec = s; let i = cids.get(s); if (!i) cids.set(s, i = ++CID); this.sid = i; this._sk = -1; }
+  sprite() {
+    const A = charArt(), AN = A.ANIMS; let a = this.pose || (this.moving ? (this.carry ? 'carry' : this.run ? 'run' : 'walk') : this.carry ? 'carry' : 'stand'), n = AN[a]; if (!n) { a = 'stand'; n = AN.stand || 1; }
+    const f = (!this.moving && !this.pose && this.carry) ? 0 : Math.floor(this.t * (FPS[a] || 4)) % n, dir = this.dir, seated = this.seated; let ai = AI[a]; if (ai === undefined) ai = AI[a] = ++AIN;
+    const k = ai * 256 + f * 16 + dir * 2 + (seated ? 1 : 0); if (k === this._sk && this._spr) return this._spr; this._sk = k; const spec = this.spec, item = a === 'carry';
+    return this._spr = pixSprite('cz' + this.sid + a + f + dir + (seated ? 's' : ''), A.CHAR_SB, () => A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : item ? { anim: a, frame: f, dir, item: 'bag' } : { anim: a, frame: f, dir }));
+  }
+}
+/** straight step toward a point with nav sliding; sets moving/facing/z. Returns distance moved. */
+export function walkTo(c, tx, ty, dist) { const ox = c.x, oy = c.y, m = stepToward(X.world, c, tx, ty, dist); c.moving = m > 1e-4; if (c.moving) c.face(c.x - ox, c.y - oy); c.z = X.world.heightAt(c.x, c.y); return m; }
+
+/* ---------- spec pools (sprites are cached per spec, so citizens share a rotating wardrobe of specs per district) ---------- */
+const pools = new Map(); let seed = 9173;
+const lcg = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+export function clearSpecs() { pools.clear(); }
+function mkPool(district, outfit, age, n) {
+  const A = charArt(), d = district === 'harbor' ? 'harborside' : district, out = [], skins = {};
+  for (let i = 0; i < n; i++) {
+    let s = null, a = age || (!outfit && n >= 12 ? (i === 0 || i === 7 ? 'elder' : i === 3 && d !== 'downtown' && d !== 'railyard' ? 'kid' : undefined) : undefined);
+    for (let k = 0; k < 5; k++) { s = A.randomSpec(lcg, { district: d, season: X.season, age: a || (outfit ? 'adult' : undefined), outfit }); if ((skins[s.skin] || 0) < Math.max(2, n / 6)) break; }
+    skins[s.skin] = (skins[s.skin] || 0) + 1; if (outfit) { s.outfit = outfit; if (outfit !== 'office') s.bag = null; } s._n = 0; out.push(s);
+  }
+  return out;
+}
+/** a citizen look for a district; opts { outfit, age }. Prefers specs not currently worn by someone. */
+export function getSpec(district, outfit, age) {
+  const key = district + '|' + (outfit || '') + '|' + (age || ''); let p = pools.get(key); if (!p) pools.set(key, p = mkPool(district, outfit, age, outfit || age ? 6 : 26));
+  let s = p[ri(p.length)]; for (let k = 0; k < 4 && s._n > 0; k++) s = p[ri(p.length)]; return s;
+}
+
+/* ---------- ambient lines & bubbles ---------- */
+const bubEnd = [0, 0];
+const DNAME = { downtown: 'Downtown', oldtown: 'Old Town', harbor: 'Harborside', hillcrest: 'Hillcrest', maplewood: 'Maplewood', arts: 'the Arts Quarter', railyard: 'the Railyard', park: 'Central Park', airport: 'the airport' };
+const fill = (s, c) => s.replace('{name}', (G.state.player && G.state.player.name) || 'friend').replace('{district}', DNAME[c.district] || 'Maple Bay');
+const usable = s => s && s.indexOf('{npc}') < 0 && s.indexOf('{gift}') < 0 && s.indexOf('{venue}') < 0;
+const fromPool = (p, c) => { if (!p || !p.length) return null; for (let k = 0; k < 4; k++) { const s = p[ri(p.length)]; if (usable(s)) return fill(s, c); } return null; };
+export const dayPart = () => X.hour < 5 ? 'night' : X.hour < 11 ? 'morning' : X.hour < 17 ? 'midday' : X.hour < 21 ? 'evening' : 'night';
+function weatherKey() { const w = G.weather && G.weather.current ? G.weather.current() : null, k = w ? w.kind : 'clear'; return k === 'rain' || k === 'storm' ? 'rain' : k === 'snow' ? 'snow' : k === 'fog' ? 'fog' : k === 'cloudy' ? 'cloudy' : w && w.tempC > 28 ? 'heat' : 'sunny'; }
+/** a line an anonymous citizen might say right now. ctx: { venue: AMBIENT.venue key, event: AMBIENT.events key, reaction: AMBIENT.reactions key } */
+export function ambientLine(c, ctx) {
+  const A = AMBIENT, r = rnd(); let s = null;
+  if (ctx && ctx.reaction) s = fromPool(A.reactions[ctx.reaction], c);
+  if (!s && ctx && ctx.event && r < .6) s = fromPool(A.events[ctx.event], c);
+  if (!s && ctx && ctx.venue && r < .7) s = fromPool(A.venue[ctx.venue], c);
+  if (!s && X.hour >= 23 || X.hour < 4) s = s || (r < .3 ? fromPool(A.reactions.late_night, c) : null);
+  if (!s) s = r < .3 ? fromPool(A.district[c.district], c) : r < .5 ? fromPool(A.timeOfDay[dayPart()], c) : r < .68 ? fromPool(A.weather[weatherKey()], c) : r < .84 ? fromPool(A.season[['spring', 'summer', 'autumn', 'winter'][X.season]], c) : fromPool(A.district[c.district], c);
+  return s || fromPool(A.timeOfDay[dayPart()], c) || 'Lovely day in Maple Bay.';
+}
+export function greeting(c) { return rnd() < .6 ? fromPool(AMBIENT.reactions.greeting, c) || 'Hi there!' : rnd() < .5 ? fromPool(AMBIENT.reactions.friendly_stranger, c) || 'Hello!' : ambientLine(c); }
+/** speech bubble with a global cap of two visible. force: always show (player tapped) */
+export function speak(c, text, force) {
+  if (!text || typeof document === 'undefined') return false; const now = G.time, i = bubEnd[0] <= now ? 0 : bubEnd[1] <= now ? 1 : force ? 0 : -1; if (i < 0) return false;
+  const ms = Math.min(4200, 1700 + text.length * 38); bubEnd[i] = now + ms / 1000 + .3; bubble(c, text, ms); return true;
+}
+/** tap handler shared by city citizens and room NPCs */
+export function talkTo(c, venue) {
+  if (!c.active) return; const p = G.player; c.hold = 3.2; c.moving = false; c.dir = dirOf(p.x - c.x, p.y - c.y); if (!c.seated) c.hpose = c.pose, c.pose = 'talk'; else c.hpose = c.pose;
+  const info = { char: c, spec: c.spec, district: c.district, mood: c.mood, kind: c.kind };
+  if (G.social && G.social.talkToCitizen) { let r = null; try { r = G.social.talkToCitizen(info); } catch (e) { console.error(e); } if (r && r.then) { c.hold = 600; r.then(() => { c.hold = Math.min(c.hold, .6); }, () => { c.hold = .1; }); } return; }
+  speak(c, greeting(c), true); c.mood = 'happy';
+}
+const talkers = new Set();
+/** make a pooled citizen tappable (once per instance) */
+export function registerTalk(c) { if (talkers.has(c)) return; talkers.add(c); G.addInteractable({ ent: c, x: 0, y: 0, label: 'Talk', hit: 7, h: 1.2, range: 1.5, visible: () => c.active && !c.hidden && c.alpha > .7 && !c.named && !G.player.hidden, use: () => talkTo(c) }); }
