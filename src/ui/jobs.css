@@ -1,0 +1,93 @@
+/* jobs.css — job board, shift HUD, work minis, results card (ui/jobs.js) */
+.win.jobwin{width:min(560px,96vw);max-height:88vh;display:flex;flex-direction:column}
+.win.jobwin .win-body{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.jb-tabs{display:flex;gap:6px;margin-bottom:8px}
+.jb-tabs button{flex:1;min-height:32px;padding:4px 8px}
+.jb-tabs button.on{background:var(--gold)}
+.jb-cur{background:#e4f3d8;border:2px solid var(--edge);padding:6px 8px;margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.jb-note{margin:0 0 8px;font-size:13px;opacity:.8}
+.jb-card{border:2px solid var(--edge);background:#fffaf0;box-shadow:0 3px 0 var(--shade);padding:8px 10px;margin-bottom:10px}
+.jb-card.mine{background:#fff1c4}
+.jb-card p{margin:4px 0 6px;font-size:14px}
+.jb-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.jb-name{font-size:17px;margin-right:8px}
+.jb-venue{font-size:13px;opacity:.75;white-space:nowrap}
+.jb-pay{white-space:nowrap;color:#1f6f3a}
+.jb-when,.jb-perk{display:block;font-size:12px;opacity:.8}
+.jb-reqs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+.jb-req{font-size:12px;font-weight:700;border:2px solid var(--edge);padding:1px 6px;background:#fff}
+.jb-req.ok{background:#d6f0cf;color:#1f6f3a}
+.jb-req.no{background:#ffd9d2;color:var(--bad)}
+.jb-act{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px}
+.jb-act small{margin-right:auto;font-size:12px;opacity:.85}
+button.jb-apply{background:var(--gold);min-width:96px}
+button.jb-apply:disabled{background:var(--shade);opacity:.6;cursor:default}
+button.jb-sm{min-height:28px;padding:2px 8px;font-size:12px}
+
+#ui>#jobhud{position:absolute;right:max(8px,env(safe-area-inset-right,0px));top:100px;width:min(232px,54vw);background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:6px 7px;font-size:13px;z-index:6;max-height:calc(100vh - 190px);overflow-y:auto}
+.jh-head{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.jh-head span{font-size:12px;white-space:nowrap}
+.jh-bar{height:8px;border:2px solid var(--edge);background:#fff;margin:3px 0;position:relative}
+.jh-bar i{display:block;height:100%;background:var(--gold);width:0}
+.jh-info{display:block;font-size:12px;opacity:.85;margin-bottom:4px}
+.jh-auto{font-size:12px;background:#e4f3d8;border:2px solid var(--edge);padding:4px 6px;margin-bottom:4px}
+.jh-tk{border:2px solid var(--edge);background:#fffaf0;padding:4px 6px;margin-bottom:5px;cursor:pointer;box-shadow:0 2px 0 var(--shade)}
+.jh-tk>b{display:block;font-size:13px}
+.jh-pat{height:5px;background:#fff;border:1px solid var(--edge);margin:2px 0}
+.jh-pat i{display:block;height:100%;background:var(--good)}
+.jh-pat.mid i{background:var(--gold)}
+.jh-pat.low i{background:var(--bad)}
+.jh-steps{display:flex;flex-direction:column;gap:1px;font-size:12px}
+.jh-steps span{opacity:.55}
+.jh-steps span.d{opacity:.5;text-decoration:line-through}
+.jh-steps span.c{opacity:1;font-weight:700;background:#ffe89a;padding:0 3px;margin:0 -3px}
+.jh-steps span.c::before{content:'▶ '}
+.jh-steps em{font-style:normal;color:var(--accent)}
+.jh-dot{display:inline-block;width:9px;height:9px;border:2px solid var(--edge);margin-right:4px;vertical-align:-1px}
+.jh-btns{display:flex;gap:5px;margin-top:2px}
+#jobhud .jh-btns button{flex:1;min-height:30px;padding:3px 4px;font-size:12px}
+#jobhud button.jh-end{background:#ffd9d2}
+
+.win.jobres{width:min(380px,94vw)}
+.jr-head{text-align:center;margin-bottom:8px}
+.jr-head b{display:block}
+.jr-stars span{font-size:26px;color:var(--shade);text-shadow:0 2px 0 var(--edge)}
+.jr-stars span.on{color:var(--gold)}
+.jr-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:2px dotted var(--shade);font-size:14px}
+.jr-row.total{border-bottom:0;border-top:2px solid var(--edge);margin-top:3px;font-size:16px}
+.jr-row.total b{color:#1f6f3a}
+.jr-promo{background:var(--gold);border:2px solid var(--edge);padding:6px 8px;margin:8px 0;text-align:center}
+.jr-promo small{display:block}
+.jr-prog{margin-top:8px}
+.jr-prog .jh-bar i{background:var(--good)}
+
+.win.jobmini{width:min(360px,94vw)}
+.jm-prompt{margin:0 0 8px;font-size:14px}
+.jm-need{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.jm-need span{background:#ffe89a;border:2px solid var(--edge);padding:1px 7px;font-weight:700;font-size:13px}
+.jm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.jm-grid.wide{grid-template-columns:1fr}
+.jm-grid button{min-height:40px}
+.jm-grid button.on{background:#ffe89a;transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.jm-grid button.right{background:#bfe8b4}
+.jm-grid button.wrong{background:#ffc2b8}
+.jm-bar{position:relative;height:26px;border:2px solid var(--edge);background:#fff;margin:6px 0 10px;overflow:hidden}
+.jm-bar .zone{position:absolute;top:0;bottom:0;background:#9fdc8f;border-left:2px solid var(--good);border-right:2px solid var(--good)}
+.jm-bar .cur{position:absolute;top:0;bottom:0;width:6px;margin-left:-3px;background:var(--ink)}
+.jm-bar .cur.fill{left:0;margin:0;width:0;background:#e8a53a;opacity:.85}
+button.jm-big{width:100%;min-height:52px;font-size:17px;background:var(--gold);touch-action:none}
+button.jm-big.alt{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.jm-belt{display:flex;gap:6px;flex-wrap:wrap;border:2px solid var(--edge);background:#d8d3c4;padding:10px 6px;overflow:hidden}
+.jm-belt button{animation:jm-slide .5s steps(6) both;min-height:44px;flex:1 0 28%}
+.jm-belt button.on{background:#bfe8b4;opacity:.6}
+.jm-belt button.on::after{content:' ✓'}
+@keyframes jm-slide{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+.jm-res{margin-top:8px;text-align:center;font-weight:700;border:2px solid var(--edge);padding:4px}
+.jm-res.ok{background:#bfe8b4}.jm-res.mid{background:#ffe89a}.jm-res.no{background:#ffc2b8}
+
+@media (max-width:560px){
+  #ui>#jobhud{top:auto;bottom:calc(78px + env(safe-area-inset-bottom,0px));right:auto;left:max(8px,env(safe-area-inset-left,0px));width:min(210px,58vw);max-height:38vh;font-size:12px}
+  .jb-name{font-size:15px}
+}
+
+.modal:has(.win.jobwin),.modal:has(.win.jobmini){z-index:30}
