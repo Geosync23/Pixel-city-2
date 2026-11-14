@@ -24,7 +24,7 @@ export function init() {
     const world = getCity(), sp = world.pois.find(p => p.id === 'spawn:airport') || { x: 200, y: 200 };
     const interactables = world.pois.filter(p => p.type === 'door').map(p => ({
       x: p.x, y: p.y, label: p.name, h: 1.2, range: 1.3, poi: p,
-      use: () => { if (ROOMS.has(p.room)) enterRoom(p.room, p.id); else toast("It's closed right now."); },
+      use: () => { const why = typeof p.locked === 'function' ? p.locked(G, p) : p.locked; if (why) { if (typeof why === 'string') toast(why); return; } if (p.onUse && p.onUse(G, p) === true) return; if (ROOMS.has(p.room)) enterRoom(p.room, p.id); else toast("It's closed right now."); },
     }));
     return { world, ents: [], interactables, spawn: { x: sp.x, y: sp.y, dir: sp.dir || 1 } };
   });
