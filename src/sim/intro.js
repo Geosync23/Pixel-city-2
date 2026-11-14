@@ -75,7 +75,7 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
       const my = token; t = 0; li = 0; fl = null;
       if (c.fresh || !G.scene || G.scene.id !== 'city') { G.player.hidden = true; await G.go('city', { poi: 'spawn:airport' }); if (!live(my)) return; }
       G.player.hidden = true; cut = G.cutscene = { update() {} }; z0 = G.zoom;
-      if (G.planes) { G.planes.quiet = true; fl = G.planes.landNow('airliner'); if (fl) G.camTarget = fl.cam; }
+      if (G.planes) { G.planes.quiet = true; if (G.planes.clear) G.planes.clear(); fl = G.planes.landNow('airliner'); if (fl) G.camTarget = fl.cam; }
       safe(() => { if (G.zoom === G.zmin) G.setZoom(G.zmin + 1); G.setZoom(G.zmin); }); // also snaps the camera onto the plane
       unSkip = skipButton('Skip', () => { if (cur && cur.id === 'arrival_plane_cinematic') next(); });
     },

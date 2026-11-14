@@ -94,7 +94,7 @@ function step(f, dt) {
 }
 
 export function init() {
-  G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights };
+  G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights, clear: () => { for (const f of flights.slice()) free(f); } }; // clear(): remove every active flight (the intro wants an empty runway)
   G.on('scene', (s) => { if (s && s.id !== 'city') for (const f of flights.slice()) free(f); });
   G.addSystem({ name: 'planes', update(dt, gm) {
     if (!G.scene || G.scene.id !== 'city' || !city()) return;

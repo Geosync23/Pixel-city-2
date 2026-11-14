@@ -215,3 +215,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 49 — Intro glitch
 > When the plane landing animation stops and before youre on the plane, the gamr still briefly shows the curb side start it used to have
+
+## 50 — Intro: another plane on the runway
+> Theres often anotjer planet on the runway for the opening landing animation
