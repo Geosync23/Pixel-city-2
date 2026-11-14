@@ -55,3 +55,4 @@
 - 22:52 UTC: apps worker launched (app store, Properties browser, Living Tips) — the last worker of this window.
 - Apps landed (Appy store, Nestly, Bay Basics, mini apps). Stage 14 published (artifact version 1794695264-28f5). CLEAN STOP for the account move: no workers running, everything pushed.
 - 2026-11-14 (new account): new lead took over on branch ccr-e622e92c-7t3ejy (from a1d2ffc). npm install + build OK, smoke screenshot OK. Stage 14 republished as a NEW artifact https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (version 1794695918-0180).
+- 2026-11-14 (new account): 2g split into 2g-1..2g-4; worker 2g-1 (unique food & drink interiors, ~33 pub rooms + taqueria PIZZA sign fix) launched.
