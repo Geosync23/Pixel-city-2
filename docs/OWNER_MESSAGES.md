@@ -194,3 +194,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 42 — Events are dynamic, in-world
 > Also they need to.be dynamic not cut scenes or locked away static scenes. They happen in world
+
+## 43 — Moving accounts at the end of this session
+> Were going to move the project to anotjer account at the end of this session. Please keep that in mind
