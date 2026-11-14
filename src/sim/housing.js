@@ -179,11 +179,14 @@ function roomDef(id, room) {
   const list = sh.fixed.map(i => Object.assign({ fixed: true }, i)).concat(bath ? [] : bathDoorItems(sh));
   for (const it of mine ? S.items : included(id).items) if (inRoom(it, room)) list.push(defOf(it));
   if (mine && S.boxes.length && !bath) {
-    const solids = list.filter(solidDef).map(rectOfDef).concat(keepRects(sh), voidRects(sh)), spots = sh.boxes.slice();
+    // boxes stand on the shell's box spots (else anywhere free), never in a doorway, on the spot you use something from, or where they would wall something in
+    const real = list.filter(solidDef).map(rectOfDef), voids = voidRects(sh), solids = real.concat(keepRects(sh), voids, list.map(useSpot).filter(Boolean).map(cellOf)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
     for (const b of S.boxes) {
-      const sz = b.k === 'm' ? 1 : .5; let at = null;
-      for (const s of spots) { const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] <= sh.w && r[3] <= sh.d && !solids.some(o => hit(r, o))) { at = s; solids.push(r); break; } }
+      const sz = b.k === 'm' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids);
+      for (const s of spots) { const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
+        const a = reach(sh, real.concat([r]), voids); if (a[real.length] && !base.some((ok, i) => ok && !a[i])) { at = s; break; } }
+      at = at || any; if (at) { const r = [at[0], at[1], at[0] + sz, at[1] + sz]; solids.push(r); real.push(r); }
       if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : 'furn.home.parcel', x: at[0], y: at[1], box: b.uid, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
     }
   }
@@ -202,17 +205,36 @@ function fits(itemId, pos, room) {
   if (!v.wall && !v.solid) { const s = pos.flip ? [v.size[1], v.size[0]] : v.size; if (fixedMass(shOf(S.id, room), pos.x + s[0] / 2, pos.y + s[1] / 2)) return false; }   // a rug under a wall
   return true;
 }
+/* stricter than check(), for when the GAME moves furniture: never park a piece on the spot you stand on to use a fitting / landlord's piece, and keep its own front usable */
+function useSpot(i) { if (i.wall) return null; let a; try { a = asset(i.id); } catch (e) { return null; } const u = typeof a.use === 'function' ? a.use(i.p || {}) : a.use; if (!u) return null; return i.flip ? [i.x + u.y, i.y + u.x] : [i.x + u.x, i.y + u.y]; }
+const cellOf = s => { const x = Math.floor(s[0] * 2 + EPS) / 2, y = Math.floor(s[1] * 2 + EPS) / 2; return [x, y, x + .5, y + .5]; };
+const rectAt = (v, pos) => { const s = pos.flip ? [v.size[1], v.size[0]] : v.size; return [pos.x, pos.y, pos.x + s[0], pos.y + s[1]]; };
+function clearOfFronts(itemId, pos, room) {
+  const v = visual(itemId); if (v.wall || !v.solid) return true; const r = rectAt(v, pos), sh = shOf(S.id, room);
+  const u = useSpot({ id: v.id, p: v.p, x: pos.x, y: pos.y, flip: pos.flip });           // its own front must not face a wall of the new shell
+  if (u && (u[0] < .25 || u[1] < .25 || u[0] > sh.w - .25 || u[1] > sh.d - .25 || voidRects(sh).some(o => hit(cellOf(u), o)) || (sh.fixed || []).some(i => solidDef(i) && hit(cellOf(u), rectOfDef(i))))) return false;
+  for (const d of roomDef(S.id, room).items) { if (d.wall || !(d.fixed || (d.uid && (S.items.find(x => x.uid === d.uid) || {}).inc))) continue; const u = useSpot(d); if (u && hit(r, cellOf(u))) return false; }
+  return true;
+}
+function ownFrontOk(itemId, pos, room) {
+  const v = visual(itemId); if (v.wall || !v.solid) return true; const u = useSpot({ id: v.id, p: v.p, x: pos.x, y: pos.y, flip: pos.flip }); if (!u) return true;
+  const sh = shOf(S.id, room); if (u[0] < .25 || u[1] < .25 || u[0] > sh.w - .25 || u[1] > sh.d - .25) return false;
+  const c = cellOf(u), solids = roomDef(S.id, room).items.filter(solidDef).map(rectOfDef).concat([rectAt(v, pos)], voidRects(sh)); if (solids.some(o => hit(c, o))) return false;
+  return reach(sh, [[c[0] + .2, c[1] + .2, c[2] - .2, c[3] - .2]], solids)[0];
+}
 function nearest(it, room) {
   const sh = shOf(S.id, room), v = visual(it.itemId), out = [];
   if (v.wall) { const w0 = it.wall === 'x' ? 'x' : 'y'; for (const w of [w0, w0 === 'y' ? 'x' : 'y']) { const L = (w === 'y' ? sh.w : sh.d) - v.size[0]; for (let at = 0; at <= L + EPS; at += .5) out.push({ pos: { wall: w, at }, d: Math.abs(at - (it.at || 0)) + (w === w0 ? 0 : 100) }); } }
   else { const ox = it.x || 0, oy = it.y || 0; for (const flip of [!!it.flip, !it.flip]) { const s = flip ? [v.size[1], v.size[0]] : v.size; for (let y = 0; y <= sh.d - s[1] + EPS; y += .5) for (let x = 0; x <= sh.w - s[0] + EPS; x += .5) out.push({ pos: { x, y, flip }, d: Math.hypot(x - ox, y - oy) + (flip === !!it.flip ? 0 : .75) }); } }
-  out.sort((a, b) => a.d - b.d);
+  out.sort((a, b) => a.d - b.d); let plain = null, tried = 0;
   const solids = v.wall || !v.solid ? null : roomDef(S.id, room).items.filter(solidDef).map(rectOfDef).concat(voidRects(sh), keepRects(sh));
   for (const c of out) {
     if (solids) { const s = c.pos.flip ? [v.size[1], v.size[0]] : v.size, r = [c.pos.x, c.pos.y, c.pos.x + s[0], c.pos.y + s[1]]; if (solids.some(o => hit(r, o))) continue; }   // cheap test first
-    if (fits(it.itemId, c.pos, room)) return c.pos;
+    if (!fits(it.itemId, c.pos, room)) continue; if (!plain) plain = c.pos;
+    if (clearOfFronts(it.itemId, c.pos, room) && ownFrontOk(it.itemId, c.pos, room)) return c.pos;
+    if (++tried > 400) break;
   }
-  return null;
+  return plain;
 }
 function migrateShell() {
   const id = S.id; S.shellV = shellV(id); if (!id || !S.items.length) return;
@@ -221,7 +243,7 @@ function migrateShell() {
   for (const it of all.slice().sort((a, b) => rank(a) - rank(b))) {
     const v = visual(it.itemId); let room = it.r === 'bath' && shOf(id, 'bath') ? 'bath' : 'main', pos = null; const was = JSON.stringify(posOf(v, it)) + room;
     if (it.inc) { const k = slots.findIndex(s => s.itemId === it.itemId); if (k >= 0) { const s = slots.splice(k, 1)[0], rm = s.r === 'bath' ? 'bath' : 'main', p = posOf(v, s); if (fits(it.itemId, p, rm)) { pos = p; room = rm; } } }   // landlord's pieces: to their new places
-    if (!pos && fits(it.itemId, posOf(v, it), room)) pos = posOf(v, it);                                                    // still fine where it stands
+    if (!pos && fits(it.itemId, posOf(v, it), room) && clearOfFronts(it.itemId, posOf(v, it), room)) pos = posOf(v, it);                                                    // still fine where it stands
     if (!pos) pos = nearest(it, room);                                                                                      // nearest free spot
     if (!pos) { (it.inc ? S.stay : S.storage).push(it.itemId); stored.push(nameOf(it.itemId)); continue; }                  // no room at all: into storage
     delete it.x; delete it.y; delete it.flip; delete it.wall; delete it.at; delete it.r; Object.assign(it, pos); if (room === 'bath') it.r = 'bath';

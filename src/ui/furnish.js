@@ -159,7 +159,7 @@ function teardown() {
 function close() { if (!M) return; if (M.gob) G.world.remove(M.gob); teardown(); return H().refresh(); }
 
 /* ---------- listings ---------- */
-const FCOL = { f_wood: '#c89a5e', f_darkwood: '#7a5238', f_tile: '#cfe0e6', f_check: '#e8e2d4', f_lino: '#d9cfa8', f_carpet: '#b8a0c8', f_concrete: '#a8a8b0', f_stone: '#c8b8a0', f_mat: '#5a6a8a', f_dance: '#8a5cc2' };
+const FCOL = { f_wood: '#c89a5e', f_darkwood: '#7a5238', f_tile: '#cfe0e6', f_check: '#e8e2d4', f_lino: '#d9cfa8', f_carpet: '#b8a0c8', f_concrete: '#a8a8b0', f_stone: '#c8b8a0', f_mat: '#5a6a8a', f_dance: '#8a5cc2', void: '#2a2733', grass: '#7cc068' };   // void = a cut-out of an L-shaped home, grass = a garden
 const GTN = new Map(Object.keys(GT).map(k => [GT[k], k]));
 /** tiny floor-plan thumbnail of a home (back walls at the top / left) */
 function plan(id, s = 5) {
