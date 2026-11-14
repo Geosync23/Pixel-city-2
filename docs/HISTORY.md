@@ -38,3 +38,4 @@
 - Owner msg 37: guide app prioritised ahead of the fix pack.
 - Owner msgs 38-39: guide app active links; big city events added to the design (backlog 2k).
 - 21:25 UTC: owner asked to stop after running workers (none were running) ahead of moving the project to another account; scheduled launch cancelled; clean stop point documented in HANDOFF.md.
+- 21:29 UTC: owner (msg 45) chose to keep working this window before the move; guide app worker launched; plan = guide app, then trimmed fix pack if usage allows, then clean stop.

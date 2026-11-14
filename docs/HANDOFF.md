@@ -1,9 +1,11 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 21:25 UTC) — CLEAN STOP POINT FOR THE ACCOUNT MOVE
-- **Running worker: NONE.** The last worker (performance venues) finished at ~21:05 UTC and its work is integrated, published (Stage 9) and pushed. The scheduled launch of the next worker was CANCELLED at the
-  owner's request (msg 44: stop after the running workers report back). No timers or scheduled wake-ups are pending. Nothing is half-done on disk.
+## Now (updated 2026-11-14 21:30 UTC) — FINAL STRETCH BEFORE THE ACCOUNT MOVE
+- **Plan for this 5-hour window (started 21:00 UTC; owner reported 26% used at ~21:27):** (1) guide app worker [RUNNING since 21:29 UTC], (2) a TRIMMED playtest fix pack worker if usage allows
+  (ask the owner for the meter reading when worker 1 reports; skip/trim if above ~60%), (3) clean stop with ~10% reserve: playbook loop, rewrite this section, push, tell the owner the final commit.
+- **Running worker:** GUIDE APP — "Wander — the Maple Bay guidebook" (app id `guide`). Files it owns: src/ui/phone_guide.js, src/ui/phone_guide.css, src/sim/guide.js, src/sim/_guide_*.js.
+  If this session ends before it reports, those files may be partial: check whether `node tools/build.mjs` passes and whether the app opens (`G.phone.open('guide')`), then finish from the brief in docs/BACKLOG.md / owner msgs 37-38.
 - **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794690529-2e20` (Stage 9). The new account must publish its own artifact (see MOVING section below).
 - **NEXT, in order (nothing started):**
   1. GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
