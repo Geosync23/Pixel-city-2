@@ -45,7 +45,7 @@ const fresh = () => ({ unlocked: {}, locked: {}, log: [], cool: {}, seq: 0, sett
 
 /* ---------- unlocks & badges ---------- */
 function isUnlocked(id) {
-  const d = defOf(id); if (!d) return false; if (S.locked[id]) return false; if (S.unlocked[id]) return true;
+  const d = defOf(id); if (!d) return false; if (G.apps && G.apps.hides(id)) return false; /* not installed (app store, sim/apps.js) */ if (S.locked[id]) return false; if (S.unlocked[id]) return true;
   const u = d.unlock || { at: 'start' }; if (u.at === 'condition') return !!(u.flag && G.state.flags && G.state.flags[u.flag]);
   return true; // 'start' and 'tutorial' apps: there from the first minute (the intro may lock('taxi') and unlock it at its tutorial step)
 }
@@ -127,6 +127,7 @@ function homeView() {
   const n = G.now(), w = weatherNow(), nx = safe(() => G.planner.next(), null), unread = S.log.filter(e => !e.read).length;
   const grid = el('div.ph-grid');
   for (const a of defs()) {
+    if (G.apps && G.apps.hides(a.id)) continue; // the home screen shows installed apps only
     const ok = isUnlocked(a.id), b = ok ? badge(a.id) : 0;
     grid.append(el('button.ph-appbtn' + (ok ? '' : '.locked'), { 'aria-label': a.name + (ok ? (b ? `, ${b} new` : '') : ', locked'), onclick: () => (ok ? openApp(a.id) : tip(`${a.name} is not installed yet. ${(a.unlock && a.unlock.desc) || 'It unlocks a little later.'}`)) },
       el('span.ph-appico', null, appIcon(a.id, 48, a), !ok ? el('span.ph-lock', null, iconEl('ui.lock', 1)) : null, b ? el('em.ph-badge', { text: b > 9 ? '9+' : b }) : null), el('span.ph-applabel', { text: a.name })));
