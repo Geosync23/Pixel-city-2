@@ -102,7 +102,7 @@ export default [
     draw(p) {
       const L = p.len || 8, d = p.dir < 0 ? -1 : 1, f = (p.frame || 0) / 4 * .5;
       qz(-.1, L + .1, -.05, 1.05, .005, '#59616e');
-      qz(0, L, 0, 1, .01, (x, y) => { if (y < .07 || y > .93) return YEL; if (x < .3 || x > L - .3) return ((Math.floor(y * 16) & 1) ? '#aab3be' : '#7d8794'); const s = (((x * d - f) % .5) + .5) % .5; const ch = (((x * d - f) % 2) + 2) % 2; if (Math.abs(ch - 1 + (.5 - Math.abs(y - .5)) * .8) < .09 && y > .2 && y < .8) return '#8e9aaa'; return s < .06 ? '#4f5968' : '#3a4250'; });
+      qz(0, L, 0, 1, .01, (x, y) => { if (y < .07 || y > .93) return YEL; if (x < .3 || x > L - .3) return ((Math.floor(y * 16) & 1) ? '#aab3be' : '#7d8794'); const s = (((x * d - f) % .5) + .5) % .5; const ch = (((x * d - f) % 2) + 2) % 2; if (Math.abs(ch - 1 - (.5 - Math.abs(y - .5)) * .8) < .09 && y > .2 && y < .8) return '#8e9aaa'; /* chevron tip points in the direction of travel */ return s < .06 ? '#4f5968' : '#3a4250'; });
     } },
   { id: 'furn.airport.walkway.rail', kind: 'furniture', tags: T(['walkway']), size: p => [p.len || 8, p.d || .3, 1], variants: [{ len: 8 }, { len: 6, d: .5 }],
     draw(p) {

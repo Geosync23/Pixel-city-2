@@ -230,3 +230,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 54 — Usage reading
 > We're at  65 percent.
+
+## 55 — Walkway arrows
+> You fixed the walkway movment in the airports but the arrows are still the old way

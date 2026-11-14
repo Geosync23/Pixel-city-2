@@ -41,6 +41,7 @@ function tops(L, y) {
   if (k === 'stripe') for (const j of [2, 4, 6]) { r(4, y + j, 8, 1, W); r(1, y + j, 3, 1, W); r(12, y + j, 3, 1, W); }
   if (k === 'pj') { for (const i of [5, 7, 10]) r(i, y + 1, 1, 7, lt(c, .4)); r(2, y + 1, 1, 7, lt(c, .4)); r(13, y + 1, 1, 7, lt(c, .4)); ps([[8, y + 2], [8, y + 4], [8, y + 6]], W); }
   if (k === 'graphic') { r(6, y + 3, 4, 3, L.ac || P.gold); p(7, y + 4, c); }
+  if (long) { const n = (k === 'coat' ? 8 : 7) - 2; clr(3, y + 3, 1, n + 1); clr(12, y + 3, 1, n + 1); }
 }
 function hat(kind, c) {
   if (kind === 'beanie') { R(5, 0, 6, 2, c); p(8, 0, lt(c, .5)); }
