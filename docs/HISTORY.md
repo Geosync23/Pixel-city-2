@@ -24,3 +24,4 @@
 - Owner asked to continue with showpiece interiors and for GitHub instructions. Launched showpieces A (mall + SkyDeck).
 - Owner direction update 7: concert hall, cinema with real short films, theater show (queued as showpieces B).
 - GitHub access fixed by the owner; branch pushed for the first time (full history).
+- Owner direction update 8: City Guide app + more events/live music (queued as 2d).

@@ -24,3 +24,4 @@
    (bicycle, skateboard, switchable lamps); online ordering with multi-day shipping; real home design mode (phone app); physical shopping with baskets + counter, buy menu still available; big sensible grocery aisles with other shoppers.
 9. Small fixes requested: scroll judder (done), stalls sell (done), unique street names + addresses (done), train on two tracks (done), scooters without riders (done).
 10. Performance venues: concert hall (orchestra comes out and plays), movie theater with a ~1-minute clip that actually plays, a theater show; full simulated flow (ticket, audience pours in, sit, show, leave).
+11. City Guide app (visual guidebook: places by category + what's on + things to do); live music venues in bars/clubs; outdoor park concerts; lead to invent more events/activities. Asked what push vs pull request means (explained; no PR opened yet).

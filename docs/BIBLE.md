@@ -120,3 +120,11 @@ credit and pay for attending.
 CONCERT HALL (orchestra walks on, tunes, plays a short piece; animated sections; synthesised music), MOVIE THEATER (a ~1-minute animated pixel short actually plays on the
 screen; several films in rotation), THEATER (a short stage show: curtain, sets, actors, lighting). All share one flow that is fully built, animated and simulated:
 buy a ticket -> the audience pours in and sits -> you sit with them -> the show happens -> applause -> everyone leaves. Simple, but real.
+
+## Direction update 8 — City Guide app + lots more to do
+A phone app "City Guide": a VISUAL guidebook (like a tour guide book) with categories (Eat & Drink, Shopping, Music & Nightlife, Arts & Culture, Outdoors, Sport & Fitness,
+Sights, Services, Getting Around): every place with picture, blurb, hours, address, waypoint/cab buttons; a WHAT'S ON list (today / this week; add to planner); and a
+"Things to try" list of activities so every system is discoverable (it is also the tutorial reference). Fill it with new things using existing spaces: small LIVE-MUSIC
+venues in a few bars/clubs (stage + rotating bands), OUTDOOR CONCERTS at the park bandstand, open mic, jazz brunch, night food market on Lantern Row, outdoor movie night
+on the River Walk, pier fireworks, farmers' market, gallery openings, pickup basketball / 5K fun run, chess tournaments, trivia + karaoke nights, stargazing at the
+Hillcrest lookout, seasonal festivals. The lead is asked to invent a good list beyond what the owner dictated.
