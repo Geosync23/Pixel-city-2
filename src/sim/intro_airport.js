@@ -12,7 +12,7 @@ import { toast, bubble } from '../ui/kit.js';
 import { caption, skipButton } from '../ui/goals.js';
 
 export const order = 115;
-const TUNE = { CABIN_MAX: 42, CABIN_LEFT: 3, BAG_DELAY: 5, MSG_AT_X: 15, CLOCK: .12 };
+const TUNE = { CABIN_MAX: 42, CABIN_LEFT: 5, BAG_DELAY: 5, MSG_AT_X: 15, CLOCK: .12 };
 // the game clock crawls during the airport steps (so it is still about 2 PM at the curb and needs do not drain during the tutorial)
 const slow = on => { if (on) { if (G.state.speed === 1) G.state.speed = TUNE.CLOCK; } else if (G.state.speed === TUNE.CLOCK) G.state.speed = 1; };
 const safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
@@ -116,7 +116,7 @@ export function init() {
         ok = true;
       },
       update(dt, c) {
-        if (!ok || room() !== 'airport:terminal' || G.scene !== sc) return; t += dt; const s = ST(), p = G.player, X = p.x - 1, Y = p.y - 1; let h;
+        if (!ok) return; if (room() !== 'airport:terminal' || G.scene !== sc) { if (cur !== 'back' && room() === 'airport:concourse') { cur = 'back'; c.hint(ST().bag ? 'The exit is back at the Main Terminal - take the tram.' : 'Your bag is waiting at Baggage Claim - take the tram back.', G.scene.spots && G.scene.spots.tram); } return; } t += dt; const s = ST(), p = G.player, X = p.x - 1, Y = p.y - 1; let h;
         if (!s.bag) {
           if (tb < 0 && (near(sc.spots.claim, 7) || t > 16)) tb = 0; if (tb >= 0) tb += dt;
           if (!bag && tb > TUNE.BAG_DELAY) { bag = sc.claim[1].add({ mine: 1 }); it = { ent: bag, x: bag.x, y: bag.y, z: .44, label: 'Your bag!', h: .7, hit: 16, range: 2.4, use: grab }; sc.interactables.push(it); caption(null, 'There it is - the yellow one with the maple leaf sticker.', 3600); }

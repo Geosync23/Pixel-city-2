@@ -7,7 +7,7 @@ import { assetSprite } from '../../engine/sprites.js';
 import { rng } from '../../engine/raster.js';
 import { bubble } from '../../ui/kit.js';
 
-export const TUNE = { BELT: 1.9, WALK: [1.5, 2.3], RUN: 4.3, FILL: .64, CAROUSEL: .85, AISLE: 3.1, ROW_GAP: .62 };
+export const TUNE = { BELT: 1.9, WALK: [1.5, 2.3], RUN: 4.3, FILL: .64, CAROUSEL: .85, AISLE: 3.1, ROW_GAP: .52 };
 const BAGCOL = ['#c0392b', '#2f6fb0', '#3d4a54', '#3fa45b', '#8a5aa8', '#e08a2c', '#d86a8f', '#5fb7c9'];
 const SEAT = ['sit', 'sit', 'phone', 'phone', 'read', 'sit', 'drink', 'talk', 'eat'], STAND = [null, null, 'phone', null, 'talk'];
 const LINES = {
@@ -123,7 +123,7 @@ export function cabinLife(sc, o) {
     for (const s of seats) {
       if (s.mine || r() > .6 || (s.row === mine.row && (s.y > o.aisleY) === (mine.y > o.aisleY))) continue; const near = Math.abs(s.y - o.aisleY), isKid = !kid && s.row < mine.row - 1 && s.row > mine.row - 5 && near < 1 && s.y < o.aisleY, c = new Char(isKid ? specs().kid[1] : anySpec(r), s.x, s.y);
       if (isKid) kid = true; c.z = s.z; c.dir = 0; c.poseOpts = { seated: true }; c.pose = r() < .3 ? 'phone' : 'sit'; c.kind = 'traveller';
-      const p = { ch: c, s, st: 0, at: (maxRow - s.row) * TUNE.ROW_GAP + near * 1.1 + r() * .7, w: 0, kid: isKid, bag: r() < .7 ? BAGCOL[Math.floor(r() * BAGCOL.length)] : null, v: TUNE.AISLE * (.9 + r() * .25) };
+      const p = { ch: c, s, st: 0, at: (maxRow - s.row) * TUNE.ROW_GAP + near * .85 + r() * .6, w: 0, kid: isKid, bag: r() < .7 ? BAGCOL[Math.floor(r() * BAGCOL.length)] : null, v: TUNE.AISLE * (.9 + r() * .25) };
       if (!strug && !isKid && s.row > mine.row + 1 && s.row < mine.row + 4 && near < 1) { p.strug = strug = true; p.bag = '#e08a2c'; }
       pax.push(p); sc.ents.push(c);
     }

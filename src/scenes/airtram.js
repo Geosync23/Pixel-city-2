@@ -98,8 +98,9 @@ export function init() {
   // city side: the terminal building's street doors lead into the main terminal
   let added = false;
   G.on('scene', sc => {
-    if (added || !sc || sc.id !== 'city') return; added = true; const ap = (sc.world && sc.world.airport) || {}, h = ap.hall || ap.terminal || { x: 316, y: 90, w: 20 }, y = h.y + (h.d || 10);
+    if (added || !sc || sc.id !== 'city') return; added = true; const ap = (sc.world && sc.world.airport) || {}, T = ap.terminal, h = ap.hall || (T ? { x: T.x + 12, y: T.y, w: T.w - 29, d: T.d } : { x: 316, y: 90, w: 20 }), y = h.y + (h.d || 10);
     for (const [x, label] of [[h.x + 4, 'Maple Bay Intl - Arrivals'], [h.x + (h.w || 20) - 4, 'Maple Bay Intl - Departures']])
-      G.addInteractable({ scene: 'city', x, y: y + .2, h: 1.6, hit: 16, range: 1.7, spot: { x, y: y + 1 }, label, visible: () => !(G.intro && G.intro.active), use: () => G.go('int:airport:terminal') });
+      { let spot = null; for (const dy of [.75, 1, 1.5, 2, 2.5, 3, 3.5]) { for (const dx of [0, .5, -.5, 1, -1]) if (!sc.world.isBlocked(x + dx, y + dy)) { spot = { x: x + dx, y: y + dy }; break; } if (spot) break; }
+      G.addInteractable({ scene: 'city', x, y: y + .2, h: 1.6, hit: 16, range: 2.2, spot: spot || undefined, label, visible: () => !(G.intro && G.intro.active), use: () => G.go('int:airport:terminal') }); }
   });
 }

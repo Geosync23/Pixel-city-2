@@ -2,7 +2,11 @@
 // A vehicle sits on a directed edge `e` in lane `off` at coordinate `s` (along the edge axis) with lateral coordinate `lat`;
 // `ne` is the edge it takes at the next node. Display position rounds perpendicular turns with a quarter arc.
 import { U } from '../engine/raster.js';
-import { assetSprite } from '../engine/sprites.js';
+import * as RA from '../engine/raster.js';
+import { assetSprite, toSprite } from '../engine/sprites.js';
+import { charArt } from '../core/char.js';
+let RSEED = 97; const rnd = () => (RSEED = (RSEED * 16807) % 2147483647) / 2147483647;
+const RIDERS = { 'veh.scooter': [.62, .52], 'veh.motorbike': [.8, .6], 'veh.bicycle': [.7, .62] }; // seat x (from the rear, local), seat height
 import { ASSETS, assetSize } from '../art/registry.js';
 
 /** shared sim context */
@@ -29,7 +33,15 @@ export class Veh {
   sprite() { const e = this.e; if (!e) return null; const i = (e.axis === 'y' ? 4 : 0) + (e.d < 0 ? 2 : 0) + (T.lit && !this.stand ? 1 : 0); let s = this.spr[i]; if (s === undefined) s = this.spr[i] = this.mk(i); return s; }
   mk(i) {
     const flip = i >= 4, p = Object.assign({}, this.params, { dir: i & 2 ? -1 : 1, lights: !!(i & 1) }); if (!(i & 1)) p.beam = false; let s = null;
-    try { s = assetSprite(this.asset, p, flip); } catch (err) { s = null; } if (!s) return null;
+    const rd = RIDERS[this.asset.id];
+    try {
+      if (rd && !this.stand) { // two-wheelers get a rider drawn on the seat
+        if (!this.rider || this.riderKind !== this.kind) { this.rider = charArt().randomSpec(rnd, {}); this.rider.bag = null; if (rnd() < .7) { this.rider.hat = 'cap'; this.rider.hatColor = ['#d63a3a', '#2a2733', '#f2f2f2', '#3b5bdb', '#f2c230'][Math.floor(rnd() * 5)]; } this.riderKind = this.kind; }
+        const a = this.asset, len = this.len, wid = this.wid, dirc = flip ? (p.dir > 0 ? 1 : 3) : (p.dir > 0 ? 0 : 2), sx = p.dir > 0 ? rd[0] : len - rd[0], spec = this.rider;
+        let vb = [-3, -.6, 0, len + 3, wid + .6, 2.6]; if (flip) vb = [vb[1], vb[0], vb[2], vb[4], vb[3], vb[5]];
+        s = toSprite(RA.render(RA.screenBox(vb), () => { a.draw(p); RA.at(sx, wid / 2, rd[1], () => charArt().drawChar(spec, { anim: 'sit', frame: 0, dir: dirc, seated: true, seatH: 5 })); }, null, 3, flip));
+      } else s = assetSprite(this.asset, p, flip);
+    } catch (err) { s = null; } if (!s) return null;
     const hx = (flip ? this.wid : this.len) / 2, hy = (flip ? this.len : this.wid) / 2;
     return { c: s.c, l: s.l, x: s.x - Math.round((hx - hy) * U), y: s.y - Math.round((hx + hy) * U / 2), w: s.w, h: s.h };
   }
