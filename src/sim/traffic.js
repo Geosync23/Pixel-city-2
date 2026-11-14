@@ -172,8 +172,8 @@ function housekeeping() {
 function fill(dt) {
   let amb = 0; for (const v of T.list) if (!v.keep) amb++;
   const h = G.now().hf;
-  if (refill) { for (let i = 0; i < 60 && amb < target * .85; i++) if (trySpawn(true, h)) amb++; refill = false; return; }
-  if (amb < target && T.list.length < CAP + 6) { trySpawn(false, h); if (amb < target - 8) trySpawn(false, h); }
+  if (refill) { for (let i = 0; i < 80 && amb < target; i++) if (trySpawn(true, h)) amb++; refill = false; return; }
+  if (amb < target && T.list.length < CAP + 6) { trySpawn(false, h); if (amb < target - 3) trySpawn(false, h); }
 }
 
 /* ---------- setup ---------- */
