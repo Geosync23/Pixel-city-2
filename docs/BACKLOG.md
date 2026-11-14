@@ -6,7 +6,7 @@ NEXT (in order):
    in the city is either enterable (generic template interiors with varied names/colours: cafe, diner, pizza, bakery, bar, boutique, bookshop, grocery small/medium) or has a walk-up counter that sells; 2-3 more grocery stores of
    different sizes near each starter home (one really detailed supermarket exists: FreshWay); more restaurants; check the enterable-door glow reads well (src/sim/stalls.js) and that non-enterable doors look plain.
 2. Showpiece interiors: shopping mall (L-shaped concourse, ~10 small shops), skyscraper observation deck (+ story moment), museum, botanical conservatory, hotel lobby (+ rooftop bar?), laundromat, pharmacy, salon, arcade.
-3. 15 more jobs + workplaces (see BIBLE Direction update 3).
+3. Jobs expansion (BIBLE Direction updates 3 + 4): (a) writer: narrative arcs + casts + unique moments for all 25 jobs as data (src/story/jobs_*.js); (b) 15 new jobs data + workplaces/rooms + station fixtures; (c) programmer: job-story engine (beats by shift count/level/events, scenes with coworker NPCs), unique mechanics per job, clear 'Work the shift / Skip to the end' choice at clock-in (credit + pay for showing up), per-workplace ambience.
 4. New needs (Comfort, Outdoors, Inspiration) + consumable chains + Opportunities system + expanded main story through the showpieces.
 5. Resume interrupted artists (icons! item icons are placeholders; terrain/water; audio; weather; title/creator polish; oldtown/downtown/residential/civic/harbor/props building sets) — check what each left on disk first.
 6. QA/review passes: full playthrough from New Game, mobile layout, performance, save/load, balance.

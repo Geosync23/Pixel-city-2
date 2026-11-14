@@ -80,3 +80,9 @@ gate agent (airport concourse), baggage handler (airport baggage hall), station 
 museum guide (city museum), florist (botanical conservatory / flower shop), radio DJ (radio station studio), teacher (Maplewood school classroom),
 vet assistant (vet clinic), sous-chef (The Gilded Gull kitchen), hotel concierge (downtown hotel lobby), software developer (tech startup loft),
 reporter (Maple Bay Gazette newsroom; assignments around the city), hair stylist (salon; the player can also change hair there), firefighter (fire station).
+
+## Direction update 4 — jobs have stories
+Every job (all 25) gets: its own NARRATIVE ARC with a small cast (boss, coworkers, regulars) that unfolds across shifts and promotions (short scenes at
+work, messages, occasional off-shift beats), UNIQUE MECHANICS (short tactile interactions; a few jobs get a real mini-game), UNIQUE MOMENTS (one-off
+events) and UNIQUE AMBIENCE. The player can always SHOW UP AND SKIP a shift (clear choice at clock-in: "Work the shift" / "Skip to the end") and still gets
+credit and pay for attending.
