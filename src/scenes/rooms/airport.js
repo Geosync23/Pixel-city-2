@@ -124,7 +124,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
       // boarding gate B6
       const g6 = GATES[5], sign = sc.fx('signB6'), door = sc.fx('doorB6');
       const gate = sc.gate = gateCycle(sc, { door: { x: g6.x + 6.5 + O, y: .5 + O }, head: { x: g6.x + 6.5 + O, y: 1.5 + O }, step: [0, .6], from: { x: g6.x + 6.6 + O, y: 5.4 + O }, n: 7, flights: BOARD,
-        onPhase(ph, f) { if (sign) sc.setP(sign.ob, { text: f.dest, status: ph === 'hold' || ph === 'board' ? 'BOARDING' : ph === 'gap' ? 'CLOSED' : 'GO TO GATE' }); if (door) sc.setP(door.ob, { open: ph === 'board' ? 1 : 0 }); if (ph === 'hold') sc.pa('Flight ' + f.fl + ' to ' + f.dest[0] + f.dest.slice(1).toLowerCase() + ' is now boarding at gate B6.'); boards(); } });
+        onPhase(ph, f) { if (sign) sc.setP(sign.ob, { text: f.dest, status: ph === 'hold' || ph === 'board' ? 'BOARDING' : ph === 'gap' ? 'CLOSED' : 'ON TIME' }); if (door) sc.setP(door.ob, { open: ph === 'board' ? 1 : 0 }); if (ph === 'hold') sc.pa('Flight ' + f.fl + ' to ' + f.dest[0] + f.dest.slice(1).toLowerCase() + ' is now boarding at gate B6.'); boards(); } });
       sc.paLines = ['The tram to Baggage Claim and the Main Terminal leaves from the east end of Concourse B.', 'Please keep your bags with you at all times. Unattended snacks will be eaten.', 'Passenger Wendell Okafor, please return to the noodle bar. You forgot your noodles.', 'Welcome to Maple Bay International. Local time is {clock}.', 'Maple Air flight MB 118 to Lisbon is delayed. We are very sorry. The plane is also sorry.'];
       // walkers
       const east = () => { const k = Math.random(), tail = [[56.6, 5.4], [60.5, 2.2], [60.5, 1.1]]; const st = Math.random() < .3 ? [[6.5, 2], [6.7, 5.7]] : [[.8, k < .75 ? 5.7 : 10.5]];

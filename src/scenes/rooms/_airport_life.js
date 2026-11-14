@@ -7,7 +7,7 @@ import { assetSprite } from '../../engine/sprites.js';
 import { rng } from '../../engine/raster.js';
 import { bubble } from '../../ui/kit.js';
 
-export const TUNE = { BELT: 1.9, WALK: [1.5, 2.3], RUN: 4.3, FILL: .64, CAROUSEL: .85, AISLE: 3.1, ROW_GAP: .52 };
+export const TUNE = { BELT: 1.9, WALK: [1.5, 2.3], RUN: 4.3, FILL: .64, CAROUSEL: .85, AISLE: 3.1, ROW_GAP: .46 };
 const BAGCOL = ['#c0392b', '#2f6fb0', '#3d4a54', '#3fa45b', '#8a5aa8', '#e08a2c', '#d86a8f', '#5fb7c9'];
 const SEAT = ['sit', 'sit', 'phone', 'phone', 'read', 'sit', 'drink', 'talk', 'eat'], STAND = [null, null, 'phone', null, 'talk'];
 const LINES = {
