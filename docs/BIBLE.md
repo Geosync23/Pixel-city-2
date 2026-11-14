@@ -52,3 +52,25 @@ Arts Quarter. Every couple of days a small story beat arrives on the phone (visi
 - **Camera is zoomed in** and cannot zoom out much: the world must reward close looking — dense detail, parks, interesting shops,
   things happening everywhere (moving cars, buses, pedestrians, animals, events).
 - Characters are the high-resolution element (~22 px tall, expressive pixel art); the world stays chunky pixel art, rich in detail.
+
+## Direction update 2 (from the owner) — a narrative adventure inside a free-form life sim
+- **You cannot drive.** You get around on foot, bus, light rail and taxi. Places and errands exist to pull you out into the city.
+- **Opening = inside the airport.** You start seated on the plane; everyone stands and files off first, then you. Jet bridge -> a long, busy
+  CONCOURSE (many gates full of waiting passengers, moving walkways, shops, a water feature, flight boards) -> a little TRAM -> the MAIN
+  TERMINAL (baggage claim carousel where you collect your bag, arrivals hall, a few shops, big modern-international-airport feel) ->
+  outside to the curb -> tutorial: call a cab on your phone -> ride to your first apartment while the story is told. The airport must feel
+  as alive as the city streets.
+- **Big showpiece interiors** (expand, don't rework): the airport; a SHOPPING MALL (an L-shaped concourse with ~10 small enterable shops);
+  CENTRAL STATION (grand modern-European hall with a glass dome); a skyscraper OBSERVATION DECK (with a story moment up there); a few more
+  unique places with reasons to visit (designer's choice, e.g. museum, botanical conservatory, hotel lobby/rooftop bar, arcade, laundromat, pharmacy).
+  Several GROCERY STORES of different sizes near the starter homes (one really detailed supermarket). Not every building is enterable — and the
+  player must be able to tell at a glance which ones are (clear door markers).
+- **Needs drive errands ("chains")**, not just meters: being hungry means groceries, which means a trip to the store, carrying them home, cooking.
+  Every need should have a chain that sends you somewhere. Add a few more interesting needs beyond the standard ones:
+  **Comfort** (how nice/clean/cosy home is: furniture, decor, cleaning supplies), **Outdoors** (fresh air: parks, river walk, lookout; drains indoors),
+  **Inspiration** (culture and novelty: museum, cinema, books, music, observation deck, discovering new places). Consumables that run out
+  (food, toiletries, cleaning supplies, clean laundry until you own a washer) create natural errands.
+- **Opportunities & Appointments** are the names of the "quest" systems (never "missions"): Opportunities are optional things that pop up
+  (from needs, people, places, events, jobs, the story); Appointments are scheduled ones in the planner. A stronger MAIN STORY — a gentle
+  narrative adventure advanced at the player's own pace — leads through all the showpiece places while the life sim stays free-form.
+- **Housing ladder**: cool apartments and houses to slowly work up to. **Workplaces**: every job's workplace is interesting and enterable.
