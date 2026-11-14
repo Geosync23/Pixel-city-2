@@ -113,3 +113,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 32 — Save the lead's side too
 > Okay, go ahead and do that. Might as well get that done now, just so we have it saved before you go back to your memory.
+
+## 33 — What does "pacing pause" mean
+> Pacing pause. What does that mean? Those are two different things, right? Pacing is slowing down, pausing is stopping. Which have we done? Are we still working? Is it slower or have we paused?
