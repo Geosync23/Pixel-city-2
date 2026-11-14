@@ -277,3 +277,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 62 — Bigger plan now
 > The previous usage calculations were on a diffeent plan. Were on ultra now to 10x that
+
+## 63 — Status check
+> Are the signature interiors done?
