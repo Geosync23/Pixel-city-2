@@ -206,3 +206,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 46 — Usage reading
 > Were at 41 percent
+
+## 47 — Usage reading
+> 46 percent

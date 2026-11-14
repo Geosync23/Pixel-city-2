@@ -103,7 +103,15 @@ function plan(from, to, t = G.state.t) {
 /* ---------- trains in the city ---------- */
 function mkCar(set, k) {
   return { x: 0, y: 0, z: 0, bb: [0, 0, 12, 2.2, 2.6], set, k, p: null, key: '', flip: false, isTrain: true,
-    sprite() { return assetSprite(carA, this.p, this.flip, this.key); } };
+    // sort z (this.z) is lifted strictly above everything under the car floor (deck slabs, lamp tops); the sprite is shifted back down by the same amount (lift) so the picture does not move
+    lift: 0, _sh: null, sprite() { const spr = assetSprite(carA, this.p, this.flip, this.key); if (!this.lift || !spr) return spr; const sh = this._sh; if (sh && sh.src === spr && sh.lift === this.lift) return sh.out; const out = Object.assign({}, spr, { y: spr.y + Math.round(this.lift * 16) }); this._sh = { src: spr, lift: this.lift, out }; return out; } };
+}
+/* objects along the line that sit under the cars' floor: their tops must sort below the cars (long thin deck boxes otherwise tie with the car boxes -> draw-order flicker) */
+let UNDER = null;
+function underList(N) {
+  if (UNDER) return UNDER; UNDER = []; const P = N.rail.path, m = 4.6;
+  for (const ob of N.w.objs) { const B = ob.B; if (!B) continue; for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; if (B[3] < Math.min(a[0], b[0]) - m || B[0] > Math.max(a[0], b[0]) + m || B[4] < Math.min(a[1], b[1]) - m || B[1] > Math.max(a[1], b[1]) + m) continue; UNDER.push(ob); break; } }
+  return UNDER;
 }
 function placeCars(set, st) {
   const N = NET, D = N.dirs[set.dir], dest = SHORT[st.next.id] || 'LOOP';
@@ -113,7 +121,15 @@ function placeCars(set, st) {
     if (c.sig !== key) { c.sig = key; c.flip = !ax; c.p = { head, livery: LINE[set.dir].livery, dir: mv, dest, line: set.dir + 1, seed: set.train * 7 + k + 1 }; c.key = 'railcar|' + set.dir + '|' + set.train + '|' + k + '|' + key; c.bb = ax ? [0, 0, 12, 2.2, 2.6] : [0, 0, 2.2, 12, 2.6]; }
     c.x = ax ? q.x - 6 : q.x - 1.1; c.y = ax ? q.y - 1.1 : q.y - 6;
     const e = ax ? [q.x - 5.5, q.y, q.x + 5.5, q.y] : [q.x, q.y - 5.5, q.x, q.y + 5.5];
-    c.z = Math.ceil(Math.max(N.rail.deckZ(q.x, q.y), N.rail.deckZ(e[0], e[1]), N.rail.deckZ(e[2], e[3])) * 8) / 8 + .0625;
+    const zd = Math.ceil(Math.max(N.rail.deckZ(q.x, q.y), N.rail.deckZ(e[0], e[1]), N.rail.deckZ(e[2], e[3])) * 8) / 8 + .0625;
+    // footprint slightly inside the deck's and the other track's; sort base above every top that ends below the car body
+    // The sort box is also stretched along the track to the full extent of the deck segments under the car: otherwise a pier / lamp under the far end of
+    // such a segment is "in front" of the car by x while "behind" the deck by z and the deck is "behind" the car -> a cycle the sorter breaks differently each frame.
+    const x0 = c.x, y0 = c.y, x1 = c.x + (ax ? 12 : 2.2), y1 = c.y + (ax ? 2.2 : 12); let top = zd, lo = ax ? x0 : y0, hi = ax ? x1 : y1; const U = underList(N);
+    for (const ob of U) { const B = ob.B; if (B[0] >= x1 || x0 >= B[3] || B[1] >= y1 || y0 >= B[4]) continue; if (B[5] > top && B[5] < zd + .9 && B[2] < zd) top = B[5]; }
+    const zs = top > zd ? Math.ceil((top + .02) * 16) / 16 : zd; c.z = zs; c.lift = zs - zd;
+    for (const ob of U) { const B = ob.B; if (B[0] >= x1 || x0 >= B[3] || B[1] >= y1 || y0 >= B[4] || B[5] > zs || B[5] - B[2] > 1.5 || ob.id.indexOf('prop.rail.viaduct') !== 0) continue; if (ax) { if (B[0] < lo) lo = B[0]; if (B[3] > hi) hi = B[3]; } else { if (B[1] < lo) lo = B[1]; if (B[4] > hi) hi = B[4]; } }
+    if (!(G.rail && G.rail._noLift)) c.bb = ax ? [lo - c.x, 0, hi - c.x, 2.2, 2.6] : [0, lo - c.y, 2.2, hi - c.y, 2.6];
   }
 }
 function tick() {
@@ -225,8 +241,11 @@ export function init() {
   // the visible stairs / elevators up to each platform are usable too (same panel as the entrance), with the welcome glow
   try {
     const w = N.w, cand = st => { let best = null; for (const ob of w.objs) { if (ob.id !== 'bld.rail.stairs' && ob.id !== 'bld.rail.elevator') continue; const B = ob.B, cx = (B[0] + B[3]) / 2, cy = (B[1] + B[4]) / 2; if (Math.hypot(cx - st.x, cy - st.y) > 16) continue;
-      let f = null, fd = 1e9; for (let x = Math.floor(B[0]) - 1; x <= B[3] + 1; x++) for (let y = Math.floor(B[1]) - 1; y <= B[4] + 1; y++) { const px = x + .5, py = y + .5; if (px > B[0] && px < B[3] && py > B[1] && py < B[4]) continue; if (w.isBlocked(px, py)) continue; const d = Math.hypot(px - st.entrance.x, py - st.entrance.y); if (d < fd) { fd = d; f = { x: px, y: py }; } }
-      if (f && fd > 1.5) (best = best || []).push({ ob, f, cx, cy, lift: ob.id === 'bld.rail.elevator' }); } return best || []; };
+      // target: the stair FOOT (low end of the long axis: the flight rises along +x, or +y when flipped); elevators: the side facing the entrance
+      const lift = ob.id === 'bld.rail.elevator', ex = st.entrance.x - cx, ey = st.entrance.y - cy, sideY = true || ex,
+        tx = lift ? (sideY ? cx : (ex > 0 ? B[3] + .6 : B[0] - .6)) : (ob.flip ? cx : B[0] - .6), ty = lift ? (sideY ? (ey > 0 ? B[4] + .6 : B[1] - .6) : cy) : (ob.flip ? B[1] - .6 : cy);
+      let f = null, fd = 1e9; for (let x = Math.floor(B[0]) - 2; x <= B[3] + 2; x += .5) for (let y = Math.floor(B[1]) - 2; y <= B[4] + 2; y += .5) { const px = x + .25, py = y + .25; if (px > B[0] - .3 && px < B[3] + .3 && py > B[1] - .3 && py < B[4] + .3) continue; if (w.isBlocked(px, py)) continue; const d = Math.hypot(px - tx, py - ty); if (d < fd) { fd = d; f = { x: px, y: py }; } }
+      if (f && fd < 3.5) (best = best || []).push({ ob, f, cx, cy, lift }); } return best || []; };
     for (const st of N.sts) if (st.id !== 'central') for (const q of cand(st)) { const label = (q.lift ? 'Elevator to ' : 'Stairs to ') + st.name + ' platform';
       G.addInteractable({ scene: 'city', x: q.f.x, y: q.f.y, label, h: 1.4, range: 1.8, hit: 18, use: () => openStation(st.id) }); stairs.push({ station: st.id, x: q.f.x, y: q.f.y, lift: q.lift });
       if (w.poi) w.poi({ type: 'stairs', glow: true, id: 'stairs:' + st.id + ':' + stairs.length, name: label, x: q.f.x, y: q.f.y, station: st.id }); }
