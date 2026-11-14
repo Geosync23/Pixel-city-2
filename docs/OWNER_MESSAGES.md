@@ -265,3 +265,6 @@ Very short operational messages are included too, so the sequence is complete. A
 > Keep following the standing orders: one worker at a time at a steady pace, log every message
 > of mine verbatim in docs/OWNER_MESSAGES.md, keep docs/HANDOFF.md current, commit and push
 > after every step, and tell me plainly what you verified yourself versus what a worker reported.
+
+## 59 — Workers on Fable 5.2
+> Restart workers wirh Fable 5.2

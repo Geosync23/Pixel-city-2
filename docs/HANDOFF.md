@@ -6,7 +6,8 @@ Rule: this file is updated every time a worker finishes, a build is published, o
   (Stage 14 republished, version 1794695918-0180). npm install + build + one smoke screenshot verified by the lead.
 - **2g split into four workers (one at a time):** 2g-1 unique rooms for every food & drink place (~33 of the 53 converted `pub:<n>` rooms; also fixes the taqueria "PIZZA" counter) ->
   2g-2 unique rooms for the ~20 shops/services/groceries -> 2g-3 lobbies: many more enterable apartment + office buildings -> 2g-4 home bathrooms as their own room + toilets + bladder need.
-- **Running worker:** 2g-1 (food & drink unique interiors). Owns NEW files src/scenes/rooms/places_food*.js + docs/reports/unique_food.md; may edit ONLY the `genericRoom(...)` call site in src/sim/public_places.js
+- **Workers use Fable 5.2** (owner msg 59; Agent tool `model: "fable"`).
+- **Running worker:** 2g-1 (food & drink unique interiors), restarted on Fable 5.2 (the first run was stopped before writing any files). Owns NEW files src/scenes/rooms/places_food*.js + docs/reports/unique_food.md; may edit ONLY the `genericRoom(...)` call site in src/sim/public_places.js
   (hook: unique room builder first, generic template as fallback). If it is gone after a restart: check those files, then brief a new worker with "these files exist; continue".
 - After 2g: 2i clothes/hair/laundry -> 2j traits/skills/mini-games + university -> 2c museum/conservatory/hotel/post offices -> 2k big city events -> 3 jobs expansion -> 4b relationships -> 4c goods/home design -> 4 needs + Opportunities -> 5 art -> 6 QA.
 - **Small open items (warm-ups):** Circle app releases immediately (count only non-family); `app.*` icon art for new apps; confirm a sit on a city bench; two "Beacon" buildings; SkyDeck telescope discovery unverified;
