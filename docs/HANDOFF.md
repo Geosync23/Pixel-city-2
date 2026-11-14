@@ -1,20 +1,19 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-14 21:42 UTC) — FINAL STRETCH BEFORE THE ACCOUNT MOVE
-- **Done this window:** Wander guidebook app (Stage 10 published, version `1794692270-3939`; docs/reports/guide.md).
-- **Running worker (LAST one this window):** TRIMMED PLAYTEST FIX PACK, launched 21:40 UTC. It may EDIT EXISTING FILES. Items in order: (1) airport walkways keep right [src/scenes/rooms/airport.js, _airport_life.js],
-  (2) deboarding: player released when the line reaches their row [src/sim/intro_airport.js], (3) plane-shaped cabin shell [src/art/airport_interior/cabin.js + airport:plane room], (4) station stairs/elevators usable
-  [src/sim/rail.js], (5) flat-fee train ticket required [src/sim/rail.js], (6) sit in any chair [src/sim/activities.js], (7) tap goal -> waypoint [src/ui/goals.js] + tap need -> nearest place [src/ui/hud.js],
-  (8) planner appointments in the Goals widget [src/ui/goals.js]. It reports DONE/PARTIAL/NOT STARTED per item. If this session ends before it reports: run `node tools/build.mjs` and `git diff --stat` to see what it
-  touched, test those items, and finish the remainder.
-- **After it reports:** playbook loop, publish, rewrite this section as a clean stop, push, tell the owner the final commit. Do NOT launch another worker this window.
-- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794692270-3939` (Stage 10). The new account must publish its own artifact (see MOVING section below).
+## Now (updated 2026-11-14 21:50 UTC) — CLEAN STOP POINT FOR THE ACCOUNT MOVE
+- **Running worker: NONE. No timers pending. Nothing half-done on disk.** Everything is integrated, published (Stage 11) and pushed.
+- **Done in the final window:** performance venues (Stage 9), Wander guidebook app (Stage 10, docs/reports/guide.md), playtest fix pack 1 (Stage 11, docs/reports/fixpack1.md — read it: items 4 and 6 are PARTIAL and several
+  things were verified by eval only), plus lead quick fixes (sign names, Talk-button-only, Jules -> Nora, relationship rate/cap).
+- **START HERE NEXT:** fix pack 2 = what is still open from owner msg 36: verify/finish station stairs in the city and city bench "Sit" spots; run the real intro end to end after the cabin/deboarding changes;
+  real item icons (backpack shows colour squares); train flicker overhead; Map "what do you need?" navigator with foot/bike, bus, train (trip planner); better need->place matching in the HUD chooser.
+  Then continue the numbered list below from item 3.
+- **Live build (old account):** artifact slug 6723cacd-7010-466b-a6d7-f100f5510757, version `1794692688-4db5` (Stage 11). The new account must publish its own artifact (see MOVING section below).
 - **NEXT, in order (nothing started):**
   1. [DONE] GUIDE APP — working name "Wander — the Maple Bay guidebook" (owner msgs 37-38: TOP PRIORITY; very comprehensive; fun and visual like a guide book; auto-built from game content: every enterable place, shop, stall,
      venue, show, event, activity/mini-game, transit line; chapters + by district + near me; "Things to try" checklist with stamps; active links: "Take me there" waypoint, "Add to planner" for scheduled shows/events
      (use G.shows.schedule, data/calendar.js events, G.places, G.publicPlaces.list(), G.showpieces.mall.shops(), G.planner.add, G.phone.registerApp / setWaypoint)).
-  2. 2f playtest fix pack + navigator (BIBLE update 11): walkways keep right; deboarding — stand when the line reaches your row; plane-shaped cabin shell; station stairs; train flat-fee ticket; train flicker overhead;
+  2. [PARTLY DONE — see docs/reports/fixpack1.md] 2f playtest fix pack + navigator (BIBLE update 11): walkways keep right; deboarding — stand when the line reaches your row; plane-shaped cabin shell; station stairs; train flat-fee ticket; train flicker overhead;
      sit on any chair; real item icons; tap goal -> waypoint; tap need -> nearest place; Map "what do you need?" navigator with foot/bike, bus, train (merges the trip planner 2e); planner feeds the Goals list.
   3. 2g unique interiors (no repeated templates) + many more enterable buildings (apartment/office lobbies) + separate bathroom rooms + toilets/bladder need.
   4. 2h remaining apps: app store with release notifications, Properties browser, Living Tips.   5. 2i clothes/hair/laundry system.   6. 2j traits/skills/mini-games + university campus.

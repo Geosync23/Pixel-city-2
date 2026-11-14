@@ -87,3 +87,4 @@ that built it. No one has done a full New Game playthrough by hand, a mobile-lay
 - Lessons for the next lead: (1) even ONE worker can exhaust the 5-hour window — briefs must demand economy and there should be a gap between workers; (2) workers' reports are honest about what they did not
   verify — relay that to the owner; (3) the owner plays on a tablet/phone in portrait and sends many small voice-typed messages — log each verbatim, answer briefly, and batch small fixes;
   (4) he reacts best to visible, lively, physical things (crowds, the airport, the train) and wants menus replaced by in-world interaction wherever sensible.
+- Final window: guide app (189k-token worker) and a trimmed fix pack (142k) both fit after the owner reported 26% used; I verified the guide cover and the new plane cabin by screenshot, the rest is worker-reported. Stopped cleanly with no workers running.

@@ -41,3 +41,4 @@
 - 21:29 UTC: owner (msg 45) chose to keep working this window before the move; guide app worker launched; plan = guide app, then trimmed fix pack if usage allows, then clean stop.
 - Wander guidebook app landed (272 entries, stamp book, waypoint/planner links). Stage 10 published.
 - 21:40 UTC: trimmed playtest fix pack worker launched (last worker before the account move).
+- Fix pack 1 landed (6 of 8 items done, 2 partial). Stage 11 published (artifact version 1794692688-4db5). CLEAN STOP for the account move: no workers running, everything pushed.
