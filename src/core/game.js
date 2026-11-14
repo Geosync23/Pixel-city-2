@@ -65,19 +65,22 @@ G.go = (id, opts = {}) => new Promise((res, rej) => {
 });
 
 /* ---------- camera / coords ---------- */
-function snapCam() { const p = G.camTarget || G.player, a = WS(p.x, p.y, p.z); G.cam.fx = a[0]; G.cam.fy = a[1] - 14; G.cam.x = Math.round(G.cam.fx - G.W / 2); G.cam.y = Math.round(G.cam.fy - G.H / 2); }
+// The low-res canvas scrolls in whole pixels; the remaining fraction is applied as a CSS shift quantised to real screen pixels,
+// so scrolling is smooth in every direction (no judder on diagonals).
+function placeCam() { const c = G.cam, z = G.zoom, tx = c.fx - (G.W - 1) / 2, ty = c.fy - (G.H - 1) / 2; c.x = Math.floor(tx); c.y = Math.floor(ty); let sx = Math.round((tx - c.x) * z) / z, sy = Math.round((ty - c.y) * z) / z; if (sx >= 1) { sx = 0; c.x++; } if (sy >= 1) { sy = 0; c.y++; } c.sx = sx; c.sy = sy; if (G.cv && (c._sx !== sx || c._sy !== sy)) { c._sx = sx; c._sy = sy; G.cv.style.transform = 'translate(' + (-sx * G.cssScale) + 'px,' + (-sy * G.cssScale) + 'px)'; } }
+function snapCam() { const p = G.camTarget || G.player, a = WS(p.x, p.y, p.z); G.cam.fx = a[0]; G.cam.fy = a[1] - 14; placeCam(); }
 G.snapCam = snapCam;
 function resize() {
   const wrap = G.cv.parentElement, dpr = window.devicePixelRatio || 1, cw = wrap.clientWidth, ch = wrap.clientHeight;
   G.zmin = Math.max(2, Math.round(dpr * 2)); G.zmax = Math.max(G.zmin + 2, Math.round(dpr * 5)); if (G.query && G.query.has('debug')) G.zmin = 1; G.zoom = Math.min(G.zmax, Math.max(G.zmin, G.zoom));
-  G.W = Math.max(32, Math.ceil(cw * dpr / G.zoom)); G.H = Math.max(32, Math.ceil(ch * dpr / G.zoom)); G.renderer.resize(G.W, G.H);
+  G.W = Math.max(32, Math.ceil(cw * dpr / G.zoom) + 1); G.H = Math.max(32, Math.ceil(ch * dpr / G.zoom) + 1); G.renderer.resize(G.W, G.H);
   G.cv.style.width = (G.W * G.zoom / dpr) + 'px'; G.cv.style.height = (G.H * G.zoom / dpr) + 'px'; G.cssScale = G.zoom / dpr;
 }
 G.setZoom = z => { z = Math.min(G.zmax, Math.max(G.zmin, z)); if (z !== G.zoom) { G.zoom = z; resize(); snapCam(); } };
 /** client (css px) -> world position on the terrain */
 G.toWorld = (clx, cly) => { const r = G.cv.getBoundingClientRect(), lx = (clx - r.left) / r.width * G.W + G.cam.x, ly = (cly - r.top) / r.height * G.H + G.cam.y; let z = 0, x = 0, y = 0; for (let k = 0; k < 6; k++) { const a = lx / U, b = (ly + z * U) / (U / 2); x = (a + b) / 2; y = (b - a) / 2; const hz = G.world.heightAt(x, y); if (Math.abs(hz - z) < .01) break; z = hz; } return { x, y, z, px: lx, py: ly }; };
 /** world -> css px relative to the game wrapper (for DOM bubbles/markers) */
-G.toScreen = (x, y, z = 0) => { const s = WS(x, y, z); return { x: (s[0] - G.cam.x) * G.cssScale, y: (s[1] - G.cam.y) * G.cssScale }; };
+G.toScreen = (x, y, z = 0) => { const s = WS(x, y, z); return { x: (s[0] - G.cam.x - (G.cam.sx || 0)) * G.cssScale, y: (s[1] - G.cam.y - (G.cam.sy || 0)) * G.cssScale }; };
 
 /* ---------- interactions ---------- */
 /**
@@ -141,7 +144,7 @@ function frame(now) {
     for (const s of G.systems) if (s.update) s.update(dt, gm);
   }
   // camera
-  const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), k = Math.min(1, dt * 7); G.cam.fx += (a[0] - G.cam.fx) * k; G.cam.fy += (a[1] - 14 - G.cam.fy) * k; G.cam.x = Math.round(G.cam.fx - G.W / 2); G.cam.y = Math.round(G.cam.fy - G.H / 2);
+  const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), k = Math.min(1, dt * 7); G.cam.fx += (a[0] - G.cam.fx) * k; G.cam.fy += (a[1] - 14 - G.cam.fy) * k; placeCam();
   const env = G.scene.env ? G.scene.env(G.state.t) : G.scene.indoor ? ambientIndoor(G.state.t) : ambient(G.state.t, G.state.weather); G.env = env;
   const ents = G.scene.ents; if (!ents.includes(G.player)) ents.push(G.player);
   G.renderer.draw(G.world, G.cam, ents, env, {
