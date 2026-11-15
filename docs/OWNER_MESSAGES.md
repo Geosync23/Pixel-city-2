@@ -526,3 +526,7 @@ When watching s movie or a show the ambient music needs to stop so we can hear t
 
 ## 136 (2026-11-15)
 Shouldn't be pancakes an grandma's and family lunch same day
+
+## 137 (2026-11-15) — more background music; keep the pancakes, move the family lunch
+We need more music for background music. Lots more variery
+Keep grandpas pancakes since its the story move family lunch

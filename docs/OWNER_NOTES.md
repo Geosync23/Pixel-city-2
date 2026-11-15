@@ -114,3 +114,4 @@
 94. (msg 134) The BUS ride needs a Skip like the cab ride has (lead adds: the train ride too).
 95. (msg 135) SOUND: while watching a movie or a show, the ambient MUSIC must stop so the movie / show can be heard.
 96. (msg 136) STORY PACING: pancakes at Nana's (Chapter 1) and the family lunch should NOT fall on the same day.
+97. (msg 137) (a) MUSIC: much more background music, lots more variety. (b) Confirms msg 136: keep the pancakes at Nana's (the story), move the family lunch (done in Stage 70).
