@@ -147,7 +147,7 @@ function amongPeople() { const sc = G.scene; if (!sc || !sc.indoor || api.sleepi
 let guarded = 0;
 function guard() {
   const a = G.busy; if (!a || passing || a.canCancel === false || G.state.t - guarded < 30) return;
-  const hungry = S.v.hunger <= 5, sleepy = S.v.energy <= 3 && !api.sleeping, loo = S.v.bladder <= 6 && !/toilet|restroom|loo\b|bath|shower/i.test((a.id || '') + ' ' + (a.label || '')); if (!hungry && !sleepy && !loo) return;   /* QA7: bladder too: a kind stop before an accident */
+  const what = (a.id || '') + ' ' + (a.label || ''), hungry = S.v.hunger <= 5 && !/eat|drink|cook|snack|meal|breakfast|lunch|dinner|order|heat/i.test(what), sleepy = S.v.energy <= 3 && !api.sleeping && !/sleep|nap|bed|rest/i.test(what),   /* QA10: 'You stop (Eating Granola Bar): you are starving' - a starving player could not eat */ loo = S.v.bladder <= 6 && !/toilet|restroom|loo\b|bath|shower/i.test((a.id || '') + ' ' + (a.label || '')); if (!hungry && !sleepy && !loo) return;   /* QA7: bladder too: a kind stop before an accident */
   guarded = G.state.t; const was = a.label || 'that';
   setTimeout(() => { if (G.busy !== a) return; G.endActivity(false); toast(hungry ? (api.sleeping ? 'Your stomach wakes you up. Eat something before anything else!' : `You stop (${was}): you are starving. Eat something now!`) : sleepy ? `You stop (${was}): you can barely keep your eyes open. Find a bed!` : api.sleeping ? 'You wake up needing the loo. Tap the Bladder bar for the nearest toilet.' : `You stop (${was}): you really need the loo. Tap the Bladder bar for the nearest restroom.`, 'bad', 6000); }, 0);
 }

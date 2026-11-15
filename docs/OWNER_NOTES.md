@@ -97,3 +97,4 @@
 77. (msg 117) SOUND TEST: take the footsteps out and show the soundscape again.
 78. (msg 118) AMBIENCE DECISION: recordings only (no generated city sounds). Longer samples, with clever editing and remixing so no loop is heard.
 79. (msg 119) ORDER: the recorded ambience goes into the game BEFORE the 17 new jobs.
+80. (msg 120) HOLD the additional jobs (J4: vet assistant, software developer + 15 more). Do not start them until the owner says. Asked for the list again.

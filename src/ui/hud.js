@@ -104,6 +104,9 @@ function fixNeed(n) {
   togglePanel(false);   /* the panel sat on top of this window on phones; the chooser replaces it */
   const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
   if (SOFT_NOTE[n.id]) m.body.append(el('p.nf-note', { text: SOFT_NOTE[n.id] }));
+  /* QA10: on a shift with Hunger 2 the list offered places 1.3 km away while four granola bars sat in the backpack */
+  if (n.id === 'hunger' || n.id === 'energy') try { const k = n.id, bag = G.inv.items().map(s => ({ s, it: G.inv.item(s.id || s.item) })).filter(o => o.it && G.inv.edible && G.inv.edible(o.it) && ((o.it.effects || o.it.eff || {})[k] > 0 || (k === 'hunger' && G.inv.isFood && G.inv.isFood(o.it))));
+    if (bag.length) { const o = bag[0]; m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': 'bag', onclick: () => { m.close(); try { G.inv.open(); } catch (e) { } } }, el('span', { style: 'flex:1', text: 'In your backpack: ' + o.it.name + (bag.length > 1 ? ` and ${bag.length - 1} more` : '') }), el('small', { text: 'now' }))); } } catch (e) { }
   if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));
   for (const q of L) m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', onclick: () => { m.close(); togglePanel(false); try { if (hereAlready(q.id)) { G.phone.setWaypoint(q.id); toast('It is right here: follow the arrow.', 'info', 3000); return; }   /* QA9: not a 'WALK 1 min, 10 m' Map card for the building you stand in */
       if (!(G.phone.routeTo && G.phone.routeTo(q.id))) { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } } catch (e) { toast('No route there yet.'); } } },

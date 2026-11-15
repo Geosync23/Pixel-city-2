@@ -168,7 +168,7 @@ function dressHome(scene) {
   const lowBy = q => scene.fixtures.some(f => !f.item.wall && f.ob.size[2] <= 1 && f.ob.B[0] < q.x + .8 && f.ob.B[3] > q.x - .8 && f.ob.B[1] < q.y + .8 && f.ob.B[4] > q.y - .8) ? 1 : 0;   /* QA9: not at the foot of a bed (its tap point sat on the mattress: Saltbox Lofts) */
   const corner = spots.slice().sort((a, b) => (lowBy(a) - lowBy(b)) || (a.wall - b.wall) || (b.exitD - a.exitD))[0];
   safe(() => W.placeCustom(CADDY, corner.x - .35, corner.y - .5, { z: 0 }));
-  scene.interactables.push({ x: corner.x, y: corner.y - .2, h: 1.1, hit: 14, range: 1.5, label: 'Cleaning things', care: true, use: () => caddyMenu() });
+  scene.interactables.push({ x: corner.x, y: corner.y - .2, h: 1.1, hit: 8, range: 1.5, label: 'Cleaning things', care: true, use: () => caddyMenu() });   /* QA10: hit 14 -> 8: in Juniper Court it stands on the way to the bed and caught five walk taps in one evening */
   /* up to five bits of mess on open floor (hidden until the home is dirty enough) */
   const rnd = R.rng(hid.length * 131 + scene.def.w * 17 + scene.def.d), open = spots.filter(s => s !== corner && s.wall >= 1 && s.exitD > 1.6), mess = [];
   for (let i = 0; i < MESS.length && open.length; i++) {
