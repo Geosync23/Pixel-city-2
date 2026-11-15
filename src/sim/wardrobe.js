@@ -35,6 +35,7 @@ import { openCreator } from '../ui/creator.js';
 import { specWith, PIECE_BY_ID, BRANDS } from '../data/clothes.js';
 import { big, stage, grid, filterBar, applyFilter, thumb, specThumb, injectCss, put } from '../ui/phone_closet_kit.js';
 import { LINES } from '../story/ambient_lines.js';
+import { REACT } from './_crowd_lines.js';
 
 export const order = 61;
 export const DIRTY_AFTER = { top: 3, bottom: 3, dress: 3, set: 3, socks: 2, tights: 2, outer: 7, hat: 8, neck: 8, gloves: 8 }, MUSTY = 6, SAME_DAYS = 3;
@@ -222,7 +223,8 @@ function react(dt) {
   if (!S || G.modal || !G.scene || G.scene.id !== 'city' || !G.player || S.temp || (S.same || 1) < SAME_DAYS) return;
   const pool = safe(() => LINES.player.same_outfit_days, null); if (!pool || !pool.length || Math.random() < .4) return;
   let best = null, bd = 25; for (const e of G.scene.ents) { if (e === G.player || !(e instanceof Char) || e.hidden) continue; const d = (e.x - G.player.x) ** 2 + (e.y - G.player.y) ** 2; if (d < bd) { bd = d; best = e; } }
-  if (best) bubble(best, pool[(S.li = (S.li || 0) + 1) % pool.length], 3200);
+  if (G.time - REACT.last <= REACT.gap) return; /* QA round 4: share the city-folk 18 s limit for lines about the player */
+  if (best) { bubble(best, pool[(S.li = (S.li || 0) + 1) % pool.length], 3200); REACT.last = G.time; }
 }
 
 /* ---------- saved outfits, favourites, wish list ---------- */

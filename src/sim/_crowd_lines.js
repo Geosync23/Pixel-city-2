@@ -99,7 +99,7 @@ export function playerStates() {
   if (safe(() => G.inv.items().some(st => (G.inv.item(st.id) || {}).category === 'gift'), false)) out.push('carrying_gift'); if (safe(() => G.inv.items().some(st => st.exp), false)) out.push('carrying_food');
   if (!indoor) { if (wk === 'rain' && !safe(() => G.inv.has('umbrella'), false) && safe(() => G.wardrobe.wearing(), '') !== 'outfit_raincoat') out.push('soaked', 'soaked'); if (wk === 'snow') out.push('snowy'); if (wk === 'heat') out.push('sweaty'); }
   const day = Math.floor((G.state.t || 0) / 1440) - safe(() => G.state.intro.day0, 0); if (day < 3) out.push('new_in_town'); else if (day >= 21) out.push('regular');
-  const bal = safe(() => G.money.balance(), null); if (bal !== null && isFinite(bal)) { if (bal < 20) out.push('broke'); else if (bal > 5000) out.push('flush'); }
+  const bal = safe(() => G.money.get(), null); /* QA round 4: was G.money.balance(), which does not exist, so broke / flush never fired */ if (bal !== null && isFinite(bal)) { if (bal < 20) out.push('broke'); else if (bal > 5000) out.push('flush'); }
   const fit = safe(() => G.wardrobe.wearing(), ''); if (fit === 'outfit_pajamas') out.push('pajamas', 'pajamas'); else if (fit === 'outfit_business' || fit === 'outfit_evening' || fit === 'outfit_party') out.push('dressed_up'); else if (fit === 'outfit_travel' && day < 3) out.push('travel_outfit');
   if (h >= 1 && h < 4) out.push('night_owl'); else if (h >= 5 && h < 6.5) out.push('early_bird');
   if (safe(() => G.inv.free(), 1) === 0) out.push('loaded_bag');
@@ -111,6 +111,8 @@ export function playerStates() {
   if (!indoor && G.busy && G.player && G.player.pose === 'sit') out.push('sitting_bench', 'sitting_bench');
   if (G.time - recent.photo < 30) out.push('taking_photo', 'taking_photo'); if (!indoor && G.time - recent.lost < 90) out.push('lost', 'lost');
   if ((G.state.t || 0) - recent.promoted < 1440) out.push('promoted'); if (band('hunger') === 'full') out.push('full'); if (safe(() => N.hasMoodlet('caffeinated'), false)) out.push('caffeinated');
+  /* QA round 4: the wardrobe's own states (same_outfit_days, dressed_up, sporty, pajamas, artist_outfit, underdressed_cold from real warmth) */
+  for (const k of safe(() => G.wardrobe.playerStates(), null) || []) if (!out.includes(k)) out.push(k);
   return out.filter(k => poolOf('player', k).length);
 }
 const ROOM_KEY = [[/^central/, 'station'], [/^deptstore/, 'mall'], [/^cinema/, 'cinema'], [/^concerthall/, 'concert'], [/^playhouse/, 'theatre'], [/^conservatory/, 'conservatory'], [/^observatory/, 'observatory'], [/^museum/, 'museum'],

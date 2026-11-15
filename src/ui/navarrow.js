@@ -227,7 +227,10 @@ function compute() {
 /* ---------- drawing ---------- */
 let box = null, aEl = null, lEl = null, cur = null, sizeKey = '', bw = 0, bh = 0, marginT = 0, mT = 0, lastTxt = '';
 function margins(W, H) {
-  if ((mT -= 1) <= 0) { mT = 20; const bar = document.getElementById('nav-trip'), wr = G.cv.parentElement.getBoundingClientRect(); let t = SAFE.t; if (bar && bar.style.display !== 'none') { const r = bar.getBoundingClientRect(); if (r.height) t = Math.max(t, r.bottom - wr.top + 8); }
+  if ((mT -= 1) <= 0) { mT = 12; const bar = document.getElementById('nav-trip'), wr = G.cv.parentElement.getBoundingClientRect(); let t = SAFE.t; if (bar && bar.style.display !== 'none') { const r = bar.getBoundingClientRect(); if (r.height) t = Math.max(t, r.bottom - wr.top + 8); }
+    /* things that would cover the arrow at the top edge: phone banners and toasts (the arrow moves below them; at most 42% of the height) */
+    for (const q of document.querySelectorAll('#ph-banners .ph-banner,#toasts .toast')) { const r = q.getBoundingClientRect(); if (r.height && r.top - wr.top < 260) t = Math.max(t, Math.min(wr.height * .42, r.bottom - wr.top + 6)); }
+    const jh = document.getElementById('jobhud'), jr = jh && jh.getBoundingClientRect(); margins.jh = jr && jr.height && jr.top - wr.top > wr.height * .4 ? { r: jr.right - wr.left + 6, t: jr.top - wr.top - 6 } : null;   /* the shift HUD sits bottom-left in portrait */
     let b = SAFE.b; for (const q of document.querySelectorAll('.ride-hud,.rail-hud')) { const r = q.getBoundingClientRect(); if (r.height) b = Math.max(b, wr.bottom - r.top + 8); } marginT = t; margins.b = b; }
   return { l: SAFE.l, r: W - SAFE.r, t: marginT + (banT > 0 ? banEl.offsetHeight + 12 : 0), b: H - (margins.b || SAFE.b) };
 }
@@ -256,7 +259,7 @@ function frame(dt) {
     cls += ' ' + edge; if (box.className !== cls) { box.className = cls; sizeKey = ''; } if (sizeKey !== cls + txt) { sizeKey = cls + txt; bw = box.offsetWidth; bh = box.offsetHeight; }
     if (edge === 'near') { x = top.x - bw / 2; y = top.y - bh; aEl.style.transform = ''; }
     else { x -= edge === 'e-r' ? bw : edge === 'e-l' ? 0 : bw / 2; y -= edge === 'e-b' ? bh : edge === 'e-t' ? 0 : bh / 2; aEl.style.transform = `rotate(${rot}deg)`; }
-    x = Math.max(M.l, Math.min(M.r - bw, x)); y = Math.max(M.t, Math.min((x + bw > W - 96 ? Math.min(M.b, H - 150) : M.b) - bh, y));
+    x = Math.max(M.l, Math.min(M.r - bw, x)); y = Math.max(M.t, Math.min(Math.min(x + bw > W - 96 ? Math.min(M.b, H - 150) : M.b, margins.jh && x < margins.jh.r ? margins.jh.t : 1e9) - bh, y));
   }
   box.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`;
 }

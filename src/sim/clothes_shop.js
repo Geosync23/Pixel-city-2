@@ -140,7 +140,7 @@ function rackInfo(fx, scene) {
 }
 function rackList(r) { const all = stock(r.shop).filter(p => p.slot === r.slot || (r.slot === 'acc' && r.kind === 'jewel' && p.slot === 'acc')); let out = all.filter((p, i) => i % r.n === r.k); if (r.kind === 'bins') out = stock(r.shop).slice().sort((a, b) => a.price - b.price).filter((p, i) => i % r.n === r.k).slice(0, 16); return out; }
 function useRack(fx, scene) { const r = rackInfo(fx, scene); if (!r) return; const list = rackList(r); if (!list.length) return toast('This rack is nearly bare this week. Try the next one.', 'info');
-  browse(r.shop, { list, slot: r.slot, bin: r.kind === 'bins', title: r.kind === 'bins' ? 'The rummage bins' : `${shopName(r.shop)}: ${SLOT_WORD[r.slot]}`, note: r.kind === 'bins' ? 'Everything in the bins is less than half price. Dig.' : `${list.length} on this rack. The other racks carry different things.` }); }
+  browse(r.shop, { list, slot: r.kind === 'bins' ? undefined : r.slot /* QA round 4: the bins are a mix; a slot filter emptied them */, bin: r.kind === 'bins', title: r.kind === 'bins' ? 'The rummage bins' : `${shopName(r.shop)}: ${SLOT_WORD[r.slot]}`, note: r.kind === 'bins' ? 'Everything in the bins is less than half price. Dig.' : `${list.length} on this rack. The other racks carry different things.` }); }
 function onRoom(scene) {
   if (!scene || !roomShop(scene, { x: 0, y: 0 }) && !BY_VENUE[scene.roomId]) return;
   for (const it of scene.interactables) { const a = it.fx && it.fx.asset.id; if (a && /thrift\.(bins|hatwall)|jewel\.case/.test(a) && rackInfo(it.fx, scene)) { it.label = /bins/.test(a) ? 'Rummage in the bins' : /hat/.test(a) ? 'Hats and bags' : 'Jewellery case'; it.use = () => useRack(it.fx, scene); } }

@@ -5,6 +5,7 @@
 //
 // G.needs
 //   get(k) -> 0..100        add(k, d) -> new value      set(k, v)        all() -> { hunger, energy, hygiene, fun, social, bladder }  (bladder: see src/sim/bladder.js; old saves get its start value on load)
+//        + the three gentle needs comfort / outdoors / inspiration (data `soft: true`: no clock decay here, no zero outcome; src/sim/needs_extra.js moves them; old saves get their start values)
 //   band(k) -> { id: 'full'|'ok'|'low'|'critical', label, moodlet }       defs -> NEEDS data array
 //   mood() -> 0..100        moodTier() -> { id, label, xpMult, workPerf } (data MOOD.tiers)
 //   moodlets() -> [{ id, name, desc, icon, mood, left (game minutes | null), source }]   (need bands + timed + conditional)
@@ -89,7 +90,7 @@ function check(k) {
     applySpeed();
     if ((b === 'low' && prev !== 'critical') || (b === 'critical' && prev !== 'low' && S.v[k] > 0)) { G.emit('needs:low', k); }
   }
-  if (S.v[k] <= 0 && !passing) { const z = BY[k].atZero; if (prev !== 'zero') { lastBand[k] = 'zero'; G.emit('needs:zero', k); zero(k, z); } else lastBand[k] = 'zero'; }
+  if (S.v[k] <= 0 && !passing && !BY[k].soft) { const z = BY[k].atZero; if (prev !== 'zero') { lastBand[k] = 'zero'; G.emit('needs:zero', k); zero(k, z); } else lastBand[k] = 'zero'; }
 }
 function zero(k, z) {
   if (z.type === 'pass_out') { passing = true; setTimeout(() => passOut(k), 0); return; }
@@ -152,5 +153,5 @@ export function init() {
   G.on('minutes', decay);
   G.on('day', () => { if (S.exDay < G.now().day - 1) S.fitness = Math.max(Math.min(S.fitness, FITNESS.floor), S.fitness + FITNESS.decayPerIdleDay); });
   G.on('scene', applySpeed); G.on('weather', applySpeed);
-  G.on('needs:low', k => { const b = api.band(k); toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });
+  G.on('needs:low', k => { const b = api.band(k); if (BY[k].soft) { toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
 }

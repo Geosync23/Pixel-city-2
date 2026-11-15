@@ -66,7 +66,7 @@ function syncBadge() { const n = badge(); if (G.hud && G.hud.setBadge) safe(() =
 function markRead(app) { let ch = false; for (const e of S.log) if (!e.read && (!app || e.app === app)) { e.read = 1; ch = true; } if (ch) syncBadge(); }
 
 /* ---------- notifications ---------- */
-const queue = []; let showing = null;
+const queue = []; let showing = null, held = 0;
 function notify(o) {
   if (!S || !o) return null; const T = (o.type && NOTE[o.type]) || null, t = G.state.t;
   if (T && T.cooldownMinutes && S.cool[o.type] !== undefined && t - S.cool[o.type] < T.cooldownMinutes && t >= S.cool[o.type]) return null;
@@ -81,13 +81,16 @@ function notify(o) {
   return e;
 }
 function pump() {
-  if (showing || !queue.length || !bannerBox) return; const e = queue.shift(), sticky = e.pri === 'high';
+  if (showing || !queue.length || !bannerBox) return;
+  /* QA round 4: hold banners while a menu / dialog is open over the game (it covered the cook menu's tabs after a new game); they drop in once it closes */
+  if (G.modal > (isOpen ? depth : 0)) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
+  const e = queue.shift(), sticky = e.pri === 'high';
   const ic = e.face ? portrait(e.face, 40) : e.icon ? el('span.ph-ico', { style: { width: '40px', height: '40px', background: '#fff4dc' } }, iconEl(e.icon, 2)) : appIcon(e.appIcon || e.app || 'notifications', 40, defOf(e.app));
   const done = () => { if (showing !== b) return; showing = null; b.classList.remove('in'); setTimeout(() => { b.remove(); pump(); }, 220); };
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
-  showing = b; bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
+  showing = b; bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (G.modal > (isOpen ? depth : 0)) { queue.unshift(e); done(); } /* a menu opened over it: take it back, show it again after */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
   requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
   if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }
@@ -98,6 +101,15 @@ function placeBanners() {
   let b = safe(() => G.nav.clearTop(r.left, r.right), 0) || 0; const ns = document.getElementById('nav-stop');
   if (ns && ns.classList.contains('on')) { const q = ns.getBoundingClientRect(); if (q.height && q.right > r.left && q.left < r.right) b = Math.max(b, q.bottom); }
   if (b > 0) bannerBox.style.top = Math.round(b - up + 6) + 'px';
+}
+/* QA round 4: toasts (#toasts, z 6, top 104px in portrait) slid under a banner (z 60) at the same height and could not be read. While a banner shows, the toast
+   column gets a padding-top that starts it below the banner (padding, because navigator.js owns #toasts' top and hud.js its margin-top). */
+let toastPad = 0, toastPadT = 0;
+function clearToasts(dt) {
+  if ((toastPadT -= dt || 0) > 0) return; toastPadT = .1; const ts = document.getElementById('toasts'); if (!ts) return; let p = 0;
+  if (showing && bannerBox && ts.children.length) { const q = ts.getBoundingClientRect(), bb = bannerBox.getBoundingClientRect(), bot = bb.top + showing.offsetTop + showing.offsetHeight;
+    if (q.width && bb.left < q.right && bb.right > q.left && q.top < bot + 6 && q.top > bb.top - 200) p = Math.ceil(bot + 6 - q.top); }
+  if (p !== toastPad) { toastPad = p; ts.style.paddingTop = p ? p + 'px' : ''; }
 }
 /* ---------- views ---------- */
 const current = () => stack[stack.length - 1] || null;
@@ -229,7 +241,7 @@ function wire() {
 export function init() {
   S = G.defineState('phone', fresh);
   for (const a of [messagesApp, plannerApp, mapApp, taxiApp, bankApp, jobsApp, wellnessApp, deliveryApp, settingsApp]) impl.set(a.id, a);
-  injectCss(); build(); keys(); wire();
+  injectCss(); build(); keys(); wire(); G.on('frame', clearToasts);
   G.phone = { open, close, toggle, notify, unlock, lock, isUnlocked, badge, refresh, viewing, tip,
     registerApp: a => { if (!a || !a.id || !a.render) return false; impl.set(a.id, a); if (a.setup) safe(() => a.setup(G.phone), 0); if (isOpen) refresh(); return true; },
     log: () => S.log.slice(), clearLog: () => { S.log = []; syncBadge(); }, apps: () => defs().map(a => ({ id: a.id, name: a.name, unlocked: isUnlocked(a.id), badge: isUnlocked(a.id) ? badge(a.id) : 0 })),

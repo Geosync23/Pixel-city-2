@@ -191,7 +191,7 @@ export const SOFT = {
   // home cleanliness 0..100 (state G.state.supplies.clean; shown as Tidy / Lived-in / Dusty / Messy)
   clean: {
     start: 76, perHour: -0.3, atHomeAwake: -0.22, cook: -2.5,    // ~ -9 a day when you live in it: about one proper clean every five or six days
-    spot: 10, spotMinutes: 4,             // tidying one visible bit of mess (no supplies needed)
+    spot: 14, spotMinutes: 4,             // tidying one visible bit of mess (no supplies needed); = the spacing of `messAt`, so each one tidied stays gone
     quick: 16, quickMinutes: 10, quickCap: 70,   // a quick tidy without supplies cannot take the home past `quickCap`
     full: 55, fullMinutes: 30,            // a proper clean: one use of cleaner + one of sponges
     messAt: [68, 54, 40, 26, 14],         // one more visible bit of mess for each threshold the cleanliness is under
@@ -305,6 +305,21 @@ export const MOODLETS = {
   good_shift:   { name: 'Good Shift', desc: 'You nailed it today.', mood: 4, workPerf: 0, walkSpeed: 1, minutes: 180, source: 'job' },
   fresh_start:  { name: 'Fresh Start', desc: 'New city, new you. Active for your first 3 days.', mood: 6, workPerf: 2, walkSpeed: 1, minutes: 4320, source: 'story' },
   family_time:  { name: 'Family Time', desc: 'Nothing beats a kitchen full of people.', mood: 7, workPerf: 0, walkSpeed: 1, minutes: 480, source: 'story' },
+
+  // --- the gentle needs (Comfort, Outdoors, Inspiration), home care and Opportunities (Wave C) ---
+  snug:         { name: 'Snug', desc: 'Home is clean and cosy, and it shows.', mood: 3, workPerf: 1, walkSpeed: 1, minutes: null, source: 'need' },
+  unsettled:    { name: 'Unsettled', desc: 'Home could use a tidy and a little love.', mood: -3, workPerf: 0, walkSpeed: 1, minutes: null, source: 'need' },
+  aired_out:    { name: 'Full of Fresh Air', desc: 'Sun on your face, wind in your hair. Energy drains a little slower.', mood: 3, workPerf: 1, walkSpeed: 1.03, minutes: null, source: 'need' },
+  cooped_up:    { name: 'Cooped Up', desc: 'Four walls for too long. A walk would help.', mood: -4, workPerf: -1, walkSpeed: 1, minutes: null, source: 'need' },
+  brimming:     { name: 'Brimming with Ideas', desc: 'The city keeps handing you ideas. +12% xp in creative skills.', mood: 4, workPerf: 1, walkSpeed: 1, minutes: null, source: 'need',
+    skillXpMult: { creativity: 1.12, music: 1.12, painting: 1.12, writing: 1.12, photography: 1.12, dancing: 1.12, comedy: 1.12 } },
+  in_a_rut:     { name: 'In a Rut', desc: 'The days are starting to look alike. See, hear or taste something new.', mood: -3, workPerf: -1, walkSpeed: 1, minutes: null, source: 'need' },
+  slept_soundly:{ name: 'Slept Soundly', desc: 'A clean, cosy room makes for deep sleep.', mood: 3, workPerf: 2, walkSpeed: 1, minutes: 240, source: 'home' },
+  spick_and_span: { name: 'Spick and Span', desc: 'The whole place gleams. You did that.', mood: 4, workPerf: 0, walkSpeed: 1, minutes: 360, source: 'home' },
+  minty:        { name: 'Minty Fresh', desc: 'Teeth brushed. You could advertise toothpaste.', mood: 1, workPerf: 1, walkSpeed: 1, minutes: 120, source: 'activity' },
+  something_new:{ name: 'Something New', desc: 'You found a corner of the city you had never seen.', mood: 3, workPerf: 0, walkSpeed: 1, minutes: 120, source: 'activity' },
+  good_turn:    { name: 'Good Turn', desc: 'You did someone a small kindness today.', mood: 4, workPerf: 0, walkSpeed: 1, minutes: 240, source: 'event' },
+  seized_the_day: { name: 'Seized the Day', desc: 'You said yes to something, and it was worth it.', mood: 3, workPerf: 0, walkSpeed: 1, minutes: 180, source: 'event' },
 };
 
 // ---------------------------------------------------------------------------------------------

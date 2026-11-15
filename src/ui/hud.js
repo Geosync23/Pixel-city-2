@@ -1,4 +1,4 @@
-// HUD: clock/date/weather, money, the five need meters (tap -> wellness panel with mood, moodlets, fitness, skills), interaction prompt,
+// HUD: clock/date/weather, money, the nine need meters in one row (six body needs | three gentle needs) (tap -> wellness panel with mood, moodlets, fitness, skills), interaction prompt,
 // activity progress + cancel, phone + backpack buttons, time-speed / pause, autosave + "saved" indicator.
 //
 // G.hud
@@ -32,7 +32,9 @@ function build() {
   H.time = el('div.hud-chip.hud-time', { title: 'Time' }, H.wx, el('div.hud-tcol', null, H.clock, H.date));
   H.face = el('span.hud-face');
   H.needs = el('button.hud-needs', { 'aria-label': 'Needs and mood', onclick: () => togglePanel() }, H.face);
-  for (const n of NEEDS) { const fill = el('i'), m = el('span.hud-need', { title: n.name }, iconEl('need.' + n.id, 1), el('span.hud-bar', null, fill)); meters[n.id] = { m, fill }; H.needs.append(m); }
+  /* nine meters in one row: the six body needs, a hairline, then the three gentle ones (Comfort, Outdoors, Inspiration: data `soft`) with calmer teal bars */
+  let sep = false;
+  for (const n of NEEDS) { if (n.soft && !sep) { sep = true; H.needs.append(el('span.hud-nsep')); } const fill = el('i'), m = el('span.hud-need' + (n.soft ? '.soft' : ''), { title: n.name }, iconEl('need.' + n.id, 1), el('span.hud-bar', null, fill)); meters[n.id] = { m, fill, soft: !!n.soft }; H.needs.append(m); }
   // top-right: money, speed, indicators
   H.moneyT = el('b'); H.money = el('button.hud-chip.hud-money', { 'aria-label': 'Money', onclick: () => (G.phone && G.phone.open ? G.phone.open('bank') : togglePanel(true)) }, iconEl('ui.coin', 1), H.moneyT);
   H.delta = el('div.hud-deltas');
@@ -62,8 +64,10 @@ function renderPanel() {
   const tier = N.moodTier(), mood = N.mood();
   P.append(el('div.hp-head', null, iconEl('mood.' + tier.id, 3), el('div.hp-mood', null, el('b', { text: `Feeling ${tier.label.toLowerCase()}` }), el('span', { text: `Mood ${mood}` + (tier.xpMult !== 1 ? ` · skill xp x${tier.xpMult}` : '') })), el('button.x', { 'aria-label': 'Close', onclick: () => togglePanel(false) }, 'x')));
   const g = el('div.hp-needs');
-  for (const n of NEEDS) { const v = N.get(n.id), b = N.band(n.id); g.append(el('div.hp-need.' + b.id, { 'data-need': n.id, title: 'Where can I fix this?', style: 'cursor:pointer', onclick: () => fixNeed(n) }, iconEl('need.' + n.id, 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: n.name }), el('span', { text: b.label }), el('em', { text: Math.round(v) })), bar(v, b.id)))); }
-  const f = N.fitness(); g.append(el('div.hp-need.fit', null, iconEl('need.fitness', 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: FITNESS.name }), el('span', { text: N.fitnessLabel() }), el('em', { text: Math.round(f) })), bar(f, 'fit'))));
+  const f = N.fitness(), fitCell = () => el('div.hp-need.fit', null, iconEl('need.fitness', 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: FITNESS.name }), el('span', { text: N.fitnessLabel() }), el('em', { text: Math.round(f) })), bar(f, 'fit')));
+  let gentle = false;
+  for (const n of NEEDS) { const v = N.get(n.id), b = N.band(n.id); if (n.soft && !gentle) { gentle = true; g.append(fitCell(), el('div.hp-gentle', { text: 'Gentle needs' })); } g.append(el('div.hp-need.' + b.id + (n.soft ? '.soft' : ''), { 'data-need': n.id, title: 'Where can I fix this?', style: 'cursor:pointer', onclick: () => fixNeed(n) }, iconEl('need.' + n.id, 2), el('div.hp-ncol', null, el('div.hp-nrow', null, el('b', { text: n.name }), el('span', { text: b.label }), el('em', { text: Math.round(v) })), bar(v, b.id)))); }
+  if (!gentle) g.append(fitCell());
   P.append(g);
   const ml = N.moodlets();
   if (ml.length) { const box = el('div.hp-mls'); for (const m of ml) box.append(el('div.hp-ml' + (m.mood < 0 ? '.neg' : ''), { title: m.desc }, iconEl(m.icon, 1), el('span', { text: m.name }), el('em', { text: (m.mood > 0 ? '+' : '') + m.mood }), m.left !== null && el('i', { text: hm(m.left) }))); P.append(el('div.hp-sub', { text: 'How you feel' }), box); }
@@ -73,9 +77,10 @@ function renderPanel() {
 }
 // tap a need -> "Where can I fix this?": the nearest suitable places, each row sets a waypoint
 const FIX = { hunger: /food|restaurant|cafe|diner|noodle|pizza|bakery|grocer|market|stall|deli|ramen|burger|taco/, energy: /cafe|coffee|tea/, hygiene: /gym|bath|pool|\bspa\b/, fun: /cinema|arcade|theat|museum|club|bowling|music|karaoke|gallery|\bpark\b|show/, social: /cafe|\bbar\b|\bpub\b|club|plaza|\bpark\b/ };
+const SOFT_IDS = Object.fromEntries(NEEDS.filter(n => n.soft).map(n => [n.id, 1]));   /* the gentle needs have their own place finder (src/sim/needs_extra.js) */
 const HOME_TIP = { hunger: 'Home (cook)', energy: 'Home (sleep)', hygiene: 'Home (shower)', fun: 'Home (TV, games)' };
 // data-driven matching lives in src/sim/navigator.js (G.nav.find: venue offers / guide types / home / friends, open-closed, closed last); the regex below is only a fallback
-function fixPlaces(id) { try { if (G.nav && G.nav.find) return G.nav.find(id, 3).map(q => ({ id: q.id, name: q.name + (q.note && !q.friend ? ' (' + q.note + ')' : ''), d: q.d, open: q.open })); } catch (e) { } return fixPlacesOld(id); }
+function fixPlaces(id) { if (SOFT_IDS[id]) { try { return (G.needsExtra && G.needsExtra.fix(id, 3)) || []; } catch (e) { return []; } } try { if (G.nav && G.nav.find) return G.nav.find(id, 3).map(q => ({ id: q.id, name: q.name + (q.note && !q.friend ? ' (' + q.note + ')' : ''), d: q.d, open: q.open })); } catch (e) { } return fixPlacesOld(id); }
 function fixPlacesOld(id) {
   const re = FIX[id] || FIX.fun, P = G.places, p = G.player; let x = p.x, y = p.y, out = [];
   try { if (G.scene && G.scene.id !== 'city') { const d = String(G.state.flags.lastDoor || '').replace(/^door:/, ''), q = P.get(d) || P.get('door:' + d); if (q) { x = q.x; y = q.y; } } } catch (e) { }
@@ -85,8 +90,10 @@ function fixPlacesOld(id) {
   if (HOME_TIP[id]) try { const h = G.housing && G.housing.current && G.housing.current(), hp = h && (P.get('home:' + h.id) || P.get(h.placeId) || P.get(h.id)); if (hp) out.push({ id: hp.id, name: HOME_TIP[id], d: Math.hypot(hp.x - x, hp.y - y) }); } catch (e) { }
   return out;
 }
+const SOFT_NOTE = { comfort: 'Comfort follows your home: keep it clean and make it cosy. It fades slowly while you are out.', outdoors: 'Fresh air fills this up: any street does a little, parks, the pier and the lookout do a lot. It drains indoors.', inspiration: 'Culture and novelty: museums, films, shows, books, music, views, and anywhere or anything you have not tried before.' };
 function fixNeed(n) {
   const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
+  if (SOFT_NOTE[n.id]) m.body.append(el('p.nf-note', { text: SOFT_NOTE[n.id] }));
   if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));
   for (const q of L) m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', onclick: () => { m.close(); togglePanel(false); try { if (!(G.phone.routeTo && G.phone.routeTo(q.id))) { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } } catch (e) { toast('No route there yet.'); } } },
     el('span', { style: 'flex:1', text: q.name }), el('small', { text: G.nav && G.nav.fmtDist ? G.nav.fmtDist(q.d) : Math.max(1, Math.round(q.d / 10)) * 10 + ' m' }), q.open == null ? null : el('small', { style: 'padding:0 4px;border:2px solid #2a2733;background:' + (q.open ? '#bfe3a1' : '#f0b0a0'), text: q.open ? 'OPEN' : 'CLOSED' })));
@@ -101,7 +108,7 @@ function refresh() {
   const n = G.now(), night = !!(G.env && G.env.night), wk = (G.weather && G.weather.current && (G.weather.current() || {}).kind) || G.state.weather;
   H.clock.textContent = n.clock; H.date.textContent = `${n.weekdayName} · ${n.seasonName} ${n.dayOfMonth}`; swapIcon(H.wx, weatherIcon(wk, night), 2);
   const bal = G.state.player.money; H.moneyT.textContent = fmt(bal); H.money.classList.toggle('neg', bal < 0);
-  if (G.needs) { for (const d of NEEDS) { const v = G.needs.get(d.id), b = G.needs.band(d.id).id, m = meters[d.id]; m.fill.style.width = Math.round(v) + '%'; if (m.b !== b) { m.b = b; m.m.className = 'hud-need ' + b; } } swapIcon(H.face, 'mood.' + G.needs.moodTier().id, 1); }
+  if (G.needs) { for (const d of NEEDS) { const v = G.needs.get(d.id), b = G.needs.band(d.id).id, m = meters[d.id]; m.fill.style.width = Math.round(v) + '%'; if (m.b !== b) { m.b = b; m.m.className = 'hud-need ' + (m.soft ? 'soft ' : '') + b; } } swapIcon(H.face, 'mood.' + G.needs.moodTier().id, 1); }
   for (const s of [1, 2, 4]) H.sp[s].classList.toggle('on', G.state.speed === s && !pauseOn);
   const un = badges.phone !== undefined ? badges.phone : (G.messages && G.messages.unread ? G.messages.unread() : 0); H.phoneBadge.textContent = un || ''; H.phoneBadge.classList.toggle('on', !!un);
   const bb = badges.bag !== undefined ? badges.bag : ''; H.bagBadge.textContent = bb || ''; H.bagBadge.classList.toggle('on', !!bb);
