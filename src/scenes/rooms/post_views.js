@@ -30,17 +30,17 @@ function deco(g, W, H, hand, r) {
 }
 /** a letter on paper. Returns a canvas sized to the text. */
 export function letterView(hand, L, W = 320) {
-  const m = mk(4, 4).getContext('2d'), font = `${hand.style || ''} ${hand.weight || ''} ${hand.size}px ${hand.font}`.trim(), mx = hand.paper === 'notebook' ? 34 : 18, top = hand.deco === 'rms' || hand.deco === 'type' ? 34 : hand.paper === 'notebook' ? 30 : 20, lh = hand.lh || 16, tw = W - mx - 16;
+  const m = mk(4, 4).getContext('2d'), font = `${hand.style || ''} ${hand.weight || ''} ${hand.size}px ${hand.font}`.trim(), mx = hand.paper === 'notebook' ? 34 : 18, top = hand.deco === 'rms' || hand.deco === 'type' ? 34 : hand.paper === 'notebook' ? 30 : 20, lh = hand.lh || 16; let tw = W - mx - 16;
   m.font = font; const lines = [], push = (text, kind) => { const words = String(text).split(/\s+/); let cur = ''; for (const w of words) { const t = cur ? cur + ' ' + w : w; if (m.measureText(t).width > tw && cur) { lines.push({ t: cur, kind }); cur = w; } else cur = t; } if (cur) lines.push({ t: cur, kind }); };
   if (L.from) { push(L.from, 'from'); if (L.date) push(L.date, 'from'); lines.push({ t: '', kind: 'gap' }); }
   if (L.greet) { push(L.greet, 'greet'); lines.push({ t: '', kind: 'half' }); }
   for (const p of L.paras || []) { push(hand.caps ? String(p).toUpperCase() : p, 'p'); lines.push({ t: '', kind: 'half' }); }
-  if (L.sign) { lines.push({ t: '', kind: 'half' }); push(L.sign, 'sign'); }
+  if (L.sign) { lines.push({ t: '', kind: 'half' }); const tw0 = tw; tw = tw0 * .72; push(L.sign, 'sign'); tw = tw0; }
   let H = top + 14; for (const l of lines) H += l.kind === 'half' ? lh * .5 : lh; H = Math.ceil(H + (hand.deco === 'doodle' ? 60 : 22));
   const c = mk(W, H), g = c.getContext('2d'), r = rng(String(L.greet || '').length * 131 + (L.paras || []).length * 17 + 5); paperBg(g, W, H, hand); deco(g, W, H, hand, r);
   g.font = font; g.fillStyle = hand.ink; g.textBaseline = 'alphabetic'; let y = top + lh; const wob = hand.wobble || 0;
   for (const l of lines) { if (l.kind === 'half') { y += lh * .5; continue; } if (l.kind === 'gap') { y += lh; continue; }
-    const right = l.kind === 'from', lw = right ? m.measureText(l.t).width : 0; let x = right ? W - 16 - Math.min(tw, lw) : mx + (l.kind === 'sign' ? tw * .32 : 0); const drift = (r() - .5) * wob * 1.6;
+    const right = l.kind === 'from' || l.kind === 'sign', lw = right ? m.measureText(l.t).width : 0; let x = right ? W - 18 - Math.min(tw, lw) : mx; const drift = (r() - .5) * wob * 1.6;
     if (hand.font === 'monospace') { for (const ch of l.t) { g.globalAlpha = .78 + r() * .22; g.fillText(ch, x, y + (r() - .5) * wob * 2); x += m.measureText(ch).width; } g.globalAlpha = 1; }
     else for (const w of l.t.split(' ')) { const ww = m.measureText(w + ' ').width; g.save(); g.translate(x, y + drift + (r() - .5) * wob); g.transform(1, 0, hand.slant || 0, 1, 0, 0); g.rotate((r() - .5) * wob * .03); g.fillText(w, 0, 0); if (hand.deco === 'hearts' && /^[A-Z!]{3,}$/.test(w.replace(/[^A-Za-z!]/g, ''))) g.fillRect(0, 2, ww - 4, 1); g.restore(); x += ww + (r() - .5) * wob; }
     y += lh; }

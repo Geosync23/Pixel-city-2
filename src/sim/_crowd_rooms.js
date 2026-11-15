@@ -132,7 +132,7 @@ export function initRooms() {
    ambient rate here (one bubble every 7-15 s), from a visible, unnamed person, with the room's LINES.venue pool; never during a planetarium show. */
 let spT = 6;
 function showpieceChatter(dt) {
-  const sc = G.scene; if (!sc || !sc.indoor || /^int:(home|train|dev)/.test(sc.id || '') || (sc.def && (sc.def.home || sc.def.noCrowd))) return;
+  const sc = G.scene; if (!sc || !sc.indoor || /^int:(home|train|dev)/.test(sc.id || '') || (sc.def && sc.def.home)) return;
   if ((spT -= dt) > 0) return; spT = 2; if (G.cutscene || G.player.hidden || G.modal > 0) return;
   const st = sc.star && sc.star.phase; if (st === 'dim' || st === 'show' || st === 'applause') return;
   const can = [];

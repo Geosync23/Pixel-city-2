@@ -68,7 +68,7 @@ function dayEvents(c, venue) {
   const out = [], now = G.now(), t = G.state.t || 0, indoor = !!(G.scene && G.scene.indoor);
   const due = safe(() => G.money.bills().dueT, null); if (due != null && due - t < 1440 && due - t > -600) out.push('rent_day');
   if (now.weekday === 4) out.push('payday');
-  if (now.season === 0 && now.dayOfMonth === 1) out.push('new_year');
+  if (now.season === 0 && now.dayOfMonth === 1 && !indoor) out.push('new_year');   // (its lines are about the fountain, the boardwalk...)
   const sp = EVENTS.find(e => e.id === 'obs_star_party'); if (sp && (!indoor || venue === 'observatory') && (safe(() => eventOnDay(sp, now.day), false) || safe(() => eventOnDay(sp, now.day + 1), false))) out.push('star_party');
   if (venue === 'conservatory' || (!indoor && nearKey(c) === 'conservatory')) out.push('flower_show');
   return out.filter(k => poolOf('events', k).length);
@@ -158,6 +158,7 @@ export function cityLine(c, ctx = {}) {
   if (!s && Math.random() < .2) { const de = dayEvents(c, ctx.venue); if (de.length) { const k = de[Math.floor(Math.random() * de.length)]; s = draw('events.' + k, poolOf('events', k)); } }   // QA round 3: day contexts
   if (!s) {
     let x = Math.random(), g = 'general'; for (const [k, w] of MIX) { if ((x -= w) < 0) { g = k; break; } }
+    if (g === 'weather' && G.scene && G.scene.indoor) g = 'general';   // QA round 3: no picnic-weather talk inside the observatory
     const key = g === 'district' ? c && c.district : g === 'timeOfDay' ? dayPart(h) : g === 'weather' ? ((ctx.venue ? null : specialWeather()) || (poolOf('weather', weatherKey(true)).length ? weatherKey(true) : weatherKey())) : g === 'season' ? ['spring', 'summer', 'autumn', 'winter'][now.season] : g === 'weekday' ? weekdayKey(now) : null;
     if (g !== 'general' && key) s = draw(g + '.' + key, poolOf(g, key));
     if (!s) s = draw('general', poolOf('general'));

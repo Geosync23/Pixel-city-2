@@ -107,6 +107,7 @@ function player(b, ctx, id) {
     sb.addEventListener('click', e => { e.stopPropagation(); const q = sb.getBoundingClientRect(), rot = layer.classList.contains('rot'); seek((rot ? (e.clientY - q.top) / q.height : (e.clientX - q.left) / q.width) * f.dur); });
     const fit = () => { const W = innerWidth, H = innerHeight, rot = H > W, lw = rot ? H : W, lh = rot ? W : H, k = Math.max(1, Math.min(lw / FW, (lh - 0) / FH)); layer.classList.toggle('rot', rot); box.style.width = lw + 'px'; box.style.height = lh + 'px'; c2.style.width = Math.floor(FW * k) + 'px'; c2.style.height = Math.floor(FH * k) + 'px'; };
     document.body.append(layer); full = { layer, g: c2.getContext('2d'), fill: fl, pp, time: tm, fit }; fit(); addEventListener('resize', fit); draw(); ui();
+    setTimeout(() => { if (full && full.layer === layer && playing) layer.classList.add('hide'); }, 2600);   // the bar gets out of the way; tap the film to bring it back
   }
   function exitFull() { if (!full) return; removeEventListener('resize', full.fit); full.layer.remove(); full = null; }
   b.append(stage, el('div.md-ctrls', null, playB, restart, scrub, time, fullB), over,

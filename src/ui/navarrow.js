@@ -207,7 +207,7 @@ function compute() {
   if (ride && ride.kind === 'taxi' && id === 'city') { const pl = (t && t.mode === 'cab' && t.dest) || ride.place; if (!pl || !isFinite(pl.x)) return null; return pointT(pl.x, pl.y, pl.name || 'Destination', { dist: Math.hypot(pl.x - G.player.x, pl.y - G.player.y), z: safe(() => G.world.heightAt(pl.x, pl.y), 0) }); }
   const o = objective();
   /* last-metre guidance (sim/navgoals.js, owner msg 102): while an objective is unresolved the arrow goes on INSIDE, to the exact thing; arrival is decided there */
-  if (id !== 'airtram' && (!o || o.kind === 'dest')) { const ng = safe(() => G.navGoals.guide(o), null); if (ng) return ng; }
+  if (id !== 'airtram' && (!o || o.kind === 'dest')) { const ng = safe(() => G.navGoals.guide(o), null); if (ng) return ng; if (o && !objective()) return null; /* it just completed there */ }
   if (!o) return null;
   if (id === 'airtram') return chipT(`Riding the tram → ${o.pt.name}`);
   if (o.kind === 'ride') return chipT(`Riding → ${o.pt.name}`);

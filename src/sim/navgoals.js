@@ -66,7 +66,7 @@ const LIFT = ['int:hotel', 'int:hotel_floor', 'int:hotel_spa', 'int:hotel_bar'];
 const GRAPH = [
   [/^int:home:[^:]+$/, /^Bathroom$/, s => s + ':bath'], [/^int:home:[^:]+$/, /^Leave$/, 'city'],
   [/^int:(concerthall|playhouse)$/, /^Auditorium$/, s => s + ':hall'], ['int:cinema', /^Screen 1$/, 'int:cinema:screen1'],
-  ['int:arena', /^Into the bowl/, 'int:arena:bowl'], ['int:arena', /^TEAM ONLY$/, 'int:arena:backstage'], ['int:arena:backstage', /^Tunnel to the court$/, 'int:arena:bowl'], ['int:arena:bowl', /^Team tunnel$/, 'int:arena:backstage'],
+  ['int:arena', /^(Into the bowl|Turnstiles$)/, 'int:arena:bowl'], ['int:arena', /^TEAM ONLY$/, 'int:arena:backstage'], ['int:arena:backstage', /^Tunnel to the court$/, 'int:arena:bowl'], ['int:arena:bowl', /^Team tunnel$/, 'int:arena:backstage'],
   [/^int:hotel(_floor|_spa|_bar)?$/, /^Lift$/, s => LIFT.filter(x => x !== s)], ['int:hotel_floor', /^Room \d+$/, 'int:hotel_room'], ['int:hotel', /^Stairs up to The Tidewater Spa$/, 'int:hotel_spa'],
   ['int:natatorium', /^Exit to/, 'city'],
   ['int:observatory', /^Planetarium/, 'int:observatory:planetarium'], ['int:observatory', /^Stairs to the dome/, 'int:observatory:roof'], ['int:observatory:roof', /^Stairs down$/, 'int:observatory'],
@@ -102,7 +102,7 @@ function locate1(sc, f) {
   if (Array.isArray(f)) { for (const q of f) { const r = locate1(sc, q); if (r) return r; } return null; }
   if (typeof f === 'function') return safe(() => f(sc), null);
   if (typeof f.x === 'number') return f;
-  if (f.label) { const it = nearest(G.interactables().filter(i => isFinite(i.x) && f.label.test(i.label || '') && (!f.ok || f.ok(i)))); return it ? { x: it.x, y: it.y, z: it.z && !it.ent ? Math.max(0, it.z - .3) : 0, h: it.ent ? 2.3 : Math.min(2.4, (it.h || 1) + 1.05), it } : null; }
+  if (f.label) { const all = G.interactables().filter(i => isFinite(i.x) && f.label.test(i.label || '') && (!f.ok || f.ok(i))), fix = all.filter(i => !i.ent), it = nearest(fix.length ? fix : all);   /* a desk and its clerk share a label: the desk is what you use */ return it ? { x: it.x, y: it.y, z: it.z && !it.ent ? Math.max(0, it.z - .3) : 0, h: it.ent ? 2.3 : Math.min(2.4, (it.h || 1) + 1.05), it } : null; }
   if (f.npc) { const c = safe(() => G.social.char(f.npc), null) || (sc.ents || []).find(e => e.npcId === f.npc); return c && !c.hidden ? { x: c.x, y: c.y, z: c.zoff || 0, h: 2.3, ent: c } : null; }
   if (f.ent) { const c = nearest((sc.ents || []).filter(e => !e.hidden && safe(() => f.ent(e), false))); return c ? { x: c.x, y: c.y, h: 2.3, ent: c } : null; }
   if (f.tag) { for (const t of [].concat(f.tag)) { const fx = nearest(safe(() => sc.byTag(t), []).filter(q => !f.ok || f.ok(q))); if (fx) return { x: fx.x, y: fx.y, h: Math.min(2.6, ((fx.ob.size && fx.ob.size[2]) || 1) + (fx.ob.z || 0) + .9), fx }; } return null; }
@@ -144,6 +144,11 @@ define('shift', 'strong', 90, ctx => {
   if (!inRoom(rid)) return { room: rid, find: null, label: st.name, short: st.name, far: 'Back to work: ' + st.name, quiet: 1 };
   if (st.opts) return { room: rid, find: null, label: `${st.name}: find the ${st.color} marker${st.hint ? ' (' + st.hint + ')' : ''}`, quiet: 1 };
   const it = W.its.find(x => x._o === o); return it ? { room: rid, find: { x: it.x, y: it.y, h: Math.min(2.6, (it.h || 1) + 1.5) }, label: st.name, quiet: 1 } : null;
+});
+/* -- gigs (dog walking, flyers, furniture): a chain of city targets, each finished by tapping its teal marker: the arrow stays on it until it is done */
+define('gig', 'strong', 85, ctx => {
+  const a = safe(() => G.jobs.activeGig(), null), t = a && a.targets && a.targets[a.i]; if (!t) return null; if (ctx.attached && dist(ctx.pt, t) > 1.5) return null;
+  return { room: 'city', find: { x: t.x, y: t.y, h: 3.3 }, label: `${t.label}: ${t.name}`, close: `${t.label}: tap the teal marker`, short: t.label, quiet: 1 };
 });
 /* -- clock-in: a waypoint to your workplace (shift appointment / the "Shift at X" opportunity). You clock in by walking in during the window. */
 define('clockin', 'commit', 60, ctx => {
@@ -197,7 +202,7 @@ const nearestCity = list => { const p = safe(() => G.state.phone.cityPos, null) 
 /** a showpiece opportunity ("chain"): with a waypoint to one of its buildings, the arrow goes to the person / fixture of the current step. fn(ctx, picked) -> step */
 const chain = (id, roots, goal, ev, fn) => define(id, 'default', 5, ctx => {
   if (!goalOpen(goal)) return null; const picked = selGoal(ctx, goal); if (!(ctx.root && roots.includes(ctx.root)) && !picked) return null;
-  if (since(ev, 2)) return { done: true, quiet: 1 }; return fn(ctx, picked);
+  const st = fn(ctx, picked); return !st && since(ev, 2) && ctx.here && roots.includes(ctx.here) ? { done: true, quiet: 1 } : st;   /* the step was just done and the next one is not in this building */
 }, (ctx, s) => s.goal === goal);
 
 /* -- City Hall: council meeting (gallery seat / speakers' list / podium), weddings, the mayor, the Permits & Records queue, the fountain chain */
@@ -315,11 +320,11 @@ chain('aqua_chain', ['aquarium'], 'aqua_turtle', 'aquarium:chain', (ctx, picked)
 define('hotel_dine', 'commit', 66, ctx => {
   if (ctx.root !== 'hotel' || !G.hotel || !ctx.attached) return null;
   const pick = ctx.pt.room === 'hotel_restaurant' || (ctx.sel && ctx.sel.need === 'hunger') || apptsAt('hotel').some(a => /dinner|tea|brunch|breakfast|gilded/i.test(a.title || '')); if (!pick) return null;
-  if (safe(() => G.hotel.service(), null) || busyIs(/dinner|tea|eating|buffet|course|breakfast|brunch/i)) return { done: true, name: 'your table' };
+  if (safe(() => G.hotel.service(), null) || busyIs(/dinner|tea|eating|buffet|course|breakfast|brunch/i) || usedLately(/^(Your table|Table|Host stand)$/)) return { done: true, name: 'your table' };
   const R = 'hotel_restaurant'; if (!inRoom(R)) return { room: R, find: null, label: 'The Gilded Maple', short: 'your table' };
   const p = locate1(G.scene, [{ label: /^Your table$/ }, { label: /^Host stand$/ }]); if (!p) return { done: true, name: 'The Gilded Maple' };
   return { room: R, find: { x: p.x, y: p.y, h: p.h }, label: p.it.label === 'Your table' ? 'Your table: tap it to sit down' : 'Host stand: ask Laurent for a table', short: 'your table' };
-});
+}, (ctx, s) => s.need === 'hunger');
 define('hotel_event', 'commit', 64, ctx => {
   if (ctx.root !== 'hotel' || !G.hotel || !want(ctx)) return null; const n = G.now(), e = safe(() => G.hotel.events(1), []).find(q => q.day === n.day && n.hf >= q.from - .75 && n.hf < q.to); if (!e) return null;
   return Object.assign(desk('hotel_ballroom', /^Ballroom steward$/, `${e.name}: see the ballroom steward`, e.name), { near: 2.2, name: e.name });
@@ -378,7 +383,7 @@ define('story', 'commit', 69, ctx => {
 }, (ctx, s) => !!s.appt);
 define('meet', 'commit', 68, ctx => {
   const a = apptsFor(ctx).find(q => q.withNpc && q.kind !== 'work' && !(q.data && q.data.beat)); if (!a) return null; const npc = a.withNpc;
-  if (since('social:talk:' + npc, 4) || since('social:hangout:' + npc, 30)) return { done: true, name: npcShort(npc) };
+  if (since('social:talk:' + npc, 4) || safe(() => G.state.social.hang[a.id].st, 0) === 1) return { done: true, name: npcShort(npc) };
   return npcStep(npc, a.title, 'say hello to');
 }, (ctx, s) => !!s.appt);
 
@@ -438,7 +443,7 @@ function finish(A) {
   G.emit('navgoal:done', A.id, st);
 }
 const point = (x, y, label, o) => Object.assign({ mode: 'point', x, y, label, goal: true }, o), chip = label => ({ mode: 'chip', label, goal: true });
-const shortHop = l => { l = String(l || 'Exit').split(/[:(]/)[0].trim(); return l.length > 26 ? l.slice(0, 24) + '…' : l; };
+const shortHop = l => { l = String(l || 'Exit').split(/[:(]/)[0].trim(); return l.length > 36 ? l.slice(0, 34) + '…' : l; };
 function target(A) {
   const st = A.step, sc = G.scene, id = sc.id, want = st.room === 'city' ? 'city' : 'int:' + st.room, pl = G.player;
   if (id === want) {
@@ -455,8 +460,11 @@ function target(A) {
     return point(door.x, door.y, d < 14 ? `Go in: ${name} → ${st.short || st.label}` : st.far || (st.title ? `${st.title} (${name})` : name), { dist: d < 14 ? null : d, z: safe(() => G.world.heightAt(door.x, door.y), 0), h: 2.6 });
   }
   const hop = safe(() => G.navArrow.route(want), null);
-  return hop ? point(hop.x, hop.y, `${shortHop(hop.label)} → ${st.short || st.label}`, { h: 1.6 }) : chip(`Leave the building → ${st.short || st.label}`);
+  if (!hop) return chip(`Leave the building → ${st.short || st.label}`);
+  const hl = shortHop(hop.label), sh = st.short || st.label, same = norm(hl) === norm(sh) || norm(sh).includes(norm(hl));
+  return point(hop.x, hop.y, same ? `${hl}: this way` : `${hl} → ${sh}`, { h: 1.6 });
 }
+const norm = t => String(t).toLowerCase().replace(/^(the|to the|back to the) /, '').trim();
 /** called by ui/navarrow.js every frame. o = navarrow's objective() ({ kind: 'dest', pt } for a waypoint / arrived trip) or null */
 export function guide(o) {
   if (!G.scene || !G.player || OFF) return null;
@@ -488,11 +496,14 @@ export function init() {
   G.on('waypoint', p => { lastEval = 0; if (p) muted = {}; else if (!trip()) SS().sel = null; });
   G.on('load', () => { cur = null; hand = null; muted = {}; pinFn = null; SS().pin = null; lastEval = 0; lastUse = null; for (const k in EV) delete EV[k]; });
   for (const name of EVENTS) G.on(name, a => { EV[name] = now(); if (typeof a === 'string' || typeof a === 'number') EV[name + ':' + a] = now(); lastEval = 0; });
-  G.on('use', it => { if (it && it.label) lastUse = { label: it.label, t: now() }; lastEval = 0; });
+  G.on('use', it => { if (it && it.label) lastUse = { label: it.label, t: now() }; lastEval = 0;
+    /* a door that does not let you in (closed, members only): give the old arrival at the door instead of an arrow that asks for the impossible */
+    const A = cur; if (A && it && G.scene && G.scene.id === 'city' && A.attached && A.step.room !== 'city' && !A.step.quiet) { const d = doorOf(A.step.room); if (d && isFinite(it.x) && Math.hypot(it.x - d.x, it.y - d.y) < 2.5) setTimeout(() => { if (cur && cur.id === A.id && cur.attached && G.scene.id === 'city' && !G.modal && !G.busy && !G.cutscene) { A.step = Object.assign({}, A.step, { quiet: 1 }); finish(A); cur = null; lastEval = 0; } }, 2600); } });
   G.on('jobs:hud', () => { lastEval = 0; }); G.on('activityEnd', () => { lastEval = 0; });
   /* what the player picked: goal / appointment rows of the goals widget, need-chooser rows (read from the click; no hook in those files) */
   document.addEventListener('click', e => {
-    const b = e.target && e.target.closest ? e.target.closest('[data-g],[data-a],[data-fix]') : null; if (!b) return;
+    const b = e.target && e.target.closest ? e.target.closest('[data-g],[data-a],[data-fix],[data-navrow]') : null; if (!b) return;
+    if (b.dataset.navrow) { const c = document.querySelector('.ph-chip.on[data-navchip]'), k = c && { food: 'hunger', coffee: 'energy' }[c.dataset.navchip]; select(k ? { need: k, place: b.dataset.navrow } : null); return; }   /* the Map's "Where to?" rows */
     if (b.dataset.g) select({ goal: b.dataset.g }); else if (b.dataset.a) select({ appt: b.dataset.a });
     else { const w = b.closest('.win'), tt = w && w.querySelector('.win-title'), m = tt && /^([A-Za-z ]+):/.exec(tt.textContent || ''); if (m) select({ need: m[1].trim().toLowerCase(), place: b.dataset.fix }); }
   }, true);

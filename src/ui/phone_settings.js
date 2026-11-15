@@ -29,6 +29,8 @@ export default {
       el('b', { text: 'Notification banners' }), el('div.ph-chips', null, chip('On', st.banners !== false ? 'on' : '', () => { st.banners = true; ctx.refresh(); }), chip('Badges only', st.banners === false ? 'on' : '', () => { st.banners = false; ctx.refresh(); })),
       kv('Battery', 'Same as yours'), kv('Carrier', 'BayTel 4G')));
     b.append(section('More'));
+    b.append(card(el('b', { text: 'Developer mode' }), el('div.ph-chips', null, chip('Off', !(G.dev && G.dev.on()) ? 'on' : '', () => { safe(() => G.dev.set(false), 0); ctx.refresh(); }), chip('On', G.dev && G.dev.on() ? 'on' : '', () => { safe(() => G.dev.set(true), 0); ctx.refresh(); })),
+      el('p.ph-note', { text: 'Adds a DEV button to the bottom-left corner of the game screen: freeze needs, endless money, unlock everything, time and weather.' })));
     b.append(el('div.ph-btns', null, btn('Help', () => ctx.push('Help', help), '', 'ui.question'), btn('Back to title', () => { if (!ctx._t) { ctx._t = 1; return ctx.tip('Tap again to save and return to the title screen.'); } safe(() => G.save(), 0); ctx.close(); import('./title.js').then(m => m.showTitle && m.showTitle()).catch(() => {}); }, '', 'ui.home')));
     b.append(el('p.ph-note', { text: 'Maple Bay. Take your time.' }), iconEl('season.autumn', 2));
   },

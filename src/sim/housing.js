@@ -291,7 +291,7 @@ function start(homeId) {
   return true;
 }
 function equity() { const h = HOME_BY_ID[S.id]; return S.owned && h && h.buyPrice ? Math.max(0, Math.round(h.buyPrice * SELL_BACK.home - (S.mortgage ? S.mortgage.left : 0))) : 0; }
-const unlocked = h => G.now().day >= ((h.unlock && h.unlock.day) || 0);
+const unlocked = h => (G.dev && G.dev.all) || G.now().day >= ((h.unlock && h.unlock.day) || 0);
 function homes() {
   return HOMES.filter(h => SHELLS[h.id]).map(h => ({ id: h.id, home: h, available: unlocked(h), unlockDay: (h.unlock && h.unlock.day) || 0, current: S.id === h.id, owned: S.id === h.id && S.owned,
     rent: h.rentPerWeek, price: h.buyPrice, down: h.buyPrice ? Math.round(h.buyPrice * MORTGAGE.downPayment) : null,

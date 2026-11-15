@@ -413,3 +413,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 102 — The tracking arrow disappears indoors: courier job at the diner, City Hall meeting, the play; examine the gaps and solve it everywhere
 > The tracking arrow dissapears when indoors often. For example I took the courier job. The arrow points me to the diner. I go in and the arrow is gone. Where do i deliver? Or for example yhe city hall meeting. Arrow points you to building then you go it and the arrow doesn't point to the council chambers. Or when i went to a play. Arrow pointed to building but didn't point to the curtains to go in. Lets examine these gaps and solve this everywhere it needs to be solved for
+
+## 103 — Dev mode: needs off, unlimited money, unlock all progression and jobs; toggle in the menu, a corner button opens the dev menu
+> Need a dev mode to turn off needs, have unlimited money, unlock all progression and jobs etc. Turn in dev mode in the menu and a button int eh corner of the main game screen appears. Click that for dev mode menu

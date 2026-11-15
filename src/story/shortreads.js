@@ -1021,7 +1021,7 @@ I wave back. Then I write it down.` },
 
   // ------------------------------------------------------------------ Local History
   { id: 'hist_name', title: 'How Maple Bay Got Its Name (Twice)', by: 'The Maple Bay Historical Society', genre: 'history', day: 0, blurb: 'Local history. There were no maples here when the town was named. That is, more or less, the whole story.', text: `
-Visitors to Maple Bay often ask where the maples are. It is a fair question, and for the first sixty years of the town's existence the honest answer was: there aren't any.
+Visitors to Maple Bay often ask where the maples are. It is a fair question, and when the town was founded the honest answer was: there aren't any.
 
 The bay was charted in 1802 by a survey vessel whose captain, a methodical man, named features after whatever he could see from the deck. His log gives us Gull Rock (gulls), Flat Point (flat) and, less happily, Disappointment Creek (he had hoped it was a river). Of the bay itself he wrote only: "A good anchorage. Wooded to the water with alder and some pine." He called it Alder Bay, and Alder Bay it remained on every chart for the next forty years.
 

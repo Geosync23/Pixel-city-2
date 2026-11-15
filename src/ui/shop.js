@@ -99,7 +99,7 @@ function open(venueId, o = {}) {
   if (!items.length && !svcs.length) { toast(`${v.name} has nothing for sale.`, 'info'); return false; }
   const tabs = TABS.filter(([c]) => items.some(i => i.category === c && !(o.online && c === 'dish'))); if (svcs.length) tabs.push(['service', 'Services']);
   let tab = o.tab && tabs.some(t => t[0] === o.tab) ? o.tab : tabs[0][0]; const qty = {};
-  const canSit = !o.online && v.interior && G.scene && G.scene.roomId === venueId;
+  const canSit = !o.online && !!G.scene && !!G.scene.roomId && ((v.interior && G.scene.roomId === venueId) || String(venueId).startsWith(G.scene.roomId + ':'));   // QA round 3: also a cafe counter inside a bigger room (museum:cafe, observatory:cocoa)
   const m = modal({ title: v.name + (o.online ? ' — online' : ''), cls: 'shop-win', onClose: () => { if (win === m) win = null; } }); win = m;
   const head = el('div.shop-top'), tabBar = el('div.shop-tabs'), listEl = el('div.shop-list'); m.body.append(head, tabBar, listEl);
   const render = () => {
@@ -121,7 +121,7 @@ function open(venueId, o = {}) {
       else if (it.category === 'dish') {
         if (!o.online) acts.append(el('button.go', { disabled: poor, onclick: () => eatIn(it.id, venueId) }, canSit ? (it.course === 'drink' || it.category === 'drink' ? 'Drink here' : 'Eat here') : it.course === 'drink' || it.category === 'drink' ? 'Drink' : 'Eat'));
         if (it.takeaway) acts.append(el('button', { disabled: poor, onclick: () => { if (buy(it.id, 1, venueId, o)) { toast(`${it.name} to go — best within ${INVENTORY.takeawayHours} hours.`, 'good'); render(); } } }, 'To go'));
-      } else acts.append(el('button.go', { disabled: poor || blockedWant, onclick: () => { if (buy(it.id, n, venueId, o)) { if (!['homegood', 'outfit'].includes(it.category) && !it.grants) toast(`Bought ${it.name}${n > 1 ? ' x' + n : ''}.`, 'good', 1600); qty[it.id] = 1; render(); } } }, 'Buy'));
+      } else acts.append(el('button.go', { disabled: poor || blockedWant, onclick: () => { if (buy(it.id, n, venueId, o)) { if (!['homegood', 'outfit'].includes(it.category) && !it.grants) toast(`Bought ${it.name}${n > 1 ? ' x' + n : ''}.`, 'good', 1600); qty[it.id] = 1; render(); if (it.cookbook) setTimeout(() => { if (win === m) render(); }, 350); }   /* QA round 3: the book is shelved a moment after buying: show Owned */ } }, 'Buy'));
       const have = G.inv.count(it.id), sub = G.inv.effectText(it) || (it.note ? it.note.split('.')[0] + '.' : '');
       listEl.append(el('div.shop-row' + (poor ? '.poor' : ''), null, iconEl(it.id, 2, it.category), el('div.shop-info', null, el('b', null, it.name, have ? el('i', { text: ` · have ${have}` }) : null), el('span', { text: sub + (it.shelfLifeDays && it.category !== 'homegood' ? ` · keeps ${it.shelfLifeDays + (venueId === 'market_stalls' ? INVENTORY.marketFreshBonusDays : 0)} d` : '') })), acts));
     }

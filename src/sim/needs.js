@@ -121,7 +121,7 @@ async function passOut(k) {
 function poiFor(id) { const c = G.sceneCache.get('city'); return c && c.world.pois.find(p => p.id === id) ? id : undefined; }
 
 function decay(dm) {
-  if (passing || !S) return;
+  if (passing || !S || (G.dev && G.dev.frozen)) return;
   const asleep = api.sleeping, h = dm / 60;
   for (const n of NEEDS) {
     let r = asleep ? n.decayAsleep : n.decayAwake;

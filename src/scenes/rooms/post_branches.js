@@ -27,7 +27,7 @@ function lineLife(sc, key, spot) {
   const enter = snap => { const c = cust.find(q => q.st === 'out'); if (!c || Q.length >= 4) return; c.setSpec(pick(Math.random() < .2 ? AP.elder : AP.adult)); c.hidden = false; c.alpha = snap ? undefined : 0; c.x = O + door.x; c.y = O + door.y - .5; c.pose = null; c.poseOpts = Math.random() < .45 ? { item: 'box' } : null; Q.push(c); place(c, Q.length - 1, snap); };
   const serve = () => { if (L.me === 0) { L.me = -1; const r = L.res; L.res = null; Q.forEach((c, i) => place(c, i)); if (r) r(true); return; }
     const c = Q.shift(); if (c) { c.st = 'leave'; c.pose = null; c.poseOpts = null; if (!go(c, Wd, door.x, door.y - .4)) c.st = 'fade'; } if (L.me > 0) L.me--; Q.forEach((q, i) => place(q, i)); if (L.me === 0 && L.res && !Q.length) { /* your turn comes with the next tick */ } };
-  const api = { cust, count: () => Q.length, ahead: () => L.me, serve, slot: () => (L.me >= 0 ? spot(L.me) : null),
+  const api = { cust, front: () => spot(0), count: () => Q.length, ahead: () => L.me, serve, slot: () => (L.me >= 0 ? spot(L.me) : null),
     join() { if (L.me >= 0) return Promise.resolve(false); L.me = Q.length; if (L.me === 0) { L.me = -1; return Promise.resolve(true); } L.acc = Math.min(L.acc, TUNE.LINE_MIN * .5); return new Promise(r => { L.res = r; }); },
     leave() { if (L.me < 0) return; L.me = -1; const r = L.res; L.res = null; Q.forEach((c, i) => place(c, i)); if (r) r(false); },
     reset(n) { for (const c of cust) { c.hidden = true; c.st = 'out'; c.alpha = undefined; } Q.length = 0; L.me = -1; L.res = null; for (let i = 0; i < n; i++) enter(true); },
@@ -47,7 +47,7 @@ function branch(key, cfg) {
     setup(sc) {
       const Wd = sc.world, U = uniforms(), ctr = by(sc, 'ctr')[0];
       for (const l of cfg.lights || [[cx + 1.5, 3, 5, '#fff0d0'], [3, cfg.d - 3, 5, '#fff0d0']]) Wd.lights.push({ x: O + l[0], y: O + l[1], z: 0, r: l[2], c: l[3] });
-      const master = mk(sc, Object.assign({}, cfg.spec(U)), cx + 1.5, .82, 1, o.master, c => PS() && PS().talkMaster(key, sc, c));
+      const master = mk(sc, Object.assign({}, cfg.spec(U)), cx + 1.5, 1.02, 1, o.master, c => PS() && PS().talkMaster(key, sc, c)); master.z = .32;
       const line = lineLife(sc, key, i => ({ x: lx, y: 2.95 + i * .85 })), cr = crowd(sc, sc.def.npcSpots, { seed: 40 + key.length * 13, fill: .6, lines: TALK[key].side });
       let open = null, tick = 0;
       const want = () => { const n = G.now(), h = n.hf; return Math.max(0, Math.round((h < 10 ? 2 : h < 12.5 ? 3 : h < 14 ? 1.4 : 2.4) * (cfg.busy || 1) + (PS() && PS().eventOn(key) ? 1 : 0))); };
@@ -71,20 +71,20 @@ branch('maple', { w: 11, d: 9, cx: 6.4, ex: 5.6, floor: GT.f_wood, wall: { color
 branch('hill', { w: 12, d: 9, cx: 7.2, ex: 8.7, floor: GT.f_tile, wall: { color: '#e8e0cc', trim: '#5a3a28', h: 3.2, rail: 1.1 }, counter: { c: '#5a3a28', name: 'HILLCREST' }, busy: .8,
   spec: U => Object.assign({}, specs().elder[4], { outfit: null, top: 'suit', topColor: '#3a4a3a', innerColor: '#f4f0e8', bottom: 'slacks', bottomColor: '#2a2733', hair: 'balding', hairColor: '#c8c8cc', glasses: true, beard: false, hat: null, bag: null, accent: '#e8c06a' }),
   build({ H, Wl, S }) { Wl('boxwall', 'y', .4, { w: 3.4, rows: 5, mine: -1, name: 'BOXES' }, { boxes: 1 }); Wl('clock', 'y', 4.8, {}, { mount: 2 }); Wl('sign', 'y', 7.3, { t: 'HILLCREST', t2: 'POST + TELEGRAPH', w: 4.2 }, { mount: 2.2 });
-    Wl('sign', 'x', .8, { t: 'TELEGRAMS', c: '#2f5a4a', w: 2.6 }, { mount: 2.2 }); board({ Wl }, 4.2, 8); Wl('furn.lobby.sconce', 'x', 3.6, {}); Wl('furn.lobby.sconce', 'x', 7, {});
+    Wl('sign', 'x', .8, { t: 'TELEGRAMS', c: '#2f5a4a', w: 2.6 }, { mount: 1.8 }); board({ Wl }, 4.2, 8); Wl('furn.lobby.sconce', 'x', 3.6, {}); Wl('furn.lobby.sconce', 'x', 7, {});
     H('telegraph', .7, 1.4, {}, { tel: 1 }); H('desk', 3.6, 4.6, {}); H('packtable', .6, 6.7, {}); H('slots', 4.6, 7.4, {}); H('furn.hotel.carpet', 8, 2.6, { w: 1.5, d: 5.6, c: '#2f5a4a' }); H('furn.cityhall.planter', 10.2, 7.6, {});
     S(4.8, 6.15, 3, { p: .6, anim: 'work', label: 'Letter writer' }); S(10.4, 5.2, 2, { p: .5, age: 'elder' }); },
   sync(sc) { setP(by(sc, 'tel')[0], { on: PS() && PS().teleOn() ? 1 : 0 }); },
 });
 branch('harbor', { w: 12, d: 10, cx: 7.4, ex: 7, floor: GT.f_wood, wall: { color: '#9fb4c4', pattern: 'planks', trim: '#22304e', h: 3 }, counter: { c: '#3a4a5a', name: 'MAIL BOAT', bg: '#22304e' }, busy: 1,
   spec: U => Object.assign({}, specs().adult[14], { outfit: null, top: 'sweater', topColor: '#22304e', bottom: 'slacks', bottomColor: '#3a4a5a', hat: 'cap', hatColor: '#22304e', hair: 'ponytail', hairColor: '#8a8a90', beard: false, glasses: false, bag: null, age: 'adult' }),
-  build({ H, Wl, S }) { Wl('boxwall', 'y', .4, { w: 3, rows: 4, mine: -1, name: 'BOXES' }, { boxes: 1 }); Wl('lifering', 'y', 4.4, {}); Wl('sign', 'y', 7.5, { t: 'MAIL BOAT', t2: 'SAILS AT TEN', w: 3.6 }, { mount: 2.1 }); Wl('tideboard', 'x', .8, {}); board({ Wl }, 5.6, 5); Wl('lifering', 'x', 4.2, {});
+  build({ H, Wl, S }) { Wl('boxwall', 'y', .4, { w: 3, rows: 4, mine: -1, name: 'BOXES' }, { boxes: 1 }); Wl('lifering', 'y', 4.4, {}); Wl('sign', 'y', 7.5, { t: 'MAIL BOAT', t2: 'SAILS AT TEN', w: 3.6 }, { mount: 2.1 }); Wl('tideboard', 'x', .8, {}, { mount: .7 }); board({ Wl }, 5.6, 5); Wl('lifering', 'x', 4.2, {});
     H('bottlerack', 3.8, 3.6, {}); H('keeperbox', 4.6, 6.4, {}, { keep: 1 }); H('sacks', 10.3, 4.6, { seed: 5 }); H('desk', 1.2, 4.2, {}); H('packtable', .8, 7.4, {}); H('slots', 9.6, 7.6, {});
     S(5.9, 7.4, 2, { p: .7, age: 'kid', label: 'Kid', lines: ['I am writing to the keeper. I have asked if the light ever gets tired.', 'Do you think the keeper has a cat? I am going to ask.'] }); S(2.4, 5.75, 3, { p: .5, anim: 'work', label: 'Letter writer' }); S(10.2, 6.4, 2, { p: .5, age: 'elder' }); },
 });
 branch('down', { w: 12, d: 9, cx: 7.4, ex: 7, floor: GT.f_tile, wall: { color: '#f4f0e8', trim: '#c8402e', h: 3.2 }, counter: { c: '#d8d4cc', name: 'POSTCARDS', bg: '#c8402e' }, busy: 1.4,
   spec: U => Object.assign({}, specs().adult[22], { outfit: null, top: 'polo', topColor: '#c8402e', bottom: 'slacks', bottomColor: '#22304e', hat: null, hair: 'short', hairColor: '#2a2733', beard: false, glasses: true, bag: null, age: 'adult' }),
   build({ H, Wl, S }) { Wl('backdrop', 'y', .4, {}, { bd: 1 }); Wl('sign', 'y', 7.4, { t: 'VISITOR INFO', t2: 'POST COUNTER', w: 3.8, c: '#c8402e', fg2: '#ffffff' }, { mount: 2.2 }); Wl('citymap', 'x', .8, {}); Wl('furn.lobby.restroom', 'x', 4.6, { c: '#d8d4cc', dc: '#c8402e' }); board({ Wl }, 6, 2);
-    H('camera', 2.1, 2.9, {}); H('cardrack', 4.6, 4.4, {}); H('cardrack', 5.9, 5.9, { seed: 9 }); H('desk', 1.4, 4.4, {}); H('packtable', .8, 6.9, {}); H('slots', 9.6, 6.6, {});
-    S(5, 5.55, 3, { p: .7, label: 'Tourist' }); S(6.3, 7.05, 3, { p: .5, label: 'Tourist' }); S(3.4, 3, 0, { p: .5, label: 'Tourist', anim: 'wave' }); S(2.6, 5.95, 3, { p: .4, anim: 'work', label: 'Postcard writer' }); },
+    H('camera', 2.1, 2.9, {}); H('cardrack', 4.8, 2, {}); H('cardrack', 5.9, 3.3, { seed: 9 }); H('desk', 1.4, 4.4, {}); H('packtable', .8, 6.9, {}); H('slots', 9.6, 6.6, {});
+    S(5.2, 3.15, 3, { p: .7, label: 'Tourist' }); S(6.3, 4.45, 3, { p: .5, label: 'Tourist' }); S(3.4, 3, 0, { p: .5, label: 'Tourist', anim: 'wave' }); S(2.6, 5.95, 3, { p: .4, anim: 'work', label: 'Postcard writer' }); },
 });
