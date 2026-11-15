@@ -125,3 +125,4 @@
 105. (msg 145) DOCKET: TRAFFIC JAMS. Buses (more of them now) often cause jams; the cab clipping through after a long wait is good. Wants SMARTER traffic so there are fewer jams, with NO decrease in traffic density ("it's awesome the way it is").
 106. (msg 146) The traffic BASELINE measurement must be done by a FABLE agent, not the Opus QA lane (upgrade temporarily or hand it off). Lead: removed it from QA round 14; the Fable traffic worker measures its own baseline (QA14 hands over only raw notes if it already has any).
 107. (msg 147) Keep the Fable docket order: controller support first, then traffic.
+108. (msg 148) Asked whether the game could run on an iPhone 13 mini. Lead answered: probably yes on speed; untested on Safari; risks = memory for cached sprites, 375-wide layout, first-run audio decode.

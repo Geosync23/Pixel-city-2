@@ -564,3 +564,6 @@ Baseline traffic woek should be done by a Fable agent. Either upgrade him tempor
 
 ## 147 (2026-11-15)
 Keep the order traffic gets added on
+
+## 148 (2026-11-15)
+Do you think this game could run on an iphone13mini
