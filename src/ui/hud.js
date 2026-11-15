@@ -92,6 +92,7 @@ function fixPlacesOld(id) {
 }
 const SOFT_NOTE = { comfort: 'Comfort follows your home: keep it clean and make it cosy. It fades slowly while you are out.', outdoors: 'Fresh air fills this up: any street does a little, parks, the pier and the lookout do a lot. It drains indoors.', inspiration: 'Culture and novelty: museums, films, shows, books, music, views, and anywhere or anything you have not tried before.' };
 function fixNeed(n) {
+  togglePanel(false);   /* the panel sat on top of this window on phones; the chooser replaces it */
   const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
   if (SOFT_NOTE[n.id]) m.body.append(el('p.nf-note', { text: SOFT_NOTE[n.id] }));
   if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));

@@ -153,5 +153,6 @@ export function init() {
   G.on('minutes', decay);
   G.on('day', () => { if (S.exDay < G.now().day - 1) S.fitness = Math.max(Math.min(S.fitness, FITNESS.floor), S.fitness + FITNESS.decayPerIdleDay); });
   G.on('scene', applySpeed); G.on('weather', applySpeed);
-  G.on('needs:low', k => { const b = api.band(k); if (BY[k].soft) { toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
+  const softSaid = {};   /* the gentle needs speak at most once a game day each, even if they bob around the band edge */
+  G.on('needs:low', k => { const b = api.band(k); if (BY[k].soft) { const d = G.now().day; if (softSaid[k] === d) return; softSaid[k] = d; toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
 }

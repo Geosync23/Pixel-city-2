@@ -125,7 +125,7 @@ function deadline(def, tgt) {
   if (tgt && tgt.until) return { from: undefined, until: tgt.until };
   if (def.until !== undefined) return { until: d0 + def.until * 60 };
   if (def.ttl === 0) return { until: t + TUNE.acceptedDays * DAY };
-  return { until: t + (def.ttl || TUNE.ttl) * 60 };
+  return { until: Math.ceil((t + (def.ttl || TUNE.ttl) * 60) / 30) * 30 };   /* a round clock time ("until 22:30") reads kinder than 22:01 */
 }
 function doOffer(def, tgt, o = {}) {
   const dl = deadline(def, tgt), c = { id: def.id, st: 0, t0: Math.round(now()), until: Math.round(dl.until), at: tgt.at || null, p: 0 };
@@ -336,7 +336,7 @@ export function init() {
   rebind(); G.on('load', () => { rebind(); setTimeout(syncUse, 300); });
   G.opps = { list, get: id => { const c = find(id); return c ? view(c) : null; }, log: () => S.log.slice(), stats: () => Object.assign({ open: S.cur.length, cycle: S.cyc, used: Object.keys(S.used).length, pool: POOL.length }, S.n), pool: POOL, TUNE, SOURCES,
     offer, accept, decline, drop, go, complete, offerNow: id => { const def = id ? POOL_BY_ID[id] : null; if (id) { const tgt = def && target(def); return !!tgt && !find(id) && doOffer(def, tgt); } const c = pick(); return c ? doOffer(c.def, c.tgt) && c.def.id : false; },
-    eligible: () => candidates().map(c => c.def.id), rewardText };
+    eligible: () => candidates().map(c => c.def.id), rewardText, target: id => target(POOL_BY_ID[id] || {}), here: id => { const c = find(id); return c ? here(c) : false; } };
   G.on('minutes', tick);
   G.on('activity:done', onAct); G.on('shop:buy', onBuy); G.on('social:talk', onTalk);
   G.on('scene', () => setTimeout(syncUse, 250)); G.on('room:enter', () => setTimeout(syncUse, 250));

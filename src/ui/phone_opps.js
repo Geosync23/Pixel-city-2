@@ -5,6 +5,7 @@
 import { G } from '../core/game.js';
 import { el, iconEl, btn, section, empty, tabs, card, safe } from './phone_util.js';
 import { regDef } from './phone_store.js';
+import { ITEM_BY_ID } from '../data/items.js';
 import '../art/icons/needs_extra.js';
 export const order = 133;
 
@@ -19,6 +20,7 @@ function oppCard(v, ctx, open) {
   const c = card(src, el('b', { text: v.title, style: { fontSize: '16px', lineHeight: '1.2' } }), el('p', { text: v.text, style: { lineHeight: '1.4' } }));
   c.dataset.opp = v.id;
   const meta = chipRow(); if (v.placeName) meta.append(tag(v.placeName)); meta.append(tag(v.untilText)); c.append(meta);
+  const br = v.def && v.def.do && v.def.do.bring; if (br) { const it = ITEM_BY_ID[br[0]] || { name: br[0] }, n = br[1] || 1, have = safe(() => G.inv.count(br[0]), 0); c.append(el('small', { text: `Bring ${n > 1 ? n + ' x ' : ''}${it.name}` + (have >= n ? ' (you have it)' : have ? ` (you have ${have})` : ' (a grocery, market or corner shop has it)'), style: { fontWeight: '700' } })); }
   if (v.rewardText) c.append(el('small', { text: 'For you: ' + v.rewardText, style: { opacity: '.8', fontWeight: '600' } }));
   const row = el('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } });
   if (!v.st) row.append(btn(v.from ? 'Yes, put it in my planner' : v.canGo ? 'Yes, show me the way' : "Yes, I'm in", () => { O().accept(v.id); if (v.canGo && !v.from) ctx.close(); else ctx.refresh(); }, 'good', 'ui.opp'), btn('Not now', () => { O().decline(v.id); if (open) ctx.back(); else ctx.refresh(); }));

@@ -25,7 +25,8 @@
 // JUNK = [{ id, title, from, text, coupon?: { venue, pct } , place?: placeId }]   flyers, coupons and catalogues that turn up between the real post.
 // =============================================================================
 
-const P = (...a) => a.filter(Boolean);
+const P = (...a) => a.filter(Boolean).map(t => (typeof t === 'string' ? t.replace(/ {2,}/g, ' ').trim() : t));   /* QA round 4: empty optional parts left double spaces */
+const an = j => (/^[aeiou]/i.test(j || '') ? 'an ' : 'a ') + j;   /* QA round 4: "an analyst", "an express courier" */
 const season = c => ({ spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' }[c.season] || 'spring');
 
 export const SENDERS = {
@@ -63,7 +64,7 @@ export const LETTERS = [
     `I AM PUTTING TWENTY DOLLARS IN THIS. IT IS NOT FOR RENT. IT IS FOR SOMETHING FOOLISH.`), { enc: { kind: 'money', n: 20 }, note: 'A twenty-dollar bill, folded in four, falls out of the envelope.' }),
   L('dad2', 'dad', 2, 8, 6, c => P(
     c.wrote ? `YOUR LETTER CAME TUESDAY. YOUR GRANDFATHER GOT TO THE BOX FIRST AND READ THE ENVELOPE OUT LOUD, POSTMARK AND ALL, BEFORE HE WOULD HAND IT OVER. IT IS ON THE REFRIGERATOR NOW UNDER THE MAGNET SHAPED LIKE A TROUT.` : `NO LETTER FROM YOU YET. I AM NOT COMPLAINING. YOUR GRANDFATHER IS COMPLAINING, AT LENGTH, TO THE MAILBOX. ANY POST OFFICE WILL SELL YOU A STAMP. THEY HAVE DESKS WITH PENS ON CHAINS SO YOU CANNOT EVEN CLAIM YOU HAD NOTHING TO WRITE WITH.`,
-    c.job ? `SO YOU ARE WORKING AS A ${c.job.toUpperCase()}. GOOD. SHOW UP EARLY, LEARN EVERYBODY'S NAME, AND NEVER BE THE ONE WHO FINISHES THE COFFEE WITHOUT MAKING MORE. THAT IS ALL I KNOW ABOUT WORK AND IT GOT ME THROUGH THIRTY-ONE YEARS AT THE BUS GARAGE.` : `NORA SAYS YOU ARE STILL LOOKING FOR WORK. THAT IS FINE. A JOB IS LIKE A PARKING SPACE. THE FIRST ONE YOU SEE IS RARELY THE ONE YOU END UP IN. KEEP DRIVING AROUND THE BLOCK.`,
+    c.job ? `SO YOU ARE WORKING AS ${an(c.job).toUpperCase()}. GOOD. SHOW UP EARLY, LEARN EVERYBODY'S NAME, AND NEVER BE THE ONE WHO FINISHES THE COFFEE WITHOUT MAKING MORE. THAT IS ALL I KNOW ABOUT WORK AND IT GOT ME THROUGH THIRTY-ONE YEARS AT THE BUS GARAGE.` : `NORA SAYS YOU ARE STILL LOOKING FOR WORK. THAT IS FINE. A JOB IS LIKE A PARKING SPACE. THE FIRST ONE YOU SEE IS RARELY THE ONE YOU END UP IN. KEEP DRIVING AROUND THE BLOCK.`,
     `NEWS FROM HERE. GERTRUDE WILL NOT START. I HAVE CHANGED THE PLUGS, THE LEADS AND MY TONE OF VOICE. SHE IS A 1986 PICKUP AND SHE KNOWS IT. I WILL NOT BE BEATEN BY A TRUCK.`,
     `RECIPE CARD NUMBER FOUR WAS MEAT LOAF. IT SAYS "BAKE UNTIL DONE". YOUR MOTHER NEVER WROTE DOWN A TIME IN HER LIFE. I BAKED IT UNTIL THE SMOKE ALARM HAD AN OPINION. NEXT TIME I WILL STOP SOONER.`,
     `IS IT TRUE THE TRAINS THERE RUN ON A BRIDGE OVER THE STREET? YOUR GRANDFATHER WANTS TO KNOW THE GAUGE. I TOLD HIM YOU WOULD NOT KNOW THE GAUGE. PROVE ME WRONG IF YOU CAN.`)),
@@ -98,7 +99,7 @@ export const LETTERS = [
   L('dad7', 'dad', 7, 50, 9, c => P(
     `I HAVE BEEN THINKING I MIGHT COME AND SEE IT. MAPLE BAY. NOT TO STAY. TO SEE.`,
     `YOUR MOTHER GREW UP THERE AND IN THIRTY-SIX YEARS I NEVER ONCE WENT WITHOUT HER TO TELL ME WHAT I WAS LOOKING AT. "THAT IS WHERE I FELL OFF THE BICYCLE. THAT IS WHERE NANA'S TEAROOM WAS." I DO NOT KNOW IF I CAN WALK DOWN THOSE STREETS WITH NOBODY NARRATING.`,
-    c.seen.fishmarket || c.seen.lighthouse || c.seen.hotel ? `BUT YOUR LETTERS HAVE STARTED TO DO IT. THE HARBOR, THE LIGHT, THE TRAINS UP ON THEIR BRIDGE. I READ THEM AND I THINK: ALL RIGHT. THERE IS SOMEBODY THERE NOW WHO COULD TELL ME WHAT I AM LOOKING AT.` : `SO HERE IS WHAT I WOULD LIKE. GO AND LOOK AT THE HARBOR FOR ME, AND THE LIGHTHOUSE, AND WRITE DOWN WHAT YOU SEE. PRACTISE THE NARRATING. THEN I WILL COME.`,
+    c.seen.fishmarket || c.seen.lighthouse || c.seen.hotel ? `BUT YOUR LETTERS HAVE STARTED TO DO IT. THE HARBOR, THE LIGHT, THE TRAINS UP ON THEIR BRIDGE. I READ THEM AND I THINK: ALL RIGHT. THERE IS SOMEBODY THERE NOW WHO COULD TELL ME WHAT I AM LOOKING AT.` : `SO HERE IS WHAT I WOULD LIKE. GO AND LOOK AT THE HARBOR FOR ME, AND THE LIGHTHOUSE, AND WRITE DOWN WHAT YOU SEE. PRACTICE THE NARRATING. THEN I WILL COME.`,
     `YOUR GRANDFATHER SAYS HE IS COMING TOO AND THAT HE WANTS TO SEE "A PROPER POST OFFICE WITH A SORTING FLOOR". I TOLD HIM WE ARE NOT GOING ALL THAT WAY TO LOOK AT A POST OFFICE. HE SAID "SPEAK FOR YOURSELF".`,
     c.home ? `IS THERE ROOM AT ${c.home.toUpperCase()} FOR A CAMP BED. I DO NOT NEED MUCH. I NEED A CHAIR AND A WINDOW.` : `FIND OUT WHAT A ROOM COSTS AT THAT BIG HOTEL. THEN SIT DOWN, AND TELL ME.`,
     `NO DATE YET. THE SPARE PARTS ARE IN THE PLAYOFFS, GOD HELP US. BUT SOON.`,
@@ -111,7 +112,7 @@ export const LETTERS = [
     `So go in. Smell it. A post office smells of paper, gum and floor wax, and if it does not, something has gone wrong with the country. See if they still have the brass boxes. See if there is a desk with a pen on a chain. Then write to me AT that desk, so the letter starts its journey from the proper place.`,
     `A letter, my dear, is a visit that fits in a pocket. The telephone is a fine thing, but nobody ever kept a telephone call in a shoebox for fifty years.`,
     `I enclose five dollars. This is for ice cream and for no other purpose. I shall expect a full report on the flavour.`,
-    c.season === 'winter' ? `P.S. Yes, ice cream in winter. Character is built in the cold.` : `P.S. The tomatoes are in. Mr. Pruitt next door has put his in too, a full week early, the showoff.`), { enc: { kind: 'money', n: 5 }, note: 'A five-dollar bill, ironed flat, is pinned to the page with a dressmaker\'s pin.' }),
+    c.season === 'winter' ? `P.S. Yes, ice cream in winter. Character is built in the cold.` : `P.S. The tomatoes are in. Mr. Pruitt next door has put his in too, a full week early, the show-off.`), { enc: { kind: 'money', n: 5 }, note: 'A five-dollar bill, ironed flat, is pinned to the page with a dressmaker\'s pin.' }),
   L('gramps2', 'gramps', 2, 11, 6, c => P(
     c.wrote ? `Your letter arrived Tuesday by the second delivery and I have read it four times, once aloud to your father, who pretended to be busy with a fuse.` : `No letter yet. I do not scold. I merely mention that I walk to the box twice a day and that my knee keeps a careful account of each trip.`,
     `Since you ask (you did not ask), I shall tell you about the Night Mail. We left the junction at ten past eleven. Six of us in the car, the pouches hanging from the ceiling like hams, and at every little station that did not rate a stop there stood a crane with a bag on it, and we would swing out an iron arm and CATCH it, at speed, in the dark. If you missed, that town got no mail, and you got a talking-to from a man named Ferris that you could feel in your teeth.`,
@@ -123,7 +124,7 @@ export const LETTERS = [
     `I have been thinking about dead letters, as one does at four in the morning.`,
     `When a letter could not be delivered, wrong street or the family moved or the ink had run, we did not throw it away. Never. It went to the Dead Letter Office, where a clerk with a magnifying glass and the patience of a heron would try everything: old directories, the handwriting, a laundry mark on the envelope. They called those clerks "the blind readers", because they could read an address nobody else could see.`,
     `Every post office of any age has a few that beat even them. They sit in a drawer. Postmasters are sentimental and will not burn them. If yours has such a drawer, and you are ever offered the chance to help one of those letters home, TAKE it. There is no finer errand. I delivered one myself in 1961, eleven years late, to a woman in a blue hat. She read it on the step and then she kissed me on the cheek, and I was a married man and I have never mentioned it until now.`,
-    c.job ? `Your father says you are working as a ${c.job}. I approve of any job where you can see at the end of the day what you did.` : `Your father says you are still looking for work. In my day a post office was always hiring. Ask.`,
+    c.job ? `Your father says you are working as ${an(c.job)}. I approve of any job where you can see at the end of the day what you did.` : `Your father says you are still looking for work. In my day a post office was always hiring. Ask.`,
     `Pruitt has put up a little fence around his tomatoes. A FENCE. As if I would stoop.`,
     `I would stoop, mind you, if my knee allowed.`)),
   L('gramps4', 'gramps', 4, 27, 7, c => P(
@@ -164,7 +165,7 @@ export const LETTERS = [
   L('june2', 'june', 2, 10, 6, c => P(
     c.wrote ? `Your LETTER!! I read it standing in the hall with my coat still on. Then I read it to your uncle, then to Marjorie Platt on the telephone, then to the cat, who took it best.` : `Not a word from you, and I am NOT hurt. I am simply sending a box so that you will feel dreadful.`,
     `The box: it is coming separately, because the post office here will not let me put jam in an envelope (I ASKED). There is plum jam from the tree by the garage, the dark sort. There are the oat biscuits you like. There is a tin of the good cocoa. And there is a dishcloth, because I know for a FACT you do not own a decent one.`,
-    c.job ? `And you have a JOB, a ${c.job}!! I have told everyone. I told the butcher. He said "who?" but he was pleased, I could tell.` : `Nora says no job yet, and I say GOOD, take your time, you were always the one who walked all round the pool before getting in.`,
+    c.job ? `And you have a JOB, ${an(c.job)}!! I have told everyone. I told the butcher. He said "who?" but he was pleased, I could tell.` : `Nora says no job yet, and I say GOOD, take your time, you were always the one who walked all round the pool before getting in.`,
     `The roof fund bake sale is Saturday. I am doing the lemon drizzle and the walnut loaf and I am NOT doing a third thing, no matter what Reverend Tibbs says with his eyebrows.`,
     `I have enclosed the drizzle recipe, since you used to stand on a chair and "help". It wants a HOT oven and a COLD heart. You must stab it all over while it is still warm, and no flinching.`,
     `Is there a choir in Maple Bay? There is always a choir. Go and stand at the back. You have a perfectly nice baritone-ish sort of voice, whatever you say.`), { enc: { kind: 'recipe' }, note: 'A recipe card is pinned inside, splashed with something lemony.', parcel: { label: 'A box from Aunt June', gives: [{ item: 'post_jam', qty: 2 }, { item: 'post_biscuits', qty: 1 }, { item: 'post_cocoa', qty: 1 }] } }),
@@ -221,7 +222,7 @@ export const LETTERS = [
     `driving test is in two weeks. i can do everything except reversing and roundabouts and "observation". the instructor (Mr. Kettle, he has a moustache like a draught excluder) says i drive "like someone being chased". i said maybe i AM being chased. he wrote something down.`,
     `WET CEMENT UPDATE: we have a song. it's called "third step" and it's about your porch. it goes: the third step / the third step / don't step on the third step. that's the chorus. also the verse.`,
     c.seen.arena ? `nora told mum you've BEEN to the arena. the actual arena. where the OTTERS are. i am being so normal about this. what do they SELL. do they have a scarf. a pennant. a foam otter. i have $11.` : `have you been to see the otters yet. you LIVE there. if i lived in a town with an otter team i would simply never be anywhere else.`,
-    c.job ? `mum says you're a ${c.job} now. do you get a uniform. do you get to tell people what to do. these are the two things i'd want from a job.` : `mum says you don't have a job yet. honestly, goals.`,
+    c.job ? `mum says you're ${an(c.job)} now. do you get a uniform. do you get to tell people what to do. these are the two things i'd want from a job.` : `mum says you don't have a job yet. honestly, goals.`,
     `Dov says hi. Dov has never met you. Dov says hi to everyone, including buses.`,
     `write back about the train thing. i told Dov it goes over the street and he said "over WHAT street" and i didn't know.`), { enc: { kind: 'item', id: 'post_pick' }, note: 'Taped to the page: a green guitar pick with a bite mark in it. "official WET CEMENT merch. first one ever."' }),
   L('robin3', 'robin', 3, 21, 7, c => P(
@@ -256,7 +257,7 @@ export const LETTERS = [
     `mum cried. dad let me drive to the shop and back, and didn't hold the door handle the whole way, just for most of it. granddad said "about time", and then gave me two dollars for petrol like it's 1955.`,
     `WET CEMENT has a new song, it's called "three minors". Dov's got a second drum.`,
     c.sent ? `also your parcel stuff is still the best thing on the wall. Dov thinks i've BEEN to maple bay. i haven't corrected him.` : `also i now have a licence and no otter merchandise, and one of those feels fixable from your end.`,
-    c.job ? `do you like it? being a ${c.job}? like actually? everyone here keeps asking what i want to DO, and i say "music", and they do a face.` : `mum says you're still figuring out the job thing, and honestly that makes me feel better about everything.`,
+    c.job ? `do you like it? being ${an(c.job)}? like actually? everyone here keeps asking what i want to DO, and i say "music", and they do a face.` : `mum says you're still figuring out the job thing, and honestly that makes me feel better about everything.`,
     `ok. here's the plan. aunt june (mum) is plotting a family trip to maple bay. she thinks it's a secret. everyone knows. i'm in. i've got $61.`,
     `when i get there i want to: 1. go on the train that goes over the street. 2. see an otter (either kind). 3. meet kit navarro and be cool about it. 4. see where you live and not say anything dumb.`,
     `you have to promise not to tell anyone there about the hedge.`)),
@@ -335,7 +336,7 @@ export const LETTERS = [
     `You will be surprised to hear from me, and I am a little surprised to be writing. But I have watched the house across the road for thirty years, and it has a different shape with you gone from it. The upstairs window on the left no longer lights at midnight. I had not realised that I steered by it.`,
     `I taught you geography for three years, and you were a poor student of capitals and a very fine student of maps. You never cared what a place was called. You wanted to know which way its rivers ran. I have always thought that the better question.`,
     `So. Which way does the river run in Maple Bay? I have looked it up, of course. I should like to hear it from someone standing beside it.`,
-    `I am told the town has a lighthouse, an observatory on its highest ground, and a glass house full of plants from four climates. For a town of that size this is an embarrassment of riches, and I expect you to visit all three, and to write to me about each. Consider it homework, set thirty years late.`,
+    `I am told the town has a lighthouse, an observatory on its highest ground, and a glass house full of plants from four climates. For a town of that size this is an embarrassment of riches, and I expect you to visit all three, and to write to me about each. Consider it homework, set ten years late.`,
     `Your father is well. He is cooking. I have been brought a meat loaf, and I have thanked him for it.`,
     `Admiral, the cat, has taken to sitting on your gatepost in the evenings. I do not say that he is waiting. Cats do not wait. He is merely there.`,
     `I enclose a flower from the verge by your gate. I press them. It is an old woman's vice.`), { enc: { kind: 'item', id: 'post_flower' }, note: 'A pressed speedwell, blue as an inkblot, mounted on a card in tiny upright capitals: VERONICA CHAMAEDRYS. QUARRY ROAD.' }),
@@ -384,7 +385,7 @@ export const LETTERS = [
     `The Henderson boy will feed Admiral. Admiral has been informed, and has gone under the shed.`,
     c.wrote >= 3 ? `Before I see it, I wish to say: I know your town already, a little, from your letters. I know which way its river runs. You told me in your second line. You have become a very fine student of capitals after all. You have made one.` : `Before I see it, I should like one letter from you that tells me where to stand. Only that. Where does one stand in Maple Bay to understand it?`,
     c.seen.lighthouse ? `And you will take me up the lighthouse. I shall be slow on the stairs. You will pretend to be slow also. This is how it is done.` : `And we shall climb the lighthouse together, you for the first time and I for the only time. I shall be slow on the stairs. You will pretend to be slow also.`,
-    `Thirty years ago I wrote on your report: "Attentive to rivers. Will go far if pointed downstream." I should like it noted that I was right.`,
+    `Ten years ago I wrote on your report: "Attentive to rivers. Will go far if pointed downstream." I should like it noted that I was right.`,
     `Until the platform, then.`)),
 
   /* ------------------------------------------------------------------ the chain + small replies */
@@ -474,7 +475,7 @@ export const COMPOSE = {
   /** the lines on offer; each is a true thing about the player's game */
   topics(c, to) {
     const T = [];
-    T.push({ id: 'job', text: c.job ? `I am working as a ${c.job} now. I am not bad at it, and some days I am good.` : 'I do not have a job yet. I look at the board most mornings, and I am trying not to take the first thing I see.' });
+    T.push({ id: 'job', text: c.job ? `I am working as ${an(c.job)} now. I am not bad at it, and some days I am good.` : 'I do not have a job yet. I look at the board most mornings, and I am trying not to take the first thing I see.' });
     T.push({ id: 'home', text: c.home ? `I live at ${c.home}${c.dist ? ', in ' + c.dist : ''}. It is small, and it is mine, and I know where the fuse box is.` : 'I am still sorting out somewhere to live. I will send the address when I have one that will last.' });
     T.push({ id: 'town', text: c.seen.lighthouse ? 'I climbed the lighthouse. From the top you can see the whole town, and the trains going round it on their bridge.' : c.fountain ? 'The fountain on the plaza is running again. I had a hand in that, and people sit on the rim now.' : 'The trains here run on a bridge above the streets, and the whole town slopes down to a harbor with a lighthouse at the end.' });
     T.push({ id: 'miss', text: 'I miss the house. I miss the third step. I did not expect to, but I do.' });

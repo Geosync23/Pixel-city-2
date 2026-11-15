@@ -13,7 +13,7 @@
 //   fix(needId, n = 3) -> [{ id, name, d, open }]   nearest places that lift a gentle need (the HUD's "where can I fix this?" chooser)
 //   inspire(points, why?)     add Inspiration (other systems may call it; Opportunities do)
 //   greens() -> [{ x, y, name, id }]   the park-like spots
-// Events: 'needsx:inspire'(points, why), 'needsx:newplace'(placeId).
+// Events: 'needsx:inspire'(points, why), 'needsx:newplace'(placeId), 'needsx:newcook'(recipeId) (a recipe cooked for the first time).
 import { G } from '../core/game.js';
 import { SOFT, SOFT_ACT, SOFT_ACT_RULES } from '../data/needs.js';
 import { ACTIVITY_BY_ID } from '../data/activities.js';
@@ -94,7 +94,7 @@ function onDiscover(id) {
 function visit(key) { roll(); const k = 'v:' + key; if (S.seen[k] === day()) return; S.seen[k] = day(); const pts = I.visit[key]; if (pts) inspire(pts, key); }
 function detail(why) { roll(); if (S.det >= I.detailDayCap) return; S.det += I.detail; inspire(I.detail, why); }
 function onBuy(itemId) { const it = ITEM_BY_ID[itemId]; if (!it || it.category !== 'dish' || S.tried[itemId]) return; S.tried[itemId] = 1; if (Object.keys(S.tried).length > 1) inspire(I.newDish, 'dish'); }
-function onCooked(recipeId) { if (!recipeId || S.cooked[recipeId]) return; S.cooked[recipeId] = 1; if (Object.keys(S.cooked).length > 1) inspire(I.newCook, 'cook'); }
+function onCooked(recipeId) { if (!recipeId || S.cooked[recipeId]) return; S.cooked[recipeId] = 1; if (Object.keys(S.cooked).length > 1) inspire(I.newCook, 'cook'); G.emit('needsx:newcook', recipeId); }
 function onActivity(id, r) {
   if (id !== 'sleep' || !r || !(r.minutes >= 240) || !isHome()) return; const n = N(); if (!n) return;
   if (n.get('comfort') >= C.soundSleep) { n.addMoodlet('slept_soundly'); n.add('energy', C.soundSleepEnergy); }

@@ -13,14 +13,15 @@ export const CATS = { seating: 'Seating', tables: 'Tables & desks', beds: 'Beds 
   decor: 'Decor', electronics: 'Electronics', kitchen: 'Kitchen & dining', hobby: 'Hobby & play', fitness: 'Fitness', music: 'Instruments', bath: 'Bathroom', outdoor: 'Outdoor & balcony' };
 
 const DAILY = (o, c) => [0, 1, 2, 3, 4, 5, 6].map(() => [o, c]);
-/** the shops. `mult` scales every price there; `level` is shown as $ signs. Rooms + city doors: src/scenes/rooms/goods_stores.js, src/sim/goods_city.js */
+/** the shops. `mult` scales every price there; `level` is shown as $ signs. Rooms: src/scenes/rooms/goods_stores*.js; city doors: src/sim/goods_city.js (SITES).
+ *  district / where are filled in below from SITE_INFO (the building each one lives in). */
 export const STORES = [
   { id: 'goods:timber', code: 'T', name: 'Timber & Trowel Home Centre', short: 'Timber & Trowel', sign: 'TIMBER & TROWEL', kind: 'Big-box home improvement', mult: 1, level: 2, hours: DAILY(7, 21), blurb: 'A warehouse of aisles: timber, paint, tools for the house and a garden centre in the corner.' },
   { id: 'goods:fjord', code: 'F', name: 'Fjord & Fold', short: 'Fjord & Fold', sign: 'FJORD & FOLD', kind: 'Flat-pack warehouse', mult: .8, level: 1, hours: DAILY(9, 21), blurb: 'Flat-pack everything at friendly prices. Follow the arrows. You will leave with candles.' },
   { id: 'goods:bellwether', code: 'B', name: 'Bellwether Department Store', short: 'Bellwether', sign: 'BELLWETHER', kind: 'Department store', mult: 1.1, level: 3, hours: DAILY(10, 20), blurb: 'Five departments under one roof: home, kitchen, bed and bath, lighting, gifts.' },
   { id: 'goods:lumen', code: 'L', name: 'Lumen Lighting', short: 'Lumen', sign: 'LUMEN', kind: 'Lighting shop', mult: 1, level: 2, hours: DAILY(10, 19), blurb: 'Every lamp in the shop is switched on. Bring sunglasses.' },
   { id: 'goods:voltaic', code: 'V', name: 'Voltaic Electronics', short: 'Voltaic', sign: 'VOLTAIC', kind: 'Electronics store', mult: 1, level: 2, hours: DAILY(10, 20), blurb: 'Screens, speakers, consoles and the staff who can explain them.' },
-  { id: 'goods:fern', code: 'P', name: 'Fern & Frond', short: 'Fern & Frond', sign: 'FERN & FROND', kind: 'Plant shop', mult: 1, level: 2, hours: DAILY(9, 18), blurb: 'A jungle in a rowhouse. Every plant comes with a pep talk.' },
+  { id: 'goods:loam', code: 'P', name: 'Leaf & Loam Plant House', short: 'Leaf & Loam', sign: 'LEAF & LOAM', kind: 'Plant shop', mult: 1, level: 2, hours: DAILY(9, 18), blurb: 'A jungle in a rowhouse. Every plant comes with a pep talk.' },
   { id: 'goods:attic', code: 'A', name: 'The Gilded Attic', short: 'Gilded Attic', sign: 'GILDED ATTIC', kind: 'Antiques & thrift', mult: .7, level: 1, hours: DAILY(11, 18), blurb: 'Second-hand treasures, honest dust. Nothing matches, everything has a story.' },
   { id: 'goods:warp', code: 'W', name: 'Warp & Weft', short: 'Warp & Weft', sign: 'WARP & WEFT', kind: 'Rugs & textiles', mult: 1, level: 2, hours: DAILY(10, 18), blurb: 'Rugs stacked knee-high and hung to the ceiling. Take your shoes off, feel the pile.' },
   { id: 'goods:copper', code: 'C', name: 'Copper Pan Kitchen Co.', short: 'Copper Pan', sign: 'COPPER PAN', kind: 'Kitchen & homeware', mult: 1, level: 2, hours: DAILY(9, 19), blurb: 'Pots that last a lifetime and gadgets you did not know you needed.' },
@@ -29,6 +30,15 @@ export const STORES = [
   { id: 'goods:sleepy', code: 'S', name: 'Sleepyhead Beds & Linen', short: 'Sleepyhead', sign: 'SLEEPYHEAD', kind: 'Beds & bedding', mult: 1, level: 2, hours: DAILY(10, 20), blurb: 'Lie down on every bed. They insist.' },
   { id: 'goods:spoke', code: 'H', name: 'Spoke & Strum', short: 'Spoke & Strum', sign: 'SPOKE & STRUM', kind: 'Hobby shop', mult: 1, level: 2, hours: DAILY(10, 19), blurb: 'Bikes, boards, instruments and gear for whatever you are into this month.' },
 ];
+const SITE_INFO = {
+  'goods:timber': ['oldtown', 'West edge of Old Town, beside Old Town station: the big orange warehouse'], 'goods:fjord': ['harbor', 'Harborside, the blue-and-yellow warehouse on the quay'],
+  'goods:bellwether': ['oldtown', 'Old Town, the bay-fronted row on the west side'], 'goods:lumen': ['oldtown', 'Old Town, the stucco row by the post office'],
+  'goods:voltaic': ['maplewood', 'Maplewood, the duplex by the FreshWay market'], 'goods:loam': ['oldtown', 'Old Town, the mansard row at the west end'],
+  'goods:attic': ['oldtown', 'Old Town, the timber-framed row off Market Square'], 'goods:warp': ['oldtown', 'Old Town, the stucco row off Market Square'],
+  'goods:copper': ['oldtown', 'Old Town, the timber-framed row by the post office'], 'goods:nord': ['hillcrest', 'Hillcrest, the cliff house on the lowest terrace'],
+  'goods:kestrel': ['maplewood', 'Maplewood, the craftsman house in the south of the district'], 'goods:sleepy': ['maplewood', 'Maplewood, the split-level on the east side'],
+  'goods:spoke': ['maplewood', 'Maplewood, the bungalow by the FreshWay market'] };
+for (const s of STORES) { const i = SITE_INFO[s.id] || ['downtown', '']; s.district = i[0]; s.where = i[1]; }
 const BY_CODE = Object.fromEntries(STORES.map(s => [s.code, s.id]));
 const P = { red: '#c8574d', teal: '#3f8f8a', blue: '#4f74b8', mustard: '#dba63c', sage: '#8fae7e', rose: '#d98a9c', plum: '#7a5590', grey: '#8d8f9c', navy: '#39456f', cream: '#eadfc8', olive: '#7b8450', rust: '#b9653a', char: '#4a4a58',
   white: '#f1eee6', black: '#3a3640', oak: '#b08a5a', walnut: '#6b4630', pine: '#d8b888', teak: '#9c6a3e', ebony: '#3a3038', brass: '#d9b65c', steel: '#b9c2c9', terra: '#c9764a', forest: '#2f5a48', oxblood: '#6b3a2a', sky: '#9ad0e8', pink: '#f2a7c3', lime: '#58d878', orange: '#f2a03a' };

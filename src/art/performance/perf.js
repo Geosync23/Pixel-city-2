@@ -21,10 +21,24 @@ export function posterArt(k, x0, x1, y, z0, z1) {
   else if (k === 'understudy') { q(0, 1, 0, 1, '#f6d84a'); q(0, 1, 0, .16, '#c0392b'); lw([X(.3), y + .01, Z(.16)], [X(.62), y + .01, Z(.9)], '#6a4a2a'); q(.2, .42, .16, .3, '#f4f0e8'); fq([[X(.5), y, Z(.5)], [X(.56), y, Z(.72)], [X(.66), y, Z(.58)], [X(.76), y, Z(.72)], [X(.86), y, Z(.5)]], '#c0392b'); q(.5, .86, .42, .5, '#c0392b'); }
   else if (k === 'platform') { q(0, 1, 0, 1, '#3a5a6a'); q(0, 1, 0, .26, '#2a3a44'); q(0, 1, .26, .3, '#e8d890'); q(.74, .78, .3, .86, '#1a2028'); lit(() => ball(X(.76), y + .01, Z(.88), w * .09, '#ffe6a0', { ol: false })); q(.16, .56, .36, .42, '#6a4a2a'); q(.18, .22, .3, .36, '#1a2028'); q(.5, .54, .3, .36, '#1a2028'); q(.3, .38, .42, .62, '#1a2028'); for (let i = 0; i < 8; i++) dot(hash2(i, 17), .4 + .55 * hash2(i, 19), '#a8c8d8'); }
   else if (k === 'mybay') { q(0, 1, 0, 1, '#f08a4a'); q(0, 1, .5, 1, '#5a4a8a'); q(0, 1, 0, .2, '#2a6a9a'); for (let i = 0; i < 6; i++) q(i * .17, i * .17 + .13, .2, .3 + .3 * hash2(i, 23), '#2a2038'); ball(X(.5), y + .01, Z(.3), w * .16, '#f6e04a', { ol: false }); for (let i = 0; i < 6; i++) dot(hash2(i, 29), .6 + .36 * hash2(i, 31), '#fff2c4'); }
+  /* QA round 4: the four cinema films of the media wave (src/sim/_media_films.js CINEMA_NEW) */
+  else if (k === 'heist') { q(0, 1, 0, 1, '#16203a'); fq([[X(.62), y, Z(1)], [X(.3), y, Z(.12)], [X(.94), y, Z(.12)]], '#2e3c5c'); q(.3, .94, .06, .14, '#4a5a7c');   /* night, a spotlight on the prize */
+    fq([[X(.48), y, Z(.46)], [X(.62), y, Z(.38)], [X(.8), y, Z(.46)], [X(.62), y, Z(.54)]], '#c8d4e0'); fq([[X(.8), y, Z(.46)], [X(.9), y, Z(.38)], [X(.9), y, Z(.54)]], '#a8b4c4'); q(.56, .7, .46, .5, '#5a7a9a'); dot(.53, .47, '#16203a');   /* the mackerel */
+    q(.06, .3, .1, .62, '#b08a5a'); q(.17, .19, .14, .6, '#7a5a3a'); q(.04, .32, .3, .34, '#7a5a3a'); ball(X(.18), y + .01, Z(.7), w * .08, '#6a4a2a', { ol: false }); q(.08, .28, .76, .8, '#2a2028'); q(.11, .25, .8, .9, '#2a2028'); dot(.2, .7, '#16203a'); }   /* three otters in one trench coat */
+  else if (k === 'lantern') { q(0, 1, 0, 1, '#22164a'); q(0, 1, .55, 1, '#160e30'); for (let i = 0; i < 10; i++) dot(hash2(i, 37), .5 + .48 * hash2(i, 39), '#f4ecc8');
+    q(0, 1, 0, .2, '#3a2c66'); fq([[X(.1), y, Z(0)], [X(.36), y, Z(0)], [X(.56), y, Z(.2)], [X(.5), y, Z(.2)]], '#8a7ab0');   /* the road */
+    lit(() => { ball(X(.58), y + .01, Z(.7), w * .13, '#ffb040', { ol: false }); q(.54, .62, .78, .81, '#6a3a1a'); q(.54, .62, .59, .62, '#6a3a1a'); for (let i = 0; i < 4; i++) dot(.18 + i * .2, .38 + .14 * hash2(i, 41), '#ffd870'); });
+    q(.36, .42, .2, .32, '#e8b83a'); ball(X(.39), y + .01, Z(.36), w * .045, '#c89878', { ol: false }); lw([X(.41), y + .02, Z(.34)], [X(.56), y + .02, Z(.6)], '#f4ecc8'); }   /* a boy, a string, a lantern going up */
+  else if (k === 'bigclaw') { q(0, 1, 0, 1, '#f08a6a'); q(0, 1, .6, 1, '#f4b890'); q(0, 1, 0, .3, '#2a6a9a'); for (let i = 0; i < 4; i++) q(hash2(i, 43) * .7, hash2(i, 43) * .7 + .24, .08 + i * .055, .1 + i * .055, '#5a9ac8');
+    for (let i = 0; i < 12; i++) dot(.78 + .15 * Math.cos(i * .52), .62 + .15 * Math.sin(i * .52), '#f4f0e8'); q(.77, .79, .3, .62, '#c8c0b8'); q(.5, 1, .3, .34, '#4a3a2c');   /* the Bay Wheel and Pier 4 */
+    q(.2, .32, .26, .58, '#c0392b'); fq([[X(.08), y, Z(.58)], [X(.18), y, Z(.96)], [X(.28), y, Z(.62)]], '#d8483a'); fq([[X(.24), y, Z(.58)], [X(.48), y, Z(.84)], [X(.36), y, Z(.54)]], '#d8483a'); q(.22, .26, .5, .54, '#8a1a1a'); }   /* the claw */
+  else if (k === 'extratime') { q(0, 1, 0, 1, '#d2392f'); fq([[X(0), y, Z(.62)], [X(1), y, Z(.86)], [X(1), y, Z(.96)], [X(0), y, Z(.72)]], '#f4f0e8'); q(0, 1, 0, .16, '#c8925a'); q(0, 1, .14, .16, '#f4f0e8');   /* Otters red and cream, the court */
+    q(.56, .9, .4, .64, '#f4f0e8'); q(.66, .8, .44, .54, '#d2392f'); q(.6, .84, .38, .41, '#f2a040'); for (let i = 0; i < 4; i++) q(.62 + i * .06, .64 + i * .06, .28, .38, '#f4f0e8');   /* backboard, rim, net */
+    ball(X(.3), y + .01, Z(.5), w * .14, '#e8742a', { ol: false }); lw([X(.2), y + .02, Z(.5)], [X(.4), y + .02, Z(.5)], '#5a2a10'); lw([X(.3), y + .02, Z(.4)], [X(.3), y + .02, Z(.6)], '#5a2a10'); }   /* the ball, in the air */
   else { q(0, 1, 0, 1, '#3a2a40'); q(.2, .8, .3, .7, GOLD); }
 }
-export const POSTERS = ['ferry', 'maple', 'pigeon', 'signal9', 'waltz', 'adagio', 'overture', 'understudy', 'platform', 'mybay'];
-const BAND = { ferry: '#e8d890', maple: '#fff4d0', pigeon: '#f6e04a', signal9: '#3fe07a', waltz: GOLD, adagio: '#e8eef4', overture: '#e8643a', understudy: '#c0392b', platform: '#e8d890', mybay: '#f6e04a' };
+export const POSTERS = ['ferry', 'maple', 'pigeon', 'signal9', 'waltz', 'adagio', 'overture', 'understudy', 'platform', 'mybay', 'heist', 'lantern', 'bigclaw', 'extratime'];
+const BAND = { ferry: '#e8d890', maple: '#fff4d0', pigeon: '#f6e04a', signal9: '#3fe07a', waltz: GOLD, adagio: '#e8eef4', overture: '#e8643a', understudy: '#c0392b', platform: '#e8d890', mybay: '#f6e04a', heist: '#c8d4e0', lantern: '#ffb040', bigclaw: '#d8483a', extratime: '#f4f0e8' };
 
 /** painted stage backdrops on a y-plane */
 function backdrop(k, w, h, y) {
