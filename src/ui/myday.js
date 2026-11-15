@@ -143,6 +143,9 @@ function render() {
     B.append(box);
   }
   if (sc.tomorrow.length) B.append(el('button.md-tom', { onclick: () => { close(); safe(() => G.phone.open('planner', { day: Math.floor(t / DAY) + 1 })); } }, el('b', { text: 'Tomorrow' }), el('span', { text: sc.tomorrow.slice(0, 2).map(a => `${hh(a.t)} ${a.title}`).join(' · ') + (sc.tomorrow.length > 2 ? ` · ${sc.tomorrow.length - 2} more` : '') })));
+  /* findability (owner msg 107): the Systems shelf and Wander's quick tools are one tap from here */
+  if (!M.teach) B.append(el('div.md-acts', { style: 'margin-top:10px;justify-content:space-between' }, el('button.md-sm', { 'data-shelf': 1, onclick: () => { close(); safe(() => G.phone.open('guide', { tab: 'systems' })); } }, 'How things work here'),
+    el('button.md-sm', { 'data-quick': 1, onclick: () => { close(); safe(() => G.phone.open('guide', { tool: 'fun' })); } }, 'Fun right now')));
   B.scrollTop = y; M.pop = null; M.teachBar.style.display = M.teach && !M.tut ? '' : 'none';
   if (M.tut) tutStep();
 }

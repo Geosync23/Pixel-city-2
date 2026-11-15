@@ -536,7 +536,7 @@
  {
   "name": "Need: bladder at home -> bathroom -> toilet",
   "door": "home:juniper_court",
-  "setup": "T(null, 12); const id = 'home:juniper_court'; G.navGoals.select({ need: 'bladder', place: id }); G.phone.setWaypoint(id);",
+  "setup": "if (!G.housing.current() || G.housing.current().id !== 'juniper_court') { G.state.player.money = Math.max(G.state.player.money || 0, 2000); G.housing.rent('juniper_court'); await sleep(300); }   /* QA7: the test player must live here (a home you do not rent is a viewing) */ T(null, 12); const id = 'home:juniper_court'; G.navGoals.select({ need: 'bladder', place: id }); G.phone.setWaypoint(id);",
   "checks": [
    {
     "go": "int:home:juniper_court",
@@ -553,7 +553,7 @@
  {
   "name": "Need: energy at home -> bed",
   "door": "home:juniper_court",
-  "setup": "T(null, 22); const id = 'home:juniper_court'; G.navGoals.select({ need: 'energy', place: id }); G.phone.setWaypoint(id);",
+  "setup": "if (!G.housing.current() || G.housing.current().id !== 'juniper_court') { G.state.player.money = Math.max(G.state.player.money || 0, 2000); G.housing.rent('juniper_court'); await sleep(300); }   /* QA7: the test player must live here (a home you do not rent is a viewing) */ T(null, 22); const id = 'home:juniper_court'; G.navGoals.select({ need: 'energy', place: id }); G.phone.setWaypoint(id);",
   "checks": [
    {
     "go": "int:home:juniper_court",

@@ -110,12 +110,12 @@ async function desk() {
   const nx = nextShow(), nt = nextTalk(), tk = hasTicket(), pd = nextParty() - G.now().day;
   const v = await choose('Tickets & Showtimes', [
     { label: tk ? 'Day ticket (you have one)' : 'Day ticket', sub: tk ? 'Valid until midnight' : fmt(OBS_TICKET) + ' · gallery, planetarium, dome and terrace', value: 't', disabled: tk },
-    { label: 'Planetarium shows', sub: nx ? `Next: "${nx.prog.title}" at ${clock(nx.h)}${nx.day > G.now().day ? ' tomorrow' : ''}. Tap to add it to your planner.` : 'Daily at ' + SHOW_TIMES.map(clock).join(', '), value: 's' },
+    { label: 'Planetarium shows', sub: nx ? `Next: "${nx.prog.title}" at ${clock(nx.h)}${nx.day > G.now().day ? ' tomorrow' : ''}. Tap to add it to your day.` : 'Daily at ' + SHOW_TIMES.map(clock).join(', '), value: 's' },
     { label: 'Astronomy talks', sub: nt ? 'Next talk at ' + clock(nt) + ' in the gallery. Free with a ticket.' : 'Daily at ' + TALK_TIMES.map(clock).join(' and ') + ' in the gallery.', value: 'i' },
     { label: 'Star party', sub: pd === 0 ? (partyOn() ? 'On right now, up on the terrace!' : 'Tonight from 20:00 on the terrace. Free cocoa.') : `Every Saturday night, 20:00 to midnight. Next one in ${pd} day${pd === 1 ? '' : 's'}.`, value: 'p' },
     { label: 'Never mind', value: null }], { text: 'Open daily 13:00 to midnight. The dome opens when it is dark and clear.' });
   if (v === 't') buyTicket();
-  else if (v === 's' && nx) { const id = safe(() => G.planner.add({ title: 'Planetarium: ' + nx.prog.title, placeId: 'observatory', t: nx.T - 10, dur: 90, kind: 'personal' })); toast(id !== undefined ? `"${nx.prog.title}", ${clock(nx.h)}: it is in your planner. Doors open fifteen minutes before.` : `"${nx.prog.title}" at ${clock(nx.h)}. Doors open fifteen minutes before.`, 'good', 4200); }
+  else if (v === 's' && nx) { const id = safe(() => G.planner.add({ title: 'Planetarium: ' + nx.prog.title, placeId: 'observatory', t: nx.T - 10, dur: 90, kind: 'personal' })); toast(id !== undefined ? `"${nx.prog.title}", ${clock(nx.h)}: it is on your day. Doors open fifteen minutes before.` : `"${nx.prog.title}" at ${clock(nx.h)}. Doors open fifteen minutes before.`, 'good', 4200); }
   else if (v === 'i') toast('"Gus gives the talk by the moon wall. Just sit on one of the benches when he starts."', 'info', 4200);
   else if (v === 'p') toast('"Bring a coat. If it clouds over, everybody ends up in the planetarium instead."', 'info', 4200);
 }

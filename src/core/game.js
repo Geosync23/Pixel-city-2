@@ -141,7 +141,7 @@ function frame(now) {
   const paused = G.modal > 0; let gm = 0;
   if (!paused) {
     const t0 = G.state.t; let rate = G.state.speed;
-    if (G.busy) { rate = G.busy.rate; }
+    if (G.busy) { rate = G.busy.rate; } else if (G.cutscene && G.cutscene.clock) rate = 0;   /* QA7: a cab ride owns the clock (sim/transit.js rideClock: game time from the route, at any speed) */
     gm = dt * rate; if (G.busy) { gm = Math.min(gm, G.busy.left); G.busy.left -= gm; }
     G.state.t = t0 + gm; tickTime(t0, G.state.t);
     if (G.busy) { G.busy.tick && G.busy.tick(gm); if (G.busy && G.busy.left <= 1e-6) G.endActivity(true); }

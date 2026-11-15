@@ -99,7 +99,7 @@ function threadView(id) {
       const d = dayOf(m.t); if (d !== lastDay) { lastDay = d; const i = timeInfo(m.t); chat.append(el('div.ph-daysep', { text: d === dayOf(G.state.t) ? 'Today' : `${i.weekdayName} ${i.dayOfMonth} ${i.seasonName}` })); }
       chat.append(el('div.ph-msg' + (m.me ? '.me' : ''), null, m.text, el('small', { text: clockOf(m.t) })));
       if (m.appt) { const a = m.appt, st = m.done === undefined ? '' : m.done === 'accept' ? '.ok' : '.no';
-        chat.append(el('div.ph-appt' + st, null, iconEl('ui.calendar', 2), el('div', null, el('b', { text: a.title || 'Invitation' }), el('small', { text: when(a.t) + (a.placeId ? ' · ' + placeName(a.placeId) : '') }), el('small', { text: m.done === undefined ? 'Waiting for your answer' : m.done === 'accept' ? 'Accepted · added to Planner' : 'Declined' })))); }
+        chat.append(el('div.ph-appt' + st, null, iconEl('ui.calendar', 2), el('div', null, el('b', { text: a.title || 'Invitation' }), el('small', { text: when(a.t) + (a.placeId ? ' · ' + placeName(a.placeId) : '') }), el('small', { text: m.done === undefined ? 'Waiting for your answer' : m.done === 'accept' ? 'Accepted · on your day' : 'Declined' })))); }
     }
     if (!th || !th.msgs.length) chat.append(empty('ui.speech', 'No messages yet', `Say hi to ${npcName(id)}.`));
     b.append(chat); setTimeout(() => { b.scrollTop = b.scrollHeight; }, 0);

@@ -106,7 +106,7 @@ function cartTab(b, ctx) {
   }
   const can = balance() >= q.total;
   ctx.foot.append(card(kv('Total', money(q.total), 'total'), kv('You have', money(balance()))),
-    btn(can ? `Order · ${money(q.total)}` : 'Not enough money for all of it', () => { const out = O().checkout(U.express); if (!out) return ctx.tip('That did not go through. Check your balance.'); U.express = {}; U.tab = 'orders'; ctx.refresh(); ctx.tip(out.length === 1 ? `Ordered. ${COURIER} rings ${whenLc(out[0].eta)}.` : `Ordered: ${out.length} parcels. Times are in your Planner.`); }, 'pri wide big', 'ui.bag'));
+    btn(can ? `Order · ${money(q.total)}` : 'Not enough money for all of it', () => { const out = O().checkout(U.express); if (!out) return ctx.tip('That did not go through. Check your balance.'); U.express = {}; U.tab = 'orders'; ctx.refresh(); ctx.tip(out.length === 1 ? `Ordered. ${COURIER} rings ${whenLc(out[0].eta)}.` : `Ordered: ${out.length} parcels. Times are on My Day.`); }, 'pri wide big', 'ui.bag'));
   if (!can) ctx.foot.lastChild.disabled = true;
 }
 const STEPS = ['Ordered', 'Packed', 'On its way', 'Out for delivery', 'Delivered'];

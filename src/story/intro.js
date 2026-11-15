@@ -234,7 +234,7 @@ export const GOAL_LISTS = {
   settling_in: {
     title: 'Settling in',
     goals: [
-      { id: 'nana_breakfast', text: "Breakfast at Nana's (Old Town)", hint: 'Check your Calendar for the address.',
+      { id: 'nana_breakfast', text: "Breakfast at Nana's (Old Town)", hint: 'Check My Day for the address.',
         doneWhen: 'beat_done:g1_breakfast', doneText: 'Full of pancakes. Armed with a recipe.' },
       { id: 'groceries', text: 'Buy groceries and stock the fridge', hint: 'FreshWay Market or Lucky Corner. Carry the bags home.',
         doneWhen: 'fridge_stocked', doneText: 'The ketchup packet has company now.' },
@@ -243,7 +243,7 @@ export const GOAL_LISTS = {
       { id: 'ride_train', text: 'Ride the light rail', hint: 'Walk up to any station. Tap your phone at the gate.',
         doneWhen: 'rode_train', doneText: 'All aboard. The loop takes 30 minutes and never gets old.' },
       { id: 'library_job', text: 'Find a job on a library computer', hint: 'Public Library, Arts Quarter, upstairs.',
-        doneWhen: 'job_accepted', doneText: "Hired! Check your Calendar for your first shift." },
+        doneWhen: 'job_accepted', doneText: "Hired! Check My Day for your first shift." },
       { id: 'say_hi', text: 'Introduce yourself to 3 people', hint: 'Walk up to someone and tap Talk at the bottom of the screen. Most people here like it.',
         doneWhen: 'met_npcs:3', doneText: 'Three names learned. Only a few thousand to go.' },
     ],
@@ -293,7 +293,7 @@ export const TUTORIAL_HINTS = {
   first_taxi:    'Taxis go door to door, any hour. Manny charges by distance, not by story.',
   carry_bags:    'Groceries ride in your hands until you get home. Put them in the fridge!',
   rent_due:      'Rent is due tomorrow. Check your Bank app.',
-  appointment:   'Your Calendar keeps track of plans. Nobody here minds if you are a little late.',
+  appointment:   'My Day keeps track of plans. Nobody here minds if you are a little late.',
   story_missed:  "Missed a plan? No stress. They'll text to reschedule. They always do.",
   rain:          'Raining! Fewer people out, cozier cafes. Umbrellas at Lucky Corner.',
   night:         "It's late. Shops close, the Heron opens, the lighthouse does its thing.",

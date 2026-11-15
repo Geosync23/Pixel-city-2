@@ -109,7 +109,7 @@ function buyMembership() {
 const nextTour = () => { const h = G.now().hf; return TOUR_TIMES.find(t => t > h && t < hours()[1]) || null; };
 function planTour() {
   const n = G.now(), nt = nextTour(), d = nt ? n.day : n.day + 1, th = nt || TOUR_TIMES[0], t = d * DAY + th * 60; if (!G.planner) return false;
-  if (safe(() => G.planner.list(t - 1, t + 1).some(a => a.data && a.data.museumTour))) { toast('That tour is already in your planner.', 'info'); return true; }
+  if (safe(() => G.planner.list(t - 1, t + 1).some(a => a.data && a.data.museumTour))) { toast('That tour is already on your day.', 'info'); return true; }
   safe(() => G.planner.add({ title: 'Guided tour: Museum of Maple Bay', placeId: 'museum', t, dur: 45, kind: 'event', data: { museumTour: th } })); toast(`Added to your planner: guided tour ${nt ? 'today' : 'tomorrow'} at ${clock(th)}. Meet Ines at the info desk.`, 'good', 4200); return true;
 }
 async function desk() {
@@ -120,7 +120,7 @@ async function desk() {
     { label: isMember() ? 'Membership (yours)' : 'Become a member', sub: isMember() ? 'Free entry for life' : fmt(MUS_MEMBER) + ' · free entry for life + free audio guide', value: 'm', disabled: isMember() },
     { label: au ? 'Audio guide (you have one)' : 'Rent the audio guide', sub: au ? `Stops heard today: ${Object.keys(S.audio).length}/${AUDIO.length}` : (isMember() ? 'Free for members' : fmt(MUS_AUDIO)) + ' · ten numbered stops, look for the blue signs', value: 'a', disabled: au },
     hs.done && !hs.claimed ? { label: 'Claim your scavenger hunt prize', sub: 'All eight found!', value: 'c' } : { label: hs.on ? `Scavenger hunt card (${hs.got}/${hs.of})` : hs.claimed ? 'Scavenger hunt (done)' : 'Take a scavenger hunt card', sub: hs.on ? 'Read your clues' : hs.claimed ? 'You have the badge to prove it' : 'Free · eight clues, a prize at the end', value: 'h', disabled: hs.claimed },
-    { label: 'Guided tours', sub: nt ? `Next at ${clock(nt)}, from this desk. Add it to your planner.` : `No more today. Daily at ${TOUR_TIMES.map(clock).join(', ')}. Add tomorrow's first to your planner.`, value: 'p' },
+    { label: 'Guided tours', sub: nt ? `Next at ${clock(nt)}, from this desk. Add it to your day.` : `No more today. Daily at ${TOUR_TIMES.map(clock).join(', ')}. Add tomorrow's first to your day.`, value: 'p' },
     { label: 'Collection logbook', sub: Object.entries(logbook()).map(([k, v]) => `${v.name.split(' ')[0]} ${v.got}/${v.need}${v.stamp ? '*' : ''}`).join(' · '), value: 'l' },
     { label: 'Never mind', value: null }];
   const hr = hours(), v = await choose('Info Desk', opts, { text: `Open today ${clock(hr[0])} to ${clock(hr[1])}. Free for everyone on Friday evenings from ${clock(FREE_EVE.from)}.` });
@@ -285,7 +285,7 @@ function talkDocent(doc, tour) {
   if (tour.on) { if (!tour.joined) { if (!hasTicket()) { bubble(doc, 'You will need a ticket to come into the wings with us!'); return; } tour.joined = true; bubble(doc, 'Welcome along! We are a friendly group.'); toast('You join the tour. You will follow Ines on your own; walk away whenever you like.', 'good', 4200); } else bubble(doc, 'Do keep up, there is a dinosaur waiting.'); return; }
   const nt = nextTour();
   say([{ who: 'Ines, docent', text: nt ? `The next tour leaves from this desk at ${clock(nt)}. Six stops: Marge, the minerals, the dig pit, the city model, Harbour at Dawn and the special exhibition.` : 'That was the last scheduled tour today. Eleven, two and four, every day.' }, { who: 'Ines, docent', text: 'Mind you, it is quiet at the moment. I could take you round myself.' }])
-    .then(() => choose('Take a tour with Ines?', [{ label: 'Yes, show me round now', sub: 'About an hour and a half of game time. Free with a ticket.', value: 1, disabled: !hasTicket() }, { label: 'Put the next one in my planner', value: 2 }, { label: 'Maybe later', value: 0 }], hasTicket() ? {} : { text: 'You need a museum ticket first (the desk is right here).' }))
+    .then(() => choose('Take a tour with Ines?', [{ label: 'Yes, show me round now', sub: 'About an hour and a half of game time. Free with a ticket.', value: 1, disabled: !hasTicket() }, { label: 'Put the next one on my day', value: 2 }, { label: 'Maybe later', value: 0 }], hasTicket() ? {} : { text: 'You need a museum ticket first (the desk is right here).' }))
     .then(v => { if (v === 2) planTour(); if (v !== 1) return; const sc = scene(); if (sc && sc.mus && sc.mus.startTour(true)) { tour.joined = true; toast('The tour sets off. Follow Ines: she stops at six exhibits.', 'good', 3800); } });
 }
 function tourDone(tour) {

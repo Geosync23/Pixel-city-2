@@ -1,4 +1,4 @@
-// Phone app: Settings (save, game speed, sound, text size, banners, photo mode, help, back to title).
+// Phone app: Settings (save, game speed, sound, text size, banners, first-time tips on/off, photo mode, help, back to title).
 // Audio: sliders write G.state.audio[k] (or G.state.phone.settings.audio until an audio system owns that slice) and call G.audio.setVolume(k, v) if present.
 import { G } from '../core/game.js';
 import { el, btn, card, section, chip, kv, safe, iconEl } from './phone_util.js';
@@ -27,6 +27,8 @@ export default {
     b.append(section('Phone'));
     b.append(card(el('b', { text: 'Text size' }), el('div.ph-chips', null, [[14, 'Small'], [15, 'Normal'], [17, 'Large']].map(([s, l]) => chip(l, (st.text || 15) === s ? 'on' : '', () => { st.text = s; document.querySelector('.ph').style.fontSize = s + 'px'; ctx.refresh(); }))),
       el('b', { text: 'Notification banners' }), el('div.ph-chips', null, chip('On', st.banners !== false ? 'on' : '', () => { st.banners = true; ctx.refresh(); }), chip('Badges only', st.banners === false ? 'on' : '', () => { st.banners = false; ctx.refresh(); })),
+      el('b', { text: 'First-time tips' }), el('div.ph-chips', { 'data-set': 'firsttime' }, chip('On', safe(() => G.firstTime.enabled(), true) ? 'on' : '', () => { safe(() => G.firstTime.setEnabled(true), 0); ctx.refresh(); }), chip('Off', safe(() => G.firstTime.enabled(), true) ? '' : 'on', () => { safe(() => G.firstTime.setEnabled(false), 0); ctx.tip('No more first-time windows. They are all still in Bay Basics.'); ctx.refresh(); })),
+      el('p.ph-note', { text: 'A short window the first time you try something new. Each comes once; all of them can be read again in Bay Basics.' }),
       kv('Battery', 'Same as yours'), kv('Carrier', 'BayTel 4G')));
     b.append(section('More'));
     b.append(card(el('b', { text: 'Developer mode' }), el('div.ph-chips', null, chip('Off', !(G.dev && G.dev.on()) ? 'on' : '', () => { safe(() => G.dev.set(false), 0); ctx.refresh(); }), chip('On', G.dev && G.dev.on() ? 'on' : '', () => { safe(() => G.dev.set(true), 0); ctx.refresh(); })),

@@ -158,7 +158,7 @@ function enrol(id, sec = 0) {
   if (S.voucher) S.voucher = 0; else if (pr.credit) S.credit -= pr.credit;
   S.courses[id] = { sec, unit: 0, part: [0, 0], prac: null, read: 0, readOk: 0, proj: null, practice: 0, final: null, tries: 0, missed: 0, late: 0, group: 0, appt: null, miss: 0, since: now() };
   syncPlanner(); G.emit('university:enrol', id, sec); const n = nextOf(id);
-  note('Enrolled: ' + cs.name, `${cs.code} with ${CAST[cs.prof].name}. First class ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' ' + hh((n.T % DAY) / 60) : 'soon'} in the Ashby Lecture Theatre. It is in your Planner.`); safe(() => { if (G.apps && !G.apps.isInstalled('campus')) { if (!G.apps.isReleased('campus')) G.apps.release('campus', true); G.apps.install('campus'); } }); return true;
+  note('Enrolled: ' + cs.name, `${cs.code} with ${CAST[cs.prof].name}. First class ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' ' + hh((n.T % DAY) / 60) : 'soon'} in the Ashby Lecture Theatre. It is on My Day.`); safe(() => { if (G.apps && !G.apps.isInstalled('campus')) { if (!G.apps.isReleased('campus')) G.apps.release('campus', true); G.apps.install('campus'); } }); return true;
 }
 function withdraw(id) { const S = st(), c = S.courses[id]; if (!c) return false; dropAppt(c); delete S.courses[id]; G.emit('university:withdraw', id); return true; }
 function setSection(id, sec) { const c = row(id); if (!c || c.sec === sec || !C(id).sections[sec]) return false; if (clash(id, sec)) { toast('That section clashes with a class you already have.', 'info'); return false; } c.sec = sec; c.since = now(); syncPlanner(); return true; }
@@ -177,7 +177,7 @@ async function registrar() {
     if (v === 'm') { const k = en.length === 1 ? en[0] : await choose('My courses', en.map(q => ({ label: C(q).name, sub: todo(q)[0] || '', value: q })).concat({ label: 'Back', value: null })); if (!k) continue; const c = row(k), cs = C(k), o = 1 - c.sec;
       const a = await choose(cs.name, [{ label: 'What is left to do', value: 'w' }, { label: `Change to the ${o ? 'evening' : 'day'} section`, sub: sectionText(cs.sections[o]) + (clash(k, o) ? ' · clashes' : ''), value: 's', disabled: clash(k, o) }, { label: 'Withdraw', sub: 'No refund, and your progress is lost', value: 'x' }, { label: 'Back', value: null }], { text: `${cs.code} · ${CAST[cs.prof].name} · ${sectionText(cs.sections[c.sec])}` });
       if (a === 'w') await say(todo(k).map(t => ({ who: cs.name, text: t })));
-      else if (a === 's') { if (setSection(k, o)) toast(`Moved to ${sectionText(cs.sections[o])}. Your Planner has the new time.`, 'good', 3600); }
+      else if (a === 's') { if (setSection(k, o)) toast(`Moved to ${sectionText(cs.sections[o])}. My Day has the new time.`, 'good', 3600); }
       else if (a === 'x') { const y = await choose(`Withdraw from ${cs.name}?`, [{ label: 'Yes, withdraw', value: 1 }, { label: 'No, keep it', value: 0 }]); if (y) { withdraw(k); toast(`You have withdrawn from ${cs.name}.`, 'info'); } }
       continue; }
     const list = COURSES.filter(q => !S.courses[q.id] && !S.certs[q.id]); if (!list.length) { await say([{ who, text: 'You have taken everything we teach. I shall have to speak to the Dean about inventing something.' }]); continue; }
@@ -185,7 +185,7 @@ async function registrar() {
     if (!id) continue; const cs = C(id), pr = price(id), cost = pr.pay + (S.card ? 0 : TUNE.card);
     const sec = await choose(cs.name, cs.sections.map((s, i) => ({ label: `${i ? 'Evening' : 'Day'} section: ${sectionText(s)}`, sub: clash(id, i) ? 'Clashes with a class you have' : `${fmt(cost)}${pr.why ? ' · ' + pr.why : ''}${S.card ? '' : ' · includes the card'}`, value: i, disabled: clash(id, i) })).concat({ label: 'Not this one', value: null }), { text: `${cs.blurb} You get: ${cs.perk}` });
     if (sec === null) continue;
-    if (enrol(id, sec)) { const n = nextOf(id); await say([{ who, text: `There. Stamped. ${cs.name}, ${sectionText(cs.sections[sec])}, with ${CAST[cs.prof].name}.` }, { who, text: `Your first class is ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' at ' + hh((n.T % DAY) / 60) : 'this week'} in the lecture theatre, straight ahead. It is in your Planner. Do not be late; the clock is already two minutes fast.` }]); return; }
+    if (enrol(id, sec)) { const n = nextOf(id); await say([{ who, text: `There. Stamped. ${cs.name}, ${sectionText(cs.sections[sec])}, with ${CAST[cs.prof].name}.` }, { who, text: `Your first class is ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' at ' + hh((n.T % DAY) / 60) : 'this week'} in the lecture theatre, straight ahead. It is on My Day. Do not be late; the clock is already two minutes fast.` }]); return; }
   }
 }
 

@@ -115,7 +115,7 @@ function buy(evk, tierId) {
   let seat = null; if (tierId !== 'floor') { const L = seatsOf(tierId).filter(s => !s.nt).filter(s => ev.kind === 'concert' ? s.st !== 'W' && s.tier !== 'court' : s.tier !== 'court' || s.st < 'C2'), mid = L.filter(s => s.st[0] === 'C' || (s.a > 4 && s.a < 20)); const P = mid.length ? mid : L; seat = P[Math.floor(hash2(ev.day, S.tix.length + 3, 17) * P.length) % P.length].id; }
   const tk = { key: ev.key, kind: ev.kind, tier: tierId, seat, T0: ev.T0, out: ev.out, title: ev.title }; S.tix.push(tk);
   safe(() => G.planner.add({ title: (ev.kind === 'game' ? 'Basketball: ' : ev.kind === 'concert' ? 'Concert: ' : 'Show: ') + ev.title, placeId: 'arena', t: ev.T0 - 30, dur: ev.len + 30, kind: 'personal' }));
-  G.emit('arena:ticket', tk); toast(`${ev.title}, ${when(ev)}. ${seat ? seatById(seat).label : 'Standing floor'}${T.price ? ' · ' + fmt(T.price) : ' · with your season pass'}. Doors open an hour before; it is in your planner.`, 'good', 5600); return tk;
+  G.emit('arena:ticket', tk); toast(`${ev.title}, ${when(ev)}. ${seat ? seatById(seat).label : 'Standing floor'}${T.price ? ' · ' + fmt(T.price) : ' · with your season pass'}. Doors open an hour before; it is on your day.`, 'good', 5600); return tk;
 }
 async function boxOffice(key) {
   const h = G.now().hf; if (h < ARENA_HOURS[0] || h >= 22.5) { toast('The box office is shut. Open 10:00 to 22:30.', 'info'); return null; }

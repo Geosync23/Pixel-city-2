@@ -77,7 +77,7 @@ const RUN = `async (row) => {
       if (c.none) ok = a.label === null;
       let reach = '';
       if (ok && a.mode === 'point' && a.scene === G.scene.id && !c.none && c.reach !== false) { const p = G.player, sx = p.x, sy = p.y; const can = p.goTo(G.world, a.x, a.y, { snap: 8, limit: 60000 }); p.stop && p.stop(); p.path = null; p.x = sx; p.y = sy; if (!can) { ok = false; reach = ' (target not reachable on foot)'; } }
-      res.push({ ok, at: c.go || G.scene.id, got: (a.label === null ? 'no arrow' : a.mode + ': ' + a.label) + reach, want: c.none ? 'no arrow' : c.label });
+      res.push({ ok, at: c.go || G.scene.id, got: (a.label === null ? 'no arrow' : a.mode + ': ' + a.label) + reach + (a.label !== null && !a.shown ? ' (arrow hidden: ' + (document.querySelector('.ftw') ? 'first-time window open' : G.modal > 0 ? 'modal' : 'not drawn') + ')' : ''), want: c.none ? 'no arrow' : c.label });
     } catch (e) { res.push({ ok: false, at: c.go, got: 'error ' + String(e).slice(0, 160), want: c.label }); }
   }
   if (row.after) try { await (0, eval)('(async()=>{' + row.after + '})')(); } catch (e) { }

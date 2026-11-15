@@ -121,12 +121,12 @@ const nextShow = id => { const sh = SHOWS.find(s => s.id === id), h = G.now().hf
 const showList = () => SHOWS.map(s => ({ id: s.id, name: s.name, at: s.at.slice(), where: s.where, next: nextShow(s.id) }));
 function planShow(id, hour) {
   const sh = SHOWS.find(s => s.id === id); if (!sh || !G.planner) return false; const n = G.now(), nx = hour || nextShow(id), d = nx && nx > n.hf ? n.day : n.day + 1, th = nx && nx > n.hf ? nx : sh.at[0], t = d * DAY + th * 60;
-  if (safe(() => G.planner.list(t - 1, t + 1).some(a => a.data && a.data.aquaShow === id))) { toast('That show is already in your planner.', 'info'); return true; }
+  if (safe(() => G.planner.list(t - 1, t + 1).some(a => a.data && a.data.aquaShow === id))) { toast('That show is already on your day.', 'info'); return true; }
   safe(() => G.planner.add({ title: `${sh.name} (Aquarium)`, placeId: 'aquarium', t, dur: sh.dur * 60, kind: 'event', data: { aquaShow: id } })); toast(`Added to your planner: ${sh.name}, ${d === n.day ? 'today' : 'tomorrow'} at ${clock(th)}, ${sh.where}.`, 'good', 4400); return true;
 }
 async function showsBoard() {
   const L = showList(), n = G.now(), so = dom(n.day) === SLEEPOVER.day;
-  const v = await choose("Today's Shows", L.map(s => ({ label: `${s.at.map(clock).join(' & ')}  ${s.name}`, sub: `${s.where}${s.next ? ` · next ${clock(s.next)}` : ' · done for today'} · tap to add to your planner`, value: s.id })).concat([{ label: 'Close', value: null }]),
+  const v = await choose("Today's Shows", L.map(s => ({ label: `${s.at.map(clock).join(' & ')}  ${s.name}`, sub: `${s.where}${s.next ? ` · next ${clock(s.next)}` : ' · done for today'} · tap to add to your day`, value: s.id })).concat([{ label: 'Close', value: null }]),
     { text: `${n.weekday === LATE.weekday ? 'Tonight: Jellies After Dark, open until ' + clock(LATE.to) + '. ' : ''}${so ? 'Tonight: Sleep with the Sharks. Sleeping bags are in the Ocean Tunnel from ' + clock(SLEEPOVER.from) + '. ' : `Next sleepover night: day ${SLEEPOVER.day} of the season. `}All shows are included with your ticket.` });
   if (v) planShow(v);
 }

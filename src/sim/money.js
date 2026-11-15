@@ -76,11 +76,11 @@ function tick() {
     api.pay(b.total, 'Weekly bills', { force: true, bill: true }); const paid = r2(bal0 - P().money);
     S.lastBill = { t: Math.floor(t), items: b.items, total: b.total, paid };
     const msg = S.arrears > 0 ? `Weekly bills: paid ${fmt(paid)} of ${fmt(b.total)}. The rest rolls over to next Monday — no fee.` : `Weekly bills paid: ${fmt(b.total)}.`;
-    toast(msg, 'money', 4200); if (G.phone && G.phone.notify) G.phone.notify({ app: 'bank', title: 'Weekly bills', text: msg, icon: 'ui.coin' });
+    if (!(G.phone && G.phone.notify)) toast(msg, 'money', 4200); else if (S.arrears > 0) G.phone.notify({ app: 'bank', title: 'Weekly bills', text: msg, icon: 'ui.coin' });   /* QA7: one notice per event: ui/phone.js's 'bills:due' banner (Bay Bank: Paid ...); only a part payment adds its own line */
     G.emit('bills:due', { items: b.items, total: b.total, paid, arrears: S.arrears, prevArrears: arr0 }); return;
   }
   const remT = b.dueT - 1440 + (BILLS.reminder.hour - BILLS.due.hour) * 60, wk = S.billWeek + 1;
-  if (t >= remT && S.remWeek < wk) { S.remWeek = wk; const msg = `Bills are due tomorrow at 8: ${fmt(b.total)}.`; if (G.phone && G.phone.notify) G.phone.notify({ app: 'bank', title: 'Reminder', text: msg, icon: 'ui.coin' }); else toast(msg, 'money', 4000); G.emit('bills:soon', { items: b.items, total: b.total }); }
+  if (t >= remT && S.remWeek < wk) { S.remWeek = wk; const msg = `Bills are due tomorrow at 8: ${fmt(b.total)}.`; if (!(G.phone && G.phone.notify)) toast(msg, 'money', 4000);   /* QA7: the phone's own 'bills:soon' notice (ui/phone.js, Bay Bank) is the one notice */ G.emit('bills:soon', { items: b.items, total: b.total }); }
 }
 export function init() {
   S = G.defineState('bank', fresh);

@@ -23,8 +23,8 @@ function oppCard(v, ctx, open) {
   const br = v.def && v.def.do && v.def.do.bring; if (br) { const it = ITEM_BY_ID[br[0]] || { name: br[0] }, n = br[1] || 1, have = safe(() => G.inv.count(br[0]), 0); c.append(el('small', { text: `Bring ${n > 1 ? n + ' x ' : ''}${it.name}` + (have >= n ? ' (you have it)' : have ? ` (you have ${have})` : ' (a grocery, market or corner shop has it)'), style: { fontWeight: '700' } })); }
   if (v.rewardText) c.append(el('small', { text: 'For you: ' + v.rewardText, style: { opacity: '.8', fontWeight: '600' } }));
   const row = el('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } });
-  if (!v.st) row.append(btn(v.from ? 'Yes, put it in my planner' : v.canGo ? 'Yes, show me the way' : "Yes, I'm in", () => { O().accept(v.id); if (v.canGo && !v.from) ctx.close(); else ctx.refresh(); }, 'good', 'ui.opp'), btn('Not now', () => { O().decline(v.id); if (open) ctx.back(); else ctx.refresh(); }));
-  else { if (v.canGo) row.append(btn('Take me there', () => { O().go(v.id); if (!safe(() => G.phone.viewing('map'), false)) ctx.close(); }, 'pri', 'ui.pin')); if (v.appt) row.append(btn('Planner', () => ctx.open('planner', { appt: v.appt }))); row.append(btn('Let it go', () => { O().drop(v.id); if (open) ctx.back(); else ctx.refresh(); })); }
+  if (!v.st) row.append(btn(v.from ? 'Yes, put it on my day' : v.canGo ? 'Yes, show me the way' : "Yes, I'm in", () => { O().accept(v.id); if (v.canGo && !v.from) ctx.close(); else ctx.refresh(); }, 'good', 'ui.opp'), btn('Not now', () => { O().decline(v.id); if (open) ctx.back(); else ctx.refresh(); }));
+  else { if (v.canGo) row.append(btn('Take me there', () => { O().go(v.id); if (!safe(() => G.phone.viewing('map'), false)) ctx.close(); }, 'pri', 'ui.pin')); if (v.appt) row.append(btn('My Day', () => ctx.open('planner', { appt: v.appt }))); row.append(btn('Let it go', () => { O().drop(v.id); if (open) ctx.back(); else ctx.refresh(); })); }
   c.append(row); return c;
 }
 function nowTab(b, ctx) {

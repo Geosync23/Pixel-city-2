@@ -114,7 +114,7 @@ export function describe(o) {
   if (!o) return '';
   if (o.mode === 'walk') return `Walk ${fmtDist(o.dist)}`;
   if (o.mode === 'bike') return `Ride ${fmtDist(o.dist)} (riding comes later)`;
-  if (o.mode === 'cab') return 'Door to door with MapleCab';
+  if (o.mode === 'cab') return o.pickup != null ? `MapleCab: pick-up in about ${mins(o.pickup)}, then ${mins(o.ride)} door to door` : 'Door to door with MapleCab';
   const tw = o.toward && o.toward !== o.alight.name ? ` toward ${o.toward}` : '', veh = o.mode === 'bus' ? `ride the ${o.line}${tw}` : `${o.line}${tw}`;   // (a loop bus 'toward' your own stop says nothing)
   return `walk to ${o.board.name} (${mins(o.walkA)}) -> ${veh}, ${stopsTxt(o.stops)} -> get off at ${o.alight.name} -> walk ${mins(o.walkB)}`;
 }
@@ -123,7 +123,8 @@ export function routeTo(dest, from = cityPos()) {
   const D = pt(dest), dist = man(D, from), walk = dist * WALK, out = [{ mode: 'walk', label: 'Walk', minutes: walk, cost: 0, dist }];
   if (hasBike()) out.push({ mode: 'bike', label: 'Bike', minutes: walk / 2.2, cost: 0, dist });
   for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1))) out.push(o);
-  if (dist > 25 && G.transit && G.transit.fare) { const fare = safe(() => D.id ? G.transit.fare(D.id) : G.transit.fare('taxi', from, D), null); if (fare != null && isFinite(fare)) out.push({ mode: 'cab', label: 'Cab', minutes: dist / CAB_V + 4, cost: safe(() => G.state.flags.firstCabFree, false) ? 0 : fare, free: !!safe(() => G.state.flags.firstCabFree, false) }); }
+  if (dist > 25 && G.transit && G.transit.fare) { const fare = safe(() => D.id ? G.transit.fare(D.id) : G.transit.fare('taxi', from, D), null), ce = safe(() => G.transit.cabEstimate(D, from), null);   /* QA7: the cab ride's game time is set by its route (transit.js), so the estimate is exact but for the pick-up */
+    if (fare != null && isFinite(fare)) out.push({ mode: 'cab', label: 'Cab', minutes: ce ? ce.minutes : dist / CAB_V + 4, pickup: ce ? ce.wait : undefined, ride: ce ? ce.ride : undefined, cost: safe(() => G.state.flags.firstCabFree, false) ? 0 : fare, free: !!safe(() => G.state.flags.firstCabFree, false) }); }
   for (const o of out) { o.dest = D; o.minutes = Math.max(1, Math.round(o.minutes)); o.text = describe(o); o.costText = o.free ? 'Free - prepaid' : o.cost ? money(o.cost) : 'free'; if (o.wait != null) o.next = o.wait < 1.5 ? 'leaving now' : 'next in ' + mins(o.wait); }
   return out;
 }
@@ -177,7 +178,7 @@ const narrow = () => typeof innerWidth !== 'undefined' && innerWidth < 600;
 function tripText(t) {
   const tw = t.toward && t.alight && t.toward !== t.alight.name ? ` toward ${t.toward}` : '', veh = t.mode === 'bus' ? `${t.line} bus${tw}` : `${t.line}${tw}`;
   const parts = t.mode === 'cab' ? [[0, t.call ? 'head outside to meet your cab' : 'meet your MapleCab at the kerb'], [1, 'ride'], [2, 'walk to the door']]
-    : [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${stopsTxt(t.stops)}) - get off yourself`], [2, `walk ${mins(t.walkB)}`]];
+    : [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${(lv => lv === 0 ? 'your stop: get off now' : lv === 1 ? 'next stop' : stopsTxt(lv == null ? t.stops : lv) + (lv == null ? '' : ' to go'))(t.mode === 'bus' && t.stage === 1 ? safe(() => G.transit.busStopsLeft(), null) : null)}) - get off yourself`], [2, `walk ${mins(t.walkB)}`]];
   // compact: the current step in bold + what comes next (the on-screen arrow does the guiding; the full itinerary is in the route card)
   const box = el('span'), cur = parts.find(q => q[0] === t.stage) || parts[parts.length - 1], nx = parts.find(q => q[0] === t.stage + 1);
   box.append(el('b', { text: cur[1] })); if (nx && !narrow()) box.append(el('span', { style: 'opacity:.65', text: ' · then ' + nx[1] })); return box;   // portrait: the current step only (keeps the strip to one or two lines)
@@ -226,6 +227,7 @@ export function init() {
     else lost = 0;
   } });
   G.on('ride:end', onRideEnd);
+  for (const ev of ['bus:arrive', 'bus:depart']) G.on(ev, () => { const t = trip(); if (t && t.mode === 'bus' && t.stage === 1) render(); });   /* QA7: the strip's stop count is live */
   G.on('waypoint:arrived', wp => { const t = trip(); if (!t) return; if (t.stage >= 2 || (wp && (wp.id ? wp.id === t.dest.id : wp.x === t.dest.x && wp.y === t.dest.y))) return end('arrived'); if (t.stage === 0) { t.at = true; render(); } });
   G.on('waypoint', p => {
     if (mine) return; const t = trip();

@@ -1,12 +1,16 @@
 // Phone app: WANDER — the Maple Bay guidebook (app id 'guide'). Content comes from G.guide (src/sim/guide.js); styles in phone_guide.css.
-// Pages: cover/home (search, Today strip, favourites, chapter tiles, districts) -> chapter (filters + cards) -> entry (picture, prose, facts, active links),
-//        What's On (dated agenda with add-to-planner) and the Stamp Book (things to try).
-// Deep links: G.phone.open('guide', { entry: id } | { chapter: id } | { district: key } | { tab: 'whatson' | 'stamps' }).
+// Pages: cover/home (search, QUICK TOOLS, Today strip, favourites, chapter tiles, districts) -> chapter (filters + cards) -> entry (picture, prose, facts, active links),
+//        What's On (dated agenda with add-to-my-day) and the Stamp Book (things to try).
+// QUICK TOOLS (owner msg 107, BIBLE 21.3): six tiles on the front page (Fun right now / Something new / Fix a need / Tonight / This weekend / On a rainy day), each a
+//        short list of picks with "Take me there" and "Add to my day" (picks: ./_guide_quick.js on top of G.myDay.ideas), three of the Fun picks right on the cover,
+//        and THE SYSTEMS SHELF "How things work here" (cards + live state + one jump each: src/sim/systems.js, G.shelf).
+// Deep links: G.phone.open('guide', { entry: id } | { chapter: id } | { district: key } | { tab: 'whatson' | 'stamps' | 'systems', sys?: card id } | { tool: 'fun' | 'new' | 'need' | 'tonight' | 'weekend' | 'rainy' }).
 import { G } from '../core/game.js';
 import { objSprite } from '../engine/sprites.js';
 import { el, iconEl, btn, section, kv, empty, safe, cityPos, weatherNow, isNight, weatherIcon, DISTRICT_NAME } from './phone_util.js';
 import { toast } from './kit.js';
 import { CHAPTER_BY_ID, DISTRICT_INFO, hash } from '../sim/_guide_data.js';
+import { TOOLS, TOOL_BY_ID, picks, tileSub, registerSources, hold } from './_guide_quick.js';
 export const order = 120;
 const DAY = 1440, WD = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const g = () => G.guide, St = () => G.state.guide;
@@ -93,10 +97,10 @@ const dayLabel = d => { const t = Math.floor(G.state.t / DAY); return d === t ? 
 const dateLine = d => `${WD[d % 7].slice(0, 3)} ${(d % 14) + 1} ${['Spring', 'Summer', 'Autumn', 'Winter'][Math.floor(d / 14) % 4]}`;
 const planned = (e, t) => safe(() => G.planner.list(t - 1, t + 1, { events: false }).some(a => a.data && a.data.guide === e.id), false);
 function planBtn(e, t, ctx, small) {
-  if (planned(e, t.t)) return el('span.wg-added', null, iconEl('ui.check', 1), small ? 'Planned' : 'In your planner');
-  return btn(small ? 'Plan' : `Add to planner · ${dayLabel(t.day)} ${t.clock}`, ev => { ev.stopPropagation();
+  if (planned(e, t.t)) return el('span.wg-added', null, iconEl('ui.check', 1), small ? 'Added' : 'On your day');
+  return btn(small ? 'Add' : `Add to my day · ${dayLabel(t.day)} ${t.clock}`, ev => { ev.stopPropagation();
     const id = safe(() => G.planner.add({ title: e.title, placeId: e.placeId || undefined, t: t.t, dur: Math.min(t.dur || 60, 240), kind: 'event', data: { guide: e.id } }), null);
-    ctx.tip(id ? `Added: ${e.title}, ${dayLabel(t.day)} ${t.clock}` : 'Could not add that to the planner.'); ctx.refresh(); }, small ? 'gold' : 'gold wide', 'ui.calendar');
+    ctx.tip(id ? `Added: ${e.title}, ${dayLabel(t.day)} ${t.clock}` : 'Could not add that to your day.'); ctx.refresh(); }, small ? 'gold' : 'gold wide', 'ui.calendar');
 }
 function goThere(e, ctx) { const p = g().pos(e); if (!e.placeId && !p) return; const d = e.placeId || { x: p.x, y: p.y, name: e.title };
   if (G.phone.routeTo && G.phone.routeTo(d)) return;   // the Map's route card: on foot / bus / train / cab (owner msg 81)
@@ -115,6 +119,71 @@ function resultsInto(box, ctx) {
   box.replaceChildren(); if (!query.trim()) return; const r = g().search(query).slice(0, 30);
   box.append(el('div.wg-sub', { text: r.length ? `${r.length}${r.length === 30 ? '+' : ''} result${r.length === 1 ? '' : 's'} for "${query}"` : `Nothing in the guide matches "${query}".` }), ...cards(r, ctx)); watchThumbs(ctx.body);
 }
+/* ---------- quick tools: picks with "Take me there" + "Add to my day" ---------- */
+function goPick(p, ctx) {
+  if (p.open) return safe(() => G.tips.go({ go: p.open }, ctx), false);
+  if (p.sysId && !p.dest) return safe(() => G.shelf.jump(p.sysId, ctx), false);
+  const d = p.dest; if (!d) return false;
+  const en = typeof d === 'string' ? safe(() => g().all().find(q => q.placeId === d && !q.parent), null) : null;
+  safe(() => G.navGoals.select(p.need && p.needPlace ? { need: p.need, place: p.needPlace } : en && (en.room || en.venueId) ? { entry: { id: en.id, title: en.title, room: en.room || null, venueId: en.venueId || null, placeId: en.placeId || null } } : null));
+  if (G.phone.routeTo && G.phone.routeTo(d)) return true;
+  G.phone.setWaypoint(d); ctx.close(); toast(`Waypoint set: ${p.sub || p.title}. Follow the arrow.`, 'good', 3200); return true;
+}
+const added = new Set();
+function pickRow(p, ctx, compact) {
+  const e = p.entryId && g().get(p.entryId), goLabel = p.open ? (/^Get /.test(p.title) ? 'Get it' : 'Open') : p.sysId && !p.dest ? (p.go || 'Show me') : 'Take me there';
+  const main = el((e ? 'button' : 'div') + '.wq-main', e ? { 'aria-label': p.title, onclick: () => openEntry(ctx, e) } : null, iconEl(p.icon || 'ui.pin', 2),
+    el('span.wq-t', null, el('b', { text: p.title + (p.meter !== undefined ? ' ' + Math.round(p.meter) : '') }), p.meter !== undefined ? el('span.wq-meter', null, el('i', { style: { width: Math.round(p.meter) + '%', background: p.meter < 30 ? '#d9573a' : p.meter < 55 ? '#e0a02c' : '#58a84a' } })) : null,
+      p.sub ? el('span.wq-sub', { text: p.sub }) : null, el('small', { text: p.why || '' })));
+  const acts = el('div.wq-btns');
+  if (p.open || p.dest || p.sysId) acts.append(el('button.wq-go', { 'data-wqgo': p.id, onclick: () => goPick(p, ctx) }, iconEl(p.open ? 'ui.phone' : 'ui.pin', 1), compact && goLabel === 'Take me there' ? 'Go' : goLabel));
+  if (p.idea && !p.open) { const isOpp = p.idea.kind === 'opp';
+    if (added.has(p.id)) acts.append(el('span.wg-added', null, iconEl('ui.check', 1), 'On your day'));
+    else { const ab = el('button.wq-add', { 'data-wqadd': p.id, 'aria-label': 'Add to my day: ' + p.title, onclick: () => { hold(); if (added.size > 60) added.clear(); added.add(p.id);   /* marked first: adding re-renders the page */
+        const id = safe(() => G.myDay.add(p.idea), null); if (!id) { added.delete(p.id); return ctx.tip('That one cannot be added just now.'); }
+        if (ab.isConnected) ab.replaceWith(el('span.wg-added', null, iconEl('ui.check', 1), 'On your day')); ctx.tip(isOpp ? `You took it up: ${p.title}.` : `On your day: ${p.idea.title || p.title}.`); safe(() => G.audio.sfx('success')); } }, compact ? 'Add' : isOpp ? 'Take it up' : 'Add to my day'); acts.append(ab); } }
+  return el('div.wq-row' + (compact ? '.compact' : '') + (p.poor ? '.poor' : ''), { 'data-pick': p.id }, main, acts);
+}
+function toolPage(b, ctx, id) {
+  b.classList.add('wg'); const T = TOOL_BY_ID[id], n = G.now(), w = weatherNow(), wet = !!(w && w.wet), L = safe(() => picks(id), []);
+  const title = id === 'rainy' && wet ? 'It is raining' : T.name, line = id === 'fun' ? `${n.weekdayName}, ${n.clock}. ${T.line}` : id === 'tonight' && (n.hf >= 17 || n.hf < 4) ? 'What is on and open this evening.' : T.line;
+  b.append(el('div.wg-chhead.wq-head', { style: '--c:' + T.color }, iconEl(T.icon, 3), el('div', null, el('em', { text: 'Quick tool' }), el('h2', { text: title }), el('p', { text: line }))));
+  if (!L.length) b.append(empty(T.icon, 'Nothing just now', id === 'tonight' ? 'A quiet evening. Try Fun right now.' : 'Have a wander and look again in a while.'));
+  for (const p of L) { if (p.head) b.append(el('div.wq-sec', { text: p.head })); b.append(pickRow(p, ctx)); }
+  if (id === 'need') b.append(el('p.wg-hint', { text: 'The same list opens when you tap a need on the game screen.' }));
+  if (id === 'fun') b.append(el('p.wg-hint', { text: 'Fun comes from shows, games, music, sport, parks, people, classes and your phone. Pick interests in the Me app and this list leans your way.' }));
+  const more = { fun: ['shows', 'Shows & Nightlife'], new: ['try', 'Things To Try'], tonight: ['shows', 'Shows & Nightlife'], rainy: ['arts', 'Arts & Culture'] }[id];
+  b.append(el('div.wg-two', null, more ? btn(more[1], () => ctx.push(CHAPTER_BY_ID[more[0]].name, (bb, c) => chapterPage(bb, c, more[0]), 'ch:' + more[0]), '', 'ui.search') : btn("What's On", () => ctx.push("What's On", whatsOnPage, 'whatson'), '', 'ui.calendar'),
+    btn('How things work', () => ctx.push('How things work here', systemsPage, 'systems'), '', 'sys.shelf')));
+  keepScroll(b, 'tool:' + id);
+}
+/* ---------- the Systems shelf: "How things work here" ---------- */
+let sysFilter = '', sysFocus = null;
+function systemsPage(b, ctx) {
+  b.classList.add('wg'); const S_ = G.shelf; if (!S_) return b.append(empty('sys.shelf', 'Still being shelved', 'Back in a moment.'));
+  const L = S_.list(), fresh = L.filter(c => c.isNew).length;
+  b.append(el('div.wg-chhead.wq-head', { style: '--c:#8a5a2c' }, iconEl('sys.shelf', 3), el('div', null, el('em', { text: 'The shelf' }), el('h2', { text: 'How things work here' }), el('p', { text: `One card for everything in Maple Bay: how it works, where you are in it, and one button straight in. ${fresh ? fresh + ' still new to you.' : ''}` }))));
+  b.append(el('div.wg-filters', null, el('button.ph-chip' + (!sysFilter ? '.on' : ''), { onclick: () => { sysFilter = ''; ctx.refresh(); } }, `All ${L.length}`), fresh ? el('button.ph-chip' + (sysFilter === 'new' ? '.on' : ''), { onclick: () => { sysFilter = sysFilter === 'new' ? '' : 'new'; ctx.refresh(); } }, `New to you ${fresh}`) : null));
+  for (const grp of S_.groups()) { const l = L.filter(c => c.group === grp.id && (sysFilter !== 'new' || c.isNew)); if (!l.length) continue; b.append(section(grp.name));
+    for (const c of l) { const tips = c.tips.map(id => safe(() => G.tips.get(id), null)).filter(Boolean);
+      b.append(el('div.ws-card' + (c.isNew ? '.new' : '') + (sysFocus === c.id ? '.hl' : ''), { id: 'ws-' + c.id, 'data-sys': c.id },
+        el('div.ws-top', null, iconEl(c.icon, 2), el('b', { text: c.name }), c.isNew ? el('em.ws-new', { text: 'new to you' }) : null),
+        el('p.ws-how', null, c.how[0], el('br'), c.how[1]),
+        c.state ? el('div.ws-state', null, el('i'), el('span', { text: c.state })) : null,
+        c.chips && c.chips.length ? el('div.wg-chips.ws-chips', null, c.chips.map(ch => el('button.ph-chip' + (ch.done ? '.on' : ''), { 'data-syschip': ch.id, onclick: () => S_.jump(c.id, ctx, ch.id) }, ch.label))) : null,
+        c.jump ? el('button.ws-jump', { 'data-sysjump': c.id, onclick: () => S_.jump(c.id, ctx) }, iconEl(c.jump.icon || 'ui.pin', 1), el('span', { text: c.jump.label })) : null,
+        tips.length ? el('div.ws-tips', null, el('span', { text: 'First-time tips:' }), tips.map(t => el('button', { 'data-systip': t.id, onclick: () => ctx.open('tips', { tip: t.id }) }, t.title))) : null)); } }
+  b.append(el('p.wg-foot', { text: 'Nothing here has to be done. Take the town at your own pace.' }));
+  if (sysFocus) { const f = sysFocus; sysFocus = null; requestAnimationFrame(() => { const nd = b.querySelector('#ws-' + f); if (nd) b.scrollTop = Math.max(0, nd.offsetTop - 70); }); } else keepScroll(b, 'systems');
+}
+function quickBlock(b, ctx) {
+  b.append(section('Quick tools', el('small', { text: 'two taps to something to do' })));
+  b.append(el('div.wq-tiles', null, TOOLS.map(T => el('button.wq-tile', { 'data-tool': T.id, style: '--c:' + T.color, onclick: () => ctx.push(T.name, (bb, c) => toolPage(bb, c, T.id), 'tool:' + T.id) }, iconEl(T.icon, 2), el('b', { text: T.name }), el('small', { text: safe(() => tileSub(T.id), '') })))));
+  const fresh = safe(() => G.shelf.list().filter(c => c.isNew).length, 0), nSys = safe(() => G.shelf.list().length, 0);
+  b.append(el('button.wq-shelf', { 'data-shelf': 1, onclick: () => ctx.push('How things work here', systemsPage, 'systems') }, iconEl('sys.shelf', 2), el('span', null, el('b', { text: 'How things work here' }), el('small', { text: `${nSys} cards, one for everything in the game${fresh ? ` · ${fresh} new to you` : ''}` })), el('i', { text: '>' })));
+  const L = safe(() => picks('fun').slice(0, 3), []);
+  if (L.length) { b.append(section('Fun right now', el('button.wq-more', { onclick: () => ctx.push('Fun right now', (bb, c) => toolPage(bb, c, 'fun'), 'tool:fun') }, 'More'))); for (const p of L) b.append(pickRow(p, ctx, true)); }
+}
 function homePage(b, ctx) {
   const n = G.now(), G_ = g(), st = G_.stats(), try_ = G_.thingsToTry(), done = try_.filter(t => t.done).length, day = Math.floor(G.state.t / DAY);
   b.classList.add('wg');
@@ -122,6 +191,7 @@ function homePage(b, ctx) {
     el('small', { text: `${n.seasonName} edition · Year ${n.year} · ${st.total} places & things to do` })));
   const res = el('div.wg-list'), inp = el('input.wg-search', { type: 'search', placeholder: 'Search places, food, things to do…', 'aria-label': 'Search the guide', value: query, oninput: () => { query = inp.value; resultsInto(res, ctx); } });
   b.append(inp, res); resultsInto(res, ctx);
+  safe(() => quickBlock(b, ctx), 0);
   b.append(el('div.wg-two', null,
     el('button.wg-big.on', { onclick: () => ctx.push("What's On", whatsOnPage, 'whatson') }, iconEl('ui.calendar', 2), el('b', { text: "What's On" }), el('small', { text: 'This week' })),
     el('button.wg-big.st', { onclick: () => ctx.push('Stamp Book', stampPage, 'stamps') }, iconEl('ui.star', 2), el('b', { text: 'Stamp Book' }), el('small', { text: `${done} / ${try_.length} stamps` }))));
@@ -139,7 +209,7 @@ function homePage(b, ctx) {
     return el('button.wg-ch', { style: '--c:' + (ch.color), onclick: () => ctx.push(ch.name, (bb, cc) => chapterPage(bb, cc, ch.id), 'ch:' + ch.id) }, cv, el('b', { text: ch.name }), el('small', { text: `${st.byChapter[ch.id]} entries` })); })));
   b.append(section('Browse by district'));
   b.append(el('div.wg-districts', null, G_.districts().map(d => el('button.wg-dist', { style: '--c:' + (d.color || '#888'), onclick: () => ctx.push(d.name, (bb, cc) => districtPage(bb, cc, d), 'd:' + d.id) }, el('b', { text: d.name }), el('small', { text: d.line || '' }), el('em', { text: `${G_.byDistrict(d.id).length} entries` })))));
-  b.append(el('p.wg-foot', { text: 'Wander lists every place in town, found or not. Tap "Take me there" on any page, pick how to travel, and follow the arrow.' }));
+  b.append(el('p.wg-foot', { text: 'Wander lists every place in town, found or not. Tap "Take me there" on any page, pick how to travel, and follow the arrow. "Add to my day" puts a thing on your schedule.' }));
   keepScroll(b, 'home'); watchThumbs(b);
 }
 
@@ -220,7 +290,7 @@ const fmtH = h => { const mm = Math.round(((h % 24) + 24) % 24 * 60); return Str
 /* ---------- What's On ---------- */
 function whatsOnPage(b, ctx) {
   b.classList.add('wg'); const G_ = g(), on = G_.whatsOn();
-  b.append(el('div.wg-chhead', { style: '--c:' + ('#8a4fc0') }, el('div', null, el('em', { text: 'This week' }), el('h2', { text: "What's On" }), el('p', { text: 'Films, concerts, plays and city events for the next seven days. Add anything to your planner and it will remind you.' }))));
+  b.append(el('div.wg-chhead', { style: '--c:' + ('#8a4fc0') }, el('div', null, el('em', { text: 'This week' }), el('h2', { text: "What's On" }), el('p', { text: 'Films, concerts, plays and city events for the next seven days. Add anything to your day and it will remind you.' }))));
   if (!on.length) return b.append(empty('ui.calendar', 'A quiet week', 'Nothing scheduled. Try the Things To Try chapter instead.'));
   let cur = -1;
   for (const o of on) { const e = G_.get(o.entryId);
@@ -251,6 +321,8 @@ function render(b, ctx) {
     else if (a.chapter && CHAPTER_BY_ID[a.chapter]) go = () => ctx.push(CHAPTER_BY_ID[a.chapter].name, (bb, c) => chapterPage(bb, c, a.chapter), 'ch:' + a.chapter);
     else if (a.district && DISTRICT_INFO[a.district]) { const d = g().districts().find(x => x.id === a.district); go = () => ctx.push(d.name, (bb, c) => districtPage(bb, c, d), 'd:' + d.id); }
     else if (a.tab === 'whatson') go = () => ctx.push("What's On", whatsOnPage, 'whatson'); else if (a.tab === 'stamps' || a.tab === 'try') go = () => ctx.push('Stamp Book', stampPage, 'stamps');
+    else if (a.tab === 'systems') { sysFocus = a.sys || null; if (a.sys) sysFilter = ''; go = () => ctx.push('How things work here', systemsPage, 'systems'); }
+    else if (a.tool && TOOL_BY_ID[a.tool]) go = () => ctx.push(TOOL_BY_ID[a.tool].name, (bb, c) => toolPage(bb, c, a.tool), 'tool:' + a.tool);
     if (go) setTimeout(go, 0);
   }
   homePage(b, ctx);
@@ -258,6 +330,7 @@ function render(b, ctx) {
 function injectCss() { if (!document.querySelector('link[href="src/ui/style.css"]') || document.querySelector('link[href="src/ui/phone_guide.css"]')) return; document.head.append(el('link', { rel: 'stylesheet', href: 'src/ui/phone_guide.css' })); }
 export function init() {
   injectCss(); if (!G.phone || !G.phone.registerApp) return;
+  safe(() => registerSources(), 0); G.on('ready', () => safe(() => registerSources(), 0));
   G.phone.registerApp({ id: 'guide', name: 'Wander', question: 'Where shall we go?', iconId: 'ui.star', color: '#b23a2e', slot: -1, render,
     noBadge: true, badge: () => 0 });   /* no notification counter on Wander at all (owner msg 87); new places still show a NEW tag inside the app */
   safe(() => G.phone.unlock && G.phone.unlock('guide'), 0);

@@ -30,7 +30,7 @@ function showtime(b, ctx) {
     for (const { s, t, v } of rows.slice(0, d ? 8 : 20)) b.append(el('div.ph-card.mn-show', null,
       el('div.mn-show-top', null, el('span.mn-time', { text: s.clock || when(t) }), el('span', null, el('b', { text: s.title }), el('small', { text: `${VKIND[v.id] || 'Show'} · ${v.name || placeName(v.id)} · ${money(s.price)} · ${s.minutes || 90} min` }))),
       s.blurb ? el('p', { text: s.blurb }) : null,
-      el('div.nl-acts', null, btn('Add to planner', () => { const id = safe(() => G.planner.add({ title: s.title, placeId: v.id, t, dur: s.minutes || 90, kind: 'event' }), null); toast(id ? `In your planner: ${s.title}, ${when(t)}. Buy the ticket at the box office.` : 'Could not add that.', id ? 'good' : ''); }, '', 'ui.calendar'),
+      el('div.nl-acts', null, btn('Add to my day', () => { const id = safe(() => G.planner.add({ title: s.title, placeId: v.id, t, dur: s.minutes || 90, kind: 'event' }), null); toast(id ? `In your planner: ${s.title}, ${when(t)}. Buy the ticket at the box office.` : 'Could not add that.', id ? 'good' : ''); }, '', 'ui.calendar'),
         btn('Take me there', () => goTo(place(v.id) ? v.id : 'door:' + v.id, ctx, v.name || placeName(v.id)), 'pri', 'ui.pin'))));
   }
   b.append(el('p.as-note', { text: 'Tickets are sold at each box office. Doors open 15 minutes before the start.' }));

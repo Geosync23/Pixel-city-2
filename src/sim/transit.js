@@ -41,6 +41,12 @@ const fmt = n => G.money && G.money.fmt ? G.money.fmt(n) : '$' + n;
 const hasPass = () => !!(G.inv && G.inv.hasAccess && G.inv.hasAccess('transit'));
 const sfx = n => { try { G.audio && G.audio.sfx && G.audio.sfx(n); } catch (e) { } };
 // nav hooks (sim/navigator.js trips; the guide arrow + "This is your stop" banner are ui/navarrow.js): the active bus trip, if any. NAV_HOLD = extra real seconds the bus waits at your stop.
+/* QA round 7: a cab ride's GAME time comes from the road route, not from how long the cut takes: CAB_RIDE.fixed + CAB_RIDE.perUnit x route length.
+   The ride owns the clock (G.cutscene.clock: core/game.js does not advance time during it; rideTick moves the clock with the cab's progress), so a ride costs
+   the same at 1x / 2x / 4x and through red lights; the cut itself plays in whatever real time it takes. The pick-up is dispatched to take about CAB_PICKUP
+   game minutes (x the weather's taxiWaitMult): the cab waits off screen when it is closer, and is placed at the kerb when it is late.
+   cabEstimate(to, from?) -> { wait, ride, minutes, len } is what the Map / MapleCab / My Day show (sim/navigator.js uses it). */
+export const CAB_RIDE = { fixed: 1, perUnit: .06, detour: 1.3 }, CAB_PICKUP = 6, CAB_LATE = 2, CAB_CAR_V = 4.5;   // CAB_CAR_V: measured pace of a dispatched cab (units per game minute = per world second)
 const BUS_RIDE_V = 10, BUS_CLOCK = .2, NAV_HOLD = 9, navTrip = () => { try { const t = G.nav && G.nav.trip && G.nav.trip(); return t && t.mode === 'bus' && t.alight ? t : null; } catch (e) { return null; } };
 
 function placeOf(id) {
@@ -53,6 +59,17 @@ function taxiFare(from, to) {
   if (w && (w.districtAt(from.x, from.y) === 'airport' || w.districtAt(to.x, to.y) === 'airport')) return T.airportFlat;
   let f = T.base + T.perUnit * (Math.abs(from.x - to.x) + Math.abs(from.y - to.y)); const h = G.now().hour; if (h >= T.nightHours[0] || h < T.nightHours[1]) f *= T.nightMult;
   return Math.max(T.minFare, Math.min(T.maxFare, Math.round(f * 4) / 4));
+}
+const pickupMin = () => { let m = 1; try { m = (G.weather && G.weather.taxiWaitMult && G.weather.taxiWaitMult()) || 1; } catch (e) { } return CAB_PICKUP * m; };
+const cabRideMin = len => CAB_RIDE.fixed + CAB_RIDE.perUnit * Math.max(0, len || 0);
+const cabCharge = (len, a, b) => Math.min(len, (Math.abs(a.x - b.x) + Math.abs(a.y - b.y)) * CAB_RIDE.detour + 15);   // a one-way loop does not bill you: at most `detour` x the straight-line (Manhattan) distance + 15
+function cabLane(pl) { const g = roadGraph(); return pl.poi && pl.poi.lane ? g.nearestLane(pl.poi.lane.x, pl.poi.lane.y) : g.nearestLane(pl.x, pl.y); }
+let estC = null;
+function cabEstimate(to, from) {
+  const a = from ? placeOf(from) : herePos(), b = placeOf(to); if (!a || !b || !isFinite(a.x) || !isFinite(b.x)) return null;
+  const key = Math.round(a.x) + ',' + Math.round(a.y) + '>' + Math.round(b.x) + ',' + Math.round(b.y); let len = estC && estC.k === key ? estC.len : null;
+  if (len == null) { try { const g = roadGraph(), r = g.route(g.nearestLane(a.x, a.y), cabLane(b)); len = r ? cabCharge(r.len, a, b) : null; } catch (e) { len = null; } if (len == null) len = (Math.abs(a.x - b.x) + Math.abs(a.y - b.y)) * 1.15; estC = { k: key, len }; }
+  const wait = pickupMin(), rideM = cabRideMin(len); return { wait, ride: rideM, minutes: wait + rideM, len };
 }
 function fare(kind, from, to) {
   if (kind !== 'taxi' && kind !== 'bus' && kind !== 'train' && !modes[kind]) { to = kind; from = undefined; kind = 'taxi'; }
@@ -78,7 +95,7 @@ function showHud(title, sub, btns) {
 function hideHud() { if (hud) { hud.root.remove(); hud = null; } }
 function begin(r) {
   const p = G.player; ride = r; r.t = 0; r.district = W().districtAt(r.vehicle.x, r.vehicle.y); p.stop && p.stop(); p.hidden = true; G.target = null; G.pending = null;
-  G.camTarget = r.vehicle; r.vehicle.ghost = true; G.cutscene = { update: rideTick, ride: true }; G.emit('ride:start', r.kind, r.destination);
+  r.t0 = G.state.t; G.camTarget = r.vehicle; r.vehicle.ghost = true; G.cutscene = { update: rideTick, ride: true, clock: r.kind === 'taxi' }; G.emit('ride:start', r.kind, r.destination);   /* clock: the ride owns the game clock (QA7) */
 }
 function finish(sp, ok = true) {
   const r = ride, p = G.player; if (!r) return; ride = null; p.x = sp.x; p.y = sp.y; p.z = W().heightAt(sp.x, sp.y); p.hidden = false; p.path = null;
@@ -87,48 +104,56 @@ function finish(sp, ok = true) {
 }
 function rideTick(dt) {
   const r = ride; if (!r) { G.cutscene = null; return; } const v = r.vehicle, p = G.player; p.x = v.x; p.y = v.y; p.z = v.z; r.t += dt;
-  const sp = G.state.speed || 0, extra = r.kind === 'bus' ? 0 : sp >= 1 ? .5 : 1.5 - sp;   /* QA6: +0.5 game-min per world second at any speed (core sub-steps rides now), so a cab ride costs the same game time at 1x / 2x / 4x */ if (extra > 0) G.advance(dt * extra); // cab rides pass at 1.5 game-min per second; bus rides run the clock at BUS_CLOCK (see boardNow)
-  if (!v.active) return finish(curbSpot(p.x, p.y, p.x, p.y), false);
+  // bus rides run the clock at BUS_CLOCK (see boardNow); a cab ride moves the clock with its progress (QA7: rideClock)
+  if (!v.active) { if (r.kind === 'taxi') rideClock(r, r.progress); return finish(curbSpot(p.x, p.y, p.x, p.y), false); }
   if (r.holdT > 0 && (r.holdT -= dt) <= 0 && r.bus) r.bus.hold = false;
-  if (r.kind === 'taxi') { r.done += v.v * dt; r.progress = Math.min(1, r.done / r.total); if (r.t > r.total / 4 + 90 && !r.skipping) skipRide(); }
+  if (r.kind === 'taxi') { r.done += v.v * dt; r.progress = Math.min(1, r.done / r.total); rideClock(r, r.progress); if (r.t > r.total / 4 + 90 && !r.skipping) skipRide(); }
   if ((tD -= dt) <= 0) {
     tD = .35; const k = W().districtAt(v.x, v.y); if (k && k !== r.district) { r.district = k; G.emit('ride:district', k); }
     if (hud) {
       hud.fill.style.width = Math.round(r.progress * 100) + '%';
-      if (r.kind === 'bus') { const b = r.bus, ns = b.loop.stops[b.nsi], d = r.destination && TX().busStopName(r.destination); const nt = navTrip(), mine = !d && nt && nt.stage === 1 ? nt.alight.name : '';
-        hud.s.textContent = (b.atStop ? 'At: ' : 'Next stop: ') + ns.poi.name + (r.offNext ? ' - getting off here' : d ? ' - getting off at ' + d : mine ? ' - your stop: ' + mine : '');
-        if (r.offBtn) r.offBtn.textContent = b.atStop && b.atStop !== r.from ? 'Get off here' : r.offNext ? 'Getting off next stop ✓' : 'Get off at next stop'; }
+      if (r.kind === 'bus') { const b = r.bus, ns = b.loop.stops[b.nsi], d = r.destination && TX().busStopName(r.destination), left = busLeft(r), ob = r.offBtn;
+        if (left !== null) {   /* QA7: on a Map trip the right stop is unmistakable: the stop count is live, and "Get off" is only offered at (or just before) YOUR stop */
+          const mn = navTrip().alight.name, show = left === 0 || (left === 1 && !b.atStop);
+          hud.s.textContent = left === 0 ? 'THIS IS YOUR STOP: ' + mn : left === 1 ? (b.atStop ? 'Stay on: your stop ' + mn + ' is next' : 'Your stop is next: ' + mn) : (b.atStop ? 'At ' : 'Next: ') + ns.poi.name + ' · stay on, your stop ' + mn + ' is ' + left + ' stops away';
+          if (ob) { ob.style.display = show ? '' : 'none'; ob.classList.toggle('primary', show); ob.textContent = left === 0 ? 'Get off here: your stop' : r.offNext ? 'Getting off at ' + mn + ' ✓' : 'Get off at ' + mn + ' (next)'; }
+        } else {
+          hud.s.textContent = (b.atStop ? 'At: ' : 'Next stop: ') + ns.poi.name + (r.offNext ? ' - getting off here' : d ? ' - getting off at ' + d : '');
+          if (ob) { ob.style.display = ''; ob.classList.remove('primary'); const nx = b.loop.stops[(b.nsi + (b.atStop ? 1 : 0)) % b.loop.stops.length].poi.name; ob.textContent = b.atStop && b.atStop !== r.from ? 'Get off here (' + ns.poi.name + ')' : r.offNext ? 'Getting off at ' + nx + ' ✓' : 'Get off at ' + nx; }
+        } }
       else hud.s.textContent = (DN[r.district] || 'Maple Bay') + (r.free ? ' - pre-paid' : ' - fare ' + fmt(r.fare));
     }
   }
 }
 
 /* ---------- taxis ---------- */
+/** QA7: the game clock during a cab ride = start + ride minutes x progress (never backwards) */
+function rideClock(r, k) { if (!r || !(r.T > 0) || r.t0 == null) return; const want = r.t0 + r.T * Math.max(0, Math.min(1, k)); if (want > G.state.t) G.advance(want - G.state.t); }
 function freeCab(c) {
   if (!c.active || c.stand) return; c.parked = false; c.halt = false; c.keep = false; c.role = ''; c.pre = false; c.vmax = c.vbase; c.curb = 0; c.stop = null; c.onStop = null; c.taxiFree = true; c.setParams({ free: true }); TX().setPlan(c, null);
 }
 function startTaxiRide(cab, pl, opts, resolve) {
-  const g = roadGraph(), dst = pl.poi && pl.poi.lane ? g.nearestLane(pl.poi.lane.x, pl.poi.lane.y) : g.nearestLane(pl.x, pl.y), p = G.player;
+  const g = roadGraph(), dst = cabLane(pl), p = G.player;
   const f = opts.fare !== undefined ? opts.fare : taxiFare({ x: p.x, y: p.y }, pl), free = !!opts.free || !!G.state.flags.firstCabFree;
   if (cab.stand) { const j = cab.stand.cabs.indexOf(cab); if (j >= 0) cab.stand.cabs.splice(j, 1); cab.stand = null; }
   cab.parked = false; cab.halt = false; cab.curb = 0; cab.role = 'svc'; cab.keep = true; cab.taxiFree = false; cab.setParams({ free: false }); cab.pre = true; cab.vmax = 10; cab.stuck = 0;
   const rt = g.route({ e: cab.e, off: cab.off, s: cab.s, x: cab.x, y: cab.y }, dst);
   if (rt) { TX().setPlan(cab, rt); cab.stop = { e: rt.to.e, s: rt.to.s }; cab.onStop = arriveTaxi; }
-  begin({ kind: 'taxi', vehicle: cab, destination: pl.id || null, place: pl, progress: 0, fare: f, free, total: rt ? Math.max(1, rt.len) : 1, done: 0, route: rt, resolve });
+  begin({ kind: 'taxi', vehicle: cab, destination: pl.id || null, place: pl, progress: 0, fare: f, free, total: rt ? Math.max(1, rt.len) : 1, done: 0, route: rt, resolve, T: cabRideMin(rt ? cabCharge(rt.len, p, pl) : (Math.abs(p.x - pl.x) + Math.abs(p.y - pl.y)) * 1.15) });
   showHud('MapleCab to ' + (pl.name || 'your destination'), '', el('button', { text: 'Skip ride', onclick: skipRide }));
   if (!rt) skipRide();
 }
 function arriveTaxi() {
   const r = ride; if (!r || r.kind !== 'taxi') return; const v = r.vehicle, pl = r.place;
   if (r.free) { if (G.state.flags.firstCabFree) G.state.flags.firstCabFree = false; } else if (G.money && G.money.pay) G.money.pay(r.fare, 'Taxi');
-  r.progress = 1; v.parked = true; v.stop = null; v.onStop = null; idle.push({ v, t: 2.5 });
+  r.progress = 1; rideClock(r, 1); v.parked = true; v.stop = null; v.onStop = null; idle.push({ v, t: 2.5 });
   finish(curbSpot(v.x, v.y, pl.x, pl.y)); toast('Arrived: ' + (pl.name || 'destination') + (r.free ? ' - ride pre-paid' : ' - fare ' + fmt(r.fare)));
 }
 function skipRide() {
   const r = ride; if (!r || r.kind !== 'taxi' || r.skipping) return; r.skipping = true; const f = G.fadeEl; G.modal++; if (f) f.classList.add('on');
   setTimeout(() => {
     try {
-      if (ride === r) { const v = r.vehicle, rt = r.route; if (rt) { TX().setPlan(v, null); TX().place(v, rt.to.e, rt.to.off, rt.to.s); } v.v = 0; G.advance(Math.max(0, r.total - r.done) / 10 * 1.5); G.player.x = v.x; G.player.y = v.y; arriveTaxi(); G.snapCam(); }
+      if (ride === r) { const v = r.vehicle, rt = r.route; if (rt) { TX().setPlan(v, null); TX().place(v, rt.to.e, rt.to.off, rt.to.s); } v.v = 0; rideClock(r, 1); G.player.x = v.x; G.player.y = v.y; arriveTaxi(); G.snapCam(); }
     } finally { G.modal--; setTimeout(() => f && f.classList.remove('on'), 80); }
   }, 280);
 }
@@ -136,6 +161,12 @@ function cabHere(c) {
   if (!pend || pend.cab !== c) return; c.parked = true; c.v = 0; pend.state = 'waiting'; pend.t = 0; sfx('honk');
   if (!pend.opts.silent) { toast('Your MapleCab is here.'); try { G.phone && G.phone.notify && G.phone.notify({ app: 'taxi', title: 'MapleCab', text: 'Your MapleCab is here.' }); } catch (e) { } }
   G.emit('taxi:here', c);
+}
+/* QA7: a cab that is still far away when the pick-up is due (one-way streets, red lights) is moved to the same street a few car lengths up from you and drives the rest */
+function lateCab(pd, c) {
+  pd.near = true; const g = roadGraph(), e = pd.pick.e, s0 = g.span(e)[0], room = (pd.pick.s - s0) * e.d, back = Math.max(0, Math.min(14, room - 1)); if (back < 4) return;
+  const sp = g.lanePos(e, pd.pick.off, pd.pick.s - e.d * back), rt = g.route(sp, pd.pick); if (!rt) return;
+  c.halt = false; TX().place(c, e, pd.pick.off, pd.pick.s - e.d * back); TX().setPlan(c, rt); c.stop = { e: pd.pick.e, s: pd.pick.s }; c.onStop = cabHere; c.v = 6;
 }
 function dropPend(msg) { const pd = pend; if (!pd) return; pend = null; freeCab(pd.cab); if (msg) toast(msg); G.emit('taxi:cancel'); pd.resolve(false); }
 function pickDestination() {
@@ -159,8 +190,9 @@ function callTaxi(placeId, opts = {}) {
   if (!rt || rt.len > 220) { const e = pick.e, s0 = g.span(e)[0]; sp = g.lanePos(e, pick.off, (pick.s - s0) * e.d > 26 ? pick.s - e.d * 26 : s0); rt = g.route(sp, pick); }
   const cab = TX().spawn('taxi', sp, { keep: true, role: 'svc', pre: true, params: { free: false } }); if (!cab) { toast('No cabs available right now.'); return Promise.resolve(false); }
   cab.vmax = 9.5; cab.v = 6; TX().setPlan(cab, rt); cab.stop = { e: pick.e, s: pick.s }; cab.onStop = cabHere;
-  if (!opts.silent) toast('MapleCab is on the way.');
-  return new Promise(res => { pend = { cab, place: pl, opts, state: 'coming', t: 0, resolve: res, pick }; });
+  const due = pickupMin(), hold = Math.max(0, due - (rt ? rt.len : 30) / CAB_CAR_V - .5); if (hold > 0) { cab.halt = true; cab.v = 0; }   // QA7: the pick-up takes about `due` game minutes (the cab waits off screen when it is close)
+  if (!opts.silent) toast('MapleCab is on the way: about ' + Math.max(1, Math.round(due)) + ' min.');
+  return new Promise(res => { pend = { cab, place: pl, opts, state: 'coming', t: 0, resolve: res, pick, due, hold, len: rt ? rt.len : null }; });
 }
 function hail(v) {
   if (ride || pend || G.cutscene || !v.active) return Promise.resolve(false);
@@ -179,6 +211,11 @@ function cabInteractable(v) {
 }
 
 /* ---------- buses ---------- */
+/** QA7: stops left to the Map trip's stop on the bus you ride (0 = at it), or null when you are not on a Map bus trip (or chose your own stop) */
+function busLeft(r) {
+  const nt = navTrip(); if (!r || r.kind !== 'bus' || !r.bus || r.destination || !nt || nt.stage !== 1) return null; const b = r.bus, S = b.loop.stops, n = S.length, i = S.findIndex(s => s.id === nt.alight.id); if (i < 0) return null;
+  return b.atStop === nt.alight.id ? 0 : ((i - (b.atStop ? (b.nsi + 1) % n : b.nsi) + n) % n) + 1;
+}
 const stopPoi = id => W().pois.find(p => p.id === id);
 const routeNum = rid => (TX().loops[rid] ? TX().loops[rid].num : String(rid).replace('bus', ''));
 function boardNow(b, stop, dest, resolve) {
@@ -233,7 +270,7 @@ function update(dt) {
   if (pd.state === 'hail') {
     if (!c.halt) { const e = c.e, g = roadGraph(); if (!c.cornerOn && !c.inNode && (e.s1 - c.s) * e.d > g.ext(e.to, e.axis) + 3.2 && (c.s - e.s0) * e.d > g.ext(e.from, e.axis) + 2.2) c.halt = true; else if (pd.t > 12) c.halt = true; }
     else if (c.v < .05) { c.parked = true; pd.state = 'waiting'; pd.t = 0; sfx('honk'); G.emit('taxi:here', c); walkTo(c); }
-  } else if (pd.state === 'coming') { if (pd.t > 60) { TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); } }
+  } else if (pd.state === 'coming') { if (pd.hold > 0 && (pd.hold -= dt) <= 0) c.halt = false; if (!pd.near && pd.t > (pd.due || 6) - 2 && Math.hypot(c.x - pd.pick.x, c.y - pd.pick.y) > 12) lateCab(pd, c); if (pd.t > (pd.due || 6) + CAB_LATE) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); } }
   else if (pd.state === 'waiting') {
     if (pd.opts.auto !== false && !G.busy && !G.modal && Math.hypot(p.x - c.x, p.y - c.y) < (pd.hailed ? 4.6 : 3.3)) boardCab();
     else if (pd.hailed && !p.path && !G.busy && (pd.w = (pd.w || 0) + dt) > 1.5) { pd.w = 0; walkTo(c); }
@@ -245,7 +282,7 @@ export function init() {
   S = G.defineState('transit', () => ({ rides: { taxi: 0, bus: 0 } }));
   if (typeof document !== 'undefined') document.head.append(el('style', { text: CSS }));
   const T = G.transit = {
-    callTaxi, hailTaxi, cancel: () => { if (pend && pend.state !== 'picking') dropPend(); }, skipRide, fare, payFare, hasPass, boardBus, openStop, roadGraph, route,
+    callTaxi, hailTaxi, cabEstimate, CAB_RIDE, busStopsLeft: () => busLeft(ride), cancel: () => { if (pend && pend.state !== 'picking') dropPend(); }, skipRide, fare, payFare, hasPass, boardBus, openStop, roadGraph, route,
     nextBuses: id => TX() ? TX().nextBuses(id).map(a => ({ route: a.route, num: a.num, name: a.name, color: a.color, minutes: a.minutes })) : [],
     stops: () => W().pois.filter(p => p.type === 'busstop'),
     get ride() { return ride; }, get pending() { return pend; },

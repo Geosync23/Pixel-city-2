@@ -177,7 +177,7 @@ export function init() {
 
   let navDone = false; const nav = () => { if (navDone || !G.nav || !G.nav.addSource) return; navDone = true; G.nav.addSource('bladder', from => parkRestrooms().map(p => ({ id: { x: p.x, y: p.y, name: p.name }, name: 'Public restroom (park)', x: p.x, y: p.y, d: Math.abs(p.x - from.x) + Math.abs(p.y - from.y) })).sort((a, b) => a.d - b.d).slice(0, 1)); }; nav(); G.on('ready', nav);
 
-  const tip = { id: 'bladder', topic: 'well', title: 'When nature calls', text: 'The Bladder bar empties through the day and faster after coffee, tea, soda or a beer. Use the toilet in your own bathroom (the door inside your home), ask for the Restroom in any cafe, shop, bar or station, or find a park pavilion. Tap the Bladder bar to see the nearest one. Wash your hands at a sink afterwards for a little hygiene.', go: { find: 'bladder' }, goLabel: 'Nearest restroom' };
+  const tip = { id: 'bladder', topic: 'well', title: 'When nature calls', sys: 'needs', text: 'The Bladder bar empties through the day, faster after coffee or a beer. Use your own bathroom, or ask for the Restroom in any cafe, shop or station. Tap the Bladder bar for the nearest one.', go: { find: 'bladder' }, goLabel: 'Nearest restroom' };
   const reg = () => { if (G.tips && G.tips.register) G.tips.register(tip); }; reg(); G.on('ready', reg);
   G.on('needs:low', k => { if (k === 'bladder' && G.tips && G.tips.show) G.tips.show('bladder'); });
 }

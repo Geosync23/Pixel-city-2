@@ -34,7 +34,7 @@
 // Hooks into other systems: none — every resolver reads public state (_jobs_work.cur() / city.get(), G.shows.run, G.cityhall.*, G.arena.*, ...) and what the
 //   player picked is read from the click itself ([data-g] / [data-a] goal + appointment rows, [data-fix] need chooser, [data-navrow] Map "Where to?", Wander's
 //   "Take me there"). The courier's hand-over inside a venue is an interactable this module adds to the room; it calls the job's own city interactable.
-// Resolvers (ids): shift, gig, clockin, show, council, wedding, mayor, records, ch_chain, arena, arena_chain, cons_tour, mus_tour, cons_chain, mus_chain, obs_show,
+// Resolvers (ids): shift, cab (a called / hailed cab outside a Map trip, QA7), gig, clockin, show, council, wedding, mayor, records, ch_chain, arena, arena_chain, cons_tour, mus_tour, cons_chain, mus_chain, obs_show,
 //   obs_chain, aqua_show, aqua_chain, hotel_dine, hotel_event, hotel_room, hotel_chain, fish_auction, lh_lamp, lh_chain, nat_swim, nat_chain, story, meet, wander,
 //   need, default. Audit table, what was played and the known gaps: docs/reports/navgoals.md.   Regression check: node tools/navcheck.mjs
 import { G } from '../core/game.js';
@@ -153,6 +153,13 @@ define('shift', 'strong', 90, ctx => {
   if (!inRoom(rid)) return { room: rid, find: null, label: st.name, short: st.name, far: 'Back to work: ' + st.name, quiet: 1 };
   if (st.opts) return { room: rid, find: null, label: `${st.name}: find the ${st.color} marker${st.hint ? ' (' + st.hint + ')' : ''}`, quiet: 1 };
   const it = W.its.find(x => x._o === o); return it ? { room: rid, find: { x: it.x, y: it.y, h: Math.min(2.6, (it.h || 1) + 1.5) }, label: st.name, quiet: 1 } : null;
+});
+/* -- QA7: a cab you called or hailed (MapleCab, the intro, a story ride) that is not part of a Map trip (navarrow guides those itself): the arrow leads to it */
+define('cab', 'strong', 95, ctx => {
+  const pd = safe(() => G.transit.pending, null), t = trip(); if (!pd || !pd.cab || !pd.cab.active || pd.state === 'picking' || (t && t.mode === 'cab')) return null;
+  const c = pd.cab, coming = pd.state === 'coming' || pd.state === 'hail';
+  if (coming && pd.pick && isFinite(pd.pick.x)) return { room: 'city', find: { x: pd.pick.x, y: pd.pick.y, h: 1.8 }, label: 'Cab pick-up: wait at the kerb', far: 'Your MapleCab is on its way', short: 'your cab', quiet: 1 };
+  return { room: 'city', find: () => ({ x: c.x, y: c.y, h: 2.2, ent: c }), label: 'Your MapleCab: tap it to get in', far: 'Your MapleCab is waiting', short: 'your cab', quiet: 1 };
 });
 /* -- gigs (dog walking, flyers, furniture): a chain of city targets, each finished by tapping its teal marker: the arrow stays on it until it is done */
 define('gig', 'strong', 85, ctx => {

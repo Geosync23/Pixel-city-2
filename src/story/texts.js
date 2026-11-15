@@ -290,7 +290,7 @@ export const JOB_LEVELS = {
 export const JOB_TEXTS = {
   barista: {
     boss: 'marlow',
-    offer: "Hi {name}, Marlow from Bean & Gone. Got your application! You're hired. First shift's on your calendar. Wear shoes you can stand in.",
+    offer: "Hi {name}, Marlow from Bean & Gone. Got your application! You're hired. First shift's on your day. Wear shoes you can stand in.",
     firstDay: "First day! Don't stress. Everyone burns the milk once. I'll be right next to you.",
     goodShift: "Smooth shift today. Three regulars asked your name. That's the whole job, honestly.",
     promotion: [
@@ -304,7 +304,7 @@ export const JOB_TEXTS = {
   },
   grocery_clerk: {
     boss: 'priya',
-    offer: "Hello {name}! Priya at FreshWay. Welcome to the team! Your apron is waiting. First shift is on your calendar. Eggs on top!",
+    offer: "Hello {name}! Priya at FreshWay. Welcome to the team! Your apron is waiting. First shift is on your day. Eggs on top!",
     firstDay: 'First day tip: smile, scan, bag heavy to light. And nobody knows where the capers are. Aisle 6.',
     goodShift: 'Lovely work today. A customer said you bag "like an artist". High praise. I teared up a little.',
     promotion: [
@@ -318,7 +318,7 @@ export const JOB_TEXTS = {
   },
   line_cook: {
     boss: 'dot',
-    offer: "Dot here. You start this week. Shift's on your calendar. Bring an apron if you got one. If not I got forty.",
+    offer: "Dot here. You start this week. Shift's on your day. Bring an apron if you got one. If not I got forty.",
     firstDay: "First day, hon. Rule one: hot plate, say 'hot plate'. Rule two: there's no rule two till you learn rule one.",
     goodShift: "Not bad today. Trucker at table 4 said the hash browns were 'like his mother's'. He never says anything.",
     promotion: [
@@ -332,7 +332,7 @@ export const JOB_TEXTS = {
   },
   office_analyst: {
     boss: 'margaret',
-    offer: 'Hartwell & Finch is pleased to offer you a position. Your start time is on your calendar. Business casual. We define casual narrowly. - M. Hartwell',
+    offer: 'Hartwell & Finch is pleased to offer you a position. Your start time is on your day. Business casual. We define casual narrowly. - M. Hartwell',
     firstDay: 'Welcome. Your desk is by the window. The fern is yours now. Water it Mondays. Reports are due Fridays. Do not confuse the two.',
     goodShift: 'Your report was clear, correct, and early. I read it twice, voluntarily. - MH',
     promotion: [
@@ -346,7 +346,7 @@ export const JOB_TEXTS = {
   },
   courier: {
     boss: 'rhonda',
-    offer: "ZipParcel dispatch, Rhonda! You're hired, hon! Shift's on your calendar. Bring legs. We supply the bag, the bike, and the gossip.",
+    offer: "ZipParcel dispatch, Rhonda! You're hired, hon! Shift's on your day. Bring legs. We supply the bag, the bike, and the gossip.",
     firstDay: "Day one! Rule: package gets there dry, on time, and right side up. Two out of three is a talk with me. Go get 'em!",
     goodShift: "Dispatch to {name}: every drop on time today. A lady on Hillcrest called to say you were 'a delight'. Over!",
     promotion: [
@@ -360,7 +360,7 @@ export const JOB_TEXTS = {
   },
   fitness_trainer: {
     boss: 'tasha',
-    offer: "{name}! Coach Tasha, Iron Maple. YOU'RE HIRED! First shift's on your calendar. Bring water and a good attitude. I supply the whistle.",
+    offer: "{name}! Coach Tasha, Iron Maple. YOU'RE HIRED! First shift's on your day. Bring water and a good attitude. I supply the whistle.",
     firstDay: "Day one! Remember: we don't yell AT people, we yell FOR people. Big difference. Let's go!",
     goodShift: "Great shift! Mr. Alvarez did his first push-up in ten years and he says it's because of you. I may cry.",
     promotion: [
@@ -374,7 +374,7 @@ export const JOB_TEXTS = {
   },
   librarian: {
     boss: 'ines',
-    offer: 'Dear {name}, the Maple Bay Public Library would be glad to have you. Your first shift is on your calendar. Soft shoes, please. - Ines Castillo',
+    offer: 'Dear {name}, the Maple Bay Public Library would be glad to have you. Your first shift is on your day. Soft shoes, please. - Ines Castillo',
     firstDay: 'Welcome. Three rules: shelve by number, shush by eyebrow, and never tell a child a book is too old for them.',
     goodShift: 'A patron left a note: "the new one found my book in two minutes." I have pinned it to the staff board.',
     promotion: [
@@ -388,7 +388,7 @@ export const JOB_TEXTS = {
   },
   nurse: {
     boss: 'samira',
-    offer: "Hi {name}, Samira at Bayside Clinic. We'd love to have you. First shift's on your calendar. Comfortable shoes. I can't stress the shoes enough.",
+    offer: "Hi {name}, Samira at Bayside Clinic. We'd love to have you. First shift's on your day. Comfortable shoes. I can't stress the shoes enough.",
     firstDay: "First day. Wash hands, listen first, chart everything. And eat lunch. Nurses who skip lunch become patients.",
     goodShift: "You were wonderful with Mrs. Okafor today. She's scared of needles and she left laughing. That's the work.",
     promotion: [
@@ -402,7 +402,7 @@ export const JOB_TEXTS = {
   },
   dock_worker: {
     boss: 'gus',
-    offer: 'Gus. Pier 7. You start this week. Calendar has it. Boots. Gloves. Coffee is there.',
+    offer: 'Gus. Pier 7. You start this week. My Day has it. Boots. Gloves. Coffee is there.',
     firstDay: 'First day. Yellow line. Lift with legs. Ask if unsure. Cats have right of way.',
     goodShift: 'Good work today. Bosun sat on your jacket. He does not sit on just any jacket.',
     promotion: [
@@ -416,7 +416,7 @@ export const JOB_TEXTS = {
   },
   bartender: {
     boss: 'lou',
-    offer: "Lou at the Heron. Kit vouched for you, and I trust her ears. You're hired. Shift's on your calendar. Wear black. It hides everything.",
+    offer: "Lou at the Heron. Kit vouched for you, and I trust her ears. You're hired. Shift's on your day. Wear black. It hides everything.",
     firstDay: "First night. Pour slow, listen fast, and cut off anyone who requests a song before nine.",
     goodShift: "Good night tonight. Tip jar's heavy and nobody cried who didn't want to. That's a bar done right.",
     promotion: [

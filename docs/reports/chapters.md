@@ -31,14 +31,14 @@ Owner msg 107, BIBLE direction update 21, design + scripts in `docs/story/CHAPTE
 | 1 | Breakfast at Nana's | **played end to end by taps, real flow** (New Game -> Skip intro button -> first night -> notice -> walked to the marker) | wash hands (activity), flip game (5 touches), upstairs, chair | 30 game min |
 | 2 | The Long Way Round | **played end to end by taps, real flow** | Map card -> Set waypoint -> ways offered -> Walk; walked across town; lift; telescope | 59 game min; "You WALKED?" line fired |
 | 3 | Pip's Fun Survey | **played end to end by taps, real flow** | survey sheet; walked both children to Central Park and home; sketch game (real drags) | 152 game min, two walks of about an hour each (see questions) |
-| 4 | Theo Draws on a Napkin | SEE "REAL CHAIN" BELOW | real My Day sheet (walk-through, Add an idea), job board Apply, My Day again | |
-| 5 | Echo | SEE "REAL CHAIN" BELOW | bought a piece at The Gilded Attic (delivery variant), Decorate with a real drag, wardrobe | |
+| 4 | Theo Draws on a Napkin | **played end to end by taps, real flow** | the real My Day sheet (walk-through Next / Next / Got it, then Add an idea), Job Board -> Apply (hired), My Day again | walked from Sycamore Lane to the Arts Quarter; a bus-stop window opened by a stray tap on the way was closed |
+| 5 | Echo | **played end to end by taps, real flow** | walked to The Gilded Attic with Nora, tapped a piece, Buy ($182 desk: the delivery variant), walked home, Decorate with a real pointer drag, wardrobe + dresser | 30 game min; opened after two mornings (the test player never worked a shift) |
 | 6 | Nana's Attic | played with debug help | ladder, three boxes, the book's cover, the chair | 15 game min |
 | 7 | Ninety-Seven Steps | played with debug help | the real stair (97 steps by taps), the real lamp game, Dad on the phone | 129 game min (waits for dusk) |
 | 8 | The Only Honest Theatre | played with debug help | the real falling-clock auction, two pages, chowder | 23 game min |
 | 9 | Pip Investigates | played with debug help | both microfilm frames, archive -> bookshop | 12 game min |
 | 10 | Say Hello to Marge | played with debug help | the real dig pit (rubbed by pointer) | 24 game min |
-| 11 | The Kettle in the Sky | played with debug help | **the kit's plain trace game ran, not the observatory's own tracer** (see gaps) | 33 game min |
+| 11 | The Kettle in the Sky | played with debug help (weather set clear) | the observatory's own tracer: Leo, nine stars, by taps | 2 game min + the talk; the window now uses the observatory's own "clear night" test |
 | 12 | One Term Short | played with debug help | **fallback lecture** (sit, listen, one question): the University's open lecture is an evening event | 32 game min |
 | 13 | The Copper Teapot | played with debug help | flour errand, flip game for the pie, the order-slip page | 11 game min |
 | 14 | The Little Kettle | played with debug help | pour game, the bell choice | 10 game min |
@@ -46,9 +46,15 @@ Owner msg 107, BIBLE direction update 21, design + scripts in `docs/story/CHAPTE
 
 Minutes are game minutes with instant text (`?chfast`); reading at a normal pace adds real time but no game time. All 15 are wired; none is unwired.
 
+How the real run of Act One was done (honest notes): one continuous save, New Game to the end of Chapter 5, every input a touch tap, pointer drag or the on-screen buttons. The intro was passed with its own "Skip intro" button, not walked. Between Chapters the clock was simply left running (dev fast-forward 16x with needs frozen, both switched off again before each Chapter began); nothing was jumped or unlocked. The test player walked everywhere: its stray taps also opened a bus-stop window, a bench menu (it people-watched for five minutes), a pub door and the clinic door on the way, which is the generous door tap target at work, not the Chapters. Kit's optional evening (k1) was offered after Chapter 2 and sat in My Day beside the gold row, and the first-time window for Opportunities appeared between Chapters and was dismissed.
+
 ## Also verified
 - Outside-the-window card (22:00 at Nana's): closed line, no Begin. Step out from the "..." menu and pick up from the marker ("Pick it up"): same step. Real page reload + Continue mid-dialogue and with a mini-game open: resumes on the same step (the play step is offered again). Old save (beats g1 + f1 done, k1 done, g2 scheduled, a job held): Chapters 1-4 credited, Chapter 5 open, 4 keepsakes kept, Nana 60, the scheduled g2 gone from the planner.
 - Marker by day and at night; gold pin + her page pins on the Map; book reader; the book stool at home opens the reader; Dad's contact card (Text / Call work); bundled `dist` build runs a Chapter; `node src/data/validate.mjs` passes; 59-60 fps throughout; **zero page errors from Chapter code** (one exception seen in `ui/phone.js`, see hooks).
+
+- Final regression on the finished code: all 15 Chapters run from marker to end card with debug help, 0 page errors, 59-60 fps (scratchpad `regress.txt`).
+- Screenshots looked at (out/shots): `ch_marker_t10`, `ch_marker_t22` (marker day / night), `r1_card`, `t_closed_card`, `t_resume_card`, `r1_choice`, `c14_choice`, `c15_choice3` (choices, also during the cab ride), `t_log`, `t_menu`, `t_phonecall`, `r1_endcard`, `c8_endcard`, `t_book_light`, `c9_film`, `c3_survey`, `attic1`, `css_dbg` (the ladder), `stall1`, `t_map_pins_zoom`, `t_map_marker`, `r2_route`, `c4_myday3`, `r5_decorate2`, `c15_ride`, `t_walk_night` (companions), `dad_contact`.
+- In the Decorate screenshot of the real run the Undo button is still greyed after the test drag, so the piece may not have moved; the Chapter continues on Done either way.
 
 ## Files
 New: `src/sim/chapters.js`, `_chapters_places.js`, `_chapters_cast.js`, `_chapters_play.js`, `_chapters_world.js`; `src/ui/chapters_ui.js`, `src/ui/chapters.css`; `src/scenes/rooms/chapter_attic.js`; `src/art/story/chapter_art.js`.
@@ -73,7 +79,6 @@ Data fixes in `src/story/chapters.js`: none.
 `wash_hands`, `use_toilet`, `nap` (activities at Nana's), `flip` / `hoops` / `chess` / `sketch` / `pour` / `write` (`G.skillplay.demo`), `map_pick:<place>` (opens the Map on the place card), `skydeck_scope` (`G.showpieces.skydeck.scope`), `interests_pick` (own survey sheet -> `G.skills.setInterests`), `myday_open` / `myday_add` (**`MYDAY.open` / `MYDAY.add`: they call `G.myDay.open()` / `G.myDay.addIdea()` when present, which they now are; the Planner fallback is still there**), `jobs_apply` (`G.jobs.openBoard`, loops until hired), `goods:any` (waits for `goods:buy`; a delivery sets `ch05_delivery`), `decorate_place` (`G.furnish.open`), `wardrobe_change`, `unpack_box:*` (attic), `lighthouse_stairs` (the real stair rooms), `lh_light_lamp` (`G.lighthouse.light`), `fm_auction` (`G.fishmarket.bid`), `ch_microfilm:1988|1985`, `mus_dig` (`G.museum.dig`), `obs_trace` (`G.observatory.trace`), `uni_open_lecture` (`G.university.sitIn` if it ever exists, else the fallback), `cook:<recipe>` (flip game at Nana's stove).
 
 ## Known gaps
-- Chapter 11: the observatory's own constellation tracer did not start in the test (the kit's trace game ran instead); the cause was not found.
 - Chapter 12: no daytime open lecture exists; the fallback is a seat, half an hour of listening with Kit's lines as captions, and one question.
 - `FAMILY_MOMENTS` (six festival moments, three standing ones) are not built. The festival variants inside Chapters use `festival:<id>` and were not seen on a festival day.
 - `stage` steps are implemented but the data has none; `walk` steps walk the player to the named thing only where an interactable with a matching label exists (panorama glass, dig pit, tram case), otherwise the talk simply plays.

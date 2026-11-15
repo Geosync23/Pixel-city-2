@@ -38,7 +38,7 @@ function boardTab(b, ctx) {
   for (const j of jobs) b.append(jobCard(j, ctx, cur));
   const gigs = safe(() => J().gigs('phone'), null) || GIGS.filter(g => g.source === 'phone');
   if (gigs.length) { b.append(section('Quick gigs')); for (const g of gigs) { const can = !!(J() && J().acceptGig);
-    b.append(row({ icon: 'ui.star', title: g.name, sub: `${g.blurb || ''} ${Math.round((g.minutes || 60))} min`, right: g.pay ? `${money(g.pay[0])}-${g.pay[1]}` : '', cls: 'note', onclick: can ? () => { let r; try { r = J().acceptGig(g.id); } catch (e) { r = false; } ctx.tip(r === false ? 'That gig is not available right now.' : 'Gig accepted. It is in your Planner.'); ctx.refresh(); } : () => ctx.tip('Gigs open up soon.') })); } }
+    b.append(row({ icon: 'ui.star', title: g.name, sub: `${g.blurb || ''} ${Math.round((g.minutes || 60))} min`, right: g.pay ? `${money(g.pay[0])}-${g.pay[1]}` : '', cls: 'note', onclick: can ? () => { let r; try { r = J().acceptGig(g.id); } catch (e) { r = false; } ctx.tip(r === false ? 'That gig is not available right now.' : 'Gig accepted. It is on your day.'); ctx.refresh(); } : () => ctx.tip('Gigs open up soon.') })); } }
   b.append(el('p.ph-note', { text: 'This is the Lite board. The full board, with all 10 careers, is on a home computer or the free ones at the library.' }));
 }
 export default {

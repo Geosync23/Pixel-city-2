@@ -19,6 +19,9 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .toast{background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:6px 12px;font-weight:700;transition:opacity .4s,transform .4s;max-width:80vw}
 .toast.out{opacity:0;transform:translateY(-8px)}
 .toast.good{background:#dff5d8}.toast.bad{background:#ffd9d2}.toast.money{background:#fff0b8}
+/* QA7: never more than two toasts on screen (the newest two; older ones still time out unseen), and in portrait they are compact so the stack stays near the top */
+#toasts .toast:nth-last-child(n+3){display:none}
+@media (max-width:699px){.toast{font-size:13px;line-height:1.3;padding:4px 10px;max-width:min(320px,86vw);text-align:center}#toasts{gap:4px}}
 .modal{position:absolute;inset:0;background:#1b1a2480;display:grid;place-items:center;padding:12px}
 .win{background:var(--panel);border:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);min-width:240px;max-width:min(560px,94vw);max-height:88vh;display:flex;flex-direction:column}
 .win-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 6px 6px 12px;border-bottom:2px solid var(--edge);background:var(--shade);font-weight:700}

@@ -1,12 +1,17 @@
 // Phone app: BAY BASICS — the living-tips handbook (app id 'tips') + the gentle in-game tutorial layer G.tips. Styles in phone_apps.css.
-// State G.state.tips = { seen: {tipId: 1}, read: {tipId: 1}, last: t of the last tip notification }
-// G.tips = { register(tip) (add a tip from another system), all() -> [tip], get(id), show(id) -> bool (one-time "Tip: ..." notification, max one per game hour), seen(id), go(tip) }
+// FIRST-TIME WINDOWS (owner msg 107): the tips that have a moment of their own are now shown as ONE short window at that moment instead of a "Tip: ..." banner.
+//   Their words are src/data/firsttime.js (merged into TIPS below by id: same id = the old tip's words are replaced, new ids are added), the engine, the queue and
+//   every trigger are src/sim/firsttime.js (G.firstTime). There is no tip banner any more, so nothing arrives twice. This app is where they are all read again.
+// State G.state.tips = { seen: {tipId: 1}, read: {tipId: 1}, last: t of the last one shown, off (first-time tips switched off), v, q, day, n, nn, at: { tipId: t shown } }
+// G.tips = { register(tip) (add a tip from another system), all() -> [tip], get(id), show(id) -> bool (offer it as a first-time window: once, at a calm moment), seen(id), go(tip) }
 // Deep link: G.phone.open('tips', { tip: id } | { topic: id }).
-// A tip: { id, topic, title, text, go?: { app, arg } | { find: navigator query } | { place: id }, goLabel? }
+// A tip: { id, topic, title, text, go?: { app, arg } | { find: navigator query } | { place: id } | { sys: Systems card id }, goLabel?, sys? (its Systems card), win? (a first-time window) }
 import { G } from '../core/game.js';
 import { el, iconEl, btn, section, chip, empty, safe, balance } from './phone_util.js';
 import { toast } from './kit.js';
 import { regDef, goTo, pickIcon, injectCss } from './phone_store.js';
+import { WINDOWS } from '../data/firsttime.js';
+import { SYSTEM_BY_ID } from '../data/systems.js';
 export const order = 123;
 
 export const TOPICS = [
@@ -44,7 +49,7 @@ export const TIPS = [
   { id: 'jobsboard', topic: 'work', title: 'Finding a job', text: 'The Jobs app shows a short list of entry jobs. The full board with every job in town is on the free computers at the library, or on a computer at home.', go: { find: 'library' }, goLabel: 'To the library' },
   { id: 'shift', topic: 'work', title: 'Working a shift', text: 'Be at your workplace when the shift starts and you clock in by walking through the door. Do the tasks that light up; good shifts earn tips and promotion progress.', go: { app: 'jobs' } },
   { id: 'autowork', topic: 'work', title: 'Auto-work', text: 'Not in the mood for the tasks? Tap Auto-work during a shift and the day is worked for you at a steady quality. You are paid the same hourly rate.' },
-  { id: 'gigs', topic: 'work', title: 'Gigs for quick cash', text: 'One-off gigs like dog walking pay the same day. Accept one in Jobs and it lands in your Planner.', go: { app: 'jobs' } },
+  { id: 'gigs', topic: 'work', title: 'Gigs for quick cash', text: 'One-off gigs like dog walking pay the same day. Accept one in Jobs and it lands on My Day.', go: { app: 'jobs' } },
   { id: 'bills', topic: 'work', title: 'Monday bills', text: 'Rent, utilities and your phone plan come out every Monday morning. Bay Bank shows the total in advance. If you are short the balance goes below zero for a while; nobody gets evicted.', go: { app: 'bank' } },
   { id: 'money_low', topic: 'work', title: 'When money is tight', text: 'Cook at home, walk or take the bus, and pick up a gig. Receipts shows where the week\'s money went.', go: { app: 'wallet' } },
   { id: 'saving', topic: 'work', title: 'Saving the game', text: 'The game saves by itself every morning and when you come home. You can also save by hand in Settings.', go: { app: 'settings' } },
@@ -52,10 +57,10 @@ export const TIPS = [
   { id: 'talk', topic: 'people', title: 'Talking to people', text: 'Tap someone and press Talk. Pick what to say: chat, joke, ask about them. What works depends on the person, and the things you learn are remembered.' },
   { id: 'messages', topic: 'people', title: 'Messages', text: 'Friends and family text you with news and invitations. Answer with a tap. The People tab shows hearts, birthdays and where a friend usually is.', go: { app: 'messages' } },
   { id: 'gifts', topic: 'people', title: 'Gifts', text: 'Carry a gift in your bag and choose Give while talking. People have favourites; ask about them to find out. Birthdays count double.' },
-  { id: 'invites', topic: 'people', title: 'Invitations', text: 'Invite a friend out from Messages or from the Planner. Accepting an invitation adds it to your Planner; turning up on time is good for the friendship.', go: { app: 'planner' } },
+  { id: 'invites', topic: 'people', title: 'Invitations', text: 'Invite a friend out from Messages or from My Day. Accepting an invitation adds it to your day; turning up on time is good for the friendship.', go: { app: 'planner' } },
   { id: 'circle', topic: 'people', title: 'Keeping in touch', text: 'Friendships fade slowly if you never see someone. The Circle app shows everyone you know and where they are right now.', go: { app: 'friends' } },
   // wellbeing
-  { id: 'needs', topic: 'well', title: 'Your five needs', text: 'Hunger, Energy, Hygiene, Fun and Social drift down through the day. The mood face on screen shows how you feel overall; Wellness has the full picture.', go: { app: 'wellness' } },
+  { id: 'needs', topic: 'well', title: 'Your needs', text: 'Hunger, Energy, Hygiene, Fun, Social and Bladder drift down through the day; Comfort, Outdoors and Inspiration are gentler and follow where you are and what you do. The mood face on screen shows how you feel overall; Wellness has the full picture.', go: { app: 'wellness' } },
   { id: 'needs_tap', topic: 'well', title: 'Tap a low need', text: 'When a need icon shows up on screen, tap it. You get the nearest places that fix it and one tap sets the route.' },
   { id: 'hygiene', topic: 'well', title: 'Staying fresh', text: 'A shower at home takes a few minutes and resets Hygiene. Gyms have showers too.' },
   { id: 'weather', topic: 'well', title: 'Weather', text: 'Rain makes walks slower and soggier, sunny days make parks more fun. Check Skies in the morning and carry an umbrella when rain is due.', go: { app: 'weather' } },
@@ -64,14 +69,17 @@ export const TIPS = [
   { id: 'shows', topic: 'out', title: 'Films, concerts and plays', text: 'Buy a ticket at the box office of The Orpheum, Symphony Hall or the Lantern Playhouse, wait in the lobby and take a seat when the doors open. Showtime lists what is on.', go: { app: 'showtime' } },
   { id: 'skydeck', topic: 'out', title: 'The SkyDeck', text: 'Ride the lift to the top of the tower for the best view in town. Go at sunset.', go: { find: 'skydeck' }, goLabel: 'To the SkyDeck' },
   { id: 'mall', topic: 'out', title: 'The mall', text: 'Several shops under one roof: clothes, furniture, food court. Handy on a rainy day.', go: { find: 'mall' }, goLabel: 'To the mall' },
-  { id: 'events', topic: 'out', title: 'Town events', text: 'Markets, festivals and fireworks are in the Planner calendar and in Wander under What\'s On. Add one to your day so you get a reminder.', go: { app: 'guide', arg: { tab: 'whatson' } } },
+  { id: 'events', topic: 'out', title: 'Town events', text: 'Markets, festivals and fireworks turn up as ideas in My Day and in Wander under What\'s On. Add one to your day so you get a reminder.', go: { app: 'guide', arg: { tab: 'whatson' } } },
   { id: 'parks', topic: 'out', title: 'Benches and parks', text: 'Tap a bench to sit down and rest. Sitting somewhere nice tops up Fun and Energy a little and costs nothing.' },
   // phone
-  { id: 'planner', topic: 'phone', title: 'Planner', text: 'Shifts, invitations and events all land in the Planner. Tap an entry to get a route there. Add your own appointments with a reminder.', go: { app: 'planner' } },
+  { id: 'planner', topic: 'phone', title: 'My Day', text: 'My Day is the button in the top-left corner. Your schedule holds only what you chose, plus work, family and the story. Ideas are things you could add: one tap and it is on your day, with the way there.', go: { app: 'planner' }, sys: 'myday' },
   { id: 'store', topic: 'phone', title: 'New apps', text: 'New apps come out on Appy as the days pass and as you try new things. You get a notification; install them for free from the store.', go: { app: 'store' } },
   { id: 'notifications', topic: 'phone', title: 'Notifications', text: 'Tap the clock card at the top of the phone to see everything you missed. Tapping a banner opens the right app.' },
 ];
 const BY_ID = Object.fromEntries(TIPS.map(t => [t.id, t]));
+/* the first-time windows are tips: same id -> the window's words replace the old tip's (its seen / read record is kept); new ids are added to their topic */
+function mergeWindows() { for (const w of WINDOWS) { const o = BY_ID[w.id]; if (o) { if (!w.go) { delete o.go; delete o.goLabel; } Object.assign(o, w, { win: true }); } else { const t = Object.assign({ win: true }, w); TIPS.push(t); BY_ID[t.id] = t; } } }
+mergeWindows();
 function S() { let s = G.state.tips; if (!s) s = G.state.tips = { seen: {}, read: {}, last: -999 }; s.seen = s.seen || {}; s.read = s.read || {}; return s; }
 
 function go(t, ctx) {
@@ -81,39 +89,34 @@ function go(t, ctx) {
     if (!G.phone.isUnlocked(g.app)) { toast('That app is not on your phone yet.'); return false; }
     return G.phone.open(g.app, g.arg);
   }
+  if (g.sys) return safe(() => G.shelf.jump(g.sys, ctx), false);
   if (g.place) return goTo(g.place, ctx);
   if (g.find) { const r = safe(() => G.nav.find(g.find, 1), [])[0] || safe(() => G.guide.search(g.find)[0], null), p = r && (typeof r.x === 'number' ? r : safe(() => G.guide.pos(r), null)); if (p) return goTo({ x: p.x, y: p.y, name: r.name || r.title, id: r.placeId }, ctx, r.name || r.title); toast('Could not find one nearby. Try the Map.'); }
   return false;
 }
-// Pacing of the first hour (owner msg 78): nothing about homes / Nestly while you are still inside the airport; those tips wait in `held` until you step out to the curb.
-const AIRPORT_STEPS = ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'];
-export const inAirportIntro = () => !!(G.intro && G.intro.active && AIRPORT_STEPS.includes(G.intro.at));
-const held = [];
-function show(id) {
-  const t = BY_ID[id], s = S(); if (!t || s.seen[id] || G.onTitle) return false; const now = G.state.t || 0;
-  if (inAirportIntro() && (t.topic === 'home' || (t.go && t.go.app === 'homes'))) { if (!held.includes(id)) held.push(id); return false; }
-  if (safe(() => G.needs.sleeping, false)) { if (!held.includes(id)) held.push(id); return false; }   /* QA6: no tips while you sleep; they wait for the morning */
-  if (now - (s.last === undefined ? -999 : s.last) < 60 && now >= s.last) return false;
-  s.seen[id] = 1; s.last = now;
-  safe(() => G.phone.notify({ app: 'tips', title: 'Tip: ' + t.title, text: t.text.split('. ')[0].replace(/\.$/, '') + '.', data: { tip: id }, priority: 'normal' }), 0);
-  G.emit('tip', id); return true;
-}
+/* show(id): offer a tip as a first-time window (src/sim/firsttime.js decides when: once, never two in a row, never over a Chapter / mini-game / banner). */
+export const inAirportIntro = () => !!(G.intro && G.intro.active);
+function show(id) { const t = BY_ID[id]; if (!t || S().seen[id] || G.onTitle) return false; return !!safe(() => G.firstTime.offer(id), false); }
 
 /* ---------- app ---------- */
 let topic = '';
 function tipCard(t, ctx, open) {
   const s = S(), fresh = s.seen[t.id] && !s.read[t.id]; if (open) s.read[t.id] = 1;
+  const sys = t.sys && SYSTEM_BY_ID[t.sys];
   return el('div.tp-card' + (open ? '.hl' : ''), { id: 'tp-' + t.id }, el('b', null, t.title, fresh ? el('em.as-new', { text: 'NEW' }) : null), el('p', { text: t.text }),
-    t.go ? btn(t.goLabel || (t.go.app ? 'Show me' : 'Take me there'), () => { s.read[t.id] = 1; go(t, ctx); }, 'tp-go', t.go.app ? 'ui.phone' : 'ui.pin') : null);
+    t.go ? btn(t.goLabel || (t.go.app ? 'Show me' : 'Take me there'), () => { s.read[t.id] = 1; go(t, ctx); }, 'tp-go', t.go.app ? 'ui.phone' : 'ui.pin') : null,
+    sys ? el('button.tp-sys', { style: 'display:block;margin-top:6px;padding:4px 0;background:none;border:0;box-shadow:none;font:inherit;font-size:13px;color:#2f6fb8;text-decoration:underline;text-align:left;cursor:pointer', onclick: () => ctx.open('guide', { tab: 'systems', sys: t.sys }) }, `How it works: ${sys.name}`) : null);
 }
 function render(b, ctx) {
   b.classList.add('as-body'); const s = S(); let focus = null;
   if (ctx.arg && ctx.arg.tip && BY_ID[ctx.arg.tip]) { focus = ctx.arg.tip; topic = BY_ID[focus].topic; ctx.arg.tip = null; }
   if (ctx.arg && ctx.arg.topic) { topic = ctx.arg.topic; ctx.arg.topic = null; }
   if (!topic) {
-    b.append(el('div.tp-cover', null, el('b', { text: 'Bay Basics' }), el('span', { text: `${TIPS.length} short tips for life in Maple Bay. Tap a topic, or "Show me" to jump straight there.` })));
-    const fresh = TIPS.filter(t => s.seen[t.id] && !s.read[t.id]);
+    b.append(el('div.tp-cover', null, el('b', { text: 'Bay Basics' }), el('span', { text: `${TIPS.length} short tips for life in Maple Bay. Each one also pops up once, the first time it matters. Tap a topic to read them again.` })));
+    b.append(btn('How things work here', () => ctx.open('guide', { tab: 'systems' }), 'gold wide', 'sys.shelf'));
+    const fresh = TIPS.filter(t => s.seen[t.id] && !s.read[t.id]), lately = safe(() => G.firstTime.shown().slice(0, 3).map(x => BY_ID[x.id]).filter(Boolean), []);
     if (fresh.length) { b.append(section('For you, right now')); for (const t of fresh.slice(-3).reverse()) b.append(tipCard(t, ctx, true)); }
+    else if (lately.length) { b.append(section('Lately', el('small', { text: 'the last ones you were shown' }))); for (const t of lately) b.append(tipCard(t, ctx, false)); }
     b.append(section('Topics'));
     const grid = el('div.tp-topics');
     for (const [id, name, icons, col] of TOPICS) grid.append(el('button.tp-topic', { onclick: () => { topic = id; ctx.refresh(); b.scrollTop = 0; } }, el('span.tp-tico', { style: { background: col } }, iconEl(pickIcon(icons), 2)), el('b', { text: name }), el('small', { text: TIPS.filter(t => t.topic === id).length + ' tips' })));
@@ -126,31 +129,10 @@ function render(b, ctx) {
   if (focus) requestAnimationFrame(() => { const n = b.querySelector('#tp-' + focus); if (n) b.scrollTop = Math.max(0, n.offsetTop - 60); });
 }
 
-function wire() {
-  const on = (ev, id, test) => G.on(ev, (...a) => { if (!test || safe(() => test(...a), false)) show(typeof id === 'function' ? id(...a) : id); });
-  on('needs:low', 'needs_tap'); on('job:hired', 'shift'); on('job:shift:start', 'autowork'); on('home:delivery', 'boxes'); on('home:move', 'decorate');
-  on('money', 'money_low', () => balance() < 50); on('ride:end', 'pass'); on('friend:up', 'gifts');
-  /* QA6: tips arrive when they are first useful, not after the thing they explain (QA5: cooking / talking tips came after the first cook / chat).
-     cooking: when groceries go into the kitchen, or on coming home at dinner time.  talk: the first time you are inside a place with people
-     (not home, not the airport intro), or when Social first runs low. */
-  on('fridge:stored', 'cooking');
-  G.on('scene', sc => { if (!sc || !G.state.flags || !G.state.flags.introDone || (G.intro && G.intro.active)) return; let home = false; try { home = !!(G.housing && G.housing.isHome && G.housing.isHome(sc.id)); } catch (e) { /* optional */ }
-    if (home) { const h = G.now().hf; if (h >= 16.5 && h < 22) setTimeout(() => show('cooking'), 2500); }
-    else if (/^int:/.test(sc.id || '') && !/^int:airport/.test(sc.id)) setTimeout(() => show('talk'), 2500); });
-  on('needs:low', 'talk', k => k === 'social');
-  on('shop:buy', 'fridge', item => { const it = item && (item.id ? item : null); return !it || /ingredient/.test(it.category || it.cat || it.type || 'ingredient'); });
-  on('show:ticket', 'shows'); on('bills:soon', 'bills'); on('app:released', 'store'); on('appt:missed', 'planner');
-  // Wander is introduced right after Nora's first text (once you have answered her), not at the first "Discovered" toast
-  const wander = () => setTimeout(() => { S().last = -999; show('wander'); }, 3500);
-  G.on('msg:reply', th => { if (th === 'jules') wander(); }); G.on('intro:done', wander);
-  G.on('activityEnd', () => { if (held.length && !inAirportIntro() && !safe(() => G.needs.sleeping, false)) setTimeout(() => { const id = held.shift(); if (id) { S().last = -999; show(id); } }, 8000); });
-  G.on('intro:step', () => { if (!inAirportIntro() && held.length) setTimeout(() => { const id = held.shift(); if (id) { S().last = -999; show(id); } }, 6000); });
-  on('weather', 'weather', k => /rain|storm|snow/.test(k)); on('hour', 'sleep', h => h >= 0 && h < 4 && !G.busy);
-  on('game:start', 'navigator');
-}
 export function init() {
   injectCss(); G.defineState('tips', () => ({ seen: {}, read: {}, last: -999 }));
   G.tips = { register: t => { if (t && t.id && !BY_ID[t.id]) { TIPS.push(t); BY_ID[t.id] = t; } return t; }, all: () => TIPS.slice(), get: id => BY_ID[id] || null, show, seen: id => !!S().seen[id], go, topics: () => TOPICS.map(t => ({ id: t[0], name: t[1] })) };
   if (!G.phone || !G.phone.registerApp) return;
-  G.phone.registerApp(Object.assign(regDef('tips'), { render, ownsLog: false })); wire();
+  G.phone.registerApp(Object.assign(regDef('tips'), { render, ownsLog: false }));
+  G.on('ready', mergeWindows);   /* systems that register a tip with one of the window ids after us (laundry, skills) keep the window's words */
 }

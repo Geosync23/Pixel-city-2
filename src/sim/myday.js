@@ -27,6 +27,9 @@
 //          schedule() -> { next, travel, today: [appt], flex: [appt], tomorrow: [appt], chapter: row | null, goals: [goal], opps: [goal], free: [{ from, to }] }
 //          gaps(day?) -> [{ from, to }] free stretches of 45+ min between 07:00 and 23:00        summary() -> the morning line
 //          onAdd(fn) -> off        open(opts) / close() / addIdea(opts) / explain()  are filled in by src/ui/myday.js (Promises; see there)
+//          addSource(fn) -> off    (add-only, for Wander's quick tools) another module offers extra ideas: fn({ day, at, T, isToday, push, have }) calls push(idea) for each.
+//                                  They are gathered ONLY for ideas({ all: true }), so the My Day lists are exactly as before. An idea may carry `base` (its base score, default 40),
+//                                  `open: { app, arg }` (it is done on the phone, not at a place) and `sysId` (a Systems card to jump into).
 //        }
 // EVENTS 'myday:add'({ idea, apptId, oppId })   'myday:dismiss'(idea)   'myday:open'(opts)   'myday:close'   'myday:change' (the lists should re-render)
 import { G } from '../core/game.js';
@@ -50,7 +53,7 @@ const trait = id => safe(() => G.traits.has(id), false);
 const visits = id => safe(() => G.state.traits.visits[id], 0) || 0;
 const WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], WDL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const EV_BY_ID = Object.fromEntries(EVENTS.map(e => [e.id, e]));
-let ver = 0, cache = new Map(), listeners = [], here = null;
+let ver = 0, cache = new Map(), listeners = [], here = null, sources = [];
 
 /* ---------- small helpers ---------- */
 const walkTo = p => (p && isFinite(p.x) ? Math.max(1, Math.round((Math.abs(p.x - here.x) + Math.abs(p.y - here.y)) * WALK)) : 0);
@@ -82,7 +85,7 @@ function onSchedule(d0) {
 let won = { key: '', list: [] };
 function whatsOn(d0) { const key = d0 + '|' + Math.floor(now() / 30) + '|' + ver; if (won.key !== key) won = { key, list: safe(() => G.guide.whatsOn(d0), []) }; return won.list; }
 
-function gather(day, at) {
+function gather(day, at, extra) {
   const t0 = now(), d0 = today(), isToday = day === d0, T = at !== undefined ? at : isToday ? t0 : day * DAY + 9 * 60, out = [], have = onSchedule(day), big = bigIds(), seenEv = new Set();
   here = cityPos();
   const push = i => { if (have.has(i.id)) return; if (have.has('cat:' + i.cat)) i.again = 1; if (i.placeId && have.has('at:' + i.placeId) && !i.fixed) return; i.day = day; i.walk = i.walk !== undefined ? i.walk : walkTo(i.pos || place(i.placeId)); i.key = i.key || i.id; out.push(i); };
@@ -157,6 +160,8 @@ function gather(day, at) {
   /* 10. a coach who is out today */
   if (isToday && at === undefined) { const ints = interests(), cs = safe(() => G.skillplay.coaches(), []).filter(c => c.here && !c.doneToday && isFinite(c.x)).sort((a, b) => (ints.includes(FAMILY_OF[b.skill]) ? 1 : 0) - (ints.includes(FAMILY_OF[a.skill]) ? 1 : 0) || hash(a.id + d0) - hash(b.id + d0))[0];
     if (cs) push({ id: 'coach:' + cs.id, key: 'coach:' + cs.id, kind: 'coach', cat: 'learn', fam: FAMILY_OF[cs.skill], title: `A lesson with ${cs.short || cs.name}`, why0: cs.role, icon: 'skill.' + cs.skill, pos: { x: cs.x, y: cs.y, name: cs.short || cs.name }, dur: 45, fixed: false, price: cs.fee, end: day * DAY + cs.hours[1] * 60 }); }
+  /* 11. extra sources (Wander's quick tools): only when asked for with ideas({ all: true }) */
+  if (extra) for (const f of sources) safe(() => f({ day, at, T, isToday, push, have }), 0);
   return out;
 }
 
@@ -164,7 +169,7 @@ function gather(day, at) {
 const BASE = { pin: 90, big: 80, opp: 62, event: 52, show: 50, weather: 50, friend: 48, interest: 46, coach: 44, new: 42, class: 40 };
 function rank(i, T, isToday) {
   const s = st(), cash = money(), ints = interests(), bits = [];
-  let sc = i.kind === 'need' ? 40 + (42 - i.needV) * 1.4 : i.kind === 'big' && i.ahead ? 46 - i.ahead * 5 : BASE[i.kind] || 40;
+  let sc = i.kind === 'need' ? 40 + (42 - i.needV) * 1.4 : i.kind === 'big' && i.ahead ? 46 - i.ahead * 5 : BASE[i.kind] || i.base || 40;
   /* time */
   if (i.t && isToday && !i.ahead) { const m = i.t - T;
     if (m <= 0 && i.window) { sc += 8; bits.push(`On now, till ${hh(i.end)}`); }
@@ -204,11 +209,11 @@ function rank(i, T, isToday) {
   i.score = Math.round(sc * 10) / 10; i.why = bits.filter(Boolean).slice(0, 3).join(' · ');
   return i;
 }
-function build(day, at, until) {
-  const key = [Math.floor(now()), ver, day, at, until, G.scene && G.scene.id].join('|'); let L = cache.get(key); if (L) return L;
+function build(day, at, until, extra) {
+  const key = [Math.floor(now()), ver, day, at, until, G.scene && G.scene.id, extra ? 1 : 0].join('|'); let L = cache.get(key); if (L) return L;
   if (cache.size > 12) cache.clear();
   const s = st(), d0 = today(), isToday = day === d0, T = at !== undefined ? at : isToday ? now() : day * DAY + 9 * 60;
-  L = gather(day, at).filter(i => !(s.no[i.key] !== undefined && d0 - s.no[i.key] < 7)).filter(i => until === undefined || !i.fixed || (i.t >= T - 10 && i.t + Math.min(i.dur, 60) <= until + 30)).filter(i => until === undefined || !i.window || i.t < until)
+  L = gather(day, at, extra).filter(i => !(s.no[i.key] !== undefined && d0 - s.no[i.key] < 7)).filter(i => until === undefined || !i.fixed || (i.t >= T - 10 && i.t + Math.min(i.dur, 60) <= until + 30)).filter(i => until === undefined || !i.window || i.t < until)
     .map(i => rank(i, T, isToday)).sort((a, b) => b.score - a.score);
   cache.set(key, L); return L;
 }
@@ -222,7 +227,7 @@ function varied(L, n) {
 }
 export function ideas(o = {}) {
   const day = o.day !== undefined ? o.day : o.at !== undefined ? Math.floor(o.at / DAY) : today(), at = o.at !== undefined && o.at <= now() + 15 ? undefined : o.at;   /* a gap that starts now is simply "now" */
-  const L = build(day, at, o.until), n = o.n === undefined ? 5 : o.n;
+  const L = build(day, at, o.until, !!o.all), n = o.n === undefined ? 5 : o.n;
   if (!n) return o.varied ? varied(L, L.length) : L.slice(); return o.varied === false ? L.slice(0, n) : varied(L, n);
 }
 export function idea(id) { for (const L of cache.values()) { const i = L.find(x => x.id === id); if (i) return i; } for (let d = today(); d < today() + 7; d++) { const i = build(d).find(x => x.id === id); if (i) return i; } return null; }
@@ -252,6 +257,7 @@ export function dismiss(id) { const i = typeof id === 'object' ? id : idea(id); 
   if (i.kind === 'opp') { /* an Opportunity stays on offer in its own app; My Day just stops suggesting it */ } if (i.pinId) safe(() => G.planner.remove(i.pinId)); bump(); G.emit('myday:dismiss', i); return true; }
 export function undismiss(i) { if (!i) return false; const s = st(); if (s.no[i.key] === undefined) return false; delete s.no[i.key]; s.like[i.cat] = (s.like[i.cat] || 0) + 2; s.n.no--; bump(); return true; }
 export const onAdd = fn => { listeners.push(fn); return () => { listeners = listeners.filter(f => f !== fn); }; };
+export const addSource = fn => { sources.push(fn); cache.clear(); return () => { sources = sources.filter(f => f !== fn); cache.clear(); }; };
 
 /* ---------- the schedule, as My Day shows it ---------- */
 const alive = a => !a.event && a.s !== 3 && a.s !== 4 && a.t + (a.dur || 60) > now() && !(a.data && a.data.beat && safe(() => G.story.beat(a.data.beat).st, '') === 'done');
@@ -300,7 +306,7 @@ function evening() {
 
 export function init() {
   G.defineState('myday', fresh);
-  const api = { ideas, idea, add, dismiss, undismiss, schedule, gaps, summary, onAdd, defaultTime, state: st, hh,
+  const api = { ideas, idea, add, dismiss, undismiss, schedule, gaps, summary, onAdd, addSource, defaultTime, state: st, hh,
     /* filled in by ui/myday.js; harmless before that */
     open: o => { safe(() => G.phone.open('planner', o)); return Promise.resolve(false); }, close() { }, explain() { }, addIdea: o => api.open(o) };
   G.myDay = api;

@@ -39,7 +39,7 @@ function courses(b, ctx) {
 }
 function time(b) {
   const u = U(), tt = u.timetable(7); b.append(section('This week'));
-  if (!tt.length) b.append(empty('ui.calendar', 'Nothing booked', 'Classes appear here, and in your Planner, when you enrol.'));
+  if (!tt.length) b.append(empty('ui.calendar', 'Nothing booked', 'Classes appear here, and on My Day, when you enrol.'));
   const l = el('div.ph-card'); for (const r of tt) l.append(el('div.cu-row', null, el('i', { text: r.T ? whenT(r.T).replace('Tomorrow', 'Tmrw') : 'Soon' }), el('div', null, el('b', { text: r.title }), el('div', { text: r.where })))); if (tt.length) b.append(l);
   b.append(section('Every week'), card(el('div.cu-row', null, el('i', { text: 'Tue Thu' }), el('div', null, el('b', { text: 'Study group, 17:00' }), el('div', { text: 'The Commons. Worth marks on your final.' }))), el('div.cu-row', null, el('i', { text: 'Wed' }), el('div', null, el('b', { text: 'Open lecture, 19:30' }), el('div', { text: 'Free. This week: ' + u.openTalk().title }))), el('div.cu-row', null, el('i', { text: 'Thu' }), el('div', null, el('b', { text: 'Club night, 19:30' }), el('div', { text: 'The Commons' })))),
     el('p.ph-note', { text: u.hoursText(), style: { margin: '8px 10px', lineHeight: '1.35' } }), btn('Take me there', go, 'pri wide', 'ui.pin'));
