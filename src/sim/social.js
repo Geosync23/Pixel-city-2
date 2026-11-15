@@ -192,7 +192,8 @@ function update(dt) {
   if (G.busy || G.cutscene || G.time < bubT) return;
   for (const id in RT) { const rt = RT[id], ch = rt.char, r = rec(id); if (!r.met || G.time < rt.greetT || Math.hypot(ch.x - P.x, ch.y - P.y) > 3.4) continue;
     rt.greetT = G.time + 120; bubT = G.time + 6; const c = info(id), bark = rt.loc.work && TEXTS.VENUE_BARKS && TEXTS.VENUE_BARKS[rt.loc.placeId];
-    bubble(ch, fill(bark && bark.speaker === id && Math.random() < .6 ? vpick(bark.greeting) : vpick(CTX.wave), c), 2600);
+    const relWave = G.rel && G.rel.wave ? G.rel.wave(id) : null;   /* REL (add-only): a line of their own from rel_small.js, a few times a day */
+    bubble(ch, relWave || fill(bark && bark.speaker === id && Math.random() < .6 ? vpick(bark.greeting) : vpick(CTX.wave), c), relWave ? 3400 : 2600);
     if (!rt.seated && rt.spot && rt.spot.kind !== 'staff' || !rt.spot) { ch.stop(); ch.faceTo(P.x, P.y); ch.pose = 'wave'; ch.poseOpts = null; rt.wave = 1.5; } break; }
 }
 
@@ -239,6 +240,7 @@ function verbsFor(ses) {
     const cd = (r.cd[v.id] || 0) > t;
     out.push({ id: v.id, label: v.label, disabled: cd, note: cd ? 'later' : '', picker: v.id === 'give_gift' ? 'gift' : v.id === 'invite_hangout' ? 'hangout' : v.id === 'invite_over' ? 'visit' : v.id === 'ask_favor' ? 'favor' : null });
   }
+  if (G.rel && G.rel.talkVerbs) try { G.rel.talkVerbs(ses, out); } catch (e) { console.error(e); }   /* REL (add-only): the context verbs of rel_rules.js VERBS_NEW */
   return out;
 }
 function giftOptions() { if (!G.inv) return []; return G.inv.items().map(s => ({ s, d: ITEM_BY_ID[s.id] })).filter(o => o.d && (GIFTABLE.includes(o.d.category) || GIFT_ALIAS[o.id] || o.s.id === 'sketchbook' || o.s.id === 'painting')).map(o => ({ id: o.s.id, label: o.d.name, sub: 'x' + o.s.qty })); }
@@ -298,6 +300,7 @@ function favor(ses, fid, res, ok) {
   G.emit('social:favor', ses.id, f.id, e);
 }
 function act(ses, vid, arg) {
+  if (G.rel && G.rel.talkAct && String(vid).startsWith('rel:')) { const rr = G.rel.talkAct(ses, vid, arg); if (rr) return rr; }   /* REL (add-only) */
   const c = ses.info, r = ses.rec, id = ses.id, res = { verb: vid, you: '', them: '', delta: 0, ok: true }, forced = ses.lines && ses.lines[vid];
   if (vid === 'hang_now') { res.them = fill(pick(['Yes, let us!', 'I thought you would never ask.', 'Lead the way.']), c); res.end = true; ses.ended = true; const k = c && LOC[id] && LOC[id].hang; res.start = () => startHang(k); return res; }
   if (vid === 'offer_food') { const [src, item] = String(arg).split(':'), d = ITEM_BY_ID[item] || {}; (src === 'fridge' ? G.inv.fridge : G.inv).remove(item, 1); ses.hang.fed = 1; res.you = `Here, have some ${d.name || 'food'}.`; res.them = fill(pick(CTX.fed), c); res.delta = addRel(id, ['snack', 'drink'].includes(d.category) ? 2 : 5); const rt = RT[id]; if (rt) { rt.basePose = rt.seated ? 'eat' : 'eat'; rt.baseOpts = rt.seated ? { seated: true } : null; } return res; }
@@ -340,6 +343,7 @@ function converse(id, o = {}) {
   const ses = { id, info: c, rec: r, name: c.name, short: c.short, role: c.role, spec: (ch && ch.spec) || specs(id).base, char: ch, rt, light: !!o.light, atWork, hang, n: 0, good: 0, ended: false, lines: o.lines || null, onEnd: o.onEnd,
     max: o.max || (o.light ? 3 : atWork && !hang ? 3 : 4 + tierIdx(r.rel)) };
   ses.greeting = o.greeting ? [].concat(o.greeting).map(s => fill(s, c)) : greet(id, c, r, { first, atWork, hang });
+  if (!o.greeting && G.rel && G.rel.greeting) try { G.rel.greeting(ses); } catch (e) { console.error(e); }   /* REL (add-only): a remembered detail as the next line */
   if (!o.light) meet(id); if (rt) rt.it.label = 'Talk to ' + c.short;
   ses.rel = () => r.rel; ses.tier = () => (o.light ? { id: 'stranger', label: 'Stranger', idx: 0, min: 0, max: 14 } : tierInfo(id));
   ses.verbs = () => verbsFor(ses); ses.act = (v, a) => act(ses, v, a); ses.gifts = giftOptions; ses.foods = foodOptions; ses.times = timeOptions;
@@ -348,7 +352,8 @@ function converse(id, o = {}) {
   ses.close = () => { if (ses.closed) return; ses.closed = true; if (ses.onEnd) try { ses.onEnd(ses); } catch (e) { console.error(e); } };
   return ses;
 }
-function talk(id, o) { const ses = converse(id, o); if (!ses) return Promise.resolve(null); return openTalk(ses).then(() => ses); }
+function talk(id, o) { if (!o && G.rel && G.rel.intercept && G.rel.intercept(id)) return Promise.resolve(null);   /* REL (add-only): they are expecting you: their scene, not small talk */
+  const ses = converse(id, o); if (!ses) return Promise.resolve(null); return openTalk(ses).then(() => ses); }
 
 /* ---------- anonymous citizens ---------- */
 function talkToCitizen(x) {

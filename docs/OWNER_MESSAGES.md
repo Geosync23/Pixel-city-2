@@ -431,3 +431,11 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 108 (2026-11-15, morning)
 Status report and ovenight report
+
+## 109 (2026-11-15) — answers to the lead's questions: pay in full, 17 more jobs in the new buildings, a list of every enterable building, cab cheat
+Buying a home: offer "pay in full" as well as the mortgage? Yes
+Two swapped jobs: vet assistant became aquarist and software developer became observatory guide. Add the originals back as jobs 26 and 27? Yes ads originals back ans lets add 15 more.  But add them to all the new buildings we've made where possible. Also, get me a lot of evey enterable buildings and describe what in it and how much interactivity. 
+First-time windows: days 0 to 2 had 7 to 8 a day, days 3 to 5 had 2 to 4. Fine, or fewer at the start? Yes
+Called cab: it waits 80 real seconds before giving up. Longer? No, just cheat it ahve the cab spawn off acreen if taking too long.
+Jobs board: the full board is now on the phone, not only at the library. Keep? Yes
+Romance: you can date several people at first, but have one partner once together, with no jealousy. Kit is a friend only. OK? Yes ok

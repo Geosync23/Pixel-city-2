@@ -80,8 +80,8 @@ function lineOf(o, x) {
   const ch = o.who !== 'narrator' && o.who !== 'player' ? safe(() => comp.char(o.who) || G.social.char(o.who), null) : null; if (ch && !ch.pose && !ch.zoff) safe(() => { ch.stop && ch.stop(); ch.faceTo(G.player.x, G.player.y); });
   return { name: w.short || w.name, spec: w.spec, text: fill(o.text, x.tok), style: o.who === 'narrator' ? 'narrator' : x.phone ? 'phone' : '', sub: first && x.sub ? x.sub : '' };
 }
-function withUs(ids, look) {      /* the people of a scene who are not standing in it get a figure beside the player (the Chapters' companion code) */
-  const need = ids.filter(id => B.castOf(id) && !safe(() => G.social.char(id), null) && !comp.has(id)); if (!need.length) return;
+function withUs(ids, look, force) {      /* the people of a scene who are not standing in it get a figure beside the player (the Chapters' companion code) */
+  const need = ids.filter(id => B.castOf(id) && (force || !safe(() => G.social.char(id), null)) && !comp.has(id)); if (!need.length) { if (comp.ids().length) mine = true; return; }
   comp.set(comp.ids().concat(need)); mine = true; if (look) for (const id of need) { const c = comp.char(id), w = who(id, look); if (c && w.spec) c.spec = w.spec; }
 }
 const sendHome = () => { if (mine) { comp.clear(); mine = false; } };
@@ -355,7 +355,7 @@ export function init() {
   SMALLBITS.init(); VERBS.init(); DATES.init(); LIFE.init();
   G.overlays.push(drawMarkers);
   let acc = 0;
-  G.addSystem({ name: 'rel', update(dt) { if (mine && !safe(() => G.chapters.active(), false)) comp.update(dt); acc += dt; if (acc < 1) return; acc = 0; safe(tryStart); safe(() => DATES.tick()); safe(() => LIFE.tick()); if (++mkT % 2 === 0 || !MK.length) MK = safe(markers, []); } });
+  G.addSystem({ name: 'rel', update(dt) { if (mine && !safe(() => G.chapters.active(), false)) comp.update(dt); acc += dt; if (acc < 1) return; acc = 0; safe(tryStart); safe(() => DATES.tick()); safe(() => VERBS.tick()); safe(() => LIFE.tick()); if (++mkT % 2 === 0 || !MK.length) MK = safe(markers, []); } });
   G.on('minutes', () => { pumpTexts(); safe(stageOffers); if (running) safe(() => { for (const k of ['hunger', 'energy', 'hygiene', 'bladder', 'social', 'fun', 'comfort']) if (G.needs.get(k) < NEED_FLOOR) G.needs.set(k, NEED_FLOOR); }); });
   G.on('hour', () => { safe(govern); safe(() => SMALLBITS.hourly()); safe(() => LIFE.hourly()); });
   G.on('day', () => { safe(() => LIFE.daily()); safe(() => DATES.daily()); });

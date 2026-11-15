@@ -85,6 +85,7 @@ function personView(id) {
     if (where && (t.id === 'friend' || t.id === 'close' || t.id === 'family')) facts.append(el('div.ph-kv', null, el('span', { text: 'Right now' }), el('b', { text: typeof where === 'string' ? placeName(where) : where.name || '' })));
     if (n.district) facts.append(el('div.ph-kv', null, el('span', { text: 'Usually around' }), el('b', { text: cap(({ oldtown: 'Old Town', harbor: 'Harborside', arts: 'Arts Quarter' })[n.district] || n.district) })));
     if (facts.children.length) b.append(facts);
+    if (G.rel && G.rel.personCard) try { G.rel.personCard(id, b, ctx); } catch (e) { /* REL (add-only): both meters, keepsakes, their page */ }
     b.append(el('div.ph-btns', null, btn('Text', () => { composing = true; ctx.push(npcName(id), threadView(id), id); }, 'pri', 'ui.speech'), btn('Call', () => call(id, ctx), '', 'ui.phone')),
       el('div.ph-btns', null, id === 'dad' ? null : btn('Invite out', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), home && isKnown(home.id) ? btn('Home on map', () => ctx.open('map', { place: home.id }), '', 'ui.pin') : null));
   };

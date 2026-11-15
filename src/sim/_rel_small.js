@@ -10,7 +10,7 @@
 import { G } from '../core/game.js';
 import { bubble } from '../ui/kit.js';
 import { FRIEND_STAGES } from '../story/_rel_kit.js';
-import { st, safe, today, fill, fr, friendStage, stage, isRom, remembers, queueText, smallDay, textCap, castOf, SMALL, NEWS, PEOPLE, PACING, partner, pname, familyTexts, short } from './_rel_base.js';
+import { st, safe, today, fill, fr, friendStage, stage, isRom, remembers, queueText, smallDay, textCap, castOf, SMALL, NEWS, PEOPLE, PACING, partner, pname, familyTexts, short, HOOK } from './_rel_base.js';
 import { SMALL_ANY } from '../story/rel_small.js';
 
 const ev = () => { const s = st().small; return s.ev || (s.ev = { worked: -9, promoted: -9, moved: -9, cooked: -9, chapter: -9, gift: {}, date: {}, scene: {} }); };
@@ -63,6 +63,7 @@ export function wave(id) {
 /** add-only hook in sim/social.js converse(): a remembered detail (or a note about a loved gift) as the second line of the greeting */
 export function greeting(ses) {
   const id = ses.id, s = st(), sm = smallDay(); if (!ses.greeting || ses.light || !castOf(id)) return; const said = s.small.said['d:' + id] || (s.small.said['d:' + id] = []);
+  const wp = safe(() => HOOK.withPartner(id), null); if (wp && (sm.wp || (sm.wp = {}))[id] !== 1) { sm.wp[id] = 1; ses.greeting.push(wp); return; }
   const g = ev().gift[id], notes = (PEOPLE[id] || {}).giftNotes || {};
   if (g && today() > g[1] && notes[g[0]] && !said.includes('g:' + g[0])) { said.push('g:' + g[0]); ses.greeting.push(fill(notes[g[0]])); G.emit('rel:small', 'detail', id, notes[g[0]]); return; }
   if (sm.dt && sm.dt[id]) return;

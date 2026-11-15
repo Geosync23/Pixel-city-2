@@ -245,3 +245,9 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 ### 21.5 Order and team
 - Team from now: 2 Fable + 1 Opus QA (owner: one less worker; let running workers finish).
 - Order: (1) CHAPTERS story design + writing (a Fable story designer writes the full 15-Chapter plan and scripts as data) and, in parallel, (2) MORE HOMES; then (3) the Chapter engine + map markers + Act One played through, (4) MY DAY, (5) quick tools + first-time windows. The remaining Wave D items (jobs expansion, relationships/romance) follow, shaped by the Chapters' family cast. Full QA wave last.
+
+## Direction update 22 (owner msg 109, 2026-11-15) — more jobs in the new buildings; pay in full; cab cheat
+- JOBS grow from 25 to 42: vet assistant and software developer return as jobs 26 and 27, plus 15 more. Place the new jobs in the buildings/rooms made since the original ten wherever possible (showpieces, stores, university, post offices, hotel, arena, City Hall, natatorium, lighthouse, fish market, mall, performance venues, the new job rooms ...), each with cast, nine-beat arc, stations and a play, same standard as J1-J3.
+- Buying a home offers PAY IN FULL beside the mortgage.
+- A called cab never makes the player wait long: if it is taking too long, it spawns just off screen and drives in. The wait before it gives up is not lengthened.
+- Confirmed: full jobs board on the phone; romance rules (date several early, one partner once together, no jealousy, Kit a friend only); first-time window amount stays as it is (lead's reading of "Yes").

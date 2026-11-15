@@ -115,7 +115,7 @@ export function talkAct(ses, vid, arg) {
 function walkWith(id, minutes = 25) {
   st().walk = { id, until: G.state.t + minutes, hand: 0 }; HOOK.withUs([id]); safe(() => G.needs.add('outdoors', 6));
   safe(() => G.goalsUI.caption(null, `${short(id)} falls in beside you. Tap them to talk as you go.`, 3600));
-  const ch = comp.char(id); if (ch && !ch._relTalk) { ch._relTalk = 1; G.scene.interactables.push({ ent: ch, x: ch.x, y: ch.y, label: 'Talk to ' + short(id), range: 2.4, h: 1.3, npc: id, get visible() { return () => comp.has(id); }, use: () => G.social.talk(id, { char: ch, rel: 1 }) }); }
+  const ch = comp.char(id); if (ch && !ch._relTalk) { ch._relTalk = 1; G.scene.interactables.push({ ent: ch, x: ch.x, y: ch.y, label: 'Talk to ' + short(id), range: 2.4, h: 1.3, npc: id, visible: () => comp.has(id), use: () => G.social.talk(id, { char: ch, rel: 1 }) }); }
 }
 export function tick() { const s = st(), w = s.walk; if (w && w.until <= G.state.t && !HOOK.isRunning()) { delete s.walk; const ch = comp.char(w.id); if (ch) bubble(ch, fill(pick(['This is me. Thank you for the company.', 'I turn off here. Same again soon.'])), 2600); setTimeout(() => HOOK.sendHome(), 1600); safe(() => G.needs.add('outdoors', 8)); } }
 

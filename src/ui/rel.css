@@ -1,0 +1,52 @@
+/* Relationships & romance (sim/rel.js): the "together" prompt, the menu for two, the wedding planner, the romance meter in the talk panel and on the
+   contact card. Porchlight has its own sheet (phone_porchlight.css). Chunky pixel look: 2px borders, hard shadows, no gradients. */
+.relp-wrap{position:absolute;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(20,16,30,.28);padding:0 8px calc(12px + env(safe-area-inset-bottom,0px))}
+.relp{width:min(430px,100%);background:#fff7ef;border:2px solid var(--edge,#2b2233);box-shadow:0 3px 0 var(--edge,#2b2233);padding:12px 14px 12px;display:flex;flex-direction:column;gap:6px}
+.relp small{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#b8456a}
+.relp b{font-size:17px;line-height:1.25}
+.relp p{margin:0;font-size:14px;line-height:1.35;opacity:.85}
+.relp-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.relp-btns button{flex:1 1 130px;min-height:46px;font-weight:800;font-size:15px;border:2px solid var(--edge,#2b2233);box-shadow:0 3px 0 var(--edge,#2b2233);padding:6px 10px}
+.relp-go{background:#e8587a;color:#fff}.relp-no{background:#fff}
+.relp-btns button:disabled{opacity:.45}
+/* the menu, for two */
+.relo{width:min(440px,100%);max-height:78vh;background:#fff7ef;border:2px solid var(--edge,#2b2233);box-shadow:0 3px 0 var(--edge,#2b2233);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px}
+.relo-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:2px solid rgba(0,0,0,.15);padding-bottom:6px}
+.relo-h b{font-size:17px}.relo-h small{font-size:12px;opacity:.75;text-align:right}
+.relo-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:auto;min-height:0}
+.relo-col{display:flex;flex-direction:column;gap:5px;min-width:0}
+.relo-col small{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#b8456a;position:sticky;top:0;background:#fff7ef;padding:2px 0}
+.relo-i{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:44px;text-align:left;font-size:13px;line-height:1.2;font-weight:700;padding:4px 7px;background:#fff;border:2px solid var(--edge,#2b2233)}
+.relo-i i{font-style:normal;font-weight:800;opacity:.7;flex:none}
+.relo-i.on{background:#ffd6e0;box-shadow:inset 0 0 0 2px #e8587a}
+.relo-f{display:flex;flex-direction:column;gap:2px;border-top:2px solid rgba(0,0,0,.15);padding-top:6px}
+.relo-f>span{font-size:13px;font-weight:700;opacity:.8}
+/* the wedding planner */
+.relw-wrap{align-items:center}
+.relw{width:min(440px,100%);max-height:86vh;overflow:auto;background:#fffaf2;border:2px solid var(--edge,#2b2233);box-shadow:0 3px 0 var(--edge,#2b2233);outline:3px solid #f2c94c;outline-offset:-7px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.relw-h small{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#b8456a}
+.relw-h b{display:block;font-size:20px;line-height:1.2;margin:2px 0}
+.relw-h p,.relw-sec p{margin:2px 0 0;font-size:13px;line-height:1.35;opacity:.85}
+.relw-sec small{font-size:12px;font-weight:800}
+.relw-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.relw-o{min-height:44px;padding:5px 10px;font-size:13px;font-weight:700;line-height:1.15;background:#fff;border:2px solid var(--edge,#2b2233);text-align:left;max-width:100%}
+.relw-o.on{background:#ffd6e0;box-shadow:inset 0 0 0 2px #e8587a}
+/* talk panel: the romance meter under the friendship meter */
+.talk-rom{margin-top:3px}
+.talk-tier[data-t=rom]{background:#ffe2c2}
+.talk-meter.rom i{position:absolute;left:0;top:0;bottom:0;background:#f08a3c;box-shadow:inset 0 -2px 0 #c2621c;transition:width .4s steps(6)}
+.talk-head.has-rom{align-items:flex-start}
+@media (max-width:560px){.talk-head.has-rom .talk-rom{margin-top:0}}
+/* the person's card in Messages */
+.rel-card{display:flex;flex-direction:column;gap:8px}
+.rel-m{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:baseline}
+.rel-m span{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;opacity:.7}
+.rel-m b{font-size:14px}
+.rel-bar{grid-column:1/3;position:relative;height:10px;border:2px solid var(--edge,#2b2233);background:#fff}
+.rel-bar i{position:absolute;left:0;top:0;bottom:0;background:#e8507a}
+.rel-bar.rom i{background:#f08a3c}
+.rel-bar u{position:absolute;top:0;bottom:0;width:2px;background:var(--edge,#2b2233);opacity:.4}
+.rel-arc,.rel-ask{font-size:13px;line-height:1.3;opacity:.85}
+.rel-ask{font-style:italic}
+.rel-keep{border-top:2px dashed rgba(0,0,0,.15);padding-top:6px;display:flex;flex-direction:column;gap:2px}
+.rel-keep b{font-size:14px}.rel-keep small{font-size:12.5px;line-height:1.3;opacity:.85}

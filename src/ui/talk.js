@@ -30,7 +30,7 @@ export function openTalk(ses) {
     const line = el('div.talk-line', { onclick: () => advance() }, you, txt, more);
     const box = el('div.talk', { role: 'dialog', 'aria-label': 'Conversation with ' + ses.name }, face, el('div.talk-main', null, head, line, verbs));
     const wrap = el('div.talk-wrap', null, box); document.getElementById('ui').append(wrap); G.modal++;
-    const setRel = () => { const t = ses.tier(), r = ses.rel(); tierEl.textContent = t.label; tierEl.dataset.t = t.family ? 'family' : t.id; fill.style.width = Math.max(2, Math.min(100, r)) + '%'; };
+    const setRel = () => { const t = ses.tier(), r = ses.rel(); tierEl.textContent = t.label; tierEl.dataset.t = t.family ? 'family' : t.id; fill.style.width = Math.max(2, Math.min(100, r)) + '%'; if (G.rel && G.rel.talkMeter) try { G.rel.talkMeter(ses, head); } catch (e) { /* REL (add-only): the romance meter */ } };
     setRel();
 
     function type(text) { txt.textContent = ''; let i = 0; speak = 1; typing = () => { i += 2; txt.textContent = text.slice(0, i); if (i >= text.length) { typing = null; speak = .35; } }; typing.full = () => { txt.textContent = text; typing = null; speak = .2; }; }
@@ -46,6 +46,7 @@ export function openTalk(ses) {
       for (const it of items) verbs.append(opt(it, () => onPick(it.id))); verbs.append(opt({ id: 'back', label: 'Back' }, menu));
     }
     function picker(v) {
+      if (G.rel && G.rel.talkPicker && G.rel.talkPicker(ses, v, { list, doAct, menu })) return;   /* REL (add-only): the date picker */
       if (v.picker === 'gift') list('Give what?', ses.gifts(), id => doAct(v.id, id));
       else if (v.picker === 'food') list('Offer what?', ses.foods(), id => doAct(v.id, id));
       else if (v.picker === 'favor') list('Ask for...', ses.favors(), id => doAct(v.id, id));
