@@ -2,7 +2,7 @@
 // Event 'crowd:say'(citizen, text) whenever an anonymous citizen's bubble is shown (QA round 3; for tests and listeners).
 import { G } from '../core/game.js';
 import { Char, charArt } from '../core/char.js';
-import { pixSprite, prebakePix } from '../engine/sprites.js';
+import { pixSprite, prebakeChar } from '../engine/sprites.js';
 import { U } from '../engine/raster.js';
 import { GT } from '../engine/world.js';
 import { stepToward } from '../engine/nav.js';
@@ -39,7 +39,7 @@ export class Cit extends Char {
     return this._spr = pixSprite('cz' + this.sid + a + f + dir + (seated ? 's' : ''), A.CHAR_SB, () => A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : item ? { anim: a, frame: f, dir, item: 'bag' } : { anim: a, frame: f, dir }));
   }
   /* perf: queue one frame of this citizen with the sprite bake queue (same key and drawing as sprite()) */
-  _pre(A, a, f, dir, seated, pri) { const spec = this.spec, item = a === 'carry'; prebakePix('cz' + this.sid + a + f + dir + (seated ? 's' : ''), A.CHAR_SB, () => A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : item ? { anim: a, frame: f, dir, item: 'bag' } : { anim: a, frame: f, dir }), pri); }
+  _pre(A, a, f, dir, seated, pri) { prebakeChar('cz' + this.sid + a + f + dir + (seated ? 's' : ''), A.CHAR_SB, this.spec, seated ? { anim: a, frame: f, dir, seated: true } : a === 'carry' ? { anim: a, frame: f, dir, item: 'bag' } : { anim: a, frame: f, dir }, pri); }
   /** perf: called by the renderer while this citizen is just off screen: queue the frame it shows now and the next one */
   prebake(pri) {
     if (!this.spec) return; const A = charArt(), AN = A.ANIMS; let a = this.pose || (this.moving ? (this.carry ? 'carry' : this.run ? 'run' : 'walk') : this.carry ? 'carry' : 'stand'), n = AN[a]; if (!n) { a = 'stand'; n = AN.stand || 1; }

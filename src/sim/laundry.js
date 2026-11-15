@@ -147,6 +147,19 @@ async function hamperUse() {
 }
 const myHome = scene => { const c = safe(() => G.housing.current(), null); return !!(c && c.id && scene && String(scene.roomId || '').indexOf('home:' + c.id) === 0); };
 const free = (H, x, y) => { try { return H.check({ itemId: 'hamper_t0', x, y }) === null; } catch (e) { return false; } };
+/* owner msg 112: the hamper used to take the FIRST free cell, which is by the back wall, in front of the fridge. It now takes the free cell that keeps the most
+   distance (up to 2.5 tiles) from everything you can tap; a hamper already standing within 1.5 tiles of a fixture is moved once per home. */
+const others = () => safe(() => G.interactables(), []).filter(i => !/hamper/i.test(i.label || '') && typeof i.x === 'number');
+const gap = (L, x, y) => { let m = 9; for (const i of L) m = Math.min(m, Math.hypot(i.x - (x + .5), i.y - (y + .5))); return m; };
+function clearSpot(H, w, d) { const L = others(); let best = null, bs = -1; for (let y = .5; y < d - 1; y += .5) for (let x = .5; x < w - 1; x += .5) { if (!free(H, x, y)) continue; const sc = Math.min(gap(L, x, y), 2.5); if (sc > bs) { bs = sc; best = { x, y }; } } return best; }
+function unblockHamper() {
+  const H = G.housing, cur = safe(() => H.current(), null); if (!cur || !cur.id || !H.isHome() || safe(() => H.room(), 'main') !== 'main') return;
+  const M = S.hamperMoved || (S.hamperMoved = {}); if (M[cur.id]) return; M[cur.id] = 1;
+  const it = ((G.state.home || {}).items || []).find(i => /^hamper_/.test(i.itemId) && typeof i.x === 'number'); if (!it) return;
+  if (gap(others(), it.x, it.y) >= 1.5) return;
+  const def = safe(() => H.roomDef(cur.id, 'main'), null), spot = clearSpot(H, (def && def.w) || 8, (def && def.d) || 8); if (!spot || gap(others(), spot.x, spot.y) < 1.5) return;
+  it.x = spot.x; it.y = spot.y; safe(() => H.refresh());
+}
 /** every home gets a hamper: placed in the first free spot, else it waits in storage */
 function ensureHamper() {
   const H = G.housing, cur = safe(() => H.current(), null); if (!cur || !cur.id || S.hamperHome === cur.id || !H.isHome() || safe(() => H.room(), 'main') !== 'main') return;
@@ -154,7 +167,7 @@ function ensureHamper() {
   S.hamperHome = cur.id; if (hasOne) return;
   if (!safe(() => H.addFurniture('hamper_t0', { instant: true }), false)) return;
   const def = safe(() => H.roomDef(cur.id, 'main'), null), w = (def && def.w) || 8, d = (def && def.d) || 8; let done = null;
-  for (let y = .5; y < d - 1 && !done; y += .5) for (let x = .5; x < w - 1 && !done; x += .5) if (free(H, x, y)) done = safe(() => H.place('hamper_t0', { x, y }, { quiet: true }), null);
+  const spot = clearSpot(H, w, d); if (spot) done = safe(() => H.place('hamper_t0', spot, { quiet: true }), null);   /* owner msg 112: not in front of the fridge */
   toast(done ? 'A laundry hamper has turned up in your home. Dirty clothes go in it when you change.' : 'A laundry hamper is in your storage. Place it with Decorate.', 'info', 4600);
   if (done) safe(() => H.refresh());
 }
@@ -174,7 +187,7 @@ export function init() {
   registerFixture('hamper', (fx, scene) => (myHome(scene) ? { label: 'Laundry hamper', hit: 10, use: hamperUse } : null));
   registerFixture('dryer', (fx, scene) => (myHome(scene) ? { label: 'Tumble dryer', hit: 12, use: () => { const l = S.loads.find(x => x.home && x.stage === 'washed'); if (l) { startDry(l, 'dryer', HOME_DRY); toast('Tumbling.', 'good'); } else toast(S.loads.some(x => x.home && x.kind === 'dryer') ? 'Still tumbling.' : 'Nothing wet to dry. Run the washer first.', 'info'); } } : null));
   registerFixture('dryrack', (fx, scene) => (myHome(scene) ? { label: 'Drying rack', hit: 12, use: () => { const l = S.loads.find(x => x.home && x.stage === 'washed'); if (l) { startDry(l, 'rack', RACK_MIN); toast('Pegged out on the rack.', 'good'); } else toast('Nothing wet to hang. Run the washer first.', 'info'); } } : null));
-  G.on('room:build', onRoom); G.on('minutes', tick); G.on('scene', () => { setTimeout(() => safe(ensureHamper), 400); if (S.bag) carry(true); }); G.on('activityEnd', () => { if (S && S.bag) carry(true); });
+  G.on('room:build', onRoom); G.on('minutes', tick); G.on('scene', () => { setTimeout(() => { safe(ensureHamper); setTimeout(() => safe(unblockHamper), 300); }, 400); if (S.bag) carry(true); }); G.on('activityEnd', () => { if (S && S.bag) carry(true); });
   safe(() => G.tips.register({ id: 'laundry', topic: 'home', title: 'Laundry', text: 'Clothes need a wash after a few days of wear. Change at your dresser and the dirty ones drop into the hamper. Take the laundry bag to a washer (the laundromat, or your own), then a dryer. The Closet app shows the timers.', go: { app: 'closet' } }));
   safe(() => G.tips.register({ id: 'dresser', topic: 'home', title: 'Getting dressed', text: 'Your dresser holds every piece you own. Mix tops, bottoms, coats, shoes and extras, save outfits under a name, or tap Today for a suggestion that suits the weather.', go: { app: 'closet' } }));
   safe(() => G.tips.register({ id: 'haircut', topic: 'home', title: 'Hair', text: 'Barbers and salons each have their own lookbook. Pick a style, sit in the chair, see the reveal. The colour bar at Lacquer Lounge does dyes. Hair grows out after a few weeks.', go: { find: 'hygiene' } }));

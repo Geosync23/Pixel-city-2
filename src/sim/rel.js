@@ -202,7 +202,7 @@ function offer(id, o = {}) {
 }
 function pin(id) {
   const sc = SC[id], s = st(), o = s.off[id]; if (!sc || !o || o.done || pinOf(o) || apptOf(o)) return null; const d = dest(sc.place, sc.person), w = nextWindow(sc.window); if (!d || !w) return null;
-  o.sent = true; o.pinDay = today(); o.pin = safe(() => G.planner.suggest({ title: titleOf(sc, d), placeId: d.placeId || null, t: Math.max(w.from, Math.ceil(G.state.t / 30) * 30), dur: 60, kind: 'friend', data: Object.assign({ rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) }), null);
+  o.sent = true; o.pinDay = today(); o.pin = safe(() => G.planner.suggest({ title: titleOf(sc, d), placeId: d.placeId || null, t: Math.max(w.from, Math.min(Math.ceil(G.state.t / 30) * 30, w.to - 40)), dur: 60, kind: 'friend', data: Object.assign({ rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) }), null);
   safe(() => G.emit('myday:change')); return o.pin;
 }
 /* the Idea is pinned on the day the scene can be played (My Day shows pins for today); dismissed or missed, it comes back after three days, with no second notification */

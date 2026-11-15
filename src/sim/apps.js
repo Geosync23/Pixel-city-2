@@ -29,7 +29,9 @@ export const CATALOG = [
   { id: 'bank', name: 'Bay Bank', cat: 'money', pre: 1, tagline: 'How much do I have?', size: '14 MB', rating: 4.3, desc: 'Balance, bills, activity, lease and loans.', does: ['Next Monday\'s bill itemised', 'Last transactions', 'Home and loans'] },
   { id: 'jobs', name: 'Jobs', cat: 'money', pre: 1, tagline: 'How do I earn?', size: '11 MB', rating: 4.2, desc: 'Your job, next shift and the lite jobs board.', does: ['Shift times and promotion progress', 'Apply for entry jobs', 'Gigs'] },
   { id: 'wellness', name: 'Wellness', cat: 'life', pre: 1, tagline: 'How am I doing?', size: '10 MB', rating: 4.6, desc: 'Mood, needs, skills and your journal of firsts.', does: ['Need bars with suggestions', 'Skills', 'Journal'] },
-  { id: 'delivery', name: 'ZipEats', cat: 'life', pre: 1, tagline: 'Can dinner come to me?', size: '16 MB', rating: 4.0, desc: 'Dinner to your door. Needs a download code from your first meal at a place that delivers.', does: ['Menus of places that deliver', 'Order to home'] },
+  { id: 'delivery', name: 'ZipEats', cat: 'life', tagline: 'Can dinner come to me?', size: '16 MB', rating: 4.0, desc: 'Dinner to your door, from the places in town that deliver.',
+    /* owner msg 112: no more locked apps on the home screen; ZipEats simply appears in the store after your first meal at a place that delivers */
+    release: { poll: () => !!(G.state.flags && G.state.flags.ate_at_delivery_venue), text: 'your first meal at a place that delivers' }, does: ['Menus of places that deliver', 'Order to home'] },
   // ---- new apps, released through the store ----
   { id: 'homes', name: 'Nestly', cat: 'home', tagline: 'Where could I live?', size: '22 MB', rating: 4.7, iconIds: ['ui.home', 'ui.house', 'ui.key', 'ui.pin'], color: '#e0703a', release: { day: 1, text: 'day 1' },
     desc: 'Every home in Maple Bay on one list: studios, apartments, lofts, houses and the penthouse. Compare rent, price, size and the walk to work, then rent or buy from the sofa.',

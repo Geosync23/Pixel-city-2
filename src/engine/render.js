@@ -1,7 +1,7 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
 import { WS, U, screenBox, renderJob, renderStep, renderResult } from './raster.js';
 import { renderChunk, chunkJob, CH, outskirtChunks } from './ground.js';
-import { toSprite, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, BAKE } from './sprites.js';
+import { toSprite, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, BAKE } from './sprites.js';
 import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -68,6 +68,13 @@ export class Renderer {
     const bad = [], seen = new Set(); let tested = 0;
     for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k); tested++; try { if (sliceTest(screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip, rows)) bad.push(k.slice(0, 80)); } catch (e) { bad.push('ERR ' + k.slice(0, 60) + ' ' + e.message); } }
     return { tested, bad };
+  }
+  /** test hook (async): objects [from, from + n) drawn by the bake worker vs. here; { tested, skipped (custom art / no worker), bad: [...] }. Expect bad = []. */
+  async workerCheck(world, from = 0, n = 1e9) {
+    const bad = [], seen = new Set(); let tested = 0, skipped = 0;
+    for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k); if (ASSETS.get(ob.id) !== ob.a) { skipped++; continue; }
+      let d = null; try { d = await workerTest({ t: 'obj', a: ob.id, p: ob.p, flip: !!ob.flip, vb: ob.vbl }, screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip); } catch (e) { d = 'ERR ' + e.message; } if (d === null) skipped++; else { tested++; if (d !== 0) bad.push(k.slice(0, 80) + ' -> ' + d); } }
+    return { tested, skipped, bad };
   }
   /** test hook: cost of painting objects [from, from + n): [[ms in one go, ms for a quarter-height band, w, h, id]...] (a band that costs as much as the whole = art that plots pixel by pixel) */
   bakeCost(world, from = 0, n = 1e9) {

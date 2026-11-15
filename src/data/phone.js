@@ -97,7 +97,7 @@ export const APPS = [
     notes: 'The HUD shows only the mood face and any need below 30; the full picture lives here.' },
 
   { id: 'delivery', name: 'ZipEats', icon: 'paper bag with a lightning bolt', slot: 7, question: 'Can dinner come to me?',
-    unlock: { at: 'condition', flag: 'ate_at_delivery_venue', desc: 'After your first meal at Dot\'s Diner, Noodle Lantern or Slice of Heaven you get a flyer with a download code.' },
+    unlock: { at: 'start' },
     badge: 'order on the way',
     tabs: [
       { id: 'order', name: 'Order', shows: 'Menus (takeaway-able mains and snacks) of venues with `delivers: true` that are open now; fee and ETA from economy.js DELIVERY.foodDelivery.',

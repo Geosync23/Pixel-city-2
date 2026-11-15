@@ -1,0 +1,221 @@
+# Opportunities: the full list (201), from src/data/opportunities*.js (2026-11-15)
+Small optional things the city offers: up to 4 a day, at least 2.5 game hours apart, never at night or on shift. Accept, decline or ignore; nothing is lost. NOT the main story (that is the 15 Chapters).
+
+## Tutorial (1)
+- **Get your bearings**: Opportunities are little things the city puts in your way. Say yes, or let them pass: nothing is ever lost. Here is one. Find the nearest patch of green and stand in it for a minute. _($5 · +12 outdoors · stamp)_
+
+## People you know (42)
+- **Tea with Nana**: Nana Bea has the kettle on. She says she is not expecting anyone, in the voice that means she is expecting you. _(+8 comfort, +6 social · closer to someone)_
+- **Nana is out of bread**: Nana ran a tearoom for thirty-one years and has no bread in the house. She would never ask. So do not make her. _(+10 hunger, +6 social · closer to someone)_
+- **Flowers for Nana's table**: There has been a vase on Nana's kitchen table for fifty years. It is empty this week. _(+8 social · closer to someone)_
+- **Nora wants to hear your voice**: Three texts in a row from your sister, the last one just a question mark. Call somebody who loves you. _(+8 social · closer to someone)_
+- **Come by after school**: Nora is home by four and the porch swing seats two. She has news, or cake, or both. _(+8 social, +4 comfort · closer to someone)_
+- **Pip's survey**: Your niece is conducting a survey with a clipboard. There are nine questions. You are question one. _(+6 fun · closer to someone)_
+- **How big is the skeleton?**: Milo wants to know exactly how tall the skeleton in the museum is. He has asked four times. Go and look, and report back. _(+8 inspiration · closer to someone)_
+- **Hold this for a second**: Theo is building a shelf. It is not level. He needs a second pair of hands and a second opinion. _(closer to someone · skill)_
+- **Dez knows a shortcut**: Your cousin says there is a way from Old Town to the harbour that is not on any map. Ask him about it. _(+5 inspiration · closer to someone)_
+- **Kit has a new verse**: Kit has forty half-songs and has just finished a verse of one. You are the only person allowed to hear it. _(+8 inspiration, +6 social · closer to someone)_
+- **Sunday at the yellow house**: There is always too much food at Nora and Theo's on a Sunday. Nobody will let you leave without a container. _(+10 social, +12 hunger · closer to someone)_
+- **Bean & Gone is short of lemons**: Marlow has run out of lemons with the afternoon rush still to come. Three would save the lemon drizzle. _($12 · +4 social · closer to someone)_
+- **Eggs for the morning bake**: Roz is two eggs short for tomorrow's first batch, and the delivery is not until Thursday. _($8 · closer to someone)_
+- **Dot saved you a slice**: Dot says there is one slice of the cherry left and she has put a plate over it with your name on. _(+18 hunger, +6 fun · closer to someone)_
+- **Do not ask about the broth**: Haru nodded at you last time. From Haru, that is a standing invitation. Have a bowl at the counter. _(+5 comfort · closer to someone)_
+- **Nico wants a second opinion**: There is a new slice at Slice of Heaven and Nico cannot decide if it is genius or a mistake. He needs a neutral mouth. _(+14 hunger, +6 fun · closer to someone)_
+- **Priya's melon lesson**: Priya can tell a ripe melon by ear and has offered to show you. It involves knocking. There is a right way. _(closer to someone · skill)_
+- **Mr. Oh is "resting"**: Fourteen hours a day behind the counter of Lucky Corner, and he calls it resting. Stop in and keep him company for a minute. _(+5 social · closer to someone)_
+- **Chapter is asleep on the new arrivals**: The bookshop cat has chosen the new-arrivals table again. Ambrose will not move her. Browse around her. _(+6 inspiration, +4 comfort · closer to someone)_
+- **Ask Ines anything**: The head librarian can find any fact in under four minutes. She likes to be tested. Bring a hard one. _(closer to someone · skill)_
+- **One more rep**: Tasha at Iron Maple will count your last rep for you. Loudly. It works. _(closer to someone · skill)_
+- **Imani guesses your week**: Imani at Thread & Co. can tell your size, your job and how your week is going from across the street. Let her dress you once. _(+6 fun · closer to someone)_
+- **Felix has a lamp opinion**: Felix at Nest & Wire will sell you a lamp, then quietly talk you into the cheaper, better lamp. Hear him out. _(+3 comfort · closer to someone)_
+- **Vera is threading the projector**: She has run it since 1979 and will show you how the film goes through the gate, if you ask nicely before the first showing. _(+8 inspiration · closer to someone)_
+- **Lou's quiet hour**: Before the Blue Heron fills up, Lou sits at the end of the bar with the paper. That is when the drummer stories come out. _(+6 social, +4 inspiration · closer to someone)_
+- **Walt is on the stoop**: Your landlord is sitting outside with the wrench, pretending to fix the railing. He likes it when someone notices. _(closer to someone)_
+- **Noor is practising on the green**: Your neighbour has taken the cello outside today. She plays beautifully, and apologises for it afterwards. _(+10 inspiration · closer to someone)_
+- **Streetcar No. 9**: Gordon downstairs is restoring a streetcar one bolt at a time. Today's bolt needs someone to hold the other end. _(closer to someone · skill)_
+- **Fenn takes requests**: The accordion player outside Central Station knows every tune you can hum. A coin in the case and it is yours. _(+8 inspiration, +5 fun · closer to someone)_
+- **The Captain has a story**: Captain Thorne sailed the bay ferry for forty years. Every story is true, roughly. Today's involves a whale. _(+6 inspiration, +5 social · closer to someone)_
+- **Table three is open**: Vik is undefeated at table three, by his own careful accounting. He is looking for a new opponent. He means you. _(closer to someone · skill)_
+- **Keep pace with Tav**: Tav runs the river path every morning and has been training for the half marathon for four years. Join for a stretch. _(closer to someone · skill)_
+- **The critic is at the next table**: Barnaby Quill gives four stars at most and eats at Dot's every Monday. He has never reviewed it. Do not mention the review. _(+6 fun · closer to someone)_
+- **Birdie knows every pigeon**: The pigeon lady can introduce you to forty birds by name. One of them is called Gerald and is, she says, a thief. _(+5 fun · closer to someone)_
+- **Cab 22**: Take a cab somewhere today. If it is Manny, he has an opinion on every street and a cousin on most of them. _(+5 social, +3 comfort · closer to someone)_
+- **A quick check-up**: It has been a while since anyone looked in your ears. Samira at Bayside Clinic has a gap this afternoon. _(closer to someone)_
+- **Gus's cats**: The dock foreman feeds every stray on Pier 7 and would deny it under oath. Some of them have wandered up to Cat Alley. _(+6 fun, +4 comfort · closer to someone)_
+- **Radio knows where everything is**: Rhonda at the ZipParcel Depot knows where every package in Maple Bay is, and most of the people too. Say hello. _(closer to someone)_
+- **A table at the Gull**: Celeste has had a cancellation at The Gilded Gull. A window table, tonight only. Wear the good shoes. _(+6 comfort · closer to someone)_
+- **A small something for someone**: Think of somebody here who has been kind to you. Take them a little thing, for no reason at all. _(+8 social)_
+- **Meet someone new**: There are a lot of people in this city you have not met. Start a conversation with one of them. _(+6 social · skill)_
+- **A postcard home**: Somebody back in Pinehollow would love a picture of the bay with three lines on the back. Any mailbox will take it. _(+8 social)_
+
+## Places (60)
+- **The Bay Wheel is turning**: From the top car you can see the lighthouse, the airport and your own roof. One ride. _(+8 fun, +6 inspiration)_
+- **They are biting off the pier**: Abe says the mackerel are in. You have a rod. The pier is quiet before ten. _(+8 outdoors · skill)_
+- **A rod of your own**: People stand on the pier for hours looking perfectly content. Lucky Corner sells a rod for twenty-five dollars. It never breaks. _(+5 fun)_
+- **The lookout at first light**: If you are up anyway: the sun comes over the bay behind the lighthouse, and for ten minutes the whole city is pink. _(+12 inspiration, +8 outdoors · stamp)_
+- **The little shrine on the hill**: Halfway up Hillcrest there is a small shrine most people walk past. Somebody leaves fresh oranges there. Go and see. _(+8 inspiration, +4 comfort)_
+- **Cat Alley residents' meeting**: There are at least six cats in Cat Alley at any time, and they have opinions about visitors. Present yourself. _(+8 fun)_
+- **Somebody is tuning up at the bandstand**: There are people with instrument cases gathering in the park. It may be good. It will certainly be free. _(+10 inspiration, +6 outdoors)_
+- **A game at the stone tables**: The chess tables under the big maple are busy. Watch a game, or sit down across from someone. _(+6 outdoors · skill)_
+- **Nobody is on the swings**: The playground is empty and the swings are right there. You are never too old. That is a fact. _(+10 fun, +6 outdoors)_
+- **Watch the skaters**: The kids at the campus skate spot have been trying the same trick for an hour. Somebody is about to land it. _(+6 fun, +5 inspiration)_
+- **Out to Gull Point**: Walk the breakwater right out to the end, where it is just you, the gulls and the foot of the lighthouse. _(+12 outdoors, +5 inspiration)_
+- **Market Square at noon**: At twelve the whole of Old Town seems to cross Market Square at once. Stand still in the middle of it. _(+6 social, +5 inspiration)_
+- **Boats at the River Quay**: There are little boats tied up at the quay and nobody minds if you sit on the wall and watch them knock together. _(+8 outdoors, +4 comfort)_
+- **The fountain in the plaza**: City Hall Plaza at lunchtime: office people with sandwiches, pigeons with ambitions. Find a spot on the fountain rim. _(+6 outdoors, +5 social)_
+- **Campus Green in the sun**: Students asleep on the grass with books over their faces. Join them. The book is optional. _(+10 outdoors, +4 comfort)_
+- **The koi are being fed**: Hattie feeds the koi in the palm house at eleven and three. They come up like a slow orange firework. _(+8 inspiration, +5 outdoors)_
+- **The turtles are awake**: The sea turtles at the aquarium are most lively in the morning. One of them is ninety. She is in no hurry. _(+10 inspiration)_
+- **A new case in the history hall**: The museum has put out something from the city's first year that has not been seen in decades. It is small. Look closely. _(+10 inspiration)_
+- **Sketch the skeleton**: Half the art students in town are sitting in the natural history hall with pencils. There is room on the bench. _(+8 inspiration · skill)_
+- **The dome by daylight**: The observatory is open in the day too, and the big telescope is something to stand next to even with the roof shut. _(+8 inspiration)_
+- **Climb the lighthouse**: A hundred and some steps, a lamp the size of a room, and the whole bay underneath you. Silas will let you up. _(+10 inspiration · skill · stamp)_
+- **A few lengths**: The big pool is quiet mid-morning. Twenty minutes in the slow lane and the day feels rinsed. _(+5 hygiene · skill)_
+- **The view from the top**: You have looked up at the Beacon Tower every day. Time to look down from it. _(+12 inspiration)_
+- **A lap of the Galleria**: No list, no budget. Just one slow lap of the mall to see what the windows are doing. _(+6 fun, +4 inspiration)_
+- **Under the glass dome**: Central Station at rush hour is the best free show in town. Stand under the departure board and watch everybody go somewhere. _(+8 inspiration)_
+- **Something pinned to the board**: Notice boards in this city are full of lost cats, piano lessons and one very strongly worded note. Read one properly. _(+4 inspiration, +3 social)_
+- **New crates at Wax & Wane**: A collection came in from an estate in Hillcrest. Forty years of somebody's taste, a dollar a guess. _(+10 inspiration, +4 fun)_
+- **A table in the sun at The Tea Garden**: The good table in the corner is free, the one the regulars fight over. Order anything and it is yours. _(+8 comfort, +4 outdoors)_
+- **Little Hanoi Pho**: The windows are steamed up and there is a queue of people who clearly know something. Find out what. _(+5 inspiration, +4 comfort)_
+- **El Farolito has the trompo going**: You can smell it from the corner. Two tacos, standing up, napkin under the chin. _(+6 fun, +4 inspiration)_
+- **Injera at Addis Table**: You eat it with your hands, off one big plate. If you have never had it, today is the day. _(+8 inspiration)_
+- **The carts are out at Nine Dragons**: Weekend dim sum: point at what looks good as it rolls past. You will order too much. Everyone does. _(+6 fun, +5 inspiration)_
+- **Halo Donuts, still warm**: The glazed ones come out at eight and are gone by half past nine. That is all the information you need. _(+8 fun)_
+- **Baker House Bagels**: A proper bagel, boiled then baked, with too much on it. Old Town runs on these. _(+5 comfort, +3 fun)_
+- **Bubbling Lantern Hot Pot**: A pot of broth on the table and a plate of things to cook in it. It is dinner and an activity. _(+6 fun, +5 inspiration)_
+- **Seoul Ember BBQ**: You grill it yourself at the table. You will smell of it for a day. Worth it. _(+6 fun, +5 inspiration)_
+- **Mama Opal's is frying chicken**: Mama Opal only fries when she feels like it, and today she feels like it. The Railyard knows already. _(+8 comfort)_
+- **Fish and chips by the water**: Rope Works does them in paper. Eat them on the harbour wall and guard them from the gulls. _(+5 outdoors, +5 fun)_
+- **Cold Storage Boba & Ice**: An old ice house on the harbour that now sells tea with things in it. Get the big straw. _(+6 fun)_
+- **Something new on tap**: The Maple Brewing taproom has tapped a batch that will be gone by the weekend. _(+6 social, +5 fun)_
+- **Cedar & Olive at lunch**: The falafel comes out of the fryer to order and the pickles are made in the back. Go while it is quiet. _(+4 inspiration, +4 comfort)_
+- **Night Owl Coffee keeps the lights on**: When the rest of downtown has gone home there is still one window lit, and somebody in it writing a novel. _(+6 comfort, +4 inspiration)_
+- **Lantern Row is lighting up**: The lanterns go on along the food street as it gets dark and every window starts to steam. Eat something from a stall. _(+6 fun, +6 inspiration)_
+- **Frank's Franks at the park gate**: A hot dog from a cart, eaten walking. Some days nothing else will do. _(+5 fun, +4 outdoors)_
+- **Tin Robot Toys has a new window**: They change the window display once a month and people come specially. This month there is a train. _(+6 fun, +5 inspiration)_
+- **Kittens in the window**: Paws & Whiskers has a litter up for adoption. You can go in and be looked at by them. _(+8 fun, +3 comfort)_
+- **Good paper**: Old Post Stationers sells the kind of notebook that makes you want to have thoughts. Buy one small thing. _(+6 inspiration)_
+- **A sketchbook of your own**: With a sketchbook you can sit on any bench in the city and draw what is in front of you. Studio 11 and the bookshops have them. _(+8 inspiration)_
+- **Bath salts at the pharmacy**: Post Corner Pharmacy has a jar of blue bath salts on the counter that smells like a holiday. _(+8 comfort)_
+- **Bloom & Paper smells like a garden**: Walk into the flower shop on purpose, breathe in, and walk out again. Buying something is optional. _(+5 comfort, +4 inspiration)_
+- **A taste at The Rind & The Wheel**: There is a board of things to try on the counter and a person very keen to tell you about each of them. _(+5 inspiration, +4 hunger)_
+- **New zines in**: Ink & Ivy Comics has a rack of zines made by people who live within a mile of the shop. One is about pigeons. _(+8 inspiration)_
+- **One good jacket**: Somewhere on the rails at Ink & Ivy Vintage is a jacket that has been waiting for you since before you were born. _(+6 fun, +4 inspiration)_
+- **Suds & Bubbles is quiet right now**: Every machine is free and it is warm in there. Bring the hamper while nobody else has thought of it. _(+6 comfort)_
+- **Ride the loop**: Get on the light rail and stay on past your stop. From up on the viaduct you see the back of everything. _(+8 inspiration)_
+- **A window seat on the bus**: Take a bus somewhere you would usually walk. Sit by the window. Let the city go past at bus speed. _(+5 inspiration, +4 comfort)_
+- **Yoga at Iron Maple**: There is a class on the mats. Everyone in it is more flexible than you. Nobody in it cares. _(+6 comfort · skill)_
+- **Coffee in a strange lobby**: Half the office towers downtown have a coffee kiosk in the lobby, and nobody checks whether you work there. _(+5 inspiration)_
+- **Along the boardwalk**: Start at the fish hall and walk the whole boardwalk to the pier. Count the boats. Lose count. _(+10 outdoors)_
+- **The General Post Office**: It is worth going in even with nothing to send: brass, marble and a hundred and eighty little numbered doors. _(+6 inspiration)_
+
+## When a need is low (23)
+- **A breath of air**: You have been indoors a long while, and the park is right there. Ten minutes of green would do it. _(+10 outdoors, +4 fun)_
+- **Sit outside for a bit**: A bench, the sky, other people going past. No phone. Just for a little while. _(+8 outdoors, +4 social)_
+- **The ducks are waiting**: The ducks on the pond have noticed you have not been by. A bag of feed costs a dollar at the corner shop. _(+8 outdoors, +6 fun)_
+- **Lunch on the grass**: Take whatever you are eating out to the meadow. Food tastes better with a breeze. _(+10 outdoors, +3 comfort)_
+- **Something to look at**: The days are starting to look alike. An hour among old and beautiful things would shake that loose. _(+10 inspiration)_
+- **A new story**: Ambrose at Dog-Eared Books will find you something. He always does. Buy a book you had not planned to. _(+12 inspiration)_
+- **An hour with a book**: The library has a reading nook with your name on it. Well, not literally. Ines would not allow that. _(+8 inspiration, +4 comfort)_
+- **A film tonight**: There is something on at The Orpheum. Sit in the dark with strangers and let it wash over you. _(+8 inspiration, +6 fun)_
+- **Somewhere you have never been**: There is a door in this city you have never walked through. Go and see what is behind it. _(+10 inspiration · skill)_
+- **Look at it all from above**: From Hillcrest Lookout the whole city fits in one glance. It helps to see it small now and then. _(+8 inspiration, +6 outdoors)_
+- **Follow the music**: Somebody is playing in the street somewhere. Find them and stay for a whole tune. _(+8 inspiration, +4 fun)_
+- **Something cosy for home**: A candle changes a room more than it has any right to. FreshWay and Lucky Corner both have them. _(+10 comfort)_
+- **A bit of green for the windowsill**: A small succulent asks for almost nothing and makes the place feel lived in. _(+8 comfort, +3 inspiration)_
+- **Blow off some steam**: The cabinets in the Orpheum lobby take quarters and worries. Ten minutes. Maybe twenty. _(+10 fun)_
+- **Round and round**: The Bay Wheel is turning. From the top you can see the lighthouse wink. _(+8 fun, +4 inspiration)_
+- **Ring someone**: You have gone quiet. Call anyone at all, and say something that is not about logistics. _(+8 social)_
+- **Coffee among people**: You do not have to talk to anyone. Just sit where talking is happening. _(+8 social, +3 comfort)_
+- **Say hello to a stranger**: This is a friendly city. Prove it. Say hello to somebody you do not know. _(+6 social · skill)_
+- **Fresh things for dinner**: The market stalls are still out, and whatever looks best today is what you are cooking. _(+4 fun, +4 inspiration · skill)_
+- **A proper coffee**: You are flagging. Somebody nearby makes a very good cup. Let them. _(+4 energy, +4 comfort)_
+- **An easy jog**: Nothing heroic. Once along the river and back, at a pace you could talk at. _(+8 outdoors · skill)_
+- **An early night**: You are running on fumes. Tonight, bed wins. Six good hours and tomorrow is a different day. _(+6 comfort)_
+- **Freshen up**: A hot shower fixes more than it should. You will feel like a new person. Possibly a better one. _(+5 comfort)_
+
+## Weather (19)
+- **The river walk is lovely this evening**: The light is going gold over the water and the lamps are just coming on. Walk down to the River Lookout and stand in it. _(+10 outdoors, +6 inspiration · stamp)_
+- **The observatory has a clear night**: Not a cloud over Hillcrest. Dr. Halvorsen will have the dome open, and Saturn does not come round every evening. _(+12 inspiration · stamp)_
+- **A sky full of stars**: The whole sky is out tonight. The lookout is the darkest place in town, and it is free. _(+10 inspiration, +6 outdoors)_
+- **Rain on the window**: It is coming down, and Bean & Gone has a table by the glass. Sit there with something hot until it eases. _(+10 comfort)_
+- **A rainy-day book**: This is exactly the weather libraries were built for. Find a nook and stay dry. _(+8 inspiration, +5 comfort)_
+- **Out in it**: You have an umbrella and nowhere to be. The river looks completely different in the rain. _(+12 outdoors, +5 inspiration)_
+- **An umbrella of your own**: You are going to get soaked again, and Lucky Corner sells umbrellas for twelve dollars. Just saying. _(+5 comfort)_
+- **Batten down**: It is properly wild out there. The best place in Maple Bay tonight is your own sofa. _(+10 comfort)_
+- **The pier in the fog**: You cannot see the end of the pier from the start of it. Walk out anyway. It is like the edge of the map. _(+10 inspiration, +6 outdoors)_
+- **The lamp in the fog**: On a day like this the lighthouse is doing its actual job. Go and see it at work. _(+10 inspiration)_
+- **First footprints**: The meadow is one clean white sheet. Somebody has to be first across it. _(+10 outdoors, +8 fun · stamp)_
+- **Hot chocolate weather**: Cold hands, warm mug. Bean & Gone does theirs with too much cream, which is the right amount. _(+8 comfort)_
+- **Ice-cream weather**: Scoop Dreams is open on the boardwalk and the queue is short. This will not last. _(+8 fun, +4 outdoors)_
+- **Toes in the sand**: Gull Point Beach is warm and nearly empty. Take your shoes off for ten minutes. _(+14 outdoors, +4 comfort)_
+- **Good growing weather**: Sun after a wet spell: everything in the community garden is having the time of its life. Go and help. _(+10 outdoors · skill)_
+- **Sunset from the SkyDeck**: It is going to be one of those skies. The best seat in the city is up the Beacon Tower lift. _(+12 inspiration)_
+- **Clear skies over the runway**: You can see them stacked up for miles today. The viewpoint by the fence is the place. _(+8 outdoors, +5 inspiration)_
+- **A grey day for bright rooms**: Flat light outside, so go where the colour is. The museum art wing does not care about weather. _(+10 inspiration)_
+- **Warm glass, wet day**: Rain drumming on the palm house roof, and inside it is the tropics. Hattie says it is the best day to visit. _(+8 inspiration, +6 outdoors, +4 comfort)_
+
+## At home (15)
+- **Your plant looks thirsty**: The plant at home has started to droop in a way that feels personal. Three minutes with a watering can. _(+5 comfort · skill)_
+- **Dust bunnies**: Home has gone a little wild. A quick tidy, or just picking up what is lying about, would change the whole feel. _(+6 comfort)_
+- **A proper clean**: You have cleaner, you have sponges, you have half an hour. The place could gleam. _(+6 comfort · skill)_
+- **Stock the bathroom shelf**: A couple of things at home are running low. One trip and you are set for weeks. _($3 · +5 comfort)_
+- **Cook something you have never cooked**: Pick a recipe you have not tried and see what happens. Worst case, toast. _(+6 inspiration · skill)_
+- **A real breakfast**: Not a granola bar on the stairs. Something made in a pan, eaten sitting down. _(+5 comfort, +3 energy)_
+- **A chapter before bed**: One chapter. That is all. You know it will be three. _(+5 inspiration, +4 comfort)_
+- **Move one thing**: A room feels new if you move just one piece of furniture. Try the chair by the window. _(+6 comfort, +3 inspiration)_
+- **Minty**: Your dentist back home would like a word. Two minutes at the bathroom sink. _($2 · +3 hygiene)_
+- **Laundry day**: The hamper is developing a personality. Get a wash on and reclaim your favourite shirt. _(+6 comfort)_
+- **Learn it from the telly**: There is a cooking show on that makes everything look easy. Watch one and steal a trick. _(skill)_
+- **Ten minutes on the mat**: Your shoulders are up by your ears. Roll the mat out and bring them back down. _(+4 comfort · skill)_
+- **Play a little**: The instrument in the corner is not going to practise itself. A quarter of an hour is plenty. _(+8 inspiration)_
+- **The easel is waiting**: The light is good and the canvas is blank. Put something on it. Anything. _(+10 inspiration)_
+- **Put your feet up**: You have earned twenty minutes of doing absolutely nothing on your own sofa. _(+8 comfort)_
+
+## Seasons (15)
+- **Blossom on the meadow**: The trees round the Picnic Meadow have all gone off at once. It lasts about a week. This is the week. _(+10 outdoors, +8 inspiration)_
+- **First flowers at the market**: The flower stall has wildflowers in buckets. A bunch on the table says spring louder than a calendar. _(+8 comfort)_
+- **Spring clean**: Windows open, everything out, everything wiped, everything back. You will breathe differently. _(+8 comfort, +3 outdoors)_
+- **Planting time**: The beds at the community garden are being turned over. Old Ben has spare seedlings and opinions. _(+10 outdoors · skill)_
+- **The water is warm**: It is a day for getting properly wet. The Natatorium has lanes, slides and no sand in your shoes. _(+8 fun, +4 hygiene)_
+- **The long light**: It will not be dark for ages. Climb to the lookout and watch the evening take its time. _(+8 outdoors, +6 inspiration)_
+- **Otis's Lemonade is open**: Otis Bell, nine, chief executive, has set up on the corner. A cup is a dollar. Tipping is encouraged. _(+6 fun, +3 hunger · closer to someone)_
+- **Leaves coming down**: Maplewood Park is ankle-deep in red and gold. Walk through it. Kick some. Nobody is watching. _(+10 outdoors, +6 fun)_
+- **Maple Falls in full colour**: For two weeks a year the falls run through a tunnel of orange. People come from other cities. You live here. _(+12 inspiration, +8 outdoors · stamp)_
+- **Soup weather**: The air has an edge. Make a pot of something and let the windows steam up. _(+8 comfort)_
+- **Lights along the river**: They have strung the River Walk with lights for the dark months. Go when it is properly night. _(+8 inspiration, +8 outdoors)_
+- **A hot bowl on a cold day**: Haru has had the broth on for eighteen hours. He will not be taking questions about the broth. _(+8 comfort · closer to someone)_
+- **The pigeons are hungry**: Birdie says the plaza pigeons have a thin time of it in the cold. A bag of feed from Lucky Corner would be an event. _(+8 fun, +6 outdoors · closer to someone)_
+- **New season, new look**: The calendar has turned over. Otis & Sons will take a little off the top and a year off your face. _(+6 comfort · skill)_
+- **Wrap up**: You are dressed for a different month. Thread & Co. has things with sleeves. _(+6 comfort)_
+
+## City events (15)
+- **Saturday Farmers' Market**: Everything on the stalls was in the ground on Thursday. Go early: the good tomatoes are gone by noon. _(+6 fun, +6 outdoors · skill)_
+- **Two-for-Tuesday at The Orpheum**: Half-price seats all day, and Vera has picked the film herself. Bring someone or bring two snacks. _(+8 inspiration, +6 fun)_
+- **Open Mic Night**: Anybody can get up at The Blue Heron tonight. Anybody includes you. Watching also counts. _(+10 inspiration, +6 social)_
+- **Live at The Blue Heron**: There is a band on tonight and Lou says they are the real thing. Lou toured for twenty years. Lou would know. _(+10 inspiration, +6 fun)_
+- **It's on today**: Something is happening in town today, and you are in town. It would be rude not to look in. _(+8 fun, +6 inspiration)_
+- **A stamp fair at the post office on Saturday**: Tables of old stamps in the General Post Office hall, Saturday from ten. You do not have to collect them to like looking. _(+12 inspiration · skill · stamp)_
+- **Feeding time at the aquarium**: The divers go into the big tank with a bucket at two. The rays know exactly what the bucket means. _(+10 inspiration, +6 fun)_
+- **Game night at the arena**: The Maples are at home tonight. Even if you do not follow it, eight thousand people shouting is something to be inside. _(+10 fun, +6 social)_
+- **The orchestra is in tonight**: Symphony Hall has a programme on this evening. Sit still for an hour and let sixty people be good at something at you. _(+12 inspiration)_
+- **Curtain up at the Lantern Playhouse**: A small stage, a short play, a full house. Tickets at the door. _(+12 inspiration)_
+- **The planetarium show**: They dim the dome and take you out past the last planet. It is the nearest thing in Maple Bay to leaving it. _(+10 inspiration)_
+- **City Hall is open to visitors**: The rotunda is open and somebody will show you the mural if you ask. It is your city hall now. _(+8 inspiration)_
+- **The catch is in**: The boats are back and the Bay Fish Hall is loud. Go for the noise even if you do not buy a thing. _(+8 inspiration · skill)_
+- **Afternoon tea at the Grand Maple**: You do not have to be staying there. Walk in like you own a suitcase. _(+8 comfort, +4 inspiration)_
+- **A new hanging at Tidewater Gallery**: They have changed the whole front room. Go and decide which one you would take home. _(+12 inspiration)_
+
+## Your job (11)
+- **They are hiring**: Rent comes round on Mondays. There are listings on any computer, and half of them just want someone who shows up. _($20)_
+- **A good shift**: Go in, do the work properly, come out. That is the whole trick, and it is worth more than it sounds. _($5 · +4 fun)_
+- **Coffee before clock-in**: You have time for a real one before work. Sit down with it for five minutes like a person. _(+5 comfort)_
+- **A little extra**: There is a small gig going that pays today. An hour of your time for a bit of breathing room. _($8)_
+- **A word with the boss**: Not about anything. Just say hello to the person who signs the cheques. It is noticed. _(closer to someone · skill)_
+- **Read up**: There is a book for what you do all day, and people who read it get promoted. Dog-Eared has a shelf of them. _(skill)_
+- **Take the train in**: Let somebody else drive. Tap in, find a window, watch the city wake up. _(+4 inspiration, +3 comfort)_
+- **Work it out of your shoulders**: The day is sitting on your neck. Move for half an hour, any way you like. _(+6 comfort · skill)_
+- **An evening class of one**: An hour of study now is a line on the application later. The library desks are free and so is the quiet. _(skill)_
+- **Payday treat**: Money came in. Spend a small, sensible, slightly silly amount of it on a meal somebody else cooks. _(+8 fun, +4 comfort)_
+- **Lunch away from the desk**: Eat somewhere that is not where you work. It is still the same sandwich. It is a completely different lunch. _(+4 outdoors, +4 fun)_

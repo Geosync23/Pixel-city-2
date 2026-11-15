@@ -245,7 +245,7 @@ function wire() {
   G.on('money', () => { const m = balance(); if (m < 50) notify({ type: 'low_balance', title: 'Bay Bank', text: `Balance is low: ${money(m)}`, icon: 'ui.coin' }); });
   G.on('skill:up', (k, lvl) => notify({ type: 'skill_up', title: 'Wellness', text: `${cap(k)} is now level ${lvl}!`, icon: 'skill.' + k }));
   if (0) G.on('needs:low', k => notify({ type: 'need_low', title: 'Wellness', text: ({ hunger: 'Getting hungry...', energy: 'Running low on energy...', hygiene: 'A shower would be nice.', fun: 'Time for something fun?', social: 'Maybe call someone?' })[k] || `Your ${k} is low.`, icon: 'need.' + k, priority: 'low' }));
-  G.on('shop:buy', (item, qty, venueId) => { const v = VENUE_BY_ID[venueId]; if (v && v.delivers && !isUnlocked('delivery')) unlock('delivery'); });
+  G.on('shop:buy', (item, qty, venueId) => { const v = VENUE_BY_ID[venueId]; if (v && v.delivers) (G.state.flags || (G.state.flags = {})).ate_at_delivery_venue = true; });   /* owner msg 112: the app store releases ZipEats from this flag (sim/apps.js); nothing is 'locked' any more */
 }
 
 export function init() {

@@ -445,3 +445,8 @@ Great - also quixk thing.  In the intro, the tool tip (yelled at the top) slides
 
 ## 111 (2026-11-15) — cut the city ambience / white noise; pitch a redesign
 Alao thanks for adding audio  but the basic ambiance and white nosie for the the city isnt working for me. Lwts cut it for now. Music can stay. Otjer audio can stay. But lets redesign the baic city ambiance. Pitch Mr on some options. Higher fidelity than now its like a white noise machine
+
+## 112 (2026-11-15) — hamper blocks the fridge; explain + list Opportunities; no more locked apps
+The laundry hamper is in the way of the fridge in the juniper apartment maybe others too I have t checked
+Also explain the opportunities system. Are these our story missions? Or something else? List them out. 
+Why is zip eats still a locked app. No more of that. Just make it download able after conditions are met
