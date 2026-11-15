@@ -301,14 +301,16 @@ function env() {
   X.dk = world.districtAt(X.fx, X.fy) || 'maplewood'; X.dens = density(X.dk);
   target = Math.min(CAP, Math.round(X.dens * (G.W + 2 * M_SPAWN) * (G.H + 2 * M_SPAWN) / 60000));
 }
-let stillT = 0;
+let stillT = 0; const bump = { c: null, t: -99 };
 function chatter() {   // -> true when a bubble was shown (QA round 3: a failed try retries in 1.5 s instead of waiting a whole 5-10 s period)
   if (G.cutscene || G.player.hidden || G.modal > 0) return false; const n = pool.length, s0 = ri(n), p = G.player; let best = null, nearC = null, nd = 1e9;
   for (let k = 0; k < n; k++) { const c = pool[(s0 + k) % n]; if (!c.active || c.alpha < 1 || c.hold > 0 || !onScreen(c.x, c.y, -24) || !bubbleOk(c)) continue; const d = Math.hypot(c.x - p.x, c.y - p.y); if (d < nd) { nd = d; nearC = c; }
     if (best && (best.chat || best.st === STATIC)) continue; if (c.chat || (c.st === STATIC && c.kind !== 'bench' && c.kind !== 'busker')) best = c; else if (!best && (c.st === STATIC || c.st === XWAIT || c.kind === 'jogger' || c.kind === 'carrier')) best = c; }
   // someone right next to the player may react to the player (owner msg 79): bumped into, stared at, or a visible state (smelly, soaked, in pajamas...). Same bubble slot, no extra bubbles.
   if (nearC && G.time - REACT.last > REACT.gap) {
-    const st = nd < .7 && X.pmove ? 'bumped' : nd < 1.4 && stillT > 6 ? 'staring' : null;
+    const bc = bump.c && bump.c.active && G.time - bump.t < 2.5 ? bump.c : null;   // QA round 3: bumps are caught every frame (update), not only at this tick
+    if (bc) { bump.c = null; return speak(bc, ambientLine(bc, { state: 'bumped' })); }
+    const st = nd < 1.4 && stillT > 6 ? 'staring' : null;
     if (st) return speak(nearC, ambientLine(nearC, { state: st }));
     if (nd < 5 && rnd() < .5 && playerStates().length) return speak(nearC, ambientLine(nearC, null));
   }
@@ -345,6 +347,7 @@ function update(dt) {
   for (let i = 0; i < pool.length; i++) { const c = pool[i]; if (c.active) step(c, dt); }
   updateAnimals(dt);
   stillT = X.pmove ? 0 : stillT + dt;
+  if (X.pmove && X.playerOk && G.time - bump.t > 3) for (let i = 0; i < pool.length; i++) { const c = pool[i]; if (c.active && c.alpha >= 1 && Math.abs(c.x - p.x) < .6 && Math.abs(c.y - p.y) < .6 && Math.hypot(c.x - p.x, c.y - p.y) < .6) { bump.c = c; bump.t = G.time; if (G.time - REACT.last > REACT.gap) bubT = Math.min(bubT, .4); break; } }
   if ((bubT -= dt) <= 0) bubT = chatter() ? rr(5, 10) : 1.5;
 }
 

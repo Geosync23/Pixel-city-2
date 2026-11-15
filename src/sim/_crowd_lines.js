@@ -154,7 +154,7 @@ export function cityLine(c, ctx = {}) {
   const kd = kindKey(ctx.kind); if (!s && kd && r < .55) s = draw('kind.' + kd, poolOf('kind', kd));
   if (!s && !ctx.venue && Math.random() < .4) { const nk = nearKey(c); if (nk) s = draw('near.' + nk, poolOf('near', nk)); }
   if (!s && ctx.venue && r < .7) s = draw('venue.' + ctx.venue, poolOf('venue', ctx.venue));
-  if (!s && !ctx.venue && Math.random() < .25) { const sw = specialWeather(); if (sw) s = draw('weather.' + sw, poolOf('weather', sw)); }
+  if (!s && !ctx.venue && Math.random() < .1) { const sw = specialWeather(); if (sw) s = draw('weather.' + sw, poolOf('weather', sw)); }
   if (!s && Math.random() < .2) { const de = dayEvents(c, ctx.venue); if (de.length) { const k = de[Math.floor(Math.random() * de.length)]; s = draw('events.' + k, poolOf('events', k)); } }   // QA round 3: day contexts
   if (!s) {
     let x = Math.random(), g = 'general'; for (const [k, w] of MIX) { if ((x -= w) < 0) { g = k; break; } }

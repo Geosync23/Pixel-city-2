@@ -379,3 +379,7 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 91 — Reorder the waves: swap C and D; university moves to D
 > Make d c and c d. Then move the university to d.
+
+## 92 — Clothing: 1,000 items (typed "100", then corrected to "1000")
+> Make it 100 clothing items
+> 1000
