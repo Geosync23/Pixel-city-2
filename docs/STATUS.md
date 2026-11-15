@@ -76,3 +76,4 @@ Last updated: stage 15 (Wave A: unique interiors, lobbies, homes, bladder, conse
 generic eateries reuse the pizza counter art (a taqueria shows "PIZZA"): needs a neutral or per-cuisine counter sign; weather setWeather('clear') doesn't clear isWet(); item icons missing; MapleCab shows fare on free first ride; story recipes/discounts/keepsakes not wired into cooking/shop/home; seated player may sort behind flipped sofa;
 duplicate "Discovered" toast; bus headways long; terminal has no glass roof; cabin passengers hidden by seat backs; no full human playthrough/QA pass yet; mobile layout only spot-checked.
 - FINDABILITY (Stage 48): Wander quick tools, the Systems shelf (G.shelf), first-time windows (G.firstTime, 55), Settings toggle. docs/reports/findability.md.
+- CHAPTERS (Stage 49): 15-Chapter main story engine, G.chapters, gold markers, book reader, attic, Dad. docs/reports/chapters.md, docs/story/CHAPTERS.md.

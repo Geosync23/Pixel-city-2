@@ -56,6 +56,7 @@ function render() {
   row(act('All apps', k(() => toast(allApps() + ' apps installed.', 'good'))), act('All places', k(() => toast(allPlaces() + ' places on the map.', 'good'))), act('All recipes', k(() => toast(safe(() => G.cooking.learnAll(), 0) + ' recipes learned.', 'good'))),
     act('Max skills', k(() => toast(maxSkills() + ' skills at level 10.', 'good'))));
   if (G.intro && G.intro.active) row(act('Skip the intro', () => G.intro.skip()));
+  if (G.chapters) row(act('Chapters…', () => G.chapters.debug.menu()));
   sec('Jobs + travel'); row(act('Hire me as…', hire), act('Teleport…', teleport));
   if (G.cityEvents) row(act('Start a city event…', async () => { const L = safe(() => G.cityEvents.list(), []); const id = await choose('Stage a city event now', L.map(e => ({ label: e.name || e.id, sub: 'Jumps you to it', value: e.id })), { cls: 'dev-list' }); if (!id) return; safe(() => G.cityEvents.debug.start(id)); const pl = safe(() => G.cityEvents.place(id)); if (pl) await G.go('city', { x: pl.x + 2, y: pl.y }); toast('Event staged. Stop it from this menu.'); }), act('Stop event', k(() => { safe(() => G.cityEvents.debug.stop()); toast('Event stopped.'); })));
   sec('Time'); row(act('+1 hour', k(() => G.advance(60))), act('+6 hours', k(() => G.advance(360))), act('To 8 am', k(toMorning)), act('+1 day', k(() => G.advance(1440))));

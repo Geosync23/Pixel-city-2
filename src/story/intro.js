@@ -234,7 +234,7 @@ export const GOAL_LISTS = {
   settling_in: {
     title: 'Settling in',
     goals: [
-      { id: 'nana_breakfast', text: "Breakfast at Nana's (Old Town)", hint: 'Check My Day for the address.',
+      { id: 'nana_breakfast', text: "Breakfast at Nana's (Old Town)", hint: 'Follow the gold marker to the blue door on Thimble Street.',
         doneWhen: 'beat_done:g1_breakfast', doneText: 'Full of pancakes. Armed with a recipe.' },
       { id: 'groceries', text: 'Buy groceries and stock the fridge', hint: 'FreshWay Market or Lucky Corner. Carry the bags home.',
         doneWhen: 'fridge_stocked', doneText: 'The ketchup packet has company now.' },

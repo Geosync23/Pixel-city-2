@@ -56,6 +56,7 @@ const C = () => A().c;
 const bump = (k, n = 1) => { const c = C(); c[k] = (c[k] || 0) + n; later(); };
 const setc = (k, v) => { const c = C(); if (c[k] !== v) { c[k] = v; later(); } };
 let pend = false; function later() { if (pend) return; pend = true; queueMicrotask(() => { pend = false; evalGoals(); evalAch(); }); }
+let lastOut = -1e9;   /* QA6: no 'out before dawn' beats for 2 h after a pass-out */
 function cond(when) {
   if (!when) return false; const c = C(), F = G.state.flags || {};
   if (when === 'intro_complete' || when === 'entered_home') return !!F.introDone;
@@ -83,7 +84,7 @@ function track() {
   on('inv:use', id => { const it = ITEM_BY_ID[id]; if (it && it.effects && it.effects.hunger > 0) bump('ate_meal'); });
   on('shop:buy', (id, q, v) => { const it = ITEM_BY_ID[id]; if (it && it.category === 'dish') { if (it.effects && it.effects.hunger > 0 && !it.takeaway) bump('ate_meal'); if (v) setc('ate_at:' + v, 1); } if (v) { const c = C(); c._v = c._v || {}; c._v[v] = (c._v[v] || 0) + 1; setc('venue_visits_same', Math.max(c.venue_visits_same || 0, c._v[v])); } });
   on('msg:reply', th => setc('replied:' + th, 1));
-  on('inv:change', () => { if (safe(() => G.state.inv.fridge.length, 0) >= 3) setc('fridge_stocked', 1); });
+  on('fridge:stored', () => setc('fridge_stocked', 1)); G.on('passout', () => { lastOut = G.state.t; });
   on('cooked', id => { bump('cooked_meal'); setc('cooked:' + id, 1); });
   on('ride:end', (kind, pl) => { if (kind === 'train') { bump('rode_train'); const c = C(); c._s = c._s || {}; if (pl) c._s[typeof pl === 'string' ? pl : pl.id || pl.name || '?'] = 1; setc('stations_visited', Object.keys(c._s).length); } if (kind === 'taxi') bump('taxi_rides'); if (kind === 'bus') bump('bus_rides'); });
   on('job:hired', () => { setc('job_accepted', 1); bump('jobs_held'); }); on('job:promoted', () => bump('promotions'));
@@ -100,7 +101,7 @@ function track() {
 function ambientTrack() { // every few game minutes
   if (!G.scene || G.scene.id !== 'city' || !(G.state.flags || {}).introDone) return; const c = C(), w = G.world, p = G.player, n = G.now();
   const d = safe(() => w.districtAt(p.x, p.y), null); if (d) { c._d = c._d || {}; if (!c._d[d]) { c._d[d] = 1; setc('districts_visited', Object.keys(c._d).length); } }
-  if (n.hf >= 4.5 && n.hf < 6.5) setc('outside_before', 1); if (n.hf >= 2 && n.hf < 4.5) setc('outside_after', 1);
+  if (G.state.t - lastOut > 120) { if (n.hf >= 4.5 && n.hf < 6.5) setc('outside_before', 1); if (n.hf >= 2 && n.hf < 4.5) setc('outside_after', 1); }
   if (safe(() => G.weather.isWet(), false)) setc('walked_in_rain', 1);
 }
 

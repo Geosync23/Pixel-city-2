@@ -60,11 +60,12 @@ export default {
     if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) return queueMicrotask(() => ctx.push('Your ride', quote(p))); }
     b.append(el('div.ph-hero', null, iconEl('transport.taxi', 3), el('div', null, el('b', { text: 'Where to?', style: { fontSize: '20px' } }), el('small', { text: 'Pick-up: ' + hereName() }))), el('div.ph-checker'));
     if (!canCall()) b.append(el('p.ph-note', { text: 'Heads up: drivers are scarce right now. You can still check fares.' }));
-    const all = destinations(), here = cityPos(), far = all.filter(p => Math.abs(p.x - here.x) + Math.abs(p.y - here.y) > 10);
+    const fam = ['home:sibling', 'home:grandma'].map(id => safe(() => place(id), null)).filter(Boolean);   /* QA7: family homes are cab destinations from day 0 (their texts give the address; you need not have walked past) */
+    const all = destinations().concat(fam.filter(f => !destinations().some(p => p.id === f.id))), here = cityPos(), far = all.filter(p => Math.abs(p.x - here.x) + Math.abs(p.y - here.y) > 10);
     if (!far.length) return b.append(empty('ui.pin', 'No destinations yet', 'Places you visit or hear about show up here. Stations and your home are always listed.'));
     const item = p => { const os = openState(p); return row({ icon: p.kind === 'home' ? 'ui.home' : p.kind === 'station' ? 'transport.train' : p.kind === 'airport' ? 'transport.plane' : el('i', { style: { width: '16px', height: '16px', border: '2px solid #2a2733', background: CAT_BY_ID[placeCat(p)].color, flex: 'none' } }), iconScale: 1,
       title: p.name, sub: [CAT_BY_ID[placeCat(p)].name, os.open === null ? '' : os.open ? 'open now' : 'closed now'].filter(Boolean).join(' · '), right: freeRide() ? 'Free' : money(taxiFare(p)), onclick: () => ctx.push('Your ride', quote(p)) }); };
-    const home = homePlace(), work = safe(() => place(G.jobs.current().venue), null), quick = [home, work, ...(S().seen.taxi || []).map(place)].filter((p, i, arr) => p && far.includes(p) && arr.indexOf(p) === i);
+    const home = homePlace(), work = safe(() => place(G.jobs.current().venue), null), quick = [home, work, ...fam, ...(S().seen.taxi || []).map(place)].filter((p, i, arr) => p && far.includes(p) && arr.indexOf(p) === i);
     // "For you now" (owner msg 84): where your arrow / current trip points, and anything on the planner in the next 12 hours
     const sug = [], addS = (pl, why) => { if (pl && typeof pl.x === 'number' && Math.abs(pl.x - here.x) + Math.abs(pl.y - here.y) > 10 && !sug.some(q => q.p === pl)) sug.push({ p: pl, why }); };
     const tr = safe(() => G.nav.trip(), null), wp = safe(() => G.phone.waypoint(), null), hhmm = t => { const m = ((t % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0'); };

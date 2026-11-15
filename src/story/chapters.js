@@ -568,7 +568,7 @@ const ch04 = {
   minutes: [6, 9],
   play: 'Open My Day and add one idea to your day; then look at the job listings and apply for a job.',
   teaches: ['My Day: what is ON your day versus ideas you could add', 'Work puts itself on your day; everything else you add',
-    'Finding and applying for a job (Jobs app, or the library computers)', 'Shifts: turn up, and you may work them or coast', 'Rent every other Monday'],
+    'Finding and applying for a job (Jobs app, or the library computers)', 'Shifts: turn up, and you may work them or coast', 'Bills every Monday'],
   takeaway: [{ type: 'ability', id: 'myday', text: 'My Day: the button in the top corner.' }, { type: 'flag', id: 'has_first_job', text: 'A job, and a first shift on your day.' },
     { type: 'place', id: 'pizza' }, { type: 'rel', id: 'theo', n: 6 }],
   scenes: [
@@ -620,7 +620,7 @@ const ch04 = {
       s('theo', "Everything else on there, you put there. That's the system. That's the whole system. I could've saved the napkin."),
       s('theo', 'Turn up on time and they keep you. Some days you\'ll work it properly, some days you\'ll coast. Either way you were there, and that\'s what they pay for.'),
       s('theo', "Don't turn up at all, and you get a look from me at Sunday dinner. That's the real penalty."),
-      s('theo', "Rent's every other Monday. Walt will remind you. Then he'll remind you about the reminder."),
+      s('theo', "Bills are every Monday. Walt will remind you. Then he'll remind you about the reminder."),
       s('theo', "Rule one: rent first. There is no rule two. I'm a loans officer, not a monk."),
       beat(),
       s('theo', 'Can I say a thing? In-law to... whatever you are. Out-law.'),
