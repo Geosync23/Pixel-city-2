@@ -190,7 +190,8 @@ export class BedMixer {
     if (pos === undefined) pos = this.rnd() * L; else if (tr.cur && tr.cur.name === name) pos = mod(tr.cur.pos0 + (when - tr.cur.t0) * tr.cur.rate + L * this.r(.35, .65), L); else pos = (pos + this.r(0, 6)) % L;
     const src = c.createBufferSource(), gi = c.createGain(), go = c.createGain(); const rate = 1 + this.r(-RATE_JITTER, RATE_JITTER); src.buffer = buf; src.playbackRate.value = rate; src.loop = true; src.loopStart = m.a; src.loopEnd = m.a + L;
     when = Math.max(when, c.currentTime) + .005; gi.gain.setValueAtTime(0, 0); src.connect(gi); gi.connect(go); go.connect(tr.lp); curve(gi.gain, CIN, when, fade, 1); src.start(when, m.a + pos);
-    const dwell = Math.max(12, Math.min(this.r(40, 90), L / rate - 9));   // 40-90 s, but never past its own entry point (the stretches are 29-60 s long)
+    /* how long before moving on: 40-90 s but never past its own entry point (the stretches are 29-60 s long). A pool of ONE stretch plays at least one full pass first (jumping sooner would only bring the same seconds back earlier), then jumps to another point of itself */
+    const dwell = tr.names.length < 2 ? this.r(1.3, 2.2) * L / rate : Math.max(12, Math.min(this.r(40, 90), L / rate - 9));
     const v = { name, src, gi, go, buf, t0: when, pos0: pos, L, rate, fade, end: 0 }; tr.voices.push(v); this.stats.log.push(v.rec = { id: tr.id, name, t0: +when.toFixed(2), t1: null, pos: +pos.toFixed(2), rate: +rate.toFixed(4), L: +L.toFixed(2) }); if (this.stats.log.length > 300) this.stats.log.shift(); tr.cur = v; tr.last = name; tr.switchAt = when + dwell; tr.next = null; this.played[name] = when; this.stats.started++;
     return v;
   }
