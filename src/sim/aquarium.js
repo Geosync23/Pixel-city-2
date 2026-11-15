@@ -203,7 +203,7 @@ function feedRays(fx, sc) {
 
 /* ---------- penguins ---------- */
 const OTHERS = [{ name: 'Skipper', by: 'Mia' }, { name: 'Waddles', by: 'Otis' }, { name: 'Admiral', by: 'Class 3B' }];
-const adopted = () => OTHERS.filter(o => !S || !st().adopt || st().adopt.name !== o.name).slice(0, st().adopt ? 3 : 3).concat(st().adopt ? [{ name: st().adopt.name, by: (who().split(' ')[0] || 'You') }] : []);
+const adopted = () => OTHERS.concat(st().adopt ? [{ name: st().adopt.name, by: (who().split(' ')[0] || 'You') }] : []);
 function penguins(sc) { const nx = nextShow('penguin'), a = st().adopt; toast(`Six Magellanic penguins: ${PENGUINS.join(', ')}.${a ? ` ${a.name} is yours: look for the green wing band.` : ''} ${sc && sc.aq && sc.aq.show && sc.aq.show.penguin ? 'It is feeding time: ask Tobias, up on the rock, if you can feed one.' : nx ? `Next feeding at ${clock(nx)}.` : 'Feedings at 11:30 and 15:30.'}`, 'info', 5600); return true; }
 function feedPenguin(sc) {
   if (G.busy || !sc || !sc.aq) return false; if (!sc.aq.show.penguin) { toast('Tobias has put the bucket away. Feedings are at 11:30 and 15:30.', 'info'); return false; }

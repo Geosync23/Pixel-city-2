@@ -144,7 +144,7 @@ defineRoom({ id: 'aquarium:deck', name: 'Maple Bay Aquarium: Harbor Deck', w: 22
 const lb = mkItems();
 (function buildLab() {
   const { A, S } = lb;
-  A('rehab', 5, 2.6, { stage: 0 }, { pool: 1 }); A('board', 5.4, .5, { kind: 'chart', n: 0 }, { chart: 1 }); A('desk', 1, 1.6, { kind: 'prep', w: 3 }, { tags: ['aqua_prep'] });
+  A('rehab', 5, 2.6, { stage: 0 }, { pool: 1 }); A('board', 5.4, .5, { kind: 'chart', n: 0 }, { chart: 1 }); A('prepbench', 1, 1.6);
   A('rack', 10, 1.2, { frame: 0 }, { anim: 1 }); A('labbench', 10.4, 6, { kind: 'scope' }); A('labbench', 1, 6.4, { kind: 'nursery' }); A('plant', 12.8, 8.6, { seed: 2 }); A('bucket', 4.3, 3.2);
   S(11.6, 7.2, 3, { kind: 'staff', label: 'Lab technician', lines: ['Jelly polyps. Each one of those dots will be a moon jelly by spring.', 'Quarantine is thirty days. Even for the pretty ones.', 'Do not tap the glass. They hate it and so do I.'] });
 })();

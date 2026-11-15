@@ -124,7 +124,7 @@ function deckpool(p) {
   qy(0, w, d, .7, 1.25, '#cff0f8', 'glass'); qx(w, 0, d, .7, 1.25, '#bfe4f0', 'glass'); lw([0, d, 1.25], [w, d, 1.25], AQ.frame); lw([w, 0, 1.25], [w, d, 1.25], AQ.frame); for (let x = 2; x < w; x += 2) lw([x, d, .7], [x, d, 1.25], AQ.frame);
   signY(ot ? 'SEA OTTERS' : 'HARBOR SEALS', .3, 3.4, d, .2, .55, AQ.navy, AQ.foam, { frame: false });
 }
-function stand(p) { const w = p.w || 6; for (let i = 0; i < 3; i++) { box(0, i * .8, 0, w, .8, .45 + (2 - i) * .4, AQ.wood, { l: PAT.planks(AQ.wood, 6), r: AQ.woodD, t: (x, y) => (Math.floor(x * 2) % 2 ? '#c8976a' : '#c08e62') }); } }
+function stand(p) { const w = p.w || 6; for (let i = 0; i < 3; i++) { box(0, i * .8, 0, w, .8, .45 + i * .4, AQ.wood, { l: PAT.planks(AQ.wood, 6), r: AQ.woodD, t: (x, y) => (Math.floor(x * 2) % 2 ? '#c8976a' : '#c08e62') }); } }
 function scope() { cyl(.3, .3, 0, .12, 1.1, '#5a6670'); box(.1, .1, 1.1, .4, .6, .3, AQ.coral, { r: '#c8503a' }); const s = S2(.3, .7, 1.25); ellipse(s[0], s[1], 2, 2, '#bfeaf6'); }
 function bucket() { cyl(.25, .25, 0, .2, .35, AQ.steel); const s = S2(.25, .25, .37); fishS(.25, .25, .4, 6, '#9fb4c4', { dir: 1 }); px(s[0] - 5, s[1] - 2, C('#5a6670')); px(s[0] + 5, s[1] - 2, C('#5a6670')); }
 function rail(p) { const l = p.len || 4; for (let x = 0; x <= l; x += 1) box(Math.min(x, l - .1), 0, 0, .1, .1, .9, AQ.steel, { ol: false }); lw([0, .1, .9], [l, .1, .9], AQ.frame); lw([0, .1, .5], [l, .1, .5], AQ.steel); }
@@ -176,7 +176,8 @@ export default [
   A('anchor', ['seabed'], [1.2, 1, .4], anchor, { vb: [-.2, -.2, 0, 1.4, 1.2, 1.6] }),
   A('chest', ['seabed'], [.9, .6, .56], chest, { vb: [-.1, -.3, 0, 1, .8, 1.4], variants: [{ frame: 0 }, { frame: 1 }] }),
   A('deckpool', ['aqua_deckpool'], p => [p.w || 8, p.d || 5, .7], deckpool, { vb: p => [-.1, -.1, 0, (p.w || 8) + .1, (p.d || 5) + .1, 1.7], variants: [{ kind: 'otter' }, { kind: 'seal' }] }),
-  A('stand', ['aqua_stand'], p => [p.w || 6, 2.4, .45], stand, { vb: p => [-.1, -.1, 0, (p.w || 6) + .1, 2.5, 1.4], seats: p => { const o = []; for (let i = 0; i < 3; i++) for (let x = .6; x < (p.w || 6); x += 1) o.push({ x, y: i * .8 + .4, z: .45 + (2 - i) * .4, dir: 1 }); return o; }, use: p => ({ x: (p.w || 6) / 2, y: 2.9 }) }),
+  A('stand', ['aqua_stand'], p => [p.w || 6, 2.4, .45], stand, { vb: p => [-.1, -.1, 0, (p.w || 6) + .1, 2.5, 1.5], seats: p => { const o = []; for (let i = 0; i < 3; i++) for (let x = .6; x < (p.w || 6); x += 1) o.push({ x, y: i * .8 + .4, z: .45 + i * .4, dir: 3 }); return o; }, use: p => ({ x: (p.w || 6) / 2, y: -.5 }) }),
+  A('prepbench', ['aqua_prep'], [3, .7, 1.05], () => desk({ kind: 'prep', w: 3 }), { use: { x: 1.5, y: 1.2 }, vb: [-.1, -.1, 0, 3.1, .9, 1.7] }),
   A('scope', ['aqua_scope'], [.6, .8, 1.4], scope, { use: { x: .3, y: -.4 } }),
   A('bucket', [], [.5, .5, .4], bucket, { solid: false }),
   A('rail', [], p => [p.len || 4, .1, .9], rail),
