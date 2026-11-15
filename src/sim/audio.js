@@ -196,16 +196,16 @@ function musicTick(dt, c) {
     player.schedule(c.currentTime + .45);
     if (!wound && !forced && want.g !== 'keep' && want.g !== cur.g) endTune(1.6, true);   /* another kind of place: finish the bar, fade */
     if (player.done && c.currentTime > player.next + .2) { const natural = !wound; player = null; cur = null; track = null; wound = false; forced = null; musicGap = natural ? (want.g === 'title' ? 5 : 20 + Math.random() * 30) : 2.5 + Math.random() * 2.5; }
-  } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced && !held) { const k = want.key; held = { key: k, id: bagDraw(mus(), k) }; compile(SONG[held.id]); } }
+  } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced) { if (!held || held.key !== want.key) { unhold(); held = { key: want.key, id: bagDraw(mus(), want.key) }; } if (SONG[held.id]) compile(SONG[held.id]); } }
 }
 function nowPlaying() { if (!player || !cur) return null; const s = player.song, p = player.pos(); return { id: s.id, title: s.title, feel: s.feel, pool: cur.key, where: POOL_INFO[cur.key] || (cur.key === 'forced' ? 'Chosen by hand' : 'Outdoors'), t: +p.t.toFixed(1), dur: +p.dur.toFixed(1), section: p.section, bar: p.bar, ending: wound }; }
 function musicDebug() { const st = mus(), w = unlocked ? (mwant || musicCtx()) : null, ids = w ? musicPool(w.key) : []; return { unlocked, playing: nowPlaying(), context: w, pool: ids, bag: w ? (st.bags[w.key] || []).filter(x => ids.includes(x)) : [], next: held ? held.id : null, last: st.last, recent: (st.recent || []).slice(), played: st.n || 0, gap: +musicGap.toFixed(1), forced, mood, startMs, tunes: SONGS.length }; }
 async function jukebox() {
-  const np = nowPlaying(), o = [{ label: 'Follow the game again', sub: np ? 'Now: ' + np.title + ' (' + np.where + ')' : 'Nothing is playing', value: '' }, { label: 'Skip to the next tune', value: '>' }], seen = new Set();
+  const np = nowPlaying(), o = [{ label: 'Follow the game again', sub: np ? 'Now: ' + np.title + ' (' + np.where + ')' : 'Nothing is playing', value: 'auto' }, { label: 'Skip to the next tune', value: '>' }], seen = new Set();
   const add = (head, ids) => { for (const id of ids) { if (seen.has(id)) continue; seen.add(id); const s = SONG[id], c = compile(s); o.push({ label: head + ': ' + s.title, sub: s.feel + ', ' + Math.round(c.dur) + ' s. ' + whereOf(id), value: id }); } };
   for (const k in POOL_INFO) add(POOL_INFO[k], SONGS.filter(s => (' ' + (s.pl || '') + ' ').includes(' ' + k + ' ')).map(s => s.id)); add('Outdoors', SONGS.filter(s => s.out).map(s => s.id)); add('Other', SONGS.map(s => s.id));
-  const v = await choose('Jukebox (' + SONGS.length + ' tunes)', o, { cls: 'dev-list' }); if (v === null || v === undefined) return null;
-  if (v === '') G.audio.music(null); else if (v === '>') G.audio.skip(); else G.audio.music(v); return v;
+  const v = await choose('Jukebox (' + SONGS.length + ' tunes)', o, { cls: 'dev-list' }); if (!v) return null;
+  if (v === 'auto') G.audio.music(null); else if (v === '>') G.audio.skip(); else G.audio.music(v); return v;
 }
 function tick(dt) {
   if (!unlocked || dead || !buses) return; const c = A.ctx; if (!c || c.state !== 'running') return;

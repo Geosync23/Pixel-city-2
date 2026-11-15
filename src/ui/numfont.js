@@ -57,14 +57,15 @@ function apply(m) {
 
 export function init(G) {
   css();
-  let m = '';
-  try { m = localStorage.getItem(KEY) || ''; } catch (e) { }
+  /* lead decision (QA13's recommendation): the legible pixel digits 'd' are the DEFAULT; G.numFont.set('pixel') or ?num=pixel brings the old look back */
+  let m = 'd';
+  try { const v = localStorage.getItem(KEY); if (v !== null) m = v === 'pixel' ? '' : v; } catch (e) { }
   try { const q = new URLSearchParams(location.search).get('num'); if (q != null) m = q === 'pixel' ? '' : q; } catch (e) { }
-  if (!MODES.includes(m)) m = '';
+  if (!MODES.includes(m)) m = 'd';
   apply(m);
   G.numFont = {
     modes: MODES.slice(),
     get: () => cur,
-    set(mode) { mode = mode === 'pixel' || mode == null ? '' : String(mode); if (!MODES.includes(mode)) return false; try { if (mode) localStorage.setItem(KEY, mode); else localStorage.removeItem(KEY); } catch (e) { } apply(mode); return true; },
+    set(mode) { mode = mode === 'pixel' || mode == null ? '' : String(mode); if (!MODES.includes(mode)) return false; try { localStorage.setItem(KEY, mode || 'pixel'); } catch (e) { } apply(mode); return true; },
   };
 }
