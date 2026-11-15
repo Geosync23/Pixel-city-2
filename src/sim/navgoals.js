@@ -69,14 +69,14 @@ export function subRooms(rid) {
   if (!rid || /^home/.test(rid)) return []; if (subN !== ROOMS.size) { subN = ROOMS.size; subC.clear(); }
   if (!subC.has(rid)) { const out = []; for (const k of ROOMS.keys()) if (k !== rid && rootOf(k) === rid) out.push(k); subC.set(rid, out); } return subC.get(rid);
 }
-export const doorOf = rid => { const r = rootOf(rid); return cityPoi('door:' + r) || place(r) || null; };
+export const doorOf = rid => { const r = rootOf(rid); return cityPoi('door:' + r) || place(r) || safe(() => G.mailboxes.doorOf(r), null) || null; };   /* mailboxes: a home's lobby is behind the home's street door */
 const placeName = rid => { const r = rootOf(rid), p = place(r) || cityPoi('door:' + r); return (p && p.name) || safe(() => ROOMS.get(r).name, null) || 'the building'; };
 
 /* ---------- GRAPH: room links the arrow's scene graph cannot read from the room definitions ----------
    [scene id | RegExp, label RegExp, to: scene id | [scene ids] | fn(sceneId) -> scene id]. Found with tools/navcheck.mjs (it uses every door-like interactable for real). */
 const LIFT = ['int:hotel', 'int:hotel_floor', 'int:hotel_spa', 'int:hotel_bar'];
 const GRAPH = [
-  [/^int:home:[^:]+$/, /^Bathroom$/, s => s + ':bath'], [/^int:home:[^:]+$/, /^Leave$/, 'city'],
+  [/^int:home:[^:]+$/, /^Bathroom$/, s => s + ':bath'], [/^int:home:[^:]+$/, /^Leave$/, s => safe(() => G.mailboxes.leaveTo(s), null) || 'city'],   /* mailboxes: YOUR apartment leaves into its lobby */
   [/^int:(concerthall|playhouse)$/, /^Auditorium$/, s => s + ':hall'], ['int:cinema', /^Screen 1$/, 'int:cinema:screen1'],
   ['int:arena', /^(Into the bowl|Turnstiles$)/, 'int:arena:bowl'], ['int:arena', /^TEAM ONLY$/, 'int:arena:backstage'], ['int:arena:backstage', /^Tunnel to the court$/, 'int:arena:bowl'], ['int:arena:bowl', /^Team tunnel$/, 'int:arena:backstage'],
   [/^int:hotel(_floor|_spa|_bar)?$/, /^Lift$/, s => LIFT.filter(x => x !== s)], ['int:hotel_floor', /^Room \d+$/, 'int:hotel_room'], ['int:hotel', /^Stairs up to The Tidewater Spa$/, 'int:hotel_spa'],
@@ -95,6 +95,8 @@ const toOf = (g, sid) => { let t = typeof g[2] === 'function' ? g[2](sid) : g[2]
 export function fixEdges(sid, out, live) {
   const hx = OFF ? null : safe(() => G.housing.navEdges(sid), null);   /* more homes: stairs, room doors and "back" mats of multi-room homes (sim/housing.js) */
   if (hx) for (const e of hx) { const h0 = out.find(o => Math.abs(o.x - e.x) < .8 && Math.abs(o.y - e.y) < .8); if (h0) { h0.to = e.to; h0._g = 1; } else out.push({ x: e.x, y: e.y, spot: e.spot, label: e.label, to: e.to, exit: false, out: false, _g: 1 }); }
+  const mx = OFF ? null : safe(() => G.mailboxes.navEdges(sid), null);   /* mailboxes: the stairs / lift of YOUR lobby lead up to your flat */
+  if (mx) for (const e of mx) if (!out.some(o => o.to === e.to)) out.push({ x: e.x, y: e.y, label: e.label, to: e.to, exit: false, out: false, _g: 1 });
   const gs = OFF ? [] : graphFor(sid); if (!gs.length) return out;
   const at = (x, y) => out.filter(o => Math.abs(o.x - x) < .8 && Math.abs(o.y - y) < .8);
   const put = (x, y, label, to, spot) => { const here = at(x, y); if (here.some(o => o.to === to)) return; const e = here.find(o => !o._g);
@@ -430,6 +432,9 @@ define('wander', 'default', 20, ctx => {
   return { room: rid, find: { x: p.x, y: p.y, h: p.h }, label: e.title, near: NEAR_IN, name: e.title };
 }, (ctx, s) => !!s.entry);
 
+/* -- home (mailboxes, Direction update 23): a waypoint to YOUR apartment goes on through the lobby, up the stairs / lift, and ends inside the flat */
+define('home_up', 'default', 1, ctx => { const h = safe(() => G.housing.current(), null); if (!h || ctx.root !== 'home:' + h.id || !safe(() => G.mailboxes.through(h.id), false)) return null;
+  return safe(() => G.housing.isHome(), false) ? { done: true, name: h.home.name } : { room: 'home:' + h.id, find: null, label: 'Home', short: 'home', name: h.home.name }; });
 /* -- needs: the need chooser picked a place -> the thing inside that fixes it (at home: the right room too) */
 const NEED = { hunger: { home: ['', /^(Cook|Open fridge)$/, 'Cook something: the kitchen'], venue: [/^(Order|Order at .*|Shop|.*: order|.*Cafe.*|Comet Cocoa|Dockside Dogs|Noodle bar|Bay Brew coffee bar)$/, 'Eat here: order'] },
   energy: { home: ['', /^Bed$/, 'Your bed: sleep'], venue: [/^(Order|Order at .*|.*Cafe.*|Comet Cocoa|Bay Brew coffee bar|Meridian Espresso)$/, 'A coffee: order here'] },

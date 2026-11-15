@@ -1,5 +1,5 @@
 // Phone app: MAPLE POST (app id 'post', released through the app store; installed automatically when your first post arrives). Data: G.post (sim/post.js).
-// Tabs: Inbox (post waiting in your basket / P.O. box, then every letter you have collected, to re-read on paper) · Sent (letters waiting for a stamp, things in transit with a progress bar, delivered)
+// Tabs: Inbox (post waiting in your mailbox / P.O. box, then every letter you have collected, to re-read on paper) · Sent (letters waiting for a stamp, things in transit with a progress bar, delivered)
 //   · Album (stamps by set, postcards, first-day covers, your P.O. box) · Offices (all five with hours and Take me there; nearest first).
 // The badge counts only NEW post and clears when the app is opened. Deep links: G.phone.open('post', { tab: 'inbox' | 'sent' | 'album' | 'offices', mail: id, out: id }).
 import { G } from '../core/game.js';
@@ -34,10 +34,12 @@ function outView(o) {
 }
 function inbox(b, ctx) {
   const p = P(), home = p.waiting('home'), box = p.waiting('pobox'), got = p.inbox().slice().reverse();
-  if (home.length) { b.append(section('In the basket by your door', String(home.length))); for (const m of home) b.append(row({ icon: ICON[m.type] || 'post_letter', title: p.title(m), sub: 'Pick it up at home', cls: 'note' })); b.append(btn('Take me home', () => { const h = safe(() => G.housing.current()); if (h) safe(() => G.phone.routeTo(h.roomId)); }, 'wide', 'ui.home')); }
+  const wp = safe(() => p.waitingParcels(), []) || [], wt = safe(() => p.whereText()) || 'in your mailbox', toBox = () => { const h = safe(() => G.housing.current()); if (!h) return; const ok = safe(() => G.mailboxes.guide()); const near = safe(() => G.housing.isHome() || G.mailboxes.livesIn() || (G.scene.id === 'city' && (() => { const d = G.scene.world.pois.find(q => q.id === h.door); return d && Math.hypot(d.x - G.player.x, d.y - G.player.y) < 45; })())); if (ok && near) { ctx.tip('The arrow shows the way to your mailbox.'); safe(() => G.phone.close()); } else safe(() => G.phone.routeTo(h.roomId)); };
+  if (home.length || wp.length) { b.append(section(wt.charAt(0).toUpperCase() + wt.slice(1), String(home.length + wp.length))); for (const m of home) b.append(row({ icon: ICON[m.type] || 'post_letter', title: p.title(m), sub: 'Take it out of ' + (safe(() => p.whereText(true)) || 'your mailbox'), cls: 'note' }));
+    for (const q of wp) b.append(row({ icon: 'post_parcel', title: q.label, sub: safe(() => G.mailboxes.kind()) === 'house' ? 'On your doorstep' : 'On the parcel shelf in your lobby', cls: 'note' })); b.append(btn('Show me my mailbox', toBox, 'wide', 'ui.pin')); }
   if (box.length) { const o = p.office(p.box().office); b.append(section('In your P.O. box', String(box.length))); for (const m of box) b.append(row({ icon: ICON[m.type] || 'post_letter', title: p.title(m), sub: o ? o.short : '', cls: 'note' })); if (o) b.append(btn('Take me there', () => safe(() => G.phone.routeTo(o.room)), 'wide', 'ui.pin')); }
   const slips = p.parcels().filter(q => q.st === 'slip'); for (const q of slips) { const o = p.office(q.office); b.append(row({ icon: 'post_slip', title: q.label, sub: `Waiting at ${o ? o.short : 'the counter'}`, right: 'GO', rightCls: 'good', onclick: () => o && safe(() => G.phone.routeTo(o.room)) })); }
-  if (!got.length && !home.length && !box.length) return b.append(empty('post_letter', 'No post yet', 'The carrier comes at half past nine, every day but Sunday. Letters land in the basket by your door.'));
+  if (!got.length && !home.length && !box.length && !wp.length) return b.append(empty('post_letter', 'No post yet', `The carrier comes at half past nine, every day but Sunday. Letters land ${wt}.`));
   if (got.length) b.append(section('Your post', String(got.length)));
   for (const m of got) { const lt = m.type === 'letter' || m.type === 'reply'; b.append(row({ icon: ICON[m.type] || 'post_letter', title: p.title(m), sub: dateOf(m.t) + (lt ? '' : ' · ' + m.type), right: m.read ? '' : 'NEW', rightCls: 'good', onclick: () => ctx.push(p.title(m), mailView(m), 'mail' + m.id) })); }
 }
@@ -48,7 +50,7 @@ function sent(b, ctx) {
   const tr = out.filter(o => o.st === 'transit'), dn = out.filter(o => o.st !== 'transit');
   if (tr.length) { b.append(section('On the way', String(tr.length))); for (const o of tr) { const k = Math.max(.04, Math.min(1, (now - o.sentT) / Math.max(1, o.due - o.sentT))); b.append(row({ icon: ICON[o.kind] || 'post_letter', title: `${o.kind === 'card' ? 'Postcard' : o.kind === 'parcel' ? 'Parcel' : 'Letter'} to ${p.toName(o.to)}`, sub: `Arrives ${dateOf(o.due)}`, right: Math.round(k * 100) + '%', onclick: () => ctx.push('Tracking', outView(o), 'out' + o.id) }), bar(k * 100, 100, '#2756a8', 'On the way')); } }
   if (dn.length) { b.append(section('Delivered', String(dn.length))); for (const o of dn) b.append(row({ icon: ICON[o.kind] || 'post_letter', title: `${o.kind === 'card' ? 'Postcard' : o.kind === 'parcel' ? 'Parcel' : 'Letter'} to ${p.toName(o.to)}`, sub: 'Delivered ' + dateOf(o.due), right: 'OK', rightCls: 'good', onclick: () => ctx.push('Delivered', outView(o), 'out' + o.id) })); }
-  if (!pk && !held.length && !out.length) b.append(empty('post_parcel', 'Nothing sent yet', 'Write a letter at a post-office desk, or pack a parcel at the packing table and take it to the counter.', btn('Nearest post office', () => { const o = p.nearest(); if (o) safe(() => G.phone.routeTo(o.room)); }, 'pri', 'ui.pin')));
+  if (!pk && !held.length && !out.length) b.append(empty('post_parcel', 'Nothing sent yet', 'Write a letter at a desk or table at home (with Writing Paper) or at a post-office desk, or pack a parcel at the packing table and take it to the counter.', btn('Nearest post office', () => { const o = p.nearest(); if (o) safe(() => G.phone.routeTo(o.room)); }, 'pri', 'ui.pin')));
 }
 function album(b, ctx) {
   const p = P(), al = p.stamps.album(), own = p.stamps.owned(), all = p.stamps.all(), bx = p.box(), comm = p.look().comm;

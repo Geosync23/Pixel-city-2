@@ -22,7 +22,7 @@ function ctxOk(c, id) {
     case 'any': return true; case 'morning': return n.hf < 11; case 'evening': return n.hf >= 18;
     case 'rain': return w === 'rain' || w === 'storm'; case 'snow': return w === 'snow'; case 'fog': return w === 'fog'; case 'sun': return w === 'clear' && n.season < 2;
     case 'worked': return e.worked === d; case 'promoted': return d - e.promoted <= 2; case 'moved': return d - e.moved <= 3; case 'cooked': return e.cooked === d - 1; case 'chapter': return e.chapter === d - 1;
-    case 'festival': return safe(() => G.planner.eventsOn(d).length > 0, false);
+    case 'festival': return safe(() => !!G.cityEvents && G.cityEvents.list().some(c => c.day === d), false);   /* QA10: only on a real big-event day, not any day with a small calendar event */
     case 'after_date': return e.date[id] === d - 1; case 'after_scene': return e.scene[id] === d - 1; case 'gift': return e.gift[id] && e.gift[id][1] === d - 1;
     case 'gap': { const l = lastTalk(id); return l >= 0 && d - l >= 5; }
     case 'birthday': { const b = (castOf(id) || {}).birthday; return !!b && b.season === ['spring', 'summer', 'autumn', 'winter'][n.season] && b.day === n.dayOfMonth; }

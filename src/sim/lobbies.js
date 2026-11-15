@@ -73,7 +73,9 @@ function ensure(w) {
     const id = 'lobby:' + n, kind = spec.kind === 'office' ? 'office' : 'res';
     const poi = w.poi({ type: 'door', id: 'door:' + id, room: id, name, x: sp.x, y: sp.y, dir: sp.dir === undefined ? 1 : sp.dir, district, lobby: kind, blurb: spec.blurb });
     const L = { id, n, kind, key, style: spec.style, name, x: sp.x, y: sp.y, district, poi, ob, spec, hours: kind === 'office' ? (spec.hours || [7, 20]) : null, get address() { return poi.address || (G.address && G.address.of(poi) || {}).text || ''; } };
-    const def = has(id) ? Map.prototype.get.call(ROOMS, id) : defineRoom(lobbyRoom(Object.assign({}, spec, { id, n, name, kind, district, c: Object.assign({}, spec.c) })));
+    const fresh = !has(id), def = fresh ? defineRoom(lobbyRoom(Object.assign({}, spec, { id, n, name, kind, district, c: Object.assign({}, spec.c) }))) : Map.prototype.get.call(ROOMS, id);
+    /* mailboxes (Direction update 23): residential walls use the post's own wall piece (same look; it can show YOUR box and a flag). A lobby that belongs to a player home knows it. */
+    if (fresh && kind === 'res') { for (const it of def.items) if (it.id === 'furn.lobby.mailboxes') it.id = 'furn.post.mailwall'; const hid = G.mailboxes && G.mailboxes.homeOfLobby(id); if (hid && def.lobby) def.lobby.homeId = hid; }
     // guide: the real activities this lobby offers (a cork notice board, a coffee kiosk)
     const its = (def && def.items) || [], acts = ['seat'];
     if (its.some(i => i.id === 'furn.lobby.board' && !['felt', 'digital', 'safety'].includes((i.p || {}).kind))) acts.push('read_noticeboard');

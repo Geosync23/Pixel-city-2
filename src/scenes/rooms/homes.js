@@ -236,6 +236,7 @@ registerFixture('bathdoor', (fx, scene) => (ROOMS.has(scene.roomId + ':bath') ? 
 
 const PRIVATE = ['bed', 'fridge', 'stove', 'shower', 'bath', 'wardrobe', 'pantry', 'microwave', 'computer', 'laundry', 'moving_box', 'delivery_box', 'toys', 'coffee'];
 export function leaveHome(homeId) {
+  const viaLobby = G.mailboxes && G.mailboxes.leave ? G.mailboxes.leave(homeId) : null; if (viaLobby) return viaLobby;   /* Direction update 23: YOUR apartment leaves through its lobby (sim/mailboxes.js; tunable MAIL.ROUTE in data/mailboxes.js) */
   const poi = 'door:' + homeId, city = G.sceneCache.get('city'), has = city && city.world.pois.some(p => p.id === poi);
   return exitRoom(has ? { poi } : {});
 }
