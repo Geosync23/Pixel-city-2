@@ -24,14 +24,19 @@
 //   current() -> { id, step, attached, root } | null                                  the objective being followed right now (debug / tests)
 //   set({ room, find, label, done?: event name | predicate fn, near?, name? }) -> id   pin an explicit objective (wins over everything); clear() removes it
 //   define(id, kind: 'strong' | 'commit' | 'default', prio, fn(ctx) -> step | null)    add a resolver (ctx: { root, here, attached, pt, placeId, sel, t })
-//   select({ goal?, appt?, need?, npc? } | null)                                       what the player picked (set automatically from the goals widget / need chooser)
+//   select({ goal?, appt?, need?, entry? } | null)                                     what the player picked (set automatically from the goals widget / need chooser / Wander)
 //   locate(find) -> { x, y, h } | null                                                 resolve a `find` in the current scene
 //   rootOf(roomId) -> the building's entrance room ('cityhall_council' -> 'cityhall')   doorOf(roomId) -> city door poi
 //   fixEdges(sceneId, edges, liveScene) -> edges    GRAPH (below) adds the room links navarrow cannot see: bathrooms, lifts, curtains, turnstiles, tunnels
 //   path(fromSceneId, toSceneId) -> [scene ids] | null      breadth-first over the same graph (tools/navcheck.mjs)
 //   audit() -> rows for the regression table,  list -> resolver ids }
 // Events: 'navgoal'(id | null) when the followed objective changes, 'navgoal:done'(id, step).   State: G.state.navgoals = { sel, pin }.
-// Hooks into other systems: none are required — every resolver reads public state (see docs/reports/navgoals.md for the two tiny optional ones).
+// Hooks into other systems: none — every resolver reads public state (_jobs_work.cur() / city.get(), G.shows.run, G.cityhall.*, G.arena.*, ...) and what the
+//   player picked is read from the click itself ([data-g] / [data-a] goal + appointment rows, [data-fix] need chooser, [data-navrow] Map "Where to?", Wander's
+//   "Take me there"). The courier's hand-over inside a venue is an interactable this module adds to the room; it calls the job's own city interactable.
+// Resolvers (ids): shift, gig, clockin, show, council, wedding, mayor, records, ch_chain, arena, arena_chain, cons_tour, mus_tour, cons_chain, mus_chain, obs_show,
+//   obs_chain, aqua_show, aqua_chain, hotel_dine, hotel_event, hotel_room, hotel_chain, fish_auction, lh_lamp, lh_chain, nat_swim, nat_chain, story, meet, wander,
+//   need, default. Audit table, what was played and the known gaps: docs/reports/navgoals.md.   Regression check: node tools/navcheck.mjs
 import { G } from '../core/game.js';
 import { toast, el } from '../ui/kit.js';
 import { ROOMS } from '../scenes/interior.js';

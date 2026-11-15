@@ -27,6 +27,7 @@ import { POOL_B } from './opportunities_b.js';
 
 export const TUNE = {
   perDay: 4,            // offers a day at most ...
+  lightDayShare: 0.45,  // ... on this share of days one fewer (so it is 3 or 4, never a flood)
   firstDay: 2,          // ... and on your first day in town
   gap: 150, jitter: 90, // game minutes between two offers (+ up to jitter)
   quiet: [21.9, 7.5],   // no new offers at night

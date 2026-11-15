@@ -1,4 +1,4 @@
-// Phone app: Wellness (Me: mood, needs, fitness, moodlets, a daily tip; Skills; Journal). Reads G.needs / G.skills defensively.
+// Phone app: Wellness (Me: mood, the nine needs (six + three gentle), home care, fitness, moodlets, a daily tip; Skills; Journal). Reads G.needs / G.skills defensively.
 import { G } from '../core/game.js';
 import { NEEDS, SKILLS, SKILL_MAX_LEVEL, FITNESS } from '../data/needs.js';
 import * as TEXTS from '../story/texts.js';
@@ -17,10 +17,15 @@ function suggestion(k) {
 function meTab(b, ctx) {
   const mood = safe(() => N().mood(), 50), tier = safe(() => N().moodTier(), { id: 'okay', label: 'Okay' });
   b.append(el('div.ph-hero.pink', null, iconEl('mood.' + tier.id, 3), el('div', null, el('small', { text: 'Mood' }), el('b', { text: tier.label, style: { fontSize: '20px' } }), bar(mood, 100, '#e0608e', `Mood ${Math.round(mood)} of 100`))));
-  const c = card(); let low = null;
-  for (const d of safe(() => N().defs, NEEDS)) { const v = safe(() => N().get(d.id), 0), band = safe(() => N().band(d.id), { id: 'ok', label: '' }); if ((band.id === 'low' || band.id === 'critical') && (!low || v < low.v)) low = { k: d.id, v };
+  const c = card(); let low = null, gentle = false;
+  for (const d of safe(() => N().defs, NEEDS)) { const v = safe(() => N().get(d.id), 0), band = safe(() => N().band(d.id), { id: 'ok', label: '' }); if ((band.id === 'low' || band.id === 'critical') && !d.soft && (!low || v < low.v)) low = { k: d.id, v };
+    if (d.soft && !gentle) { gentle = true; c.append(el('small', { text: 'GENTLE NEEDS · they shape your mood, slowly', style: { fontWeight: '700', letterSpacing: '.5px', opacity: '.6', marginTop: '4px' } })); }
     c.append(el('div.ph-need', null, iconEl('need.' + d.id, 2), el('div.l', null, el('span', { text: d.name }), el('small', { text: `${band.label} · ${Math.round(v)}` })), bar(v, 100, BAND_COL[band.id] || 'var(--good)', `${d.name} ${Math.round(v)} of 100`))); }
   b.append(c);
+  /* home care (src/sim/supplies.js): how clean the place is and what is running low */
+  const HS = G.supplies; if (HS) { const lows = safe(() => HS.low(), []), nm = k => safe(() => HS.all().find(x => x.key === k).name, k);
+    b.append(card(el('div.ph-need', null, iconEl('ui.broom', 2), el('div.l', null, el('span', { text: 'Home' }), el('small', { text: `${safe(() => HS.cleanLabel(), '')} · comfort settles at ${safe(() => G.needsExtra.homeComfort(), '?')}` })), bar(safe(() => HS.clean(), 0), 100, '#3fa8a0', 'Home cleanliness')),
+      el('small', { text: lows.length ? 'Running low: ' + lows.map(nm).join(', ') + '.' : 'Bathroom shelf and cleaning cupboard are stocked.' }), btn('Home supplies', () => { ctx.close(); setTimeout(() => safe(() => HS.open()), 250); }, '', 'ui.supplies'))); }
   const sg = low && suggestion(low.k); if (sg) b.append(card(el('p', { text: sg.text }), btn('Show on map', () => ctx.open('map', { place: sg.p.id }), '', 'ui.pin')));
   const fit = safe(() => N().fitness(), null);
   if (fit !== null) b.append(card(el('div.ph-need', null, iconEl('need.fitness', 2), el('div.l', null, el('span', { text: 'Fitness' }), el('small', { text: `${safe(() => N().fitnessLabel(), '')} · ${Math.round(fit)}` })), bar(fit, FITNESS.max, 'var(--accent)', `Fitness ${Math.round(fit)}`))));

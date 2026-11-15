@@ -416,3 +416,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 103 — Dev mode: needs off, unlimited money, unlock all progression and jobs; toggle in the menu, a corner button opens the dev menu
 > Need a dev mode to turn off needs, have unlimited money, unlock all progression and jobs etc. Turn in dev mode in the menu and a button int eh corner of the main game screen appears. Click that for dev mode menu
+
+## 104 — Continue (sent after the Fable usage limit stopped the goods and needs workers)
+> Continue
