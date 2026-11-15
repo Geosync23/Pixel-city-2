@@ -222,7 +222,8 @@ export const LETTERS = [
     `WET CEMENT UPDATE: we have a song. it's called "third step" and it's about your porch. it goes: the third step / the third step / don't step on the third step. that's the chorus. also the verse.`,
     c.seen.arena ? `nora told mum you've BEEN to the arena. the actual arena. where the OTTERS are. i am being so normal about this. what do they SELL. do they have a scarf. a pennant. a foam otter. i have $11.` : `have you been to see the otters yet. you LIVE there. if i lived in a town with an otter team i would simply never be anywhere else.`,
     c.job ? `mum says you're a ${c.job} now. do you get a uniform. do you get to tell people what to do. these are the two things i'd want from a job.` : `mum says you don't have a job yet. honestly, goals.`,
-    `Dov says hi. Dov has never met you. Dov says hi to everyone.`), { enc: { kind: 'item', id: 'post_pick' }, note: 'Taped to the page: a green guitar pick with a bite mark in it. "official WET CEMENT merch. first one ever."' }),
+    `Dov says hi. Dov has never met you. Dov says hi to everyone, including buses.`,
+    `write back about the train thing. i told Dov it goes over the street and he said "over WHAT street" and i didn't know.`), { enc: { kind: 'item', id: 'post_pick' }, note: 'Taped to the page: a green guitar pick with a bite mark in it. "official WET CEMENT merch. first one ever."' }),
   L('robin3', 'robin', 3, 21, 7, c => P(
     `i failed.`,
     `it was the roundabout. i went round it three times because i couldn't work out when to get off. Mr. Kettle just kept saying "any exit, Robin. any exit at all." and then on the third lap a man on the pavement WAVED at us.`,
@@ -388,7 +389,7 @@ export const LETTERS = [
 
   /* ------------------------------------------------------------------ the chain + small replies */
   L('ada1', 'ada', 1, 0, 0, c => P(
-    `They tell me at the post office that you are the one who carried it. I am eighty-one, and I have only now read a letter that was written to me when I was twenty-two. You will forgive my hand. It has not been steady since Tuesday.`,
+    `They tell me at the post office that you are the one who carried it. I am eighty-one, and I have only now read a letter that was written to me when I was twenty-three. You will forgive my hand. It has not been steady since Tuesday.`,
     `He wrote it the night before the Corriveau sailed. He asked me a question in it. He said that if my answer was yes, I was to stand at the foot of Tannery Steps at six the next morning, with the blue door open behind me, so that he could see it from the deck as they went out. If the door was shut he would understand, and he would not write again.`,
     `I never had the letter. The door was shut because I was asleep.`,
     `He did not write again. I thought he had forgotten me. He thought I had answered. Fifty-eight years, the pair of us, each being dignified about it at opposite ends of one small town. I have bought fish from that man.`,
@@ -397,7 +398,7 @@ export const LETTERS = [
     `I enclose the stamp from the envelope. They let me keep the rest. I think this part should be yours.`), { enc: { kind: 'stamp', id: 'light58' }, note: 'A small, old stamp, carefully soaked off: the Maple Bay Light, in blue. The cancellation is still on it.' }),
   L('keeper1', 'keeper', 1, 0, 0, c => P(
     `Your letter came out on the mail boat with the lamp oil and the newspapers, and I read it at the top of the stairs, which is where I read anything that matters.`,
-    `You asked what it is like out here. It is like being the last house on a street that is made of water. I have 137 steps, one kettle and a very good chair. At dusk I climb up and light the town's way home, and every night, whether the town knows it or not, somebody steers by it.`,
+    `You asked what it is like out here. It is like being the last house on a street that is made of water. I have ninety-seven steps, one kettle and a very good chair. At dusk I climb up and light the town's way home, and every night, whether the town knows it or not, somebody steers by it.`,
     `The children ask me every year whether I am ever lonely. I tell them the truth: a keeper gets more post than anyone in Maple Bay. It comes once a week in a canvas bag, and I answer every letter, because a light that did not answer would be no use to anyone.`,
     c.seen.lighthouse ? `They tell me you have been up the tower yourself. Then you have seen my chair. I hope you sat in it. Everyone does, and they all think that I do not know.` : `Come out and climb the tower one day. There is a chair at the top. Everyone sits in it, and they all think that I do not know.`,
     `Here is something to steer by. When you are far from where you started, pick one light and keep it on your left.`,

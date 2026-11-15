@@ -21,7 +21,7 @@ function paperBg(g, W, H, hand) {
 }
 function deco(g, W, H, hand, r) {
   const d = hand.deco; g.save();
-  if (d === 'rms') { g.fillStyle = '#8a6a4a'; g.font = 'bold 9px serif'; g.textAlign = 'center'; g.fillText('RAILWAY MAIL SERVICE  ·  E. T. HALE, CLERK (RET.)', W / 2, 16); g.fillRect(40, 20, W - 80, 1); }
+  if (d === 'rms') { g.fillStyle = '#8a6a4a'; g.font = 'bold 9px serif'; g.textAlign = 'center'; g.fillText('RAILWAY MAIL SERVICE  ·  EMMETT, CLERK (RETIRED)', W / 2, 16); g.fillRect(40, 20, W - 80, 1); }
   else if (d === 'type') { g.fillStyle = '#6a6670'; g.font = '9px monospace'; g.textAlign = 'center'; g.fillText('W P H L   1 3 4 0   A M', W / 2, 15); }
   else if (d === 'hearts') { g.fillStyle = '#c05aa0'; for (let i = 0; i < 3; i++) { const x = W - 60 + i * 14, y = H - 26; g.beginPath(); g.arc(x - 2, y, 3, 0, 6.3); g.arc(x + 2, y, 3, 0, 6.3); g.fill(); g.beginPath(); g.moveTo(x - 5, y + 1); g.lineTo(x, y + 7); g.lineTo(x + 5, y + 1); g.fill(); } }
   else if (d === 'doodle') { g.strokeStyle = hand.ink; g.lineWidth = 1; const x = W - 44, y = H - 46; g.beginPath(); g.ellipse(x, y, 12, 9, 0, 0, 6.3); g.stroke(); g.beginPath(); g.arc(x - 8, y - 9, 3, 0, 6.3); g.arc(x + 8, y - 9, 3, 0, 6.3); g.stroke(); g.fillStyle = hand.ink; g.fillRect(x - 5, y - 3, 2, 2); g.fillRect(x + 3, y - 3, 2, 2); g.fillRect(x - 1, y + 1, 3, 2); g.beginPath(); g.moveTo(x - 12, y + 2); g.lineTo(x - 19, y); g.moveTo(x - 12, y + 4); g.lineTo(x - 19, y + 6); g.moveTo(x + 12, y + 2); g.lineTo(x + 19, y); g.moveTo(x + 12, y + 4); g.lineTo(x + 19, y + 6); g.stroke(); g.font = '8px sans-serif'; g.fillText('(otter)', x - 13, y + 20); }

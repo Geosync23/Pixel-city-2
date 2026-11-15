@@ -617,5 +617,76 @@
     "label": "Hatch down to the watch room \u2192 FreshWay Market"
    }
   ]
+ },
+ {
+  "name": "Story beat: meet Kit at the Blue Heron",
+  "door": "bar",
+  "setup": "T(null, 18.5); G.state.flags.introDone = true; G.story.skipTo('k1_reunion'); await sleep(200); G.advance(2); const a = G.planner.list().find(q => q.data && q.data.beat === 'k1_reunion'); G.phone.setWaypoint(a.placeId);",
+  "checks": [
+   {
+    "go": "city",
+    "label": "Go in: The Blue Heron \u2192 Kit"
+   }
+  ]
+ },
+ {
+  "name": "Gig: city target stays marked at the spot",
+  "setup": "T(null, 13); await G.go('city'); G.state.jobs.gigs = { day: -1, count: 0, cool: {}, active: null }; const ok = G.jobs.acceptGig('gig_flyers'); const t = G.jobs.activeGig().targets[0]; G.player.x = t.x + 1; G.player.y = t.y + 2;",
+  "checks": [
+   {
+    "label": "tap the teal marker",
+    "wait": 900
+   }
+  ],
+  "after": "G.jobs.cancelGig();"
+ },
+ {
+  "name": "Explicit objective: G.navGoals.set()",
+  "door": "cafe",
+  "setup": "T(null, 13); G.navGoals.set({ room: 'cafe', find: { label: /^Restroom$/ }, label: 'Test: the restroom', short: 'the test', near: 1.2 });",
+  "checks": [
+   {
+    "go": "city",
+    "label": "Go in: Bean & Gone \u2192 the test"
+   },
+   {
+    "go": "int:cafe",
+    "label": "Test: the restroom"
+   }
+  ],
+  "after": "G.navGoals.clear();"
+ },
+ {
+  "name": "Hotel lift: a waypoint with a room on another floor",
+  "door": "hotel",
+  "setup": "T(null, 17); const p = G.places.get('hotel'); G.phone.setWaypoint({ id: 'hotel', name: 'The Weathervane', x: p.x, y: p.y, room: 'hotel_bar' });",
+  "checks": [
+   {
+    "go": "int:hotel",
+    "label": "Lift \u2192 The Weathervane"
+   },
+   {
+    "go": "int:hotel_floor",
+    "label": "Lift \u2192 The Weathervane"
+   },
+   {
+    "go": "int:hotel_bar",
+    "label": "The Weathervane bar"
+   }
+  ]
+ },
+ {
+  "name": "No objective: nothing shown, nothing left behind",
+  "setup": "T(null, 13);",
+  "checks": [
+   {
+    "go": "int:cafe",
+    "none": true
+   },
+   {
+    "go": "int:cityhall",
+    "none": true
+   }
+  ]
  }
 ]

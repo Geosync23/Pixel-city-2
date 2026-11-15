@@ -100,7 +100,7 @@ function ctx(to) {
   const n = G.now(), F = G.state.flags || {}, P = G.state.player || {}, job = safe(() => G.jobs.current()), home = safe(() => G.housing.current()), money = safe(() => G.money.get()) || P.money || 0, T = S.sentTo[to] || {};
   const seen = []; for (const k in SEEN) if (SEEN[k].some(id => safe(() => G.places.known(id)) || (G.state[k] && G.state[k].visits))) seen.push(k);
   const fr = safe(() => G.social.known().filter(id => !G.social.isFamily(id)).length) || 0;
-  return { name: who(), job: (job && (job.title || job.name)) || '', home: (home && home.home && home.home.name) || '', dist: (home && home.home && safe(() => G.places.get('home:' + home.id).districtName)) || '', season: ['spring', 'summer', 'autumn', 'winter'][n.season] || n.seasonName || 'spring',
+  return { name: who(), job: String((job && (job.title || job.name)) || '').toLowerCase(), home: (home && home.home && home.home.name) || '', dist: (home && home.home && safe(() => G.places.get('home:' + home.id).districtName)) || '', season: ['spring', 'summer', 'autumn', 'winter'][n.season] || n.seasonName || 'spring',
     rich: money > 1200 ? 1 : 0, broke: money < 60 ? 1 : 0, friends: fr, kit: safe(() => G.social.npc('kit').met) ? 1 : 0, seen, fountain: F.fountain_fixed ? 1 : 0, wrote: T.n || 0, sent: T.parcel || '', tone: T.tone || '', day: n.day };
 }
 const openCtx = c => Object.assign({}, c, { seen: Object.fromEntries(Object.keys(SEEN).map(k => [k, (c.seen || []).includes(k)])) });

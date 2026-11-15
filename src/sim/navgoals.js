@@ -261,7 +261,7 @@ define('arena', 'commit', 78, ctx => {
     if (!live.seat) return inRoom('arena:bowl') ? { done: true, name: 'the standing floor' } : { room: 'arena:bowl', find: null, label: 'Standing floor: in through the turnstiles', short: 'the floor' };
     return desk('arena:bowl', /^Your seat/, 'Your seat: tap it to sit down', 'your seat'); }
   const nx = safe(() => A.tickets(), []).filter(k => k.T0 > now() && k.T0 - now() < 180).sort((a, b) => a.T0 - b.T0)[0];
-  if (nx) return desk('arena', /^Turnstiles$/, `${nx.title}: doors open ${clock(nx.T0 - 60)}`, nx.title);
+  if (nx) return Object.assign(desk('arena', /^Turnstiles$/, `${nx.title}: doors open ${clock(nx.T0 - 60)}`, nx.title), { near: 2.4, name: 'the turnstiles' });
   if (ctx.attached && on) return desk('arena', /^Box office: tickets$/, `${s.ev.title} is on: tickets at the box office`, 'the box office');
   return null;
 });
@@ -393,7 +393,7 @@ const NEED = { hunger: { home: ['', /^(Cook|Open fridge)$/, 'Cook something: the
   bladder: { home: [':bath', /^Toilet$/, 'The toilet'], venue: [/^(Restroom|Toilet)$/, 'The restroom'] },
   hygiene: { home: [':bath', /^Shower$/, 'The shower'], venue: [/^(Use the Locker-Room Shower|Shower|Rain shower|Wash hands)$/, 'Freshen up here'] } };
 define('need', 'default', 30, ctx => {
-  const s = ctx.sel, N = s && s.need && NEED[s.need]; if (!N || !ctx.root) return null; if (s.place && s.place !== 'pos' && ctx.pt.id && s.place !== ctx.pt.id) return null;
+  const s = ctx.sel, N = s && s.need && NEED[s.need]; if (!N || !ctx.root || (ctx.pt.id && /^mall:/.test(ctx.pt.id))) return null; if (s.place && s.place !== 'pos' && ctx.pt.id && s.place !== ctx.pt.id) return null;
   const home = /^home/.test(ctx.root), d = home ? N.home : N.venue, rid = home && ROOMS.has(ctx.root + d[0]) ? ctx.root + d[0] : ctx.root, re = home ? d[1] : d[0], label = home ? d[2] : d[1];
   if (usedLately(re) || busyIs(/toilet|restroom|shower|sleep|eat|cook|nap/i)) return { done: true, quiet: 1 };
   if (inRoom(rid) && !locate1(G.scene, { label: re })) return home ? { done: true } : null;   /* nothing of that kind here: fall back to the counter */
