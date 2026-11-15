@@ -157,7 +157,7 @@ function teardown() {
   if (riding) { riding = null; const p = G.player; if (p) { p.pose = null; p.poseOpts = null; p.bb = [-.2, -.2, .2, .2, 1.4]; } }
   if (stage) { if (closed) setClosed(false); unwire(); stage.setLevel(0, false); stage = null; } closed = false; lastLvl = -1; FX.clear(); if (pinId) { safe(() => G.navGoals.clear(), null); pinId = null; }
 }
-function ensureStage(ev) { if (stage && stage.ev === ev) return true; teardown(); const c = city(); if (!c || !c.world) return false; const g = roadGraph(); if (!g) return false; patchGraph(); stage = buildStage(ev, c, g); if (!c._cevLights) { c._cevLights = true; const prev = c.lights; c.lights = (m, cam, pool) => { if (prev) prev(m, cam, pool); floatLights(m, cam, pool); }; } return true; }
+function ensureStage(ev) { if (stage && stage.ev === ev) return true; teardown(); const c = city(); if (!c || !c.world) return false; const g = roadGraph(); if (!g) return false; patchGraph(); stage = buildStage(ev, c, g); { const L = safe(() => G.traffic.loops, {}); for (const k in L) for (const e of stage.edges) if (L[k].edges.includes(e) || L[k].edges.includes(e.rev)) console.warn('cityevents: ' + ev.id + ' closes ' + e.road.id + ' which bus loop ' + k + ' uses'); } if (!c._cevLights) { c._cevLights = true; const prev = c.lights; c.lights = (m, cam, pool) => { if (prev) prev(m, cam, pool); floatLights(m, cam, pool); }; } return true; }
 function floatLights(m, cam, pool) { if (!stage || stage.level < 3 || !(G.env && (G.env.dark || 0) > .35)) return; const ps = pool(2.6, '#ffe2b0'), hw = ps.width >> 1, hh2 = ps.height >> 1; for (const el of stage.els) { const e = el.e; if (e.hidden || !e.isFloat) continue; const sx = Math.round((e.x - e.y) * 16) - cam.x - hw, sy = Math.round((e.x + e.y) * 8 - e.z * 16) - cam.y - hh2; if (sx > G.W || sy > G.H || sx + ps.width < 0 || sy + ps.height < 0) continue; m.drawImage(ps, sx, sy); } }
 
 function sync() {
@@ -184,7 +184,7 @@ function sync() {
     const storm = ev.wx === 'rain_ok' && safe(() => G.weather.current().kind, 'clear') === 'storm';
     if (storm && m < ev.open[1] * 60 - 50) { c.delay += 10; note('st', ev.name, tx.storm); }
     else if (storm) { c.pst = 2; }
-    else { c.pst = 1; c.u = 0; note('p', ev.name, tx.parade); G.emit('cityevent:parade', ev.id); }
+    else { c.pst = 1; c.u = 0; if (closed) drain(true); note('p', ev.name, tx.parade); G.emit('cityevent:parade', ev.id); }
   }
   if (ev.finaleAt && c.fin === 0 && m >= ev.finaleAt * 60) { c.fin = 1; finT = 0; note('f', ev.name, tx.finale); G.emit('cityevent:finale', ev.id); if (ev.id === 'lantern_parade' && inCity()) FX.lanterns(ev.site.x, ev.site.y + 2, 60); }
   if (ev.id === 'winter_parade' && c.fin >= 1 && !c.lit && m >= ev.finaleAt * 60 + 9) lightTree(false);
@@ -206,7 +206,7 @@ function update(dt, gm) {
   const p = G.player, near = here && stage.near(p.x, p.y) < 110;
   if (c.pst === 1) { c.u += (near ? dt : gm) * TUNE.paradeSpeed; if (c.u >= stage.cycle * stage.passes) { c.pst = 2; c.u = -1; if (c.watch >= 3 && !c.wr) { c.wr = 1; give({ needs: ev.watched }); if (here && near) toast('What a parade. You feel lighter for having seen it.', 'good'); } } }
   if (c.fin === 1) { finT += near ? dt : gm; const b = stage.prop(1);
-    if (ev.id === 'harbor_day') { if (here && near && Math.random() < dt * 1.7) FX.firework(b ? b.x : ev.site.x, b ? b.y : ev.site.y + 40); if (finT > 95) { c.fin = 2; if (c.watch >= 3 && !c.fr) { c.fr = 1; safe(() => G.needs.addMoodlet('fireworks_awe'), null); } } cheerT = 2; }
+    if (ev.id === 'harbor_day') { if (here && near && Math.random() < dt * 2.6) FX.firework(b ? b.x : ev.site.x, b ? b.y : ev.site.y + 40); if (finT > 95) { c.fin = 2; if (c.watch >= 3 && !c.fr) { c.fr = 1; safe(() => G.needs.addMoodlet('fireworks_awe'), null); } } cheerT = 2; }
     else if (ev.id === 'lantern_parade') { if (here && near && ((finT / 6) | 0) !== (((finT - dt) / 6) | 0) && finT < 40) FX.lanterns(ev.site.x, ev.site.y + 2, 26); if (finT > 45) c.fin = 2; cheerT = 2; }
     else if (finT > 30) c.fin = 2; }
   if (riding) rideTick(dt);
@@ -234,7 +234,7 @@ const debug = {
   start(id, hour) { const ev = CITY_EVENT_BY_ID[id]; if (!ev) return false; teardown(); S.cur = null; const h = hour === undefined ? ev.paradeAt - .34 : hour; S.force = { id, base: G.state.t - Math.round(h * 60) }; tSync = 0; sync(); return true; },
   at(hour) { if (!S.force) return false; const t = G.state.t; S.force.base = t - Math.round(hour * 60); if (S.cur) S.cur.base = S.force.base; tSync = 0; sync(); return true; },
   stop() { S.force = null; S.cur = null; teardown(); tSync = 0; sync(); return true; },
-  parade(u) { const c = S.cur; if (!c) return false; c.pst = 1; c.u = u || 0; return true; }, finale() { const c = S.cur; if (!c) return false; c.fin = 0; debug.at(stage.ev.finaleAt || stage.ev.paradeAt); return true; },
+  parade(u) { const c = S.cur; if (!c) return false; c.pst = 1; c.u = u || 0; if (closed) drain(true); return true; }, finale() { const c = S.cur; if (!c) return false; c.fin = 0; debug.at(stage.ev.finaleAt || stage.ev.paradeAt); return true; },
   moment() { const m = stage && stage.ev.moment; if (!m) return false; debug.at(Math.max(m.from + .05, Math.min(m.to - .3, hourNow()))); const pr = stage.prop(m.prop); return pr ? pr.spot : null; },
   snapshot, fps(sec = 5) { return new Promise(res => { fpsAcc = { n: 0, t: 0, max: 0 }; const t0 = performance.now(); const iv = setInterval(() => { if (performance.now() - t0 >= sec * 1000) { clearInterval(iv); const a = fpsAcc; fpsAcc = null; res({ fps: +(a.n / Math.max(.001, a.t)).toFixed(1), worstMs: +(a.max * 1000).toFixed(1), frames: a.n }); } }, 100); }); },
   get fx() { return FX; },

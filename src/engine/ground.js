@@ -1,6 +1,7 @@
 // Terrain chunk painter: turns World terrain (heights + ground types + decals) into cached pixel sprites.
 import * as R from './raster.js';
 import { GT } from './world.js';
+import * as FX from './terrainfx.js';
 const { hash2, dk, lt, mix, ENV } = R;
 export const CH = 16; // tiles per chunk side
 
@@ -55,26 +56,43 @@ function edgeColor(a, b) { // colour of the border line drawn on tile type a whe
   return null;
 }
 
-/** Render one chunk. Returns raster result {w,h,x,y,buf,lb} (see raster.render) or null if empty. */
+const SNOWY = new Set([GT.sidewalk, GT.plaza, GT.brickpave, GT.cobble, GT.concrete, GT.boardwalk, GT.dirt, GT.sand, GT.gravel, GT.soil, GT.asphalt, GT.tarmac, GT.rock, GT.ballast]);
+/** how many chunks of outskirts (land / water fading into haze) surround this world; only the city has them */
+export const outskirtChunks = world => world.name === 'city' ? FX.OUT : 0;
+
+/** Render one chunk. Returns raster result {w,h,x,y,buf,lb} (see raster.render) or null if empty. Chunks outside the map are outskirts (city only). */
 export function renderChunk(world, cx, cy) {
-  const x0 = cx * CH, y0 = cy * CH, x1 = Math.min(world.w, x0 + CH), y1 = Math.min(world.h, y0 + CH);
-  if (x0 >= world.w || y0 >= world.h || x1 <= 0 || y1 <= 0) return null;
+  const x0 = cx * CH, y0 = cy * CH, oc = outskirtChunks(world), outside = x0 < 0 || y0 < 0 || x0 >= world.w || y0 >= world.h;
+  if (outside && (!oc || cx < -oc || cy < -oc || x0 >= world.w + oc * CH || y0 >= world.h + oc * CH)) return null;
+  const x1 = outside ? x0 + CH : Math.min(world.w, x0 + CH), y1 = outside ? y0 + CH : Math.min(world.h, y0 + CH);
+  if (x1 <= 0 && !outside || y1 <= 0 && !outside) return null;
+  const O = oc ? FX.outskirts(world) : null;
+  const HH = outside ? O.H : (x, y) => world.H(x, y);
+  const inW = (x, y) => x >= 0 && y >= 0 && x < world.w && y < world.h;
+  const T = (x, y) => inW(x, y) ? world.gt[y * world.w + x] : O ? O.type(x, y) : 0;
   let zmin = 1e9, zmax = -1e9, any = false;
-  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const z = world.H(x, y); if (z < zmin) zmin = z; if (z > zmax) zmax = z; }
-  for (let y = y0; y < y1 && !any; y++) for (let x = x0; x < x1; x++) if (world.gt[y * world.w + x]) { any = true; break; }
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const z = HH(x, y); if (z < zmin) zmin = z; if (z > zmax) zmax = z; }
+  if (outside) any = true; else for (let y = y0; y < y1 && !any; y++) for (let x = x0; x < x1; x++) if (world.gt[y * world.w + x]) { any = true; break; }
   if (!any) return null;
-  const skirt = world.skirt === undefined ? 3 : world.skirt;
+  const skirt = oc ? 0 : world.skirt === undefined ? 3 : world.skirt;
   const sb = R.screenBox([x0, y0, zmin - skirt, x1, y1, zmax]);
-  const paint = {}; const P = t => paint[t] || (paint[t] = (GROUND_PAINT[t] || GROUND_PAINT[GT.concrete])());
   const winter = ENV.season === 3;
-  const T = (x, y) => (x < 0 || y < 0 || x >= world.w || y >= world.h) ? 0 : world.gt[y * world.w + x];
+  const paint = {};
+  /* painter for a tile type (+ variant key): water gets the depth / foam painter, winter wraps snow, soft shores get a bank, outskirts fade into haze */
+  const P = (t, bank, use) => {
+    const key = t + (bank ? 'b' + bank : '') + (use ? 'u' + use : ''); let fn = paint[key]; if (fn) return fn;
+    if (WET.has(t)) fn = FX.waterPaint(world);
+    else { fn = (use >= 2 && FX.fieldPaint(use)) || (GROUND_PAINT[t] || GROUND_PAINT[GT.concrete])(); if (winter && SNOWY.has(t)) fn = FX.snowWrap(world, t, fn); if (bank) fn = FX.bankWrap(world, fn, bank); }
+    if (outside) fn = FX.hazeWrap(world, fn);
+    return paint[key] = fn;
+  };
   return R.render(sb, () => {
     for (let ty = y0; ty < y1; ty++) for (let tx = x0; tx < x1; tx++) {
-      const t = world.gt[ty * world.w + tx]; if (!t) continue;
-      const a = world.H(tx, ty), b = world.H(tx + 1, ty), c = world.H(tx + 1, ty + 1), d = world.H(tx, ty + 1);
+      const t = T(tx, ty); if (!t) continue;
+      const a = HH(tx, ty), b = HH(tx + 1, ty), c = HH(tx + 1, ty + 1), d = HH(tx, ty + 1);
       const hi = Math.max(a, b, c, d), lo = Math.min(a, b, c, d);
-      let fn = P(t);
-      if (winter && (PAVED.has(t) || t === GT.dirt || t === GT.sand || t === GT.gravel || t === GT.soil)) { const f0 = fn; fn = (x, y) => hash2(Math.floor(x * 8), Math.floor(y * 8), 21) > .62 ? '#eef3f6' : f0(x, y); }
+      const bank = outside || !SOFT.has(t) ? 0 : FX.bankOf(world, tx, ty), far = outside ? FX.beyond(world, tx + .5, ty + .5) : 0;
+      const fn = P(t, bank, outside && t === GT.grass ? FX.landUse(world, tx, ty) : 0);
       if (hi - lo < 1e-4) R.qz(tx, tx + 1, ty, ty + 1, a, fn);
       else if (t === GT.stairs) {
         // steps: bands perpendicular to the slope direction
@@ -87,22 +105,27 @@ export function renderChunk(world, cx, cy) {
       } else {
         const steep = hi - lo > .7;
         // facing: slopes descending toward +y are lighter (face the viewer's left light), toward +x darker
-        const gy = ((c + d) - (a + b)) / 2, gx = ((b + c) - (a + d)) / 2;
+        const gy = ((c + d) - (a + b)) / 2, gx = ((b + c) - (a + d)) / 2, zm = (a + b + c + d) / 4;
         let f2;
-        if (steep) { const base = world.cliff || '#8f8a80', c1 = gx < gy ? dk(base, .1) : dk(base, .3), c2 = dk(c1, .18), c3 = lt(c1, .12); f2 = (X, Y) => { const k = hash2(X >> 2, Y >> 1, 31); return (Y % 5 === 0) ? c2 : k > .85 ? c3 : c1; }; }
-        else { const sh = Math.max(-.25, Math.min(.25, gx * .25 - gy * .12)); f2 = (X, Y) => { const s = PWinv(X, Y, (a + b + c + d) / 4); const h = fn(s[0], s[1]); return sh > 0 ? dk(h, sh) : lt(h, -sh); }; }
+        if (steep) { const base = world.cliff || '#8f8a80', c1 = gx < gy ? dk(base, .1) : dk(base, .3), c2 = dk(c1, .18), c3 = lt(c1, .12); f2 = (X, Y) => { const k = hash2(X >> 2, Y >> 1, 31); return (Y % 5 === 0) ? c2 : k > .85 ? c3 : c1; }; if (far > 3) { const g0 = f2, q = FX.fadeAt(far), hz = FX.hazeAt(far); f2 = (X, Y) => (q > 0 && hash2(X, Y, 33) < q) ? null : mix(g0(X, Y), FX.HAZE, hz); } }
+        else { const sh = Math.max(-.25, Math.min(.25, gx * .25 - gy * .12)); f2 = (X, Y) => { const s = PWinv(X, Y, zm); const h = fn(s[0], s[1]); return !h ? h : sh > 0 ? dk(h, sh) : lt(h, -sh); }; }
         const pa = R.PW(tx, ty, a), pb = R.PW(tx + 1, ty, b), pc = R.PW(tx + 1, ty + 1, c), pd = R.PW(tx, ty + 1, d);
         R.fill([pa, pb, pc], f2); R.fill([pa, pc, pd], f2);
       }
-      // border lines against other ground types
-      const e1 = edgeColor(t, T(tx, ty + 1)), e2 = edgeColor(t, T(tx + 1, ty)), e3 = edgeColor(t, T(tx, ty - 1)), e4 = edgeColor(t, T(tx - 1, ty));
-      if (e1) R.lw([tx, ty + 1, d], [tx + 1, ty + 1, c], e1); if (e2) R.lw([tx + 1, ty, b], [tx + 1, ty + 1, c], e2);
-      if (e3) R.lw([tx, ty, a], [tx + 1, ty, b], e3); if (e4) R.lw([tx, ty, a], [tx, ty + 1, d], e4);
+      // border lines against other ground types (soft banks draw their own shoreline; far outskirts have none)
+      if (far < 5) {
+        const n1 = T(tx, ty + 1), n2 = T(tx + 1, ty), n3 = T(tx, ty - 1), n4 = T(tx - 1, ty);
+        const e1 = bank && WET.has(n1) ? null : edgeColor(t, n1), e2 = bank && WET.has(n2) ? null : edgeColor(t, n2), e3 = bank && WET.has(n3) ? null : edgeColor(t, n3), e4 = bank && WET.has(n4) ? null : edgeColor(t, n4);
+        if (e1) R.lw([tx, ty + 1, d], [tx + 1, ty + 1, c], e1); if (e2) R.lw([tx + 1, ty, b], [tx + 1, ty + 1, c], e2);
+        if (e3) R.lw([tx, ty, a], [tx + 1, ty, b], e3); if (e4) R.lw([tx, ty, a], [tx, ty + 1, d], e4);
+      }
       // skirts where the world ends / floor meets void
-      if (!T(tx, ty + 1)) R.fq([[tx, ty + 1, d], [tx + 1, ty + 1, c], [tx + 1, ty + 1, c - skirt], [tx, ty + 1, d - skirt]], dk(world.edge, .1));
-      if (!T(tx + 1, ty)) R.fq([[tx + 1, ty, b], [tx + 1, ty + 1, c], [tx + 1, ty + 1, c - skirt], [tx + 1, ty, b - skirt]], dk(world.edge, .3));
+      if (skirt) {
+        if (!T(tx, ty + 1)) R.fq([[tx, ty + 1, d], [tx + 1, ty + 1, c], [tx + 1, ty + 1, c - skirt], [tx, ty + 1, d - skirt]], dk(world.edge, .1));
+        if (!T(tx + 1, ty)) R.fq([[tx + 1, ty, b], [tx + 1, ty + 1, c], [tx + 1, ty + 1, c - skirt], [tx + 1, ty, b - skirt]], dk(world.edge, .3));
+      }
     }
-    const dl = world.decals.get(cx + ',' + cy); if (dl) { const zAt = (x, y) => world.heightAt(x, y); for (const d of dl) d.draw(R, zAt); }
+    if (!outside) { const dl = world.decals.get(cx + ',' + cy); if (dl) { const zAt = (x, y) => world.heightAt(x, y); for (const d of dl) d.draw(R, zAt); } }
   }, null, 2);
 }
 let _ox = 0, _oy = 0;

@@ -41,17 +41,17 @@ const FOOD = { tea: ['cafe_tea', 'bakery_fruit_tart'], snacks: ['market_dumpling
 export const CITY_EVENTS = [
   /* ------------------------------------------------------------------ 1. Spring 13 */
   { id: 'blossom_parade', cal: 'blossom_parade', lines: 'blossom_festival', name: 'Blossom Parade', short: 'the Blossom Parade', scheme: 'blossom', season: 0, day: 13,
-    open: [11, 16], paradeAt: 13, district: 'downtown', site: { x: 175, y: 170, name: 'Riverside Drive: Blossom Parade' },
-    close: [['r28', 138, 170], ['r28', 170, 200], ['r2', 178, 206]],
-    route: { pts: [[178, 142.5], [178, 196]], half: 2 },
+    open: [11, 16], paradeAt: 13, district: 'downtown', site: { x: 175, y: 158, name: 'Riverside Drive: Blossom Parade' },
+    close: [['r28', 114, 138], ['r28', 138, 170], ['r1', 178, 206]],   /* not 170-200: the real route 3 bus loop turns down Riverside there */
+    route: { pts: [[178, 127.5], [178, 166]], half: 2 },   /* sets off just south of the rail viaduct */
     lineup: [{ t: 'walk', rows: 1, cols: 2, look: 'bannerP' }, { t: 'band', rows: 4, cols: 3, look: 'bandPink' }, { t: 'float', a: 'float.blossom.tree' }, { t: 'walk', rows: 4, cols: 2, look: 'parasol' },
       { t: 'float', a: 'float.blossom.swan' }, { t: 'walk', rows: 3, cols: 2, look: 'koi' }, { t: 'float', a: 'float.blossom.teahouse' }, { t: 'walk', rows: 4, cols: 3, look: 'petalKids', anim: 'dance' }, { t: 'float', a: 'float.blossom.throne' }],
     stalls: [{ x: 170, y: 150, flip: true, kind: 'tea', text: 'TEA', name: 'Blossom Tea Tent', sells: FOOD.tea }, { x: 170, y: 160, flip: true, kind: 'food', text: 'SNACKS', name: 'Festival Snacks', sells: FOOD.snacks },
-      { x: 170, y: 180, flip: true, kind: 'flower', text: 'FLOWERS', name: 'Cherry Branches', sells: FOOD.flowers }, { x: 170, y: 189, flip: true, kind: 'sweet', text: 'TREATS', name: 'Pink Lemonade & Ices', sells: FOOD.ices }],
-    props: [{ a: 'prop.blossom.basket', x: 172.5, y: 169, flip: true }, { a: 'prop.event.balloons', x: 173.5, y: 166.5 }, { a: 'prop.event.balloons', x: 173.5, y: 172 }],
+      { x: 170, y: 144, flip: true, kind: 'flower', text: 'FLOWERS', name: 'Cherry Branches', sells: FOOD.flowers }, { x: 170, y: 165, flip: true, kind: 'sweet', text: 'TREATS', name: 'Pink Lemonade & Ices', sells: FOOD.ices }],
+    props: [{ a: 'prop.blossom.basket', x: 172.5, y: 155, flip: true }, { a: 'prop.event.balloons', x: 173.5, y: 153.6 }, { a: 'prop.event.balloons', x: 173.5, y: 157.4 }],
     moment: { id: 'petals', prop: 0, label: 'Petal baskets', title: 'Shower the parade', from: 12, to: 15.5, fx: 'petals',
       text: 'Take a basket and throw petals over the floats as they come by.',
-      game: { kind: 'quickdraw', title: 'Petal shower', hint: 'Tap the blossoms as they fall. Leave the leaves.', level: 3, theme: { color: '#f2a7c3', color2: '#fbe3ea' } },
+      game: { kind: 'quickdraw', title: 'Petal shower', hint: 'Grab the flowers to throw. Leave the weeds.', level: 3, theme: { icon: 'gift_flowers', bad: 'sk.weed', paper: '#cfe8b8', color: '#f2a7c3', color2: '#fbe3ea' } },
       done: 'Pink petals everywhere. The Blossom Queen waves right at you.' },
     wx: 'clear', reward: { moodlet: 'festival_spirit', needs: { fun: 22, social: 10 }, item: ['gift_wildflowers', 1] }, watched: { fun: 12, social: 6 },
     blurb: 'Floats, a marching band and a swan the size of a bus roll down Riverside Drive under the blossom. Petal baskets by the River Walk.',
@@ -134,7 +134,7 @@ export const CITY_EVENTS = [
     open: [18, 24], paradeAt: 20, finaleAt: 21.5, district: 'oldtown', site: { x: 100, y: 283.5, name: 'Lantern Row: Lantern Night' },
     close: [['r27', 264, 296]],
     route: { pts: [[112, 268], [112, 281], [86.5, 281]], half: 2, half2: 1.6 },
-    lineup: [{ t: 'walk', rows: 2, cols: 2, look: 'lanternBig' }, { t: 'float', a: 'float.lantern.drum' }, { t: 'dragon', segs: 8 }, { t: 'walk', rows: 5, cols: 2, look: 'lanternKids' }, { t: 'band', rows: 2, cols: 3, look: 'bandLantern' }, { t: 'walk', rows: 4, cols: 2, look: 'lantern' }],
+    lineup: [{ t: 'walk', rows: 2, cols: 2, look: 'lanternBig' }, { t: 'float', a: 'float.lantern.drum' }, { t: 'dragon', segs: 11 }, { t: 'walk', rows: 5, cols: 2, look: 'lanternKids' }, { t: 'band', rows: 2, cols: 3, look: 'bandLantern' }, { t: 'walk', rows: 4, cols: 2, look: 'lantern' }],
     stalls: [{ x: 87, y: 287, kind: 'lantern', text: 'LANTERNS', name: 'Paper Lanterns', sells: ['gift_candle'] }, { x: 104, y: 286.5, kind: 'food', text: 'GRILL', name: 'Night Market Grills', sells: FOOD.grill }, { x: 115, y: 271, flip: true, kind: 'tea', text: 'TEA', name: 'Moon Tea', sells: FOOD.tea }],
     props: [{ a: 'prop.lantern.wish', x: 97.6, y: 284.2 }],
     moment: { id: 'wish', prop: 0, label: 'Wish table', title: 'Write a wish', from: 18, to: 23.5, fx: 'skylantern',

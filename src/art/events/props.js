@@ -71,11 +71,11 @@ export default [
       const f = (p.dir || 1) < 0, X = u => f ? 1.6 - u : u, part = p.part || 'body', z = 1.75 + [0, .12, .2, .08][(p.hop || 0) & 3], i = p.i || 0;
       pole(.8, .4, 0, z, '#8a6a45', .06, false);
       if (part === 'body') { const c = i % 2 ? DR.a : dk(DR.a, .08);
-        lit(() => { ball(.8, .4, z + .3, .62, c, { squash: .7, t: lt(DR.a, .3), d: dk(DR.a, .25) }); for (let k = -2; k <= 2; k++) dot(.8 + k * .22, .82, z + .2 - Math.abs(k) * .04, DR.b, 2, 2); for (let k = -1; k <= 1; k++) { const q = P(.8 + k * .4, .4, z + .78); px(q[0], q[1], C(DR.c)); px(q[0] - 1, q[1] + 1, C(DR.c)); px(q[0] + 1, q[1] + 1, C(DR.c)); px(q[0], q[1] + 1, C(DR.b)); } });
+        lit(() => { ball(.35, .4, z + .3, .6, dk(c, .1), { squash: .8, ol: false }); ball(1.25, .4, z + .3, .6, dk(c, .1), { squash: .8, ol: false }); ball(.8, .4, z + .34, .74, c, { squash: .8, t: lt(DR.a, .3), d: dk(DR.a, .25) }); for (let k = -3; k <= 3; k++) dot(.8 + k * .2, .86, z - .02 - Math.abs(k) * .02, DR.b, 3, 2); for (let k = -2; k <= 2; k++) dot(.8 + k * .22, .82, z + .2 - Math.abs(k) * .04, DR.b, 2, 2); for (let k = -1; k <= 1; k++) { const q = P(.8 + k * .4, .4, z + .78); px(q[0], q[1], C(DR.c)); px(q[0] - 1, q[1] + 1, C(DR.c)); px(q[0] + 1, q[1] + 1, C(DR.c)); px(q[0], q[1] + 1, C(DR.b)); } });
         halo(.8, .4, z + .3, 9, '#ff9a5a'); }
       else if (part === 'tail') { lit(() => { ball(X(1.0), .4, z + .3, .45, DR.a, { squash: .7 }); ball(X(.55), .4, z + .36, .3, DR.a, { squash: .7 }); fq([[X(.4), .4, z + .4], [X(-.4), .4, z + .9], [X(-.2), .4, z + .3]], DR.b); fq([[X(.4), .4, z + .35], [X(-.5), .4, z + .25], [X(-.1), .4, z + .05]], DR.c); }); halo(.8, .4, z + .3, 7, '#ff9a5a'); }
       else { lit(() => {
-        ball(X(.5), .4, z + .35, .6, DR.a, { squash: .75 }); ball(X(1.15), .4, z + .45, .52, DR.a, { squash: .8, t: lt(DR.a, .3) });
+        ball(X(.3), .4, z + .35, .7, DR.a, { squash: .8 }); ball(X(1.05), .4, z + .5, .72, DR.a, { squash: .85, t: lt(DR.a, .3) }); for (let k = 0; k < 5; k++) dot(X(.1 + k * .22), .4, z + 1.05 - k * .03, DR.c, 3, 4); dot(X(1.5), .82, z + .2, DR.b, 4, 2); dot(X(1.6), .82, z + .06, '#f4f0e8', 5, 2);
         fq([[X(1.3), .78, z + .3], [X(2.0), .78, z + .22], [X(2.0), .78, z + .02], [X(1.3), .78, z - .02]], DR.b); fq([[X(1.35), .78, z + .7], [X(2.05), .78, z + .5], [X(2.0), .78, z + .3], [X(1.3), .78, z + .34]], DR.a);   /* jaws */
         for (let k = 0; k < 4; k++) dot(X(1.45 + k * .15), .79, z + .3, '#fff8e0', 1, 2);
         const q = P(X(1.3), .8, z + .62); ellipse(q[0], q[1], 2, 2, '#fff8e0'); px(q[0], q[1], C('#2b2238'));

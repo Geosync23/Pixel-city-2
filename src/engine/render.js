@@ -1,7 +1,9 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
 import { WS, U } from './raster.js';
-import { renderChunk, CH } from './ground.js';
-import { toSprite, objSprite } from './sprites.js';
+import { renderChunk, CH, outskirtChunks } from './ground.js';
+import { toSprite, objSprite, assetSprite } from './sprites.js';
+import { outskirtTrees, beyond, fadeAt } from './terrainfx.js';
+import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
 function behind(A, B) {
@@ -33,6 +35,30 @@ function poolSprite(r, col) { // banded, dithered ellipse of light
   x.putImageData(id, 0, 0); pools.set(key, c); return c;
 }
 
+const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+/** the trees of one outskirts chunk as one canvas {c, x, y} (world px), thinned by the same distance dither as the ground; null if none */
+function treeLayer(world, cx, cy) {
+  const L = outskirtTrees(world, cx, cy, CH); if (!L.length) return null;
+  const its = []; let bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9;
+  for (const t of L) {
+    const a = ASSETS.get(t.id); if (!a) continue; const vs = a.variants && a.variants.length ? a.variants : [{}], p = Object.assign({}, vs[t.v % vs.length], { seed: t.seed });
+    let spr; try { spr = assetSprite(a, p, false); } catch (e) { spr = null; } if (!spr) continue;
+    const s = WS(t.x, t.y, world.H(Math.round(t.x), Math.round(t.y))), x = Math.round(s[0]) + spr.x, y = Math.round(s[1]) + spr.y;
+    its.push(spr, x, y, t.d); if (x < bx0) bx0 = x; if (y < by0) by0 = y; if (x + spr.w > bx1) bx1 = x + spr.w; if (y + spr.h > by1) by1 = y + spr.h;
+  }
+  if (!its.length) return null;
+  const c = mk(bx1 - bx0, by1 - by0), g = c.getContext('2d');
+  for (let i = 0; i < its.length; i += 4) g.drawImage(its[i].c, its[i + 1] - bx0, its[i + 2] - by0);
+  // fade: drop pixels by ordered dither, per tree, by how far beyond the edge it stands
+  const id = g.getImageData(0, 0, c.width, c.height), d = id.data, W = c.width; let touched = false;
+  for (let i = 0; i < its.length; i += 4) {
+    const q = fadeAt(its[i + 3] + 1.5); if (q <= 0) continue; touched = true; const sp = its[i], ox = its[i + 1] - bx0, oy = its[i + 2] - by0;
+    for (let y = 0; y < sp.h; y++) for (let x = 0; x < sp.w; x++) { const X = ox + x, Y = oy + y; if ((BAY4[(((Y + by0) & 3) << 2) | ((X + bx0) & 3)] + .5) / 16 < q) d[(Y * W + X) * 4 + 3] = 0; }
+  }
+  if (touched) g.putImageData(id, 0, 0);
+  return { c, x: bx0, y: by0 };
+}
+
 export class Renderer {
   constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.W = 8; this.H = 8; this.stats = { items: 0, chunks: 0 }; this.maxNewChunks = 2; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.ctx.imageSmoothingEnabled = false; }
@@ -40,7 +66,7 @@ export class Renderer {
     const cache = world._chunks || (world._chunks = new Map()); const key = cx * 4096 + cy; let e = cache.get(key);
     if (e && e.ver === world.version) return e.spr;
     if (budget.n <= 0) return e ? e.spr : undefined; budget.n--;
-    const spr = toSprite(renderChunk(world, cx, cy)); cache.delete(key); cache.set(key, { spr, ver: world.version });
+    const spr = toSprite(renderChunk(world, cx, cy)); if (spr && (cx < 0 || cy < 0 || cx * CH >= world.w || cy * CH >= world.h)) spr.over = treeLayer(world, cx, cy); cache.delete(key); cache.set(key, { spr, ver: world.version });
     if (cache.size > 140) { const k = cache.keys().next().value; cache.delete(k); }
     return spr;
   }
@@ -49,15 +75,17 @@ export class Renderer {
   _ground(world, cam, ctx) {
     const W = this.W, H = this.H, zr = (world.zmax || 14) * U, corners = [[cam.x, cam.y - 64], [cam.x + W, cam.y - 64], [cam.x, cam.y + H + zr], [cam.x + W, cam.y + H + zr]];
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [sx, sy] of corners) { const a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-    const c0x = Math.max(0, Math.floor(x0 / CH)), c0y = Math.max(0, Math.floor(y0 / CH)), c1x = Math.min(Math.ceil(world.w / CH) - 1, Math.floor(x1 / CH)), c1y = Math.min(Math.ceil(world.h / CH) - 1, Math.floor(y1 / CH));
-    const budget = { n: this.maxNewChunks }; let n = 0;
+    const oc = outskirtChunks(world), c0x = Math.max(-oc, Math.floor(x0 / CH)), c0y = Math.max(-oc, Math.floor(y0 / CH)), c1x = Math.min(Math.ceil(world.w / CH) - 1 + oc, Math.floor(x1 / CH)), c1y = Math.min(Math.ceil(world.h / CH) - 1 + oc, Math.floor(y1 / CH));
+    const budget = { n: this.maxNewChunks }; let n = 0, ov = this._ov || (this._ov = []); ov.length = 0;
     for (let s = c0x + c0y; s <= c1x + c1y; s++) for (let cx = Math.max(c0x, s - c1y); cx <= Math.min(c1x, s - c0y); cx++) {
       const cy = s - cx;
       // quick reject: chunk diamond centre vs screen
       const cs = WS(cx * CH + CH / 2, cy * CH + CH / 2, 0); if (cs[0] < cam.x - CH * U - 8 || cs[0] > cam.x + W + CH * U + 8 || cs[1] < cam.y - CH * U / 2 - 8 - 64 || cs[1] > cam.y + H + CH * U / 2 + zr + 8) continue;
       const spr = this._chunk(world, cx, cy, budget); if (!spr) continue; n++;
-      if (ctx) ctx.drawImage(spr.c, spr.x - cam.x, spr.y - cam.y);
+      if (ctx) { ctx.drawImage(spr.c, spr.x - cam.x, spr.y - cam.y); if (spr.over) ov.push(spr.over); }
     }
+    /* outskirt trees go over all the ground, back to front (the chunk order above) */
+    if (ctx) for (let i = 0; i < ov.length; i++) ctx.drawImage(ov[i].c, ov[i].x - cam.x, ov[i].y - cam.y);
     this.stats.chunks = n;
   }
   /**

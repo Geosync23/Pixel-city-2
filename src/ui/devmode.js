@@ -28,7 +28,8 @@ function unlockAll() {
   toast(`Unlocked: ${a} apps, ${p} places, ${r} recipes, ${s} skills maxed, all passes, homes and jobs.`, 'good', 5000);
 }
 async function teleport() {
-  const list = safe(() => G.places.list(), []).filter(p => p.kind === 'venue' || p.kind === 'landmark' || p.kind === 'station' || p.kind === 'airport' || p.kind === 'home').sort((a, b) => a.name.localeCompare(b.name));
+  const list = safe(() => G.places.list(), []).filter(p => p.kind === 'venue' || p.kind === 'landmark' || p.kind === 'station' || p.kind === 'airport' || p.kind === 'home').sort((a, b) => a.name.localeCompare(b.name) || (a.kind === 'landmark') - (b.kind === 'landmark'))
+    .filter((q, i, a) => !i || q.name !== a[i - 1].name);   /* QA round 4: stations and homes were listed twice (as the place and as its landmark) */
   if (!list.length) return toast('No places loaded yet.');
   const p = await choose('Teleport to', list.map(q => ({ label: q.name, sub: q.districtName || q.kind, value: q })), { cls: 'dev-list' }); if (!p) return;
   await G.go('city', { x: p.x, y: p.y + .6 }); toast('At ' + p.name + '.');
@@ -56,6 +57,7 @@ function render() {
     act('Max skills', k(() => toast(maxSkills() + ' skills at level 10.', 'good'))));
   if (G.intro && G.intro.active) row(act('Skip the intro', () => G.intro.skip()));
   sec('Jobs + travel'); row(act('Hire me as…', hire), act('Teleport…', teleport));
+  if (G.cityEvents) row(act('Start a city event…', async () => { const L = safe(() => G.cityEvents.list(), []); const id = await choose('Stage a city event now', L.map(e => ({ label: e.name || e.id, sub: 'Jumps you to it', value: e.id })), { cls: 'dev-list' }); if (!id) return; safe(() => G.cityEvents.debug.start(id)); const pl = safe(() => G.cityEvents.place(id)); if (pl) await G.go('city', { x: pl.x + 2, y: pl.y }); toast('Event staged. Stop it from this menu.'); }), act('Stop event', k(() => { safe(() => G.cityEvents.debug.stop()); toast('Event stopped.'); })));
   sec('Time'); row(act('+1 hour', k(() => G.advance(60))), act('+6 hours', k(() => G.advance(360))), act('To 8 am', k(toMorning)), act('+1 day', k(() => G.advance(1440))));
   b.append(el('div.dev-row', null, el('span.dev-l', { text: 'Speed' }), ...[1, 2, 4, 8, 16].map(s => el('button.dev-b' + (G.state.speed === s ? '.on' : ''), { text: s + 'x', onclick: () => { G.state.speed = s; safe(() => G.hud.refresh()); render(); } }))));
   sec('Weather'); row(...['clear', 'cloudy', 'rain', 'storm', 'fog', 'snow'].map(w => act(w, k(() => { safe(() => G.weather.setWeather(w, 6)); toast('Weather: ' + w + '.'); }))));

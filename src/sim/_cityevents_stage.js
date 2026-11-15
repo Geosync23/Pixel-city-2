@@ -12,7 +12,7 @@ import { U, rng } from '../engine/raster.js';
 import { GT } from '../engine/world.js';
 import { assetSprite, pixSprite } from '../engine/sprites.js';
 import { ASSETS, assetSize } from '../art/registry.js';
-import { Cit, getSpec } from './_crowd_core.js';
+import { Cit, getSpec, speak, ambientLine } from './_crowd_core.js';
 import { TUNE } from '../data/cityevents.js';
 
 const FPS = { walk: 7, stand: 1.2, dance: 6, wave: 5, cheer: 5, talk: 4, work: 4, sit: .5, phone: .8 };
@@ -167,12 +167,12 @@ export function buildStage(ev, city, graph) {
       for (const rd of a.riders || []) { const m = mar(rd.outfit === 'santa' ? 'santa' : rd.outfit === 'farmer' ? 'farmer' : a.id === 'float.blossom.throne' ? 'queen' : a.id === 'float.lantern.drum' ? 'drummer' : 'rider', mi++, rd.anim || 'wave'); m.seated = !!rd.seated; els.push({ k: 'rider', e: m, par: el, du: rd.u - f.len / 2, dl: rd.y - f.wid / 2, dz: rd.z, rdir: rd.dir }); }
       if (un.ride) el.seat = a.seat; cur += f.len + (un.hitch ? .45 : un.t === 'boat' ? 4.5 : TUNE.gap); }
     else if (un.t === 'band' || un.t === 'walk') { const cols = un.cols || 2, rows = un.rows || 3, sp = un.look.startsWith('banner') ? 2.2 : .9; for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) els.push({ k: 'mar', e: mar(un.look, mi++, un.anim), o: cur + .4 + r * 1.15, lat: (c - (cols - 1) / 2) * sp }); cur += rows * 1.15 + TUNE.gap; }
-    else if (un.t === 'dragon') { const n = un.segs || 7; for (let i = 0; i < n + 2; i++) { const f = new Flt(); f.set(ASSETS.get('prop.lantern.dragon'), { part: i === 0 ? 'head' : i === n + 1 ? 'tail' : 'body', i }); f.hop = 0; actors.push(f); els.push({ k: 'dragon', e: f, o: cur + .8 + i * 1.15, lat: 0, i }); els.push({ k: 'mar', e: mar('bearer', mi++), o: cur + .8 + i * 1.15 + .02, lat: 0, wave: i }); } cur += (n + 2) * 1.15 + TUNE.gap; }
+    else if (un.t === 'dragon') { const n = un.segs || 7; for (let i = 0; i < n + 2; i++) { const f = new Flt(); f.set(ASSETS.get('prop.lantern.dragon'), { part: i === 0 ? 'head' : i === n + 1 ? 'tail' : 'body', i }); f.hop = 0; actors.push(f); els.push({ k: 'dragon', e: f, o: cur + .8 + i * .95, lat: 0, i }); els.push({ k: 'mar', e: mar('bearer', mi++), o: cur + .8 + i * .95 + .02, lat: 0, wave: i }); } cur += (n + 2) * .95 + TUNE.gap; }
   }
   const total = cur, passes = ev.route.loop || 1, cycle = route.len + total + 3;
 
   /* spectators: a pool of citizens moved to the spots around the screen */
-  const cits = []; let nCit = 0, tWin = 0;
+  const cits = []; let nCit = 0, tWin = 0, tSay = 4;
   const placed = [], byDecor = new Map(); let level = 0, inScene = false;
   const onScr = (x, y, m) => { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m && sy < G.H + m + 30; };
   const putOb = d => { if (byDecor.has(d)) return; let ob = null; try { ob = world.place(d.a, d.x, d.y, { p: Object.assign({}, d.p), flip: d.flip, solid: false, z: d.z }); } catch (e) { console.warn('cityevents: place failed', d.a, e.message); } if (ob) { ob.noFade = /bunting|arch|banner/.test(d.a); ob.cev = ev.id; placed.push(ob); byDecor.set(d, ob); } };
@@ -211,6 +211,7 @@ export function buildStage(ev, city, graph) {
             const sp0 = getSpec(ev.district, null, sp.kid ? 'kid' : null); c.setSpec(sp0); sp0._n++; c.district = ev.district; c.x = sp.x; c.y = sp.y; c.z = world.heightAt(sp.x, sp.y); c.dir = sp.dir; c.t = sp.h * 10; c.pose = sp.mood === 'dance' ? 'dance' : null; c.nx = T + sp.h * 4; sp.c = c; nCit++; }
           else if (!want && sp.c) freeCit(sp); }
       }
+      if ((tSay -= dt) <= 0) { tSay = 6 + Math.random() * 5; const on = spots.filter(sp => sp.c && sp.c.alpha >= 1 && onScr(sp.x, sp.y, -30)); if (on.length) { const c = on[(Math.random() * on.length) | 0].c; try { speak(c, ambientLine(c, { eventId: ev.lines, event: ev.lines })); } catch (e) { /* lines are optional */ } } }
       const hs = u < 0 ? -99 : (u % cycle), ts = hs - total;   /* route span the parade covers right now */
       for (const sp of spots) { const c = sp.c; if (!c) continue; c.t += dt; if (c.alpha < 1) c.alpha = Math.min(1, c.alpha + dt * 2);
         if (sp.mood === 'dance') continue;

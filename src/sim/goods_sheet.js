@@ -16,8 +16,8 @@ const DOES = {
   plant: 'A living plant: water it and it brightens the room.', rug: 'Lies under the furniture and warms up the floor.', bath: 'A proper soak (it goes in the bathroom).', shower: 'Fitted in your bathroom.',
 };
 const STYLE = { modern: 'Modern', classic: 'Classic', midcentury: 'Mid-century', cottage: 'Cottage', glam: 'Glam', rustic: 'Rustic', japandi: 'Japandi', boho: 'Boho', retro: 'Retro', kids: 'Playful', coastal: 'Coastal', industrial: 'Industrial', scandi: 'Scandi' };
-const swatchOf = g => { const p = g.p || {}; return p.c || p.wood || p.metal || p.c2 || p.pot || '#b8794a'; };
-const colourName = g => g.colour || (g.name.includes(', ') ? g.name.split(', ').pop() : 'Standard');
+export const swatchOf = g => { const p = g.p || {}; return p.c || p.wood || p.metal || p.c2 || p.pot || '#b8794a'; };
+export const colourName = g => g.colour || (g.name.includes(', ') ? g.name.split(', ').pop() : 'Standard');
 
 let CSS = false;
 function css() {
@@ -28,15 +28,20 @@ function css() {
 .gd-sw button.on{outline:3px solid #f2c230;outline-offset:1px}.gd-facts{margin:0 2px 6px;padding:0;list-style:none;font-size:13px;line-height:1.35}.gd-facts li{margin:2px 0}
 .gd-btns{display:flex;gap:6px;flex-wrap:wrap}.gd-btns button{flex:1 1 30%;min-height:40px}` }));
 }
-function picture(g) {
-  const a = asset('furn.home.' + g.art), sp = assetSprite(a, Object.assign({}, g.p, { on: true }), false), src = sp.c, W = src.width, H = src.height;
-  /* crop to the drawn pixels so small pieces fill the frame too */
-  let x0 = W, y0 = H, x1 = -1, y1 = -1; try { const d = src.getContext('2d').getImageData(0, 0, W, H).data; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } catch (e) { x1 = -1; }
-  if (x1 < 0) { x0 = 0; y0 = 0; x1 = W - 1; y1 = H - 1; } const w = x1 - x0 + 1, h = y1 - y0 + 1, k = Math.max(1, Math.min(8, Math.floor(Math.min(290 / w, 136 / h))));
-  const c = document.createElement('canvas'); c.width = w * k; c.height = h * k; c.style.width = c.width + 'px'; c.style.height = c.height + 'px'; c.style.marginBottom = '8px';
-  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, x0, y0, w, h, 0, 0, c.width, c.height); return c;
+const picCache = new Map();
+export function picture(g, maxW = 290, maxH = 136, maxK = 8) {
+  const key = g.id + '|' + maxW + '|' + maxH + '|' + maxK; let src0 = picCache.get(key);
+  if (!src0) {
+    const a = asset('furn.home.' + g.art), sp = assetSprite(a, Object.assign({}, g.p, { on: true }), false), src = sp.c, W = src.width, H = src.height;
+    /* crop to the drawn pixels so small pieces fill the frame too (read once per piece, then kept) */
+    let x0 = W, y0 = H, x1 = -1, y1 = -1; try { const d = src.getContext('2d').getImageData(0, 0, W, H).data; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } catch (e) { x1 = -1; }
+    if (x1 < 0) { x0 = 0; y0 = 0; x1 = W - 1; y1 = H - 1; } const w = x1 - x0 + 1, h = y1 - y0 + 1, k = Math.max(1, Math.min(maxK, Math.floor(Math.min(maxW / w, maxH / h))));
+    src0 = document.createElement('canvas'); src0.width = w * k; src0.height = h * k; const x = src0.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, x0, y0, w, h, 0, 0, src0.width, src0.height);
+    if (picCache.size > 200) picCache.clear(); picCache.set(key, src0);
+  }
+  const c = document.createElement('canvas'); c.width = src0.width; c.height = src0.height; c.style.width = c.width + 'px'; c.style.height = c.height + 'px'; c.style.marginBottom = '8px'; c.getContext('2d').drawImage(src0, 0, 0); return c;
 }
-function facts(g, storeId) {
+export function facts(g, storeId) {
   const L = [], it = safe(() => G.housing.visual(g.id), null), sz = it && it.size;
   L.push(`${CATS[g.cat] || g.cat} · ${STYLE[g.style] || g.style}`);
   L.push(g.lamp ? 'A lamp: switch it on and off at home.' : DOES[g.tag] || 'Decoration: it makes the room nicer to be in.');

@@ -210,9 +210,11 @@ function roomDef(id, room) {
     // boxes stand on the shell's box spots (else anywhere free), never in a doorway, on the spot you use something from, or where they would wall something in
     const real = list.filter(solidDef).map(rectOfDef), voids = voidRects(sh), solids = real.concat(keepRects(sh), voids, list.map(useSpot).filter(Boolean).map(cellOf)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
+    /* keep the places that were planned for what is in the boxes free, when there is room elsewhere */
+    const plans = []; for (const b of S.boxes) (b.pos || []).forEach((q, k) => { if (q && q.x !== undefined && b.items[k]) plans.push(rectAt(visual(b.items[k]), q)); });
     for (const b of S.boxes) {
       const kind = boxKind(b), sz = b.k === 'm' || kind !== 's' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids), fr = list.map(useSpot).filter(Boolean), fb = spotsReach(sh, real.concat(voids), fr);
-      for (const s of spots) { const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
+      for (const s of spots.filter(q => !plans.some(o => hit([q[0], q[1], q[0] + sz, q[1] + sz], o))).concat(plans.length ? spots : [])) { if (at) break; const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
         const front = cellOf(sz === 1 ? [s[0] + .5, s[1] + 1.3] : [s[0] + .25, s[1] + .8]); if (front[3] > sh.d || real.some(o => hit(front, o)) || voids.some(o => hit(front, o))) continue;
         const a = reach(sh, real.concat([r]), voids); if (!a[real.length] || base.some((ok, i) => ok && !a[i])) continue;
         const fa = spotsReach(sh, real.concat([r], voids), fr.concat([[front[0] + .25, front[1] + .25]])); if (fa[fr.length] && !fb.some((ok, i) => ok && !fa[i])) { at = s; break; } }
