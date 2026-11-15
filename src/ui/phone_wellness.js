@@ -45,8 +45,10 @@ function journalTab(b) {
 }
 export default {
   id: 'wellness',
-  badge: () => { let n = 0; for (const d of NEEDS) if (safe(() => N().band(d.id).id, 'ok') === 'critical') n++; return n; },
+  // needs that are critical AND that you have not looked at yet: opening Wellness clears the counter; a need counts again only after it recovered and dropped again (owner msg 88)
+  badge: () => { const sn = safe(() => G.state.phone.seen.wellness, null) || {}; let n = 0; for (const d of NEEDS) { const c = safe(() => N().band(d.id).id, 'ok') === 'critical'; if (c && !sn[d.id]) n++; else if (!c && sn[d.id]) delete sn[d.id]; } return n; },
   render(b, ctx) {
+    { const ph = G.state.phone; if (ph) { const sn = (ph.seen || (ph.seen = {})).wellness || (ph.seen.wellness = {}); let ch = false; for (const d of NEEDS) if (safe(() => N().band(d.id).id, 'ok') === 'critical' && !sn[d.id]) { sn[d.id] = 1; ch = true; } if (ch) setTimeout(() => safe(() => G.phone.syncBadge(), 0), 0); } }
     if (!N()) return b.append(empty('ui.heart', 'Wellness is syncing', 'Your needs and mood will show up here in a moment.'), card(el('b', { text: 'Tip of the day' }), el('p', { text: TIPS[dayOf(G.state.t) % TIPS.length] })));
     b.append(tabs([{ id: 'me', name: 'Me' }, { id: 'skills', name: 'Skills' }, { id: 'journal', name: 'Journal' }], tab, t => { tab = t; ctx.refresh(); }));
     (tab === 'me' ? meTab : tab === 'skills' ? skillsTab : journalTab)(b, ctx);

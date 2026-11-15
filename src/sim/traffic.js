@@ -123,8 +123,11 @@ function busU(b) { const v = b.veh, l = b.loop; if (!v) return b.u; const k = v.
 function busTarget(b) { const s = b.loop.stops[b.nsi], v = b.veh; v.stop = { e: b.loop.edges[s.k], s: s.s }; v.onStop = busArrive; }
 function busArrive(v) { const b = v.bus; if (!b) return; const s = b.loop.stops[b.nsi]; b.atStop = s.id; b.dwell = DWELL; v.halt = true; G.emit('bus:arrive', b, s.id); }
 function busDepart(b) { const id = b.atStop; b.atStop = null; b.dwell = 0; b.nsi = (b.nsi + 1) % b.loop.stops.length; if (b.veh) { b.veh.halt = false; busTarget(b); } G.emit('bus:depart', b, id); }
+/* headway control (QA round 3): a bus that has caught up with the one ahead of it on its route waits a little longer at the stop (at most 6 extra), so buses do not bunch */
+function tooClose(b) { const l = b.loop, n = buses.filter(o => o.loop === l).length, u = b.u; let g = 1e9; for (const o of buses) if (o !== b && o.loop === l) { const d = (o.u - u + l.L) % l.L; if (d > .5 && d < g) g = d; } return g < .6 * l.L / n; }
+function dwellDone(b) { if (!(b.veh && b.veh.pre) && (b.held || 0) < 6 && tooClose(b)) { b.dwell = 1; b.held = (b.held || 0) + 1; return; } b.held = 0; busDepart(b); }
 function busAbstract(b, gm) {
-  if (b.atStop) { if (!b.hold) b.dwell -= gm; if (b.dwell <= 0) busDepart(b); return; }
+  if (b.atStop) { if (!b.hold) b.dwell -= gm; if (b.dwell <= 0) dwellDone(b); return; }
   const l = b.loop, s = l.stops[b.nsi], du = (s.u - b.u + l.L) % l.L, mv = BUS_SPEED * gm;
   if (mv >= du) { b.u = s.u; b.atStop = s.id; b.dwell = DWELL; } else b.u = (b.u + mv) % l.L;
 }
@@ -214,7 +217,7 @@ function update(dt, gm) {
   if ((tA -= dt) <= 0) { tA = .22; housekeeping(); fill(dt); }
   const L = T.list;
   for (let i = 0; i < L.length; i++) { const v = L[i]; if (!v.parked) step(v, dt); }
-  for (let i = 0; i < buses.length; i++) { const b = buses[i]; if (b.veh && b.atStop) { if (!b.hold) b.dwell -= dt; if (b.dwell <= 0) busDepart(b); } }
+  for (let i = 0; i < buses.length; i++) { const b = buses[i]; if (b.veh && b.atStop) { if (!b.hold) b.dwell -= dt; if (b.dwell <= 0) { busU(b); dwellDone(b); } } }
 }
 
 export function init() {

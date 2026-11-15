@@ -61,3 +61,4 @@
 46. (msg 84) MapleCab 'Where to?' should start with what you are likely to want: upcoming planner items and the current arrow/objective. Done (Stage 22b): 'For you now' section.
 47. (msg 85) The aquarium must be really excellent and detailed, with sea turtles among many other animals. Relayed to the running aquarium worker verbatim with a raised bar.
 48. (msg 86) 'When its worked on' — follow-up to 85 (the aquarium is being worked on now). (msg 87) Wander needs no notification counter on its icon. Done (Stage 22c).
+49. (msg 88) The Planner and Wellness counters never cleared whatever he did. Fixed (Stage 22d): they clear when the app is opened and only come back for something new. Standing preference: a counter must always be clearable by looking.

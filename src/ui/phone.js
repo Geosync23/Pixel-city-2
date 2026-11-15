@@ -232,6 +232,7 @@ export function init() {
   G.phone = { open, close, toggle, notify, unlock, lock, isUnlocked, badge, refresh, viewing, tip,
     registerApp: a => { if (!a || !a.id || !a.render) return false; impl.set(a.id, a); if (a.setup) safe(() => a.setup(G.phone), 0); if (isOpen) refresh(); return true; },
     log: () => S.log.slice(), clearLog: () => { S.log = []; syncBadge(); }, apps: () => defs().map(a => ({ id: a.id, name: a.name, unlocked: isUnlocked(a.id), badge: isUnlocked(a.id) ? badge(a.id) : 0 })),
+    syncBadge,   // recount the app badges (apps call it after they clear their own counter)
     setWaypoint, waypoint: getWaypoint, routeTo, placeBanners, get isOpen() { return isOpen; }, get settings() { return S.settings; } };
   for (const a of impl.values()) if (a.setup) safe(() => a.setup(G.phone), 0);
   syncBadge();

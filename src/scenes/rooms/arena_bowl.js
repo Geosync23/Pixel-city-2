@@ -54,7 +54,7 @@ const M = mk();
   CHAIRS.forEach((c, i) => A('chairs', c.x, c.y, { n: c.n, rev: 1, c: i < 2 ? '#30343f' : '#3a3f4e' }, { flip: !!c.flip, tags: ['arena_cseat'], chairs: i, game: i < 2 ? undefined : 1, court: 1 }));
   A('adboard', 24.5, 8.5, { w: 3.6, text: 'OTTER POP' }, { flip: true, game: 1, ad: 0 }); A('adboard', 24.5, 12.5, { w: 3.6, text: 'MAPLECAB' }, { flip: true, game: 1, ad: 1 });
   A('camera', 24, 7, {}, { game: 1 }); A('camera', 7.5, 19); A('ballrack', 1.5, 19.5, {}, {}); A('cannon', 26.5, 17.5, {}, { cannon: 1 }); A('spot', 29.5, 20.5, { on: 1 });
-  A('jumbo', 13, 9.5, {}, { z: 6.5, solid: false });
+  A('jumbo', 13, 9.5, {}, { z: 6.5, solid: false, jumbo: 1 });
   // concert kit (hidden until a concert)
   A('stage', C.x0, C.cy - 4, {}, { concert: 1, stage: 1 }); A('stageprop', 9, 12, { kind: 'drums' }, { z: 1, concert: 1, solid: false }); A('stageprop', 10, 9.5, { kind: 'keys' }, { z: 1, concert: 1, solid: false, flip: true }); A('stageprop', 9, 15, { kind: 'amp' }, { z: 1, concert: 1, solid: false, flip: true }); A('stageprop', 12, 12.5, { kind: 'mic' }, { z: 1, concert: 1, solid: false });
   // monster-truck kit
@@ -142,7 +142,7 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
     const jbx = 13 + O, jby = 9.5 + O, JZ = 6.65;
     // +y face (constant y, runs along +x: screen right-down) and +x face (constant x, runs along -y: screen right-up)
     const sprY = { c: cl, l: cl, x: 0, y: -JH - 1, w: cl.width, h: cl.height }, sprX = { c: cR, l: cR, x: 0, y: -JH - JW / 2 - 1, w: cR.width, h: cR.height };
-    sc.ents.push({ x: jbx + .1, y: jby + 6.22, z: JZ, bb: [0, 0, 6, .05, 3], sprite: () => sprY }, { x: jbx + 6.22, y: jby + 6.1, z: JZ, bb: [0, -6, .05, 0, 3], sprite: () => sprX });
+    const jFaces = [{ x: jbx + .1, y: jby + 6.22, z: JZ, bb: [0, 0, 6, .05, 3], sprite: () => sprY }, { x: jbx + 6.22, y: jby + 6.1, z: JZ, bb: [0, -6, .05, 0, 3], sprite: () => sprX }]; sc.ents.push(jFaces[0], jFaces[1]);
     const blitJ = () => { xl.setTransform(1, 0, 0, 1, 0, 0); xl.clearRect(0, 0, cl.width, cl.height); xl.setTransform(1, .5, 0, 1, 0, 1); xl.drawImage(jc, 0, 0); xr.setTransform(1, 0, 0, 1, 0, 0); xr.clearRect(0, 0, cR.width, cR.height); xr.setTransform(1, -.5, 0, 1, 0, JW / 2 + 1); xr.drawImage(jc, 0, 0); };
     let jOver = null, jUntil = 0, jT = 0, jState = { mode: 'idle' };
 
@@ -356,7 +356,7 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
     function applyMode(mode, ev) {
       st_.mode = mode; evI = -1; homeRun = 0; lastGph = ''; st_._q = -1; introI = -1; camDone = {}; songI = -2; scI = -1; htStage = ''; st_._ct = -1; stopMusic();
       hideAll(homeP.concat(awayP, refs, dancers, band, skaters, contestants, [mc], coaches)); for (const e of trucks.concat(tees, conf)) e.hidden = true; ollie.hidden = true; ball.hidden = true;
-      setFloor(mode === 'concert' ? 'concert' : mode === 'ice' ? 'ice' : mode === 'trucks' ? 'trucks' : 'court'); setGroup('game', mode === 'game' || mode === 'idle'); setGroup('concert', mode === 'concert'); setGroup('trucks', mode === 'trucks');
+      setFloor(mode === 'concert' ? 'concert' : mode === 'ice' ? 'ice' : mode === 'trucks' ? 'trucks' : 'court'); setGroup('game', mode === 'game' || mode === 'idle'); setGroup('concert', mode === 'concert'); setGroup('trucks', mode === 'trucks'); setGroup('jumbo', mode !== 'concert'); jFaces[0].hidden = jFaces[1].hidden = mode === 'concert'; // the scoreboard is hoisted into the roof for concerts
       for (const o of grp('court')) if (o.data.chairs < 2) { const on = mode !== 'concert'; if (o.hidden === on) { o.hidden = !on; if (on) Wd.block(o.B[0], o.B[1], o.B[3], o.B[4]); else Wd.free(o.B[0], o.B[1], o.B[3], o.B[4]); } }
       if (ev && ev.kind === 'game') { const g = ev.game; awayP.forEach((c, i) => { const p = g.a === ev.opp ? g.rosters[1][i] : g.rosters[1][i]; c.pl = p; c.setSpec(AR() ? AR().playerSpec(p, ev.opp) : P.adult[1]); }); }
       if (ev && ev.kind === 'concert') band.forEach((c, i) => c.setSpec(Object.assign({}, P.adult[(i * 3 + 4 + ev.act.id.length) % P.adult.length], { top: i === 1 ? 'jacket' : 'tee', topColor: i % 2 ? ev.act.c : ev.act.c2, innerColor: '#33303f', bottom: 'jeans', bottomColor: '#33303f', hat: i === 3 ? 'beanie' : null, hatColor: ev.act.c, bag: null, age: 'adult' })));

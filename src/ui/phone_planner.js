@@ -127,8 +127,10 @@ function calendarTab(b, ctx) {
 
 export default {
   id: 'planner',
-  badge: () => { const n = safe(() => P().next(), null); return n && n.t - G.state.t < 120 && n.s < 3 ? 1 : 0; },
+  // "something is coming up in the next two hours" — shown until you have opened the Planner once for that appointment (owner msg 88: the counter must clear)
+  badge: () => { const n = safe(() => P().next(), null); return n && n.t - G.state.t < 120 && n.s < 3 && safe(() => G.state.phone.seen.plannerAppt, null) !== n.id ? 1 : 0; },
   render(b, ctx) {
+    { const n = safe(() => P().next(), null), sn = G.state.phone && (G.state.phone.seen || (G.state.phone.seen = {})); if (n && sn && sn.plannerAppt !== n.id) { sn.plannerAppt = n.id; setTimeout(() => safe(() => G.phone.syncBadge(), 0), 0); } }
     if (!P()) return b.append(empty('ui.calendar', 'Planner is syncing', 'Your calendar will be here in a moment.'));
     const a = ctx.arg; if (a && !a._used) { a._used = 1;
       if (a.day !== undefined) { tab = 'calendar'; selDay = a.day; }

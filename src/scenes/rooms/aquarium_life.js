@@ -46,6 +46,7 @@ function fishBase(s, f) {
     if (D) { const bx = TL + Math.round(L * .52); for (let k = 0; k < D + 2; k++) { const hh = Math.max(0, D - Math.abs(k - 1) * (s.tail === 'shark' ? 1.2 : .6)); if (hh > 0) set(bx - k + 2, Math.round(oy - half(.55) - hh), s.fin, 1, Math.ceil(hh)); } }
     if (s.pect) { const bx = TL + Math.round(L * .62); for (let k = 0; k < 4; k++) set(bx - k, Math.round(oy + half(.6)) + k - 1, s.fin, 2, 1); }
     if (s.mark) { set(TL + Math.round(L * .35), oy - 1, s.mark, Math.round(L * .4), 1); set(TL, oy, s.fin, 2, 1); }
+    if (s.hammer) { set(TL + L - 2, oy - H - 2, s.back, 3, 2 * H + 5); set(TL + L - 1, oy - H - 2, INK); set(TL + L - 1, oy + H + 2, INK); }
     if (L > 6) { set(TL + L - Math.max(2, Math.round(L * .14)), Math.round(oy - H * .35), INK); if (s.tail === 'shark') { set(TL + L - 4, oy + Math.round(H * .5), INK, 3, 1); for (let g = 0; g < 3; g++) set(TL + L - 8 - g * 2, oy - 1, s.fin, 1, 3); } } else set(TL + L - 2, oy, INK);
   });
 }
@@ -84,7 +85,7 @@ export class Swimmer {
   tick(dt) {
     this.t += dt; let tx, ty, tz, sp = this.speed;
     if (this.lead) { const L = this.lead, o = this.off, w = this.t * .7 + this.ph; tx = L.x + o[0] + Math.sin(w) * .35 - L.vx * .4; ty = L.y + o[1] + Math.cos(w * 1.3) * .35 - L.vy * .4; const k = 1 + (L.scare || 0) * 1.6; tx = L.x + o[0] * k + Math.sin(w) * .35 - L.vx * .4; ty = L.y + o[1] * k + Math.cos(w * 1.3) * .35 - L.vy * .4; tz = L.z + o[2] * k + Math.sin(w * .9) * .2; const d = Math.hypot(tx - this.x, ty - this.y); sp = L.speed * (d > 1.2 ? 1.7 : d > .4 ? 1.1 : .8) * (1 + (L.scare || 0)); }
-    else { const p = this.pts[this.i]; tx = p[0]; ty = p[1]; tz = p[2]; if (Math.hypot(tx - this.x, ty - this.y) < .7) this.i = (this.i + 1) % this.pts.length; }
+    else { const p = this._tgt || this.pts[this.i]; tx = p[0]; ty = p[1]; tz = p[2]; const d0 = Math.hypot(tx - this.x, ty - this.y); if (this._tgt) sp *= Math.min(1, d0 * 1.2); else if (d0 < .7) this.i = (this.i + 1) % this.pts.length; }
     const dx = tx - this.x, dy = ty - this.y, d = Math.hypot(dx, dy) || 1e-6, k = Math.min(1, dt * (this.lead ? 3.5 : 1.6));
     this.vx += (dx / d * sp - this.vx) * k; this.vy += (dy / d * sp - this.vy) * k; this.x += this.vx * dt; this.y += this.vy * dt;
     const zm = this.zmin ? this.zmin(this.x + this.vx * 1.2, this.y + this.vy * 1.2) : 0; this.z += (Math.max(zm, tz) - this.z) * Math.min(1, dt * 1.4);
@@ -207,7 +208,7 @@ export function wallTank(o) {
     /** update only when the player is near enough to see it; works out where the player stands along the glass */
     tick(dt, p) { const d = Math.hypot(p.x - cx, p.y - cy); if (d > 19) return; let px = null; if (o.axis === 'x') { if (p.x - o.x < 3.2) px = W - (p.y - o.y) * 16; } else if (p.y - o.y < 3.2 && p.y >= o.y) px = (p.x - o.x) * 16; update(dt, px); },
     feed(sec = 10) { feedT = sec; }, perform(sec = 30) { show = sec; }, night(v) { night = !!v; }, octopus: () => (octo ? { st: octo.st, den: octo.den, col: octo.col } : null), eels: () => fish.filter(f => f.mode === 5).map(f => f.hgt), puffed: () => fish.some(f => f.puff > 0),
-    species: cast.map(c => c[0]).concat(kind === 'jelly' ? JELLY.map(j => j.name) : []) };
+    hue: () => hue, species: cast.map(c => c[0]).concat(kind === 'jelly' ? JELLY.map(j => j.name) : []) };
 }
 
 /* ---------------- the big cylinder ---------------- */
