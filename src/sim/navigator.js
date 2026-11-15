@@ -122,7 +122,6 @@ function trainOption(from, D, walk) {
   for (const A of near(from)) for (const B of near(D)) {
     if (A.id === B.id) continue; const wa = man(A, from) * WALK, wb = man(B, D) * WALK, pl = safe(() => G.rail.plan(A.id, B.id, G.state.t + wa), null); if (!pl || !(pl.stops > 0)) continue;   /* QA7: the train you can still catch once you have walked to the station */
     const wait = wa + (pl.departsIn != null ? pl.departsIn : pl.wait || 0), ride = Math.max(1, pl.minutes),   /* QA7: plan().minutes is the ride alone (the wait was subtracted twice: estimates were ~15 min short) */ total = wait + ride + wb;
-    if (wa + wb >= walk) continue;   /* QA13: `walk` is the direct walk in MINUTES (it was passed the distance in units, so this never filtered); only a train that cannot possibly beat walking is dropped */
     if (!best || total < best.minutes) best = { mode: 'train', label: 'Train ' + pl.line, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('train'), 2.5), line: pl.line, toward: pl.toward, stops: pl.stops, wait, from: A.id, to: B.id, board: { id: A.pid, name: A.name, x: A.x, y: A.y }, alight: { id: B.pid, name: B.name, x: B.x, y: B.y }, walkA: wa, walkB: wb, ride };
   }
   return best;
