@@ -324,9 +324,13 @@ function partyCocoa() {
   const S = st(), d = G.now().day; if (S.cocoaDay === d) { toast('"One free cup each, love. The counter downstairs does a Supernova."', 'info', 3600); return false; }
   S.cocoaDay = d; need('fun', 8); need('energy', 5); need('hunger', 4); bubble(G.player, 'Ahh. Warm hands.'); toast('A free paper cup of cocoa, steaming in the cold. Star parties are the best parties.', 'good', 3800); return true;
 }
+const cloudyParty = () => partyOn() && isOpen() && !sky().clear;   // QA round 3: a clouded-out star party really moves into the planetarium (as the desk says)
+function creditParty(text) { const S = st(), d = G.now().day; if (S.partyDay === d) return false; S.partyDay = d; S.party++; moodlet('starstruck'); need('social', 6); stamp('x:obs_party'); G.emit('observatory:party', S.party); toast(text, 'good', 5600); return true; }
+function onTheatre() { if (cloudyParty()) creditParty('Star party, clouded out, so it has moved in here: Stella is running the sky back to back until midnight. Grab a seat.'); }
 function onRoof(sc) {
   const S = st(), s = sky(), d = s.day;
-  if (s.party && S.partyDay !== d) { S.partyDay = d; S.party++; moodlet('starstruck'); need('social', 6); stamp('x:obs_party'); G.emit('observatory:party', S.party); toast(s.clear ? 'Star party! A row of home-made telescopes, red lanterns, free cocoa. Have a look through every one.' : 'Star party, clouded out. Everybody is standing around drinking cocoa and blaming the forecast.', 'good', 5200); }
+  if (s.party && !s.clear && S.partyDay !== d) toast('Clouded out up here. The star party has moved down to the planetarium: Stella is running shows back to back until midnight.', 'info', 5600);
+  else if (s.party && S.partyDay !== d) creditParty('Star party! A row of home-made telescopes, red lanterns, free cocoa. Have a look through every one.');
   else if (s.observing && !S._roofNight) { S._roofNight = 1; toast('The dome is open. Below the parapet, the whole city is lit up like a circuit board.', 'good', 4600); }
 }
 
@@ -364,7 +368,7 @@ function patchGuide() {
 export function init() {
   S = G.defineState('observatory', DEF); G.on('load', () => { st(); setGoal(); });
   G.observatory = {
-    isOpen, hours: OBS_HOURS, ticket: OBS_TICKET, hasTicket, buyTicket, enter, desk, arrived, goRoof, goTheatre, sky, onRoof,
+    isOpen, hours: OBS_HOURS, ticket: OBS_TICKET, hasTicket, buyTicket, enter, desk, arrived, goRoof, goTheatre, sky, onRoof, onTheatre, cloudyParty,
     shows: { times: SHOW_TIMES, programmes: () => avail().map(p => ({ id: p.id, title: p.title, blurb: p.blurb, dur: p.dur, seen: st().shows[p.id] || 0 })), next: nextShow, current: currentShow, crowd: showCrowd, startNow, state: () => { const sc = scene('observatory:planetarium'); return sc ? sc.star.state() : null; }, set debugSpeed(v) { const sc = scene('observatory:planetarium'); if (sc) sc.star.speed = v; } },
     showEnv: () => ({ season: G.now().season, moon: moonPhase(G.now().day), name: playerName() }), showDone, talkPresenter,
     scope: { targets, look, snap: (x, y) => eye && eye.snap(x, y), sharp: () => eye && eye.sharp(), state: () => (eye ? eye.state() : null), cancel: () => eye && eye.cancel() },

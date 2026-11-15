@@ -254,7 +254,10 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
     sc.lights = (m, cam, pool) => { const L = 1 - sc.house; if (L < .03) return; const ga = m.globalAlpha, k = .5 + .06 * Math.sin(G.time * 9); try { lp(m, cam, pool, O + 9, O + 3.5, 0, 5, star.col, L * k); lp(m, cam, pool, O + 3.5, O + 9, 0, 5, star.col, L * k); lp(m, cam, pool, O + 4.5, O + 4.5, 0, 4, star.col, L * k * .8); lp(m, cam, pool, O + 10, O + 10, 0, 4, star.col, L * .3); } finally { m.globalAlpha = ga; } };
     let fr = -1, pa = 0, pt = 0, tick = 0, idleK = '';
     const idle = () => { const L = star.phase === 'doors' && star.prog ? ['DOORS OPEN', star.prog.title, 'PLEASE TAKE A SEAT'] : idleLines(), f = Math.floor(G.time * 4), k = L.join('|') + f; if (k === idleK) return; idleK = k; drawIdle(sx, G.time, L); blit(); star.col = '#3a4a9a'; };
-    const check = () => { if (star.phase !== 'idle' || !OB() || !isOpenNow()) return; const cur = OB().shows.current(); if (!cur || star.done[cur.key]) return; star.done[cur.key] = 1; star.slot = cur; star.begin(cur.prog.id, false, cur.at); };
+    const check = () => { if (star.phase !== 'idle' || !OB() || !isOpenNow()) return; const cur = OB().shows.current();
+      if (!cur || star.done[cur.key]) { // QA round 3: a clouded-out star party moves in here, and Stella runs the sky back to back until midnight
+        if (OB().cloudyParty && OB().cloudyParty()) { if (!star.cpT) star.cpT = G.time + 8; else if (G.time > star.cpT) { star.cpT = 0; star.begin(null, true); } } return; }
+      star.done[cur.key] = 1; star.slot = cur; star.begin(cur.prog.id, false, cur.at); };
     idle();
     const u0 = sc.update; sc.update = (dt, gm) => {
       u0(dt, gm); pres.t += dt; const sp = star.speed || 1, d = dt * sp;
@@ -278,7 +281,7 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
           if (dd <= stp) { c.x = q.x; c.y = q.y; c.pi++; if (c.st === 1 && c.pi >= c.pts.length) { c.moving = false; c.z = c.seat.z; c.dir = c.seat.dir; c.pose = 'sit'; c.poseOpts = { seated: true }; c.st = 2; } } else { c.x += dx / dd * stp; c.y += dy / dd * stp; c.face(dx, dy); c.moving = true; } }
       }
     };
-    const e0 = sc.onEnter; sc.onEnter = (o, pv) => { e0(o, pv); idleK = ''; check(); };
+    const e0 = sc.onEnter; sc.onEnter = (o, pv) => { e0(o, pv); idleK = ''; check(); if (OB() && OB().onTheatre) OB().onTheatre(sc); };
     const x0 = sc.onExit; sc.onExit = () => { x0(); caption('', ''); if (star.phase !== 'idle') { for (const c of aud) { c.hidden = true; c.wait = false; if (c.seat) { c.seat.taken = null; c.seat = null; } c.st = 0; } star.phase = 'idle'; star.prog = null; star.slot = null; sc.house = 1; } };
   },
 });
@@ -336,7 +339,7 @@ defineRoom({ id: 'observatory:roof', name: 'Observatory Dome & Terrace', w: RW, 
         for (const o of shells) setP(o, { time: view, wx: wxv }); Wd.bg = view === 'night' ? '#070a1c' : view === 'dusk' ? '#3a2c4c' : '#7fa8c8'; }
       openT = isOpen && s.observing ? 1 : 0; if (!s.observing && !parked) { parked = true; if (scope) setP(scope, { park: 1 }); } else if (isOpen && s.observing && parked) { parked = false; if (scope) setP(scope, { park: 0, az, alt }); }
       if (notice) { const show = isOpen && night && !s.observing; if (notice.hidden !== !show) notice.hidden = !show; if (show) { const b = s.wx === 'rain' ? 'RAIN' : 'CLOUD'; if (notice.p.b !== b) setP(notice, { a: 'CLOSED', b }); } }
-      const po = isOpen && !!s.party; if (po !== pOn) { pOn = po; for (const o of party) { o.hidden = !po; if (o.solid) { if (po) Wd.block(o.B[0], o.B[1], o.B[3], o.B[4]); else Wd.free(o.B[0], o.B[1], o.B[3], o.B[4]); } } for (const l of partyL) { const i = Wd.lights.indexOf(l); if (po && i < 0) Wd.lights.push(l); if (!po && i >= 0) Wd.lights.splice(i, 1); } }
+      const po = isOpen && !!s.party && !s.wx;   // (QA round 3: a clouded-out party is in the planetarium, not up here) if (po !== pOn) { pOn = po; for (const o of party) { o.hidden = !po; if (o.solid) { if (po) Wd.block(o.B[0], o.B[1], o.B[3], o.B[4]); else Wd.free(o.B[0], o.B[1], o.B[3], o.B[4]); } } for (const l of partyL) { const i = Wd.lights.indexOf(l); if (po && i < 0) Wd.lights.push(l); if (!po && i >= 0) Wd.lights.splice(i, 1); } }
       const wet = s.wx === 'rain'; for (const o of tscopes) { const cov = wet || (night && !!s.wx) ? 1 : 0; if ((o.p.cover || 0) !== cov) setP(o, { cover: cov }); }
       const lvl = !isOpen || wet ? 0 : night ? (s.observing ? .75 : .3) + (n.weekday >= 5 ? .15 : 0) : .6, k = lvl + '|' + night + '|' + po + '|' + s.observing;
       if (k !== lvlK) { lvlK = k; sc.life.level = lvl; for (const c of cr.list) { const sp = c.spot; c.hidden = lvl <= 0 || (sp.party ? !po : (sp.night && !night) || (sp.busy ? lvl < .6 || c.roll > lvl + .2 : c.roll > Math.min(sp.p === undefined ? 1 : sp.p + .2, lvl + .15))); } }
