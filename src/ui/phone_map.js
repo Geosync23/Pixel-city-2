@@ -126,7 +126,7 @@ function showCard() {
   if (!footEl) return; footEl.replaceChildren(); if (navDest) return routeCard(); const p = sel && place(sel); if (!p) return;
   const cat = CAT_BY_ID[placeCat(p)], os = openState(p), v = p.venue, wp = getWaypoint(), isWp = wp && wp.id === p.id, ctx = ctxRef;
   const c = el('div.ph-placecard', null,
-    el('div.t', null, el('div', null, el('b', { text: p.name }), el('br'), el('small', { text: [cat.name, p.districtName].filter(Boolean).join(' · ') + ` · ~${Math.round(distTo(p))} m` })), el('button.ph-link', { text: 'x', 'aria-label': 'Close card', onclick: () => { sel = null; showCard(); draw(); } })),
+    el('div.t', null, el('div', null, el('b', { text: p.name }), el('br'), el('small', { text: [cat.name, p.districtName].filter(Boolean).join(' · ') + ` · ~${safe(() => G.nav.fmtDist(distTo(p)), Math.round(distTo(p)) + ' m')}` })), el('button.ph-link', { text: 'x', 'aria-label': 'Close card', onclick: () => { sel = null; showCard(); draw(); } })),
     addrOf(p) ? el('small.ph-addr', { text: addrOf(p) }) : null,
     v && v.blurb ? el('small', { text: v.blurb }) : null,
     os.open !== null ? el('div', null, chip(os.open ? 'OPEN' : 'CLOSED', os.open ? 'good' : 'bad'), ' ', el('small', { text: os.hours })) : null,
@@ -151,7 +151,7 @@ function navPanel() {
   const list = el('div', { style: { overflowY: 'auto', flex: '1', minHeight: '0', display: 'flex', flexDirection: 'column', gap: '4px' } }), title = (NAVCHIPS.find(c => c[0] === navKind) || [])[1] || 'Places';
   const pick = r => { navKind = null; const p = typeof r.id === 'string' ? place(r.id) : null; navDest = p ? { id: p.id, name: r.home ? 'Home' : p.name, x: p.x, y: p.y } : { name: r.name, x: r.x, y: r.y }; view.cx = navDest.x; view.cy = navDest.y; sel = null; if (ctxRef) ctxRef.refresh(); };
   const fill = rows => { list.replaceChildren(); for (const r of rows) list.append(el('button', { 'data-navrow': typeof r.id === 'string' ? r.id : 'pos', style: { textAlign: 'left', minHeight: '40px', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }, onclick: () => pick(r) },
-      el('span', null, el('b', { text: r.name }), r.note ? el('small', { text: ' · ' + r.note }) : null), el('span', { style: { whiteSpace: 'nowrap' } }, el('small', { text: Math.round(r.d) + ' m ' }), r.open == null ? null : chip(r.open ? 'OPEN' : 'CLOSED', r.open ? 'good' : 'bad'))));
+      el('span', null, el('b', { text: r.name }), r.note ? el('small', { text: ' · ' + r.note }) : null), el('span', { style: { whiteSpace: 'nowrap' } }, el('small', { text: safe(() => G.nav.fmtDist(r.d), Math.round(r.d) + ' m') + ' ' }), r.open == null ? null : chip(r.open ? 'OPEN' : 'CLOSED', r.open ? 'good' : 'bad'))));
     if (!rows.length) list.append(el('small', { text: navKind === 'search' ? 'Type a place, a dish, a thing to do...' : navKind === 'work' ? 'No job yet - try the job board.' : navKind === 'home' ? 'No home yet.' : 'Nothing like that on the map yet.' })); };
   let inp = null;
   if (navKind === 'search') { const c = cityPos(), run = q => fill(q.trim().length < 2 ? [] : safe(() => G.guide.search(q.trim()), []).filter(e => isFinite(e.x) && isFinite(e.y)).slice(0, 10).map(e => { const p = e.placeId && place(e.placeId); return { id: p ? p.id : { x: e.x, y: e.y, name: e.title }, name: e.title, note: e.type || '', x: e.x, y: e.y, d: Math.abs(e.x - c.x) + Math.abs(e.y - c.y), open: p ? openState(p).open : null }; }));

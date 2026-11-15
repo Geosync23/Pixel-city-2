@@ -33,11 +33,14 @@ function quote(p) {
 }
 function status(b, ctx, r) {
   const riding = r.status === 'riding' || !!G.cutscene;
-  b.append(el('div.ph-hero.dark', null, iconEl('transport.taxi', 3), el('div', null, el('b', { text: riding ? 'Enjoy the ride!' : 'Your cab is on its way', style: { fontSize: '18px' } }), el('small', { text: 'To ' + r.name }))), el('div.ph-checker'));
-  b.append(el('div.ph-steps', null, ['Requested', 'On the way', 'Riding', 'Arrived'].map((s, i) => el('span' + (i < (riding ? 2 : 1) ? '.done' : i === (riding ? 2 : 1) ? '.on' : ''), { text: s }))));
-  b.append(card(kv('Fare', freeRide() ? 'Free — prepaid' : money(r.fare)), kv('Pick-up', riding ? 'Done' : 'about ' + eta()), el('p', { text: riding ? 'Sit back. The city looks great from the back seat.' : 'Put your phone away and wait by the kerb. Hop in when the yellow cab pulls up.' })));
+  // requested indoors: the navigator (G.nav) calls the cab only once you reach the street, so it is not on its way yet
+  const later = !riding && !!safe(() => { const t = G.nav.trip(); return t && t.mode === 'cab' && t.stage === 0 && t.call; }, false), step = riding ? 2 : later ? 0 : 1;
+  b.append(el('div.ph-hero.dark', null, iconEl('transport.taxi', 3), el('div', null, el('b', { text: riding ? 'Enjoy the ride!' : later ? 'Head outside to meet your cab' : 'Your cab is on its way', style: { fontSize: '18px' } }), el('small', { text: 'To ' + r.name }))), el('div.ph-checker'));
+  b.append(el('div.ph-steps', null, ['Requested', 'On the way', 'Riding', 'Arrived'].map((s, i) => el('span' + (i < step ? '.done' : i === step ? '.on' : ''), { text: s }))));
+  b.append(card(kv('Fare', freeRide() ? 'Free — prepaid' : money(r.fare)), kv('Pick-up', riding ? 'Done' : later ? 'once you are outside, then ' + eta() : 'about ' + eta()),
+    el('p', { text: riding ? 'Sit back. The city looks great from the back seat.' : later ? 'MapleCab calls your driver as soon as you step out onto the street. Put your phone away and follow the arrow to the exit.' : 'Put your phone away and wait by the kerb. Hop in when the yellow cab pulls up.' })));
   ctx.foot.append(btn('Put phone away', () => ctx.close(), 'pri wide big', 'ui.check'));
-  if (!riding) ctx.foot.append(btn('Cancel ride (free)', () => { safe(() => G.transit.cancelTaxi(), 0); G.emit('taxi:cancel', r.placeId); S().ride = null; ctx.refresh(); ctx.tip('Ride cancelled.'); }, 'wide'));
+  if (!riding) ctx.foot.append(btn('Cancel ride (free)', () => { safe(() => (G.transit.cancelTaxi || G.transit.cancel)(), 0); G.emit('taxi:cancel', r.placeId); S().ride = null; ctx.refresh(); ctx.tip('Ride cancelled.'); }, 'wide'));
 }
 
 export default {

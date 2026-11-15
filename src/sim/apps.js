@@ -13,6 +13,8 @@ export const order = 118;
 export const STORE_NAME = 'Appy';
 const VENUES = ['cinema', 'concerthall', 'playhouse'];
 const safe = (fn, fb) => { try { const v = fn(); return v === undefined || v === null ? fb : v; } catch (e) { return fb; } };
+// Circle counts people you have met who are NOT family (the family is "known" from the first minute)
+const friendsMet = () => safe(() => G.social.known().filter(id => !G.social.isFamily(id)).length, 0);
 
 // cat: essentials | home | town | money | people | life.   core = cannot be removed.   pre = on the phone from the start.   soon = teaser only.
 export const CATALOG = [
@@ -44,7 +46,7 @@ export const CATALOG = [
     release: { day: 4, poll: () => safe(() => G.wardrobe.owned().length, 0) >= 2, text: 'owning two outfits, or day 4' },
     desc: 'Every outfit you own in one grid. Change in a tap, wherever you are.', does: ['Outfit grid', 'Wear now', "Today's outfit"] },
   { id: 'friends', name: 'Circle', cat: 'people', tagline: 'How are my people?', size: '15 MB', rating: 4.7, iconIds: ['need.social', 'ui.heart'], color: '#e0527a',
-    release: { poll: () => safe(() => G.social.known().length, 0) >= 3, on: 'npc:met', when: () => safe(() => G.social.known().length, 0) >= 3, text: 'meeting three people' },
+    release: { poll: () => friendsMet() >= 3, on: 'npc:met', when: () => friendsMet() >= 3, text: 'meeting three people' },
     desc: 'Everyone you have met, how close you are, where they are right now and whose birthday is coming up.', does: ['Relationship meters', 'Where are they now', 'Birthdays and quick message'] },
   { id: 'wallet', name: 'Receipts', cat: 'money', tagline: 'Where did it all go?', size: '6 MB', rating: 4.2, iconIds: ['ui.coin'], color: '#c79a2a',
     release: { day: 6, on: 'bills:due', text: 'your first weekly bill, or day 6' },
@@ -95,7 +97,8 @@ function catalog() {
 // the calendar + polled conditions; at most one release per game hour
 function check() {
   if (G.onTitle) return;
-  if (G.intro && G.intro.active && ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'].includes(G.intro.at)) return;   // no app releases (Nestly, Circle...) while you are still in the airport (owner msg 78) const s = S(), t = G.state.t || 0; if (t - (s.lastRel || -9999) < 60 && t >= (s.lastRel || 0)) return;
+  if (G.intro && G.intro.active && ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'].includes(G.intro.at)) return;   // no app releases (Nestly, Circle...) while you are still in the airport (owner msg 78)
+  const s = S(), t = G.state.t || 0; if (t - (s.lastRel || -9999) < 60 && t >= (s.lastRel || 0)) return;
   for (const a of CATALOG) {
     const r = a.release; if (!r || isReleased(a.id)) continue;
     if ((r.day && day() + 1 >= r.day) || (r.poll && safe(r.poll, false))) { release(a.id); return; }

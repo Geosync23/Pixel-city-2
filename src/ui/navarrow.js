@@ -91,8 +91,8 @@ function edges(sid = G.scene && G.scene.id) {
     const exs = (live.def && live.def.exits) || [];
     for (const it of live.interactables || []) {
       if (!isFinite(it.x) || (it.visible && !safe(() => it.visible(), true))) continue; const known = lk(it.x, it.y);
-      if (!it.exit && known === undefined) continue;
-      const ex = it.exit ? exs.find(e => Math.abs(e.x + RO - it.x) < .3 && Math.abs(e.y + RO - it.y) < .3) : null, to = known !== undefined ? known : guessTo(sid, ex, it.label);
+      if (!it.exit && !it.navTo && known === undefined) continue;   // it.navTo: a non-door that leads to another scene (SkyDeck lifts, set by sim/showpieces.js)
+      const ex = it.exit ? exs.find(e => Math.abs(e.x + RO - it.x) < .3 && Math.abs(e.y + RO - it.y) < .3) : null, to = known !== undefined ? known : it.navTo || guessTo(sid, ex, it.label);
       out.push({ x: it.x, y: it.y, spot: it.spot, label: it.label || 'Exit', to, exit: !!it.exit, out: OUTWARD.test(it.label || '') || to === 'city' });
     }
   } else {
@@ -234,7 +234,7 @@ function frame(dt) {
   if (!t || G.modal > 0) { if (box.classList.contains('on')) box.className = ''; return; }   // (a window / the phone is open: nothing to steer by)
   const wrap = G.cv.parentElement, W = wrap.clientWidth, H = wrap.clientHeight, M = margins(W, H);
   let cls = 'on' + (t.red ? ' red' : ''), txt = t.label || '', x, y, rot = 0;
-  if (t.mode === 'chip') { cls += ' chip'; } else if (t.dist != null && t.dist >= 1) txt += ` · ${Math.round(t.dist)} m`;
+  if (t.mode === 'chip') { cls += ' chip'; } else if (t.dist != null && t.dist >= 1) txt += ` · ${safe(() => G.nav.fmtDist(t.dist), Math.round(t.dist) + ' m')}`;
   if (txt !== lastTxt) { lEl.textContent = lastTxt = txt; sizeKey = ''; }
   if (t.mode === 'chip') {
     if (box.className !== cls) { box.className = cls; sizeKey = ''; } if (sizeKey !== cls + txt) { sizeKey = cls + txt; bw = box.offsetWidth; bh = box.offsetHeight; }

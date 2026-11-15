@@ -62,7 +62,7 @@ function makeStore(arr, cap, isFridge) {
 }
 const bag = makeStore(() => S.bag, () => INVENTORY.backpackSlots + Math.round(FITNESS.bonusesAt100.backpackSlots * (G.needs ? G.needs.fitness() : 0) / 100));
 // The home KITCHEN store = the fridge (slots by tier) + the kitchen cupboards (CUPBOARD_SLOTS). Ingredients live here, not in the backpack (owner msg 77).
-const CUPBOARD_SLOTS = 16;
+const CUPBOARD_SLOTS = 40;   // 92 ingredient types exist since the recipes batch
 const fridge = makeStore(() => S.fridge, () => (S.fridgeSlots || 8) + CUPBOARD_SLOTS, true);
 
 /* ---------- freshness ---------- */

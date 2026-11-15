@@ -204,7 +204,7 @@ function entryPage(b, ctx, e) {
   if (facts.children.length) b.append(section('The facts'), facts);
   const chips = (title, ids) => { const l = (ids || []).map(id => G_.get(id)).filter(Boolean); if (l.length) b.append(section(title), el('div.wg-chips', null, l.map(x => el('button.ph-chip', { onclick: () => openEntry(ctx, x) }, x.title)))); };
   if (e.line) { b.append(section('The loop, station by station'), el('div.wg-line', null, e.line.map(s => el('button.wg-stop', { onclick: () => { const x = G_.get(s.id); if (x) openEntry(ctx, x); } }, el('i'), el('span', { text: s.name }))))); }
-  if (e.stops) b.append(section('Stops on this route'), el('div.wg-line', { style: '--c:' + (e.color || '#3a3644') }, e.stops.map(s => el('button.wg-stop', { onclick: () => { G.phone.setWaypoint(s.id); ctx.close(); toast(`Waypoint set: ${s.name} bus stop.`, 'good'); } }, el('i'), el('span', { text: s.name })))));
+  if (e.stops) b.append(section('Stops on this route'), el('div.wg-line', { style: '--c:' + (e.color || '#3a3644') }, e.stops.map(s => el('button.wg-stop', { onclick: () => { if (G.phone.routeTo && G.phone.routeTo(s.id)) return; G.phone.setWaypoint(s.id); ctx.close(); toast(`Waypoint set: ${s.name} bus stop.`, 'good'); } }   /* route card (owner msg 81) */, el('i'), el('span', { text: s.name })))));
   if (e.stands) chips('Taxi stands', e.stands.map(s => 'place:' + s.id));
   chips(e.kind === 'place' ? 'What you can do here' : 'Goes well with', e.acts);
   const kids = G_.all().filter(x => x.parent === e.id && !(e.acts || []).includes(x.id)); if (kids.length) b.append(section(e.id === 'place:deptstore' ? 'Shops inside' : 'Here you will find'), el('div.wg-list', null, cards(kids, ctx)));

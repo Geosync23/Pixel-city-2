@@ -123,6 +123,20 @@ function photo() {
 }
 function arrived() { const S = st(), first = !S.visits.skydeck; S.visits.skydeck = (S.visits.skydeck || 0) + 1; if (G.places) G.places.discover('skydeck', true); G.emit('skydeck:visit', first); if (first) toast({ day: 'Level 52. All of Maple Bay, edge to edge.', dusk: 'Level 52 — and the whole sky is on fire. Good timing.', night: 'Level 52. The city is a spilled jar of lights.' }[viewNow()], 'good', 4200); }
 
+/* the Galleria's shops as places (G.places.get('mall:<key>'), G.places.inner()): they stand at the mall's street door with room 'deptstore', so the Map, the
+   route card and the guide arrow lead to the door and then to the counter inside. They are not in G.places.list() (no pins piled on the door, no proximity toasts);
+   known() follows the Galleria's own discovery. */
+const isMall = id => typeof id === 'string' && /^mall:/.test(id);
+let mallCache = null;
+function mallPlaces(get) {
+  if (mallCache) return mallCache; const door = get('deptstore'); if (!door) return [];
+  const seen = new Set(), mallOpen = () => { const h = G.now().hf; return h >= MALL_HOURS[0] && h < MALL_HOURS[1]; };
+  mallCache = MALL_SHOPS.concat(FOOD_COURT).map(q => q.venueId).concat(['mall:pretzel']).filter(id => id && VENUE_BY_ID[id] && !seen.has(id) && seen.add(id)).map(id => { const v = VENUE_BY_ID[id];
+    return { id, name: v.name, kind: 'venue', x: door.x, y: door.y, district: door.district, districtName: door.districtName, poi: door.poi, venue: v, type: v.type, roomId: 'deptstore', room: 'deptstore', inside: 'deptstore', open: mallOpen }; });
+  return mallCache;
+}
+const mallPlace = (id, get) => isMall(id) ? mallPlaces(get).find(p => p.id === id) || null : null;
+
 function mallShops() {
   const def = ROOMS.get('deptstore'), out = []; if (!def) return out;
   for (const it of def.items) if (it.venue && /mall\.counter/.test(it.id)) out.push({ id: it.shop, name: (VENUE_BY_ID[it.venue] || {}).name, venueId: it.venue, x: it.x + 1 + (it.flip ? 1.15 : 1), y: it.y + 1 + (it.flip ? 1 : 1.15) });
@@ -136,7 +150,10 @@ export function init() {
   // the tower door must exist before a save made inside the tower exits to a city that was never built this session
   G.on('room:build', sc => { if (sc && sc.def && sc.def.showpiece && !built) { try { ensure(getCity()); } catch (e) { console.warn('showpieces', e); } } });
   G.on('scene', s => {
-    if (G.places && !G.places._skyAlias) { const g = G.places.get; G.places.get = id => g(id === 'skydeck' || id === 'door:skydeck' ? 'skydeck_lobby' : id); const k = G.places.known; G.places.known = id => k(id === 'skydeck' ? 'skydeck_lobby' : id); G.places._skyAlias = true; }
+    if (G.places && !G.places._skyAlias) { const g = G.places.get; G.places.get = id => g(id === 'skydeck' || id === 'door:skydeck' ? 'skydeck_lobby' : id) || mallPlace(id, g); const k = G.places.known; G.places.known = id => k(id === 'skydeck' ? 'skydeck_lobby' : isMall(id) ? 'deptstore' : id); G.places._skyAlias = true;
+      G.places.inner = () => mallPlaces(g); G.on('places:built', () => { mallCache = null; }); }
+    // the guide arrow (ui/navarrow.js) follows interactables with `navTo`: the SkyDeck lifts are the way between the deck and the lobby (no doormat up there)
+    if (s && (s.id === 'int:skydeck' || s.id === 'int:skydeck_lobby')) for (const it of s.interactables || []) { if (/^Lift down/i.test(it.label || '')) it.navTo = 'int:skydeck_lobby'; else if (/^Lift to the SkyDeck/i.test(it.label || '')) it.navTo = 'int:skydeck'; }
     if (!s || s.id !== 'city' || s._showpieces || !s.world) return; s._showpieces = true; ensure(s.world);
     for (const it of s.interactables) if (it.poi && it.poi.name === GALLERIA) it.label = GALLERIA;
     const p = s.world.pois.find(q => q.id === 'door:skydeck_lobby'); if (p && !tower) tower = { x: p.x, y: p.y, poi: p, ob: null };

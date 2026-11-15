@@ -86,10 +86,17 @@ function pump() {
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
-  showing = b; bannerBox.append(b); requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
+  showing = b; bannerBox.append(b); placeBanners(); requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
   if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }
 
+/** banners drop in just below the HUD's clock + needs bar, the trip strip and the "This is your stop" banner instead of covering them (portrait phones) */
+function placeBanners() {
+  if (!bannerBox) return; bannerBox.style.top = ''; const r = bannerBox.getBoundingClientRect(), up = (bannerBox.offsetParent || document.body).getBoundingClientRect().top;
+  let b = safe(() => G.nav.clearTop(r.left, r.right), 0) || 0; const ns = document.getElementById('nav-stop');
+  if (ns && ns.classList.contains('on')) { const q = ns.getBoundingClientRect(); if (q.height && q.right > r.left && q.left < r.right) b = Math.max(b, q.bottom); }
+  if (b > 0) bannerBox.style.top = Math.round(b - up + 6) + 'px';
+}
 /* ---------- views ---------- */
 const current = () => stack[stack.length - 1] || null;
 function ctxFor(v) {

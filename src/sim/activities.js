@@ -282,6 +282,7 @@ function shopHint(ids) {
 function sellers(itemId) {
   const it = ITEM_BY_ID[itemId]; if (!it) return ''; const out = [];
   for (const v of it.soldAt.map(i => VENUE_BY_ID[i])) if (v && !v.generic && !out.includes(v.name)) out.push(v.name);
+  if (!out.length) { const t = it.soldAt.map(i => VENUE_BY_ID[i]).find(v => v && v.generic); if (t) out.push('a ' + t.name.toLowerCase()); }   // no such place open in town yet: name the kind of place
   return out.slice(0, 2).join(' or ');
 }
 /** how an unknown recipe is learned (shown under the "???" teaser) */

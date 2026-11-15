@@ -24,6 +24,15 @@ const WALK = 1.15 / 3.6, BUS_V = 7, CAB_V = 9;   // game minutes per city unit o
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
 const mins = m => Math.max(1, Math.round(m)) + ' min';
+// distances shown to the player: city units are scaled so that the shown distance matches the shown walking time (~80 m per walking minute)
+export const M_PER_U = 25;
+export const fmtDist = u => { const m = Math.max(0, +u || 0) * M_PER_U; return m >= 950 ? (m / 1000).toFixed(m >= 9500 ? 0 : 1) + ' km' : Math.max(10, Math.round(m / 10) * 10) + ' m'; };
+/** lowest bottom edge (viewport px) of the top HUD cluster / trip strip that overlaps the horizontal span x0..x1 (used to keep banners and the strip clear of the clock + needs bar) */
+export function clearTop(x0, x1, skip) {
+  if (typeof document === 'undefined') return 0; let b = 0;
+  for (const s of ['#hud .hud-tl', '#hud .hud-tr', '#nav-trip']) { const e = document.querySelector(s); if (!e || e === skip) continue; const r = e.getBoundingClientRect(); if (!r.height || !r.width) continue; if (r.right > x0 && r.left < x1) b = Math.max(b, r.bottom); }
+  return b;
+}
 const pt = p => p ? Object.assign({ id: typeof p.id === 'string' ? p.id : null, name: p.name || 'Waypoint', x: p.x, y: p.y }, p.room ? { room: p.room } : null) : null;
 const KIND = { cab: 'taxi', bus: 'bus', train: 'train' }, inCity = () => !!G.scene && G.scene.id === 'city', normSt = id => String(id || '').replace(/^station:|^st_/, '');
 const same = (a, b) => !!a && !!b && (a.id ? a.id === b.id : a.x === b.x && a.y === b.y);
@@ -59,7 +68,7 @@ export function find(kind, n = 4, from = cityPos()) {
   if (kind === 'home') return home ? [row(home, from, { name: 'Home', home: true, open: null })] : [];
   if (kind === 'work') { const j = safe(() => G.jobs.current(), null), p = j && (place(j.venue) || place('door:' + j.venue)); if (!p) return []; const t = j.nextShift, c = t != null ? safe(() => { const m = ((t % 1440) + 1440) % 1440; return ' ' + String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0'); }, '') : ''; return [row(p, from, { name: 'Work: ' + (j.venueName || p.name), note: t != null ? 'next shift' + c : '' })]; }
   const f = T[kind]; if (!f) return [];
-  for (const p of safe(() => G.places.list(), [])) {
+  for (const p of safe(() => G.places.list().concat(G.places.inner ? G.places.inner() : []), [])) {   // + places inside buildings (Galleria shops)
     if (!p || !isFinite(p.x) || !isFinite(p.y) || p.kind === 'home' || seen.has(p.name)) continue; if (!['venue', 'stall', 'spot', 'station', 'busstop', 'taxistand', 'landmark', 'airport'].includes(p.kind)) continue;
     if (!safe(() => f(info(p)), false)) continue; seen.add(p.name); out.push(row(p, from));
   }
@@ -101,10 +110,10 @@ function trainOption(from, D, walk) {
 const stopsTxt = k => k + (k === 1 ? ' stop' : ' stops');
 export function describe(o) {
   if (!o) return '';
-  if (o.mode === 'walk') return `Walk ${Math.round(o.dist)} m`;
-  if (o.mode === 'bike') return `Ride ${Math.round(o.dist)} m (riding comes later)`;
+  if (o.mode === 'walk') return `Walk ${fmtDist(o.dist)}`;
+  if (o.mode === 'bike') return `Ride ${fmtDist(o.dist)} (riding comes later)`;
   if (o.mode === 'cab') return 'Door to door with MapleCab';
-  const veh = o.mode === 'bus' ? `ride the ${o.line} toward ${o.toward}` : `${o.line} toward ${o.toward}`;
+  const tw = o.toward && o.toward !== o.alight.name ? ` toward ${o.toward}` : '', veh = o.mode === 'bus' ? `ride the ${o.line}${tw}` : `${o.line}${tw}`;   // (a loop bus 'toward' your own stop says nothing)
   return `walk to ${o.board.name} (${mins(o.walkA)}) -> ${veh}, ${stopsTxt(o.stops)} -> get off at ${o.alight.name} -> walk ${mins(o.walkB)}`;
 }
 export function routeTo(dest, from = cityPos()) {
@@ -162,13 +171,14 @@ export function replan(why) {
   else { start(pick); const n = trip(); if (n) n.rerouted = true; toast(`New route: ${pick.label} from ${pick.board.name} to ${D.name}. Follow the arrow.`, 'info', 4600); }
   G.emit('nav:reroute', trip(), why || ''); return trip();
 }
+const narrow = () => typeof innerWidth !== 'undefined' && innerWidth < 600;
 function tripText(t) {
-  const veh = t.mode === 'bus' ? `${t.line} bus toward ${t.toward}` : `${t.line} toward ${t.toward}`;
+  const tw = t.toward && t.alight && t.toward !== t.alight.name ? ` toward ${t.toward}` : '', veh = t.mode === 'bus' ? `${t.line} bus${tw}` : `${t.line}${tw}`;
   const parts = t.mode === 'cab' ? [[0, t.call ? 'head outside to meet your cab' : 'meet your MapleCab at the kerb'], [1, 'ride'], [2, 'walk to the door']]
     : [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${stopsTxt(t.stops)}) - get off yourself`], [2, `walk ${mins(t.walkB)}`]];
   // compact: the current step in bold + what comes next (the on-screen arrow does the guiding; the full itinerary is in the route card)
   const box = el('span'), cur = parts.find(q => q[0] === t.stage) || parts[parts.length - 1], nx = parts.find(q => q[0] === t.stage + 1);
-  box.append(el('b', { text: cur[1] })); if (nx) box.append(el('span', { style: 'opacity:.65', text: ' · then ' + nx[1] })); return box;
+  box.append(el('b', { text: cur[1] })); if (nx && !narrow()) box.append(el('span', { style: 'opacity:.65', text: ' · then ' + nx[1] })); return box;   // portrait: the current step only (keeps the strip to one or two lines)
 }
 function render() {
   if (typeof document === 'undefined') return; const t = trip();
@@ -177,8 +187,16 @@ function render() {
   if (offerFor) {
     const opts = routeTo(offerFor); bar.style.zIndex = '4000'; bar.style.display = 'flex'; bar.append(el('b', { text: `To ${offerFor.name}: how will you get there?` }), x(() => { offerFor = null; render(); }));
     for (const o of opts) bar.append(el('button', { 'data-nav': o.mode, title: o.text, style: 'min-height:30px;padding:2px 8px', text: `${o.label} · ${mins(o.minutes)} · ${o.costText}`, onclick: () => start(o) }));
-  } else if (t && !G.onTitle && !safe(() => G.phone.isOpen, false)) { bar.style.zIndex = '40'; bar.style.display = 'flex'; bar.append(el('span', null, el('b', { text: `Trip to ${t.dest.name}: ` }), tripText(t)), x(cancel)); }
+  } else if (t && !G.onTitle && !safe(() => G.phone.isOpen, false)) { bar.style.zIndex = '40'; bar.style.display = 'flex'; bar.append(el('span', { style: 'flex:1 1 0;min-width:0' }, el('b', { text: narrow() ? `To ${t.dest.name}: ` : `Trip to ${t.dest.name}: ` }), tripText(t)), x(cancel)); }
   else bar.style.display = 'none';
+  placeBar();
+}
+/* the strip sits just under the HUD's top cluster (clock + needs bar, money + speed), never on top of it; the goals widget moves down under the strip */
+function placeBar() {
+  if (!bar) return; const gw = document.getElementById('goalsw');
+  if (bar.style.display === 'none') { if (gw && gw._navPush) { gw.style.top = ''; gw._navPush = false; } return; }
+  bar.style.top = '58px'; const r = bar.getBoundingClientRect(), top = Math.max(58, Math.round(clearTop(r.left, r.right, bar) + 6)); bar.style.top = top + 'px';
+  if (gw) { const g = gw.getBoundingClientRect(), b = top + r.height + 8, uiTop = (gw.offsetParent || document.body).getBoundingClientRect().top; if (g.width && g.right > r.left && g.left < r.right && (gw._navPush || g.top < b)) { gw.style.top = Math.round(b - uiTop) + 'px'; gw._navPush = true; } }
 }
 export function offer(p) { p = typeof p === 'string' ? place(p) : p; if (!p || !isFinite(p.x)) return []; const o = routeTo(p); if (o.length < 2) return o; offerFor = pt(p); render(); return o; }
 
@@ -193,7 +211,7 @@ export function init() {
     G.emit('nav:stage', t); render();
   });
   G.on('taxi:request', id => { const p = place(id); if (p) { cabTrip(p, !inCity()); if (!inCity()) toast('Head outside: your cab will be called when you reach the street. Follow the arrow.', 'info', 4200); } });
-  G.on('taxi:cancel', () => { const t = trip(); if (t && t.mode === 'cab' && t.stage === 0 && !t.call) end('cancel'); });
+  G.on('taxi:cancel', () => { const t = trip(); if (t && t.mode === 'cab' && t.stage === 0) end('cancel'); });   // (also a cab requested indoors and cancelled before it was called)
   G.on('scene', s => { if (s && s.id === 'city') setTimeout(callCab, 700); });
   // watchdog: a trip that says "riding" while nothing is being ridden (ride lost on load, vehicle despawned) gets new guidance; a cab that vanished is called again
   let lost = 0; G.addSystem({ name: 'navigator', update(dt) {
@@ -211,6 +229,7 @@ export function init() {
     if (p && safe(() => G.phone.isOpen, false) && !trip()) { const o = routeTo(p); if (o.length > 1) { offerFor = pt(p); render(); } } else if (!p && offerFor) { offerFor = null; render(); }
   });
   G.on('phone:close', () => { offerFor = null; render(); }); G.on('phone:open', () => setTimeout(render, 0));
-  G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer, replan, addSource: (kind, fn) => { (SOURCES[kind] || (SOURCES[kind] = [])).push(fn); } };
+  if (typeof addEventListener !== 'undefined') addEventListener('resize', () => render()); setInterval(() => { if (bar && bar.style.display !== 'none') placeBar(); }, 1000);
+  G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer, replan, fmtDist, clearTop, M_PER_U, addSource: (kind, fn) => { (SOURCES[kind] || (SOURCES[kind] = [])).push(fn); } };
   render();
 }

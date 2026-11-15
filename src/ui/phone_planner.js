@@ -6,6 +6,10 @@ import { el, iconEl, row, empty, tabs, btn, card, chip, section, kv, portrait, n
 import { contacts, tier } from './phone_messages.js';
 
 let tab = 'today', selDay = null;
+/* a city event you already planned (from the event's "Plan to go", Wander's "Add to planner", Showtime ...) shows once: your own entry, not the automatic event row as well */
+const sameEvent = (e, a) => !a.event && ((a.data && ((a.data.eventId && a.data.eventId === (e.data || {}).eventId) || (a.data.guide && String(a.data.guide).indexOf((e.data || {}).eventId) >= 0)))
+  || (String(a.title).toLowerCase() === String(e.title).toLowerCase() && dayOf(a.t) === dayOf(e.t)));
+const dedupe = L => L.filter(e => !e.event || !L.some(a => sameEvent(e, a)));
 const P = () => G.planner;
 const KIND = { story: 'Story', friend: 'With a friend', work: 'Work shift', event: 'City event', personal: 'Personal' };
 const KICON = { story: 'ui.heart', friend: 'rel.friend', work: 'ui.clock', event: 'ui.star', personal: 'ui.calendar' };
@@ -38,7 +42,9 @@ function detail(a) {
     if (a.withNpc) c.append(kv('With', npcName(a.withNpc))); if (!a.event) c.append(kv('Reminder', a.remind ? `${a.remind} min before` : 'Off'));
     b.append(c); if (a.data && a.data.blurb) b.append(card(el('p', { text: a.data.blurb })));
     if (p) b.append(el('div.ph-btns', null, btn('Show on map', () => ctx.open('map', { place: p.id }), '', 'ui.pin'), G.phone.isUnlocked('taxi') ? btn('Cab there', () => ctx.open('taxi', { place: p.id }), '', 'transport.taxi') : null));
-    if (a.event) b.append(btn('Plan to go', () => ctx.push('Plan something', form({ title: a.title, places: a.placeId ? [a.placeId] : [], dur: Math.min(120, a.dur), kind: 'personal', t: Math.max(a.t, G.state.t + 30) })), 'pri wide', 'ui.plus'));
+    const mine = a.event ? safe(() => P().list(dayOf(a.t) * DAY, (dayOf(a.t) + 1) * DAY, { events: false }).find(q => sameEvent(a, q)), null) : null;
+    if (mine) b.append(btn('In your Planner: ' + hhmm((mine.t % DAY) / 60) + ' - open it', () => ctx.push(mine.title, detail(mine)), 'wide', 'ui.check'));
+    else if (a.event) b.append(btn('Plan to go', () => ctx.push('Plan something', form({ title: a.title, places: a.placeId ? [a.placeId] : [], dur: Math.min(120, a.dur), kind: 'personal', t: Math.max(a.t, G.state.t + 30) })), 'pri wide', 'ui.plus'));
     else b.append(btn('Remove from Planner', () => { P().remove(a.id); ctx.back(); ctx.tip('Removed.'); }, 'wide', 'ui.cross'));
   };
 }
@@ -97,18 +103,18 @@ function invite(npc, a) {
 function todayTab(b, ctx) {
   const now = G.state.t, d0 = dayOf(now) * DAY, W = G.weather;
   if (W && W.daySummary) { const fc = el('div.ph-fc'); for (let i = 0; i < 4; i++) { const s = safe(() => W.daySummary(i), null); if (!s) continue; fc.append(el('div', null, el('span', { text: i === 0 ? 'Today' : WEEKDAYS[(dayOf(now) + i) % 7] }), iconEl(weatherIcon(s.kind), 2), el('span', { text: `${s.hiC}° / ${s.loC}°` }), el('small', { text: s.name }))); } if (fc.children.length) b.append(card(fc)); }
-  const items = P().list(now - 1, d0 + DAY).filter(a => a.t + a.dur > now);
+  const items = dedupe(P().list(now - 1, d0 + DAY)).filter(a => a.t + a.dur > now);
   b.append(section(`Today · ${timeInfo(now).label}`, el('button.ph-link', { text: '+ Plan something', onclick: () => ctx.push('Plan something', ideasView({ day: dayOf(now) })) })));
   if (!items.length) b.append(empty('ui.calendar', 'A free day', 'Nothing on. Plan something fun, or just wander.'));
   for (const a of items) b.append(entryRow(a, ctx));
-  const tm = P().list(d0 + DAY, d0 + 2 * DAY); if (tm.length) { b.append(section('Tomorrow')); for (const a of tm) b.append(entryRow(a, ctx)); }
+  const tm = dedupe(P().list(d0 + DAY, d0 + 2 * DAY)); if (tm.length) { b.append(section('Tomorrow')); for (const a of tm) b.append(entryRow(a, ctx)); }
   const al = P().alarm();
   b.append(section('Wake-up alarm'), el('div.ph-step', null, el('button', { text: '-', 'aria-label': 'Alarm earlier', onclick: () => { P().setAlarm((al === null ? 7.5 : al) - .5); ctx.refresh(); } }), el('b', { text: al === null ? 'Off' : hhmm(al) }),
     el('button', { text: '+', 'aria-label': 'Alarm later', onclick: () => { P().setAlarm((al === null ? 6.5 : al) + .5); ctx.refresh(); } }), el('button', { text: 'Off', disabled: al === null, onclick: () => { P().setAlarm(null); ctx.refresh(); } })));
 }
 function calendarTab(b, ctx) {
   const now = G.state.t, today = dayOf(now), start = today - (today % 7); if (selDay === null || selDay < start || selDay >= start + 14) selDay = today;
-  const all = P().list(start * DAY, (start + 14) * DAY), grid = el('div.ph-week');
+  const all = dedupe(P().list(start * DAY, (start + 14) * DAY)), grid = el('div.ph-week');
   for (const w of WEEKDAYS) grid.append(el('small', { text: w, style: { textAlign: 'center', fontWeight: 700 } }));
   for (let d = start; d < start + 14; d++) { const its = all.filter(a => dayOf(a.t) === d), i = timeInfo(d * DAY);
     grid.append(el('button.ph-day' + (d === today ? '.today' : d < today ? '.past' : '') + (d === selDay ? '.on' : ''), { 'aria-label': `${i.label}, ${its.length} entries`, onclick: () => { selDay = d; ctx.refresh(); } }, el('span', { text: i.dayOfMonth }), el('small', { text: i.seasonName.slice(0, 3) }), el('span.ph-dots', null, its.slice(0, 4).map(a => el('i.' + a.kind))))); }

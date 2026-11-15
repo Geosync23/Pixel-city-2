@@ -144,7 +144,7 @@ function pickDestination() {
   const dk = q => q.district && DN[q.district] ? q.district : w.districtAt(q.x, q.y) || 'zz';
   list = list.filter(q => Math.abs(q.x - p.x) + Math.abs(q.y - p.y) > 14).map(q => ({ q, d: dk(q) })).sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.q.name < b.q.name ? -1 : 1);
   if (!list.length) { toast('The driver does not know anywhere to take you yet.'); return Promise.resolve(null); }
-  return choose('Where to?', list.map(o => ({ label: o.q.name, sub: (DN[o.d] || 'Maple Bay') + ' - ' + fmt(taxiFare(p, o.q)), value: o.q })), { text: G.state.flags.firstCabFree ? 'This ride is pre-paid.' : 'Pay on arrival.' });
+  return choose('Where to?', list.map(o => ({ label: o.q.name, sub: (DN[o.d] || 'Maple Bay') + ' - ' + (G.state.flags.firstCabFree ? 'pre-paid' : fmt(taxiFare(p, o.q))), value: o.q })), { text: G.state.flags.firstCabFree ? 'This ride is pre-paid.' : 'Pay on arrival.' });
 }
 function boardCab() {
   const pd = pend; if (!pd || pd.state !== 'waiting' || ride) return; const go = pl => { pend = null; startTaxiRide(pd.cab, pl, pd.opts, pd.resolve); };
