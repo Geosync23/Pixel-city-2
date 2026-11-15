@@ -94,6 +94,7 @@ G.interactables = () => { const out = []; const add = it => { if (it.scene && it
 // Doors, exits, stairs and lifts get a generous tap target: a tall capsule from the threshold up over the door itself (owner msg 76: tap the door, not only the ground in front of it).
 const DOORISH = /^(enter|exit|leave|go (in|out|up|down|to)|back to)\b|door|restroom|bathroom|stairs|lift|elevator|entrance|platform/i;
 const isDoor = it => it.exit || it.door || (it.poi && (it.poi.type === 'door' || it.poi.type === 'station')) || (!it.ent && DOORISH.test(it.label || ''));
+const DOOR_SIDE = 2;   /* QA10: a door's tap target reaches about 2 door-widths to each side (was 4: a floor tap 75 px beside the Leave door took the player out of the flat) */
 const onScreenX = (x, y, z) => { const a = WS(x, y, z); return a[0] >= G.cam.x - 2 && a[0] <= G.cam.x + G.W + 2; };   /* QA10: the door's middle is on screen (a door past the edge of the screen is not tappable) */
 function pick(px, py) {
   let best = null, bd = 1e9;
@@ -103,7 +104,7 @@ function pick(px, py) {
     if (isDoor(it) && !(Math.hypot(it.x - G.player.x, it.y - G.player.y) < (it.homelink ? 3.5 : 1.6))) {   /* QA8: on a door's mat, a tap nearby is not 'go back out' */   /* QA7: standing on the stairs, a tap near them is not 'go back down' */
       const top = Math.max(h, it.exit ? 1.2 : 2.6), a = WS(it.x, it.y, z), b = WS(it.x, it.y, z + top), vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1;
       const t = Math.max(0, Math.min(1, ((px - a[0]) * vx + (py - a[1]) * vy) / L)), dx = px - (a[0] + vx * t), dy = py - (a[1] + vy * t);
-      lim = Math.max(it.hit || 12, 14) + U * 1.25; d = Math.hypot(dx, dy * .8); if (d >= lim) continue; d = d * .6 + 5;   // rank: precise targets right under the finger still win
+      lim = Math.max(it.hit || 12, 14) + U * 1.25; d = Math.hypot(dx * DOOR_SIDE, dy * .8); if (d >= lim) continue; d = d * .6 + 5;   // rank: precise targets right under the finger still win
     } else { const s = WS(it.x, it.y, z + h * .5); d = Math.hypot(px - s[0], (py - s[1]) * .75); lim = (it.hit || 12) + h * U * .4; if (d >= lim) continue; }
     if (d < bd) { bd = d; best = it; }
   }

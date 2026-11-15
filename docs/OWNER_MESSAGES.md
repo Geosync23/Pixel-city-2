@@ -442,3 +442,6 @@ Romance: you can date several people at first, but have one partner once togethe
 
 ## 110 (2026-11-15) — intro hint covers the text replies
 Great - also quixk thing.  In the intro, the tool tip (yelled at the top) slides to the bottom of the screen when opening your phone and it blocks responses in the text
+
+## 111 (2026-11-15) — cut the city ambience / white noise; pitch a redesign
+Alao thanks for adding audio  but the basic ambiance and white nosie for the the city isnt working for me. Lwts cut it for now. Music can stay. Otjer audio can stay. But lets redesign the baic city ambiance. Pitch Mr on some options. Higher fidelity than now its like a white noise machine

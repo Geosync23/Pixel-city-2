@@ -44,19 +44,21 @@ export function pixSprite(key, sb, draw) { return cached(key, () => toSprite(R.r
 
 /* ---------- bake queue (perf) ---------- */
 // Tunables. msMax / msMin: the most / least the queue may spend per frame (bakeTick adapts in between: it backs off while frames come late and
-// creeps back up while they are on time). small: sprites up to this many pixels are baked in one pass (banding them would only repeat the art's set-up work).
+// creeps back up while they are on time). small: banded jobs up to this many pixels are still drawn in one pass.
 // ring / look / lookMax: how far around the screen the renderer looks for things to queue (px around the screen; frames of camera travel ahead; cap in px).
-export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 110, look: 200, lookMax: 420 };
+export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 32, look: 150, lookMax: 300 };
 const jobs = new Map(), queue = [];   // key -> job; queue = the same jobs, most urgent first (the renderer re-sorts by distance to the screen)
 /**
  * Queue a sprite for baking ahead of need. start() -> a raster.renderJob, or null for "nothing to draw" (called when the job first runs).
  * pri: smaller = sooner (px from the screen edge). warn: label for the console warning if the art throws (the sprite is then null, as in objSprite).
  * fin: optional (rasterResult|null) => void: the job is not a sprite of this cache (ground chunks); the caller stores the result itself.
+ * bands: draw it a band of rows per slice. Only worth it for drawings made of fill()ed polygons (the ground): most object art plots pixel by
+ * pixel (trees, tower facades), so a band costs as much as the whole sprite (measured: docs/reports/performance.md) and those are baked in one pass.
  */
-export function prebake(key, start, pri = 0, warn = null, fin = null) {
+export function prebake(key, start, pri = 0, warn = null, fin = null, bands = false) {
   if (!BAKE.on || (!fin && cache.has(key))) return false; const j = jobs.get(key); if (j) { if (pri < j.pri) j.pri = pri; return false; }
   if (queue.length >= BAKE.maxQueue) return false;
-  const job = { key, start, pri, warn, fin, rj: null, rows: 0, ms: 0, last: 0, done: null }; jobs.set(key, job); queue.push(job); return true;
+  const job = { key, start, pri, warn, fin, bands, rj: null, rows: 0, ms: 0, last: 0 }; jobs.set(key, job); queue.push(job); return true;
 }
 /** queue a placed world object (same sprite as objSprite) */
 export function prebakeObj(ob, pri) { return prebake(objKey(ob), () => R.renderJob(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip), pri, ob.id); }
@@ -77,7 +79,7 @@ export function bakePri(key, pri) { const j = jobs.get(key); if (j) j.pri = pri;
 function slice(job, ms) {
   let rj = job.rj; const t0 = performance.now();
   try {
-    if (!rj) { rj = job.rj = job.start(); if (!rj) { job.ms += performance.now() - t0; return true; } job.rows = rj.w * rj.h <= BAKE.small ? rj.h : Math.max(8, Math.ceil(6000 / rj.w)); }
+    if (!rj) { rj = job.rj = job.start(); if (!rj) { job.ms += performance.now() - t0; return true; } job.rows = !job.bands || rj.w * rj.h <= BAKE.small ? rj.h : Math.max(8, Math.ceil(6000 / rj.w)); }
     else job.rows = Math.max(4, Math.round(job.rows * Math.max(.5, Math.min(4, ms / Math.max(.05, job.last)))));
     const fin = R.renderStep(rj, ms === Infinity ? rj.h : job.rows); job.last = performance.now() - t0; job.ms += job.last; STATS.slices++;
     return fin;

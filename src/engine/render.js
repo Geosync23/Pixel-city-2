@@ -1,5 +1,5 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
-import { WS, U, screenBox, renderStep, renderResult } from './raster.js';
+import { WS, U, screenBox, renderJob, renderStep, renderResult } from './raster.js';
 import { renderChunk, chunkJob, CH, outskirtChunks } from './ground.js';
 import { toSprite, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, BAKE } from './sprites.js';
 import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
@@ -69,6 +69,13 @@ export class Renderer {
     for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k); tested++; try { if (sliceTest(screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip, rows)) bad.push(k.slice(0, 80)); } catch (e) { bad.push('ERR ' + k.slice(0, 60) + ' ' + e.message); } }
     return { tested, bad };
   }
+  /** test hook: cost of painting objects [from, from + n): [[ms in one go, ms for a quarter-height band, w, h, id]...] (a band that costs as much as the whole = art that plots pixel by pixel) */
+  bakeCost(world, from = 0, n = 1e9) {
+    const out = [], seen = new Set();
+    for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k);
+      try { const sb = screenBox(ob.vbl), d = () => ob.a.draw(ob.p); let t0 = performance.now(); const j0 = renderJob(sb, d, null, 3, ob.flip); renderStep(j0, 1e9); const whole = performance.now() - t0; t0 = performance.now(); const j = renderJob(sb, d, null, 3, ob.flip); j.row = j.h >> 1; renderStep(j, Math.max(1, j.h >> 2)); out.push([+whole.toFixed(2), +(performance.now() - t0).toFixed(2), j.w, j.h, ob.id]); } catch (e) { } }
+    return out;
+  }
   chunkCheck(world, cx0, cy0, cx1, cy1, rows = 23) {
     const bad = []; let tested = 0;
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) { const a = renderChunk(world, cx, cy), j = chunkJob(world, cx, cy); if (!a || !j) { if (!!a !== !!j) bad.push(cx + ',' + cy + ' null'); continue; } tested++; let k = 0; while (!renderStep(j, rows + (k++ % 3) * 7)); const b = renderResult(j); let d = a.w !== b.w || a.h !== b.h || a.x !== b.x || a.y !== b.y ? 1 : 0; for (let i = 0; !d && i < a.buf.length; i++) if (a.buf[i] !== b.buf[i] || a.lb[i] !== b.lb[i]) d = 1; if (d) bad.push(cx + ',' + cy); }
@@ -126,7 +133,7 @@ export class Renderer {
         if (bx1 < rx0 || bx0 > rx1 || by1 < ry0 || by0 > ry1) continue;
         const key = cx * 4096 + cy, e = cache.get(key); if (e && e.ver === world.version) { if (e.t < this.frameNo - 30) e.t = this.frameNo - 30; continue; }   // a ring chunk counts as recently used
         const jk = this._ck(world, key), p = pri(bx0, by0, bx1, by1) - 8, ver = world.version;   // ground a little before the objects standing on it
-        if (!prebake(jk, () => chunkJob(world, cx, cy), p, null, r => { if (ver === world.version) this._putChunk(world, cx, cy, r, ver); })) bakePri(jk, p);
+        if (!prebake(jk, () => chunkJob(world, cx, cy), p, null, r => { if (ver === world.version) this._putChunk(world, cx, cy, r, ver); }, true)) bakePri(jk, p);
       }
       /* entities near the screen that can say what they will look like (crowd citizens) */
       for (let i = 0; i < ents.length; i++) { const e = ents[i]; if (e.hidden || !e.prebake) continue; const w = WS(e.x, e.y, e.z); if (w[0] < rx0 || w[0] > rx1 || w[1] < ry0 || w[1] > ry1) continue; e.prebake(pri(w[0] - 16, w[1] - 40, w[0] + 16, w[1] + 8)); }

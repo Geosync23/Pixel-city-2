@@ -360,10 +360,11 @@ export function init() {
   G.rel = {
     stage, stageLabel: B.stageLabel, warmth: B.warmth, addWarmth: B.addWarmth, friendStage: B.friendStage, partner: B.partner, remember: B.remember, remembers: B.remembers, pick: id => st().picks[id],
     offer, start, available: () => available().map(x => x.id), offers: () => openOffers(), arc: arcView, scene: id => SC[id] || null, active: () => running, people, openTo(list) { if (Array.isArray(list)) st().openTo = list.filter(x => ['w', 'm', 'n'].includes(x)); return st().openTo.slice(); },
-    verbs: id => VERBS.verbsFor(id), date: { types: id => DATES.typesFor(id), book: o => DATES.book(o), start: apptId => DATES.startAppt(apptId), list: () => DATES.list() },
+    verbs: id => VERBS.verbsFor(id), date: { types: id => DATES.typesFor(id), times: (id, type, venue) => DATES.timesFor(id, type, venue), book: o => DATES.book(o), start: apptId => DATES.startAppt(apptId), list: () => DATES.list() },
     moveIn: id => LIFE.moveIn(id), moveOut: id => LIFE.moveOut(id), propose: id => LIFE.propose(id), wedding: { plan: o => LIFE.weddingPlan(o), state: () => st().wedding, begin: () => LIFE.weddingBegin() }, endIt: (id, how) => LIFE.endIt(id, how),
     pages: id => LIFE.pages(id), keepsakes: () => st().keeps.map(k => Object.assign({ id: k }, B.ITEMS[k])), who,
     /* add-only hooks used by sim/social.js, ui/talk.js, ui/phone_messages.js */
+    _openTrack: (id, how) => B.openTrack(id, how), fewer(on) { if (on !== undefined) st().fewer = !!on; return !!st().fewer; },
     intercept, talkVerbs: (ses, out) => VERBS.talkVerbs(ses, out), talkAct: (ses, vid, arg) => VERBS.talkAct(ses, vid, arg), talkMeter: (ses, head) => VERBS.talkMeter(ses, head), talkPicker: (ses, v, ui) => VERBS.talkPicker(ses, v, ui), greeting: ses => SMALLBITS.greeting(ses), wave: id => SMALLBITS.wave(id), personCard: (id, b, ctx) => VERBS.personCard(id, b, ctx),
     PACING, debug,
   };
@@ -373,7 +374,9 @@ export function init() {
   G.addSystem({ name: 'rel', update(dt) { if (mine && !safe(() => G.chapters.active(), false)) comp.update(dt); acc += dt; if (acc < 1) return; acc = 0; safe(tryStart); safe(() => DATES.tick()); safe(() => VERBS.tick()); safe(() => LIFE.tick()); if (++mkT % 2 === 0 || !MK.length) MK = safe(markers, []); } });
   G.on('minutes', () => { pumpTexts(); safe(stageOffers); if (running) safe(() => { for (const k of ['hunger', 'energy', 'hygiene', 'bladder', 'social', 'fun', 'comfort']) if (G.needs.get(k) < NEED_FLOOR) G.needs.set(k, NEED_FLOOR); }); });
   G.on('hour', () => { safe(govern); safe(() => SMALLBITS.hourly()); safe(() => LIFE.hourly()); });
-  G.on('day', () => { safe(() => LIFE.daily()); safe(() => DATES.daily()); });
+  G.on('day', d => { safe(() => LIFE.daily()); safe(() => DATES.daily());
+    /* PACING.firstWeek: Porchlight is in the app store from day 4 and Dez mentions it once (a line written here, in his voice; the data has none) */
+    const s = st(); if (d >= 3 && !s.once.dez && safe(() => G.social.known().includes('dez'), false)) { s.once.dez = 1; queueText({ from: 'dez', text: "Cuz. There's an app the whole depot is on. Porchlight. I'm not on it. I'm on it. Do NOT look me up.", after: 3 }); } });
   G.on('chapter:start', () => { st().chDay = today(); }); G.on('jobstory:invite', () => { st().jobInvDay = today(); });
   G.on('myday:add', x => safe(() => onAdd(x)));
   G.on('scene', () => { if (mine && !safe(() => G.chapters.active(), false)) setTimeout(() => comp.rescene(), 0); MK = safe(markers, []); setTimeout(() => safe(stageOffers), 200); });

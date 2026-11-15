@@ -18,6 +18,7 @@ const LAYERS = {
   hush: o => [loopNoise(filt(gain(o, .5), 'lowpass', 380), 'pink', .7)],
   engine: o => { const e = A.ctx.createOscillator(); e.type = 'triangle'; e.frequency.value = 52; e.connect(filt(gain(o, .08), 'lowpass', 200)); e.start(); return [e, lfo(e.frequency, .2, 4), loopNoise(filt(gain(o, .6), 'lowpass', 150), 'brown')]; },
 };
+export const CITY_BED = false;
 export const LAYER_NAMES = Object.keys(LAYERS);
 const WEATHER_LAYERS = { rain: 1, rumble: 1, hush: 1 };
 
@@ -72,6 +73,8 @@ export class Ambience {
     const P = PROFILES[profile] || PROFILES.silent, W = WEATHER[weather], targets = {}, hush = W && W.hush && !indoor ? W.hush : 1, now = A.ctx.currentTime;
     for (const k in P.layers) targets[k] = P.layers[k] * hush;
     if (W) for (const k in W.layers) targets[k] = Math.max(targets[k] || 0, W.layers[k] * (indoor ? .45 : 1));
+    /* owner msg 111: the outdoor city bed (filtered-noise traffic / air / leaves / waves / jet and the rain hiss) read as a white-noise machine: CUT until the ambience is redesigned. One-shot events, music, indoor tones and vehicles stay. Flip CITY_BED to bring it back. */
+    if (!CITY_BED && !indoor && /^(city|suburb|industrial|park|harbor|airport)/.test(profile)) for (const k in targets) targets[k] = 0;
     this.muffle.frequency.setTargetAtTime(indoor ? 550 : 18000, now, .5);
     for (const k of new Set(Object.keys(targets).concat(Object.keys(this.layers)))) {
       const v = targets[k] || 0; if (!v && !this.layers[k]) continue;

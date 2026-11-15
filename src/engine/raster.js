@@ -12,13 +12,15 @@ export const ENV = { season: 1 }; // 0 spring, 1 summer, 2 autumn, 3 winter
 const rgb = h => { const n = parseInt(h.slice(1, 7), 16); return [n >> 16, n >> 8 & 255, n & 255]; };
 const CC = new Map();
 /** '#rrggbb' or '#rrggbbaa' -> packed ABGR uint32 */
+let cH = '', cV = 0;   // perf: the last colour looked up (art plots runs of the same colour)
 export function C(h) {
+  if (h === cH) return cV;
   let v = CC.get(h);
   if (v === undefined) {
     const a = rgb(h), al = h.length >= 9 ? parseInt(h.slice(7, 9), 16) : 255;
     v = ((al << 24) | a[2] << 16 | a[1] << 8 | a[0]) >>> 0; CC.set(h, v);
   }
-  return v;
+  cH = h; cV = v; return v;
 }
 const hx = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
 const mix0 = (h, h2, k) => { const a = rgb(h), b = rgb(h2); return '#' + hx(a[0] + (b[0] - a[0]) * k) + hx(a[1] + (b[1] - a[1]) * k) + hx(a[2] + (b[2] - a[2]) * k); };
