@@ -16,7 +16,7 @@ import { LR, LV, NAME } from '../../data/lighthouse.js';
 const W = 13, C = 6.5, RG = 2.4, RR = 4.7, PH = 6, HZ = PH * .42, items = [];
 const H = (id, x, y, p, o) => { const it = Object.assign({ id: 'furn.lh.' + id, x, y, p: p || {} }, o); items.push(it); return it; };
 items.push({ id: 'furn.lh.pano', wall: 'y', at: 0, p: { w: W, h: PH, side: 'bay', time: 'day' }, pano: 1 }, { id: 'furn.lh.pano', wall: 'x', at: 0, p: { w: W, h: PH, side: 'sea', time: 'day' }, pano: 1 });
-const seg = (id, r, n, skip, tag) => { for (let k = 0; k < n; k++) { if (skip && skip(k)) continue; const a0 = k / n * Math.PI * 2, a1 = (k + 1) / n * Math.PI * 2, x0 = C + Math.cos(a0) * r, y0 = C + Math.sin(a0) * r, x1 = C + Math.cos(a1) * r, y1 = C + Math.sin(a1) * r, mx = Math.min(x0, x1), my = Math.min(y0, y1); H(id, mx, my, { x0: +(x0 - mx).toFixed(3), y0: +(y0 - my).toFixed(3), x1: +(x1 - mx).toFixed(3), y1: +(y1 - my).toFixed(3) }, { solid: false, [tag]: k }); } };
+const seg = (id, r, n, skip, tag) => { for (let k = 0; k < n; k++) { if (skip && skip(k)) continue; const a0 = k / n * Math.PI * 2, a1 = (k + 1) / n * Math.PI * 2, x0 = C + Math.cos(a0) * r, y0 = C + Math.sin(a0) * r, x1 = C + Math.cos(a1) * r, y1 = C + Math.sin(a1) * r, mx = Math.min(x0, x1), my = Math.min(y0, y1); H(id, mx, my, { x0: +(x0 - mx).toFixed(3), y0: +(y0 - my).toFixed(3), x1: +(x1 - mx).toFixed(3), y1: +(y1 - my).toFixed(3) }, { solid: false, [tag]: k }); if (Math.cos((a0 + a1) / 2 - Math.PI / 4) > .1) items[items.length - 1].p.front = 1; } };
 seg('glazing', RG, 12, k => k === 1, 'glz'); seg('rail', RR, 20, null, 'rl');
 H('lens', C - 1.1, C - 1.1, { a: 0 }, { lens: 1 }); H('mast', C + 3.5, C - 2.6, { word: '' }, { mast: 1 });
 
@@ -32,7 +32,7 @@ defineRoom({ id: LR.lantern, name: NAME + ' — the lantern and gallery', w: W, 
       if (d < RG) { const e = (Math.floor(X * 2 + 40) + Math.floor(Y * 2 + 40)) & 1; return d < 1.05 ? '#2f5a4a' : e ? '#4a5262' : '#3e4656'; }
       if (d < RR + .12) { if (d > RR - .1) return '#2e3a52'; const sg = (a + Math.PI) / (Math.PI * 2) * 40; if (sg - Math.floor(sg) < .07) return '#6a5038'; const rr = (d - RG) / .46; if (rr - Math.floor(rr) < .08) return '#7a5c40'; return k > .8 ? '#a8845c' : k < .15 ? '#8e6c48' : '#9a7850'; }
       // far below: rocks and surf around the foot of the tower, then open water
-      const rk = R.hash2(Math.floor(x * 1.3), Math.floor(y * 1.3), 8); if (d < 7.6 && d > RR + .5 && rk > .62) return k > .7 ? '#8a8a90' : '#74747c'; if (d < 8 && rk > .5) return k > .5 ? '#eaf6fa' : '#9fd0e0';
+      const rk = R.hash2(Math.floor(x * 3.1 + y * .8), Math.floor(y * 3.1 - x * .8), 8), rim = 5.4 + R.hash2(Math.floor((a + 4) * 5), 1, 3) * 1.1; if (d > RR + .35 && d < rim && rk > .3) return rk > .8 ? '#9a9aa0' : k > .6 ? '#84848c' : '#74747c'; if (d >= rim - .1 && d < rim + .45 && rk > .35) return k > .4 ? '#eaf6fa' : '#9fd0e0';
       return R.hash2(Math.floor(x * 5), Math.floor(y * 9), 2) > .9 ? '#8fcfe4' : k > .5 ? '#2a78a4' : '#2f80ac'; }); } }); Wd.version++;
     const k = mkKeeper(sc, C + 1.5, C + .9, 1, 'lantern');
     // ships on the horizon (entities pinned to the panorama walls), gulls on the wind

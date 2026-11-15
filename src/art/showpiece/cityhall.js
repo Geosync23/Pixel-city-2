@@ -56,7 +56,7 @@ function desk(p) {
 function directory() {
   const w = 2.4, y = .22; for (const x of [.1, w - .1]) { box(x - .08, .08, 0, .16, .16, .12, BRASS_D, { ol: false }); lw([x, .16, 0], [x, .16, 3.25], BRASS); lw([x + .04, .16, 0], [x + .04, .16, 3.25], BRASS_L); dot(x, .16, 3.29, BRASS_L, 2); }
   qy(.14, w - .14, y, .45, 3.2, BRASS); qy(.2, w - .2, y, .5, 2.78, '#1c2028'); ctext('DIRECTORY', .14, w - .14, y, 3.12, '#4a3418');
-  ['COUNCIL <', 'RECORDS <', 'CLERK 2F', 'MAYOR 2F', 'ARCHIVE B', 'TOWER 4F'].forEach((t, i) => textY(t, .3, y, 2.68 - i * .4, i % 2 ? '#f4f0e8' : '#ffe9a0'));
+  ['COUNCIL', 'RECORDS', 'CLERK 2F', 'MAYOR 2F', 'ARCHIVE', 'TOWER 4F'].forEach((t, i) => textY(t, .28, y, 2.68 - i * .4, i % 2 ? '#f4f0e8' : '#ffe9a0'));
 }
 function detector() { for (const x of [0, 1.1]) { box(x, .1, 0, .2, .3, 2.1, '#c8ccd4'); lw([x + .1, .4, .2], [x + .1, .4, 1.9], '#8a909a'); } box(0, .1, 2.1, 1.3, .3, .2, '#aab0ba'); lit(() => { dot(.25, .4, 2.2, '#6fe08a', 2); dot(1.05, .4, 2.2, '#6fe08a', 2); }); }
 function ballotbox(p) {

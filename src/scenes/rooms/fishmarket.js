@@ -138,7 +138,7 @@ defineRoom({ id: FM.room, name: NAME, w: W, d: D, zoom: 0, music: 'quiet', noCro
       const slot = (h - HOURS.auction[0]) / (HOURS.auction[1] - HOURS.auction[0]) * 6, fr = slot - Math.floor(slot); setP(block, { on: auction ? 1 : 0, k: auction ? Math.round((1 - fr) * 20) / 20 : 0 });
       auct.hidden = !(h >= 5.2 && h < 7.8); for (const d of dockers) d.hidden = !(tide && boats > 0 && h < 8.2);
       // stalls: chalk prices follow the catch, closed stalls go dark
-      for (const st of STALLS) { const o = stalls[st.id], m = mongers[st.id], on = open && (/chowder|sushi|chips/.test(st.kind) ? inH(h, HOURS.food) || fest : h >= 7 || /whole|tuna|shell/.test(st.kind)); if (m) m.hidden = !on; if (o && FSm && o !== weighOb) setP(o, { lines: on ? FSm.stallLines(st.id) : ['CLOSED'], pennant: st.id === 'whole' && FSm.pennant() ? FSm.pennant() : null }); }
+      for (const st of STALLS) { const o = stalls[st.id], m = mongers[st.id], on = open && (/chowder|sushi|chips/.test(st.kind) ? inH(h, HOURS.food) || fest : h >= 7 || /whole|tuna|shell/.test(st.kind)); if (m) m.hidden = !on; if (o && FSm && o !== weighOb) setP(o, { lines: on ? FSm.stallLines(st.id) : ['CLOSED'], pennant: st.id === 'smoke' && FSm.pennant() ? FSm.pennant() : null }); }
       dusty.hidden = !retail; marg.hidden = fil.hidden = !retail; if (board && c) setP(board, { lines: c.lines }); if (stampB && FSm) setP(stampB, { got: FSm.stampsGot() });
       for (const p of cr.list) { const s = p.spot; p.hidden = !open || !inH(h, [s.from, s.to]) || p.roll > (s.p === undefined ? .7 : s.p) * (fest ? 1.3 : 1); }
       wk.setActive(!open ? 0 : h < 7.5 ? 3 : fest ? 14 : h < 9 || h > 17.5 ? 7 : 11, true); cat.hidden = !open; for (const g of gulls) g.hidden = !open || view === 'night';

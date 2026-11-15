@@ -118,7 +118,7 @@ defineRoom({ id: CR.hall, name: NAME + ' — the Rotunda', w: W, d: D, zoom: 0, 
         setP(model, { fixed: S0.fixed ? 1 : 0 }); setP(ballot, { shut: S0.ballotOpen ? 0 : 1 }); plaque.hidden = !S0.fixed; if (S0.fixed) setP(plaque, { t: 'FOUNTAIN RESTORED', t2: 'BY ' + String(S0.hero || 'A CITIZEN').toUpperCase().slice(0, 14) }); }
       const open = hallOpen(n), L = !open ? .1 : h < 9 ? .45 : h < 12 ? .8 : h < 14 ? .6 : h < 17 ? .75 : .5, busy = (h >= 10 && h < 16 && n.weekday < 5) || councilOn(n) || !!weddingAt(n);
       if (L !== lvl || busy !== sc.life.busy) { lvl = L; sc.life.busy = busy; for (const c of cr.list) { const s = c.spot; c.hidden = s.kind === 'staff' ? !open : s.busy ? !busy || c.roll > L + .3 : c.roll > (s.p !== undefined ? Math.min(s.p, L + .1) : L); } wk.setActive(Math.round(1 + L * 12)); }
-      info.hidden = !open; guard.hidden = false; janitor.hidden = !open && h > 6 && h < 22 ? false : !(h >= 7 && h < 19); const sch = schoolOn(); if (teacher.hidden !== !sch) { teacher.hidden = !sch; kids.forEach(k => { k.hidden = !sch; }); if (sch) { gT = 3; groupTo(0); } }
+      info.hidden = !open; guard.hidden = false; janitor.hidden = !(h >= 7 && h < 19); const sch = schoolOn(); if (teacher.hidden !== !sch) { teacher.hidden = !sch; kids.forEach(k => { k.hidden = !sch; }); if (sch) { gT = 3; groupTo(0); } }
     };
     sc.life = { crowd: cr, walkers: wk, count: () => cr.count() + wk.count() + (teacher.hidden ? 0 : 7) + 3, busy: null };
     sc.hot = { sync, info, guard, janitor, mayor, aides, kids, teacher, mayorWalk, school(on) { schoolForce = on === undefined ? null : on; sync(); }, group: () => gi, nodes: N, model };

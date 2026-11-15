@@ -23,7 +23,7 @@ export const order = 57;
 const PL = [], BY = new Map(); let built = null, skipped = [];
 const CLASS = [
   [/downtown\.tower\.twin/, 'twin'], [/downtown\.tower\.twotone/, 'twotone'], [/downtown\.tower\.round/, 'round'], [/downtown\.office\.brutalist/, 'brutalist'], [/downtown\.tower\.setback/, 'setback'],
-  [/downtown\.tower\.banded/, 'banded'], [/downtown\.office\.mirror/, 'mirror'], [/civic\.radiotower/, 'mbtv'], [/harbor\.master/, 'hmaster'], [/ind\.factory/, 'foundry'], [/airport\.hangar\.box/, 'bayjet'], [/downtown\.cityhall/, 'townhall'],
+  [/downtown\.tower\.banded/, 'banded'], [/downtown\.office\.mirror/, 'mirror'], [/civic\.radiotower/, 'mbtv'], [/harbor\.master/, 'hmaster'], [/ind\.factory/, 'foundry'], [/airport\.hangar\.box/, 'bayjet'], [/downtown\.cityhall/, 'cityhall'], // City Hall is a showpiece now (sim/cityhall.js): the class stays so every other lobby keeps its index; it has no lobby spec, so no lobby is made
 ];
 function classOf(ob) {
   const id = ob.id, p = ob.p || {}, sign = String(p.name || '').toUpperCase();
