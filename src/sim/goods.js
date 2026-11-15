@@ -46,7 +46,7 @@ const DAYN = n => [0, 1, 2, 3, 4, 5, 6].map(() => n);
 for (const s of STORES) {
   if (VENUE_BY_ID[s.id]) continue;
   const v = { id: s.id, name: s.name, type: 'shop', district: s.district || 'downtown', where: s.where || '', station: null, interior: true, hours: s.hours || DAYN([10, 19]),
-    offers: { shop: ['homegood'], functions: ['showroom', 'till'] }, priceMult: s.mult || 1, jobId: null, delivers: true, blurb: s.blurb, goods: true, kindLabel: s.kind };
+    offers: { shop: ['homegood'], functions: ['showroom', 'till'] }, priceMult: s.mult || 1, jobId: null, delivers: false /* not a ZipEats kitchen; home goods ship through G.orders */, blurb: s.blurb, goods: true, kindLabel: s.kind };
   VENUES.push(v); VENUE_BY_ID[s.id] = v;
 }
 /* the curated slice for three existing counters (deterministic: by category, cheapest first) */

@@ -56,10 +56,12 @@ export function fields(world) {
       bank[i] = hard ? 0 : b;
     }
     // still water: closed bodies without deep water, small enough to freeze
-    const seen = new Uint8Array(n), st = [];
+    const seen = new Uint8Array(n), st = [], wm = new Uint8Array(n); // wm: water, plus bridges / decks with water close on both sides
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; if (isWet(gt[i])) { wm[i] = 1; continue; } if (shore[i] === 0) continue; let a = 0, b = 0, c = 0, d = 0; for (let k = 1; k <= 7; k++) { if (x - k >= 0 && isWet(gt[i - k])) a = 1; if (x + k < w && isWet(gt[i + k])) b = 1; if (y - k >= 0 && isWet(gt[i - k * w])) c = 1; if (y + k < h && isWet(gt[i + k * w])) d = 1; } if ((a && b) || (c && d)) wm[i] = 1; }
+    const isWet2 = j => wm[j] === 1;
     for (let s0 = 0; s0 < n; s0++) { if (seen[s0] || !isWet(gt[s0])) continue; const body = []; let deep = false; st.push(s0); seen[s0] = 1;
-      while (st.length) { const i = st.pop(); body.push(i); if (gt[i] === GT.deepwater) deep = true; const x = i % w, y = (i - x) / w; if (x > 0 && !seen[i - 1] && isWet(gt[i - 1])) { seen[i - 1] = 1; st.push(i - 1); } if (x < w - 1 && !seen[i + 1] && isWet(gt[i + 1])) { seen[i + 1] = 1; st.push(i + 1); } if (y > 0 && !seen[i - w] && isWet(gt[i - w])) { seen[i - w] = 1; st.push(i - w); } if (y < h - 1 && !seen[i + w] && isWet(gt[i + w])) { seen[i + w] = 1; st.push(i + w); } }
-      if (!deep && body.length < 1500) for (const i of body) still[i] = 1; }
+      while (st.length) { const i = st.pop(); body.push(i); if (gt[i] === GT.deepwater) deep = true; const x = i % w, y = (i - x) / w; if (x > 0 && !seen[i - 1] && isWet2(i - 1)) { seen[i - 1] = 1; st.push(i - 1); } if (x < w - 1 && !seen[i + 1] && isWet2(i + 1)) { seen[i + 1] = 1; st.push(i + 1); } if (y > 0 && !seen[i - w] && isWet2(i - w)) { seen[i - w] = 1; st.push(i - w); } if (y < h - 1 && !seen[i + w] && isWet2(i + w)) { seen[i + w] = 1; st.push(i + w); } }
+      if (!deep && body.length < 1500) for (const i of body) if (isWet(gt[i])) still[i] = 1; }
   }
   // snow fields: paved tiles -> distance to the kerb / verge / a building; road tiles -> distance to the kerb
   const bld = new Uint8Array(n);
@@ -153,7 +155,7 @@ const SN = ['#eef3f6', '#e4ecf2', '#c6d3df', '#f8fbfd']; // snow, snow tone 2, r
 export function snowWrap(world, t, f0) {
   const F = fields(world), w = F.w, h = F.h;
   let cov; // cov(x,y) -> coverage value; snow where > 0
-  if (PAVED.has(t)) cov = (x, y) => { const d = dAt(F.pave, w, h, x, y); return (1.28 - d) * .9 + (vnoise(x * .8, y * .8, 21) - .5) * .75 + (vnoise(x * 2.3, y * 2.3, 22) - .5) * .22 - (d > 1.3 ? .12 : 0); };
+  if (PAVED.has(t)) cov = (x, y) => { const d = dAt(F.pave, w, h, x, y); const a = (1.28 - d) * .9 + (vnoise(x * .8, y * .8, 21) - .5) * .75 + (vnoise(x * 2.3, y * 2.3, 22) - .5) * .22 - (d > 1.3 ? .12 : 0); if (a > 0 || d < 1.6) return a; const o = vnoise(x * .42 + 9, y * .42, 19) + (vnoise(x * 2.1, y * 2.1, 22) - .5) * .12 - .8; return o > a ? o : a; };
   else if (t === GT.asphalt) cov = (x, y) => { const d = dAt(F.road, w, h, x, y); return (.68 - d) * 1.6 + (vnoise(x * 1.1, y * 1.1, 23) - .5) * .28; };
   else if (t === GT.tarmac) cov = (x, y) => vnoise(x * .5, y * .5, 24) * .8 + vnoise(x * 1.9, y * 1.9, 25) * .25 - .78;
   else if (t === GT.rock || t === GT.ballast) cov = (x, y) => vnoise(x * .7, y * .7, 26) * .8 + vnoise(x * 2.1, y * 2.1, 27) * .3 - .56;
@@ -247,7 +249,7 @@ export function hazeWrap(world, f0) {
   const cache = new Map();
   return (x, y) => {
     const d = beyond(world, x, y), q = fadeAt(d); if (q > 0 && bay(x, y) < q) return null;
-    const c = f0(x, y), hz = Math.round(hazeAt(d) * 10); if (!hz || !c) return c;
+    const c = f0(x, y), hz = Math.floor(hazeAt(d) * 10 + bay(x + 3.3, y + 1.7)); if (!hz || !c) return c;
     const key = c + hz; let m = cache.get(key); if (!m) cache.set(key, m = mix(c, HAZE, hz / 10)); return m;
   };
 }

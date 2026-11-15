@@ -206,7 +206,7 @@ function roomDef(id, room) {
   const sh = shOf(id, room), h = HOME_BY_ID[id], bath = room === 'bath';
   const list = sh.fixed.map(i => Object.assign({ fixed: true }, i)).concat(bath ? [] : bathDoorItems(sh));
   for (const it of mine ? S.items : included(id).items) if (inRoom(it, room)) list.push(defOf(it));
-  if (mine && S.boxes.length && !bath) {
+  if (mine && (S.boxes.length || S.card > 0) && !bath) {
     // boxes stand on the shell's box spots (else anywhere free), never in a doorway, on the spot you use something from, or where they would wall something in
     const real = list.filter(solidDef).map(rectOfDef), voids = voidRects(sh), solids = real.concat(keepRects(sh), voids, list.map(useSpot).filter(Boolean).map(cellOf)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);

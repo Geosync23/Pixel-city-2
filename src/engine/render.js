@@ -2,7 +2,7 @@
 import { WS, U } from './raster.js';
 import { renderChunk, CH, outskirtChunks } from './ground.js';
 import { toSprite, objSprite, assetSprite } from './sprites.js';
-import { outskirtTrees, beyond, fadeAt } from './terrainfx.js';
+import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
@@ -52,8 +52,9 @@ function treeLayer(world, cx, cy) {
   // fade: drop pixels by ordered dither, per tree, by how far beyond the edge it stands
   const id = g.getImageData(0, 0, c.width, c.height), d = id.data, W = c.width; let touched = false;
   for (let i = 0; i < its.length; i += 4) {
-    const q = fadeAt(its[i + 3] + 1.5); if (q <= 0) continue; touched = true; const sp = its[i], ox = its[i + 1] - bx0, oy = its[i + 2] - by0;
-    for (let y = 0; y < sp.h; y++) for (let x = 0; x < sp.w; x++) { const X = ox + x, Y = oy + y; if ((BAY4[(((Y + by0) & 3) << 2) | ((X + bx0) & 3)] + .5) / 16 < q) d[(Y * W + X) * 4 + 3] = 0; }
+    const q = fadeAt(its[i + 3] + 1.5), hz = hazeAt(its[i + 3] + 1.5); if (q <= 0 && hz <= 0) continue; touched = true; const sp = its[i], ox = its[i + 1] - bx0, oy = its[i + 2] - by0, sd = sp._px || (sp._px = sp.c.getContext('2d').getImageData(0, 0, sp.w, sp.h).data);
+    /* only this tree's own pixels: tint toward the haze (#9fd6e8), then drop by ordered dither */
+    for (let y = 0; y < sp.h; y++) for (let x = 0; x < sp.w; x++) { if (!sd[(y * sp.w + x) * 4 + 3]) continue; const X = ox + x, Y = oy + y, o = (Y * W + X) * 4; if ((BAY4[(((Y + by0) & 3) << 2) | ((X + bx0) & 3)] + .5) / 16 < q) { d[o + 3] = 0; continue; } d[o] = sd[(y * sp.w + x) * 4] * (1 - hz) + 159 * hz; d[o + 1] = sd[(y * sp.w + x) * 4 + 1] * (1 - hz) + 214 * hz; d[o + 2] = sd[(y * sp.w + x) * 4 + 2] * (1 - hz) + 232 * hz; }
   }
   if (touched) g.putImageData(id, 0, 0);
   return { c, x: bx0, y: by0 };

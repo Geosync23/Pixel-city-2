@@ -422,3 +422,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 105 — Workers back on Fable (the owner reset the limit)
 > No make then workers Fable I reset my limit
+
+## 106 — Spread the events out more (answer to: merge the old festival rows into the new big events?)
+> Just spread the events  out more, could that work?
