@@ -333,3 +333,7 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 76 — Doors: tap the door itself; wider touch area
 > You need to be able to click doors to go through them not just in front of them. Widen the touch area
+
+## 77 — A ton of recipes; starting food must be cookable; ingredients live in the kitchen
+> Lets add a ton of recipes.  You start with some 
+>  food  now yet cant cook anything. The ingredients shouldn't be on you they should br in your kitchen.

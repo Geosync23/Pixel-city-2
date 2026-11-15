@@ -189,3 +189,9 @@ Showpiece track (one big worker each, highest priority for free slots after Wave
   pointing to the exit/door/stairs that leads toward the next leg, so the player goes "from space to space".
 - Every mode is guided end to end: walk to the cab / bus stop / station entrance -> through the station to the right platform -> board -> ride -> get off -> walk to the destination door. No leg relies on text notes alone.
 - On a train or bus: a red arrow marks your station/stop on approach, and a clear "This is your stop" notice pops up (sound + banner). The player still gets off themselves.
+
+## Direction update 16 — cooking: a ton of recipes; ingredients live in the kitchen (owner msg 77)
+- Ingredients are never carried around at home: they live in the KITCHEN (fridge + cupboards). Shopping bags empty themselves into the kitchen when you come home. DONE (lead, Stage 15c).
+- A new game starts with a kitchen you can cook from on day 1. DONE (STARTER_PANTRY).
+- A TON of recipes (target 100+, from 18): breakfasts, sandwiches, salads, soups, pastas, rice bowls, stir-fries, curries, tacos, roasts, baking, desserts, drinks/smoothies, world cuisines matching the city's restaurants;
+  more ingredients sold across the groceries/markets/delis; every meal with its own icon; skill tiers 1-10; recipes learned from books, friends, restaurants and the story as well as known from the start. QUEUED: next free worker slot.

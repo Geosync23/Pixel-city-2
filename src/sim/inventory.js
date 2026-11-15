@@ -14,6 +14,7 @@
 //   remove(id, qty = 1) -> bool       count(id)        has(id)        find(pred) -> [item defs carried]
 //   use(id, opts?)                    eat/drink (short activity, then effects) / read a book / explain what a thing is for. opts: { from: 'fridge', at: seat, heated, extra: {need: +n} }
 //   applyEffects(effects, mult = 1)   apply an item `effects` object to the player (needs, moodlet, caffeine, alcohol)
+//   putAway(quiet?) -> n              move ingredients / meals / ready meals from the backpack into the kitchen (runs by itself on entering your home)
 //   open()                            backpack window        openFridge(fx?)  fridge <-> backpack window (only meant to be called at a fridge/pantry fixture at home)
 //   grant(access, days) / hasAccess(access)   passes ('gym', 'transit')
 //   daysLeft(stack, inFridge) -> days until it spoils | null       effectText(item) -> 'Hunger +30 · Fun +4'       item(id) -> item def
@@ -45,7 +46,7 @@ function makeStore(arr, cap, isFridge) {
     canAdd(id, qty = 1) { const it = ITEM_BY_ID[id]; if (!it || it.category === 'homegood') return false; let room = st.free() * it.stack; for (const s of arr()) if (s.id === id && !s.exp) room += Math.max(0, it.stack - s.qty); return room >= qty; },
     add(id, qty = 1, o = {}) {
       const it = ITEM_BY_ID[id]; if (!it || qty <= 0) return false;
-      if (!st.canAdd(id, qty) && !(o.exp && st.free() * it.stack >= qty)) { if (!o.silent) toast(isFridge ? 'The fridge is full.' : 'Your backpack is full.', 'bad'); return false; }
+      if (!st.canAdd(id, qty) && !(o.exp && st.free() * it.stack >= qty)) { if (!o.silent) toast(isFridge ? 'The kitchen is full.' : 'Your backpack is full.', 'bad'); return false; }
       const day = G.now().day, age0 = -(o.fresh || 0);
       if (!o.exp) for (const s of arr()) { if (s.id !== id || s.exp || s.qty >= it.stack || !qty) continue; const n = Math.min(qty, it.stack - s.qty); s.age = ((s.age || 0) * s.qty + (o.age ?? age0) * n) / (s.qty + n); if (o.q || s.q) s.q = Math.min(s.q || 1, o.q || 1); s.qty += n; qty -= n; }
       while (qty > 0) { const n = Math.min(qty, it.stack), s = { id, qty: n, day, age: o.age ?? age0 }; if (o.exp) s.exp = o.exp; if (o.q && o.q !== 1) s.q = o.q; arr().push(s); qty -= n; }
@@ -60,7 +61,9 @@ function makeStore(arr, cap, isFridge) {
   return st;
 }
 const bag = makeStore(() => S.bag, () => INVENTORY.backpackSlots + Math.round(FITNESS.bonusesAt100.backpackSlots * (G.needs ? G.needs.fitness() : 0) / 100));
-const fridge = makeStore(() => S.fridge, () => S.fridgeSlots || 8, true);
+// The home KITCHEN store = the fridge (slots by tier) + the kitchen cupboards (CUPBOARD_SLOTS). Ingredients live here, not in the backpack (owner msg 77).
+const CUPBOARD_SLOTS = 16;
+const fridge = makeStore(() => S.fridge, () => (S.fridgeSlots || 8) + CUPBOARD_SLOTS, true);
 
 /* ---------- freshness ---------- */
 const spoilRate = (it, inFridge) => inFridge ? 1 / (S.fridgeMult || 1) : (it.needsFridge ? INVENTORY.outsideFridgeSpoilMult : 1);
@@ -133,7 +136,7 @@ function slotBtn(s, inF, sel, on) {
 function openWindow(withFridge, title) {
   if (G.modal && !win) return; closeWin();
   let sel = null; // { from: 'bag'|'fridge', id }
-  const m = modal({ title: title || (withFridge ? 'Fridge & Backpack' : 'Backpack'), cls: 'iv-win', onClose: () => { if (win && win.m === m) win = null; } });
+  const m = modal({ title: title || (withFridge ? 'Kitchen & Backpack' : 'Backpack'), cls: 'iv-win', onClose: () => { if (win && win.m === m) win = null; } });
   const render = () => {
     m.body.textContent = '';
     const grid = (st, name, key) => {
@@ -142,7 +145,7 @@ function openWindow(withFridge, title) {
       return el('div.iv-sec', null, el('div.iv-head', null, iconEl(key === 'fridge' ? 'fridge_t0' : 'ui.bag', 1, key === 'fridge' ? 'homegood' : undefined), el('span', { text: name }), el('span.iv-count', { text: `${a.length}/${st.capacity}` })), el('div.iv-grid', null, cells));
     };
     if (withFridge) {
-      m.body.append(grid(fridge, 'Fridge', 'fridge'));
+      m.body.append(grid(fridge, 'Kitchen (fridge + cupboards)', 'fridge'));
       const n = S.bag.filter(s => { const it = ITEM_BY_ID[s.id]; return isFood(it) && !s.exp; }).length;
       m.body.append(el('div.iv-bar', null, el('button', { disabled: !n, onclick: storeAll }, 'Put groceries away'), el('span.iv-hint', { text: 'Food keeps up to 4x longer in the fridge.' })));
     }
@@ -170,11 +173,21 @@ function storeAll() {
   for (const s of S.bag.slice()) { const it = ITEM_BY_ID[s.id]; if (!isFood(it) || s.exp) continue; let n = s.qty; while (n > 0 && !fridge.canAdd(s.id, n)) n--; if (n < s.qty) full = true; if (n > 0 && fridge.add(s.id, n, { age: s.age, q: s.q, silent: true })) { removeFrom(bag, s, n); moved += n; } }
   toast(moved ? `Put away ${moved} item${moved === 1 ? '' : 's'}.${full ? ' The fridge is full.' : ''}` : 'The fridge is full.', moved ? 'good' : 'bad');
 }
+/** Coming home: cooking ingredients (and cooked meals / ready meals) go from the backpack into the kitchen by themselves. Snacks and drinks stay on you. */
+const KITCHEN_CATS = ['ingredient', 'meal', 'ready_meal'];
+function putAway(quiet) {
+  const names = []; let full = false;
+  for (const s of S.bag.slice()) { const it = ITEM_BY_ID[s.id]; if (!it || !KITCHEN_CATS.includes(it.category) || s.exp) continue; let n = s.qty; while (n > 0 && !fridge.canAdd(s.id, n)) n--; if (n < s.qty) full = true;
+    if (n > 0 && fridge.add(s.id, n, { age: s.age, q: s.q, silent: true })) { removeFrom(bag, s, n); names.push(it.name + (n > 1 ? ' x' + n : '')); } }
+  if (!quiet && names.length) toast(`Groceries put away in the kitchen: ${names.slice(0, 4).join(', ')}${names.length > 4 ? ` and ${names.length - 4} more` : ''}.${full ? ' The kitchen is full.' : ''}`, 'good', 4200);
+  else if (!quiet && full) toast('The kitchen is full — some groceries stay in your backpack.', 'bad');
+  return names.length;
+}
 function openFridge(fx) {
   // capacity / shelf life from the fridge's tier when known (fixture def: item.p.tier, item.tier or item.good = 'fridge_t1')
   const it = fx && fx.item, good = it && ITEM_BY_ID[it.good], tier = good ? good.tier : it && it.p && it.p.tier !== undefined ? it.p.tier : it && it.tier, pantry = fx && fx.tags && fx.tags.includes('pantry') && !fx.tags.includes('fridge');
   if (fx && !pantry) { const g = homegoodsForTag('fridge')[tier || 0]; if (g) { S.fridgeSlots = Math.max(g.bonus.slots, S.fridge.length); S.fridgeMult = g.bonus.shelfLifeMult; } }
-  openWindow(true, pantry ? 'Pantry & Backpack' : 'Fridge & Backpack');
+  openWindow(true, pantry ? 'Kitchen & Backpack' : 'Kitchen & Backpack');
 }
 
 export function init() {
@@ -183,10 +196,11 @@ export function init() {
   rebind(); G.on('load', rebind);
   G.inv = Object.assign(bag, {
     fridge, use, applyEffects, effectText, daysLeft, isFood, edible, item: id => ITEM_BY_ID[id],
-    open: () => openWindow(false), openFridge, close: closeWin,
+    open: () => openWindow(false), openFridge, close: closeWin, putAway,
     grant(access, days) { const t = G.state.t; S.access[access] = Math.max(S.access[access] > t ? S.access[access] : t, t) + days * 1440; G.emit('inv:change'); },
     hasAccess: a => (S.access[a] || 0) > G.state.t, accessUntil: a => S.access[a] || 0,
   });
+  G.on('scene', sc => { if (sc && G.housing && G.housing.isHome && G.housing.isHome(sc.id) && !G.cutscene) setTimeout(() => putAway(false), 700); });
   G.on('day', () => spoilPass(true));
   G.on('hour', () => { if (S.bag.some(s => s.exp) || S.fridge.some(s => s.exp)) spoilPass(false); });
   G.on('key', k => { if (k === 'i' || k === 'b') openWindow(false); });

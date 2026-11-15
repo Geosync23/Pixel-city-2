@@ -2,7 +2,7 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-15 ~00:45 UTC) — FABLE LEAD SESSION; 4 WORKERS RUNNING
-- Lead is now a Fable 5.2 session on the same branch `ccr-e622e92c-7t3ejy`. Last published build: Stage 15b (version 1794701451-6fd9; Stage 15 + door tap fix, owner msg 76, built from a clean worktree without the workers' WIP) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
+- Lead is now a Fable 5.2 session on the same branch `ccr-e622e92c-7t3ejy`. Last published build: Stage 15c (version 1794701613-ac3c; Stage 15 + door tap fix (msg 76) + kitchen storage (msg 77), built from a clean worktree without the workers' WIP) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
   (from this session: Artifact `action: read` on that url first, then publish dist/index.html with `url`).
 - **Review of the previous session: DONE** (docs/LEAD_JOURNAL.md section H). Nothing broken found; 124 rooms swept clean; unverified items handed to the QA lane.
 - **RUNNING (launched ~00:40 UTC; a completion notice arrives per worker; if this session restarted they are gone — check the owned files and re-brief "these files exist; continue"):**
@@ -12,6 +12,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
   3. S3 OBSERVATORY (Fable). Owns new: src/sim/observatory.js, src/scenes/rooms/observatory*.js, src/data/observatory.js, src/art/showpiece/observatory*.js, _obs_lib.js. Converts bld.civic.observatory in place.
   4. S2 MUSEUM (Fable). Owns new: src/sim/museum.js, src/scenes/rooms/museum*.js, src/data/museum.js, src/art/showpiece/museum*.js, _mus_lib.js + ADD-ONLY edit of src/world/_blocks.js (new building on a free lot).
 - **When each finishes (playbook loop):** docs/reports/<system>.md, build, 1-2 screenshots viewed by the lead, STATUS/BACKLOG/HISTORY, commit + push, publish a stage, rewrite this section, start the next queued item within ~10-15 min.
+- **NEXT FREE SLOT (owner msg 77, BIBLE update 16): RECIPES x100+** — data/items.js RECIPES + new ingredients + meal icons (src/art/icons), sold in groceries; cook menu grouping/search for a long list (sim/activities.js cookMenu); recipe unlock sources. Kitchen storage part is DONE by the lead.
 - **Queue after these (3 Fable + 1 Opus):** S4 Grand hotel -> S5 Arena -> S6 Aquarium -> S7 fish market + lighthouse -> S8 City Hall (drop `cityhall` from CLASS in src/sim/lobbies.js) -> S9 natatorium.
   Opus lane next: QA of nav arrow + observatory + museum; small open items below.
   Then Wave B: 2i clothes/hair/laundry | 2j traits/skills/mini-games | university | post offices. Wave C: 2k city events | 3 jobs (writer + engine) | 4b relationships/romance. Wave D: 4c goods + MANY home-goods stores

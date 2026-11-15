@@ -280,11 +280,15 @@ function moveIn(id, owned, o = {}) {
   if (G.places && G.places.discover) try { G.places.discover('home:' + id); } catch (e) { /* not a registered place */ }
   G.emit('home:move', id, prev);
 }
+const STARTER_PANTRY = [['eggs', 3], ['bread', 3], ['butter', 2], ['cheese', 2], ['milk', 1], ['noodles', 2], ['carrot', 2], ['tomato', 1], ['lettuce', 1], ['lemon', 1]];
 function start(homeId) {
   norm(); if (!SHELLS[homeId]) return false; const keep = S.storage; Object.assign(S, blank(), { storage: keep || [] });
   moveIn(homeId, false, { intro: true }); G.state.flags.boxes_unpacked = 0;
   const h = HOME_BY_ID[homeId]; if (h.rentPerWeek && G.money) G.money.pay(h.rentPerWeek, 'First week rent — ' + h.name, { force: true, silent: true });
-  drain(); return true;
+  drain();
+  // the kitchen is never bare on day 1: enough basics to cook scrambled eggs, grilled cheese or noodle soup straight away (owner msg 77)
+  if (G.inv && G.inv.fridge) for (const [id, n] of STARTER_PANTRY) if (ITEM_BY_ID[id] && !G.inv.fridge.count(id)) G.inv.fridge.add(id, n, { silent: true });
+  return true;
 }
 function equity() { const h = HOME_BY_ID[S.id]; return S.owned && h && h.buyPrice ? Math.max(0, Math.round(h.buyPrice * SELL_BACK.home - (S.mortgage ? S.mortgage.left : 0))) : 0; }
 const unlocked = h => G.now().day >= ((h.unlock && h.unlock.day) || 0);
@@ -339,7 +343,8 @@ function unpack(boxUid) {
   for (const g of b.gives || []) { const it = ITEM_BY_ID[g.item]; if (!it) continue; got.push(it.name + (g.qty > 1 ? ' x' + g.qty : ''));
     if (it.category === 'homegood') for (let k = 0; k < (g.qty || 1); k++) S.storage.push(g.item);
     else if (it.category === 'outfit') { if (G.wardrobe) G.wardrobe.add(g.item, true); else (G.state.owned.outfits || (G.state.owned.outfits = [])).push(g.item); }
-    else if (G.inv && !G.inv.add(g.item, g.qty || 1) && G.inv.fridge && G.inv.fridge.add) G.inv.fridge.add(g.item, g.qty || 1); }
+    else if (G.inv) { const kitchen = ['ingredient', 'meal', 'ready_meal'].includes(it.category) && G.inv.fridge;   // food from a box goes straight into the kitchen
+      if (!(kitchen && G.inv.fridge.add(g.item, g.qty || 1, { silent: true })) && !G.inv.add(g.item, g.qty || 1) && G.inv.fridge) G.inv.fridge.add(g.item, g.qty || 1); } }
   if (b.intro) { const n = G.state.flags.boxes_unpacked = (G.state.flags.boxes_unpacked || 0) + 1; if (!S.boxes.some(x => x.intro) && G.needs) G.needs.addMoodlet(MOVING_BOXES_DONE_MOODLET); }
   if (got.length) toast('Unpacked: ' + got.join(', ') + (b.items.length || (b.gives || []).some(g => (ITEM_BY_ID[g.item] || {}).category === 'homegood') ? '. Tap Decorate to place it.' : '.'), 'good', 4200);
   G.emit('home:unpack', b, G.state.flags.boxes_unpacked || 0); G.emit('home:furnish'); return b.items;

@@ -222,7 +222,7 @@ async function cookMenu(fx, appliance) {
     const why = lvl < r.skill ? `Cooking level ${r.skill}` : appliance === 'stove' && sb.stoveTier < r.stoveTier ? 'Needs a better stove' : miss.length ? 'Missing: ' + miss.map(k => ITEM_BY_ID[k].name).join(', ') : null;
     return { label: r.name, sub: why || `${hm(min)} · makes ${r.servings} · Hunger +${r.effects.hunger}`, icon: iconEl('meal_' + r.id, 2, 'meal'), disabled: !!why, value: { r, min }, ord: (why ? 100 : 0) + r.skill };
   }).sort((a, b) => a.ord - b.ord);
-  const pick = await choose(appliance === 'stove' ? 'What shall we cook?' : 'No-cook dishes', list, { cls: 'act-menu', text: `Cooking level ${lvl}. Ingredients come from your fridge and backpack.` });
+  const pick = await choose(appliance === 'stove' ? 'What shall we cook?' : 'No-cook dishes', list, { cls: 'act-menu', text: `Cooking level ${lvl}. Ingredients come from your kitchen.` });
   if (!pick) return; const { r, min } = pick;
   takeIngredients(r);
   start(appliance === 'stove' ? 'cook' : 'prep_cold', { fx, minutes: min, full: true, label: 'Cooking ' + r.name, noSummary: true, noOpen: true,
