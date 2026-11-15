@@ -113,7 +113,7 @@ export const FAMILY = [
   { id: 'trucks', name: 'Mini Monster Truck Mayhem', sub: 'Small trucks. Big noise.', blurb: 'Half-size monster trucks with full-size attitude: ramp jumps, a pyramid of scrap cars and a freestyle final judged entirely by how loud you shout.',
     scenes: [[0, 'Parade Lap', 'Engines! Four trucks roll out: Lil\' Crusher, Maple Mauler, Tidal Wave and The Gullet.'], [10, 'The Long Jump', 'One ramp, three scrap cars. Clear them all, or do not. Both are popular.'], [24, 'Donut Derby', 'Round and round and round. The dirt is supposed to do that.'], [36, 'Head to Head', 'Two lanes, two trucks, one very small finish line.'], [47, 'Freestyle Final', 'Anything goes. Make some noise for your favourite!'], [58, 'Victory Lap', 'Wave to the drivers. They are waving at you.']] },
 ];
-const big = (fx) => !!(fx.opp.rival || fx.r >= 28 || fx.r % 8 === 3);
+const big = (fx) => !!(fx.opp.rival || fx.r >= 28 || (fx.opp.str >= 76 && fx.r % 4 === 3));
 /** the arena's event on an absolute day (at most one a day) */
 export function eventOn(day) {
   if (day < 0) return null; const year = Math.floor(day / YEAR), d = day % YEAR, wd = d % 7, week = Math.floor(d / 7), mk = (o, len) => Object.assign(o, { day, doors: o.T0 - TUNE.DOORS, len, end: o.T0 + len, out: o.T0 + len + TUNE.OUT });
@@ -135,7 +135,7 @@ const oppRoster = (t, year) => { const r = rng(t.id.charCodeAt(0) * 131 + t.id.c
 export function game(year, r) {
   const key = year + ':' + r; let g = GAMES.get(key); if (g) return g;
   const pr = pairs(r)[0], H = LEAGUE[pr[0]], A = LEAGUE[pr[1]], seed = (year * 977 + r * 131 + 7) | 0, R = rng(seed * 2654435 + 99), rosters = [pr[0] === 0 ? ROSTER : oppRoster(H, year), pr[1] === 0 ? ROSTER : oppRoster(A, year)];
-  const thr = h32(year, r, 5) < ((H.rival || A.rival) ? .45 : .24), thrTeam = h32(year, r, 6) < .66 ? 0 : 1, edge = (H.str - A.str) * .0042 + .014;
+  const thr = h32(year, r, 5) < ((H.rival || A.rival) ? .3 : .13), thrTeam = h32(year, r, 6) < .66 ? 0 : 1, edge = (H.str - A.str) * .0042 + .014;
   const lineup = q => [0, 1].map(tm => { const n = rosters[tm].length, base = [0, 1, 2, 3, 4]; if (q === 1 || q === 2) { const k = Math.floor(h32(seed, q, tm) * 5), k2 = (k + 2) % 5; base[k] = 5 + k % (n - 5); base[k2] = 5 + (k2 % (n - 5)); if (base[k] === base[k2]) base[k2] = k2; } return base; });
   const poss = [], segs = [], sc = [0, 0], qs = [], QS = 720; let w = 0, ball = h32(seed, 1, 1) < .5 ? 0 : 1;
   for (let q = 0; q < 4; q++) {
