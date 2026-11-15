@@ -71,7 +71,7 @@ export const FRIEND_INVITES = [
   { from: 'any-close',  minTier: 'close',  venueType: 'fancy',    when: 'evening',   text: "Hear me out: we get dressed up for no reason. {venue}, {day}, {time}. I already booked. Say yes." },
   { from: 'any-close',  minTier: 'close',  venueType: 'outdoors', when: 'night',     text: "Can't sleep. Walk with me? {venue} in a bit, say {time}. No agenda." },
   { from: 'any-close',  minTier: 'close',  venueType: 'coffee',   when: 'morning',   text: "I have news and I'm not texting it. {venue}. {time}. Bring your listening face." },
-  { from: 'any-family', minTier: 'friend', venueType: 'food',     when: 'lunch',     text: "Family lunch! {venue}, {time}. Don't make me send Pip to get you." },
+  { from: 'any-family', minTier: 'friend', venueType: 'food',     when: 'lunch',     text: "Family lunch {day}! {venue}, {time}. Don't make me send Pip to get you." },
   { from: 'kit',     minTier: 'friend', venueType: 'bar',       when: 'night',     text: "slow night at the Heron. come keep me company at {time}? I'll invent a drink and name it after you" },
   { from: 'kit',     minTier: 'friend', venueType: 'cinema',    when: 'evening',   text: "monday classics at the Orpheum, {time}. it's black and white and somebody definitely dies. come??" },
   { from: 'dez',     minTier: 'friend', venueType: 'ramen',     when: 'lunch',     text: "CUZ. Noodle Lantern. {time}. I'm between deliveries and starving. You're buying, I'm tipping." },

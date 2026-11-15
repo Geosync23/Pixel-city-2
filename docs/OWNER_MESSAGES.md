@@ -523,3 +523,6 @@ Need to be able to skip bus ride like the cab
 
 ## 135 (2026-11-15)
 When watching s movie or a show the ambient music needs to stop so we can hear the movie/show.
+
+## 136 (2026-11-15)
+Shouldn't be pancakes an grandma's and family lunch same day

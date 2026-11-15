@@ -91,7 +91,7 @@ function makeScene() {
   const openMap = () => { const R = G.rail, r = st.ride; if (!R || !r) return; { const m = modal({ title: 'Maple Bay Light Rail', cls: 'rail-win' }); m.body.append(R.diagram(st.ts && st.ts.dwell ? st.ts.at : st.ts ? st.ts.next.id : r.from, r.to), el('div.rail-note', { text: 'You are on ' + R.lines[r.dir].name + '. Getting off at ' + R.station(r.to).name + '.' })); } };
   const skip = () => {
     const R = G.rail, r = st.ride; if (!R || !r || st.skipping || st.done || st.leaving) return; const ts = R.trainState(r.dir, r.train); if (ts.dwell && ts.at === r.to) return;
-    st.skipping = true; const f = G.fadeEl; G.modal++; if (f) f.classList.add('on');
+    st.skipping = true; st.armed = true; st.hudT = 0; const f = G.fadeEl; G.modal++; if (f) f.classList.add('on');   /* QA13: skipping ahead takes you TO your stop: you get off when the doors open there (as if you had armed 'Get off at next stop') */
     setTimeout(() => { try { G.advance(R.timeTo(r.dir, r.train, r.to) + .9); st.scroll += 300; st.lastD = R.trainState(r.dir, r.train).d; } finally { G.modal--; st.skipping = false; setTimeout(() => f && f.classList.remove('on'), 80); } }, 280);
   };
   const mkHud = () => {

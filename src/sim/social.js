@@ -398,7 +398,12 @@ function autoInvite() {
   const m = { morning: 570, lunch: 750, afternoon: 900, evening: 1110, night: 1230, weekend: 630 }[e.when] || 1110; let tt = d0 + m;
   if (e.when === 'weekend') { let k = 0; while (((today() + k) % 7 < 5 || d0 + k * DAY + m < t + 120) && k < 8) k++; tt = d0 + k * DAY + m; } else if (tt < t + 100) tt += DAY;
   const c = info(id), home = HOME_ROOM[c.home], useHome = home && isFamily(id) && e.from === 'any-family' && rnd() < .5;
-  inviteFrom(id, useHome ? { placeId: home, t: d0 + (d0 + 1110 > t + 100 ? 0 : DAY) + 1110, dur: 120, text: 'Dinner at ours {day}? {time}. There is always too much food.' } : { placeId: PLACE_ID[v] || v, t: tt, text: e.text });
+  /* owner msg 136: no family meal on a day that already has a family Chapter (pancakes at Nana's AND a family lunch the same day): a family invitation skips any day
+     on which a Chapter is open / under way or was played, and the first two days in town belong to the Chapter */
+  const fam = isFamily(id), chDay = d => { if (!fam) return false; try { return !!((d === today() && G.chapters.list().some(c => /open|running|paused/.test(c.state))) || Object.values((G.state.chapters || {}).done || {}).some(x => x && typeof x.t === 'number' && Math.floor(x.t / DAY) === d) || d < 2); } catch (e) { return false; } };
+  const clear = x => { let k = 0; while (chDay(Math.floor(x / DAY)) && k++ < 4) x += DAY; return x; };
+  if (fam) { try { if (G.chapters.list().some(c => /open|running|paused/.test(c.state))) return; } catch (e) { /* no chapters system */ } }   /* while a Chapter is waiting, the family waits for that: no separate family meal invitation */
+  inviteFrom(id, useHome ? { placeId: home, t: clear(d0 + (d0 + 1110 > t + 100 ? 0 : DAY) + 1110), dur: 120, text: 'Dinner at ours {day}? {time}. There is always too much food.' } : { placeId: PLACE_ID[v] || v, t: clear(tt), text: clear(tt) !== tt && !/\{day\}/.test(e.text) ? e.text + " That's {day}." : e.text });   /* a moved invitation names its day */
 }
 function invite(npc, a) { // phone planner: ask an NPC along
   const c = info(npc); if (!c || !a) return false; const home = G.housing && G.housing.current && G.housing.current(), kind = home && home.roomId === a.placeId ? 'visit' : 'out';

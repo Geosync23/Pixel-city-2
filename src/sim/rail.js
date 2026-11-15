@@ -29,8 +29,8 @@ import { el, toast, modal } from '../ui/kit.js';
 
 export const order = 64;
 /* QA13 (owner msg 131): was V 10, ACC 1.5, DWELL 6, NSETS 4 = a 163-min loop, a train every ~41 min each way, 2.2x walking speed: the train lost to walking almost everywhere.
-   Now a ~68-min loop, a train every ~8.5 min each way, ~5.6x walking speed between stations (the ride scene and the city both follow trainState, so quotes stay exact). */
-export const V = 26, ACC = 1, DWELL = 2.5, NSETS = 8, PITCH = 12.4, CARS = 3, VIEW = 95;
+   Now a ~80-min loop, a train every ~9 min each way (DWELL 4: the doors stay open ~2.7 game min, time to walk out at 1x), ~5.6x walking speed between stations (the ride scene and the city both follow trainState, so quotes stay exact). */
+export const V = 26, ACC = 1, DWELL = 4, NSETS = 9, PITCH = 12.4, CARS = 3, VIEW = 95;
 const LINE = [{ name: 'Loop A', color: '#d2412f', livery: 'line1' }, { name: 'Loop B', color: '#2f8f96', livery: 'line2' }];
 const SHORT = { hillcrest: 'HILLCR', arts: 'ARTS Q', airport: 'AIRPORT', maplewood: 'MAPLEWD', railyard: 'RAILYD', central: 'CENTRAL', harbor: 'HARBOR', oldtown: 'OLDTOWN' };
 const CSS = `.rail-win .win-body{max-width:340px}
@@ -181,7 +181,7 @@ function openStation(stationId) {
     for (const di of [0, 1]) { const a = nt.filter(q => q.dir === di).slice(0, 2); if (!a.length) continue; rows.append(el('div.rail-row', null, el('b', { text: di ? 'B' : 'A', style: { background: LINE[di].color } }), el('span', { text: 'toward ' + a[0].toward }), el('i', { text: (a[0].boarding ? 'boarding' : mins(a[0].minutes)) + (a[1] ? ', ' + mins(a[1].minutes) : '') }))); }
     const tk = tickets(), ok = free || tk > 0;
     m.body.append(rows, el('div.rail-note', { text: free ? 'Pass valid: your rides are free.' : tk ? 'You have ' + tk + (tk === 1 ? ' ticket' : ' tickets') + '. One ticket = one ride, any distance.' : 'You need a ticket to board: ' + fmt(price) + ' flat, any distance. Free with a transit pass.' }));
-    m.body.append(el('div.rail-sel', { text: pl ? (sel === navTo ? 'Your trip - to ' : 'To ') + N.byId[sel].name + ': ' + pl.line + ', ' + pl.stops + (pl.stops === 1 ? ' stop' : ' stops') + ', about ' + Math.round(pl.minutes) + ' min. ' + (pl.boarding ? 'Boarding now.' : 'Train in ' + mins(pl.wait) + '.') : 'Tap a station on the map to choose where to go.' }));
+    m.body.append(el('div.rail-sel', { text: pl ? (sel === navTo ? 'Your trip - to ' : 'To ') + N.byId[sel].name + ': ' + pl.line + ', ' + pl.stops + (pl.stops === 1 ? ' stop' : ' stops') + ', about ' + Math.round(pl.minutes + (pl.boarding ? Math.max(0, pl.departsIn) : DWELL)) + ' min on board. ' + (pl.boarding ? 'Boarding now.' : 'Train in ' + mins(pl.wait) + '.') : 'Tap a station on the map to choose where to go.' }));
     const go = el('button' + (ok ? '.primary' : ''), { text: !ok ? 'Wait on platform (ticket needed)' : free ? 'Wait on platform (pass valid)' : 'Wait on platform (uses 1 ticket)', 'data-act': 'board', disabled: !pl || !ok, onclick: () => { m.close(); ride(id, sel); } });
     const buy = !free && el('button' + (ok ? '' : '.primary'), { text: 'Buy ticket ' + fmt(price), 'data-act': 'ticket', onclick: () => { if (buyTicket()) draw(); } });
     m.body.append(el('div.rail-btns', null, buy, go, !free && el('button', { text: 'Tickets & passes', onclick: () => { m.close(); openTickets(() => openStation(id)); } })));
