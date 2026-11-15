@@ -18,15 +18,27 @@
 // State G.state.jobs = { job: { id, level, points, hiredDay, from, shifts, streak, warnings, lastDay, offWeek } | null, shift: {...} | null,
 //                        history: { [jobId]: { level, points, day, reapply } }, gigs: { day, count, cool: {id: t}, active }, stats, appts: { [day]: apptId }, last }
 // A save made mid-shift ends the shift on load, paid for the time worked.
+// JOB STORIES (sim/jobstory.js, G.jobStory): the 11 new jobs that need no new room are appended to JOBS here at load (rows: story/jobs_new.js NEW_JOBS; boss texts
+//   go into JOB_TEXTS). A job may carry `room` (the room with its stations when it is not `venue`: the airport concourse / terminal) and `boss` (a speaker id that is
+//   not a cast.js person: texts are sent with the speaker's name, relationship is kept by G.jobStory). Clock-in hands over to G.jobStory.clockIn (a clock-in beat, then
+//   the "Work the shift / Skip to the end" card); the pay card waits for G.jobStory.shiftEnd (a clock-out beat).   roomOf(job) -> scene id of the workplace.
 import { G } from '../core/game.js';
 import { JOBS, JOB_BY_ID, WORK_RULES, GIGS, GIG_RULES, shiftHours } from '../data/jobs.js';
 import { DISCOUNTS } from '../data/economy.js';
 import { JOB_TEXTS } from '../story/texts.js';
+import { CAST_BY_ID } from '../story/cast.js';
+import { NEW_JOBS, SPEAKERS } from '../story/jobs_arcs.js';
 import { toast } from '../ui/kit.js';
 import * as UI from '../ui/jobs.js';
 import * as WK from './_jobs_work.js';
 import { leash } from './_crowd_animals.js';
 
+/* ---------- the new jobs (story/jobs_new.js): the rows that need no new room go live here; `uniform` is mapped to outfit art that exists ---------- */
+const UNIFORM_ART = { gate_agent: 'pilot', ramp: 'dockworker', station: 'busdriver', retail: 'office', docent: 'librarian', florist: 'grocer', aquarist: 'trainer', chef: 'chef', bellhop: 'taxidriver', barber: 'barista', firefighter: 'dockworker', none: null };
+for (const row of NEW_JOBS) { if (row.needsRoom || JOB_BY_ID[row.id]) continue; /* `uniform` stays empty on purpose: sim/_crowd_rooms.js dresses a venue's ambient staff in the uniform of the job at that venue, and these venues have their own staff looks. The player's shift clothes are `wear`. */
+  const j = Object.assign({}, row, { uniform: null, wear: UNIFORM_ART[row.uniform] !== undefined ? UNIFORM_ART[row.uniform] : null, isNew: true }); JOBS.push(j); JOB_BY_ID[j.id] = j; if (!JOB_TEXTS[j.id]) JOB_TEXTS[j.id] = Object.assign({ boss: row.boss }, row.texts); }
+export const roomOf = job => 'int:' + (job.room || job.venue);
+const story = () => G.jobStory || null;
 export const SHIFT_SPEED = 2;      // game minutes per real second while on shift (a 6 h shift = 3 real minutes, minus task fast-forwards)
 export const COURIER_SPEED = 1;    // the courier works out in the city at walking pace
 const DAY = 1440, WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -38,7 +50,8 @@ const skill = k => (G.skills ? G.skills.level(k) : 1) + (G.university ? G.univer
 const vname = job => { const p = G.places && G.places.get && G.places.get(job.venue); return (p && p.name) || job.name; };
 const fill = (x, job, level) => String(x || '').replace(/\{name\}/g, G.state.player.name).replace(/\{level\}/g, job.levels[level - 1].title).replace(/\{job\}/g, job.name);
 const bossOf = job => (G.social && G.social.boss && G.social.boss(job.id)) || (JOB_TEXTS[job.id] || {}).boss;
-function text(job, key, level, i) { const T = JOB_TEXTS[job.id]; let x = T && T[key]; if (Array.isArray(x)) x = x[i]; const from = bossOf(job); if (!x || !from || !G.messages) return; try { G.messages.send({ from, text: fill(x, job, level || (S.job ? S.job.level : 1)) }); } catch (e) { /* optional */ } }
+const bossName = id => (CAST_BY_ID[id] ? undefined : (SPEAKERS[id] && (SPEAKERS[id].short || SPEAKERS[id].name)) || undefined);
+function text(job, key, level, i) { const T = JOB_TEXTS[job.id]; let x = T && T[key]; if (Array.isArray(x)) x = x[i]; const from = bossOf(job); if (!x || !from || !G.messages) return; try { G.messages.send({ from, name: bossName(from), text: fill(x, job, level || (S.job ? S.job.level : 1)) }); } catch (e) { /* optional */ } }
 const shiftT = (job, d) => (job.shifts.days.includes(d % 7) ? { start: d * DAY + job.shifts.start * 60, end: d * DAY + job.shifts.end * 60 } : null);
 const fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 
@@ -48,7 +61,7 @@ function reqs(job) { const w = expWaiver(); return Object.keys(job.requires || {
 function listing(job) {
   const R = reqs(job), h = S.history[job.id], d = today(), wait = h && h.reapply > d ? h.reapply - d : 0, back = h && d - h.day <= 14 ? h.level : 1;
   return { id: job.id, jobId: job.id, name: job.name, title: job.levels[back - 1].title, venue: job.venue, venueName: vname(job), blurb: job.blurb, hourly: job.levels[back - 1].hourly, tips: job.tips ? job.tips.perShift : null,
-    days: job.shifts.days.map(x => WD[x]).join(' '), hours: hh(job.shifts.start) + '-' + hh(job.shifts.end), shifts: job.shifts, requires: job.requires, levels: job.levels, perk: job.perk, reqs: R, eligible: R.every(r => r.met) && !wait,
+    days: job.shifts.days.map(x => WD[x]).join(' '), hours: hh(job.shifts.start) + '-' + hh(job.shifts.end), shifts: job.shifts, requires: job.requires, levels: job.levels, perk: job.perk, hoursNote: job.hoursNote || '', isNew: !!job.isNew, listedOn: job.listedOn, reqs: R, eligible: R.every(r => r.met) && !wait,
     mine: !!(S.job && S.job.id === job.id), level: back, note: wait ? `Re-apply in ${wait} day${wait > 1 ? 's' : ''}` : R.some(r => r.waived) ? 'Your work experience covers the gap' : '' };
 }
 function listings(source = 'computer') { st(); return JOBS.filter(j => source !== 'phone' || j.listedOn === 'phone').map(listing); }
@@ -85,8 +98,8 @@ function syncPlanner() {
   for (let d = d0; d < d0 + 7; d++) { const T = shiftT(job, d); if (!T || S.appts[d] || T.start <= G.state.t || T.start < j.from || j.off === d) continue;
     try { S.appts[d] = { id: P.add({ title: 'Shift at ' + vname(job), placeId: job.venue, t: T.start, dur: T.end - T.start, kind: 'work', data: { jobId: job.id } }), job: job.id }; } catch (e) { /* optional */ } }
 }
-const atWork = job => G.scene && G.scene.id === 'int:' + job.venue;
-function clockIn(force) {
+const atWork = job => G.scene && G.scene.id === roomOf(job);
+function clockIn(force, withStory) {
   st(); const j = S.job; if (!j || S.shift) return false; const job = JOB_BY_ID[j.id], d = today(), now = G.state.t; let T = shiftT(job, d);
   if (force) T = { start: now, end: now + shiftHours(job) * 60 };
   else if (!T || j.lastDay === d || j.off === d || T.start < j.from - 60 || now < T.start - WORK_RULES.clockIn.earlyMinutes || now > T.end - 20 || !atWork(job)) return false;
@@ -94,13 +107,16 @@ function clockIn(force) {
   S.shift = { jobId: j.id, day: d, start: T.start, end: T.end, in: now, payFrom: Math.max(now, T.start), late: late > P.veryLateAfterMinutes ? 2 : late > WORK_RULES.clockIn.graceMinutes ? 1 : 0, tasks: 0, count: 0, bonus: 0, tipSum: 0, tipN: 0, missed: 0, autoMin: 0, moodSum: 0, moodN: 0, auto: false, prevSpeed: G.state.speed || 1 };
   j.lastDay = d; if (S.appts[d]) try { G.planner.done(S.appts[d].id); } catch (e) { /* optional */ }
   G.goals && G.goals.remove && G.goals.remove('job_shift');
-  try { G.wardrobe && G.wardrobe.wearTemp(job.uniform); } catch (e) { /* optional */ }
+  try { G.wardrobe && G.wardrobe.wearTemp(job.wear !== undefined ? job.wear : job.uniform); } catch (e) { /* optional */ }
   G.state.speed = job.id === 'courier' ? COURIER_SPEED : SHIFT_SPEED;
   if (job.id === 'barista' && G.needs) G.needs.add('energy', 8);                                  // perk: a free coffee per shift
   if (job.id === 'courier' && G.inv && G.inv.grant && !G.inv.hasAccess('transit')) G.inv.grant('transit', (T.end - now + 30) / DAY); // perk: free transit in uniform
   if (!j.shifts) text(job, 'firstDay', j.level);
   WK.start(job, j.level, S.shift); UI.showHud();
-  toast(S.shift.late ? 'Clocked in (late). Uniform on.' : 'Clocked in. Uniform on!', S.shift.late ? 'info' : 'good'); G.emit('job:shift:start', j.id, S.shift); return true;
+  toast(S.shift.late ? 'Clocked in (late). Uniform on.' : 'Clocked in. Uniform on!', S.shift.late ? 'info' : 'good'); G.emit('job:shift:start', j.id, S.shift);
+  /* job stories: a clock-in beat, then "Work the shift / Skip to the end". The ticket stream waits until the player has chosen. Dev / test clock-ins (force) go straight to work. */
+  if (story() && (withStory || (!force && !quiet))) { WK.pause(true); try { story().clockIn(job, S.shift, { work: () => { if (S.shift && !S.shift.auto) { WK.pause(false); G.emit('jobs:hud'); } }, skip: () => autoWork() }); } catch (e) { console.error(e); WK.pause(false); } }
+  return true;
 }
 function missed(d) {
   const j = S.job, job = JOB_BY_ID[j.id], M = WORK_RULES.missedShift; j.lastDay = d; j.points = Math.max(0, j.points - M.pointsPenalty); j.streak++; G.goals && G.goals.remove && G.goals.remove('job_shift');
@@ -133,14 +149,14 @@ function endShift(reason = 'done') {
   const activeH = Math.max(.25, (total - sh.autoMin) / 60), taskPart = P.taskPart.max * Math.min(1, sh.tasks / (job.workLoop.targetTasksPerHour * activeH)) * (1 - autoShare) + P.taskPart.auto * autoShare;
   const mood = cl(sh.moodN ? sh.moodSum / sh.moodN : G.needs ? G.needs.workPerf() : 0, -20, 15), prim = job.trains.primary, skillPart = cl((skill(prim) - (L.requires[prim] || 1)) * P.skillPart.perLevelAboveRequirement, 0, P.skillPart.max);
   const punct = [P.punctuality.onTime, P.punctuality.late, P.punctuality.veryLate][sh.late];
-  const score = Math.round(cl(P.base + mood + skillPart + punct + taskPart - (early ? 10 : 0), 0, 100)), band = WORK_RULES.payBands.find(b => score >= b.min);
+  const score = Math.round(cl(P.base + mood + skillPart + punct + taskPart + cl(sh.perf || 0, -5, 10) - (early ? 10 : 0), 0, 100)), band = WORK_RULES.payBands.find(b => score >= b.min);
   const base = r25(worked * L.hourly * band.payMult), tipQ = sh.tipN ? sh.tipSum / sh.tipN : .6;
   let tips = 0; if (job.tips) { const [a, b] = job.tips.perShift; tips = (a + (b - a) * tipQ) * (score / 100) * (1 + skill('charisma') * .05) * share * ((1 - autoShare) + autoShare * WORK_RULES.autoTipShare); if (job.id === 'bartender' && sh.day % 7 === 4) tips *= 2; tips = r25(tips); }
   const bonus = r25(sh.bonus), pay = r25(base + bonus + tips);
   if (pay > 0 && G.money) G.money.add(pay, 'Wages: ' + vname(job));
   if (G.skills) for (const k in job.trains.xpPerHour) G.skills.addXp(k, Math.round(job.trains.xpPerHour[k] * worked));
   if (G.needs) { try { if (job.workDrain.fitnessPerHour) G.needs.add('fitness', job.workDrain.fitnessPerHour * worked); if (band.moodlet && share > .5) G.needs.addMoodlet(band.moodlet); if (job.id === 'line_cook' && share > .5) G.needs.add('hunger', 50); } catch (e) { /* optional */ } }
-  const boss = bossOf(job); if (boss && G.social && G.social.addRel) try { G.social.addRel(boss, score >= 90 ? 2 : score >= 70 ? 1 : score < 40 ? -1 : 0); } catch (e) { /* optional */ }
+  const boss = bossOf(job); { const d = score >= 90 ? 2 : score >= 70 ? 1 : score < 40 ? -1 : 0; if (boss && d) try { if (CAST_BY_ID[boss]) G.social.addRel(boss, d); else if (story()) story().addRel(boss, d); } catch (e) { /* optional */ } }
   S.stats.shifts++; S.stats.earned += pay; S.stats.tasks += sh.count; let promoted = null;
   if (j && j.id === job.id) {
     j.points += score * share; j.shifts++; j.streak = 0;
@@ -159,7 +175,8 @@ function endShift(reason = 'done') {
     nextTitle: N2 ? N2.title : null, nextNeeds: N2 ? Object.keys(N2.requires).filter(k => skill(k) < N2.requires[k]).map(k => `${cap(k)} ${N2.requires[k]}`) : [], promoted, day: sh.day };
   S.shift = null; ending = false; syncPlanner();
   G.emit('job:shift:end', sum); if (promoted) G.emit('job:promoted', job.id, promoted.level);
-  if (reason === 'load') toast(`Shift at ${sum.venueName} wrapped up: ${fmt(pay)} paid.`, 'money'); else if (!quiet) UI.showResults(sum); else if (reason === 'left') toast('You left work early.');
+  const show = () => { if (reason === 'load') toast(`Shift at ${sum.venueName} wrapped up: ${fmt(pay)} paid.`, 'money'); else if (!quiet) UI.showResults(sum); else if (reason === 'left') toast('You left work early.'); };
+  if (story() && story().shiftEnd) { try { story().shiftEnd(sum, show, quiet); } catch (e) { console.error(e); show(); } } else show();   /* a clock-out beat plays before the pay card */
   return sum;
 }
 function autoWork() {
@@ -230,12 +247,12 @@ function acceptGig(id, ctx) {
 function cancelGig() { st(); if (!S.gigs.active) return false; S.gigs.active = null; WK.city.set('gig', null); if (dog) { dog.active = false; dog = null; } G.goals && G.goals.remove && G.goals.remove('job_gig'); toast('Gig cancelled.'); return true; }
 
 /* ---------- debug / test hooks ---------- */
-async function debugStart(jobId, level) {
-  st(); const job = JOB_BY_ID[jobId]; if (!job) return false; quiet = true; if (S.shift) endShift('early'); dbg = true;
+async function debugStart(jobId, level, opts) {   /* opts.story: clock in the way the player does (beat, card, pay card) */
+  st(); const job = JOB_BY_ID[jobId]; if (!job) return false; quiet = !(opts && opts.story); if (S.shift) endShift('early'); dbg = true;
   if (!S.job || S.job.id !== jobId) { if (S.job) quit('switch'); S.job = { id: jobId, level: level || 1, points: 0, hiredDay: today(), from: G.state.t, shifts: 0, streak: 0, warnings: 0, lastDay: -1, offWeek: -1 }; syncPlanner(); G.emit('job:hired', jobId, S.job.level); }
   if (level) S.job.level = level;
-  try { if (!atWork(job)) await G.go('int:' + job.venue); } finally { dbg = false; }
-  return clockIn(true);
+  try { if (!atWork(job)) await G.go(roomOf(job)); } finally { dbg = false; }
+  return clockIn(true, !!(opts && opts.story));
 }
 function debugFinish() { st(); const sh = S.shift; if (!sh) return null; if (G.busy) G.endActivity(false); WK.pause(true); sh.auto = true; G.advance(Math.max(1, Math.ceil(sh.end - G.state.t))); if (S.shift) endShift('done'); return S.last; }
 async function debugGig(id) { const G0 = st().gigs; G0.count = 0; G0.cool = {}; const m0 = G.money ? G.money.get() : 0; if (!acceptGig(id)) return false; if (G.busy) { G.advance(G.busy.left); G.endActivity(true); } else while (S.gigs.active) gigStep(true); return (G.money ? G.money.get() : 0) - m0; }
@@ -245,7 +262,7 @@ export function init() {
   G.defineState('jobs', defaults); st(); WK.initWork();
   G.jobs = { listings, apply, quit: () => quit('quit'), current, onShift: () => !!st().shift, shift: () => st().shift, lastSummary: () => st().last, clockIn: () => clockIn(false), autoWork, leaveEarly: () => endShift('early'), requestDayOff,
     openBoard: ctx => UI.openBoard(ctx, 'jobs'), openGigs: ctx => UI.openBoard(ctx, 'gigs'), gigs, acceptGig, activeGig: () => st().gigs.active, cancelGig, discount, perks, hud, goStep: id => WK.goStep(id),
-    debugStart, debugStep: () => WK.debugStep(), debugFinish, debugGig, get quiet() { return quiet; }, set quiet(v) { quiet = !!v; }, SHIFT_SPEED, COURIER_SPEED };
+    debugStart, debugStep: () => WK.debugStep(), debugFinish, debugGig, roomOf, clockInNow: () => clockIn(true), job: id => JOB_BY_ID[id] || null, get quiet() { return quiet; }, set quiet(v) { quiet = !!v; }, SHIFT_SPEED, COURIER_SPEED };
   G.addSystem({ name: 'jobs', update(dt) { if (S && S.shift) WK.update(dt); } });
   G.on('minutes', onMinutes);
   G.on('day', () => { st(); syncPlanner(); perkTick(); });

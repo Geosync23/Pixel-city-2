@@ -18,6 +18,7 @@ import { NEEDS, FITNESS, SKILLS, SKILL_MAX_LEVEL } from '../data/needs.js';
 import '../art/icons/myday.js';
 
 export const order = 90;
+const pk = { s: '', x: 0, y: 0, n: 0 };   /* QA8: when the prompt's nearest-interactable scan last ran */
 let H = null, shown = false, dirty = true, acc = 0, lastHours = 0, pauseOn = false, panelOpen = false, lastPrompt = null, lastSaveT = -1e9;
 const meters = {}, indicators = new Map(), badges = {};
 const fmt = n => (G.money ? G.money.fmt(n) : '$' + Math.round(n));
@@ -36,7 +37,9 @@ function build() {
   H.dayBadge = el('span.hud-badge');
   H.day = el('button.hud-chip.hud-myday', { 'aria-label': 'My Day: your schedule and ideas', onclick: () => { togglePanel(false); if (G.myDay && G.myDay.open) G.myDay.open(); else if (G.phone && G.phone.open) G.phone.open('planner'); } }, iconEl('myday.btn', 2), el('b', null, 'My', el('br'), 'Day'), H.dayBadge);
   H.face = el('span.hud-face');
-  H.needs = el('button.hud-needs', { 'aria-label': 'Needs and mood', onclick: () => togglePanel() }, H.face);
+  H.needs = el('button.hud-needs', { 'aria-label': 'Needs and mood', onclick: e => {   /* QA8: a low / critical meter opens "where can I fix this?" at once, as the toasts and the first-time window promise */
+    const mt = e && e.target && e.target.closest && e.target.closest('.hud-need'), n = mt && NEEDS.find(q => meters[q.id] && meters[q.id].m === mt);
+    if (n && !panelOpen && G.needs && /low|critical/.test(G.needs.band(n.id).id)) return fixNeed(n); togglePanel(); } }, H.face);
   /* nine meters in one row: the six body needs, a hairline, then the three gentle ones (Comfort, Outdoors, Inspiration: data `soft`) with calmer teal bars */
   let sep = false;
   for (const n of NEEDS) { if (n.soft && !sep) { sep = true; H.needs.append(el('span.hud-nsep')); } const fill = el('i'), m = el('span.hud-need' + (n.soft ? '.soft' : ''), { title: n.name }, iconEl('need.' + n.id, 1), el('span.hud-bar', null, fill)); meters[n.id] = { m, fill, soft: !!n.soft }; H.needs.append(m); }
@@ -128,7 +131,10 @@ function fast() {
     else if (H.actL.textContent !== (busy.label || 'Busy')) { H.actL.textContent = busy.label || 'Busy'; H.actX.style.display = busy.canCancel === false ? 'none' : ''; }
     H.actFill.style.width = (100 - busy.left / Math.max(1, busy.minutes) * 100).toFixed(1) + '%'; H.actT.textContent = hm(busy.left) + ' left';
   } else H.act.classList.remove('on');
-  const it = !busy && !cut && !G.modal && G.scene ? G.nearestInteractable() : null;
+  /* QA8 (perf): the nearest-thing scan walks every interactable of the scene; it runs again only when the player has moved, the scene / state changed, or every 6th frame (people walking into range) */
+  const on = !busy && !cut && !G.modal && !!G.scene, p = G.player, key = on ? G.scene.id : '';
+  let it = lastPrompt; if (!on) it = null; else if (key !== pk.s || !p || Math.abs(p.x - pk.x) > .2 || Math.abs(p.y - pk.y) > .2 || ++pk.n >= 6) { pk.s = key; pk.n = 0; if (p) { pk.x = p.x; pk.y = p.y; } it = G.nearestInteractable(); }
+  if (!on) pk.s = '';
   if (it !== lastPrompt) { lastPrompt = it; H.prompt.classList.toggle('on', !!it); if (it) H.promptT.textContent = it.label || 'Use'; }
 }
 function onFrame(dt) {

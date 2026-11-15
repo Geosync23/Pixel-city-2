@@ -1161,7 +1161,7 @@ const ch09 = {
       s('hester', 'The second print is no charge. The child took a number. Nobody takes a number.'),
       s('hester', 'The photograph is credited to "the boy from the bookshop." He is fifty-eight now. He still alphabetises.'),
       s('pip', 'I know him! He gives me the damaged comics. One more witness. Come on.'),
-      go('bookstore', { with: ['pip'], label: 'Walk Pip over to Dog-Eared Books' }),
+      go('bookstore', { with: ['pip'], label: 'Take Pip over to Dog-Eared Books, in Old Town', note: "Pip: 'It's a long way on legs. There's a bus. I have exact change. I always have exact change.'" }),
     ]),
     sc('bookshop', 'bookstore', 'The witness', [
       n("Dog-Eared Books. A door bell that works, a cat that doesn't, and Ambrose up a ladder pretending he has not seen you."),
@@ -1545,7 +1545,7 @@ const ch12 = {
           s('kit', 'I say it to myself before gigs. "Go." It works about half the time.')], R('kit'))),
       give('item', 'nell_postcard', { text: "Kit's postcard, on loan. It wants returning to the guitar case." }),
       s('kit', "Go on. School's out soon. If you run for the bus you'll catch her at the gate."),
-      go('spot:school', { label: 'Get to Maplewood Elementary for the end of school' }),
+      go('spot:school', { label: 'Get to Maplewood Elementary for the end of school', note: "Kit, by text: 'It's right across town. Get the bus, or a cab from the campus gate. She's out at three.'" }),
     ]),
     sc('gate', 'spot:school', 'The school gate', [
       n('The gate opens and the yard fills up like a sink. Nora is on duty, lanyard on, with a child attached to each hand, neither of them hers.'),
@@ -1979,7 +1979,7 @@ const ch15 = {
           s('dad', '"Forty feet of very old lady."'),
           n('It is the first time you have heard your father laugh since the autumn before last.')], R('dad'))),
       s('nana', 'The others are at the top of the hill. Pip has an agenda. It is laminated.'),
-      go('lookout', { with: ['dad', 'nana'], label: 'Up to Hillcrest Lookout, all together' }),
+      go('lookout', { with: ['dad', 'nana'], label: 'Up to Hillcrest Lookout, all together', note: "Nana: 'There is a perfectly good train to Hillcrest. My knees have voted. We shall see you at the top.'" }),
     ]),
     sc('lookout', 'lookout', 'The Lookout', [
       n('Hillcrest Lookout. The whole bay at your feet, and along the railing the whole family, squinting.'),

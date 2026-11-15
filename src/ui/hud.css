@@ -165,3 +165,8 @@
 .wake-note{margin:2px 0;font-style:italic;opacity:.8}
 @media (max-width:480px){.hud-clock{font-size:17px}.hud-phone{width:58px;height:58px}.hp-skills{grid-template-columns:1fr 1fr}.shop-buy{gap:4px}.shop-buy button{padding:4px 7px}.shop-qty button{width:24px}.shop-qty b{min-width:18px}.shop-price{min-width:38px}.shop-list{padding:2px 8px 8px}.shop-row{gap:7px}}
 @media (prefers-reduced-motion:reduce){.hud-need.critical,.hud-prompt.on,.hud-panel.on,.hud-myday.soon{animation:none}}
+/* QA8: the wellness panel sits over the one-line My Day chip and the nav arrow's label; hide those while it is open. On a phone the band word (Connected, Need to go) wraps under the name instead of being cut. */
+#ui:has(.hud-panel.on) #goalsw,#ui:has(.hud-panel.on) #nav-arrow{visibility:hidden}
+@media (max-width:480px){.hp-nrow{flex-wrap:wrap;row-gap:0}.hp-nrow span{order:3;flex-basis:100%;font-size:11px;line-height:1.1;white-space:normal}}
+/* QA8: on a phone the tap-name button cut "Juniper Court · 208 Market St" to "...208 M..."; a smaller font and up to two lines */
+@media (max-width:480px){.hud-prompt{font-size:13px;line-height:1.15}.hud-prompt span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}

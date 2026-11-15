@@ -221,8 +221,8 @@ function tickets(ch) {
 function begin(id) {
   const ch = chOf(id), s = st(); if (!ch || running || s.done[ch.id]) return false;
   if (linger) { linger = false; comp.clear(); } comp.follow(true);
-  if (ch.window && ch.window.weather === 'clear' && !clearSky()) { safe(() => G.weather.setWeather('clear', 5)); UI.toastGold('The cloud is tearing open over Hillcrest. Tonight will do after all.', 5200); }
-  s.cur = { id: ch.id, pc: 0, paused: false, t0: Math.floor(G.state.t), went: null }; G.emit('chapter:start', ch.id); refresh(); loop(); return true;
+  const broke = !!(ch.window && ch.window.weather === 'clear' && !clearSky()); if (broke) safe(() => G.weather.setWeather('clear', 5));
+  s.cur = { id: ch.id, pc: 0, paused: false, t0: Math.floor(G.state.t), went: null, broke }; G.emit('chapter:start', ch.id); refresh(); loop(); return true;
 }
 function resumeNow() { const s = st(); if (!s.cur || running) return false; s.cur.paused = false; s.cur.back = 1; refresh(); loop(); return true; }
 function stepOut(quiet) {
@@ -241,6 +241,7 @@ async function loop() {
   safe(() => tickets(ch)); holdDoors(true);
   try {
     if (s.cur.pc > 0 && ops[s.cur.pc] && ops[s.cur.pc].op !== 'scene') { await enterScene(ch, sceneOpAt(ops, s.cur.pc), alive, true); }
+    if (s.cur.broke && s.cur.pc === 0) { s.cur.broke = false; UI.setModal(true); const r = await UI.say({ name: '', text: 'All day the cloud has sat on Hillcrest like a lid. Now, as if somebody had asked it nicely, it is tearing open.', style: 'narrator' }); if (r === 'out') { stepOut(); return; } }
     while (alive()) {
       const pc = s.cur.pc, o = ops[pc]; if (!o) break;
       G.emit('chapter:step', ch.id, pc, o.op);
@@ -258,6 +259,7 @@ async function exec(ch, o, alive, ops) {
     case 'say': { const r = await sayLine(ch, o); if (r === 'out') stepOut(); return; }
     case 'choice': {
       if (!UI.isOpen()) { for (let k = s.cur.pc - 1; k >= 0 && ops[k].op !== 'scene'; k--) if (ops[k].op === 'say') { UI.context(lineOf(ch, ops[k])); break; } }
+      safe(() => G.goalsUI.caption());
       const v = await UI.choice(o.options.map(x => ({ id: x.id, text: fill(x.text) }))); if (v === 'out' || v === 'closed') { if (v === 'out') stepOut(); return; }
       const opt = o.options.find(x => x.id === v) || o.options[0]; s.picks[o.id] = opt.id;
       if (opt.fx) { for (const k in opt.fx.rel || {}) rel(k, opt.fx.rel[k]); if (opt.fx.flag) s.flags[opt.fx.flag] = true; }
@@ -296,6 +298,7 @@ function lineOf(ch, o) {
 async function sayLine(ch, o) {
   const i = who(o.who), off = offstage(ch, o.who, st().cur && st().cur.scene), phone = off === 'phone', style = o.who === 'narrator' ? 'narrator' : o.who === 'nell' ? 'hand' : off ? 'phone' : o.who === 'player' ? 'you' : '';
   if (!safe(() => G.transit.ride, null)) UI.setModal(true);
+  safe(() => G.goalsUI.caption());            /* a caption left over from the walk / the stair / the game must not sit on top of the sheet */
   const c = !style ? comp.char(o.who) : null, P = G.player; let prev;
   if (c) { if (c.stop) c.stop(); if (!c.zoff) c.faceTo(P.x, P.y); if (!G.cutscene && !G.busy) P.faceTo(c.x, c.y); prev = c.pose; if (o.anim && o.anim !== 'stand') c.pose = o.anim; }
   if (phone || (o.who === 'player' && o.anim === 'phone')) P.pose = 'phone'; else if (P.pose === 'phone' && style !== 'narrator' && style !== 'you') P.pose = null;
@@ -337,7 +340,7 @@ function doAt(ch, alive, find, label, o = {}) {
     }
     let pressed = 0;
     UI.chip({ kicker: kicker(ch), text: label, out: () => stepOut(),
-      go: { label: o.go || 'Go on', fn: () => { if (!it) return end('done'); if (!pressed) pressed = performance.now(); safe(() => G.useInteractable(it)); } },
+      go: { label: o.go || 'Go on', fn: () => { if (!it) return end('done'); if (!pressed) pressed = performance.now(); if (!G.player.path || !G.pending) safe(() => G.useInteractable(it)); } },      /* already on the way there: a second press does not start the walk over */
       skip: o.skip ? { label: 'Not today', fn: () => end('skip') } : null });
     iv = setInterval(() => {
       if (!alive()) return end('dead');
@@ -392,7 +395,7 @@ async function travel(ch, d, label, note, alive) {
     const key = G.scene.id + '>' + d.id;
     if (pinFor !== key || !safe(() => G.state.navgoals.pin, null)) { pinFor = key; safe(() => G.navGoals.set({ room: d.room || 'city', find: d.room ? null : { x: d.x, y: d.y, h: 2 }, label, short: d.name, name: d.name })); }
     if (d.room && inCity() && !G.cutscene && !G.modal && Math.hypot(G.player.x - d.x, G.player.y - d.y) < 2.3) await hop(d);
-    if (note && !noted && performance.now() - t0 > 150000 && !G.modal) { noted = true; UI.toastGold(fill(note), 5200); }
+    if (note && !noted && performance.now() - t0 > 60000 && !G.modal) { noted = true; UI.toastGold(fill(note), 6200); }      /* a minute on the road: the company says its one line about the way */
     await sleep(220);
   }
   curDest = null; safe(() => G.navGoals.clear()); UI.chip(null);

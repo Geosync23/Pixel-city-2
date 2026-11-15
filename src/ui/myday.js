@@ -50,7 +50,11 @@ function go(dest) {
 /* ---------- the chip under the needs bar + the button's pulse ---------- */
 function chip() {
   if (!G.myDay) return null; const sc = safe(() => G.myDay.schedule(), null); if (!sc) return null;
-  const n = sc.next; if (n) return { label: n.flex || n.t > now() ? 'Next' : 'Now', text: (n.flex ? '' : hh(n.t) + ' ') + n.title };
+  /* QA8: a next entry on another day said "NEXT 11:30 Bay Ecology" on Wednesday afternoon for Saturday's class; it names the day now */
+  const n = sc.next; if (n) { const dd = Math.floor(n.t / DAY) - Math.floor(now() / DAY), day = n.flex || dd <= 0 ? '' : dd === 1 ? 'Tomorrow ' : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][Math.floor(n.t / DAY) % 7] + ' ';
+    return { label: n.flex || n.t > now() ? 'Next' : 'Now', text: (n.flex ? '' : day + hh(n.t) + ' ') + n.title }; }
+  /* QA8: an open Chapter comes before the to-do list (on day 1 the plain "TO DO Breakfast at Nana's" hid the gold Chapter 1 line) */
+  if (sc.chapter && /open|paused|running/.test(sc.chapter.state || '')) return { label: 'Story', text: sc.chapter.text, gold: true };
   const g = sc.goals.find(x => !x.done); if (g) return { label: 'To do', text: g.shown || g.text };
   if (sc.chapter) return { label: 'Story', text: sc.chapter.text, gold: true };
   const o = sc.opps.find(x => !x.done); if (o) return { label: 'To do', text: o.text };
@@ -134,7 +138,7 @@ function render() {
   /* to do + opportunities taken up (the old Goals widget) */
   const goals = sc.goals, opps = sc.opps;
   if (goals.length || opps.length) {
-    const openN = goals.filter(g => !g.done).length, S = G.myDay.state(), shut = S.todoShut === undefined ? goals.length > 6 : !!S.todoShut, box = el('div.md-todo' + (shut ? '.shut' : ''));
+    const openN = goals.filter(g => !g.done).length, S = G.myDay.state(), shut = S.todoShut === undefined ? openN + opps.filter(g => !g.done).length > 6 : !!S.todoShut   /* QA8: count what is still open (the arrival's three done goals folded it, hiding the line the chip showed) */, box = el('div.md-todo' + (shut ? '.shut' : ''));
     box.append(el('button.md-sec.md-fold', { onclick: () => { S.todoShut = !shut; render(); } }, el('span', { text: `To do${goals.length ? ` · ${goals.length - openN} of ${goals.length} done` : ''}` }), el('i', { text: shut ? '+' : '-' })));
     if (!shut) { let last = null;
       for (const g of goals) { if (g.listTitle && g.listTitle !== last) { last = g.listTitle; box.append(el('div.md-list', { text: last })); }

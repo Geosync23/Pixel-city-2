@@ -5,6 +5,10 @@
 // mini()). Per-job SCRIPTS below say which chains spawn, how often, with which customer and which mini; all names/minutes/anims/bonuses
 // come from the data. Customers are light Chars living in the room scene (max 4) with a patience bar.
 //   start(job, level, sh)  stop()  pause(bool)  update(dt)  onScene()  hud()  goStep(orderId)  debugStep()  city.set(key, target|null)
+//   inject({ title, task: { id, name, station, minutes, anim, bonus }, run: () => Promise<quality 0..1 | null>, onDone?(q) }) -> order | null
+//       one extra ticket whose single step opens `run` instead of a micro-interaction (the job's PLAY, sim/_jobplay_*.js). null from run = closed, the ticket stays.
+// The 11 new jobs (story/jobs_new.js): their station tags do not exist on the room fixtures, so _jobstory_stations.js names an existing fixture (or a spot)
+//   for each station and this engine looks stations up through that table (W.alias). Their ticket scripts live there too (NEW_SCRIPTS).
 // `sh` is the persistent shift record (G.state.jobs.shift); the engine adds to sh.tasks / count / bonus / tipSum / tipN / missed.
 import { G } from '../core/game.js';
 import { CAST_BY_ID } from '../story/cast.js';
@@ -13,6 +17,7 @@ import { rng } from '../engine/raster.js';
 import { toast, bubble } from '../ui/kit.js';
 import { mini } from '../ui/jobs.js';
 import { getCity } from '../world/_city.js';
+import { stationsFor, newScripts } from './_jobstory_stations.js';
 
 const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -113,6 +118,8 @@ const SCRIPTS = {
   ],
 };
 
+Object.assign(SCRIPTS, newScripts({ s, pick, shuffle, pickMini, choiceMini, mash, meter, now: () => G.now() }));
+
 /* ---------- courier runs (the outdoor job) ---------- */
 export const cityWorld = () => { const c = G.sceneCache.get('city'); if (c && c.world) return c.world; try { return getCity(); } catch (e) { return null; } };
 /** door pois sorted by distance from a point */
@@ -146,8 +153,8 @@ export const city = {
 let W = null;
 export const cur = () => W;
 const inRoom = () => !!W && G.scene === W.scene && G.scene.id === W.roomId;
-const fxList = tag => (inRoom() && W.scene.byTag ? W.scene.byTag(tag) : []);
-const taskOf = id => W.job.workLoop.tasks.find(t => t.id === id) || CUSTOM[id];
+const fxList = tag => { if (!inRoom() || !W.scene.byTag) return []; if (W.alias) { if (W.scene._jobSt !== W.job.id) { W.scene._jobSt = W.job.id; stationsFor(W.job, W.scene); } return W.scene.byTag('js:' + W.job.id + ':' + tag); } return W.scene.byTag(tag); };
+const taskOf = id => (typeof id === 'object' ? id : W.job.workLoop.tasks.find(t => t.id === id) || CUSTOM[id]);
 const SEATED = { sit: 1, type: 1, read: 1 };
 /** where the player walks to and where the body is snapped while working at a fixture */
 function posOf(fx, st) {
@@ -160,7 +167,7 @@ function posOf(fx, st) {
 
 export function start(job, level, sh) {
   stop();
-  W = { job, level, sh, scene: G.scene, roomId: 'int:' + job.venue, orders: [], custs: [], next: {}, n: {}, cnt: { stack: 0, drinks: 0 }, fired: {}, seq: 0, paused: false, its: [], res: [], carry: null, lock: false, active: null };
+  W = { job, level, sh, alias: !!job.isNew, scene: G.scene, roomId: 'int:' + (job.room || job.venue), orders: [], custs: [], next: {}, n: {}, cnt: { stack: 0, drinks: 0 }, fired: {}, seq: 0, paused: false, its: [], res: [], carry: null, lock: false, active: null };
   W.tpl = (SCRIPTS[job.id] ? SCRIPTS[job.id](level) : []).filter(t => !t.lvl || level >= t.lvl);
   for (const t of W.tpl) if (t.every) W.next[t.id] = G.state.t + (t.first || 0);
   /* QA6: you meet your boss on your first shift (a stray tap at the till used to open "Say hello" small talk with an unmet boss, and bosses stayed "Stranger" for good) */
@@ -208,13 +215,14 @@ function stepUse(o, oi) {
     G.startActivity({ label: st.name, anim: t.anim, minutes: t.minutes, rate: t.minutes / dur, at: ps.at || undefined, jobTask: true, done: () => { back(); if (W && W.orders.indexOf(o) >= 0) complete(o, q); }, cancel: back });
   };
   if (!st.mini) return go(st.wrong ? .5 : 1);
-  W.lock = true; mini(st.mini).then(q => { if (!W) return; W.lock = false; if (q === null || q === undefined || W.orders.indexOf(o) < 0 || o.steps[o.i] !== st) return; go(q); });
+  W.lock = true; (typeof st.mini === 'function' ? Promise.resolve().then(st.mini).catch(e => { console.error(e); return .5; }) : mini(st.mini)).then(q => { if (!W) return; W.lock = false; if (q === null || q === undefined || W.orders.indexOf(o) < 0 || o.steps[o.i] !== st) return; go(q); });
 }
 /** a step is finished with quality q 0..1 (the UI path and debugStep both end here) */
 export function complete(o, q = 1) {
   const st = o.steps[o.i], t = st.task, sh = W.sh, p = G.player; let bonus = t.bonus || 0, note = '';
   if (st.due) { if (G.state.t <= st.due) { bonus += 1; note = ' on time'; } else q = Math.min(q, .6); }
   if (st.mini && q >= .99) { bonus += .5; note = ' perfect'; sh.perfect = (sh.perfect || 0) + 1; } else if (q < .5) bonus *= .5;
+  if (st.play) { bonus = Math.round((t.bonus || 0) * (.5 + q) * 4) / 4; note = q >= .85 ? ' well played' : ''; }
   sh.tasks += (t.countsAs || 1) * (.6 + .4 * q); sh.count++; sh.bonus += bonus; o.qs.push(q); st.done = true;
   if (bonus > 0) bubble(p, `+$${bonus.toFixed(2)}${note}`, 900);
   if (st.carry) { W.carry = st.carry; p.carry = true; p.poseOpts = { item: st.carry }; } else if (W.carry && !st.keep) dropCarry();
@@ -256,10 +264,18 @@ export function sync() {
     if (st.city) { if (!ct) ct = Object.assign({}, st.city, { label: st.name, use: () => stepUse(o) }); continue; }
     if (!inRoom()) continue;
     (st.opts || [{ fi: st.fi }]).forEach((op, k) => { const fx = fxList(st.tag)[op.fi]; if (!fx) return; const ps = posOf(fx, st);
-      const it = { x: fx.x, y: fx.y, h: Math.min(1.6, (fx.ob.size && fx.ob.size[2]) || 1), label: st.name, spot: ps.spot, range: ps.spot ? undefined : 2.2, use: () => stepUse(o, st.opts ? k : undefined), _fx: fx, _color: op.color ? COLORS[op.color] : null, _o: o };
+      const it = { x: fx.x, y: fx.y, h: Math.min(1.6, (fx.ob.size && fx.ob.size[2]) || 1), label: st.name, spot: ps.spot, range: ps.spot ? undefined : 2.2, use: () => stepUse(o, st.opts ? k : undefined), _fx: fx, _color: op.color ? COLORS[op.color] : st.play ? '#ff9ad5' : null, _o: o };
       W.scene.interactables.unshift(it); W.its.push(it); });
   }
   city.set('shift', ct); G.emit('jobs:hud');
+}
+/** the job's play as one extra ticket (see the header) */
+export function inject(o) {
+  if (!W || W.paused || !o || !o.task) return null; const tag = o.task.station;
+  if (inRoom() && !fxList(tag).length) return null;
+  const st = { task: o.task, tag, name: o.task.name, t: o.task.id, mini: o.run, play: true, onDone: () => { if (o.onDone) o.onDone(ord.qs[ord.qs.length - 1]); } };
+  const ord = { id: ++W.seq, tpl: 'play', title: o.title, steps: [st], i: 0, t0: G.state.t, patience: 0, due: 0, qs: [], cust: null, custAt: null, play: true };
+  W.orders.unshift(ord); activate(ord); return ord;
 }
 /** HUD ticket tapped: walk to that ticket's current station */
 export function goStep(id) {

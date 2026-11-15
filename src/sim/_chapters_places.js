@@ -29,7 +29,7 @@ export const SPOTS = {
   'spot:second_wind': [99, 361, 'the Second Wind, berth 3', null],
   'spot:kettle_stall': [101, 257.2, 'the Little Kettle, Market Street', null],
   'spot:market_street': [101, 257.2, 'Market Street', null],
-  'spot:airport_arrivals': [341, 104, 'Arrivals, Maple Bay International', null],
+  'spot:airport_arrivals': [337.5, 105.5, 'Arrivals, Maple Bay International', null],       /* on the kerb, a few steps clear of the taxi stand (a tap just off the marker used to open the cab chooser) */
   'spot:tram_shed': [270, 326, 'the old tram shed', null],
 };
 const ALIAS = { skydeck: 'skydeck', park: 'spot:playground' };

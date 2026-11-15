@@ -40,3 +40,5 @@
 #ui > .tut-arrow{pointer-events:none}
 /* the toast column starts under the My Day line instead of on top of it */
 #ui:has(#goalsw.md:not(.empty):not(.off)) #toasts{top:134px}
+/* QA8: with the phone open the intro bubble goes to the bottom, above the phone's own buttons */
+.tut.low{top:auto;bottom:62px}

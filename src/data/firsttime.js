@@ -16,7 +16,7 @@ export const WINDOWS = [
     text: 'Eight stations ring the town. Pick where you are going on the line map, buy a ticket and wait on the platform. One fare takes you any distance.' },
   { id: 'pass', sys: 'transit', topic: 'around', title: 'Riding often?',   /* soon: the second bus or train ride ends */
     text: 'A day pass or a week pass covers every bus and train, and it soon pays for itself. Station panels sell them.' },
-  { id: 'wander', sys: 'stamps', topic: 'around', title: 'Wander, your guidebook',   /* soon: after Nora's first text is answered / the arrival is over */
+  { id: 'wander', sys: 'stamps', head: 'Wander', topic: 'around', title: 'Wander, your guidebook',   /* soon: after Nora's first text is answered / the arrival is over */
     text: 'Wander lists every place in town with its hours and what you can do there. Its front page has quick ideas for right now, and "How things work here" has a card for everything in the game.',
     go: { app: 'guide' }, goLabel: 'Open Wander' },
   /* ---------- food ---------- */
@@ -48,7 +48,7 @@ export const WINDOWS = [
     text: 'Soap, shampoo and cleaner run out with use. Grocers and corner shops sell them, and they go into your cupboard by themselves when you get home.', go: { sys: 'groceries' }, goLabel: 'Show me a shop' },
   { id: 'sleep', sys: 'needs', topic: 'home', title: 'It is late',   /* soon: past midnight and still up */
     text: 'Tap your bed and choose when to wake. A full night sets you up for tomorrow; stay up and the next day is harder.' },
-  { id: 'dresser', sys: 'closet', topic: 'home', title: 'Your dresser',   /* now: the dresser is opened */
+  { id: 'dresser', sys: 'closet', topic: 'home', title: 'Your clothes',   /* QA8: it opens on a wardrobe or a rail too */   /* now: the dresser is opened */
     text: 'This is everything you own to wear. Put an outfit together piece by piece and save the ones you like. Clothes worn for a few days go to the hamper for a wash.' },
   { id: 'clothesshop', sys: 'clothesshop', topic: 'home', title: 'A clothes shop',   /* now: the first clothes shop is entered */
     text: 'Take anything off a rack to look at it. The fitting room shows it on you before you pay. Every shop in town has its own style and prices.' },
@@ -59,7 +59,7 @@ export const WINDOWS = [
     text: 'Have a leaf through the lookbook. Pick a cut or a colour, sit in the chair and see it in the mirror. It grows out in time, so nothing is for ever.' },
   /* ---------- work & money ---------- */
   { id: 'jobsboard', sys: 'jobs', topic: 'work', title: 'Finding work',   /* now: the Jobs app is opened */
-    text: 'These are a few starter jobs. The full board, with every job in town, is on the free computers at the library. Apply and you hear back at once.', go: { find: 'library' }, goLabel: 'To the library' },
+    text: 'The Board tab has a few starter jobs. The full board, with every job in town, is on the free computers at the library. Apply and you hear back at once.', go: { find: 'library' }, goLabel: 'To the library' },
   { id: 'shift', sys: 'jobs', topic: 'work', title: 'You have a job',   /* soon: hired */
     text: 'Your shifts are on My Day. Be at the door when one starts and you clock in by walking through it. Good shifts lead to promotions.' },
   { id: 'autowork', sys: 'jobs', topic: 'work', title: 'On shift',   /* soon: the first shift starts */
@@ -73,7 +73,7 @@ export const WINDOWS = [
   { id: 'money_low', sys: 'money', topic: 'work', title: 'When money is tight',   /* soon: the balance drops under $50 */
     text: 'Cooking at home, walking and a gig or two from the Jobs app all help. Nobody is ever turned out of their home in Maple Bay.' },
   { id: 'opps', sys: 'opps', topic: 'work', title: 'An Opportunity',   /* soon: the first Opportunity is offered */
-    text: 'That was an Opportunity: a small thing someone in town would like, with a thank-you at the end. Take it or leave it. Nothing is lost, and more come along.', go: { app: 'opps' }, goLabel: 'Open Opportunities' },
+    text: 'Opportunities are small things someone in town would like, with a thank-you at the end. Take one up or let it pass: nothing is lost, and more come along. The ones you take are on My Day.', go: { app: 'opps' }, goLabel: 'Open Opportunities' },
   { id: 'uni', sys: 'university', topic: 'work', title: 'The University',   /* now: the campus is entered */
     text: 'The Registrar signs you up for a course. Your classes then appear on My Day, and a certificate at the end helps you at work.' },
   { id: 'uniclass', sys: 'university', topic: 'work', title: 'You are enrolled',   /* soon: the first course is taken */
@@ -103,14 +103,14 @@ export const WINDOWS = [
   { id: 'skills', sys: 'skills', topic: 'well', title: 'Getting better',   /* soon: the first skill level */
     text: 'You are getting better at that. Each level makes it easier and opens something new. The Me app shows what every skill gives you.', go: { app: 'me', arg: { tab: 'skills' } }, goLabel: 'Open Me' },
   { id: 'sk_minis', sys: 'coaches', topic: 'well', title: 'Mini-games',   /* soon: the first mini-game is played */
-    text: 'Most skill activities come with a short game like that one. Play well and you learn faster. Rather watch? The Me app can set them to play themselves.', go: { app: 'me', arg: { tab: 'me' } }, goLabel: 'Open Me' },
+    text: 'Cooking, fixing things and most other skills come with a short game. Play well and you learn faster. Rather watch? The Me app can set them to play themselves.', go: { app: 'me', arg: { tab: 'me' } }, goLabel: 'Open Me' },
   { id: 'trait_earned', sys: 'traits', topic: 'well', title: 'A habit became a trait',   /* soon: a trait is earned */
     text: 'Do something often enough and it becomes part of you. The new trait sits beside the three you chose; switch it off in the Me app if it does not suit.', go: { app: 'me', arg: { tab: 'traits' } }, goLabel: 'Open Me' },
   { id: 'weather', sys: 'weather', topic: 'well', title: 'Rain',   /* soon: the first wet weather */
     text: 'Walks are slower and soggier in the rain, and indoor places fill up. A cab keeps you dry, and Wander has ideas for a rainy day.', go: { app: 'guide', arg: { tool: 'rainy' } }, goLabel: 'Rainy day ideas' },
   { id: 'passout', sys: 'needs', topic: 'well', title: 'Run right down',   /* soon: a need hits the bottom */
     text: 'No harm done, though you lose a little time. When a need turns red, tap it and the nearest fix is one more tap away.' },
-  { id: 'stamp', sys: 'stamps', topic: 'out', title: 'Your first stamp',   /* soon: the first stamp */
+  { id: 'stamp', sys: 'stamps', topic: 'out', title: 'Collecting stamps',   /* soon: the first stamp */
     text: 'Wander keeps a Stamp Book of everything there is to try in Maple Bay. Do a thing once, anywhere, and it is stamped for good.', go: { app: 'guide', arg: { tab: 'stamps' } }, goLabel: 'Open the Stamp Book' },
   /* ---------- going out ---------- */
   { id: 'shows', sys: 'shows', topic: 'out', title: 'You have a ticket',   /* soon: the first ticket is bought */

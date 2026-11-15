@@ -143,7 +143,7 @@ function gather(day, at, extra) {
     for (const f of fams) { const c = among(L.filter(e => FAM_RE[f] && FAM_RE[f].test(text(e)) && !(f === 'nature' && /chess|playground|skate|cat alley/.test(text(e))) && openOk(e) && !have.has('pl:' + e.placeId + ':flex') && !used.has(e.placeId)), 'int' + f); if (!c) continue; used.add(c.placeId);
       push({ id: 'int:' + f + ':' + c.placeId, key: 'int:' + c.placeId, kind: 'interest', cat: 'int:' + f, fam: f, title: `${FAM_VERB[f] || 'Visit'} ${c.title}`, why0: ints.length ? `You like ${FAM_NAME[f]}` : c.type, icon: FAM_ICON[f] || 'ui.pin', placeId: c.placeId, dur: 60, fixed: false, entryId: c.id, blurb: c.blurb, guessed: !ints.length }); }
     const fresh0 = among(L.filter(e => !safe(() => G.guide.known(e), true) && openOk(e) && !used.has(e.placeId)), 'new', 4) || among(L.filter(e => !visits(e.placeId) && openOk(e) && !used.has(e.placeId) && e.chapter !== 'shop'), 'new', 4);
-    if (fresh0) { used.add(fresh0.placeId); push({ id: 'new:' + fresh0.placeId, key: 'new:' + fresh0.placeId, kind: 'new', cat: 'new', fam: famOf(text(fresh0)), title: `Somewhere new: ${fresh0.title}`, why0: `${fresh0.type || 'A place'} you have not been to`, icon: 'myday.new', placeId: fresh0.placeId, dur: 60, fixed: false, entryId: fresh0.id, blurb: fresh0.blurb }); }
+    if (fresh0) { used.add(fresh0.placeId); push({ id: 'new:' + fresh0.placeId, key: 'new:' + fresh0.placeId, kind: 'new', cat: 'new', fam: famOf(text(fresh0)), title: `Somewhere new: ${fresh0.title}`, why0: `${fresh0.type || 'A place'} · not been yet`   /* QA8: was "Cat alley you have not been to" */, icon: 'myday.new', placeId: fresh0.placeId, dur: 60, fixed: false, entryId: fresh0.id, blurb: fresh0.blurb }); }
     const wk = isToday ? String(safe(() => (G.weather.current() || {}).kind, G.state.weather) || '') : String(safe(() => G.weather.daySummary(day - d0).kind, '') || ''), wet = /rain|storm|snow/.test(wk), clear = /clear|sun/.test(wk);
     const pick = re => among(L.filter(e => re.test(text(e)) && openOk(e) && !used.has(e.placeId)), 'wx', 3);
     let wx = null;
@@ -286,9 +286,11 @@ export function summary() {
   const big = ideas({ n: 0 }).find(i => i.kind === 'big' && !i.ahead), wk = String(safe(() => G.weather.daySummary(0).kind, '') || ''), wx = { rain: 'Rain about.', storm: 'Storms about.', snow: 'Snow today.' }[wk] || '';
   const top2 = L.find(i => i.kind !== 'big') || null, clean = x => x.title.replace(/^(Somewhere new|A rainy day|A fine day|A clear night): /, '') + (x.fixed && x.t ? ' at ' + hh(x.t) : '');
   let text = big ? `${big.title} is on today${big.t > now() ? ', from ' + hh(big.t) : ''}. ` : '';
-  text += parts.length ? 'On your day: ' + parts.join(', ') + (sc.today.length > 3 ? ' and more' : '') + '.' : big ? 'Nothing else is on your day.' : 'Nothing on your day yet. It is all yours.';
-  if (L.length) { const c = count(L.length); text += ` ${when ? 'Free ' + when + ': ' + c : c[0].toUpperCase() + c.slice(1) + ' to start you off'}${top2 ? ', like ' + clean(top2) : ''}.`; }
-  if (wx) text += ' ' + wx; if (sc.chapter && !sc.chapter.stub && /open|paused/.test(sc.chapter.state || '')) text += ` ${sc.chapter.text} is there whenever you're ready.`;
+  /* QA8: the open Chapter first (a banner shows two lines: at the end it was always cut off), and a shorter "free" line */
+  const chOpen = !!(sc.chapter && !sc.chapter.stub && /open|paused/.test(sc.chapter.state || '')); if (chOpen) text += `${sc.chapter.text}, whenever you're ready. `;
+  text += parts.length ? 'On your day: ' + parts.join(', ') + (sc.today.length > 3 ? ' and more' : '') + '.' : big || chOpen ? 'Nothing else is on your day.' : 'Your day is free.';
+  if (L.length) { const c = count(L.length); text += ` ${when ? 'Free ' + when + ': ' + c : c[0].toUpperCase() + c.slice(1)}${top2 ? ', like ' + clean(top2) : ''}.`; }
+  if (wx) text += ' ' + wx;
   return { text, ideas: L, free: g || null };
 }
 function morning() {

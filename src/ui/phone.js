@@ -84,7 +84,7 @@ function pump() {
   if (showing || !queue.length || !bannerBox) return;
   /* QA round 5: banners expire; a stale 'Leave now' came back for six hours and a spring banner showed in autumn */
   while (queue.length && queue[0].pri !== 'high' && G.state.t - (queue[0].t || G.state.t) > 90) queue.shift();
-  while (queue.length && queue[0].pri === 'high' && G.state.t - (queue[0].t || G.state.t) > 240) queue.shift();
+  while (queue.length && queue[0].pri === 'high' && G.state.t - (queue[0].t || G.state.t) > 60) queue.shift();
   if (!queue.length) return;
   /* QA round 4: hold banners while a menu / dialog is open over the game (it covered the cook menu's tabs after a new game); they drop in once it closes */
   if (G.modal > (isOpen ? depth : 0)) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
@@ -94,7 +94,7 @@ function pump() {
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
-  showing = b; bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (G.modal > (isOpen ? depth : 0)) { if ((e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); } /* a menu opened over it: take it back, show it again after */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
+  showing = b; const shownAt = performance.now(); bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (G.modal > (isOpen ? depth : 0)) { if ((e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); } /* a menu opened over it: take it back, show it again after */ else if (sticky && G.state.t - (e.t || G.state.t) > 45 && performance.now() - shownAt > 20000) done(); /* QA8: a sticky banner does not outlive its news */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
   requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
   if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }

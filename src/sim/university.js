@@ -36,6 +36,8 @@ import { ITEM_BY_ID } from '../data/items.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { CORE, CORE_BLURB, EXPERIENCES } from './_guide_data.js';
 import { NAME, UR, UV, HOURS, OFFICE, TUNE, COURSES, COURSE_BY_ID, UNITS, DAYN, hh, sectionText, nextSlot, CLUBS, CLUB_NIGHT, OPEN_LECTURE, GROUP, FAIR, CERT_ITEM } from '../data/university.js';
+/* QA8: two sections at the same hour (Bay Ecology: both 11:30) were both called "Morning section"; then they go by their days */
+const pod = h => (h >= 17 ? 'Evening' : h >= 12 ? 'Afternoon' : 'Morning'), samePod = cs => cs.sections.every(x => pod(x[1]) === pod(cs.sections[0][1]));
 import { CAST, CLASSMATES, PROFS, READING, PRACTICAL, FINAL, OPEN, LINES } from '../story/university.js';
 import { buildCampus, showProp, setProp, CAMPUS, STALL_AT, DOOR } from './_uni_city.js';
 import * as CL from './_uni_class.js';
@@ -101,6 +103,7 @@ function nextOf(id, t = now()) {
   let T = nextSlot(sec, t, TUNE.late);
   if (u === 3) for (let d = dayOf(t - TUNE.late); d <= dayOf(t) + 3; d++) if (examWeek(d) && wd(d) !== 6) for (const h of [10, 14]) { const e = d * DAY + h * 60; if (e + TUNE.late > t && (T === null || e < T)) T = e; }
   if (T === null) return null;
+  if (c.doneT && T === c.doneT) return nextOf(id, T + TUNE.late + 1);   /* QA8: the slot a loaded game already counted (creditInterrupted) is not offered again */
   const pond = kind === 'practical' && cs.station === 'pond';
   return { cid: id, unit: u, kind, T, room: kind === 'practical' ? (pond ? 'city' : UR.workshop) : UR.lecture, station: kind === 'practical' ? cs.station : null };
 }
@@ -136,6 +139,8 @@ function syncPlanner() {
   if (!G.planner) return; const S = st(), live = CL.running();
   for (const id of enrolled()) { if (live && live.ses && live.ses.cid === id) continue; const c = S.courses[id], n = nextOf(id), old = c.appt !== undefined && c.appt !== null ? safe(() => G.planner.get(c.appt), null) : null;
     if (!n || n.T === undefined) { if (old && old.s < 2) safe(() => G.planner.remove(c.appt)); c.appt = null; continue; }
+    /* QA8: drop leftover entries of this course that are not the one we keep (two loads had left three "Lecture 1" rows on My Day) */
+    for (const a of safe(() => G.planner.list(now() - DAY, now() + 30 * DAY), [])) if (a.data && a.data.uni === id && a.id !== c.appt && a.s < 2) safe(() => G.planner.remove(a.id));
     if (old && old.t === n.T && old.data && old.data.unit === n.unit && old.s < 3) continue;
     if (old && old.s < 2) safe(() => G.planner.remove(c.appt));
     c.appt = safe(() => G.planner.add({ title: `${C(id).name}: ${UNITS[n.unit].name}`, placeId: UV.place, t: n.T, dur: TUNE.classMin, kind: 'personal', data: { uni: id, unit: n.unit, blurb: n.kind === 'practical' ? 'Practical at ' + PRACTICAL[id].where : n.unit === 3 ? 'The final' : 'In the Ashby Lecture Theatre. Take a seat a few minutes early.' }, remind: 30 }), null); }
@@ -176,7 +181,7 @@ async function registrar() {
     if (v === 'f') { await say([{ who, text: `A course is ${fmt(TUNE.tuition)}: two lectures, a practical and the final. The card is ${fmt(TUNE.card)}, once.` }, { who, text: `If your balance is under ${fmt(TUNE.bursaryUnder)} the Ashby Bursary pays half. Shelving for Mr. Mott in the Reading Room earns ${fmt(TUNE.workStudy)} credit a session. And a Distinction earns the Dean's Scholarship: your next course free.` }]); continue; }
     if (v === 't') { const T = transcript(); await say(T.length ? T.map(t => ({ who: 'Your record', text: t })) : [{ who, text: 'A clean sheet. I do like a clean sheet. Shall we put something on it?' }]); continue; }
     if (v === 'm') { const k = en.length === 1 ? en[0] : await choose('My courses', en.map(q => ({ label: C(q).name, sub: todo(q)[0] || '', value: q })).concat({ label: 'Back', value: null })); if (!k) continue; const c = row(k), cs = C(k), o = 1 - c.sec;
-      const a = await choose(cs.name, [{ label: 'What is left to do', value: 'w' }, { label: `Change to the ${(h => (h >= 17 ? 'evening' : h >= 12 ? 'afternoon' : 'morning'))(cs.sections[o][1])} section`, sub: sectionText(cs.sections[o]) + (clash(k, o) ? ' · clashes' : ''), value: 's', disabled: clash(k, o) }, { label: 'Withdraw', sub: 'No refund, and your progress is lost', value: 'x' }, { label: 'Back', value: null }], { text: `${cs.code} · ${CAST[cs.prof].name} · ${sectionText(cs.sections[c.sec])}` });
+      const a = await choose(cs.name, [{ label: 'What is left to do', value: 'w' }, { label: samePod(cs) ? `Change to ${sectionText(cs.sections[o])}` : `Change to the ${pod(cs.sections[o][1]).toLowerCase()} section`, sub: sectionText(cs.sections[o]) + (clash(k, o) ? ' · clashes' : ''), value: 's', disabled: clash(k, o) }, { label: 'Withdraw', sub: 'No refund, and your progress is lost', value: 'x' }, { label: 'Back', value: null }], { text: `${cs.code} · ${CAST[cs.prof].name} · ${sectionText(cs.sections[c.sec])}` });
       if (a === 'w') await say(todo(k).map(t => ({ who: cs.name, text: t })));
       else if (a === 's') { if (setSection(k, o)) toast(`Moved to ${sectionText(cs.sections[o])}. My Day has the new time.`, 'good', 3600); }
       else if (a === 'x') { const y = await choose(`Withdraw from ${cs.name}?`, [{ label: 'Yes, withdraw', value: 1 }, { label: 'No, keep it', value: 0 }]); if (y) { withdraw(k); toast(`You have withdrawn from ${cs.name}.`, 'info'); } }
@@ -185,7 +190,7 @@ async function registrar() {
     const id = await choose('Enrol: choose a course', list.map(q => ({ label: `${q.name}`, sub: `${q.code} · ${q.skill[0].toUpperCase() + q.skill.slice(1)} · ${CAST[q.prof].short}`, value: q.id })).concat({ label: 'Back', value: null }), { text: 'Each course: two lectures, one practical, a little coursework and a final.' });
     if (!id) continue; const cs = C(id), pr = price(id), cost = pr.pay + (S.card ? 0 : TUNE.card);
     /* QA7: sections are named by their hour (was Day / Evening by position: Bay Ecology's "Evening section" met at 11:30) */
-    const sec = await choose(cs.name, cs.sections.map((s, i) => ({ label: `${s[1] >= 17 ? 'Evening' : s[1] >= 12 ? 'Afternoon' : 'Morning'} section: ${sectionText(s)}`, sub: clash(id, i) ? 'Clashes with a class you have' : `${fmt(cost)}${pr.why ? ' · ' + pr.why : ''}${S.card ? '' : ' · includes the card'}`, value: i, disabled: clash(id, i) })).concat({ label: 'Not this one', value: null }), { text: `${cs.blurb} You get: ${cs.perk}` });
+    const sec = await choose(cs.name, cs.sections.map((s, i) => ({ label: samePod(cs) ? `Section: ${sectionText(s)}` : `${pod(s[1])} section: ${sectionText(s)}`, sub: clash(id, i) ? 'Clashes with a class you have' : `${fmt(cost)}${pr.why ? ' · ' + pr.why : ''}${S.card ? '' : ' · includes the card'}`, value: i, disabled: clash(id, i) })).concat({ label: 'Not this one', value: null }), { text: `${cs.blurb} You get: ${cs.perk}` });
     if (sec === null) continue;
     if (enrol(id, sec)) { const n = nextOf(id); await say([{ who, text: `There. Stamped. ${cs.name}, ${sectionText(cs.sections[sec])}, with ${CAST[cs.prof].name}.` }, { who, text: `Your first class is ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' at ' + hh((n.T % DAY) / 60) : 'this week'} in the lecture theatre, straight ahead. It is on My Day. Do not be late; the clock is already two minutes fast.` }]); return; }
   }
@@ -235,6 +240,20 @@ async function sit(seat, sc) {
     await res.sheet.result({ title: talk.title, lines: ['A good half hour.', first ? 'A new one for your list of open lectures.' : null, xp ? `+${xp} xp` : null, 'Next Wednesday: a different professor, a different curious thing.'], btn: 'Out into the evening' }); res.sheet.close(); return true;
   } catch (e) { console.warn('university class', e); CL.abort(); free(); return false; }
 }
+/** QA8 (round-7 open item): a game saved in the middle of a class loads on the street, and the class is over before you can walk back in.
+ *  The kindest answer: the class you were sitting counts as attended (a lecture with half the participation marks, a practical at a middling score).
+ *  A final is never marked this way: it simply does not count as a try, and you sit it at your next class. */
+function creditInterrupted() {
+  const t = now(); let any = false;
+  for (const id of enrolled()) { const c = row(id), T = c.inClass; if (!T || t < T || t >= T + TUNE.classMin + 10 || (c.since || 0) >= T) continue;
+    const n = nextOf(id, T); if (!n || n.T !== T) continue; const cs = C(id); c.inClass = 0; any = true;
+    c.doneT = T; if (n.kind === 'lecture' || n.kind === 'practical') { c.since = t; c.miss = t; if (c.appt !== null && c.appt !== undefined) safe(() => G.planner.done(c.appt));
+      if (n.kind === 'lecture') { c.part[0] += 1; c.part[1] += 2; teach(cs.skill, TUNE.xp.lecture * .6); } else { c.prac = Math.max(c.prac || 0, .6); teach(cs.skill, TUNE.xp.practical * .6); }
+      c.unit++; G.emit('university:class', id, n.unit, n.kind, n.kind === 'lecture' ? 1 : .6);
+      const m = nextOf(id); note(CAST[cs.prof].short, `You were in ${UNITS[n.unit].name} when you stopped for the day. It counts: you are down as present.${m && m.T ? ` Next: ${DAYN[wd(dayOf(m.T))]} ${hh((m.T % DAY) / 60)}.` : ''}`, 'normal'); }
+    else { c.since = T + TUNE.late; c.miss = T + TUNE.late; note(CAST[cs.prof].short, 'Your final was interrupted when you stopped for the day. It does not count as a try: sit it at your next class.', 'normal'); } }
+  if (any) syncPlanner();
+}
 /** leaving a class half way: it counts as not attended (no penalty beyond the wait) */
 function checkLeft(ses) { const c = row(ses.cid); if (c) { c.miss = now(); c.since = ses.T + TUNE.late; if (!loading) c.inClass = 0; } syncPlanner(); }
 const stationOn = k => isOpen();
@@ -254,7 +273,7 @@ async function useStation(k, sc, city) {
     let res = null; try { res = await play(Object.assign({ level: lvl(cs.skill), sub: v === 'p' ? `${cs.code} · project` : 'Open studio' }, cs.game, v === 'p' ? { title: PRACTICAL[due].project.title } : null)); } catch (e) { res = null; }
     if (!(G.busy && G.busy._uni)) return false; const score = res ? (res.auto ? .5 : res.score || 0) : .3; G.advance(v === 'p' ? TUNE.projectMin : 30); G.endActivity(true);
     if (v === 'p') { const c = row(due); c.proj = score; S.work++; teach(cs.skill, TUNE.xp.project * (.6 + .6 * score)); inspire(8); moodlet('uni_learned'); G.emit('university:project', due, score); syncPlanner();
-      toast(`Project handed in: ${PRACTICAL[due].project.title}. ${score >= .8 ? 'It is going on the Student Work board.' : 'Done is better than perfect.'}${ready(due) ? ' You can sit the final now.' : ''}`, 'good', 5200); }
+      toast(`Project handed in: ${PRACTICAL[due].project.title}. ${score >= .8 ? 'It is going on the Student Work board.' : 'Done is better than perfect.'}${ready(due) ? (c.unit >= 3 ? ' You can sit the final now.' : ' Your coursework is in: after your last lecture comes the final.') : ''}`, 'good', 5200); }
     else { teach(cs.skill, 22 * (.5 + score)); need('fun', 4); toast(`A good half hour of ${cs.skill}.`, 'good'); }
     return true;
   } catch (e) { console.warn('university station', e); CL.abort(); return false; }
@@ -399,12 +418,13 @@ export function init() {
     stats: () => { const S = st(); return { card: S.card, visits: S.visits, enrolled: enrolled(), certs: Object.keys(S.certs).length, diploma: !!S.diploma, credit: S.credit, voucher: S.voucher, clubs: S.clubs.length, open: Object.keys(S.open).filter(k => k[0] !== 'd').length, work: S.work }; },
     debug: { /* tests: finish the current unit of a course without playing it */ pass(id, score = .8) { const c = row(id); if (!c) return false; if (c.unit === 0 || c.unit === 2) { c.part[0] += 2; c.part[1] += 2; c.unit++; } else if (c.unit === 1) { c.prac = score; c.unit++; } c.since = now(); c.miss = now(); syncPlanner(); return c.unit; }, work(id, score = .8) { const c = row(id); if (!c) return false; c.read = 1; c.readOk = 1; c.proj = score; syncPlanner(); return true; }, sync: () => { syncPlanner(); citySync(true); }, class: CL, sheet: () => curSheet(), want: () => { const s = curSheet(); return s ? s.want() : null; } },
   };
-  G.on('load', () => { loading = true; CL.abort(); setTimeout(() => { loading = false; }, 0); for (const sc of G.sceneCache.values()) if (sc && sc.uni) { for (const q of (sc.uni.seats || []).concat(sc.uni.carrels || [])) if (q.taken === G.player) q.taken = null; sc._uk = null; if (sc.uni.board) sc.uni.board.show(null); } setup(); lastBan = ''; safe(() => citySync(true)); });
-  G.on('ready', setup); G.on('game:start', setup);
+  G.on('load', () => { loading = true; CL.abort(); setTimeout(() => { loading = false; }, 0); for (const sc of G.sceneCache.values()) if (sc && sc.uni) { for (const q of (sc.uni.seats || []).concat(sc.uni.carrels || [])) if (q.taken === G.player) q.taken = null; sc._uk = null; if (sc.uni.board) sc.uni.board.show(null); } st(); wrapXp(); navReg(); setTimeout(() => safe(syncPlanner), 0); lastBan = '';   /* QA8: syncPlanner waits for the planner's own 'load' (order 61 runs after us): it used to see the old planner, miss the class entry and add a second one on every load */ safe(() => citySync(true)); });
+  G.on('ready', setup); G.on('game:start', setup); G.on('game:start', o => { if (!(o && o.isNew)) setTimeout(() => safe(creditInterrupted), 400); });
   G.on('room:build', sc => { if (sc && sc.def && sc.def.showpiece === 'university' && !campus) safe(() => ensure(getCity())); });
   G.on('scene', (s, prev) => { if (CL.running() && !(s && s.def && s.def.showpiece === 'university') && !(s && s.id === 'city')) CL.abort(); if (!s || s.id !== 'city' || !s.world) return; if (!s._university) { s._university = true; try { wire(s); } catch (e) { console.warn('university', e); } } citySync(true);
     const p = G.player, B = campus && campus.hall && campus.hall.B; if (B && p.x > B[0] && p.x < B[3] && p.y > B[1] && p.y < B[4]) { p.x = CAMPUS.door.x; p.y = CAMPUS.door.y + .5; } });
-  let acc = 0, lastChk = -9; G.on('minutes', () => { if (inside()) for (const id of enrolled()) { const c = row(id), a = c.appt !== null && c.appt !== undefined ? safe(() => G.planner.get(c.appt), null) : null; if (a && a.s < 3) { a.lv = 1; a.here = 1; } }   /* the planner only knows the hall as 'the place': inside any of our rooms you are there */
+  const onQuad = () => !!(G.scene && G.scene.id === 'city' && G.player && G.player.x > 160 && G.player.x < 188 && G.player.y > 22 && G.player.y < 56);   /* QA8: the pond class is on the quad: being there counts too (a sticky "Leave now" sat over the practical) */
+  let acc = 0, lastChk = -9; G.on('minutes', () => { if (inside() || onQuad()) for (const id of enrolled()) { const c = row(id), a = c.appt !== null && c.appt !== undefined ? safe(() => G.planner.get(c.appt), null) : null; if (a && a.s < 3) { a.lv = 1; a.here = 1; } }   /* the planner only knows the hall as 'the place': inside any of our rooms you are there */
     if (now() - lastChk >= 2 || now() < lastChk) { lastChk = now(); checkMissed(); safe(() => citySync()); } ++acc; if (acc % 20 === 0) offers();
     if (inside() && !isOpen() && !G.busy && !G.modal && !G.cutscene && !CL.running()) { const sc = G.scene; if (sc._closing) return; sc._closing = true; toast('"Closing up!" Albie jingles his keys and walks you to the door.', 'info', 4200); exitRoom({ poi: DOOR }).then(() => { sc._closing = false; }, () => { sc._closing = false; }); } });
   G.on('day', () => { const S = st(); for (const k in S.seen) if (/^(tk|v|br|of)\w*\d+$/.test(k) && !k.endsWith(String(today()))) delete S.seen[k]; for (const k in S.open) if (k[0] === 'd' && k !== 'd' + today()) delete S.open[k]; syncPlanner(); });

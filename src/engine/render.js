@@ -61,7 +61,7 @@ function treeLayer(world, cx, cy) {
 }
 
 export class Renderer {
-  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.W = 8; this.H = 8; this.stats = { items: 0, chunks: 0 }; this.maxNewChunks = 2; }
+  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0 }; this.maxNewChunks = 2; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.ctx.imageSmoothingEnabled = false; }
   _chunk(world, cx, cy, budget) {
     const cache = world._chunks || (world._chunks = new Map()); const key = cx * 4096 + cy; let e = cache.get(key);
@@ -118,12 +118,12 @@ export class Renderer {
     for (const it of S) if (it.e && it.e.ghost) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
     const dark = env.dark || 0;
     if (env.amb && env.amb !== '#ffffff') {
-      const m = this.M.getContext('2d'); m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
+      const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
       if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = Math.min(1, dark * .5); for (const l of world.lights) { const s = WS(l.x, l.y, l.z), ps = poolSprite(l.r, l.c || '#ffd9a0'), x = Math.round(s[0]) - cam.x - (ps.width >> 1), y = Math.round(s[1]) - cam.y - (ps.height >> 1); if (x > W || y > H || x + ps.width < 0 || y + ps.height < 0) continue; m.drawImage(ps, x, y); } if (hooks.lights) hooks.lights(m, cam, poolSprite); }
       ctx.globalCompositeOperation = 'multiply'; ctx.drawImage(this.M, 0, 0); ctx.globalCompositeOperation = 'source-over';
     }
     if (dark > .02) {
-      const b = this.B.getContext('2d'); b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
+      const b = this.Bx; b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
       for (const it of S) { if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }

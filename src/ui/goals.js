@@ -81,7 +81,7 @@ export function hint(text, target, opts = {}) {
   injectCss();
   const box = el('div.tut', { onclick: () => opts.onTap && opts.onTap() }, el('span', { text }), opts.skip ? el('button.tut-skip', { text: opts.skipLabel || 'Skip intro', onclick: e => { e.stopPropagation(); opts.skip(); } }) : null);
   const arrow = el('div.tut-arrow', { style: { display: 'none' } });
-  root().append(arrow, box); H = { box, arrow, target, hl: null, world: null }; tickHint();
+  root().append(arrow, box); H = { box, arrow, target, hl: null, world: null, k: 0, low: false }; tickHint();
 }
 function tickHint() {
   if (!H) return; let t = H.target; try { if (typeof t === 'function') t = t(); if (typeof t === 'string') t = document.querySelector(t); } catch (e) { t = null; }
@@ -91,8 +91,11 @@ function tickHint() {
 function frame() {
   if (cap && performance.now() > capT) { cap.remove(); cap = null; }
   if (!H) return; const w = H.world;
+  /* QA8: with the phone up, the bubble sat on the app's own header (the ride's destination, the Chats tabs); it moves to the bottom unless what it points at is down there */
+  if (++H.k % 10 === 1) { let low = false; try { if (G.phone && G.phone.isOpen) { const hl = H.hl && H.hl.getBoundingClientRect(); low = !hl || !hl.height || hl.top < innerHeight * .55; } } catch (e) { low = false; } if (low !== H.low) { H.low = low; H.box.classList.toggle('low', low); } }
   if (!w || G.modal) { H.arrow.style.display = 'none'; return; }
-  const s = G.toScreen(w.x, w.y, (w.z === undefined ? (G.world ? G.world.heightAt(w.x, w.y) : 0) : w.z) + (w.h || 2.7));
+  /* QA8: 2.7 (a head / door height) left the arrow floating over the player for a floor spot or a bag on the belt; plain points and props get a low arrow */
+  const s = G.toScreen(w.x, w.y, (w.z === undefined ? (G.world ? G.world.heightAt(w.x, w.y) : 0) : w.z) + (w.h || (w.sprite || w.bb || !('label' in w || 'ent' in w || 'name' in w) ? 1.3 : 2.7)));
   H.arrow.style.display = ''; H.arrow.style.transform = `translate(${Math.round(Math.max(14, Math.min(innerWidth - 14, s.x)))}px,${Math.round(Math.max(30, Math.min(innerHeight - 20, s.y)))}px)`;
 }
 export function caption(who, text, ms = 3600) {

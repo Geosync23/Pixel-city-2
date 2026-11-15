@@ -95,7 +95,7 @@
 .wq-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;min-height:58px;padding:8px 9px;background:#fff8e6;border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);border-left:8px solid var(--c);font:inherit;color:inherit;cursor:pointer}
 .wq-tile canvas{grid-row:1/3}
 .wq-tile b{font-size:14.5px;line-height:1.15}
-.wq-tile small{font-size:12px;color:#6b5d4a;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wq-tile small{font-size:12px;color:#6b5d4a;line-height:1.2;overflow-wrap:anywhere}   /* QA8: wraps ("Lowest: Hunger 47" was cut to "Lowest: Hunger ..." at 390 px) */
 .wq-tile:active,.wq-shelf:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
 .wq-shelf{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;margin:0 0 6px;background:#f6e3b4;border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);font:inherit;color:inherit;cursor:pointer}
 .wq-shelf span{flex:1;display:flex;flex-direction:column;min-width:0}

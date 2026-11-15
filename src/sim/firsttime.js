@@ -29,7 +29,7 @@ import { SYSTEM_BY_ID, BIG_PLACES } from '../data/systems.js';
 import '../art/icons/systems.js';
 
 export const order = 135;
-const DAY = 1440, GAP_REAL = 15, GAP_SOON_REAL = 75, GAP_GAME = 45, CAP_SOON = 6, CAP_ALL = 9, BANNER_QUIET = 9;
+const DAY = 1440, GAP_REAL = 15, GAP_SOON_REAL = 75, GAP_GAME = 45, CAP_SOON = 6, CAP_ALL = 9, BANNER_QUIET = 9, UI_QUIET = 6;   /* UI_QUIET (QA8): real seconds after any sheet / phone closes */
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const S = () => { let s = G.state.tips; if (!s || typeof s !== 'object') s = G.state.tips = { seen: {}, read: {}, last: -999 }; s.seen = s.seen || {}; s.read = s.read || {}; s.q = s.q || []; s.at = s.at || {}; return s; };
 const tip = id => safe(() => G.tips.get(id), null) || WINDOW_BY_ID[id] || null;
@@ -37,7 +37,7 @@ const DEBUG_URL = /[?&]scene=/.test(safe(() => location.search, ''));   /* tools
 const introDone = () => (DEBUG_URL || !!safe(() => G.state.flags.introDone, false)) && !safe(() => G.intro.active, false);
 const started = () => !!G.started || DEBUG_URL;
 const real = () => performance.now() / 1000;
-let M = null, lastClose = -999, lastBanner = -999, tickT = 0, rush = false;   /* rush: tests only (no gaps, no daily cap) */
+let M = null, lastClose = -999, lastBanner = -999, lastUI = -999, tickT = 0, rush = false;   /* rush: tests only (no gaps, no daily cap) */
 
 /* ---------- when is it all right to put a window up ---------- */
 export function calm(now, t) {
@@ -54,7 +54,10 @@ export function calm(now, t) {
   if (!rush && (s.n || 0) >= CAP_SOON) return 'cap';
   if (!rush && (real() - lastClose < GAP_SOON_REAL || (G.state.t - (s.last === undefined ? -999 : s.last) < GAP_GAME && G.state.t >= s.last))) return 'gap';
   if (G.modal > 0 || safe(() => G.phone.isOpen, false) || safe(() => G.furnish.active, false)) return 'window';
+  if (!rush && real() - lastUI < UI_QUIET) return 'window';   /* QA8: not the instant a sheet closes (it swallowed the next tap) */
   if (G.busy) return 'busy';
+  if (!rush && safe(() => G.planner.list(G.state.t - 30, G.state.t + 30).some(a => !a.flex && a.s < 3 && G.state.t > a.t - 20 && G.state.t < a.t + 20), false)) return 'due';   /* QA8: not while hurrying to a class, a shift or a show that starts (or just started) */
+  if (!rush && (G.pending || safe(() => G.player.path && G.player.path.length, 0))) return 'moving';   /* QA8: not while walking to a door / a thing (it dropped the walk) */
   if (real() - lastBanner < BANNER_QUIET || document.querySelector('#ph-banners > *')) return 'banner';
   return '';
 }
@@ -69,7 +72,7 @@ function present(id, now) {
     if (how === 'go') setTimeout(() => safe(() => G.tips.go(t)), 60); };
   const key = e => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); done('ok'); } };
   const card = el('div.ftw-card', { role: 'dialog', 'aria-label': t.title },
-    el('div.ftw-head', null, iconEl(t.icon || (sys && sys.icon) || 'sys.first', 2), el('small', { text: sys ? `First time · ${sys.name}` : 'First time' })),
+    el('div.ftw-head', null, iconEl(t.icon || (sys && sys.icon) || 'sys.first', 2), el('small', { text: sys ? `First time · ${t.head || (WINDOW_BY_ID[id] && WINDOW_BY_ID[id].head) || sys.name}` : 'First time' })),
     el('b.ftw-title', { text: t.title }), el('p', { text: t.text }),
     el('div.ftw-btns', null, t.go ? el('button.ftw-go', { 'data-ftw': 'go', onclick: () => done('go') }, t.goLabel || 'Show me') : null, el('button.ftw-ok', { 'data-ftw': 'ok', onclick: () => done('ok') }, 'Got it')),
     first ? el('small.ftw-foot', { text: 'Each of these comes once. They are all in Bay Basics to read again, and Settings can switch them off.' }) : null);
@@ -92,7 +95,8 @@ export function offer(id, o = {}) {
 /* A waiting window is only shown where it makes sense, the ones tied to something that just happened go first, and one that has waited too long is let go
    (not marked seen: it comes back the next time its moment does). */
 const atHome = () => safe(() => G.housing.isHome(G.scene.id), false), outAndAbout = () => !atHome() && !/^int:(clinic|airport)/.test(String(G.scene && G.scene.id));
-const WHERE = { talk: outAndAbout, cooking: atHome, boxes: atHome, sleep: atHome, mail: atHome, recipe_new: atHome, cleaning: atHome, laundry: atHome, autowork: () => safe(() => G.jobs.onShift(), false), weather: () => safe(() => G.weather.isWet(), false),
+const lowNow = re => safe(() => Object.keys(G.state.needs.v || {}).some(k => re.test(k) && /low|critical/.test(G.needs.band(k).id)), true);   /* QA8: a needs window only while that need is still low */
+const WHERE = { bladder: () => safe(() => G.needs.get('bladder') < 45, true), needs_tap: () => lowNow(/^(hunger|energy|hygiene|fun|social)$/), needs_soft: () => lowNow(/^(comfort|outdoors|inspiration)$/), fun_ways: () => lowNow(/^fun$/), talk: outAndAbout, cooking: atHome, boxes: atHome, sleep: atHome, mail: atHome, recipe_new: atHome, cleaning: atHome, laundry: atHome, autowork: () => safe(() => G.jobs.onShift(), false), weather: () => safe(() => G.weather.isWet(), false),
   events: () => !!safe(() => G.cityEvents.live(), null), chapter_after: () => !safe(() => G.chapters.active(), false) };
 const FIRST = { shift: 1, autowork: 1, promoted: 1, gigs: 1, deliveries: 1, boxes: 1, shows: 1, events: 1, bills: 1, mail: 1, opps: 1, invites: 1, uniclass: 1, chapter_after: 1, needs_tap: 1, passout: 1, wander: 1 };
 const TTL = { sleep: 180, passout: 180, weather: 360, autowork: 240, events: 600, store: 720, recipe_new: 720, spoiled: 720, money_low: 720 }, TTL_DEFAULT = 2 * DAY;
@@ -190,6 +194,7 @@ export function init() {
   G.on('game:start', o => { const s = S(); if (o && o.isNew) s.v = 2; else migrate(); });
   G.on('title:show', () => { if (M) M.done('ok'); });
   void tickT; setInterval(() => { if (!started() || G.onTitle) return;
+    if (G.modal > 0 || safe(() => G.phone.isOpen, false) || safe(() => G.furnish.active, false) || document.querySelector('#ph-banners > *')) lastUI = real();   /* QA8: also a banner just swiped away */
     if (safe(() => G.furnish.active, false) && introDone()) { safe(() => G.shelf.touch('decor')); if (!S().seen.decorate && !S().off) offer('decorate', { now: true }); }
     tick(); }, 500);
 }

@@ -29,8 +29,10 @@ export function modal(opts = {}) {
 export function choose(title, options, opts = {}) { return new Promise(res => { let done = false; const m = modal({ title, cls: 'menu ' + (opts.cls || ''), onClose: () => { if (!done) res(null); } }); if (opts.text) m.body.append(el('p.menu-text', { text: opts.text })); for (const o of options) m.body.append(el('button.opt', { disabled: o.disabled, onclick: () => { done = true; m.close(); res(o.value !== undefined ? o.value : o.label); } }, o.icon, el('span.opt-l', { text: o.label }), o.sub && el('span.opt-s', { text: o.sub }))); }); }
 /** speech bubble above a world position or entity (auto-removes). */
 export function bubble(target, text, ms = 2800, cls = '') {
-  const b = el('div.bubble' + (cls ? '.' + cls : ''), { text }); root().append(b); const t0 = performance.now();
-  const upd = () => { if (performance.now() - t0 > ms || !b.isConnected) { b.remove(); G.off('frame', upd); return; } const s = G.toScreen(target.x, target.y, (target.z || 0) + (target.bubbleH || 1.9)); b.style.left = s.x + 'px'; b.style.top = s.y + 'px'; const r = b.getBoundingClientRect(), dx = Math.max(6 - r.left, 0) + Math.min(innerWidth - 6 - r.right, 0); if (dx) b.style.left = (s.x + dx) + 'px'; };
+  const b = el('div.bubble' + (cls ? '.' + cls : ''), { text }); root().append(b); const t0 = performance.now(); let half = -1, ox = 0;
+  const upd = () => { if (performance.now() - t0 > ms || !b.isConnected) { b.remove(); G.off('frame', upd); return; } const s = G.toScreen(target.x, target.y, (target.z || 0) + (target.bubbleH || 1.9)); 
+    if (half < 0) { b.style.left = s.x + 'px'; b.style.top = s.y + 'px'; const r = b.getBoundingClientRect(); half = r.width / 2; ox = r.left + half - s.x; }   /* QA8: measured once (the text never changes): no layout read every frame */
+    const dx = Math.max(6 - (s.x + ox - half), 0) + Math.min(innerWidth - 6 - (s.x + ox + half), 0); b.style.left = (s.x + dx) + 'px'; b.style.top = s.y + 'px'; };
   G.on('frame', upd); upd(); return b;
 }
 /** dialogue box at the bottom with speaker name; lines: [{who, text}] or strings. Resolves when dismissed. */

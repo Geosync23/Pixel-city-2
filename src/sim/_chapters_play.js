@@ -27,7 +27,10 @@ function act(label, anim, minutes, o = {}) {
 /** a mini-game from the skill kit, by key (flip, hoops, chess, sketch, pour, write ...) */
 async function kit(key, c, o = {}) {
   if (!G.skillplay || !G.skillplay.demo) return 'ok';
-  const r = await G.skillplay.demo(key, o.level || Math.min(3, safe(() => G.skills.level(o.skill || 'cooking'), 1)), o.opts || {});
+  const pr = G.skillplay.demo(key, o.level || Math.min(3, safe(() => G.skills.level(o.skill || 'cooking'), 1)), o.opts || {});
+  /* the kit names its games after the skill ("Mix: Blue Heron", "Writing: haiku"): in a Chapter the sheet says what you are really doing */
+  if (o.title) { const name = () => { const b = document.querySelector('.mg .mg-tt b'), sm = document.querySelector('.mg .mg-tt small'); if (b) b.textContent = o.title; if (sm && o.sub) sm.textContent = o.sub; const h = document.querySelector('.mg .mg-hint'); if (h && o.hint) h.textContent = o.hint; return !!b; }; if (!name()) { let k = 0; const iv = setInterval(() => { if (name() || ++k > 20) clearInterval(iv); }, 50); } }
+  const r = await pr;
   return c.alive() ? grade(r) : 'dead';
 }
 /** a plain kit game when a showpiece cannot run its own right now */
@@ -85,7 +88,7 @@ const A = {
   },
   async 'minigame:flip'(st, c) {
     const r = await c.doAt([{ tag: 'stove' }, { label: /stove|range|cook/i }], st.label, { go: 'To the stove', hint: st.hint }); if (r !== 'done') return r;
-    return kit('flip', c, { skill: 'cooking' });
+    return kit('flip', c, { skill: 'cooking', title: "Bea's Maple Oat Pancakes", sub: "At Nana's stove" });
   },
   /* --- Chapter 2 --- */
   async 'ui:map_pick'(st, c, arg) {
@@ -173,10 +176,21 @@ const A = {
   async 'minigame:fm_auction'(st, c) {
     const n = G.now(); if (n.hf < 5.52) await c.fade(() => G.advance(Math.round((5.55 - n.hf) * 60)));
     const r = await c.doAt([{ label: /auction|rostrum|bid/i }], st.label, { go: 'To the rostrum', hint: st.hint }); if (r !== 'done') return r;
-    const lots = safe(() => G.fishmarket.lots(), []), open = lots.filter(l => !l.sold);
-    if (open.length && n.hf < 7.5) {
-      const res = await safe(() => G.fishmarket.bid(lots.indexOf(open[Math.min(open.length - 1, 0)])), Promise.resolve(null));
-      if (!c.alive()) return 'dead'; if (res) return res.won ? 'good' : 'ok';
+    /* the real auction: lot nine if it is still on the ice (the script calls it), else the next lot up. The script has you buy the fish whatever happens, so:
+       Theo stands the difference if your purse is short, and a lot that gets away from you is followed by one you do get (a touch eager). */
+    const pick = () => { const L = safe(() => G.fishmarket.lots(), []), l = L.find(q => q.n === 9 && !q.sold) || L.find(q => !q.sold); return l ? { i: L.indexOf(l), l } : null; };
+    const first = pick();
+    if (first && G.now().hf < 7.5) {
+      const purse = safe(() => G.money.get(), 0), treat = purse < (first.l.start || 0);        /* short of the opening price: the fish is on Theo */
+      const lend = l => { const need = Math.ceil((l.start || 0) - safe(() => G.money.get(), 0)); if (need > 0) safe(() => G.money.add(need, 'gift')); };
+      const settle = () => { if (!treat) return; const over = safe(() => G.money.get(), 0) - purse; if (over > 0) safe(() => G.money.add(-over, 'gift')); else if (over < 0) safe(() => G.money.add(-over, 'gift')); };   /* your purse is as it was */
+      if (treat) { lend(first.l); c.caption('theo', 'Put your wallet away. I am allowed to lend to family. Informally.', 4200); await c.sleep(1200); }
+      const res = await safe(() => G.fishmarket.bid(first.i), Promise.resolve(null));
+      if (!c.alive()) return 'dead';
+      if (res && res.won) { settle(); return res.price <= ((first.l.start || 0) + (first.l.floor || 0)) / 2 ? 'good' : 'ok'; }
+      const again = pick();
+      if (again) { if (treat) lend(again.l); const r2 = await safe(() => G.fishmarket.bid(again.i, .2), Promise.resolve(null)); if (!c.alive()) return 'dead'; }
+      settle(); return 'ok';
     }
     return plain({ kind: 'timing', title: 'Lot nine: the clock is falling', hint: 'Hand up when the price feels right.', o: { style: 'bar' } }, c);
   },
@@ -223,27 +237,31 @@ const A = {
     tk.boards.forEach((b, i) => cues.push(() => { if (U) safe(() => U.board.show({ mode: 'slide', title: tk.title.toUpperCase().slice(0, 34), fig: b.fig, lines: wrap(b.h, 17).concat(wrap(b.t, 17)).slice(0, 4), n: i + 1, of: tk.boards.length })); say(prof, b.t, 6200); }));
     let k = 0; const step = () => { if (k < cues.length) cues[k++](); }; step(); const iv = setInterval(step, 4600);
     if (seat) { seat.taken = P; P.poseOpts = { seated: true }; }
+    /* the class camera: one zoom step back, looking at the dais and the screen (the same view the University's own classes use) */
+    const z0 = G.zoom, F = U && U.focus, port = innerHeight > innerWidth, proxy = F ? { x: F.x, y: F.y + (port ? 2.2 : 1), z: (F.z || 0) - (port ? (innerHeight * .1 / (G.cssScale || 2)) / 16 : 0) } : null;
+    if (proxy) { if (z0 >= 3) safe(() => G.setZoom(z0 - 1)); G.camTarget = proxy; }
+    const uncam = () => { if (!proxy) return; if (G.camTarget === proxy) G.camTarget = null; if (G.zoom !== z0) safe(() => G.setZoom(z0)); };
     await act('Listening: "' + tk.title + '"', 'sit', 36, Object.assign({ rate: 36 / (cues.length * 4.6 + 1.5) }, seat ? { at: { x: seat.x, y: seat.y, z: seat.z, dir: seat.dir } } : {}));
-    clearInterval(iv); if (seat) { P.poseOpts = null; if (seat.taken === P) seat.taken = null; } st._left = []; if (!c.alive()) { tidy(); return 'dead'; }
+    clearInterval(iv); if (seat) { P.poseOpts = null; if (seat.taken === P) seat.taken = null; } st._left = []; if (!c.alive()) { uncam(); tidy(); return 'dead'; }
     safe(() => G.needs.add('inspiration', 12)); safe(() => G.needs.add('fun', 8)); safe(() => { G.state.uni.open[tk.id] = 1; });
     const q = tk.ask[0], v = await choose(`${prof} looks along the front row. "${q[0]}"`, q[1].map((t, i) => ({ label: t, value: i + 1 })).concat([{ label: '(Look at Kit.)', value: 99 }]));
-    if (!c.alive()) { tidy(); return 'dead'; }
+    if (!c.alive()) { uncam(); tidy(); return 'dead'; }
     const right = v === q[2] + 1;
     say(prof, right ? q[3] : v === 99 ? 'No? ' + q[3] : 'Not quite. ' + q[3], 5200); await c.sleep(2600);
     if (U) safe(() => U.board.show({ mode: 'stage', title: 'OPEN LECTURE', lines: ['THANK YOU', 'NEXT: WEDNESDAY 19:30'] }));
-    tidy(); return right ? 'good' : 'ok';
+    uncam(); tidy(); return right ? 'good' : 'ok';
   },
   /* --- Chapter 13 --- */
   async 'minigame:cook'(st, c) {
     const r = await c.doAt([{ tag: 'stove' }, { label: /stove|range|cook/i }], st.label, { go: 'To the table', hint: st.hint }); if (r !== 'done') return r;
-    return kit('flip', c, { skill: 'cooking' });
+    return kit('flip', c, { skill: 'cooking', title: 'The apple-maple pie', sub: "With Nana, in her kitchen", hint: 'Tap when the marker is in the green: apples in the pan, a turn at just the right moment. Nana is watching the crust, and you.' });
   },
   /* --- Chapter 14 / 15 --- */
   async 'minigame:pour'(st, c) {
     const lines = (st.talk || []).slice(); const iv = setInterval(() => { if (!lines.length) return clearInterval(iv); const l = lines.shift(); c.caption(l.who, l.text, 5000); }, 5200);
-    const r = await kit('pour', c, { skill: 'mixology' }); clearInterval(iv); st._left = lines; return r;
+    const r = await kit('pour', c, { skill: 'mixology', title: 'Pour the tea', sub: 'Three cups from the copper pot' }); clearInterval(iv); st._left = lines; return r;
   },
-  'minigame:write': (st, c) => kit('write', c, { skill: 'writing' }),
+  'minigame:write': (st, c) => kit('write', c, { skill: 'writing', title: 'The last page', sub: 'Page thirteen: The Lookout' }),
 };
 
 export async function run(st, c) {
