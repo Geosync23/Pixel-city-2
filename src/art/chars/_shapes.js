@@ -6,7 +6,7 @@
 // A registered shape WINS over a built-in of the same id (pass `override: true` in the def, or regHair(id, tpl, true), to redraw a built-in on purpose).
 // Modules under src/art/ are auto-imported (tools/artfiles.mjs), so a new file registers itself; nobody edits an index.
 import { hairFrom as hf, CAP, TAIL } from './_wear.js';
-export const SLOTS = ['top', 'outer', 'dress', 'bottom', 'shoes', 'hat', 'neck', 'glasses', 'bag', 'beard'];
+export const SLOTS = ['top', 'outer', 'dress', 'bottom', 'shoes', 'hat', 'neck', 'glasses', 'bag', 'beard', 'ear'];
 export const SHAPES = {}; for (const s of SLOTS) SHAPES[s] = {};
 export const HAIR_REG = {};
 /** ids drawn by char.js itself (filled by char.js at load); shapeIds(slot) = built-ins + registered */

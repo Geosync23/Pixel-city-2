@@ -8,13 +8,14 @@ const a = process.argv.slice(2), arg = (k, d) => { const i = a.indexOf('--' + k)
 const C = await import('./clothes.js'), B = await import('./clothes_brands.js');
 const R = await import(pathToFileURL(path.join(here, '../engine/raster.js')));
 for (const f of fs.readdirSync(art).sort()) if (f.endsWith('.js')) await import(pathToFileURL(path.join(art, f)));
-const { drawChar, CHAR_SB, PATTERNS, BOT_PATTERNS } = await import(pathToFileURL(path.join(art, 'char.js')));
-const { shapeIds } = await import(pathToFileURL(path.join(art, '_shapes.js')));
+const { drawChar, CHAR_SB, PATTERNS, BOT_PATTERNS, SKIRT } = await import(pathToFileURL(path.join(art, 'char.js')));
+const { shapeIds, SHAPES } = await import(pathToFileURL(path.join(art, '_shapes.js')));
 const errs = [], E = m => errs.push(m), HEX = /^#[0-9a-f]{6}$/i, PRE = { top: 'tp_', outer: 'ou_', dress: 'dr_', bottom: 'bt_', shoes: 'sh_', hat: 'ht_', acc: 'ac_' };
 const min = arg('min', C.MIN_PIECES), minHair = arg('minhair', C.MIN_HAIRS);
 const sig = spec => { const r = R.render(CHAR_SB, () => drawChar(spec, { dir: 0 }), null, 1), r2 = R.render(CHAR_SB, () => drawChar(spec, { dir: 3 }), null, 1); let h = 2166136261; for (const b of [r.buf, r2.buf]) for (let i = 0; i < b.length; i++) h = Math.imul(h ^ b[i], 16777619) >>> 0; return h; };
 const ids = new Set(), names = new Set(), looks = new Map();
-const shapesFor = { top: shapeIds('top'), dress: shapeIds('dress'), outer: shapeIds('outer').concat(shapeIds('top')), bottom: shapeIds('bottom'), shoes: shapeIds('shoes'), hat: shapeIds('hat'), neck: shapeIds('neck'), glasses: shapeIds('glasses'), bag: shapeIds('bag') };
+const shapesFor = { top: shapeIds('top'), dress: shapeIds('dress'), outer: shapeIds('outer').concat(shapeIds('top')), bottom: shapeIds('bottom'), shoes: shapeIds('shoes'), hat: shapeIds('hat'), neck: shapeIds('neck'), glasses: shapeIds('glasses'), bag: shapeIds('bag'), earring: shapeIds('ear') };
+for (const id of Object.keys(SHAPES.top)) if (SHAPES.outer[id]) E(`shape id "${id}" is registered as both a top and an outerwear shape (outerwear falls back to tops: ambiguous)`);
 for (const p of C.CATALOG) {
   const w = p.id || '(no id)';
   if (!p.id || ids.has(p.id)) E(`${w}: missing or duplicate id`); ids.add(p.id);
@@ -27,7 +28,8 @@ for (const p of C.CATALOG) {
   if (!(p.price > 0)) E(`${w}: no price`);
   if (!p.shops.length || p.shops.some(s => !B.SHOPS[s])) E(`${w}: unknown shop in ${p.shops}`);
   for (const k of ['c', 'c2', 'accent']) if (p[k] != null && !HEX.test(p[k])) E(`${w}: ${k} is not a #rrggbb colour`); if (!p.c) E(`${w}: no colour c`);
-  if (p.pat && !(p.slot === 'bottom' ? BOT_PATTERNS : PATTERNS).includes(p.pat)) E(`${w}: unknown pattern ${p.pat}`);
+  const skirtB = p.slot === 'bottom' && (SKIRT[p.shape] || (SHAPES.bottom[p.shape] && SHAPES.bottom[p.shape].skirt));
+  if (p.pat && !(p.slot === 'bottom' && !skirtB ? BOT_PATTERNS : PATTERNS).includes(p.pat)) E(`${w}: unknown pattern ${p.pat}`);
   if (p.slot === 'acc') { if (!B.ACC_KINDS.includes(p.kind)) E(`${w}: unknown accessory kind ${p.kind}`); else if (shapesFor[p.kind] && !shapesFor[p.kind].includes(p.shape)) E(`${w}: no ${p.kind} shape "${p.shape}"`); }
   else if (!shapesFor[p.slot].includes(p.shape)) E(`${w}: no ${p.slot} shape "${p.shape}"`);
   let s; try { s = sig(C.previewSpec(p)); } catch (e) { E(`${w}: drawing threw ${e.message}`); continue; }

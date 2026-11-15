@@ -118,9 +118,8 @@ regShape('hat', 'headscarf', { draw(g) {
 } });
 
 // Hijab, draped: covers the head, frames the face and wraps under the chin, falls over the shoulders; a pin in the accent colour.
-regShape('hat', 'hijabdrape', { draw(g) {
+regShape('hat', 'hijabdrape', { hideHair: true, draw(g) {
   const c = g.c, d = g.dk(c, .16), e = g.dk(c, .28), hi = g.lt(c, .22);
-  coverHair(g, 5, (x, r) => (r < -2 ? d : c));
   g.R(-1, 1, 8, c); g.R(-2, 2, 7, c); g.R(-3, 3, 6, c); g.R(-3, 3, 5, c);
   if (g.front) {
     for (let r = 4; r >= 1; r--) { P(g, -4, r, d); P(g, -3, r, c); P(g, -2, r, r === 1 ? d : c); }
@@ -133,9 +132,8 @@ regShape('hat', 'hijabdrape', { draw(g) {
 } });
 
 // Hijab, turban-wrapped: high rounded wrap with a twisted knot at the front, ears and neck free.
-regShape('hat', 'hijabturban', { draw(g) {
+regShape('hat', 'hijabturban', { hideHair: true, draw(g) {
   const c = g.c, d = g.dk(c, .2), hi = g.lt(c, .3), a = g.band || g.dk(c, .35);
-  coverHair(g, 5, () => c);
   g.R(-2, 1, 9, c); g.R(-3, 2, 8, c); g.R(-4, 3, 7, c); g.R(-4, 3, 6, c); g.R(-4, 3, 5, c); g.R(-4, -2, 4, c); P(g, -4, 3, d); P(g, -3, 3, d);
   P(g, -5, 7, d); P(g, -5, 6, d); P(g, -4, 5, d);
   if (g.front) { P(g, 1, 8, a); P(g, 2, 7, a); P(g, 1, 7, hi); P(g, 2, 8, hi); P(g, 0, 7, a); P(g, 3, 6, a); P(g, 3, 5, d); }

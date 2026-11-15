@@ -25,7 +25,7 @@ export function applyPiece(s, it) {
   if (!it) return s; for (const k of CLEAR[it.slot] || []) delete s[k];
   const c = it.c, c2 = it.c2;
   switch (it.slot) {
-    case 'top': case 'dress': s.top = it.shape; s.topColor = c; if (it.pat) s.topPat = it.pat; if (c2) s.topColor2 = c2; if (it.accent) s.accent = it.accent; if (it.inner) s.innerColor = it.inner; break;
+    case 'top': case 'dress': if (it.slot === 'dress') s.onepiece = true; else delete s.onepiece; s.top = it.shape; s.topColor = c; if (it.pat) s.topPat = it.pat; if (c2) s.topColor2 = c2; if (it.accent) s.accent = it.accent; if (it.inner) s.innerColor = it.inner; break;
     case 'outer': s.outer = it.shape; s.outerColor = c; if (it.pat) s.outerPat = it.pat; if (c2) s.outerColor2 = c2; if (it.accent) s.accent = it.accent; break;
     case 'bottom': s.bottom = it.shape; s.bottomColor = c; if (it.pat) s.botPat = it.pat; if (c2) s.bottomColor2 = c2; break;
     case 'shoes': s.shoes = c; s.shoeType = it.shape; if (c2) s.shoeColor2 = c2; break;
@@ -34,6 +34,7 @@ export function applyPiece(s, it) {
       if (it.kind === 'neck') { s.neck = it.shape; s.neckColor = c; if (it.shape === 'scarf') s.scarf = c; }
       else if (it.kind === 'glasses') { s.glasses = it.shape === 'specs' ? true : it.shape; s.glassesColor = c; }
       else if (it.kind === 'bag') { s.bag = it.shape; s.bagColor = c; if (it.accent) s.accent = it.accent; }
+      else if (it.kind === 'earring') { s.earring = it.shape || 'stud'; s.earringColor = c; }
       else s[it.kind] = c; // belt, gloves, socks, tights, watch
   }
   return s;

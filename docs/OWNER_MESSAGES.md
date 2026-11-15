@@ -407,3 +407,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 100 — Need a way to start a text chat
 > Need a way to stsrt a text chat
+
+## 101 — Tiredness drains just a bit too fast
+> Tiredness drains just a bit too fast

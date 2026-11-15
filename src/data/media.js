@@ -48,7 +48,7 @@ export const TUNE = {
 /** PlayBox games. price 0 = free; others are bought once with in-game money. skins: [{ id, name, price }] */
 export const GAMES = [
   { id: 'match', name: 'Market Match', tag: 'Swap, match three, clear the stall.', price: 0, color: '#e0703a', how: 'Drag a food onto its neighbour to swap. Line up three or more. 20 moves.', unit: 'pts' },
-  { id: 'pidge', name: 'Rooftop Pidge', tag: 'One pigeon. Many roofs. No brakes.', price: 0, color: '#5aa7dd', how: 'Tap to hop, tap again in the air to flap once. Grab the pretzels. Do not fall.', unit: 'm',
+  { id: 'pidge', name: 'Rooftop Pidge', tag: 'One pigeon. Many roofs. No brakes.', price: 0, color: '#5aa7dd', how: 'Tap for a hop, hold for a high jump. Tap again in the air to flap once. Grab the pretzels. Do not fall.', unit: 'm',
     skins: [{ id: 'gold', name: 'Golden Pidge', price: 6 }, { id: 'gull', name: 'Harbor Gull', price: 4 }] },
   { id: 'cast', name: 'One More Cast', tag: 'A quiet minute on the pier.', price: 0, color: '#2f8f8f', how: 'Hold to let the hook sink, let go to reel in. Hook fish, dodge boots. 60 seconds.', unit: 'pts' },
   { id: 'stack', name: 'Stack & Ship', tag: 'Harbor crates, one tap at a time.', price: 0, color: '#c79a2a', how: 'Tap to drop the swinging crate. Anything hanging over the edge is cut off.', unit: 'crates',

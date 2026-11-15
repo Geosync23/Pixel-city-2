@@ -17,22 +17,21 @@ D('romper', { sleeve: 2, skirt: 2, flare: 0, skirtPx: (c, x, j, n) => (x === 0 &
   front(g) { g.t(1, 0, g.sk); g.t(0, 0, g.sk); g.row(g.T - 1, g.dk(g.body, .22)); g.t(g.x0 + 1, g.T - 1, g.lt(g.body, .32)); },
   back(g) { g.t(0, 0, g.sk); g.row(g.T - 1, g.dk(g.body, .22)); } });
 // Wide-leg jumpsuit: thin straps, belted waist with a gold buckle, palazzo legs.
-D('jumpsuit', { sleeve: 0, skirt: 99, flare: 0, skirtPx: legsPx(),
+D('jumpsuit', { sleeve: 0, legs: true, wide: i => i >= 1,
   front(g) { for (let x = g.x0; x <= g.x1; x++) if (x !== g.x0 + 1 && x !== g.x1 - 1) g.t(x, 0, g.sk); g.row(g.T - 1, g.dk(g.body, .3)); g.t(1, g.T - 1, GOLD); },
   back(g) { for (let x = g.x0; x <= g.x1; x++) if (x !== g.x0 + 1 && x !== g.x1 - 1) g.t(x, 0, g.sk); g.t(0, 1, g.sk); g.row(g.T - 1, g.dk(g.body, .3)); } });
 // Dungarees: shirt (inner colour) under a bib with straps and gold buttons, chest pocket, rolled cuffs.
-D('dungarees', { sleeve: 2, arm: 'inner', skirt: 99, flare: 0, skirtPx: legsPx(c => lt(c, .3)),
+D('dungarees', { sleeve: 2, arm: 'inner', leg: (i, n, c) => (i === n - 1 && n > 2 ? lt(c, .3) : c),
   body(c, x, j, g) { return j < 2 && x !== -1 && x !== (g.wide ? 2 : 1) ? g.inner : null; },
   front(g) { g.t(1, 0, g.sk); g.t(0, 2, GOLD); if (g.wide) g.t(2, 2, GOLD); g.t(1, 3, g.lt(g.body, .25)); },
   back(g) { for (let x = -1; x <= 1; x += 2) { g.t(x, 0, g.dk(g.body, .08)); g.t(x, 1, g.dk(g.body, .08)); } g.t(0, 2, g.body); } });
 // Boiler suit: long sleeves, pale collar, zip down the front, belt, chest pocket.
-D('boilersuit', { sleeve: 9, skirt: 99, flare: 0, skirtPx: legsPx(c => dk(c, .2)),
+D('boilersuit', { sleeve: 9, leg: (i, n, c) => (i === n - 1 && n > 2 ? dk(c, .25) : c), px: (i, n, near, c, c2) => (i === 2 ? [dk(c, .2), c2] : null),
   front(g) { g.t(0, 0, g.lt(g.body, .32)); if (g.wide) g.t(2, 0, g.lt(g.body, .32)); g.t(1, 0, g.sk); for (let j = 1; j < g.T; j++) g.t(1, j, ZIP); g.row(g.T - 1, g.dk(g.body, .3)); g.t(1, g.T - 1, ZIP); g.t(g.x0 + 1, 1, g.dk(g.body, .2)); },
   back(g) { for (let x = -1; x <= 1; x++) g.t(x, 0, g.lt(g.body, .32)); g.row(g.T - 1, g.dk(g.body, .3)); } });
 // Tracksuit set: zip jacket and trousers in one colour, contrast side stripes all the way down.
-D('tracksuit', { sleeve: 9, skirt: 99, flare: 0,
+D('tracksuit', { sleeve: 9, legs: true, px: (i, n, near, c, c2, k, idx) => (idx ? [c, k.pat2 || PALE] : [k.pat2 || PALE, c2]), armPx: (j, n, c, g) => (j === 1 ? (g.c2 || PALE) : null),
   body(c, x, j, g) { return x === g.x1 && j > 0 ? (g.c2 || PALE) : null; },
-  skirtPx: (c, x, j, n, k) => (x === edge(k) || x === k.x0 ? (k.pat2 || PALE) : x === 0 && j >= 1 ? dk(c, .42) : null),
   front(g) { g.row(0, g.c2 || PALE); g.t(1, 0, g.sk); for (let j = 1; j < g.T; j++) g.t(1, j, ZIP); },
   back(g) { for (let x = -1; x <= 1; x++) g.t(x, 0, g.c2 || PALE); } });
 // One-piece swimsuit: scoop neck, racer back, cut high on the hip (legs bare).

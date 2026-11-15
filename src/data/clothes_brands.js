@@ -14,7 +14,7 @@
 //     shops   optional override; otherwise the brand's shops.  season: 0 spring | 1 summer | 2 autumn | 3 winter (or a list) = only stocked then.
 //     online  true = only through the Closet app's catalogue (multi-day delivery)
 export const SLOTS = ['top', 'outer', 'dress', 'bottom', 'shoes', 'hat', 'acc'];
-export const ACC_KINDS = ['neck', 'glasses', 'bag', 'belt', 'gloves', 'socks', 'tights', 'watch'];
+export const ACC_KINDS = ['neck', 'glasses', 'bag', 'belt', 'gloves', 'socks', 'tights', 'watch', 'earring'];
 export const STYLES = ['casual', 'smart', 'formal', 'sporty', 'cozy', 'party', 'rain', 'winter', 'summer', 'artsy', 'vintage', 'work', 'street', 'outdoor'];
 export const SLOT_NAME = { top: 'Tops', outer: 'Outerwear', dress: 'Dresses & one-pieces', bottom: 'Bottoms', shoes: 'Shoes', hat: 'Hats & headwear', acc: 'Accessories' };
 /** shops that sell clothes (ids are G.places / venue ids). level = price multiplier of the shop itself, taste = styles it leans to. */
@@ -50,7 +50,7 @@ export const BRANDS = {
   lacquer: { name: 'Lacquer', tier: 1.8, look: 'jewellery, bags and eyewear: gold, pearl, glossy black, one bright jewel colour', shops: ['mall:bloom', 'pub:12', 'online'] },
 };
 /** base price by slot (accessories by kind) */
-export const BASE_PRICE = { top: 24, outer: 70, dress: 60, bottom: 38, shoes: 55, hat: 20, neck: 16, glasses: 28, bag: 45, belt: 14, gloves: 14, socks: 6, tights: 10, watch: 60 };
+export const BASE_PRICE = { top: 24, outer: 70, dress: 60, bottom: 38, shoes: 55, hat: 20, neck: 16, glasses: 28, bag: 45, belt: 14, gloves: 14, socks: 6, tights: 10, watch: 60, earring: 22 };
 const FANCY = { sparkle: 1.35, leopard: 1.2, floral: 1.15, argyle: 1.15, plaid: 1.1, tiedye: 1.1, camo: 1.1, hearts: 1.1 };
 export function priceOf(it) {
   if (it.price !== undefined) return it.price;

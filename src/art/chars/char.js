@@ -52,7 +52,7 @@ const DEF = {
 // 11 columns = x -5..5 around the head centre; first number = head row of the first string (row 6 = top of the skull,
 // row 0 = chin; rows below 0 hang over the shoulders). h hair, H highlight, d dark, t stubble, s skin, l skin shine, c accent.
 const SHORT_B = ['...hhHhh...', '..hhhHhhh..', '..hhhhhhh..', '..hhhhhh...', '..dhhhhs...', '...ddd.....'];
-const HAIR = {
+export const HAIR = {
   short: { f: [6, ['...hHHhh...', '..hhHhhhh..', '..hhhh..h..', '..hh.......', '..hs.......']], b: [6, SHORT_B] },
   buzz: { f: [6, ['...ttttt...', '..ttttttt..', '..tt.......', '..t........']], b: [6, ['...ttttt...', '..ttttttt..', '..ttttttt..', '..ttttt....', '...ttt.s...']] },
   sidepart: { f: [7, ['....hhhh...', '...hhHHhh..', '..hhhHHhh..', '..hhh.hhh..', '..hh....h..', '..hs.......']], b: [7, ['....hhhh...'].concat(SHORT_B)] },
@@ -121,7 +121,7 @@ Object.assign(HAIR, HAIR_X);
 const hairOf = id => HAIR_REG[id] || HAIR[id];
 
 BUILTIN.top = ALL_TOPS.slice(); BUILTIN.outer = OUTERS.slice(); BUILTIN.dress = Object.keys(DRESS); BUILTIN.bottom = ALL_BOTTOMS.slice(); BUILTIN.shoes = SHOE_TYPES.slice(); BUILTIN.hat = ALL_HATS.filter(Boolean);
-BUILTIN.neck = NECKS.slice(); BUILTIN.glasses = ['specs', 'sun'].concat(GLASSES_X); BUILTIN.bag = ALL_BAGS.filter(Boolean); BUILTIN.beard = BEARDS.slice(); BUILTIN.hair = ALL_HAIRS.slice();
+BUILTIN.neck = NECKS.slice(); BUILTIN.glasses = ['specs', 'sun'].concat(GLASSES_X); BUILTIN.bag = ALL_BAGS.filter(Boolean); BUILTIN.beard = BEARDS.slice(); BUILTIN.ear = ['stud', 'hoop', 'drop']; BUILTIN.hair = ALL_HAIRS.slice();
 
 /* ---------- spec -> resolved look ---------- */
 const SUITS = ['#2f3f72', '#4a4a58', '#33303f', '#5a6478', '#6a4a3a'];
@@ -169,15 +169,17 @@ function look(spec) {
   }
   if (!k.hatC) k.hatC = k.hat === 'sunhat' ? '#ecd690' : k.hat === 'hardhat' ? '#f2c230' : k.hat === 'headband' ? k.accent : mix(k.topC, k.botC, .5);
   k.overalls = k.bottom === 'overalls' && k.top !== 'dress' && !k.apron;
-  const dsh = SHAPES.dress[k.top], bsh = k.bsh = SHAPES.bottom[k.bottom] || null; k.skirtSh = null;
-  if (dsh) { k.skirtC = k.topC; k.skirtLen = dsh.skirt || 4; k.skirtPat = k.pat; k.skirtKind = k.top; k.skirtSh = dsh; k.bottom = 'bare'; k.bsh = null; k.overalls = false; }
+  // a dress shape applies only to a one-piece (spec.onepiece, set by dress-slot pieces) or to an id that is no top at all
+  const dsh = (s.onepiece ? SHAPES.dress[k.top] : (!SHAPES.top[k.top] && !BUILTIN.top.includes(k.top) && SHAPES.dress[k.top])) || null, bsh = k.bsh = SHAPES.bottom[k.bottom] || null; k.skirtSh = null; k.dsh = dsh;
+  if (dsh && (dsh.legs || dsh.leg)) { k.bottom = 'onepiece'; k.botC = k.topC; k.botPat = null; k.bot2 = k.pat2; k.bsh = { leg: dsh.leg, px: dsh.px, wide: dsh.wide }; k.overalls = false; if (dsh.skirt) { k.skirtC = k.topC; k.skirtLen = dsh.skirt; k.skirtPat = k.pat; k.skirtKind = k.top; k.skirtSh = dsh; } }
+  else if (dsh) { k.skirtC = k.topC; k.skirtLen = dsh.skirt || 4; k.skirtPat = k.pat; k.skirtKind = k.top; k.skirtSh = dsh; k.bottom = 'bare'; k.bsh = null; k.overalls = false; }
   else if (bsh && bsh.skirt) { k.skirtC = k.botC; k.skirtLen = bsh.skirt; k.skirtPat = k.botPat; k.skirtKind = k.bottom; k.skirtSh = bsh; }
-  else if (DRESS[k.top]) { k.skirtC = k.topC; k.skirtLen = DRESS[k.top][0]; k.skirtPat = k.pat; k.skirtKind = k.top; k.bottom = 'bare'; k.overalls = false; }
+  else if (DRESS[k.top] && !SHAPES.top[k.top]) { k.skirtC = k.topC; k.skirtLen = DRESS[k.top][0]; k.skirtPat = k.pat; k.skirtKind = k.top; k.bottom = 'bare'; k.overalls = false; }
   else if (SKIRT[k.bottom]) { k.skirtC = k.botC; k.skirtLen = SKIRT[k.bottom]; k.skirtPat = k.botPat; k.skirtKind = k.bottom; }
   k.sleeveTop = k.top;
   if (!uni && s.outer) { // outerwear worn open over the top: the top's colour shows down the front
     if (k.top === 'pinafore' || k.top === 'sweatervest' || k.top === 'gilet') k.inner = k.topC; else k.inner = k.pat === 'stripes' || k.pat === 'check' ? mix(k.topC, k.pat2 || WHITE, .5) : k.topC;
-    k.top = s.outer; k.topC = s.outerColor || '#33303f'; k.pat = s.outerPat || null; k.pat2 = s.outerColor2 || null; k.overalls = false;
+    k.outerOn = true; k.top = s.outer; k.topC = s.outerColor || '#33303f'; k.pat = s.outerPat || null; k.pat2 = s.outerColor2 || null; k.overalls = false;
   }
   if (k.top === 'gilet' || k.top === 'sweatervest' || k.top === 'pinafore') k.armC = k.inner;
   // metrics
@@ -187,7 +189,7 @@ function look(spec) {
   k.x0 = b === 'broad' ? -3 : -2; k.x1 = b === 'slim' ? 1 : b === 'broad' ? 3 : 2;
   k.ax = [k.x0 - 1, k.x1 + 1];
   if (k.skirtLen) k.skirtLen = Math.min(k.skirtLen, k.L - 1, kid && k.skirtLen < 9 ? 2 : 99);
-  k.tsh = torsoShape(k.top); if (k.tsh && k.tsh.arm) { const a = k.tsh.arm; k.armC = a === 'inner' ? k.inner : a === 'accent' ? k.accent : a === 'c2' ? (k.pat2 || k.accent) : a === 'skin' ? k.skin : null; }
+  k.tsh = (k.outerOn ? SHAPES.outer[k.top] || SHAPES.top[k.top] : k.dsh || SHAPES.top[k.top] || SHAPES.outer[k.top]) || null; k.ear = s.earring || null; k.earC = s.earringColor || GOLD; if (k.tsh && k.tsh.arm) { const a = k.tsh.arm; k.armC = a === 'inner' ? k.inner : a === 'accent' ? k.accent : a === 'c2' ? (k.pat2 || k.accent) : a === 'skin' ? k.skin : null; }
   k.sleeve = k.tsh ? (k.tsh.sleeve === undefined ? 9 : k.tsh.sleeve && k.tsh.sleeve < 9 ? (kid ? 1 : k.tsh.sleeve) : k.tsh.sleeve) : NO_SLEEVE[k.top] ? 0 : SHORT_SLEEVE[k.top] ? (kid ? 1 : 2) : 9;
   if (k.top === 'gilet' && s.outer && (NO_SLEEVE[k.sleeveTop] || SHORT_SLEEVE[k.sleeveTop])) { k.sleeve = NO_SLEEVE[k.sleeveTop] ? 0 : 2; }
   return k;
@@ -298,7 +300,7 @@ function standLegs(k, P, front, hipY) {
       const cloth = c !== k.skin && c !== k.tights;
       if (cloth && (k.botPat || k.bottom === 'track')) { const q = botPatC(k.botPat || 'sidestripe', i, idx, c, c2, k.bot2); c = q[0]; c2 = q[1]; }
       if (k.bottom === 'ripped' && near && i === (n >> 1)) c2 = k.skin;
-      if (cloth && k.bsh && k.bsh.px) { const q = k.bsh.px(i, n, near, c, c2, k); if (q) { c = q[0]; c2 = q[1]; } }
+      if (cloth && k.bsh && k.bsh.px) { const q = k.bsh.px(i, n, near, c, c2, k, idx, front); if (q) { c = q[0]; c2 = q[1]; } }
       if (!near) { c = dk(c, .16); c2 = dk(c2, .16); }
       p(x, hipY + i, c); p(x + 1, hipY + i, c2);
       if (cloth && ((k.bottom === 'wide' && i >= 1) || (k.bottom === 'flare' && i >= n - 2) || (k.bsh && k.bsh.wide && k.bsh.wide(i, n)))) p(idx ? x + 2 : x - 1, hipY + i, near ? c : c2);
@@ -339,7 +341,7 @@ function torso(k, P, front, yS, hipY) {
   const bare = top === 'none', xo = j => (P.lean && j < T / 2 ? P.lean : 0);
   const t = (x, j, c) => p(x + xo(j), yS + j, c);
   const sh = k.tsh, tl = sh ? sh.tail : TAILS[top];
-  const g = sh ? { t, p, x0, x1, T, cx: 1, wide: x1 > 1, sk, body, inner: k.inner, accent: k.accent, c2: k.pat2, k, front, seated: P.seated, yS, hipY, dk, lt, mix, WHITE, GOLD, row: (j, c) => { for (let x = x0; x <= x1; x++) t(x, j, c); } } : null;
+  const g = { t, p, x0, x1, T, cx: 1, wide: x1 > 1, sk, body, inner: k.inner, accent: k.accent, c2: k.pat2, k, front, seated: P.seated, yS, hipY, dk, lt, mix, WHITE, GOLD, row: (j, c) => { for (let x = x0; x <= x1; x++) t(x, j, c); } };
   if (tl && !P.seated) for (let j = 0; j < tl && j < k.L - 2; j++) for (let x = x0; x <= x1; x++) p(x, hipY + j, x === x0 ? dk(body, .2) : front && x === 1 && top !== 'tunic' && top !== 'poncho' && top !== 'duster' ? dk(body, .25) : front && x === 1 && top === 'duster' ? dk(k.inner, .12) : dk(body, .06));
   for (let j = 0; j < T; j++) for (let x = x0; x <= x1; x++) {
     let c = bare ? sk : body;
@@ -401,6 +403,7 @@ function torso(k, P, front, yS, hipY) {
     if (k.apron) { t(0, 0, dk(k.apron, .25)); for (let x = x0; x <= x1; x++) t(x, T - 2, dk(k.apron, .1)); t(0, T - 1, k.apron); t(-1, T - 1, k.apron); }
     if (k.belt) for (let x = x0; x <= x1; x++) t(x, T - 1, k.belt);
   }
+  if (k.bsh && k.bsh.torso) k.bsh.torso(g);
 }
 const STRAPS = { cami: 1, slip: 1, sundress: 1, minidress: 1, gown: 1 }, COLLAR = { blazer: 1, trench: 1, leather: 1, denim: 1, bomber: 1, duster: 1, robe: 1, windbreaker: 1, parka: 1, raincoat: 1, gilet: 1, shirt: 1, shortshirt: 1, shirtdress: 1, rugby: 1 };
 function frontX(k, top, t, T, x0, x1, sk, body, cx) {
@@ -466,6 +469,7 @@ function arm(k, P, i, a, yS) {
       if (k.pat && !k.armC) { if ((k.pat === 'stripes' || k.pat === 'plaid' || k.pat === 'check' || k.pat === 'tiedye' || k.top === 'rugby') && (j & 1)) c = mix(sl, k.pat2 || WHITE, .7); else if (k.pat === 'floral' || k.pat === 'leopard' || k.pat === 'camo' || k.pat === 'sparkle' || k.pat === 'dots') { if ((j + i) % 3 === 1) c = k.pat === 'leopard' || k.pat === 'camo' ? dk(sl, .35) : (k.pat2 || lt(sl, .45)); } }
       if ((k.top === 'bomber' || k.top === 'parka' || k.top === 'ziphoodie') && j === n - 2) c = k.top === 'parka' ? '#f0e6d0' : k.top === 'bomber' ? (k.pat2 || dk(sl, .38)) : dk(sl, .22);
     }
+    if (k.tsh && k.tsh.armPx && j < k.sleeve && j < n - 1) c = k.tsh.armPx(j, n, c, { i, k, sl, c2: k.pat2, accent: k.accent, inner: k.inner, dk, lt, mix, WHITE, GOLD }) || c;
     if (k.watch && i === 0 && j === n - 2 && n > 2) c = k.watch;
     if (j === 0 && k.epaul) c = k.epaul;
     p(path[j][0], path[j][1], c);
@@ -475,12 +479,14 @@ function arm(k, P, i, a, yS) {
 const NOCUT = { headband: 1, beret: 1, visor: 1, earmuffs: 1, bow: 1, flowercrown: 1, crown: 1, party: 1, bunny: 1 };
 function hairTpl(k, cx, yb, front, hat) {
   const tp = hairOf(k.hair)[front ? 'f' : 'b'], top = tp[0], rows = tp[1], h = k.hairC;
+  const hs = hat ? SHAPES.hat[hat] : null; if (hs && hs.hideHair) return;
   const h2 = k.hair2, fx = h2 ? (k.hairFx || 'ombre') : null;
   const map = { h, H: fx === 'streak' ? h2 : lt(h, .22), d: dk(h, .25), t: mix(k.skin, h, .4), s: k.skin, l: lt(k.skin, .35), c: k.accent };
   const map2 = h2 ? { h: h2, H: lt(h2, .22), d: dk(h2, .25), t: mix(k.skin, h2, .4), s: k.skin, l: map.l, c: k.accent } : map;
   const cut = hat && !NOCUT[hat] && !(SHAPES.hat[hat] && SHAPES.hat[hat].cut === false) && k.hair !== 'hijab', tb = hat === 'turban';
   for (let i = 0; i < rows.length; i++) {
     const rr = top - i; if (cut && rr >= (tb ? (front ? 3 : 1) : 6)) continue; const s = rows[i];
+    if (hs && ((hs.cutTo !== undefined && rr >= hs.cutTo) || (hs.hideBelow !== undefined && rr < hs.hideBelow))) continue;
     const m = fx === 'ombre' ? (rr <= 2 ? map2 : map) : fx === 'tips' ? (i >= rows.length - 2 || rr >= top ? map2 : map) : map;
     for (let j = 0; j < 11; j++) { const c = (fx === 'split' && j >= 5 ? map2 : fx === 'streak' && (j === 3 || j === 7) && s[j] === 'h' && (i & 1) ? map2 : m)[s[j]]; if (!c) continue; if (cut && rr === 5 && (j < 2 || j > 8)) continue; p(cx + j - 5, yb - rr, c); }
   }
@@ -564,6 +570,7 @@ function head(k, cx, yb, front, P) {
   else if (k.glasses) p(cx + 3, yb - 3, GLASS[k.glasses] ? (GLASS[k.glasses].f === 1 ? (k.glassC || '#d9483b') : GLASS[k.glasses].f) : '#3a3448');
   hairTpl(k, cx, yb, front, k.hat);
   if (k.hat) hatDraw(k, cx, yb, front);
+  if (k.ear) { const c = k.earC, e = SHAPES.ear[k.ear]; if (e) e.draw({ p, cx, yb, c, front, k, dk, lt, mix, WHITE, GOLD }); else if (front) { p(cx - 2, yb - 1, c); if (k.ear === 'hoop') { p(cx - 3, yb, c); p(cx - 2, yb + 1, dk(c, .2)); } else if (k.ear === 'drop') { p(cx - 2, yb, lt(c, .3)); p(cx - 2, yb + 1, c); } } else if (k.ear !== 'stud') p(cx + 3, yb - 1, c); }
 }
 function bagBack(k, front, yS, hands) { // drawn over the body
   const b = k.bag, c = k.bagC, T = k.T;
@@ -629,6 +636,7 @@ function figure(k, P, front, pose) {
     if (k.top === 'hoodie') { p(k.x0 - 1 + hdx, yS - 1, dk(k.topC, .2)); p(k.x0 - 2 + hdx, yS, dk(k.topC, .2)); }
     if (!bBehind) hB = arm(k, P, 1, P.arms[1], yS); hA = arm(k, P, 0, P.arms[0], yS);
     head(k, hdx, yb, front, P);
+    if (k.tsh && k.tsh.afterHead) k.tsh.afterHead({ p, hdx, yb, yS, front, k, body: k.topC, c2: k.pat2, x0: k.x0, x1: k.x1, dk, lt, mix, WHITE, GOLD });
     if (k.top === 'turtleneck' || k.top === 'sweaterdress') { const cl = lt(k.topC, .12); p(hdx - 1, yb, dk(cl, .12)); p(hdx, yb, cl); p(hdx + 1, yb, cl); }
     else if (k.top === 'parka' || k.top === 'raincoat') { const cl = k.top === 'parka' ? '#f0e6d0' : dk(k.topC, .16); p(k.x0 - 1 + hdx, yS - 1, cl); p(k.x0 - 2 + hdx, yS, cl); p(k.x0 - 1 + hdx, yS - 2, cl); }
     if (k.scarf) { for (let x = k.x0 - 1; x <= k.x1 + 1; x++) p(x + (P.lean || 0), yS, x < k.x0 + 1 ? dk(k.scarf, .15) : k.scarf); p(P.lean || 0, yS + 1, k.scarf); p(P.lean || 0, yS + 2, dk(k.scarf, .15)); }
@@ -645,6 +653,7 @@ function figure(k, P, front, pose) {
     if (k.scarf) { for (let x = k.x0 - 1; x <= k.x1 + 1; x++) p(x + (P.lean || 0), yS, x < k.x0 + 1 ? dk(k.scarf, .15) : k.scarf); p(-1, yS + 1, k.scarf); p(-1, yS + 2, dk(k.scarf, .15)); p(-1, yS + 3, dk(k.scarf, .15)); }
     if (k.neck) neckDraw(k, P, yS, false);
     head(k, hdx, yb, front, P);
+    if (k.tsh && k.tsh.afterHead) k.tsh.afterHead({ p, hdx, yb, yS, front, k, body: k.topC, c2: k.pat2, x0: k.x0, x1: k.x1, dk, lt, mix, WHITE, GOLD });
     if (k.top === 'parka' || k.top === 'raincoat' || k.top === 'ziphoodie') { const cl = k.top === 'parka' ? '#f0e6d0' : dk(k.topC, .16); for (let x = -2; x <= 1; x++) p(x + hdx, yb + 1, cl); }
     bagBack(k, front, yS);
   }

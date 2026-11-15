@@ -12,7 +12,7 @@ regShape('outer', 'fleece', { sleeve: 9,
 });
 
 // Track jacket: contrast sleeves (c2), stand collar in c2, a full silver zip, contrast hem band.
-regShape('outer', 'trackjacket', { sleeve: 9, arm: 'c2',
+regShape('outer', 'trackjacket', { sleeve: 9, arm: 'c2', armPx: (j, n, c, g) => (j === 1 || j === 3 ? g.WHITE : null),
   body(c, x, j, g) { return j === g.T - 1 ? C2(g) : null; },
   front(g) { const s = C2(g); for (let x = g.x0 + 1; x <= g.x1; x++) g.t(x, 0, s); for (let j = 0; j < g.T; j++) g.t(1, j, j ? ZIP : g.WHITE); },
   back(g) { const s = C2(g); for (let x = g.x0 + 1; x <= g.x1; x++) g.t(x, 0, s); },

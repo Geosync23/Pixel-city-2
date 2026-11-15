@@ -14,7 +14,7 @@ const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const capText = (E, pts, o) => E.cap(`Score ${pts}${o.hi ? ' · Best ' + o.hi : ''} · Par ${o.par}`);
 
 function gull(E, o) {
-  const W = E.W, H = E.H, parts = [], posts = [], gap = 44 - 14 * E.d, spd = 46 + 26 * E.d, T = 40;
+  const W = E.W, H = E.H, parts = [], posts = [], gap = 46 - 9 * E.d, spd = 46 + 18 * E.d, T = 40;
   let y = H / 2, vy = 0, t = 0, lives = 3, pts = 0, inv = 0, nextX = W + 20, flap = 0;
   const g = { done: false, score: 0,
     update(dt) {
@@ -42,7 +42,7 @@ function gull(E, o) {
 function brick(E, o) {
   const W = E.W, H = E.H, parts = [], cols = 8, rows = 4, bw = 20, bh = 7, x0 = (W - cols * bw) / 2, y0 = 10, bricks = [], T = 50, pw = 34 - 10 * E.d, cl = ['#e0527a', '#f08a2c', '#f2c230', '#5fb84f'];
   for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) bricks.push({ x: x0 + k * bw, y: y0 + r * bh, r, on: true });
-  let px = W / 2, bx = W / 2, by = H - 24, vx = 40, vy = -62 - 22 * E.d, t = 0, lives = 3, pts = 0, held = 0;
+  let px = W / 2, bx = W / 2, by = H - 24, vx = 40, vy = -80 - 26 * E.d, t = 0, lives = 3, pts = 0, held = 0;
   const g = { done: false, score: 0,
     update(dt) {
       t += dt; stepParts(parts, dt); if (held > 0) { held -= dt; bx = px; by = H - 16; E.prog(Math.round(clamp(t / T) * 10), 10); return; }
@@ -59,7 +59,7 @@ function brick(E, o) {
       R(c, 0, 0, W, H, '#221f2e'); for (const b of bricks) if (b.on) { R(c, b.x, b.y, bw, bh, INK); R(c, b.x + 1, b.y + 1, bw - 2, bh - 2, cl[b.r]); R(c, b.x + 1, b.y + 1, bw - 2, 1, '#ffffff66'); }
       box(c, px - pw / 2, H - 13, pw, 6, '#8fd8f0'); disc(c, bx, by, 2, '#fffdf4'); for (let k = 0; k < lives; k++) disc(c, 6 + k * 7, H - 4, 2, '#fffdf4'); drawParts(c, parts);
     },
-    want: () => ({ type: 'move', x: clamp(bx + vx * .05, 6, W - 6), y: H - 12, ready: true }),
+    want: () => ({ type: 'move', x: clamp(bx + vx * .05 + Math.sin(t * 1.7) * pw * .32, 6, W - 6), y: H - 12, ready: true }),
     stats: () => ({ points: pts }),
   };
   capText(E, 0, o); return g;

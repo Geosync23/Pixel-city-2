@@ -4,7 +4,7 @@
 // SCALE
 //   Every need is a number 0..100 (100 = fully satisfied). Decay values are points per GAME HOUR
 //   and are negative. A typical day (16 h awake, 8 h asleep) costs roughly:
-//     hunger 84 (three normal meals refill ~100), energy 88 (8 h on the starter mattress refills 88),
+//     hunger 84 (three normal meals refill ~100), energy 77 (8 h on the starter mattress refills 88),
 //     hygiene 56 (one shower refills 60), fun 56, social 40, bladder ~160 (two or three short toilet visits; tuned down for owner msg 96).
 //   Design intent: needs are a gentle rhythm, not a threat. A player who eats three times, sleeps
 //   once and showers once never sees a red bar.
@@ -49,7 +49,7 @@ export const NEEDS = [
   },
   {
     id: 'energy', name: 'Energy', icon: 'lightning bolt, yellow',
-    start: 65, decayAwake: -5.5, decayAsleep: 0, // sleeping restores energy via the `sleep` activity
+    start: 65, decayAwake: -4.8, decayAsleep: 0, // sleeping restores energy via the `sleep` activity. Was -5.5: 'drains just a bit too fast' (owner msg 101); a 16 h day now costs ~77
     bands: [
       { id: 'full', min: 85, label: 'Rested', moodlet: 'rested' },
       { id: 'ok', min: 30, label: 'Fine', moodlet: null },

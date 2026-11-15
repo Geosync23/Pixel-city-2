@@ -24,3 +24,4 @@ for (const slot of ['top', 'outer', 'dress', 'bottom', 'shoes', 'hat', 'neck', '
 }
 for (const id of shapeIds('beard')) galleryItems.push(cell(`shape.beard.${id}`, Object.assign({}, MANNEQUIN, { hair: 'short', beard: id }), [{ dir: 0 }, { dir: 1 }]));
 for (const id of shapeIds('hair')) { const s = Object.assign({}, MANNEQUIN, { hair: id, hairColor: '#8f5a30' }); galleryItems.push(cell(`hairs.${id}`, [s, s, Object.assign({}, s, { hat: 'cap', hatColor: '#3b6fd0' }), Object.assign({}, s, { shag: true })], [{ dir: 0 }, { dir: 3 }, { dir: 0 }, { dir: 0 }])); }
+for (const h of ['hijabdrape', 'hijabturban']) galleryItems.push(cell('check.hat.' + h + '.longhair', applyPiece(Object.assign({}, MANNEQUIN, { hair: 'mermaid' }), { slot: 'hat', shape: h, c: '#3fb8a8' })));
