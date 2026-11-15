@@ -36,6 +36,46 @@ function sayHi(id, ctx) {
   else { const g = (npcInfo(id) || {}).group === 'family' ? 'family' : tier(id).id === 'close' ? 'close' : 'friend', L = (TEXTS.CHECK_INS && TEXTS.CHECK_INS[g]) || ['Hey you! All good here.']; M().send({ from: id, text: L[Math.floor(G.state.t) % L.length], delay: 8 }); }
   ctx.refresh();
 }
+/* ---------- starting a chat yourself (owner msg 100) ---------- */
+// What you can text someone. `text`: what you send (one of several); `reply(id)`: their answer (a string), or null to let the social system answer in its own voice (G.social.onText).
+const pickOf = (a, id) => a[(Math.floor(G.state.t / 7) + String(id).length) % a.length];
+const nowWhere = id => { const w = safe(() => G.social.whereIs(id), null); return w && (w.name || w.label) ? String(w.name || w.label).replace(/^at\s+/i, '') : ''; };
+const COMPOSE = [
+  { id: 'hi', label: 'Say hi', text: ['Hey! How is your day going?', 'Hi! Thinking of you.', 'Hey, what are you up to?'], reply: null },
+  { id: 'morning', label: 'Good morning', when: h => h >= 5 && h < 11, text: ['Good morning! Up yet?', 'Morning! Coffee is on, in spirit.'], reply: () => pickOf(['Morning! Barely. Ask me again after coffee.', 'Good morning! Up, dressed, and already behind.', 'Morning, you. Have a good one today.'], 1) },
+  { id: 'night', label: 'Good night', when: h => h >= 20 || h < 3, text: ['Heading to bed. Good night!', 'Night! Talk tomorrow.'], reply: () => pickOf(['Night! Sleep well.', 'Good night! Do not let the pigeons bite.', 'Sweet dreams. Tomorrow, then.'], 2) },
+  { id: 'where', label: 'Where are you?', text: ['Where are you right now?', 'Are you around? Where are you at?'], reply: id => { const w = nowWhere(id); return w ? pickOf([`At ${w}. Come by if you are near!`, `${w}, as usual. You?`, `Right now? ${w}. Why, are you close?`], id) : pickOf(['Out and about! You?', 'Running errands all over town. Where are you?'], id); } },
+  { id: 'later', label: 'Plans later?', text: ['What are you up to later?', 'Any plans tonight?'], reply: id => pickOf(['Nothing fixed. Got an idea? Send me a time and a place.', 'Wide open after six. Invite me somewhere!', 'Was going to do nothing, heroically. Talk me out of it.'], id) },
+  { id: 'meet', label: 'Invite out...', invite: true },
+  { id: 'day', label: 'Tell them about your day', text: ['You will not believe the day I have had.', 'Okay, story time. Today was a lot.'], reply: id => pickOf(['Oh no. Or oh yes? Tell me everything.', 'I am sitting down. Go.', 'Is this a good story or a "bring snacks" story?'], id) },
+  { id: 'miss', label: 'Thinking of you', tierMin: 'friend', text: ['Just thinking of you. That is all.', 'Saw something that made me think of you.'], reply: null },
+  { id: 'bday', label: 'Happy birthday!', when: (h, id) => { const b = (npcInfo(id) || {}).birthday, n = timeInfo(G.state.t); return !!b && b.day === n.dayOfMonth && String(b.season).toLowerCase() === String(n.seasonName).toLowerCase(); }, text: ['HAPPY BIRTHDAY!! Hope it is a great one.'], reply: () => 'You remembered!! Thank you. Cake later?', bonus: 2 },
+];
+function textThem(id, c, ctx) {
+  if (c.invite) return ctx.open('planner', { add: true, withNpc: id });
+  M().sendMine(id, pickOf(c.text, id));
+  const ph = G.state.phone, cd = ph && ((ph.seen || (ph.seen = {})).textCd || (ph.seen.textCd = {}));
+  if (c.reply && G.messages) {
+    M().send({ from: id, text: c.reply(id), delay: 3 + Math.floor(Math.random() * 8) });
+    if (cd && (cd[id] || 0) <= G.state.t) { cd[id] = G.state.t + 720; safe(() => G.social.addRel(id, c.bonus || 1), 0); safe(() => G.needs.add('social', 4), 0); }   // a small, twice-a-day-at-most nudge, like the social system's own
+  } else if (G.social && G.social.onText) safe(() => G.social.onText(id), 0);
+  else { const g = (npcInfo(id) || {}).group === 'family' ? 'family' : tier(id).id === 'close' ? 'close' : 'friend', L = (TEXTS.CHECK_INS && TEXTS.CHECK_INS[g]) || ['Hey you! All good here.']; M().send({ from: id, text: L[Math.floor(G.state.t) % L.length], delay: 8 }); }
+  composing = false; ctx.refresh();
+}
+let composing = false;
+function composer(id, ctx) {
+  const h = timeInfo(G.state.t).hour, order = ['stranger', 'acquaintance', 'friend', 'close', 'family'], ti = order.indexOf(tier(id).id);
+  const opts = COMPOSE.filter(c => (!c.when || safe(() => c.when(h, id), false)) && (!c.tierMin || ti < 0 || ti >= order.indexOf(c.tierMin)));
+  return el('div.ph-replies', null, el('small', { text: 'What do you want to say?', style: { opacity: .7 } }), opts.map(c => el('button', { text: c.label, 'data-compose': c.id, onclick: () => textThem(id, c, ctx) })), el('button.ph-link', { text: 'Cancel', onclick: () => { composing = false; ctx.refresh(); } }));
+}
+/** "New chat": pick anyone you know */
+function newChatView() {
+  return (b, ctx) => {
+    const ids = contacts(); if (!ids.length) return b.append(empty('rel.friend', 'Nobody to text yet', 'Meet people around town first: talk to someone and they show up here.'));
+    b.append(section('Text someone', chip(String(ids.length))));
+    for (const id of ids) { const n = npcInfo(id) || {}, t = tier(id), w = nowWhere(id); b.append(row({ icon: portrait(id, 40), title: n.name || npcName(id), sub: [t.label, w ? 'at ' + w : ''].filter(Boolean).join(' · '), 'data-newchat': id, onclick: () => { composing = true; ctx.push(npcName(id), threadView(id), id); } })); }
+  };
+}
 function personView(id) {
   return (b, ctx) => {
     const n = npcInfo(id) || { name: cap(id) }, t = tier(id), home = n.home ? place(String(n.home).replace(/^home_/, 'home:')) : null, where = safe(() => G.social.whereIs(id), null);
@@ -45,7 +85,7 @@ function personView(id) {
     if (where && (t.id === 'friend' || t.id === 'close' || t.id === 'family')) facts.append(el('div.ph-kv', null, el('span', { text: 'Right now' }), el('b', { text: typeof where === 'string' ? placeName(where) : where.name || '' })));
     if (n.district) facts.append(el('div.ph-kv', null, el('span', { text: 'Usually around' }), el('b', { text: cap(({ oldtown: 'Old Town', harbor: 'Harborside', arts: 'Arts Quarter' })[n.district] || n.district) })));
     if (facts.children.length) b.append(facts);
-    b.append(el('div.ph-btns', null, btn('Text', () => ctx.push(npcName(id), threadView(id), id), 'pri', 'ui.speech'), btn('Call', () => call(id, ctx), '', 'ui.phone')),
+    b.append(el('div.ph-btns', null, btn('Text', () => { composing = true; ctx.push(npcName(id), threadView(id), id); }, 'pri', 'ui.speech'), btn('Call', () => call(id, ctx), '', 'ui.phone')),
       el('div.ph-btns', null, btn('Invite out', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), home && isKnown(home.id) ? btn('Home on map', () => ctx.open('map', { place: home.id }), '', 'ui.pin') : null));
   };
 }
@@ -65,7 +105,7 @@ function threadView(id) {
     b.append(chat); setTimeout(() => { b.scrollTop = b.scrollHeight; }, 0);
     const p = M().pending(id);
     if (p) ctx.foot.append(el('div.ph-replies', null, p.replies.map(r => el('button', { text: r.label, onclick: () => { M().reply(id, r.value, p.i); ctx.refresh(); } }))));
-    else if (CAST_BY_ID[id]) ctx.foot.append(el('div.ph-btns', null, btn('Say hi', () => sayHi(id, ctx), '', 'ui.speech'), btn('Invite', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), btn('Contact', () => ctx.push(npcName(id), personView(id)), '', 'ui.info')));
+    else if (CAST_BY_ID[id]) { if (composing) ctx.foot.append(composer(id, ctx)); else ctx.foot.append(el('div.ph-btns', null, btn('Write a message', () => { composing = true; ctx.refresh(); }, 'pri', 'ui.speech'), btn('Invite', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), btn('Contact', () => ctx.push(npcName(id), personView(id)), '', 'ui.info'))); }
   };
 }
 
@@ -79,7 +119,8 @@ export default {
     b.append(tabs([{ id: 'chats', name: 'Chats', badge: un || null }, { id: 'people', name: 'People' }], tab, t => { tab = t; ctx.refresh(); }));
     if (tab === 'chats') {
       const ths = M().threads();
-      if (!ths.length) return b.append(empty('ui.speech', 'No messages yet', 'When family, friends or work text you, it lands here.'));
+      b.append(btn('+ New chat', () => ctx.push('New chat', newChatView()), 'pri wide', 'ui.speech'));   // start a conversation yourself (owner msg 100)
+      if (!ths.length) return b.append(empty('ui.speech', 'No messages yet', 'Tap "+ New chat" to text someone you know. When family, friends or work text you, it lands here too.'));
       for (const t of ths) { const last = t.msgs[t.msgs.length - 1];
         b.append(row({ icon: t.icon ? el('span.ph-ico', { style: { width: '40px', height: '40px', background: '#fff4dc' } }, iconEl(t.icon, 2)) : portrait(t.id, 40, t.name), title: t.name, sub: (last.me ? 'You: ' : '') + last.text, right: t.unread ? el('em.ph-chip.bad', { text: t.unread + ' new' }) : when(t.last).replace('Today ', ''), cls: t.unread ? 'unread' : '', onclick: () => ctx.push(t.name, threadView(t.id), t.id) })); }
     } else {

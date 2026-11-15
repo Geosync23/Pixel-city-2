@@ -404,3 +404,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 99 — Planner: very clear notifications, a lead-time alert so you arrive on time, tapping a notification opens the item
 > Need very clear notifications for planner itesm. And a lead time alert so we can get there on time. Picking the notifications in game opens the item in the plammer
+
+## 100 — Need a way to start a text chat
+> Need a way to stsrt a text chat

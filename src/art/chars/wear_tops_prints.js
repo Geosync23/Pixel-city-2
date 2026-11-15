@@ -35,16 +35,6 @@ regShape('top', 'startee', { sleeve: 2,
   back(g) { g.t(0, 1, g.accent); },
 });
 
-// Sunset tee: a square postcard print, accent sky over c2 sea, a dark palm on the right.
-regShape('top', 'sunsettee', { sleeve: 2,
-  front(g) {
-    const a = g.accent, s = C2(g, .3); g.t(1, 0, g.sk);
-    for (const x of XS(g)) { g.t(x, 2, a); g.t(x, 3, s); g.t(x, 4, g.dk(s, .25)); }
-    g.t(0, 2, g.lt(a, .45)); g.t(1, 2, g.dk(g.body, .55)); g.t(1, 3, g.dk(g.body, .55)); g.t(1, 4, g.dk(g.body, .4));
-  },
-  back(g) {},
-});
-
 // Basketball jersey: sleeveless, contrast trim at the neck and armholes, a number on the chest and a big "11" on the back.
 regShape('top', 'bball', { sleeve: 0,
   front(g) {
@@ -62,7 +52,7 @@ regShape('top', 'bball', { sleeve: 0,
 regShape('top', 'hockey', { sleeve: 9,
   body(c, x, j, g) { const s = C2(g); return j === 0 ? s : j === g.T - 3 || j === g.T - 1 ? s : j === g.T - 2 ? g.accent : null; },
   front(g) { g.t(1, 0, g.sk); g.t(1, 1, g.dk(g.body, .35)); g.t(-1, 1, g.accent); },
-  back(g) { const n = C2(g); g.t(-1, 1, n); g.t(0, 1, n); g.t(1, 1, n); g.t(1, 2, n); g.t(0, 2, n); },
+  back(g) { const n = g.accent; g.t(-1, 1, n); g.t(0, 1, n); g.t(1, 1, n); g.t(1, 2, n); g.t(0, 3, n); },
 });
 
 // Racerback sports tank: deep armholes, contrast side panels, Y-strap on the back.
@@ -95,5 +85,5 @@ regShape('top', 'sailor', { sleeve: 2,
     const c = C2(g, .7); g.t(1, 0, g.sk); g.t(1, 1, g.sk); g.t(0, 0, c); g.t(0, 1, c); g.t(-1, 0, c); if (g.wide) { g.t(2, 0, c); g.t(2, 1, c); }
     g.t(1, 2, g.accent); g.t(0, 2, g.dk(g.accent, .2)); if (g.wide) g.t(2, 2, g.dk(g.accent, .2)); g.t(1, 3, g.dk(g.accent, .15));
   },
-  back(g) { const c = C2(g, .7); for (let j = 0; j < 3; j++) for (let x = -1; x <= 1; x++) g.t(x, j, j === 2 ? g.dk(c, .2) : c); g.t(-1, 1, g.dk(c, .3)); g.t(1, 1, g.dk(c, .3)); },
+  back(g) { const c = C2(g, .7); for (let j = 0; j < 4; j++) for (let x = g.x0; x <= 1; x++) g.t(x, j, j === 3 ? g.accent : x === g.x0 ? g.dk(c, .14) : c); },
 });
