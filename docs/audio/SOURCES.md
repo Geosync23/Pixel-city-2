@@ -8,3 +8,4 @@ Wanted but refused by Commons' rate limit (HTTP 429) on 2026-11-15, try again la
 Used only in the listening-test page so far (soundtest_head.html + soundtest_page.js + the loops as base64 `BEDS`), NOT in the game. Nobody on the team has heard them; the owner judges by ear.
 OWNER RULES (msg 116): no white-noise layer anywhere; generated sounds must be clean tones (a little putter for cars, soft footsteps, bells); the recording is the background, in long stretches with variety (the page crossfades to another stretch every 40-70 s from a random point).
 OWNER RULE (msg 117): no footstep sounds.
+NOTE (2026-11-15 17:00 UTC): Commons media downloads now answer 429 "Too many requests" for this environment's shared address on every try (10 tries over 45 min). Stop retrying today; try once on a later day, one file per several minutes. Alternative: the owner adds recordings to docs/audio/in/ in the repo (any public-domain / CC0 file, with its link).
