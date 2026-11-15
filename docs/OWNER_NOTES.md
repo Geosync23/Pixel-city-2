@@ -74,3 +74,4 @@
 59. (msg 99) Planner: very clear notifications, a lead-time alert so you can get there on time, and tapping a notification opens that item in the Planner. Done (Stage 28).
 60. (msg 100) Needs a way to start a text chat himself. Done (Stage 29): '+ New chat' in Messages and a 'Write a message' composer with topics.
 61. (msg 101) Tiredness drained 'just a bit' too fast. Energy drain eased about 13% (5.5 -> 4.8 per waking hour); Stage 30b.
+62. (msg 102) The arrow vanishes once you are inside the destination building: courier delivery at the diner (where do I deliver?), the City Hall meeting (no arrow to the council chamber), the play (no arrow to the curtains). Wants the gaps examined and solved everywhere: the arrow must lead to the exact thing to do, not just to the building.

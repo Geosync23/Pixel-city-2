@@ -410,3 +410,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 101 — Tiredness drains just a bit too fast
 > Tiredness drains just a bit too fast
+
+## 102 — The tracking arrow disappears indoors: courier job at the diner, City Hall meeting, the play; examine the gaps and solve it everywhere
+> The tracking arrow dissapears when indoors often. For example I took the courier job. The arrow points me to the diner. I go in and the arrow is gone. Where do i deliver? Or for example yhe city hall meeting. Arrow points you to building then you go it and the arrow doesn't point to the council chambers. Or when i went to a play. Arrow pointed to building but didn't point to the curtains to go in. Lets examine these gaps and solve this everywhere it needs to be solved for

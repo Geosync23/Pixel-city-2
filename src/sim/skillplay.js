@@ -214,7 +214,7 @@ const GAMES = {
     result: R => { if (R.id === 'tend_plants') { if (R.q >= .55) safe(() => G.needs.addMoodlet('fresh_air'), 0); return { icon: 'skill.gardening', title: R.q >= .55 ? 'The plants perk up' : 'Watered', lines: [] }; }
       const s = st(), l = lvl('gardening'), winter = safe(() => G.now().season, 0) === 3; if (winter) return { icon: 'skill.gardening', title: 'Beds tidied for winter', lines: ['Nothing grows until spring.'] };
       s.garden.g = clamp(s.garden.g + (.22 + .45 * R.q) * clamp(R.minutes / 45, .4, 2.5) * (1 + .05 * (l - 1)) + (T().get('grow') ? .2 : 0));
-      if (s.garden.g >= 1) { s.garden.g = 0; s.garden.n++; const crop = CROPS[l - 1], qty = 2 + Math.floor(l / 3) + 1, ok = safe(() => G.inv.add(crop, qty), false); stamp('x:sk_harvest'); return { icon: crop, title: `Harvest: ${qty} x ${ITEM_BY_ID[crop].name}`, lines: [ok ? 'In your bag. Cook them or sell them at the market.' : 'Your bag is full! Come back with room.'] }; }
+      if (s.garden.g >= .995) { s.garden.g = 0; s.garden.n++; const crop = CROPS[l - 1], qty = 2 + Math.floor(l / 3) + 1, ok = safe(() => G.inv.add(crop, qty), false); stamp('x:sk_harvest'); return { icon: crop, title: `Harvest: ${qty} x ${ITEM_BY_ID[crop].name}`, lines: [ok ? 'In your bag. Cook them or sell them at the market.' : 'Your bag is full! Come back with room.'] }; }
       return { icon: 'skill.gardening', title: `Your bed is ${Math.round(s.garden.g * 100)}% grown`, lines: [`Growing: ${LADDER.gardening.rungs[l - 1]}`] }; } },
   dance: { skill: 'dancing', also: ['fitness'], title: l => 'Dance: ' + LADDER.dancing.rungs[l - 1], fxc: ['#e0527a', '#3b82d6', '#f2c230', '#5fb84f'],
     kit: l => ({ kind: 'rhythm', icon: 'skill.dancing', hint: 'Hit each step as it crosses the line. Keep the combo going.', o: { lanes: l >= 4 ? 4 : 3, notes: 16, bpm: 100 }, verdicts: ['Two left feet', 'Found the beat', 'Smooth', 'Dance floor royalty!'] }),
@@ -364,6 +364,8 @@ function findSpot(w, at) {
   if (at.prop) { const obs = w.objs.filter(o => o.a && o.a.id === at.prop); const o = obs[at.n || 0] || obs[0]; return o ? { x: o.x, y: o.y } : null; }
   return null;
 }
+/** a free cell near (x, y) that is not on top of another point of interest (so its tap target is its own) */
+function clearNear(w, x, y, min = 1.7) { for (let r = 0; r < 5; r += .5) for (let a = 0; a < 8; a++) { const X = Math.round((x + Math.cos(a * .785) * r) * 2) / 2, Y = Math.round((y + Math.sin(a * .785) * r) * 2) / 2; if (!w.isBlocked(X, Y) && !w.pois.some(p => p && isFinite(p.x) && Math.hypot(p.x - X, p.y - Y) < min)) return { x: X, y: Y }; } return freeNear(w, x, y); }
 function freeNear(w, x, y) { for (let r = 0; r < 4; r += .5) for (let a = 0; a < 8; a++) { const X = Math.round((x + Math.cos(a * .785) * r) * 2) / 2, Y = Math.round((y + Math.sin(a * .785) * r) * 2) / 2; if (!w.isBlocked(X, Y)) return { x: X, y: Y }; } return { x, y }; }
 function buildCity(sc) {
   if (!sc || sc.id !== 'city' || sc._skBuilt || !sc.world) return; sc._skBuilt = true; const w = sc.world, A = charArt();
@@ -371,11 +373,11 @@ function buildCity(sc) {
   w.objs.filter(o => o.a && o.a.id === 'prop.park.hoop').forEach((o, i) => { const sp = freeNear(w, o.x + 1.5, o.y + 1.5), poi = { type: 'spot', id: 'sk:hoop:' + i, kind: 'hoop', name: 'Basketball hoop', x: o.x, y: o.y };
     G.addInteractable({ scene: 'city', x: o.x + .5, y: o.y + .5, label: 'Basketball hoop', h: 1.6, range: 2.2, spot: sp, poi, use: () => safe(() => G.activities.menu({ poi, tags: ['hoop'], title: 'Basketball hoop' }), 0) }); });
   // the Old Town Market trading post
-  const mk = w.pois.find(p => p && p.id === 'stall:market_stalls'); if (mk) { const sp = freeNear(w, mk.x + 3.5, mk.y + 1.5), poi = { type: 'spot', id: 'sk:market', kind: 'market_trade', name: 'Old Town Market', x: sp.x, y: sp.y }; sc._skMarket = poi;
+  const mk = w.pois.find(p => p && p.id === 'stall:market_stalls'); if (mk) { const sp = clearNear(w, mk.x + 1.5, mk.y + 5.5, 2.2), poi = { type: 'spot', id: 'sk:market', kind: 'market_trade', name: 'Old Town Market', x: sp.x, y: sp.y }; sc._skMarket = poi;
     const spec = Object.assign({}, A.randomSpec(rng(4411), { age: 'adult', season: 1 }), { bag: null, hat: 'flatcap' }), c = new Char(spec, sp.x, sp.y - .9); c.z = w.heightAt(c.x, c.y); c.dir = 0; c._coach = true; c.label = 'Market trader'; sc.ents.push(c); sc._skTrader = c;
-    G.addInteractable({ scene: 'city', ent: c, x: c.x, y: c.y, label: 'Sell your work', h: 1.3, hit: 8, range: 2, spot: sp, poi, visible: () => !c.hidden, use: () => { c.faceTo(G.player.x, G.player.y); sell(poi); } }); }
+    G.addInteractable({ scene: 'city', ent: c, x: c.x, y: c.y, label: 'Market trader · sell your work', h: 1.3, hit: 8, range: 2, spot: sp, poi, visible: () => !c.hidden, use: () => { c.faceTo(G.player.x, G.player.y); sell(poi); } }); }
   // coaches
-  COACHES.forEach((cd, i) => { const at = findSpot(w, cd.at); if (!at) return; const sp = freeNear(w, at.x + cd.off[0], at.y + cd.off[1]);
+  COACHES.forEach((cd, i) => { const at = findSpot(w, cd.at); if (!at) return; const sp = clearNear(w, at.x + cd.off[0], at.y + cd.off[1], 1.3);
     const spec = Object.assign({}, A.randomSpec(rng(7700 + i * 13), { age: cd.look.age || 'adult', season: 1 }), { bag: null }); if (cd.look.hat) { spec.hat = cd.look.hat; spec.hatColor = spec.hatColor || '#2f3f72'; }
     const c = new Char(spec, sp.x, sp.y); c.z = w.heightAt(sp.x, sp.y); c.dir = i % 2; c._coach = true; c.label = cd.short; c.hidden = !hourOk(cd); sc.ents.push(c); coachEnts.set(cd.id, c);
     G.addInteractable({ scene: 'city', ent: c, x: sp.x, y: sp.y, label: `${cd.short} · ${SK[cd.skill].name} lesson`, h: 1.3, hit: 8, range: 1.9, visible: () => !c.hidden, use: () => { c.faceTo(G.player.x, G.player.y); lesson(cd.id); } }); });

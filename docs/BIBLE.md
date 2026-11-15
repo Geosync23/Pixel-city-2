@@ -205,3 +205,8 @@ the rescue-and-release chain). 50+ distinct animated species with ID plaques and
 - Wave C (was D): 4c goods + MANY home-goods stores (big-box home improvement, department stores, furniture showrooms; map expansion OK) | home design + shipping | 4 new needs + Opportunities | 5 unfinished art (building sets, props, terrain/water, audio, weather, title/creator).
 - Wave D (was C): 2k big city events | 3 jobs expansion (writer + engine) | 4b relationships / vignettes / romance | the UNIVERSITY campus with classes (moved here from B).
 - Wave E: 6 full QA.
+
+## Direction update 19 — the arrow leads to the exact thing, not just the building (owner msg 102)
+Arriving at the destination building must not end the guidance. Inside, the arrow continues to the specific target of what the player is doing: the person/counter to deliver to (courier and every job task), the room and seat of a meeting or show
+(City Hall council chamber, the theatre's curtains, cinema screen, arena gate and seat), the desk/NPC of an appointment, the fixture of an opportunity or story step, the nearest thing that fixes a need. It chains through as many rooms as needed,
+and a short label says what to do there ("Deliver to Rosa at the counter", "Council chamber — take a seat"). Every system that sends the player somewhere declares the final in-room target; an audit covers all existing ones.

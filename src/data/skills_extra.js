@@ -181,7 +181,7 @@ export const ARCADE = [
   { id: 'gull', name: 'Gull Run', par: 70, level: 1, hint: 'Tap to flap. Thread the gaps between the pier posts.' },
   { id: 'brick', name: 'Brick Bay', par: 50, level: 3, hint: 'Drag the paddle. Break every brick.' },
   { id: 'ferry', name: 'Star Ferry', par: 90, level: 5, hint: 'Drag to steer. You fire by yourself. Dodge the rocks.' },
-  { id: 'snake', name: 'Snack Snake', par: 24, level: 7, hint: 'Swipe or tap a side to turn. Eat the snacks, not your tail.' },
+  { id: 'snake', name: 'Snack Snake', par: 30, level: 7, hint: 'Swipe or tap a side to turn. Eat the snacks, not your tail.' },
 ];
 
 /* ------------------------------------------------------------------ moodlets, books, guide, tips */

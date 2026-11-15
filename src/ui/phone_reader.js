@@ -135,7 +135,7 @@ function reading(b, ctx, id, startPage) {
   /** charge the reading time of the page so far (never more than 1.6x a normal read of it) */
   const settle = full => { const e = expect(), sec = full ? Math.max(0, e - Math.min(acc, e)) : 0; if (sec > 0) M().spend('read', sec * TUNE.CLOCK.read); if (full) acc = e * 1.6; };
   function paint() {
-    txt.replaceChildren(page === 0 ? el('h3.md-h', { text: r.title }) : null, page === 0 ? el('p.md-by', { text: r.by }) : null, ...pages[page].map(p => el('p' + (p.includes('\n') ? '.verse' : ''), { text: p })));
+    txt.replaceChildren(...(page === 0 ? [el('h3.md-h', { text: r.title }), el('p.md-by', { text: r.by })] : []), ...pages[page].map(p => el('p' + (p.includes('\n') ? '.verse' : ''), { text: p })));
     txt.scrollTop = 0; prog.textContent = `${page + 1} / ${pages.length}`; clock.textContent = G.now().clock;
     bm.replaceChildren(iconEl('ui.star', 1)); bm.classList.toggle('on', marked());
     prev.disabled = page === 0; next.lastChild.textContent = page === pages.length - 1 ? 'Finish' : 'Next';
