@@ -7,6 +7,6 @@ set -e
 T=$(git rev-parse --show-toplevel); C=${CLEAN_DIR:-/tmp/claude-0/-home-user-Pixel-city-2/ab4bf52b-889a-5288-a866-29c2e55d0472/scratchpad/clean}
 git worktree remove --force "$C" 2>/dev/null || true; rm -rf "$C"; mkdir -p "$C"
 cp -r "$T/src" "$T/tools" "$C/"; cp "$T"/*.html "$T"/*.json "$C/" 2>/dev/null || true; ln -s "$T/assets" "$C/assets"; ln -s "$T/node_modules" "$C/node_modules" 2>/dev/null || true
-for pat in $EXCLUDE; do find "$C/src" -name "$pat" -print -delete; done
+for pat in $EXCLUDE; do find "$C/src" \( -name "$pat" -o -path "*/$pat/*" \) -type f -delete; done   # a pattern may be a file glob or a folder name (e.g. art/story)
 for pin in $PINS; do f=${pin#*:}; (cd "$T" && git show "$pin") > "$C/$f"; done   # PINS="<commit>:src/path.js ..."
 cd "$C" && node src/data/validate.mjs | tail -1 && node tools/build.mjs | tail -1 && echo "$C"

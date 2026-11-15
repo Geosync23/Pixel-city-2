@@ -36,6 +36,14 @@ import { GOAL_LISTS } from '../story/intro.js';
 import { ITEM_BY_ID } from '../data/items.js';
 
 export const order = 60;
+/* ---- RE-HOUSED BEATS (docs/story/CHAPTERS.md section 6): these nine beats became Chapters (sim/chapters.js). Their old calendar triggers are OFF so nobody
+   gets both; their flags / discounts / recipes are credited silently when the Chapter is finished (G.story.credit). A beat that waited on one of them now
+   waits on the Chapter instead; ALSO_AFTER adds the designer's "offered after Chapter n" to three optional moments. Kit's evenings (k1-k5), f2_school_run and
+   the seasonal s1 / s2 / s4 stay on the clock as optional moments. */
+export const REHOUSED = { g1_breakfast: 'ch01', f1_welcome_dinner: 'ch03', g2_copper_kettle: 'ch13', g3_sunday_baking: 'ch13', f3_booth_building: 'ch14', g4_bookshop_clue: 'ch09', g5_the_bell: 'ch08', f4_summer_fair: 'ch14', s3_one_year: 'ch15' };
+const ALSO_AFTER = { k1_reunion: 'ch02', f2_school_run: 'ch03', k5_the_song: 'ch14', s4_harbor_lights: 'ch15' };
+const chDone = id => { try { return !!(G.chapters && G.chapters.done(id)); } catch (e) { return false; } };
+const beatOk = id => beatSt(id) === 'done' || (!!REHOUSED[id] && chDone(REHOUSED[id]));
 const WDK = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const hm = s => { const [h, m] = String(s).split(':'); return (+h) * 60 + (+m || 0); };
 const safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
@@ -51,7 +59,7 @@ let pend = false; function later() { if (pend) return; pend = true; queueMicrota
 function cond(when) {
   if (!when) return false; const c = C(), F = G.state.flags || {};
   if (when === 'intro_complete' || when === 'entered_home') return !!F.introDone;
-  if (when.startsWith('beat_done:')) return beatSt(when.slice(10)) === 'done';
+  if (when.startsWith('beat_done:')) return beatOk(when.slice(10));
   if (when.startsWith('attended:')) return when === 'attended:open_mic' && beatSt('k2_open_mic') === 'done';
   if (when === 'met_npcs:all') return safe(() => G.social.known().length >= CAST.length, false);
   if (when.startsWith('outside_before') || when.startsWith('outside_after')) return !!c[when.split(':')[0]];
@@ -169,7 +177,7 @@ function schedule(b, r, t0, t1) {
   r.appt = safe(() => G.planner.add({ title: ap.title, placeId: p ? p.id : undefined, t: t0, dur: t1 - t0, kind: 'story', data: { beat: b.id }, remind: 30 }), null);
 }
 function offer(id, o = {}) {
-  const b = BEATS_BY_ID[id]; if (!b || beatSt(id) === 'done' || beatSt(id) === 'active') return false; const s = S(), day = Math.floor(G.state.t / 1440);
+  const b = BEATS_BY_ID[id]; if (!b || beatSt(id) === 'done' || beatSt(id) === 'active' || (REHOUSED[id] && !o.force)) return false; const s = S(), day = Math.floor(G.state.t / 1440);
   const r = s.beats[id] = { st: 'scheduled', day, n: 0 }; s.last = day;
   b.delivery.messages.forEach((m, i) => safe(() => G.messages.send({ from: m.from, text: m.text, delay: i || undefined })));
   let w = windowFor(b, day + (b.delivery.appointment.dayOffset || 0)); if (o.now) w = [Math.floor(G.state.t), Math.floor(G.state.t) + 300];
@@ -233,10 +241,10 @@ function complete(id, silent) {
   toast(b.summary, 'info', 5200); G.emit('story:beat', id); later(); safe(() => G.started && !(G.query && G.query.has('scene')) && G.save());
   return true;
 }
-function skipTo(id) { const i = BEATS.findIndex(b => b.id === id); if (i < 0) return false; for (let k = 0; k < i; k++) complete(BEATS[k].id, true); return offer(id, { now: true }); }
+function skipTo(id) { const i = BEATS.findIndex(b => b.id === id); if (i < 0) return false; for (let k = 0; k < i; k++) complete(BEATS[k].id, true); return offer(id, { now: true, force: true }); }
 function tick() {
   const s = S(), T = G.state.t, F = G.state.flags || {};
-  if (running || G.cutscene) return;
+  if (running || G.cutscene || (G.chapters && G.chapters.active && G.chapters.active())) return;   /* a Chapter is being played: the old beats wait */
   for (const id in s.beats) {
     const r = s.beats[id], b = BEATS_BY_ID[id]; if (!b) continue;
     if (r.st === 'active') { r.st = 'scheduled'; } // a scene interrupted by a reload
@@ -248,7 +256,12 @@ function tick() {
   if (!F.introDone) return;
   const day = Math.floor(T / 1440), tod = T % 1440; if (day <= (s.last === undefined ? -9 : s.last) || tod > 21 * 60 + 30) return;
   if (Object.values(s.beats).filter(r => r.st === 'scheduled').length >= 2) return;
-  for (const b of BEATS) { if (rec(b.id)) continue; const t = b.trigger || {}; if (day < (t.minDay || 0) || tod < hm(t.sendAt || '09:00') || !(t.after || []).every(a => beatSt(a) === 'done')) continue; offer(b.id); break; }
+  for (const b of BEATS) { if (rec(b.id) || REHOUSED[b.id]) continue; const t = b.trigger || {}; if (day < (t.minDay || 0) || tod < hm(t.sendAt || '09:00') || !(t.after || []).every(beatOk) || (ALSO_AFTER[b.id] && !chDone(ALSO_AFTER[b.id]))) continue; offer(b.id); break; }
+}
+/** old saves: a re-housed beat that was already on the calendar is taken off it (the Chapter has it now); finished ones stay finished */
+function unschedule() {
+  const s = S(); for (const id in s.beats) { const r = s.beats[id], b = BEATS_BY_ID[id]; if (!b || !REHOUSED[id] || r.st === 'done') continue;
+    if (r.appt !== undefined && r.appt !== null) safe(() => G.planner.remove(r.appt)); for (const n of b.delivery.appointment.with || []) safe(() => G.social.place(n)); delete s.beats[id]; }
 }
 function recurring(day) {
   const s = S(); for (const id in s.recur) { const r = s.recur[id]; if (WDK[day % 7] !== r.weekday || r.last === day) continue; r.last = day; const p = placeOf(r.place);
@@ -261,7 +274,7 @@ export function init() {
   G.defineState('goals', () => ({ items: [] }));
   G.defineState('ach', () => ({ got: {}, c: {} }));
   G.goals = { add: addGoal, complete: completeGoal, remove: removeGoal, addList, addFromList, cond, get: id => GS().items.find(x => x.id === id) || null, isDone: id => { const g = GS().items.find(x => x.id === id); return !!(g && g.done); }, list: () => GS().items };
-  G.story = { state: S, beat: id => (BEATS_BY_ID[id] ? Object.assign({ def: BEATS_BY_ID[id], st: 'pending' }, rec(id)) : null), offer, start, complete: id => complete(id), skipTo, hints, tick,
+  G.story = { state: S, rehoused: id => REHOUSED[id] || null, credit: id => complete(id, true), beat: id => (BEATS_BY_ID[id] ? Object.assign({ def: BEATS_BY_ID[id], st: 'pending' }, rec(id)) : null), offer, start, complete: id => complete(id), skipTo, hints, tick,
     active: () => Object.keys(S().beats).filter(id => /scheduled|active/.test(S().beats[id].st)), discount: v => S().disc[v] || 0, recipes: () => S().recipes, keepsakes: () => S().items };
   G.achievements = { list: () => ACHIEVEMENTS.map(d => Object.assign({ got: A().got[d.id] !== undefined }, d)), grant, has: id => A().got[id] !== undefined };
   track();
@@ -269,5 +282,5 @@ export function init() {
   G.on('minutes', (d) => { safe(tick); acc += d || 1; if (acc >= 5) { acc = 0; safe(ambientTrack); evalGoals(); evalAch(); } });
   G.on('scene', () => setTimeout(() => safe(tick), 700));
   G.on('day', d => { safe(() => recurring(typeof d === 'number' ? d : Math.floor(G.state.t / 1440))); purgeLists(); });
-  G.on('load', () => { for (const k in rt) { if (rt[k].off) rt[k].off(); delete rt[k]; } for (const it of GS().items) hookEvent(it); running = false; G.emit('goals:change'); });
+  G.on('load', () => { setTimeout(() => safe(unschedule), 0); for (const k in rt) { if (rt[k].off) rt[k].off(); delete rt[k]; } for (const it of GS().items) hookEvent(it); running = false; G.emit('goals:change'); });
 }

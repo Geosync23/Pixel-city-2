@@ -52,4 +52,4 @@ export function openSheet(o = {}) {
   const fit = () => box.classList.toggle('side', innerWidth > innerHeight && innerWidth >= 760); fit(); addEventListener('resize', fit);
   root().append(box); sh.el = box; cur = sh; return sh;
 }
-export function init() { G.on('load', () => { if (cur) cur.close(); }); }
+export function init() { injectCss(); G.on('load', () => { if (cur) cur.close(); }); }

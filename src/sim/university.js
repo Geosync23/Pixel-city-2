@@ -54,7 +54,7 @@ for (const x of [
   { id: 'x:uni_diploma', title: 'Graduate', group: 'Big days out', glyph: 'key', place: 'place:university', need: 'university', blurb: 'Three certificates make the Diploma of Maple Bay University. The Dean reads your name from the hall steps.' },
 ]) if (!EXPERIENCES.some(e => e.id === x.id)) EXPERIENCES.push(x);
 
-let S = null, campus = null, cityScene = null;
+let S = null, campus = null, cityScene = null, loading = false;
 const DAY = 1440;
 const DEF = () => ({ v: 1, card: 0, visits: 0, courses: {}, certs: {}, diploma: 0, walked: 0, credit: 0, voucher: 0, clubs: [], clubWeek: -1, open: {}, groupDay: -1, shelfDay: -1, rel: {}, work: 0, seen: {} });
 const st = () => { S = G.state.uni || (G.state.uni = {}); const d = DEF(); for (const k in d) if (S[k] === undefined || S[k] === null) S[k] = d[k]; return S; };
@@ -111,10 +111,13 @@ const roomOf = ses => (ses.kind === 'practical' ? (stationOf(ses) === 'pond' ? '
 const next = id => { if (id) return nextOf(id); let b = null; for (const k of enrolled()) { const n = nextOf(k); if (n && n.T !== undefined && (!b || n.T < b.T)) b = n; } return b; };
 const inWindow = (T, t = now()) => t >= T - TUNE.doors && t < T + TUNE.late;
 /** the class whose doors are open right now */
-function current() { let b = null; for (const k of enrolled()) { const n = nextOf(k); if (n && n.T !== undefined && inWindow(n.T) && (!b || n.T < b.T)) b = n; } return b; }
+function current() { let b = null; const t = now(); for (const k of enrolled()) { const c = row(k); let n = nextOf(k);
+    /* a class you had already joined (a save loaded in the middle of it) can be rejoined until ten minutes before it ends */
+    if (c.inClass && t >= c.inClass && t < c.inClass + TUNE.classMin - 10 && !(n && n.T === c.inClass)) { const m = nextOf(k, c.inClass); if (m && m.T === c.inClass) n = m; }
+    if (n && n.T !== undefined && (inWindow(n.T, t) || (c.inClass === n.T && t < n.T + TUNE.classMin - 10 && t >= n.T)) && (!b || n.T < b.T)) b = n; } return b; }
 function timetable(days = 7) {
   const out = [], t = now();
-  for (const id of enrolled()) { const c = row(id), cs = C(id); let u = c.unit, tt = t; for (let k = 0; k < 4 && u <= 3; k++, u++) { if (u === 3 && k > 0) { out.push({ T: null, cid: id, unit: 3, kind: 'final', title: `${cs.name}: Final`, where: 'after your reading and project' }); break; } const n = k === 0 ? nextOf(id, tt) : (() => { const T = nextSlot(cs.sections[c.sec], tt, 0); return T === null ? null : { T, kind: UNITS[u].k }; })(); if (!n) break; if (n.T === undefined) { out.push({ T: null, cid: id, unit: u, kind: n.kind, title: `${cs.name}: Final`, where: n.why }); break; } if (n.T > t + days * DAY) break;
+  for (const id of enrolled()) { const c = row(id), cs = C(id); let u = c.unit, tt = t; for (let k = 0; k < 4 && u <= 3; k++, u++) { if (u === 3 && k > 0) { out.push({ T: null, cid: id, unit: 3, kind: 'final', title: `${cs.name}: Final`, where: ready(id) && u === 3 ? 'at the class after Lecture 2' : 'after your reading and project' }); break; } const n = k === 0 ? nextOf(id, tt) : (() => { const T = nextSlot(cs.sections[c.sec], tt, 0); return T === null ? null : { T, kind: UNITS[u].k }; })(); if (!n) break; if (n.T === undefined) { out.push({ T: null, cid: id, unit: u, kind: n.kind, title: `${cs.name}: Final`, where: n.why }); break; } if (n.T > t + days * DAY) break;
       out.push({ T: n.T, cid: id, unit: u, kind: n.kind, title: `${cs.name}: ${UNITS[u].name}`, where: n.kind === 'practical' ? PRACTICAL[id].where : 'Ashby Lecture Theatre' }); tt = n.T + TUNE.late + 1; } }
   for (let d = today(); d < today() + days; d++) { if (wd(d) === OPEN_LECTURE.weekday && openT(d) + TUNE.late > t) out.push({ T: openT(d), open: 1, title: 'Open lecture: ' + openTalk(d).title, where: 'Ashby Lecture Theatre · free' }); }
   return out.sort((a, b) => (a.T === null ? 1e12 : a.T) - (b.T === null ? 1e12 : b.T));
@@ -146,7 +149,7 @@ function checkMissed() { const t = now(); for (const id of enrolled()) { const c
     const n = nextOf(id); note(CAST[cs.prof].short, `${pick(LINES.missed)}${n && n.T ? ` Next: ${DAYN[wd(dayOf(n.T))]} ${hh((n.T % DAY) / 60)}.` : ''}`, 'low'); } syncPlanner(); }
 
 /* ---------- enrolment ---------- */
-function buyCard() { const S = st(); if (S.card) return true; if (safe(() => G.money.get(), TUNE.card) < TUNE.card) { toast(`The student card is ${fmt(TUNE.card)}.`, 'bad'); return false; } if (G.money && !G.money.pay(TUNE.card, 'Student card', { category: 'fun', venue: UV.place })) return false; S.card = 1; safe(() => G.inv.add('uni_card', 1)); G.emit('university:card'); toast('Student card: a fifth off at the Quill & Kettle, and the Workshops are open to you.', 'good', 4200); return true; }
+function buyCard() { const S = st(); if (S.card) return true; if (safe(() => G.money.get(), TUNE.card) < TUNE.card) { toast(`The student card is ${fmt(TUNE.card)}.`, 'bad'); return false; } if (G.money && !G.money.pay(TUNE.card, 'Student card', { category: 'fun', venue: UV.place })) return false; S.card = 1; safe(() => G.inv.add('uni_card', 1)); G.emit('university:card'); toast('Student card: the Workshops and the returns cart in the Reading Room are open to you.', 'good', 4200); return true; }
 function enrol(id, sec = 0) {
   const S = st(), cs = C(id); if (!cs || S.courses[id] || S.certs[id]) return false; if (enrolled().length >= TUNE.maxCourses) { toast(`Two courses at a time is the limit. Finish one first.`, 'info'); return false; } if (clash(id, sec)) { toast('That section clashes with a class you already have.', 'info'); return false; }
   const pr = price(id), cost = pr.pay + (S.card ? 0 : TUNE.card), have = safe(() => G.money.get(), cost);
@@ -155,7 +158,7 @@ function enrol(id, sec = 0) {
   if (S.voucher) S.voucher = 0; else if (pr.credit) S.credit -= pr.credit;
   S.courses[id] = { sec, unit: 0, part: [0, 0], prac: null, read: 0, readOk: 0, proj: null, practice: 0, final: null, tries: 0, missed: 0, late: 0, group: 0, appt: null, miss: 0, since: now() };
   syncPlanner(); G.emit('university:enrol', id, sec); const n = nextOf(id);
-  note('Enrolled: ' + cs.name, `${cs.code} with ${CAST[cs.prof].name}. First class ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' ' + hh((n.T % DAY) / 60) : 'soon'} in the Ashby Lecture Theatre. It is in your Planner.`); safe(() => G.apps.release && G.apps.release('campus')); return true;
+  note('Enrolled: ' + cs.name, `${cs.code} with ${CAST[cs.prof].name}. First class ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' ' + hh((n.T % DAY) / 60) : 'soon'} in the Ashby Lecture Theatre. It is in your Planner.`); safe(() => { if (G.apps && !G.apps.isInstalled('campus')) { if (!G.apps.isReleased('campus')) G.apps.release('campus', true); G.apps.install('campus'); } }); return true;
 }
 function withdraw(id) { const S = st(), c = S.courses[id]; if (!c) return false; dropAppt(c); delete S.courses[id]; G.emit('university:withdraw', id); return true; }
 function setSection(id, sec) { const c = row(id); if (!c || c.sec === sec || !C(id).sections[sec]) return false; if (clash(id, sec)) { toast('That section clashes with a class you already have.', 'info'); return false; } c.sec = sec; c.since = now(); syncPlanner(); return true; }
@@ -221,7 +224,7 @@ async function sit(seat, sc) {
   try {
     if (mine) { const T = mine.T, c = row(mine.cid); if (mine.unit === 3 && c.tries >= 2 && G.money && !G.money.pay(TUNE.resit, 'Resit fee: ' + C(mine.cid).name, { category: 'fun', venue: UV.place })) { free(); return false; }
       if (c.appt !== null && c.appt !== undefined) safe(() => G.planner.done(c.appt)); if (now() < T && !(await CL.waitUntil(T, 'Waiting for class to start', Object.assign({ seated: true }, seat)))) { free(); return false; }
-      mine.late = now() > T + 6; if (mine.late) c.late = (c.late || 0) + 1; seat.taken = G.player; roomSync(sc, true);
+      mine.late = now() > T + 6 && c.inClass !== T; if (mine.late) c.late = (c.late || 0) + 1; c.inClass = T; seat.taken = G.player; roomSync(sc, true);
       const res = mine.kind === 'lecture' ? await CL.lecture(X, mine, seat, sc) : mine.kind === 'paper' ? await CL.paper(X, mine, seat, sc) : await CL.present(X, mine, seat, sc);
       free(); if (res.left) { toast('You slip out. The unit will wait for your next class.', 'info', 3400); checkLeft(mine); return false; } await afterClass(mine, res); return true; }
     const T = openT(), talk = openTalk(); if (now() < T && !(await CL.waitUntil(T, 'Waiting for the open lecture', Object.assign({ seated: true }, seat)))) { free(); return false; }
@@ -231,13 +234,13 @@ async function sit(seat, sc) {
   } catch (e) { console.warn('university class', e); CL.abort(); free(); return false; }
 }
 /** leaving a class half way: it counts as not attended (no penalty beyond the wait) */
-function checkLeft(ses) { const c = row(ses.cid); if (c) { c.miss = now(); c.since = ses.T + TUNE.late; } syncPlanner(); }
+function checkLeft(ses) { const c = row(ses.cid); if (c) { c.miss = now(); c.since = ses.T + TUNE.late; if (!loading) c.inClass = 0; } syncPlanner(); }
 const stationOn = k => isOpen();
 async function useStation(k, sc, city) {
   if (G.busy || CL.running()) return false; const S = st(), stn = city ? null : sc.uni.stations[k], ses = current(), mine = ses && ses.kind === 'practical' && stationOf(ses) === k ? ses : null;
   const at = city ? { x: CAMPUS.pond.x, y: CAMPUS.pond.y, z: 0, dir: 2, anim: 'work' } : { x: stn.x, y: stn.y, z: stn.z || 0, dir: stn.dir, anim: stn.anim, seated: !!stn.seated };
   try {
-    if (mine) { const T = mine.T, c0 = row(mine.cid); if (c0.appt !== null && c0.appt !== undefined) safe(() => G.planner.done(c0.appt)); if (now() < T && !(await CL.waitUntil(T, 'Waiting for the practical', at, at.seated ? at.anim : 'stand'))) return false; roomSync(sc, true); if (city) pondSync(true);
+    if (mine) { const T = mine.T, c0 = row(mine.cid); if (c0.appt !== null && c0.appt !== undefined) safe(() => G.planner.done(c0.appt)); if (now() < T && !(await CL.waitUntil(T, 'Waiting for the practical', at, at.seated ? at.anim : 'stand'))) return false; c0.inClass = T; roomSync(sc, true); if (city) pondSync(true);
       const res = await CL.practical(X, mine, at, city ? { uni: { prof: pond.prof, mates: pond.mates } } : sc, k); if (res.left) { toast('You step away. The practical will run again at your next class.', 'info', 3400); checkLeft(mine); return false; } await afterClass(mine, res); return true; }
     if (!S.card) { toast('The Workshops are for students. A card is ' + fmt(TUNE.card) + ' at the Registrar, in the hall.', 'info', 3800); return false; }
     /* project, or free practice */
@@ -394,7 +397,7 @@ export function init() {
     stats: () => { const S = st(); return { card: S.card, visits: S.visits, enrolled: enrolled(), certs: Object.keys(S.certs).length, diploma: !!S.diploma, credit: S.credit, voucher: S.voucher, clubs: S.clubs.length, open: Object.keys(S.open).filter(k => k[0] !== 'd').length, work: S.work }; },
     debug: { /* tests: finish the current unit of a course without playing it */ pass(id, score = .8) { const c = row(id); if (!c) return false; if (c.unit === 0 || c.unit === 2) { c.part[0] += 2; c.part[1] += 2; c.unit++; } else if (c.unit === 1) { c.prac = score; c.unit++; } c.since = now(); c.miss = now(); syncPlanner(); return c.unit; }, work(id, score = .8) { const c = row(id); if (!c) return false; c.read = 1; c.readOk = 1; c.proj = score; syncPlanner(); return true; }, sync: () => { syncPlanner(); citySync(true); }, class: CL, sheet: () => curSheet(), want: () => { const s = curSheet(); return s ? s.want() : null; } },
   };
-  G.on('load', () => { CL.abort(); for (const sc of G.sceneCache.values()) if (sc && sc.uni) { for (const q of (sc.uni.seats || []).concat(sc.uni.carrels || [])) if (q.taken === G.player) q.taken = null; sc._uk = null; if (sc.uni.board) sc.uni.board.show(null); } setup(); lastBan = ''; safe(() => citySync(true)); });
+  G.on('load', () => { loading = true; CL.abort(); setTimeout(() => { loading = false; }, 0); for (const sc of G.sceneCache.values()) if (sc && sc.uni) { for (const q of (sc.uni.seats || []).concat(sc.uni.carrels || [])) if (q.taken === G.player) q.taken = null; sc._uk = null; if (sc.uni.board) sc.uni.board.show(null); } setup(); lastBan = ''; safe(() => citySync(true)); });
   G.on('ready', setup); G.on('game:start', setup);
   G.on('room:build', sc => { if (sc && sc.def && sc.def.showpiece === 'university' && !campus) safe(() => ensure(getCity())); });
   G.on('scene', (s, prev) => { if (CL.running() && !(s && s.def && s.def.showpiece === 'university') && !(s && s.id === 'city')) CL.abort(); if (!s || s.id !== 'city' || !s.world) return; if (!s._university) { s._university = true; try { wire(s); } catch (e) { console.warn('university', e); } } citySync(true);

@@ -34,7 +34,7 @@ const defaults = () => ({ job: null, shift: null, history: {}, gigs: { day: -1, 
 let S, quiet = false, dbg = false, ending = false, dog = null;
 const st = () => (S = G.state.jobs || (G.state.jobs = defaults()));
 const cl = (v, a, b) => Math.max(a, Math.min(b, v)), r25 = n => Math.round(n * 4) / 4, hh = h => String(Math.floor(h) % 24).padStart(2, '0') + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0');
-const skill = k => (G.skills ? G.skills.level(k) : 1), today = () => Math.floor(G.state.t / DAY), cap = x => x[0].toUpperCase() + x.slice(1);
+const skill = k => (G.skills ? G.skills.level(k) : 1) + (G.university ? G.university.jobBonus(k) : 0), today = () => Math.floor(G.state.t / DAY), cap = x => x[0].toUpperCase() + x.slice(1);
 const vname = job => { const p = G.places && G.places.get && G.places.get(job.venue); return (p && p.name) || job.name; };
 const fill = (x, job, level) => String(x || '').replace(/\{name\}/g, G.state.player.name).replace(/\{level\}/g, job.levels[level - 1].title).replace(/\{job\}/g, job.name);
 const bossOf = job => (G.social && G.social.boss && G.social.boss(job.id)) || (JOB_TEXTS[job.id] || {}).boss;

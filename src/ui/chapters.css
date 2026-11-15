@@ -1,0 +1,122 @@
+/* Chapters (src/ui/chapters_ui.js): dialogue sheet, cards, chip, Mom's book, microfilm. Warm gold is the Chapter colour. */
+:root{--chgold:#f2c230;--chgold2:#ffe9a6;--chink:#4a3410}
+
+/* ---- dialogue sheet ---- */
+.chd-wrap{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 8px max(12px,env(safe-area-inset-bottom,0px));pointer-events:auto;background:linear-gradient(#1b1a2400 58%,#1b1a2466)}
+.chd{position:relative;width:min(620px,100%);background:var(--panel);border:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);padding:8px 10px 10px;cursor:pointer;animation:chd-in .16s steps(4)}
+@keyframes chd-in{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.chd-head{display:flex;align-items:center;gap:8px;min-height:44px;margin-bottom:6px}
+.chd-face{flex:none;width:52px;height:55px;background:#cfe9f4;border:2px solid var(--edge);box-shadow:inset 0 -10px 0 #b5d8e6;overflow:hidden;margin-top:-22px}
+.chd-pc{display:block;width:48px;height:51px;image-rendering:pixelated}
+.chd-id{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.1}
+.chd-name{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chd-sub{font-size:11.5px;opacity:.7}
+.chd-b{flex:none;min-width:40px;min-height:34px;padding:2px 8px;font-size:13px;box-shadow:0 2px 0 var(--edge);background:var(--shade)}
+.chd-text{min-height:4.1em;font-size:17px;font-weight:600;line-height:1.32;padding:2px 20px 2px 2px;white-space:pre-wrap}
+.chd-more{position:absolute;right:10px;bottom:6px;font-size:12px;color:var(--accent);animation:chd-bob .7s steps(2) infinite alternate}
+@keyframes chd-bob{to{transform:translateY(3px)}}
+.chd.beat .chd-text{opacity:.55}
+.chd.narrator{background:#f1e6cc}
+.chd.narrator .chd-head{min-height:0;margin:0;justify-content:flex-end;position:absolute;right:8px;top:-40px}
+.chd.narrator .chd-id{display:none}
+.chd.narrator .chd-text{font-style:italic;font-weight:500;color:#4d4658;padding-top:6px}
+.chd.hand{background:#fbf6e4;background-image:repeating-linear-gradient(#0000 0 25px,#a9c4dc66 25px 26px)}
+.chd.hand .chd-text{font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;font-weight:500;font-size:18px;color:#2b3a67;line-height:26px}
+.chd.phone .chd-face{background:#d9e6c8;box-shadow:inset 0 -10px 0 #b9cfa2}
+.chd.phone .chd-sub{color:#2f7a3a;font-weight:700;opacity:1}
+.chd.you .chd-name{color:var(--blue)}
+.chd.choosing{cursor:default}
+.chd.choosing .chd-text{min-height:0;opacity:.75;font-size:15px}
+.chd-opts{display:flex;flex-direction:column;gap:7px}
+.chd-opts:not(:empty){margin-top:8px}
+.chd-opt{display:block;width:100%;min-height:46px;padding:8px 12px;text-align:left;font-size:16px;line-height:1.25;background:#fffdf4;border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge)}
+.chd-opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.chd-opt::before{content:"› ";color:var(--accent);font-weight:700}
+.chd-over{position:absolute;left:8px;right:8px;bottom:max(12px,env(safe-area-inset-bottom,0px));max-height:76%;margin:0 auto;width:min(620px,calc(100% - 16px));display:flex;flex-direction:column;background:var(--panel);border:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);z-index:2}
+.chd-over-h{display:flex;justify-content:space-between;align-items:center;padding:6px 6px 6px 12px;border-bottom:2px solid var(--edge);background:var(--chgold)}
+.chd-log{overflow:auto;padding:8px 12px;-webkit-overflow-scrolling:touch}
+.chd-log p{margin:0 0 7px;font-size:14.5px;line-height:1.3}
+.chd-log p.narrator{font-style:italic;color:#5a5670}
+.chd-log p.hand{font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script",cursive;color:#2b3a67}
+.chd-log p.you b{color:var(--blue)}
+.chd-menu{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.chd-menu p{margin:0 0 2px}
+
+/* ---- cards ---- */
+.chc-wrap{position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:14px;background:#1b1a2488;pointer-events:auto}
+.chc{width:min(430px,100%);max-height:90%;overflow:auto;background:var(--panel);border:2px solid var(--edge);box-shadow:0 5px 0 var(--edge);padding:14px 14px 12px;animation:chd-in .16s steps(4)}
+.chc.start,.chc.end{border-top:10px solid var(--chgold)}
+.chc-kick{display:inline-block;background:var(--chgold);border:2px solid var(--edge);padding:0 8px;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
+.chc-title{margin:8px 0 4px;font-size:24px;line-height:1.1}
+.chc-hook{margin:0 0 10px;font-size:16px;line-height:1.3}
+.chc-who{display:flex;flex-wrap:wrap;gap:6px 10px;margin:0 0 8px}
+.chc-p{display:flex;align-items:center;gap:5px;background:#fffdf4;border:2px solid var(--edge);padding:1px 8px 1px 2px}
+.chc-p .chd-pc{width:32px;height:34px}
+.chc-p i{font-style:normal;font-weight:700;font-size:13.5px}
+.chc-meta{margin:0 0 6px;font-size:13.5px;opacity:.8}
+.chc-ready{margin:0 0 12px;font-size:15px;font-style:italic;color:var(--chink)}
+.chc-closed{margin:0 0 12px;font-size:15px;background:#efe3c4;border:2px dashed #8a7650;padding:8px 10px}
+.chc-btns{display:flex;gap:10px}
+.chc-btns.col{flex-direction:column}
+.chc-btns button{flex:1;min-height:48px;font-size:17px}
+.chc-go{background:var(--chgold)}
+.chc-no{background:var(--shade)}
+.chc-sec{margin:10px 0 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.7}
+.chc-list p{margin:0 0 5px;padding-left:16px;position:relative;font-size:15px;line-height:1.25}
+.chc-list p::before{content:"";position:absolute;left:2px;top:6px;width:7px;height:7px;background:var(--chgold);border:1px solid var(--edge)}
+.chc.menu{width:min(360px,100%)}
+
+/* ---- chip ---- */
+.chp{position:absolute;left:8px;bottom:calc(58px + env(safe-area-inset-bottom,0px));width:min(310px,calc(100% - 78px));z-index:4;background:var(--chgold2);border:2px solid var(--edge);border-left:8px solid var(--chgold);box-shadow:0 3px 0 var(--edge);padding:5px 6px 6px 8px;display:flex;flex-direction:column;gap:5px;pointer-events:auto}
+.chp-main{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.chp-main small{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--chink)}
+.chp-main span{font-size:14.5px;font-weight:700}
+.chp-btns{display:flex;gap:6px}
+.chp-btns:empty{display:none}
+.chp-btns button{min-height:38px;padding:3px 10px;font-size:14px;box-shadow:0 2px 0 var(--edge)}
+.chp-go{flex:1;background:var(--chgold)}
+.chp-skip{background:#fffdf4}
+.chp-out{background:var(--shade);min-width:40px}
+
+/* ---- gold rows / notices ---- */
+.toast.chgold{background:var(--chgold2);border-left:8px solid var(--chgold)}
+#goalsw .gw-item[data-g^="chapter"]{background:var(--chgold2);border-left:6px solid var(--chgold);font-weight:700}
+#goalsw .gw-item[data-g^="chapter"] .gw-box{background:var(--chgold);border-radius:0;transform:rotate(45deg) scale(.8)}
+
+/* ---- Mom's book ---- */
+.chc.book{width:min(440px,100%);padding:0;background:#6b4a2e;border-color:#2a1c10;display:flex;flex-direction:column}
+.bk-cover{padding:6px 12px;color:#f6e7c8;font-weight:700;letter-spacing:1px;font-size:13px;text-align:center}
+.bk-page{position:relative;margin:0 8px;min-height:320px;max-height:62vh;overflow:auto;padding:16px 16px 18px 30px;background:#fbf6e4;background-image:linear-gradient(90deg,#0000 21px,#e59a9a 21px 22px,#0000 22px),repeating-linear-gradient(#0000 0 27px,#a9c4dc88 27px 28px);background-attachment:local;border:2px solid #2a1c10;font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;color:#2b3a67}
+.bk-page h3{margin:0 0 4px;font-size:21px;line-height:28px;text-decoration:underline}
+.bk-page p{margin:0 0 0;font-size:17px;line-height:28px;text-indent:14px}
+.bk-page p+p{margin-top:0}
+.bk-n{position:absolute;right:10px;top:6px;font-size:14px;opacity:.6}
+.bk-page.blank p,.bk-page.half p:last-of-type{color:#8a8698;font-style:italic;font-family:inherit}
+.bk-page.found{background:#f3ead0;background-image:none;border-style:dashed;color:#33302a}
+.bk-page.family{color:#3a3a3a}
+.bk-by{text-align:right;text-indent:0!important;opacity:.75}
+.bk-note{margin-top:12px;padding:6px 8px;border:2px dashed #b08a4a;background:#fff3c9;color:#4a3410;font-family:"Pixelify Sans",system-ui,sans-serif;font-size:13.5px;line-height:1.3}
+.bk-nav{display:flex;align-items:center;gap:8px;padding:8px}
+.bk-nav span{color:#f6e7c8;font-size:13px;min-width:44px;text-align:center}
+.bk-b{min-width:44px;min-height:42px}
+.bk-close{flex:1;min-height:42px;background:var(--chgold)}
+
+/* ---- microfilm ---- */
+.chc.film{background:#22242b;border-color:#0c0d10;color:#e8e3d2}
+.mf-paper{background:#d9d2bd;color:#1d1c1a;padding:10px 12px;border:2px solid #0c0d10;box-shadow:inset 0 0 26px #0006;margin-bottom:10px;font-family:Georgia,"Times New Roman",serif;filter:contrast(1.05) sepia(.25)}
+.mf-head{text-align:center;font-size:22px;font-weight:700;letter-spacing:1px;border-bottom:3px double #1d1c1a;padding-bottom:2px}
+.mf-date{text-align:center;font-size:11.5px;letter-spacing:.5px;margin:3px 0 6px;text-transform:uppercase}
+.mf-title{margin:0 0 6px;font-size:18px;line-height:1.15;text-align:center}
+.mf-photo{display:block;width:100%;height:auto;border:2px solid #1d1c1a;image-rendering:pixelated}
+.mf-cap{font-size:12px;font-style:italic;margin:3px 0 6px}
+.mf-cols p{margin:0 0 6px;font-size:14.5px;line-height:1.32}
+@media (prefers-reduced-motion: reduce){.chd,.chc{animation:none}.chd-more{animation:none}}
+
+/* ---- Pip's survey ---- */
+.chc.survey{max-height:92%}
+.chs-list{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0}
+.chs-i{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:52px;padding:6px 8px;text-align:left;background:#fffdf4;border:2px solid var(--edge);box-shadow:0 2px 0 var(--edge)}
+.chs-i b{font-size:15px}
+.chs-i small{font-size:11.5px;font-weight:500;opacity:.75;line-height:1.15}
+.chs-i.on{background:var(--chgold2);border-left:8px solid var(--chgold)}
+.chs-i.on b::after{content:" ✓"}

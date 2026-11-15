@@ -29,6 +29,8 @@
 .fz-sw button.on{background:var(--gold)}
 .fz-sw i{display:block;width:30px;height:30px;border:2px solid var(--edge)}
 button.go{background:var(--good);color:#fff}
+/* QA round 5: inside a window (.win) hud.css paints .go pale green (#c8ecc0); white text on it was unreadable (supplies "Take me to...", "Start the day", Buy, Cook it, Eat now...). Dark ink there. */
+.win button.go{color:var(--ink)}
 .fz-tabs{display:flex;gap:4px;padding:6px 8px 0;align-items:center}
 .fz-tabs>button{min-height:40px;padding:2px 14px;font-weight:700;opacity:.7}
 .fz-tabs>button.on{opacity:1;background:var(--gold)}

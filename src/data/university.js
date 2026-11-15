@@ -113,7 +113,7 @@ const dish = (id, name, price, effects, eatMinutes, course, icon) => ({ id, name
 const keep = (id, name, icon, note) => ({ id, name, category: 'misc', price: 0, icon, effects: {}, stack: 1, soldAt: [], note });
 const gift = (id, name, price, icon, relationship, giftTags) => ({ id, name, category: 'gift', price, icon, effects: {}, stack: 3, soldAt: CF, relationship, giftTags });
 const NEW = [
-  keep('uni_card', 'Student Card', 'navy card with a gold crest and a small photo', 'Maple Bay University. A fifth off at the Quill & Kettle, and the Reading Room lets you stay.'),
+  keep('uni_card', 'Student Card', 'navy card with a gold crest and a small photo', 'Maple Bay University. Opens the Workshops for practice and the returns cart for work-study.'),
   keep('uni_diploma', 'Diploma of Maple Bay University', 'cream scroll, navy ribbon, gold seal', 'Three certificates make a diploma. "Lux in portu": a light in the harbour.'),
   ...COURSES.map(c => keep(CERT_ITEM(c.id), 'Certificate: ' + c.name, 'cream certificate with a ' + c.color + ' ribbon', c.code + ', Maple Bay University. ' + c.perk)),
   dish('uni_coffee', "Dean's Roast", 2.5, { energy: 16, fun: 2, caffeine: true }, 5, 'drink', 'navy mug, steam'),

@@ -36,7 +36,7 @@ export function buildCampus(w) {
     for (const [x, y, f] of [[172.6, 42.2, 0], [179.4, 42.2, 0], [168.4, 42.2, 0]]) P('prop.street.bench.wood', x, y, {}, { flip: !!f });
     for (const [x, y] of [[173.9, 36.2], [177.8, 36.2], [173.9, 51], [177.8, 51]]) P('prop.street.lamp.modern', x, y, {});
     P('prop.park.bikerack', 180.4, 35.4, { n: 3 });
-    const TREES = [['cherry', 168, 38.2], ['maple', 182, 37], ['cherry', 181.6, 47.6], ['maple', 168.4, 51.4], ['birch', 182.4, 51.6], ['cherry', 169.6, 40.2], ['maple', 166.6, 40.4]];
+    const TREES = [['cherry', 181.4, 37.6], ['maple', 182.6, 41.6], ['cherry', 181.6, 47.6], ['birch', 182.4, 51.6], ['birch', 166.6, 52]];
     TREES.forEach(([k, x, y], i) => P('prop.nature.tree.' + k, x, y, { seed: 311 + i * 17 }));
     STALL_AT.forEach(([x, y], i) => { const s = P('prop.uni.stall', x, y, { k: i, name: ['CHESS', 'FILM SOC', 'GARDENERS', 'RADIO MBU', 'ROWING', 'DEBATE'][i], c: ['#2f3f72', '#8a3848', '#3f7a54', '#c8683f', '#2f6a7a', '#5a4a8a'][i] }); if (s) { s.hidden = true; w.free(s.B[0], s.B[1], s.B[3], s.B[4]); out.stalls.push(s); } });
     if (Array.isArray(w.walkways)) w.walkways.push({ x0: 175, y0: 34, x1: 177, y1: 54, axis: 'y', district: 'arts', kind: 'path' }, { x0: 167, y0: 43, x1: 182, y1: 45, axis: 'x', district: 'arts', kind: 'path' });

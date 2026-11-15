@@ -113,6 +113,7 @@ function draw() {
       if (last) { g.fillStyle = INK; g.fillRect(x - 2, y - 26, 4, 27); g.fillStyle = '#ff5a3c'; g.fillRect(x + 2, y - 26, 14, 10); g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(x + 2, y - 26, 14, 10); label(q.name, x + 20, y - 21, true); }
       else { g.strokeStyle = INK; g.lineWidth = 5; g.strokeRect(x - 7, y - 7, 14, 14); g.strokeStyle = '#ff5a3c'; g.lineWidth = 3; g.strokeRect(x - 7, y - 7, 14, 14); label((i === 0 ? 'Next: ' : '') + q.name, x + 13, y - 12); } });
   } g.fillStyle = INK; g.fillRect(mx - 8, my - 8, 16, 16); g.fillStyle = CREAM; g.fillRect(mx - 6, my - 6, 12, 12); g.fillStyle = '#e05a3a'; g.fillRect(mx - 3, my - 3, 6, 6); label('You', mx + 12, my, true);
+  for (const f of G.mapPins || []) { try { f(g, X, Y, z, label, W, H); } catch (e) { /* a pin layer must never break the map */ } }   /* extra pin layers (Chapters: the gold marker + Mom's pages) */
   const sp = sel && place(sel); if (sp) { const x = X(sp.x), y = Y(sp.y); g.strokeStyle = CREAM; g.lineWidth = 2; g.strokeRect(x - 11, y - 11, 22, 22); g.strokeStyle = INK; g.strokeRect(x - 13, y - 13, 26, 26); stamp('ui.pin', x, y - 22); label(sp.name, Math.min(x + 16, W - g.measureText(sp.name).width - 8), y, true); }
 }
 const clampView = () => { const w = cityWorld(); if (!w) return; view.z = Math.max(1, Math.min(8, view.z)); view.cx = Math.max(0, Math.min(w.w, view.cx)); view.cy = Math.max(0, Math.min(w.h, view.cy)); };
