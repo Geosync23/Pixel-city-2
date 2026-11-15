@@ -1,0 +1,550 @@
+{
+ "target_lufs": -23.0,
+ "roll": 0.3,
+ "stretches": [
+  {
+   "name": "busy_a",
+   "place": "busy street",
+   "desc": "Busy downtown traffic, a few horns (old film-library take)",
+   "source": "G16_17_Busy_Downtown_City_Traffic.mp3",
+   "segments": [
+    [
+     14,
+     68
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 7000,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 29.1,
+   "bytes": 184200,
+   "lufs": -22.9,
+   "lufs_phone": -23.0,
+   "lra": 5.5,
+   "lra_source": 9.9,
+   "peak": -4.9,
+   "limited_samples": 0,
+   "gain_db": 6.3,
+   "cut": "first 14 s (slate burst at 0-2 s, 30 dB hole and a click to 8 s); last 23 s (the same horn figure comes a 4th time)"
+  },
+  {
+   "name": "busy_b",
+   "place": "busy street",
+   "desc": "City traffic from half a block away",
+   "source": "G16_19_Medium_Perspective_City_Traffic.mp3",
+   "segments": [
+    [
+     6,
+     55
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 7000,
+   "seconds": 45.0,
+   "loopStart": 0.3,
+   "loopEnd": 45.3,
+   "sampleRate": 24000,
+   "kbps": 28.4,
+   "bytes": 162048,
+   "lufs": -22.0,
+   "lufs_phone": -23.0,
+   "lra": 5.0,
+   "lra_source": 8.6,
+   "peak": -6.5,
+   "limited_samples": 0,
+   "gain_db": 7.3,
+   "cut": "first 6 s (slate burst); last 12 s (ends in a loud burst, crest 18)"
+  },
+  {
+   "name": "busy_c",
+   "place": "busy street",
+   "desc": "Sunday city street, take 1 (the owner heard this one in the test page)",
+   "source": "L_streetA.mp3",
+   "segments": [
+    [
+     1,
+     55
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 32.4,
+   "bytes": 204744,
+   "lufs": -20.9,
+   "lufs_phone": -23.0,
+   "lra": 6.1,
+   "lra_source": 11.3,
+   "peak": -3.5,
+   "limited_samples": 70,
+   "gain_db": 3.1,
+   "cut": "last 23 s (chirping squeals / calls in the foreground at 60-72 s, speech-proxy 0.6 vs 0.1; and the old loop seam)"
+  },
+  {
+   "name": "busy_d",
+   "place": "busy street",
+   "desc": "Sunday city street, take 2 (the owner heard this one in the test page)",
+   "source": "L_streetB.mp3",
+   "segments": [
+    [
+     2,
+     56
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 33.0,
+   "bytes": 208944,
+   "lufs": -20.9,
+   "lufs_phone": -23.0,
+   "lra": 3.6,
+   "lra_source": 6.1,
+   "peak": -3.4,
+   "limited_samples": 74,
+   "gain_db": 2.5,
+   "cut": "last 34 s (the quiet tail, old loop seam, click at the end)"
+  },
+  {
+   "name": "light_a",
+   "place": "light street",
+   "desc": "Light traffic on a boulevard, single cars passing",
+   "source": "AMBTraf_Light_traffic_on_Sunset_Blvd_CS_USC.mp3",
+   "segments": [
+    [
+     1,
+     56
+    ]
+   ],
+   "seam": 5,
+   "lowpass": 7000,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 29.3,
+   "bytes": 185280,
+   "lufs": -22.3,
+   "lufs_phone": -23.0,
+   "lra": 4.7,
+   "lra_source": 9.0,
+   "peak": -3.8,
+   "limited_samples": 21,
+   "gain_db": 5.8,
+   "cut": "hiss bursts above 10 kHz (low-passed at 7.5 kHz); last 26 s (a 10 dB quiet patch)"
+  },
+  {
+   "name": "light_b",
+   "place": "light street",
+   "desc": "Light traffic with a streetcar going by",
+   "source": "AMBTraf_Light_traffic_with_a_few_streetcars_voices_CS_USC.mp3",
+   "segments": [
+    [
+     1,
+     49
+    ]
+   ],
+   "seam": 3,
+   "lowpass": 7000,
+   "seconds": 45.0,
+   "loopStart": 0.3,
+   "loopEnd": 45.3,
+   "sampleRate": 24000,
+   "kbps": 30.3,
+   "bytes": 172872,
+   "lufs": -22.1,
+   "lufs_phone": -23.0,
+   "lra": 4.6,
+   "lra_source": 7.9,
+   "peak": -6.2,
+   "limited_samples": 0,
+   "gain_db": 1.2,
+   "cut": "everything after 0:49: voices in the foreground at 0:50-1:20 (speech-proxy up to 0.49, harmonic stacks in the spectrogram)"
+  },
+  {
+   "name": "light_c",
+   "place": "light street",
+   "desc": "A trolley on a quiet street: bell, then it rolls past",
+   "source": "G18_09_Trolley_on_Street.mp3",
+   "segments": [
+    [
+     3,
+     63
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 7000,
+   "seconds": 56.0,
+   "loopStart": 0.3,
+   "loopEnd": 56.3,
+   "sampleRate": 24000,
+   "kbps": 30.3,
+   "bytes": 214296,
+   "lufs": -22.4,
+   "lufs_phone": -23.0,
+   "lra": 6.8,
+   "lra_source": 12.2,
+   "peak": -4.4,
+   "limited_samples": 10,
+   "gain_db": 5.5,
+   "cut": "first 3 s (slate burst); last 3 s"
+  },
+  {
+   "name": "resid_a",
+   "place": "quiet residential",
+   "desc": "A few cars and a bird singing close by",
+   "source": "CarsAndBirdsong.mp3",
+   "segments": [
+    [
+     2,
+     21.5
+    ],
+    [
+     30.5,
+     64
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 47.5,
+   "loopStart": 0.3,
+   "loopEnd": 47.8,
+   "sampleRate": 24000,
+   "kbps": 32.0,
+   "bytes": 192408,
+   "lufs": -22.2,
+   "lufs_phone": -23.0,
+   "lra": 2.4,
+   "lra_source": 4.5,
+   "peak": -6.8,
+   "limited_samples": 0,
+   "gain_db": -4.0,
+   "cut": "first 2 s (silence + click, crest 45); 21.5-30.5 s (the recording drops 18 dB to near silence); fade-out after 64 s"
+  },
+  {
+   "name": "resid_b",
+   "place": "far-off city",
+   "desc": "Distant traffic rumble, nothing close",
+   "source": "AMBTraf_Distant_traffic_rumble_CS_USC.mp3",
+   "segments": [
+    [
+     1,
+     51
+    ]
+   ],
+   "seam": 5,
+   "lowpass": 2500,
+   "seconds": 45.0,
+   "loopStart": 0.3,
+   "loopEnd": 45.3,
+   "sampleRate": 24000,
+   "kbps": 22.3,
+   "bytes": 127368,
+   "lufs": -20.0,
+   "lufs_phone": -24.8,
+   "lra": 4.9,
+   "lra_source": 8.6,
+   "peak": -4.3,
+   "limited_samples": 64,
+   "gain_db": 9.4,
+   "cut": "a thin whine near 6-7 kHz from 0:20 on (low-passed at 3 kHz; 99.9 % of the energy is below 1.3 kHz); last 16 s (size, click at the end)"
+  },
+  {
+   "name": "park_a",
+   "place": "park",
+   "desc": "Meadow birds, first minute",
+   "source": "meadow_6min.mp3 (minus its 30 s loop layer)",
+   "segments": [
+    [
+     1,
+     55
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 9500,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 34.6,
+   "bytes": 218784,
+   "lufs": -22.9,
+   "lufs_phone": -23.0,
+   "lra": 6.2,
+   "lra_source": 10.3,
+   "peak": -2.9,
+   "limited_samples": 81,
+   "gain_db": 16.1,
+   "cut": "the 30-second wind/hiss loop that the source mix repeats 12 times (subtracted), see docs/reports/ambience.md"
+  },
+  {
+   "name": "park_b",
+   "place": "park",
+   "desc": "Meadow birds, second minute",
+   "source": "meadow_6min.mp3 (minus its 30 s loop layer)",
+   "segments": [
+    [
+     60.5,
+     114.5
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 9500,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 34.3,
+   "bytes": 217080,
+   "lufs": -22.9,
+   "lufs_phone": -23.0,
+   "lra": 2.9,
+   "lra_source": 3.9,
+   "peak": -5.0,
+   "limited_samples": 0,
+   "gain_db": 16.3,
+   "cut": "as park_a"
+  },
+  {
+   "name": "park_c",
+   "place": "park",
+   "desc": "Meadow birds, third minute",
+   "source": "meadow_6min.mp3 (minus its 30 s loop layer)",
+   "segments": [
+    [
+     120,
+     174
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 9500,
+   "seconds": 50.0,
+   "loopStart": 0.3,
+   "loopEnd": 50.3,
+   "sampleRate": 24000,
+   "kbps": 34.5,
+   "bytes": 218352,
+   "lufs": -22.8,
+   "lufs_phone": -23.0,
+   "lra": 3.5,
+   "lra_source": 5.3,
+   "peak": -4.6,
+   "limited_samples": 0,
+   "gain_db": 17.0,
+   "cut": "as park_a; minutes 4-6 of the source are a repeat of 1-3 (not used)"
+  },
+  {
+   "name": "harbor_a",
+   "place": "harbor",
+   "desc": "Waves on a pebble beach (only 33 s exist)",
+   "source": "L_beach.mp3",
+   "segments": [
+    [
+     0.5,
+     32.5
+    ]
+   ],
+   "seam": 3,
+   "lowpass": 9000,
+   "seconds": 29.0,
+   "loopStart": 0.3,
+   "loopEnd": 29.3,
+   "sampleRate": 24000,
+   "kbps": 34.5,
+   "bytes": 127680,
+   "lufs": -22.2,
+   "lufs_phone": -23.0,
+   "lra": 6.5,
+   "lra_source": 8.8,
+   "peak": -2.4,
+   "limited_samples": 164,
+   "gain_db": 8.1,
+   "cut": "nothing (short source)"
+  },
+  {
+   "name": "gulls",
+   "place": "harbor layer",
+   "desc": "Gulls calling overhead",
+   "source": "L_gulls.mp3",
+   "segments": [
+    [
+     0.5,
+     47.5
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 7000,
+   "seconds": 43.0,
+   "loopStart": 0.3,
+   "loopEnd": 43.3,
+   "sampleRate": 24000,
+   "kbps": 32.1,
+   "bytes": 175176,
+   "lufs": -22.9,
+   "lufs_phone": -23.0,
+   "lra": 7.0,
+   "lra_source": 11.2,
+   "peak": -5.2,
+   "limited_samples": 0,
+   "gain_db": 3.3,
+   "cut": "nothing"
+  },
+  {
+   "name": "market_a",
+   "place": "market",
+   "desc": "Crowd murmur at an outdoor farmers' market (no words can be made out: walla)",
+   "source": "AMBPubl_Crowd_walla_at_outdoor_farmers_market_CS_USC.mp3",
+   "segments": [
+    [
+     0.5,
+     17.6
+    ],
+    [
+     20.4,
+     66
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 6000,
+   "seconds": 57.2,
+   "loopStart": 0.3,
+   "loopEnd": 57.5,
+   "sampleRate": 24000,
+   "kbps": 30.5,
+   "bytes": 220056,
+   "lufs": -22.8,
+   "lufs_phone": -23.0,
+   "lra": 4.5,
+   "lra_source": 7.8,
+   "peak": -3.1,
+   "limited_samples": 19,
+   "gain_db": 8.5,
+   "cut": "17.6-20.4 s (a bang: crest 22 vs 6); clicks above 8 kHz (low-passed at 6 kHz)"
+  },
+  {
+   "name": "crickets_a",
+   "place": "night",
+   "desc": "Crickets near and far",
+   "source": "G16_07_Crickets_Near_and_Far.mp3",
+   "segments": [
+    [
+     6,
+     70
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 60.0,
+   "loopStart": 0.3,
+   "loopEnd": 60.3,
+   "sampleRate": 24000,
+   "kbps": 35.8,
+   "bytes": 271368,
+   "lufs": -22.9,
+   "lufs_phone": -23.0,
+   "lra": 2.4,
+   "lra_source": 4.2,
+   "peak": -5.4,
+   "limited_samples": 0,
+   "gain_db": 4.2,
+   "cut": "first 6 s (slate burst + hole); the second half is not used (size)"
+  },
+  {
+   "name": "night_air",
+   "place": "night",
+   "desc": "Evening air in a back stairwell: far-off hum, small ticks",
+   "source": "BackStairwellEvening.mp3",
+   "segments": [
+    [
+     9,
+     41
+    ],
+    [
+     45.5,
+     63
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 6000,
+   "seconds": 44.0,
+   "loopStart": 0.3,
+   "loopEnd": 44.3,
+   "sampleRate": 24000,
+   "kbps": 30.4,
+   "bytes": 169536,
+   "lufs": -22.7,
+   "lufs_phone": -23.0,
+   "lra": 1.2,
+   "lra_source": 1.5,
+   "peak": -7.7,
+   "limited_samples": 0,
+   "gain_db": 4.8,
+   "cut": "first 9 s and 41-45.5 s (the same loud event twice, speech-proxy 1.3); the second half (splice at 1:20, a bang at 2:06, crest 26); a steady band at 11-16 kHz that carries most of the energy and reads as whine/hiss (low-passed at 7 kHz)"
+  },
+  {
+   "name": "airport_a",
+   "place": "airport",
+   "desc": "Outdoor airport: engines idling and taxiing",
+   "source": "G16_02_Outdoor_Airport_Ambience.mp3",
+   "segments": [
+    [
+     3,
+     62
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 7000,
+   "seconds": 55.0,
+   "loopStart": 0.3,
+   "loopEnd": 55.3,
+   "sampleRate": 24000,
+   "kbps": 31.5,
+   "bytes": 219000,
+   "lufs": -21.6,
+   "lufs_phone": -23.0,
+   "lra": 2.6,
+   "lra_source": 5.9,
+   "peak": -6.1,
+   "limited_samples": 0,
+   "gain_db": 5.3,
+   "cut": "first 3 s (slate burst); the second half is not used (size)"
+  },
+  {
+   "name": "airport_c",
+   "place": "airport",
+   "desc": "Small airfield, a propeller plane",
+   "source": "G16_01_Small_Airport_Ambience.mp3",
+   "segments": [
+    [
+     18.5,
+     69.5
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 7000,
+   "seconds": 47.0,
+   "loopStart": 0.3,
+   "loopEnd": 47.3,
+   "sampleRate": 24000,
+   "kbps": 31.7,
+   "bytes": 188424,
+   "lufs": -21.9,
+   "lufs_phone": -23.0,
+   "lra": 4.6,
+   "lra_source": 7.9,
+   "peak": -3.8,
+   "limited_samples": 37,
+   "gain_db": 7.9,
+   "cut": "first 18 s (slate burst, then 16 s at -12 dB)"
+  }
+ ]
+}

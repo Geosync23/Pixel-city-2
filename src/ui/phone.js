@@ -86,6 +86,8 @@ function notify(o) {
 }
 /* QA11: a My Day banner that is no longer true goes (round 10: "Starting now" stayed 21 min, "Leave now" 33 min after leaving, "In 30 min: Shift at 07:00" shown at 07:07 after clocking in):
    the entry is kept / you are there / it is over; "In N min" once it has started; "Leave now" once you are on your way; any sticky one after 20 game minutes */
+/* QA11: banners wait while a Chapter, a job story beat or a relationship scene is on screen (Nora's gift text slid over her costumes scene); they drop in after */
+const sceneOn = () => !!(safe(() => G.chapters.active(), false) || safe(() => G.jobStory.active(), false) || safe(() => G.rel.active(), false));
 function stale(e) {
   const id = e && e.data && e.data.appt; if (id === undefined || id === null || e.app !== 'planner') return false;
   const a = safe(() => G.planner.get(id), null), t = G.state.t; if (!a) return true;
@@ -104,7 +106,7 @@ function pump() {
   while (queue.length && stale(queue[0])) queue.shift();
   if (!queue.length) return;
   /* QA round 4: hold banners while a menu / dialog is open over the game (it covered the cook menu's tabs after a new game); they drop in once it closes */
-  if (G.modal > (isOpen ? depth : 0)) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
+  if (G.modal > (isOpen ? depth : 0) || sceneOn()) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
   const e = queue.shift(), sticky = e.pri === 'high';
   const ic = e.face ? portrait(e.face, 40) : e.icon ? el('span.ph-ico', { style: { width: '40px', height: '40px', background: '#fff4dc' } }, iconEl(e.icon, 2)) : appIcon(e.appIcon || e.app || 'notifications', 40, defOf(e.app));
   const done = () => { if (showing !== b) return; showing = null; b.classList.remove('in'); setTimeout(() => { b.remove(); pump(); }, 220); };

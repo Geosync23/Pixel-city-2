@@ -43,7 +43,7 @@ for (const id of ids) {
   const edges = G.navArrow.edges(sid), rec = { id, bad: [], doors: 0, routes: 0 };
   for (const it of G.interactables().slice()) {
     if ((it.scene && it.scene !== sid) || !isFinite(it.x) || (it.visible && !it.visible())) continue; const e = edges.filter(q => Math.abs(q.x - it.x) < .8 && Math.abs(q.y - it.y) < .8);
-    if (!(it.exit || it.navTo || e.length || CAND.test(it.label || ''))) continue; if (it.ent || /^(Sit|Talk|Restroom|Look|Read|Watch|Spot|Species)/.test(it.label || '')) { if (!e.length) continue; }
+    if (!(it.exit || it.navTo || e.length || CAND.test(it.label || ''))) continue; if (it.ent || /^(Sit|Talk|Restroom|Look|Read|Watch|Spot|Species|Lie back)/.test(it.label || '')) { if (!e.length) continue; }   /* QA11: "Lie back and stargaze" is a seat (it matched CAND by the word "back"); a G.go from the room's own clock during the probe was read as its door */
     let cap = null; G.go = to => { if (!cap) cap = to; return Promise.resolve(null); }; G.startActivity = act => { try { act && act.done && act.done(); } catch (x) { } };
     const sc = G.scene; try { const r = it.use(G, it); if (r && r.then) await Promise.race([r, sleep(200)]); } catch (x) { } await sleep(20);
     for (let k = 0; k < 60 && document.querySelector('.sky-lift') && !cap; k++) { document.querySelector('.sky-lift').click(); await sleep(300); }   /* the SkyDeck lift: an overlay ride, then the go() */
