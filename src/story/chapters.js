@@ -365,7 +365,7 @@ const ch02 = {
       play('ui', 'map_pick:skydeck_lobby', { label: 'Open the Map and pick the SkyDeck', hint: 'It will offer you the ways to get there.' }),
       s('dez', 'See how it hands you choices? Walk, bus, train, cab. How long, how much.'),
       s('dez', "You don't have to know the town. You just have to know where you want to be. The phone does the rest and so do your feet."),
-      s('dez', "Pick one. Not the cab. I'll be on the bike, so I'll beat you, so don't feel bad about it."),
+      s('dez', "Your pick. Just not the cab. I'll be on the bike, so I'll beat you, so don't feel bad about it."),   /* QA10: the route card closes the phone, so these lines come after the player has picked */
       go('skydeck_lobby', { with: ['dez'], label: 'Make your own way to Beacon Tower', note: "Dez texts: 'still here. the pigeons and I are becoming close.'" }),
     ]),
     sc('lobby', 'skydeck_lobby', 'Beacon Tower', [

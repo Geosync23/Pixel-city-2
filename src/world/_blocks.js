@@ -35,7 +35,7 @@ export function ground(c) {
   V('home:birch_lane_flats', 'Birch Lane Flats', ['bld.oldtown.apartment.garden', 'bld.res.duplex'], 206, 363, { flip: true, p: { name: 'BIRCH LANE' } });
   const sch = c.tag('school').find(a => a.kind === 'building') || (c.has('bld.civic.community') && 'bld.civic.community'); if (sch) { c.bld(sch, 308, 206, { p: c.vp(sch, c.sub(65), { w: 12, d: 8, name: 'MAPLEWOOD SCHOOL' }) }); at('maplewood', 1, 2).feature = 'school'; w.poi({ type: 'landmark', name: 'Maplewood Elementary', x: 314, y: 210 }); }
   at('maplewood', 1, 3).feature = 'park'; at('maplewood', 2, 2).feature = 'garden';
-  if (c.has('bld.civic.pool')) c.bld('bld.civic.pool', 308, 279, { p: c.vp('bld.civic.pool', c.sub(66), { w: 14, d: 10 }) }); if (c.has('bld.civic.firestation')) c.bld('bld.civic.firestation', 274, 252, { p: c.vp('bld.civic.firestation', c.sub(67), { w: 12, d: 8 }) });
+  if (c.has('bld.civic.pool')) c.bld('bld.civic.pool', 308, 279, { p: c.vp('bld.civic.pool', c.sub(66), { w: 14, d: 10 }) }); if (c.has('bld.civic.firestation')) c.bld('bld.civic.firestation', 274, 252, { p: c.vp('bld.civic.firestation', c.sub(67), { w: 12, d: 8, name: 'FIRE STATION 2' }) });
   // Arts
   V('cinema', 'The Orpheum', ['bld.arts.orpheum', ['cinema']], 211, 108, { variant: 2 }); V('pizza', 'Slice of Heaven', ['bld.arts.pizza', ['pizza']], 222, 108); V('bar', 'The Blue Heron', ['bld.arts.blueheron', ['bar', 'arts']], 184, 108);
   V('home:friend', "Kit's Place", ['bld.arts.studio'], 193, 108, { variant: 0 }); V('home:easel_house', 'The Easel House', ['bld.arts.lofts'], 240, 108, { variant: 0 });
