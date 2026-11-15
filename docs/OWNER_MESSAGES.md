@@ -352,3 +352,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 82 — The arrow's target must show on the Map
 > If you have an arrow pointing somewhere it should show on the map when you pulll it up
+
+## 83 — Status check
+> Status? What wave are we in
