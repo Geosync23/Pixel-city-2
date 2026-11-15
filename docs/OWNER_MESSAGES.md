@@ -450,3 +450,6 @@ Alao thanks for adding audio  but the basic ambiance and white nosie for the the
 The laundry hamper is in the way of the fridge in the juniper apartment maybe others too I have t checked
 Also explain the opportunities system. Are these our story missions? Or something else? List them out. 
 Why is zip eats still a locked app. No more of that. Just make it download able after conditions are met
+
+## 113 (2026-11-15) — ambience option B: can the lead get licence-free recordings?
+If we go for b, can you procure licence free recordings for us?

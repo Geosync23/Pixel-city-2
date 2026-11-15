@@ -27,9 +27,9 @@ if (IN_WORKER) {
       R.ENV.season = m.season;
       if (m.t === 'obj') { const a = ASSETS.get(m.a); if (a && typeof a.draw === 'function') r = R.render(R.screenBox(m.vb), () => a.draw(m.p), null, 3, m.flip); }
       else if (m.t === 'char') { const A = MODULES['./chars/char.js']; if (A && A.drawChar) r = R.render(m.sb, () => A.drawChar(m.spec, m.pose), null, 1); }
-    } catch (e) { r = null; }
+    } catch (e) { r = null; var err = String(e && e.message); }
     if (r) self.postMessage({ n: m.n, w: r.w, h: r.h, x: r.x, y: r.y, hasLight: r.hasLight, buf: r.buf.buffer, lb: r.hasLight ? r.lb.buffer : null }, r.hasLight ? [r.buf.buffer, r.lb.buffer] : [r.buf.buffer]);
-    else self.postMessage({ n: m.n, fail: 1 });
+    else self.postMessage({ n: m.n, fail: 1, err });
   };
   self.postMessage({ ready: 1 });
 }
@@ -162,7 +162,7 @@ const tests = new Map();
 /** test hook (tools/perf.mjs --verify): have the worker draw `msg` and compare with the main thread's own drawing `draw` (sb / pad / flip as for render). Resolves to the number of differing pixels (0 = identical), -1 for a different size, null if there is no worker or it could not draw it. */
 export function workerTest(msg, sb, draw, pad, flip) {
   if (wstate === 0) workerStart(); if (wstate === -1) return Promise.resolve(null);
-  return new Promise(res => { const go = () => { if (wstate === -1) return res(null); if (wstate !== 2) return setTimeout(go, 50); const n = ++seq; tests.set(n, m => { if (m.fail) return res(null); const a = R.render(sb, draw, null, pad, flip), b = new Uint32Array(m.buf), l = m.lb ? new Uint32Array(m.lb) : null; if (a.w !== m.w || a.h !== m.h || a.x !== m.x || a.y !== m.y || a.hasLight !== m.hasLight) return res(-1); let d = 0; for (let i = 0; i < b.length; i++) if (a.buf[i] !== b[i] || (l && a.lb[i] !== l[i])) d++; res(d); }); try { worker.postMessage(Object.assign({ n, season: R.ENV.season }, msg)); } catch (e) { tests.delete(n); res(null); } }; go(); });
+  return new Promise(res => { const go = () => { if (wstate === -1) return res(null); if (wstate !== 2) return setTimeout(go, 50); const n = ++seq; tests.set(n, m => { if (m.fail) return res(m.err ? 'worker: ' + m.err : null); const a = R.render(sb, draw, null, pad, flip), b = new Uint32Array(m.buf), l = m.lb ? new Uint32Array(m.lb) : null; if (a.w !== m.w || a.h !== m.h || a.x !== m.x || a.y !== m.y || a.hasLight !== m.hasLight) return res(-1); let d = 0; for (let i = 0; i < b.length; i++) if (a.buf[i] !== b[i] || (l && a.lb[i] !== l[i])) d++; res(d); }); try { worker.postMessage(Object.assign({ n, season: R.ENV.season }, msg)); } catch (e) { tests.delete(n); res('post: ' + e.message); } }; go(); });
 }
 let allow = 3;   // the current per-frame allowance in ms (between BAKE.msMin and BAKE.msMax)
 /**
