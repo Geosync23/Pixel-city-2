@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maple Bay Jukebox</title>
+<style>
+:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2622;--muted:#756b60;--line:#d9cfbf;--accent:#b4532a;--accent-ink:#fff;--on:#1f7a5a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#191715;--card:#23201d;--ink:#efe8dc;--muted:#a79c8e;--line:#3a352f;--accent:#e08a5b;--accent-ink:#1b1410;--on:#6fd0a8}}
+:root[data-theme="dark"]{--bg:#191715;--card:#23201d;--ink:#efe8dc;--muted:#a79c8e;--line:#3a352f;--accent:#e08a5b;--accent-ink:#1b1410;--on:#6fd0a8}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 16px 150px}
+main{max-width:720px;margin:0 auto}
+h1{font-size:26px;margin:22px 0 4px;letter-spacing:-.01em}h2{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:28px 0 8px}
+p.lead{margin:0 0 6px;color:var(--muted)}p.note{font-size:14px;color:var(--muted);margin:6px 0 0}
+.tune{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+.tune.on{border-color:var(--on);box-shadow:0 0 0 2px var(--on) inset}
+.tune b{font-size:17px;display:block}.tune .meta{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.tune .where{grid-column:1/-1;font-size:13px;color:var(--muted)}
+button{font:inherit;font-weight:700;border:0;border-radius:999px;min-width:76px;min-height:44px;padding:0 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.stop{background:var(--on);color:var(--bg)}button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+#bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+#bar .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center}
+#now{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+#prog{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}#prog i{display:block;height:100%;width:0;background:var(--on)}
+label.vol{grid-column:1/-1;display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted)}label.vol input{flex:1;accent-color:var(--accent);height:28px}
+</style></head><body><main>
+<h1>Maple Bay Jukebox</h1>
+<p class="lead"><span id="count"></span> hand-written tunes, grouped by where the game plays them. Tap Play. Nothing here is a recording: every note is made on your device by the same code as the game.</p>
+<p class="note">On an iPhone, switch the silent switch off (or use headphones) and turn the volume up. One tune plays at a time; "Play all" walks through the list.</p>
+<div id="list"></div>
+</main>
+<div id="bar"><div class="in"><div><div id="now">Nothing playing</div><div id="sub">Pick a tune above.</div></div><button class="ghost" id="all">Play all</button><button class="stop" id="stop">Stop</button><div id="prog"><i></i></div><label class="vol">Volume <input id="vol" type="range" min="0" max="100" value="70" aria-label="Volume"></label></div></div>
+<script>
+(function(){
+/* ---- src/sim/_music_synth.js ---- */
+// Private: the instruments of the background music (src/sim/_music_engine.js plays them; docs/audio/jukebox.html uses this same file).
+// Everything is synthesised and CLEAN (owner msgs 111-118: nothing that reads as white noise or hiss):
+//   - pitched voices are one or two oscillators with a custom PeriodicWave (a fixed harmonic recipe per instrument) and a gain envelope;
+//   - the only noise is in the drum kit: one 0.25 s buffer, used for bursts of 15-130 ms (hat <= 35 ms, shaker 40 ms, brush 90 ms, snare 130 ms), all quiet.
+//     There is no crackle, no wash, no riser, no looping noise source: tools/music_check.mjs measures every tune for it.
+// No game imports: a Synth works on any (Offline)AudioContext.
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+/* harmonic recipes (amplitude of harmonic 1, 2, 3 ...) */
+const W = {
+  ep: [1, .42, .12, .18, .04, .05, .02], pno: [1, .52, .3, .2, .12, .09, .06, .04, .03, .02], nyl: [1, .48, .3, .14, .09, .05, .03], stl: [1, .7, .5, .38, .28, .2, .14, .1, .07, .05],
+  eg: [1, .6, .4, .24, .18, .1, .07, .04], ub: [1, .85, .5, .3, .15, .08, .04], eb: [1, .62, .45, .3, .2, .12, .08, .05], sb: [1, .5, .33, .25, .2, .16, .13, .11, .09],
+  vib: [1, 0, 0, .3, 0, 0, 0, 0, 0, .06], mar: [1, .05, 0, .34, 0, 0, 0, 0, 0, .04], mb: [1, .04, .22, 0, .1, 0, 0, .05], cel: [1, .22, .08, .02, .04],
+  brs: [1, .75, .58, .42, .3, .2, .13, .08, .05, .03], clr: [1, .03, .52, .03, .28, .02, .13, 0, .06], flt: [1, .42, .12, .06, .02], str: [1, .6, .42, .3, .22, .16, .12, .09, .06, .04],
+  pad: [1, .3, .1, .04], org: [1, .8, .45, .38, 0, .22, 0, .16], acc: [1, .7, .58, .5, .42, .3, .24, .17, .11, .07], pan: [1, .6, .3, .16, .04, .05],
+  chp: [1, 0, .33, 0, .2, 0, .14, 0, .1], pls: [1, .7, .33, 0, .2, .23, .14], ld: [1, .5, .33, .25, .2, .16, .13, .1], hrp: [1, .4, .2, .1, .05, .03], brt: [1, .8, .7, .6, .5, .4, .3, .2, .14, .1],
+};
+/* instruments. w wave, a attack s, d decay time (to the sustain level s), r release, v level, rg rings at least this long (mallets, plucks),
+   det detuned twin (cents), vib [rate Hz, depth cents], x extra short layer { w, m freq multiple, v, d }, lp channel low-pass Hz, snd echo send, pan */
+const INST = {
+  ep: { w: 'ep', a: .004, d: 1.6, s: .1, r: .16, v: .2, x: { w: 'sine', m: 4, v: .22, d: .14 }, snd: .12, pan: -.12, name: 'electric piano' },
+  piano: { w: 'pno', a: .003, d: 1.5, s: .04, r: .14, v: .2, x: { w: 'brt', m: 1, v: .25, d: .05 }, snd: .08, pan: -.08, name: 'piano' },
+  nylon: { w: 'nyl', a: .003, d: .9, s: 0, r: .1, v: .22, rg: .5, x: { w: 'brt', m: 1, v: .3, d: .045 }, snd: .1, pan: .15, name: 'nylon guitar' },
+  steel: { w: 'stl', a: .003, d: 1.2, s: 0, r: .1, v: .15, rg: .6, snd: .1, pan: .15, name: 'steel-string guitar' },
+  eguitar: { w: 'eg', a: .003, d: 1.1, s: .05, r: .1, v: .17, rg: .3, vib: [5.5, 7], snd: .45, pan: .12, name: 'clean electric guitar' },
+  upright: { w: 'ub', a: .012, d: .55, s: .05, r: .08, v: .3, x: { w: 'brt', m: 1, v: .12, d: .03 }, ks: .1, name: 'upright bass' },
+  ebass: { w: 'eb', a: .006, d: .8, s: .3, r: .07, v: .26, ks: .1, name: 'electric bass' },
+  sbass: { w: 'sb', a: .008, d: .3, s: .55, r: .06, v: .2, lp: 1100, ks: .1, name: 'synth bass' },
+  vibes: { w: 'vib', a: .003, d: 2.2, s: 0, r: .25, v: .22, rg: 1.1, snd: .22, pan: .1, name: 'vibraphone' },
+  marimba: { w: 'mar', a: .002, d: .4, s: 0, r: .08, v: .26, rg: .3, x: { w: 'sine', m: 9.2, v: .1, d: .02 }, snd: .12, pan: .1, name: 'marimba' },
+  musicbox: { w: 'mb', a: .002, d: 1.3, s: 0, r: .3, v: .17, rg: 1, x: { w: 'sine', m: 5.4, v: .16, d: .07 }, snd: .3, name: 'music box' },
+  celesta: { w: 'cel', a: .002, d: .9, s: 0, r: .2, v: .2, rg: .7, snd: .25, pan: -.1, name: 'celesta' },
+  brass: { w: 'brs', a: .045, d: .3, s: .8, r: .1, v: .1, det: 7, lp: 1900, vib: [5, 6], snd: .15, name: 'soft brass' },
+  clarinet: { w: 'clr', a: .035, d: .3, s: .85, r: .08, v: .15, vib: [4.8, 6], snd: .2, name: 'clarinet' },
+  flute: { w: 'flt', a: .05, d: .3, s: .85, r: .1, v: .2, vib: [5, 11], snd: .25, name: 'flute' },
+  strings: { w: 'str', a: .22, d: .5, s: .9, r: .45, v: .055, det: 10, lp: 2100, ks: .15, name: 'strings' },
+  pad: { w: 'pad', a: .5, d: .5, s: 1, r: .9, v: .085, det: 7, ks: .15, name: 'warm pad' },
+  organ: { w: 'org', a: .012, d: .2, s: .95, r: .06, v: .075, vib: [6.2, 5], lp: 2600, ks: .2, name: 'organ' },
+  accordion: { w: 'acc', a: .03, d: .3, s: .9, r: .07, v: .06, det: 13, lp: 2800, ks: .2, snd: .08, name: 'accordion' },
+  steelpan: { w: 'pan', a: .003, d: .55, s: 0, r: .12, v: .24, rg: .45, x: { w: 'sine', m: 2, v: .2, d: .1 }, snd: .2, pan: .08, name: 'steel pan' },
+  chip: { w: 'chp', a: .004, d: .25, s: .6, r: .05, v: .085, lp: 3200, snd: .15, name: 'soft square lead' },
+  pulse: { w: 'pls', a: .004, d: .2, s: .5, r: .05, v: .07, lp: 3000, pan: -.1, name: 'pulse keys' },
+  lead: { w: 'ld', a: .02, d: .4, s: .75, r: .1, v: .085, lp: 2300, vib: [5.2, 8], snd: .25, name: 'synth lead' },
+  whistle: { w: 'sine', a: .04, d: .3, s: .9, r: .09, v: .17, vib: [5.5, 14], snd: .3, name: 'whistle' },
+  harp: { w: 'hrp', a: .003, d: 1.4, s: 0, r: .25, v: .22, rg: .9, snd: .2, pan: .12, name: 'harp' },
+};
+const WAVES = new WeakMap(), NOISE = new WeakMap();
+function wave(c, k) { let m = WAVES.get(c); if (!m) WAVES.set(c, m = {}); if (!m[k]) { const h = W[k], re = new Float32Array(h.length + 1), im = new Float32Array(h.length + 1); for (let i = 0; i < h.length; i++) im[i + 1] = h[i]; m[k] = c.createPeriodicWave(re, im); } return m[k]; }
+function noiseBuf(c) { let b = NOISE.get(c); if (!b) { const n = (c.sampleRate * .25) | 0; b = c.createBuffer(1, n, c.sampleRate); const d = b.getChannelData(0); let s = 12345; for (let i = 0; i < n; i++) { s = (s * 1103515245 + 12345) & 0x7fffffff; d[i] = s / 0x3fffffff - 1; } NOISE.set(c, b); } return b; }
+
+class Synth {
+  /** dest: where the dry sound goes; send: input of an echo (may be null) */
+  constructor(ctx, dest, send) { this.c = ctx; this.dest = dest; this.send = send; this.ch = {}; this.nodes = 0; }
+  chan(name) {
+    let ch = this.ch[name]; if (ch) return ch; const c = this.c, I = INST[name] || {}, g = c.createGain(); let out = this.dest;
+    if (I.pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = I.pan; p.connect(out); out = p; }
+    if (I.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = I.lp; f.Q.value = .5; f.connect(out); out = f; }
+    g.connect(out); if (I.snd && this.send) { const s = c.createGain(); s.gain.value = I.snd; g.connect(s); s.connect(this.send); }
+    return this.ch[name] = g;
+  }
+  osc(w, f, t, end, dest, det) { const c = this.c, o = c.createOscillator(); if (W[w]) o.setPeriodicWave(wave(c, w)); else o.type = w; o.frequency.value = f; if (det) o.detune.value = det; o.connect(dest); o.start(t); o.stop(end); this.nodes++; return o; }
+  /** one note: instrument key, start time, midi pitch, length in seconds, velocity 0..1.3 */
+  note(name, t, m, dur, vel = 1) {
+    const I = INST[name]; if (!I) return; const c = this.c, ch = this.chan(name), f = mtof(m), k = 262 / f;
+    const v = I.v * vel * clamp(Math.pow(k, I.ks === undefined ? .3 : I.ks), .5, 1.7), a = Math.min(I.a, dur * .5 + .002), tau = I.d * clamp(Math.pow(k, .4), .45, 1.8) / 3, s = I.s || 0, r = I.r;
+    const off = t + Math.max(dur, a + .01, I.rg ? Math.min(I.rg, dur + I.rg * .6) : 0), L = v * (s + (1 - s) * Math.exp(-(off - t - a) / tau)), end = off + r + .03, g = c.createGain(), p = g.gain;
+    p.setValueAtTime(0, t); p.linearRampToValueAtTime(v, t + a); p.setTargetAtTime(v * s, t + a, tau); p.setValueAtTime(L, off); p.linearRampToValueAtTime(0, off + r); g.connect(ch);
+    const o = this.osc(I.w, f, t, end, g, I.det ? -I.det / 2 : 0), os = [o]; if (I.det) os.push(this.osc(I.w, f, t, end, g, I.det / 2));
+    if (I.vib && dur > .32) { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = I.vib[0]; lg.gain.setValueAtTime(0, t + .12); lg.gain.linearRampToValueAtTime(I.vib[1], t + .4); l.connect(lg); for (const x of os) lg.connect(x.detune); l.start(t); l.stop(end); }
+    if (I.x) { const X = I.x, g2 = c.createGain(); g2.gain.setValueAtTime(v * X.v, t); g2.gain.exponentialRampToValueAtTime(.0001, t + X.d); g2.connect(ch); this.osc(X.w, f * X.m, t, t + X.d + .02, g2); }
+  }
+  burst(t, ft, f, q, d, v, dest) { const c = this.c, s = c.createBufferSource(), b = c.createBiquadFilter(), g = c.createGain(); s.buffer = noiseBuf(c); b.type = ft; b.frequency.value = f; b.Q.value = q; s.connect(b); b.connect(g); g.connect(dest);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .002); g.gain.exponentialRampToValueAtTime(.0001, t + d); s.start(t, (this.nodes++ * .0137) % .1); s.stop(t + d + .01); }
+  ping(t, type, f, f2, d, v, dest, a = .002) { const c = this.c, o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d * .6); o.connect(g); g.connect(dest);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); o.start(t); o.stop(t + a + d + .02); this.nodes++; }
+  /** drum hit. k kick, s snare, r rim, b brush, h hat, m shaker, c clap, g ride "ting" (three sines, no noise), w woodblock, t / T low / high conga, o tom */
+  drum(n, t, vel = 1) {
+    const d = this.chan('kit');
+    if (n === 'k') { this.ping(t, 'sine', 118, 46, .2, .5 * vel, d); this.ping(t, 'triangle', 170, 70, .07, .16 * vel, d); }
+    else if (n === 's') { this.ping(t, 'triangle', 196, 160, .09, .16 * vel, d); this.burst(t, 'bandpass', 1900, .8, .13, .1 * vel, d); }
+    else if (n === 'r') { this.ping(t, 'sine', 1680, 0, .028, .09 * vel, d); this.ping(t, 'triangle', 520, 0, .03, .07 * vel, d); this.burst(t, 'bandpass', 3000, 3, .02, .035 * vel, d); }
+    else if (n === 'b') this.burst(t, 'bandpass', 2300, .6, .09, .045 * vel, d);
+    else if (n === 'h') this.burst(t, 'highpass', 6500, .7, vel > .7 ? .035 : .022, .028 * vel, d);
+    else if (n === 'm') this.burst(t, 'bandpass', 5200, 1.6, .04, .03 * vel, d);
+    else if (n === 'c') { for (let i = 0; i < 3; i++) this.burst(t + i * .011, 'bandpass', 1500, 1.4, i === 2 ? .07 : .012, .07 * vel, d); }
+    else if (n === 'g') { this.ping(t, 'sine', 3270, 0, .11, .014 * vel, d); this.ping(t, 'sine', 4890, 0, .08, .009 * vel, d); this.ping(t, 'sine', 5730, 0, .05, .006 * vel, d); }
+    else if (n === 'w') { this.ping(t, 'sine', 1150, 0, .045, .1 * vel, d); this.ping(t, 'sine', 1720, 0, .03, .04 * vel, d); }
+    else if (n === 't') this.ping(t, 'sine', 215, 185, .13, .22 * vel, d);
+    else if (n === 'T') this.ping(t, 'sine', 330, 290, .1, .18 * vel, d);
+    else if (n === 'o') this.ping(t, 'sine', 150, 95, .2, .3 * vel, d);
+  }
+}
+/** the soft echo the lead voices are sent to (the game builds the same one on its music bus): returns the node to send into */
+function echo(ctx, dest) { const d = ctx.createDelay(1), fb = ctx.createGain(), wet = ctx.createBiquadFilter(), inp = ctx.createGain(); d.delayTime.value = .33; fb.gain.value = .28; wet.type = 'lowpass'; wet.frequency.value = 1800; inp.connect(d); d.connect(fb); fb.connect(d); d.connect(wet); wet.connect(dest); return inp; }
+
+/* ---- src/sim/_music_songs_a.js ---- */
+// Private songbook, part A: the title themes and the outdoor tunes of the morning and the day. Format: see _music_engine.js.
+// Every tune is written by hand in C (tr moves it to its key). pl: named pools; out: 'times|districts' for the outdoor pools (* = all).
+const SONGS_A = [
+  { id: 'bay_hello', title: 'Hello, Maple Bay', feel: 'city-pop ballad', pl: 'title', bpm: 84, tr: 3, style: 'ballad', mt: '4/4', ins: { m: 'flute', m2: 'vibes', h: 'clarinet', c: 'ep', b: 'ebass', p: 'strings' },
+    P: { I: { c: 'CM9 Am7 FM7 G7sus', m: "3-5-'1--- 7-6-5--- 6-'1-'3--- '2-------" },
+      A: { c: 'C Am7 FM7 G7sus,G7 Em7 Am7 Dm7 G7', m: "5-35'1--7 6--53--- 4-346--5 5--42--- 5-35'2--'1 '1--76-5- 4-56'1-6- 5-----..", h: '53 31 1,6 1,7 ,72 13 24 2,7' },
+      B: { c: 'FM7 Em7 Dm7 CM7 FM7 E7 Am7,D7 G7sus,G7', m: "6-'1-'3-'1- 7-'2-5--- 6-'1-'2-'1- 7-5-3--- 6-'1-'3-'4- '3-'2-7-#5- 6-'1-'2-'1- '1---7---" },
+      C: { c: 'C Am7 FM7 G7sus,G7 Em7 A7 Dm7,G7 C6', m: "5-35'1--7 6--53--- 4-346--5 5--42--- 5-35'2--'1 '3--'2#1-6- 4-567-'2- '1-------" },
+      O: { c: 'FM7 Fm6 C69 %', m: "6-'1-'3--- b6-'1-'4--- '3------- -" } },
+    form: 'I-d A A& B C~ B! C O?', end: 'C69' },
+  { id: 'postcard', title: 'Postcard From the Pier', feel: 'jazz waltz', pl: 'title', bpm: 138, tr: 5, mo: 60, style: 'jwaltz', mt: '3/4', ins: { m: 'vibes', m2: 'clarinet', h: 'clarinet', c: 'ep', b: 'upright' },
+    P: { I: { c: 'CM7 % Dm7 G7 CM7 % Dm7 G7' },
+      A: { c: 'CM7 % Dm7 G7 Em7 A7 Dm7 G7 CM7 % Gm7 C7 FM7 Bb7 Dm7 G7', m: "357 6 46'1 7 57'2 '3'2'#1 '264 5-4 357 '1 '2b75 b7-5 6'1'3 '2-b6 '164 5", h: '5 3 4 4 5 5 4 2 3 5 4 3 3 2 1 ,7' },
+      B: { c: 'Am7 % D7 % Dm7 % G7 % Am7 % D7 % FM7 Em7 Dm7 G7', m: "3.35'1- 765 #4.#46'1- '2'16 4.46'1- '4'2'1 7'2'4 '3'27 '3.'3'16- 5-3 #4.#46'1- '2'3'#4 '3'16 '275 '164 57'2" },
+      O: { c: 'CM7 % FM7 Fm6 CM7 A7 Dm7,G7 C6', m: "357 '1 6'1'3 '4-b6 '3'25 '3-'#1 '2-7 '1" } },
+    form: 'I=cb A A& B A~ B A! O', end: 'C69' },
+  { id: 'first_ferry', title: 'First Ferry Home', feel: 'folk fingerpicking', out: 'dawn morning|harbor oldtown', pl: 'title', bpm: 96, tr: -5, style: 'folk', st: { d: { b: '..o...o.' } }, mt: '4/4', ins: { m: 'whistle', m2: 'clarinet', h: 'clarinet', c: 'steel', b: 'steel' },
+    P: { I: { c: 'C F C G7sus' },
+      A: { c: 'C Cadd9 F C/E Am7 F G7sus G7', m: "1-235-3- 5-653-2- 4-56'1-6- 5---3--- 6-'176-5- 4-564--- 5-4-2--- 2---,7---" },
+      B: { c: 'F C/E Dm7 C F C/E D7 G7', m: "6-'1-'2-'1- 5---3-5- 4-6-'1-6- 5------- 6-'1-'2-'3- '3-'2-'1-5- 6-#4-6-'1- '2---7---", h: "4 3 2 3 4 5 #4 5" },
+      C: { c: 'C Cadd9 F C/E Am7 Dm7 G7 C', m: "1-235-3- 5-653-2- 4-56'1-6- 5---3--- 6-'176-5- 4-6-'1-6- 5-4-2-,7- 1-------" },
+      O: { c: 'F C/E Dm7,G7 C', m: "6-'1-6--- 5-3-5--- 4-6-7-'2- '1-------" } },
+    form: 'I-d A-d A~ B C B& C! O', end: 'Cadd9' },
+  { id: 'dew', title: 'Dew on the Tramlines', feel: 'ambient pads', out: 'dawn|*', pl: 'fog', bpm: 66, tr: 2, style: 'ambient', mt: '4/4', ins: { m: 'vibes', h: 'flute', c: 'celesta', b: 'upright', p: 'pad' }, mix: { b: .6 },
+    P: { A: { c: 'CM9 % FM7 % Am9 % FM7 Gsus', m: "5-'2- '1 6-'3- '2 7-'3- '1 6-5- 5", h: "3 5 6 '1 '1 7 6 5" },
+      B: { c: 'Dm9 % Am7 % BbM7 % Gsus G', m: "4-6- '1 5-'1- 7 '2-6- 4 5-'1- 7" } },
+    form: 'A=cp A B A& B A?', end: 'CM9' },
+  { id: 'milk_round', title: 'Milk Round', feel: 'music-box waltz', out: 'dawn morning|suburb oldtown park market', pl: 'snow', bpm: 108, tr: -3, style: 'box3', st: { b: 'R-----', bl: 45 }, mt: '3/4', ins: { m: 'musicbox', c: 'celesta', b: 'harp' }, mix: { c: .4 },
+    P: { A: { c: 'C % G7 % G7 % C % C C7 F Fm C/G G7 C %', m: "135 '1-5 '2'17 5 457 '2-7 '153 3 135 '1-b7 6'1'4 '4-b6 5'1'3 '2-7 '1 '1" },
+      B: { c: 'Am Em F C Dm7 G7 C G7', m: "6'1'3 '2-7 6'1'4 '3-'1 '2'16 7-'2 '153 2-5" } },
+    form: 'A-b A B A B A?' },
+  { id: 'gulls', title: 'Gulls Before Breakfast', feel: 'harbor lilt in 6/8', out: 'dawn morning|harbor park suburb', bpm: 60, tr: -5, style: 'lull', mt: '6/8', ins: { m: 'flute', m2: 'clarinet', h: 'clarinet', c: 'harp', b: 'upright', p: 'strings' },
+    P: { I: { c: 'C F/C C G7sus' },
+      A: { c: 'C Em/B Am C/G F C/E Dm7 G7', m: "5--3-5 '1--7-- 6--'1-6 5----- 4--6-'1 '3--'1-- '2--'1-6 7--'2--", h: '3 5 3 3 6 5 4 4' },
+      B: { c: 'F G/F Em7 Am Dm7 G7 Am7,D7 G7', m: "6-'1'4-- '2-74-- 5-7'2-- '1--6-- 4-6'1-- 7-'2'4-- '1--'2-- 7-----" },
+      O: { c: 'F Fm6 C %', m: "6--'1-- b6--'1-- '1----- -" } },
+    form: 'I-p A A B A~ B A& O' },
+  { id: 'open_shutters', title: 'Open Shutters', feel: 'bossa nova', out: 'morning midday|oldtown arts market harbor', bpm: 126, tr: -7, style: 'bossa', mt: '4/4', ins: { m: 'flute', m2: 'vibes', c: 'nylon', b: 'upright' },
+    P: { I: { c: 'C69 % Dm9 G13' },
+      A: { c: 'C69 % Am7 % Dm9 G13 Em7 A7 Dm9 % G13 % Em7 A7 Dm7 G7', m: "5--3-5-- 6--5-3-- '1--7-5-- 3------- 4--6-'1-- '3--'2-7-- '2--7-5-- #1--3-5-6 '2--'1-6-- 4------- 7--'2-'4-- '3------- '2--7-5-- 6--5-3-#1 2--4-6-- 5--4-2--" },
+      B: { c: 'Fm7 Bb7 EbM7 % Dm7b5 G7b9 CM7 Dm7,G7', m: "'1--b6-4-- '2--b7-b6-- 5--b7-'2-- b7------- b6--4-2-- b6--5-4-- 3--5-7-- 6--4-5--" },
+      O: { c: 'C69 % Dm9,G13 C69', m: "5--3-5-- 6--5-3-- 4--6-7-- '1-------" } },
+    form: 'I A B A~ B A! O', end: 'C69' },
+  { id: 'bakery_run', title: 'Bakery Run', feel: 'ragtime stride', out: 'morning midday afternoon|oldtown suburb market downtown', bpm: 104, tr: 0, style: 'stride', st: { sw: .15, d: {} }, mt: '4/4', ins: { m: 'piano', m2: 'clarinet', c: 'piano', b: 'piano' }, mix: { b: .7 },
+    P: { I: { c: 'C G7 C G7', m: "5-'1-'3-'1- 7-'2-'4-'2- '3-'1-5-'1- 5---.567" },
+      A: { c: 'C % G7 % G7 % C % C C7 F F#o7 C/G A7 D7,G7 C', m: "35'1-5'13- 56535-3- 247-572- 45424-2- ,7245-42- 5-4-2-,7- 135-351- 3---.567 '15'1-535- b7-5-3-b7- 6'16-4'16- #4-6-'1-'b3- '3'15'3-'15- '3-'#1-6-5- #4-6-7-'2- '1-------" },
+      B: { c: 'F % C7 % C7 % F % F F7 Bb Bbm F/C D7 Gm7,C7 F,G7', m: "6'1'4-'16'1- '4-'1-6-'1- b7'1'3-'1b7'1- '3-'1-b7-5- 5b7'1-b75b7- '1-b7-5-3- 46'1-646- 4------- 6'1'4-'16'1- 'b3-'1-6-'b3- '2-b7-'2-'4- 'b2-b7-'b2-'4- '4-'1-6-'1- '1-6-#4-6- b7-'2-'1-b7- 6---5---" } },
+    form: 'I A A~ B B A!' },
+  { id: 'crosswalk', title: 'Crosswalk Shuffle', feel: 'city pop', out: 'morning midday afternoon|downtown airport arts', bpm: 108, tr: -8, style: 'citypop', mt: '4/4', ins: { m: 'lead', m2: 'vibes', c: 'ep', b: 'ebass', p: 'strings' }, mix: { p: .35 },
+    P: { A: { c: 'FM7 G7 Em7 Am7 FM7 G7 CM7 C7', m: "6-'1'3-'16- 7-'2'4-'27- '2-75-7'2- '1---.6'1'2 '3-'16-'1'3- '4-'27-'2'4- '3-'2'1-75- b7-------" },
+      B: { c: 'Dm7 G7 CM7 Am7 Dm7 E7 Am7 D7,G7', m: "4-6-'1-'2- '2--7--5- 3-5-7-'1- 6--'1--6- 4-6-'1-'4- '3-'2-7-#5- 6-'1-'3-'1- '2-#4-5-7-" },
+      C: { c: 'FM7 Em7 Dm7 G7sus' } },
+    form: 'C-d A A B A~ C=cbd B! A! A^1!', end: 'CM9' },
+  { id: 'paper_boats', title: 'Paper Boats', feel: 'folk fingerpicking', out: 'morning afternoon golden|park suburb harbor', bpm: 84, tr: 2, mo: 60, ho: 60, style: 'folk', mt: '4/4', ins: { m: 'clarinet', m2: 'flute', h: 'flute', c: 'nylon', b: 'nylon' },
+    P: { I: { c: 'C G/B Am F' },
+      A: { c: 'C G/B Am Am/G F C/E Dm7 G7', m: "'1---5-'1- '2---7--- '3--'2'1-6- '1---5--- 6-'1-'4--'3 '3---'1--- '2-'1-6-'1- '2---.567" },
+      B: { c: 'Am Em F C Am Em F,G C', m: "'3-'3-'2-'1- 7---5--- 6-'1-'4-'1- '3------- '3-'3-'5-'3- '2---7--- '1-6-7-'2- '1-------", h: '1 ,7 ,6 ,5 1 ,7 ,6,7 3' },
+      O: { c: 'F C/E Dm7,G7 C', m: "6-'1-'4--- '3-'1-5--- 6-4-5-7- '1-------" } },
+    form: 'I A A B A~+ B& A O' },
+  { id: 'stall_polka', title: "Stallholder's Polka", feel: 'market polka', out: 'morning midday afternoon|market oldtown', pl: 'festival', bpm: 116, tr: -2, style: 'polka', mt: '2/4', ins: { m: 'clarinet', m2: 'accordion', c: 'accordion', b: 'upright' }, mix: { c: .8 },
+    P: { I: { c: 'C G7 C G7', m: "5-'1- 7-'2- '3-'1- 5-.5" },
+      A: { c: 'C % G7 % G7 % C % C C7 F % G7 % C %', m: "5'1'3'1 5'1'3- 57'27 57'2- '4'275 '4'27- '3'153 1-.5 5'1'3'1 5b7'3- '4'16'1 '4-'1- '2757 '2-'4- '3'15'3 '1-.." },
+      B: { c: 'G7 % C % G7 % C % Am % Dm % G7 % C %', m: "7'27'2 '4-'2- '1'3'1'3 '5-'3- 7'27'2 '4-'2- '3'153 '1-5- 6'1'3'1 6-'3- 46'26 '4-'2- 57'2'4 '4'275 '15'1'3 '1-.." },
+      C: { c: 'F % C7 % C7 % F % F F7 Bb % C7 % F G7', m: "'1-6- '1'4'16 b7-5- b7'3b75 '1-b7- 5b7'1'3 '4-'1- 6-.. '1-6- '1'b3'16 '2-b7- '2'4'2b7 '3-'1- b7'1'3'5 '4-'1- 7-'2-" },
+      O: { c: 'F C/G G7 C', m: "'4'16'1 '3'15'3 '2757 '1-.." } },
+    form: 'I A A~ B A C~ C A! O' },
+  { id: 'noon_whistle', title: 'Noon Whistle', feel: 'chiptune march', out: 'midday afternoon|downtown market airport', bpm: 120, tr: 0, style: 'march', mt: '4/4', ins: { m: 'chip', h: 'pulse', c: 'pulse', b: 'sbass' },
+    P: { I: { c: 'C G7', m: '1-1-1.11 5-5-5---' },
+      A: { c: 'C % F C G7 % C G7', m: "1-35'1-5- 3-5-'1--- 6-'1'4'1-6- 5-'1-'3--- '2-757-'2- '4-'2-7--- '3-'15'1-'3- '2---.567", h: '35 53 46 53 ,72 42 53 ,72' },
+      B: { c: 'Am Em F C Dm G7 C %', m: "6-'1-'3-'1- 7-'2-5--- 6-'1-'4-'1- '3------- '2-'4'26-'2- 7-'2'4'2-7- '1-5-3-5- '1---...." } },
+    form: 'I A A& B A B^2 A^2&! A^2!' },
+  { id: 'high_tide', title: 'High Tide Reel', feel: 'harbor shanty lilt', out: 'midday afternoon golden|harbor market', bpm: 92, tr: 2, mo: 60, style: 'shanty', mt: '6/8', ins: { m: 'accordion', m2: 'whistle', h: 'clarinet', c: 'nylon', b: 'upright' }, mix: { m: 1.5 },
+    P: { I: { c: 'C F C G7' },
+      A: { c: 'C % F C C Am Dm7,G7 C', m: "'1-'1'3-'5 '5-'3'1-5 6-'1'4-'1 '3--'1-- '1-'1'3-'5 '6-'5'3-'1 '2-'4'2-7 '1-----" },
+      B: { c: 'Bb % C % Bb % G7sus G7', m: "'2-b7'2-'4 '4-'2b7-- '3-'1'3-'5 '5--'3-- '4-'2'4-'b7 '4--'2-- '1-'2'1-5 7--'2--", h: "b7--'2-- '2--b7-- '1--'3-- '3--'1-- '2--'4-- '2--b7-- '1----- 7-----" },
+      O: { c: 'F C/E Dm7,G7 C', m: "'4-'16-- '3-'15-- '2-'17-'2 '1-----" } },
+    form: 'I A A B A~ B A! I=cbd A~ B&! A! A O' },
+  { id: 'five_corners', title: 'Five Corners', feel: 'jazz in 5/4', out: 'midday afternoon evening|arts downtown', bpm: 152, tr: -5, min: 1, style: 'five', mt: '5/4', ins: { m: 'vibes', m2: 'clarinet', c: 'ep', b: 'upright' },
+    P: { I: { c: 'Cm7 Gm7 Cm7 Gm7' },
+      A: { c: 'Cm7 Gm7 Cm7 Gm7 Fm7 Bb7 EbM7 G7', m: "1--3-57-5- '2--7-54-5- 1--3-57-'1- '2--'4-'27-5- 6--'1-'3'1-6- 7--'2-'4'2-7- '3--'2-75-7- '2--#7-54-2-" },
+      B: { c: 'AbM7 % Fm7 % Dm7b5 % G7 %', m: "'1-6-5 '3-'1-6 '1-6-4 6-'1-'4 '2-6-4 '4-'2-6 '2-#7-5 4-2-5" },
+      O: { c: 'Cm7 Gm7 Fm7 Cm69', m: "1--3-57-5- '2--7-54-5- 6--4-31-3- 1" } },
+    form: 'I A A B A~ B A! O?', end: 'Cm69' },
+  { id: 'sprinkler', title: 'Sprinkler Sunday', feel: 'lazy shuffle', out: 'midday afternoon|suburb park harbor', pl: 'heat', bpm: 92, tr: -3, style: 'shuffle', mt: '4/4', ins: { m: 'whistle', m2: 'eguitar', c: 'steel', b: 'upright' },
+    P: { I: { c: 'C F C G7' },
+      A: { c: 'C % F C C Am D7 G7', m: "5-35-65- 3---.123 4-46-'16- 5------- 5-35-'16- '1--6-3-- #4-6-'1-6- '2---7-5-" },
+      B: { c: 'F % C % F % D7 G7', m: "6-'1-'4-'1- '1---6--- 5-'1-'3-'1- '3---5--- '4-'1-6-'1- '4---'1--- '2-'1-6-#4- 5-6-7-'2-" },
+      C: { c: 'C % F C C Am Dm7,G7 C', m: "5-35-65- 3---.123 4-46-'16- 5------- 5-35-'16- '1--6-3-- 4-6-7-'2- '1-------" } },
+    form: 'I A C B C~ B! A C' },
+  { id: 'glass_towers', title: 'Glass Towers', feel: 'synth-pop', out: 'afternoon evening|downtown airport arts', bpm: 116, tr: 6, min: 1, mo: 60, style: 'synthpop', mt: '4/4', ins: { m: 'lead', m2: 'vibes', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+    P: { I: { c: 'Cm AbM7 Eb Bb' },
+      A: { c: 'Cm AbM7 Eb Bb Cm AbM7 Fm7 G7sus,G7', m: "'1--5-'1'3- '3--'1-6-- 7--5-7'2- '2--7-'4-- '3--'1-'3'5- '5--'3-'1-- '4--'1-6'1- '1---#7---" },
+      B: { c: 'Fm7 Bb EbM7 AbM7 Fm7 G7 Cm %', m: "'4---'3--- '2---'4--- '5---'3--- '1------- '4---'3--- '2---#7--- '1-----5- '1-------" },
+      D: { c: 'AbM7 Bb Cm7 %' } },
+    form: 'I-d I A A B A~ B D-d B! A D', end: 'Cm' },
+  { id: 'mural', title: 'Mural Alley', feel: 'lo-fi hip-hop', out: 'afternoon golden|arts oldtown downtown', bpm: 78, tr: 1, style: 'lofi', mt: '4/4', ins: { m: 'vibes', m2: 'nylon', h: 'clarinet', c: 'ep', b: 'ebass' },
+    P: { A: { c: 'FM7 Em7 Dm9 CM7 FM7 Em7 Am9 G13', m: "..'3-'1-6- 5---..7'2 '3-'1-6-4- 3---5-7- ..6-'1-'3- '2---..75 6-'1-7-5- '3---'2---", h: "6 5 4 3 6 7 '1 7" },
+      B: { c: 'Dm9 G13 CM9 A7b9 Dm9 Db7 CM9 %', m: "4-6-'1-'3- '2--7--5- '2-7-5-3- #1--3-5-b7 6-'1-'3-'4- '4--'b2--7- '3---'2--- 5-------" } },
+    form: 'A=c A A& B A~ B A?', end: 'CM9' },
+];
+
+/* ---- src/sim/_music_songs_b.js ---- */
+// Private songbook, part B: outdoors in the afternoon, evening and night, the weather tunes and the four seasonal tunes. Format: see _music_engine.js.
+const SONGS_B = [
+  { id: 'kite', title: 'Kite Weather', feel: 'light waltz', out: 'afternoon golden|park suburb harbor', bpm: 144, tr: -2, style: 'waltz', mt: '3/4', ins: { m: 'flute', m2: 'clarinet', c: 'harp', b: 'upright', p: 'strings' },
+    P: { I: { c: 'C Am F G7' },
+      A: { c: 'C % Em % F % G7 % C % Am % Dm7 G7 C %', m: "5-3 '1-- 7-5 '2-- '1-6 '4-- '2-7 5-- 5-3 '1-- '3-'1 6-- 4-6 7-'2 '1-- '1--" },
+      B: { c: 'F % C % G7 % C C7 F % C A7 Dm7 G7 C %', m: "6'1'4 '4-'1 5'1'3 '3-'1 7'2'4 '4-'2 '3'2'1 b7-- 6'1'4 '6-'4 '5'3'1 '3-'#1 '2'16 7-'2 '1-- '1--" },
+      O: { c: 'F G7 C %', m: "6'1'4 '2-7 '1-- -" } },
+    form: 'I-p A B A~ B A! O' },
+  { id: 'amber', title: 'Amber Windows', feel: 'bolero', out: 'golden evening|oldtown harbor market arts', pl: 'date', bpm: 96, tr: 4, min: 1, mo: 60, style: 'bolero', mt: '4/4', ins: { m: 'clarinet', m2: 'vibes', c: 'nylon', b: 'upright', p: 'strings' },
+    P: { I: { c: 'Cm Fm7 G7 Cm' },
+      A: { c: 'Cm Fm7 Bb7 EbM7 AbM7 Dm7b5 G7 Cm', m: "5---'1-'3- '4--'3-'1-- '2---'4-'2- '3--'2-7-- 6---'1-'3- '2--'1-6-- 5---#7-'2- '1-------" },
+      B: { c: 'Fm7 Bb7 EbM7 Cm7 Fm7 Dm7b5 G7sus G7', m: "'4-'3-'1-6- '2-'1-7-6- 5-7-'2-'3- '3---'1--- '4-'3-'1-6- '2-'4-6-'1- '1---'2--- #7-------" },
+      O: { c: 'AbM7 Fm6 G7 Cm', m: "'3---'1--- '2---6--- 5-#7-'2-'4- '3-------" } },
+    form: 'I-d A A~ B A B~ A! O?', end: 'Cm69' },
+  { id: 'last_light', title: 'Last Light on the Water', feel: 'slow ballad', out: 'golden evening|harbor park suburb airport', bpm: 72, tr: -4, mo: 60, style: 'ballad', st: { d: { r: '..x...x.', m: 'oooooooo' } }, mt: '4/4', ins: { m: 'brass', m2: 'flute', c: 'ep', b: 'ebass', p: 'strings' },
+    P: { A: { c: 'CM7 Em7 FM7 Fm6 Em7 Am7 Dm7 G7sus', m: "'3---'2-'1- 7---5--- 6-'1-'3-'2- '1------- '2---7-5- '1---6--- 4-6-'1-'2- '1-------" },
+      B: { c: 'FM7 G/F Em7 Am7 Dm7 G7 CM7 C7', m: "6-'1-'3--- '2-7-'2--- 5-7-'2-'3- '3---'1--- 4-6-'1-'4- '3-'2-7-'2- '3------- b7-------" } },
+    form: 'A=cp A A~+ B A B~+ A!', end: 'CM9' },
+  { id: 'neon', title: 'Neon Laundry', feel: 'night funk', out: 'evening late|downtown arts airport', bpm: 104, tr: -1, min: 1, mo: 60, style: 'citypop', mt: '4/4', ins: { m: 'lead', m2: 'brass', c: 'ep', b: 'ebass' },
+    P: { I: { c: 'Cm7 F9 Cm7 F9' },
+      A: { c: 'Cm7 F9 BbM7 EbM7 Cm7 F9 Dm7b5 G7#5', m: "'1-'3-'5--'3 '4---'3-'1- '2-'4-'#6--'4 '5---'3-7- '1-'3-'5--'7 '5---'4-'3- '2-'4-'6--'4 '3---#7---" },
+      B: { c: 'AbM7 Bb7 Gm7 Cm7 AbM7 Bb7 Cm7 %', m: "'1--'3--'5- '4--'2--7- '2--7--5- '3--'1--5- '1--'3--'5- '6--'4--'2- '3------- '1-------" } },
+    form: 'I-d I A A B A~ I=cbd B! A~! I', end: 'Cm9' },
+  { id: 'lanterns', title: 'Lantern Street', feel: 'swing', out: 'golden evening|oldtown arts market', pl: 'cafe', bpm: 132, tr: -7, style: 'swing', mt: '4/4', ins: { m: 'clarinet', m2: 'vibes', h: 'brass', c: 'ep', b: 'upright' },
+    P: { I: { c: 'C6 A7 Dm7 G7' },
+      A: { c: 'C6 A7 Dm7 G7 Em7 A7 Dm7,G7 C6', m: ".5356-5- #1-3-5-3- .4246-4- 2-,7-5-4- .5357-5- 6-5-3-#1- 2-4-5-7- '1-----..", h: '5 5 4 4 5 5 44 3' },
+      B: { c: 'Gm7 C7 FM7 % Am7 D7 Dm7 G7', m: "b7-'2-'4-'2- '3-'1-b7-5- 6-'1-'3-'1- 6------- '1-'3-'5-'3- '2-'1-6-#4- 6-'1-'2-'1- 7-'2-5---" } },
+    form: 'I A A B A A~ A~& B A!', end: 'C69' },
+  { id: 'porch', title: 'Porch Light', feel: 'slow blues in 12/8', out: 'evening late|suburb park harbor oldtown', bpm: 66, tr: -5, style: 'blues', st: { d: { b: '..o..o..o..o', k: 'x.....o.....' } }, mt: '12/8', ins: { m: 'accordion', m2: 'eguitar', c: 'steel', b: 'upright' }, mix: { m: 1.5 },
+    P: { I: { c: 'C7 F7 C7 G7' },
+      A: { c: 'C7 F7 C7 % F7 % C7 A7 Dm7 G7 C7,F7 C7,G7', m: "5--b7--'1--b7-- b3--4--b3--1-- 3--5--'1----- b7--5--b3-3--- 4--6--'1--'b3-- '1--6--4----- 5--3--1--3-- #1--3--5----- 4--6--'1--6-- 7--'2--'4--'2-- '3--'1--'1--6-- 5-----7-----" },
+      B: { c: 'C7 F7 C7 % F7 % C7 A7 Dm7 G7 C7,F7 C7,G7', m: "'1-----b7--5-- '1--6--'b3--'1-- 5--b7--'1--'3-- '3-----'1----- 6--'1--'b3--'1-- 6--4--b3--4-- 5--3--5--'1-- '3--'#1--6----- '2--'1--6--4-- 5--7--'2--'4-- '3-----'1----- 5-----7-----" },
+      E: { c: 'C7 F7 C7,F7 C7', m: "5--b7--'1--b7-- b3--4--b3--1-- '3--'1--'1--6-- '1-----------" } },
+    form: 'I A B A~ E', end: 'C9' },
+  { id: 'blue_tram', title: 'Blue Hour Tram', feel: 'lo-fi night', out: 'evening late|downtown arts airport', pl: 'rain', bpm: 70, tr: 0, min: 1, style: 'lofi', mt: '4/4', ins: { m: 'ep', m2: 'vibes', c: 'nylon', b: 'ebass', p: 'pad' },
+    P: { A: { c: 'Cm9 AbM7 Fm9 G7#5 Cm9 AbM7 Dm7b5 G7', m: "..5-'2-'3- '1---..56 '1-6-5-4- 3---#7--- ..'3-'2-'5- '3---..'16 4-6-'1-'2- #7-------" },
+      B: { c: 'Fm9 Bb13 EbM9 AbM7 Fm9 G7 Cm9 %', m: "'1-6-4--- '2-7-5--- 7-5-3--- 5---'1--- 6-'1-'3-'4- '2---#7--- '1---5--- 2-------" } },
+    form: 'A=cp A B A~ B A?', end: 'Cm9' },
+  { id: 'moon_slip', title: 'Moon Over the Slipway', feel: 'nocturne', out: 'late|harbor oldtown market park', bpm: 58, tr: 2, min: 1, mo: 60, style: 'solo', mt: '4/4', ins: { m: 'clarinet', m2: 'vibes', c: 'nylon', b: 'upright', p: 'pad' },
+    P: { A: { c: 'Cm % Ab % Fm % G7sus G7', m: "5-'1- '3--- '1-6- '3--- '1-6- 4--- 5-'1- #7---" },
+      B: { c: 'Eb % Bb % Ab % G7 %', m: "'3-'5- '7--- '2-'4- '2--- '1-'3- '1--- #7-'2- 5---" } },
+    form: 'A=cp A B A~ B A?' },
+  { id: 'turns_over', title: 'The City Turns Over', feel: 'music-box lullaby', out: 'late dawn|suburb park downtown airport arts', pl: 'home_late', bpm: 76, tr: 2, style: 'box', st: { b: 'R-------', bl: 48 }, mt: '4/4', ins: { m: 'musicbox', c: 'celesta', b: 'harp', p: 'pad' }, mix: { c: .4 },
+    P: { A: { c: 'C Am F G C Am F,G C', m: "3-5-'1-5- 3-1-3--- 4-6-'1-6- 5-2-5--- 3-5-'1-'3- '1-6-'1--- 6-4-7-5- '1-------" },
+      B: { c: 'F C/E Dm C F C/E Dm7 G7', m: "6-'1-'4-'1- 5-'1-'3--- 4-6-'2-6- 5-3-5--- 6-'1-'4-'1- '3-'1-5--- 4-6-'1-6- 5-7-'2---" } },
+    form: 'A-b A B A B A?' },
+  { id: 'gutter', title: 'Gutter Song', feel: 'rainy lo-fi piano', pl: 'rain storm home_rain', bpm: 76, tr: -3, min: 1, style: 'lofi', st: { d: { k: 'x.....x...x.....', r: '....x.......x...', m: 'o.o.o.o.o.o.o.o.' } }, mt: '4/4', ins: { m: 'piano', m2: 'vibes', c: 'ep', b: 'upright' },
+    P: { A: { c: 'Cm7 Gm7 AbM7 Eb/G Fm7 Cm/Eb Dm7b5 G7', m: "'1-5-3-5- 7-5-2--- '1-6-3-6- 5-3-,7--- 6-4-1-4- 5-3-1--- 4-2-,6-2- ,#7---2---" },
+      B: { c: 'AbM7 Bb Cm7 % AbM7 Bb Gsus G', m: "'3--'1--6- '2--7--4- '3--'1--5- '1------- '3--'1--6- '4--'2--7- '1---'2--- #7-------" } },
+    form: 'A=c A A~ B A B~ A?', end: 'Cm9' },
+  { id: 'umbrellas', title: 'A Street of Umbrellas', feel: 'slow jazz waltz', pl: 'rain storm', bpm: 104, tr: 4, min: 1, mo: 60, style: 'jwaltz', mt: '3/4', ins: { m: 'vibes', m2: 'clarinet', c: 'nylon', b: 'upright' },
+    P: { I: { c: 'Cm7 Fm7 Cm7 G7' },
+      A: { c: 'Cm7 % Fm7 % Bb7 % EbM7 % AbM7 % Dm7b5 % G7 % Cm7 G7', m: "5'1'3 '2-- '1'3'1 6-- 7'2'4 '2-- '2'37 5-- '1-6 '3-- '2-'1 6-- 5#7'2 '4-- '3-- '2--" },
+      B: { c: 'Fm7 % Cm7 % Fm7 % G7 % AbM7 % EbM7 % Dm7b5 G7 Cm7 %', m: "6'1'4 '3-- 5'1'3 '2-- 6'1'4 '5-- '4'2#7 5-- '3'16 '5-- '275 '3-- '2'16 #7-'2 '1-- '1--" } },
+    form: 'I-d A B A~ B A?', end: 'Cm9' },
+  { id: 'wait_out', title: 'Wait It Out', feel: 'minor blues in 12/8', pl: 'storm bar', bpm: 60, tr: -5, min: 1, style: 'blues', mt: '12/8', ins: { m: 'eguitar', m2: 'organ', c: 'organ', b: 'ebass' }, mix: { c: .8 },
+    P: { I: { c: 'Cm7 Fm7 Cm7 G7' },
+      A: { c: 'Cm7 Fm7 Cm7 C7 Fm7 % Cm7 % Ab7 G7 Cm7 G7', m: "'1-----7--5-- 4--6--'1--6-- 5--7--'1----- '3--'1--7--5-- '4--'3--'1--6-- '1-----6----- 5--3--1--3-- 5----------- '3--'1--6--b5-- 5--#7--'2--'4-- '3-----'1----- '2-----#7-----" },
+      B: { c: 'Cm7 Fm7 Cm7 C7 Fm7 % Cm7 % Ab7 G7 Cm7 G7', m: "5--7--'1--'3-- '4-----'3--'1-- '5--'3--'1--7-- '1----------- '6--'4--'3--'1-- '4--'3--'1--6-- '1--7--5--3-- 1-----5----- 'b5--'3--'1--6-- '4--'2--#7--5-- '1-----7----- 5-----#7-----" },
+      E: { c: 'Cm7 Fm7 Cm7,G7 Cm7', m: "'1-----7--5-- 4--6--'1--6-- 5--3--'2--#7-- '1-----------" } },
+    form: 'I A B A~ E?', end: 'Cm9' },
+  { id: 'first_snow', title: 'First Snow, No Footprints', feel: 'celesta waltz', pl: 'snow', bpm: 92, tr: 1, style: 'box3', st: { b: 'R-----' }, mt: '3/4', ins: { m: 'celesta', m2: 'flute', c: 'harp', b: 'upright', p: 'strings' },
+    P: { A: { c: 'C % Am % F % G % C % Am % Dm7 G7 C %', m: "5-- 3-5 '1-- 6-- 6-'1 '4-'3 '2-- 7-- 5-- 3-5 '1-- '3-- '2-'1 7-'2 '1-- ---" },
+      B: { c: 'F % C/E % Dm7 % G7sus G7', m: "'4-'1 6-- '3-'1 5-- '2-6 4-- 5-'1 7--" } },
+    form: 'A-b A B A~ B A?' },
+  { id: 'fog_bells', title: 'Harbor in the Fog', feel: 'ambient vibes', pl: 'fog', bpm: 58, tr: -1, min: 1, ho: 60, style: 'ambient', st: { c: '1...2...' }, mt: '4/4', ins: { m: 'vibes', h: 'clarinet', c: 'celesta', b: 'upright', p: 'pad' }, mix: { b: .6 },
+    P: { A: { c: 'Cm9 % Bb/C % AbM7 % Bb %', m: "5-2- 3--- 4-2- '1--- '1-5- 3--- 4-7- 2---", h: '3 2 2 1 1 ,7 ,7 ,7' },
+      B: { c: 'Fm9 % Cm/Eb % Dm7b5 % Gsus G', m: "6-'1- 5--- 5-3- 1--- 4-6- '1--- '1-'2- #7---" } },
+    form: 'A=cp A B A& B A?', end: 'Cm9' },
+  { id: 'heat_haze', title: 'Heat Haze', feel: 'calypso', out: 'midday afternoon golden|*', sea: 1, pl: 'heat', bpm: 104, tr: 0, style: 'calypso', mt: '4/4', ins: { m: 'steelpan', m2: 'marimba', c: 'nylon', b: 'ebass' },
+    P: { I: { c: 'C F G7 C' },
+      A: { c: 'C % F G7 C Am F,G7 C', m: "5-35-'1-5 3-5-'1--- 6-46-'1-6 7-5-'2--- '3-'1'3-'5-'3 '1-5-3--- 4-6-7-'2- '1-------" },
+      B: { c: 'F C G7 C F C D7 G7', m: "6-'1'4-'1-6 5-'1-'3--- 7-'2'4-'2-7 '1-5-3--- 6-'1'4-'1-6 '3-'1-5--- #4-6'2-6-#4 5-7-'2---" } },
+    form: 'I A A~ B A B~ A! I' },
+  { id: 'blossom', title: 'Blossom Confetti', feel: 'spring gavotte', out: 'dawn morning midday afternoon golden|*', sea: 0, bpm: 112, tr: -5, style: 'shuffle', st: { sw: 0, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'flute', m2: 'marimba', c: 'harp', b: 'upright' },
+    P: { A: { c: 'C G/B Am Em F C Dm7 G7', m: "'3'2'1-5-'1- '2'17-5-7- '176-3-6- 5---3-5- 6'1'4-'1-6- 5'1'3-'1-5- 46'2-'1-6- 7---'2---" },
+      B: { c: 'Am Em F C Am Em Dm7 G7', m: "6-'1-'3-'1- 7-'2-5--- 6-'1-'4-'1- '3---5--- '3-'1-6-'1- '2-7-5--- 4-6-'1-6- 5-7-'2---" },
+      C: { c: 'C G/B Am Em F C Dm7,G7 C', m: "'3'2'1-5-'1- '2'17-5-7- '176-3-6- 5---3-5- 6'1'4-'1-6- 5'1'3-'1-5- 4-6-7-'2- '1-------" } },
+    form: 'A-d C B C~ B A~ C!' },
+  { id: 'ice_pop', title: 'Ice Pop Parade', feel: 'surf', out: 'morning midday afternoon golden|*', sea: 1, pl: 'heat', bpm: 152, tr: 4, mo: 60, style: 'surf', mt: '4/4', ins: { m: 'eguitar', c: 'eguitar', b: 'ebass' }, mix: { m: 1.3, c: .4 },
+    P: { I: { c: 'C Am F G7' },
+      A: { c: 'C % Am % F % G7 %', m: "1-135-3- 5-6-5-3- ,6-,613-1- 3-5-3-1- 4-46'1-6- '1-6-4--- 5-57'2-7- '2-7-5---" },
+      B: { c: 'Am % F % C % Dm7 G7', m: "6-'1-'3-'1- 6------- 4-6-'1-6- 4------- 5-'1-'3-'1- 5------- 6-'2-'4-'2- 7-5-2---" } },
+    form: 'I A A B A+ I=cbd B A+ B A!' },
+  { id: 'leaf_pile', title: 'Leaf Pile', feel: 'autumn jig in 6/8', out: 'morning midday afternoon golden evening|*', sea: 2, bpm: 76, tr: 2, min: 1, mo: 60, style: 'lull', st: { d: { m: 'o..o..' } }, mt: '6/8', ins: { m: 'clarinet', m2: 'flute', c: 'nylon', b: 'upright' },
+    P: { I: { c: 'Cm F Cm Bb' },
+      A: { c: 'Cm F Cm Bb Cm F Bb,Gm Cm', m: "'1--'3-'5 '4--'1-#6 '3--'1-5 '2--7-- '1--'3-'5 '#6--'5-'4 '2--7-5 '1-----" },
+      B: { c: 'Eb Bb Cm Gm Eb Bb F G', m: "'3--'5-'7 '4--'2-7 '3--'1-5 '2--7-5 '3--'5-'7 '4--'2-'4 '4--'1-#6 '2--#7--" } },
+    form: 'I-d A A B A~ B A I A~ B A!' },
+  { id: 'mittens', title: 'Mittens on a String', feel: 'winter celesta shuffle', out: 'dawn morning midday afternoon golden evening|*', sea: 3, pl: 'snow', bpm: 100, tr: -1, style: 'shuffle', st: { sw: .5, d: { m: 'o.o.o.o.' } }, mt: '4/4', ins: { m: 'celesta', m2: 'musicbox', c: 'harp', b: 'upright', p: 'strings' },
+    P: { A: { c: 'C Am Dm7 G7 C Am Dm7,G7 C', m: "5-'1-'3-'1- '2-'1-6--- 4-6-'1-6- 5-7-'2--- 5-'1-'3-'5- '3-'1-6--- 4-6-7-'2- '1-------" },
+      B: { c: 'F Fm C A7 Dm7 G7 C G7', m: "6-'1-'4-'1- b6-'1-'4--- 5-'1-'3-'1- '3-'#1-6--- 4-6-'2-'1- 7-'2-'4--- '3-'1-5-'1- '2-------" } },
+    form: 'A-d A B A~ B A!' },
+];
+
+/* ---- src/sim/_music_songs_c.js ---- */
+// Private songbook, part C: the interiors (cafe, diner, bar, shops, gym, library, museum, hotel, home). Format: see _music_engine.js.
+const SONGS_C = [
+  { id: 'cafe_steam', title: 'Steam on the Window', feel: 'cafe swing', out: 'morning|arts oldtown', pl: 'cafe hotel', bpm: 126, tr: -2, style: 'swing', mt: '4/4', ins: { m: 'piano', m2: 'vibes', c: 'piano', b: 'upright' },
+    P: { I: { c: 'C6 A7 Dm7 G7' },
+      A: { c: 'C6 % F7 % C6 A7 D7 G7', m: "356'1-65- 6-5-3--- 46'1'b3-'16- '1-6-b3--- 356'1-'3'1- '3-'#1-6-5- #4-6-'1-'2- 7-5-4-2-" },
+      B: { c: 'E7 % A7 % D7 % G7 %', m: "#5-7-'2-'3- '2-7-#5-3- 6-'#1-'3-'5- '3---'#1--- '2-'1-6-#4- 6---#4--- 5-7-'2-'4- '3-'2-7-5-" },
+      C: { c: 'C6 % F7 % C6 A7 Dm7,G7 C6', m: "356'1-65- 6-5-3--- 46'1'b3-'16- '1-6-b3--- 356'1-'3'1- '3-'#1-6-5- 4-6-7-'2- '1-------" } },
+    form: 'I A A B C A~ A~ B C!', end: 'C69' },
+  { id: 'cortado', title: 'Two Cortados', feel: 'minor bossa', out: 'golden evening|arts market oldtown', pl: 'cafe date', bpm: 132, tr: 2, min: 1, style: 'bossa', mt: '4/4', ins: { m: 'vibes', m2: 'flute', c: 'nylon', b: 'upright' },
+    P: { I: { c: 'Cm9 % Dm7b5 G7b9' },
+      A: { c: 'Cm9 % Fm9 % Dm7b5 G7b9 Cm9 %', m: "5--'1-'3-- '2--'1-5-- 6--'1-'4-- '3--'1-6-- '2--6-4-- 5--#7-'2-- '3--'2-'1-- 5-------" },
+      B: { c: 'Fm9 Bb7 EbM7 AbM7 Dm7b5 G7 Cm9 G7', m: "'4--'3-'1-- '2--7-6-- 5--7-'2-- '1--6-5-- 4--6-'1-- #7--'2-'4-- '3--'1-5-- '2--#7-5--" },
+      O: { c: 'Cm9 Fm9 Dm7b5,G7 Cm9', m: "5--'1-'3-- '4--'3-'1-- '2--6-#7-- '1-------" } },
+    form: 'I A A B A~ B A I=cbd B~ A! O', end: 'Cm9' },
+  { id: 'fries', title: 'Fries With That', feel: "jukebox rock'n'roll", pl: 'diner', bpm: 160, tr: -3, mo: 60, style: 'rock', mt: '4/4', ins: { m: 'eguitar', m2: 'piano', c: 'piano', b: 'ebass' }, mix: { m: 1.3 },
+    P: { I: { c: 'C % G7 %', m: "'5-'5-'5-'5- '5-'6-'5-'3- '2-'2-'2-'2- '2-'4-'5---" },
+      A: { c: 'C % % % F7 % C % G7 F7 C G7', m: "'1-'1'3-'5-'3 '6-'5-'3--- '1-'1'3-'5-'3 'b7-'5-'3--- '4-'4'6-''1-'6 'b3-'1-6--- '1-'1'3-'5-'3 '6-'5-'3-'1- '2-'2'4-'5-'4 '1-'1'b3-'4-'b3 '1-'3-'5-'6- '5-----.." },
+      B: { c: 'C % % C7 F7 F#o7 C A7 D7 G7 C G7', m: "'5-'5-'6-'5- '3-'1-'3--- '5-'5-'6-'5- 'b7------- '6-'6-''1-'6- '#4-'b3-'#4--- '5-'5-'6-'5- '3-'#1-'3--- '#4-'2-6-'2- '4-'2-7-'2- '1-'3-'5-''1- '5-------" },
+      E: { c: 'C F7 C,G7 C', m: "'1-'1'3-'5-'3 '4-'b3-'1-6- '1-'3-'2-7- '1-------" } },
+    form: 'I A B A~+ A=cbd B! A~+ A! E', end: 'C6' },
+  { id: 'malted', title: 'Malted Moon', feel: 'doo-wop ballad', pl: 'diner', bpm: 72, tr: -9, style: 'doowop', mt: '12/8', ins: { m: 'vibes', m2: 'brass', c: 'piano', b: 'upright' }, mix: { c: .75 },
+    P: { I: { c: 'C Am F G7' },
+      A: { c: 'C Am F G7 C Am F,G7 C', m: "5-----3--5-- '1-----6----- 6-----4--6-- 7-----'2----- '3-----'1--'3-- '1-----6----- 6--'1--7--'2-- '1-----------" },
+      B: { c: 'F % C % F % D7 G7', m: "6--'1--'4--'1-- '4-----'1----- 5--'1--'3--'1-- '3-----5----- 6--'1--'4--'6-- '4-----'1----- '2--'1--6--#4-- 5-----7-----" } },
+    form: 'I A A B A~_ B A!', end: 'C6' },
+  { id: 'last_call', title: 'Last Call Blues', feel: 'jazz blues', pl: 'bar', bpm: 96, tr: -2, mo: 60, style: 'swing', mt: '4/4', ins: { m: 'brass', m2: 'piano', c: 'piano', b: 'upright' },
+    P: { I: { c: 'C7 A7 Dm7 G7' },
+      A: { c: 'C7 F7 C7 Gm7,C7 F7 F#o7 C7 A7 Dm7 G7 C7,A7 Dm7,G7', m: ".1b335-6- '1-6-4-b3- 3-5-b7-5- 4-2-3-b7- 6-'1-'b3-'1- 6-#4-b3-1- 5-3-1-3- #1-3-5-6- .46'1'2-'1- 7-5-4-2- 3-5-#1-3- 4-6-5-,7-" },
+      B: { c: 'C7 F7 C7 Gm7,C7 F7 F#o7 C7 A7 Dm7 G7 C7,A7 Dm7,G7', m: "'1--b7-5-- '1--6-b3-- '1--b7-5-- b7--5-3-- 6--'1-'b3-- 6--#4-b3-- 5-b7-'1-b7- 6-5-3-#1- 2-4-6-'1- 7-'2-'4-'2- '3-'1-6-5- 4-6-7-'2-" },
+      E: { c: 'C7 F7 C7,G7 C7', m: ".1b335-6- '1-6-4-b3- 3-5-4-2- 1-------" } },
+    form: 'I A B A~+ B! A E', end: 'C9' },
+  { id: 'back_booth', title: 'Back Booth', feel: 'organ shuffle', pl: 'bar', bpm: 112, tr: -7, min: 1, style: 'shuffle', st: { c: 'x..x..x.', cl: .9, d: { g: 'x.xox.xo', s: '..o...o.', k: 'x...x...' } }, mt: '4/4', ins: { m: 'eguitar', m2: 'organ', c: 'organ', b: 'ebass' }, mix: { m: 1.25 },
+    P: { I: { c: 'Cm7 Fm7 Cm7 G7' },
+      A: { c: 'Cm7 % Fm7 % Cm7 % Ab7 G7', m: "1-34-5-7 5---..57 '1-64-6-'1 6---..'16 5-7-'1-'3- '1---7-5- '3-'1-6-b5- 5-#7-'2---" },
+      B: { c: 'Fm7 % Cm7 % Dm7b5 % G7 %', m: "6-'1-'4--- '3-'1-6--- 5-7-'3--- '1-7-5--- 4-6-'2--- '1-6-4--- 5-#7-'2-'4- '3-'2-#7-5-" } },
+    form: 'I A A B A~ B A! I', end: 'Cm9' },
+  { id: 'aisle_seven', title: 'Aisle Seven', feel: 'shop-floor bossa', out: 'midday golden|market downtown airport', pl: 'shop', bpm: 116, tr: -5, style: 'bossa', mt: '4/4', ins: { m: 'marimba', m2: 'flute', c: 'ep', b: 'ebass', p: 'strings' },
+    P: { I: { c: 'CM7 Dm7 CM7 G7sus' },
+      A: { c: 'CM7 Dm7 Em7 Dm7 CM7 Dm7 G7sus G7', m: "3--5-'1-- '2--'1-6-- 7--5-'2-- '1--6-4-- 3--5-'1-- '4--'2-6-- '1--5-'2-- 7-------" },
+      B: { c: 'FM7 Em7 Dm7 CM7 FM7 Em7 Am7,D7 G7', m: "'3--'1-6-- '2--7-5-- '1--6-4-- 7--5-3-- '3--'1-6-- '2--7-'2-- '1--'3-'2-- 5--7-'2--" } },
+    form: 'I A A B A~ B A I?', end: 'C69' },
+  { id: 'escalator', title: 'Escalator Up', feel: 'mall disco, softly', out: 'midday afternoon golden|airport downtown market', pl: 'shop', bpm: 118, tr: -9, style: 'disco', st: { d: { k: 'x...x...x...x...', h: '..o...o...o...o.', c: '....o.......o...' } }, mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'ep', b: 'ebass', p: 'strings' },
+    P: { I: { c: 'CM7 Am7 FM7 G7' },
+      A: { c: 'CM7 Am7 FM7 G7 Em7 Am7 Dm7 G7', m: "5-'1-7-5- 6-'1-'3--- '3-'1-6-'1- '2-7-5--- '2-7-5-7- '1-6-3--- 4-6-'1-'2- 7---'2---" },
+      B: { c: 'FM7 G7 Em7 A7 Dm7 G7 C69 %', m: "6-'1-'3-'4- '2-7-5--- 5-7-'2-'3- '3-'#1-6--- 4-6-'1-'2- 7-'2-'4--- '3-'2-'1-6- 5-------" } },
+    form: 'I-d A A B A~ I=cbd B A!', end: 'CM9' },
+  { id: 'one_more_rep', title: 'One More Rep', feel: 'gym disco-funk', pl: 'gym', bpm: 124, tr: 4, min: 1, mo: 60, style: 'disco', mt: '4/4', ins: { m: 'lead', m2: 'brass', c: 'ep', b: 'sbass' },
+    P: { I: { c: 'Cm7 % Bb %' },
+      A: { c: 'Cm7 % Bb % AbM7 % G7sus G7', m: "'1-'1-'3-'1- 7-5-7--- '2-'2-'4-'2- 7-5-4--- '1-'1-'3-'5- '3-'1-6--- '1-'1-'2-'1- #7-'2-5---" },
+      B: { c: 'AbM7 Bb Cm7 % AbM7 Bb G7sus G7', m: "'3---'1--- '4---'2--- '5-'3-'1-'3- '5------- '3---'1--- '4---'2--- '1---'2--- #7-------" } },
+    form: 'I=bd I A A B A~ I=cbd B! A! B!', end: 'Cm7' },
+  { id: 'laps', title: 'Laps', feel: 'motorik pulse', pl: 'gym', bpm: 132, tr: 2, style: 'motorik', mt: '4/4', ins: { m: 'chip', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+    P: { I: { c: 'C % Am %' },
+      A: { c: 'C % Am % F % G %', m: "5---3-5- '1------- '1---6-'1- '3------- '4---'1-6- '1------- '2---7-5- 7---'2---" },
+      B: { c: 'Am % F % C % G %', m: "'3-'3-'2-'1- 6------- '1-'1-6-4- 6------- '3-'3-'1-5- '3------- '2-'2-7-5- '2---'4---" },
+      C: { c: 'Dm % Am % Bb % G %', m: "4-6-'2--- '4------- 3-6-'1--- '3------- 4-b7-'2--- '4---'2--- '2-7-5--- 7-------" } },
+    form: 'I=cb A A B A~ C I=cbd B A!' },
+  { id: 'whisper_shelf', title: 'Whisper Shelf', feel: 'harp and celesta, hushed', out: 'dawn|oldtown arts market harbor', pl: 'library museum', bpm: 72, tr: -3, style: 'solo', st: { bl: 45 }, mt: '4/4', ins: { m: 'celesta', c: 'harp', b: 'harp' }, mix: { b: .5 },
+    P: { A: { c: 'CM7 % FM7 % Dm7 G7 CM7 %', m: "3-5- 7--- 6-'1- '3--- '2-'1- 7-5- 5--- ----" },
+      B: { c: 'Am7 % Em7 % FM7 % G7sus G7', m: "'1-6- 3--- 7-5- 2--- 6-'1- '3--- '2-'1- 7---" } },
+    form: 'A-b A B A B A?', end: 'CM9' },
+  { id: 'marble_hall', title: 'Marble Hall', feel: 'sarabande', pl: 'museum library', bpm: 72, tr: 2, min: 1, mo: 60, style: 'waltz', st: { c: 'x-x---', b: 'R-----' }, mt: '3/4', ins: { m: 'clarinet', m2: 'flute', c: 'harp', b: 'upright', p: 'strings' },
+    P: { A: { c: 'Cm Fm G7 Cm Eb Bb G7 Cm', m: "'1-'3--'2 '1-'4--'3 '2-#7--'2 '3----- '3-'5--'4 '2-'4--'3 5-#7--'2 '1-----" },
+      B: { c: 'Ab Eb Fm Cm Ab Bb G7sus G7', m: "'1-'3--'1 7-'3--5 6-'1--'4 '3----- '3-'1--6 '4-'2--7 '1----- #7-----" } },
+    form: 'A=cp A B A~+ B A! A?' },
+  { id: 'lobby_piano', title: "Lobby Piano, Four O'Clock", feel: 'solo piano ballad', pl: 'hotel date', bpm: 68, tr: 1, style: 'solo', st: { bl: 37 }, mt: '4/4', ins: { m: 'piano', c: 'piano', b: 'piano' }, mix: { c: .45, b: .6 },
+    P: { A: { c: 'CM7 A7b9 Dm9 G13 Em7 Ebo7 Dm7 G7', m: "3---5-7- '3--'2'#1-6- 4---6-'1- '3--'2-7-- 5---7-'2- '1--6-b5-- 4-6-'1-'2- 7---5---" },
+      B: { c: 'FM7 Fm6 Em7 A7 Dm7 G7 CM7 Dm7,G7', m: "6-'1-'3--- b6-'1-'4--- 5-7-'2--- #1-3-6--- 4-6-'1-'4- '3-'2-7--- '3---'1--- 6---5---" },
+      C: { c: 'CM7 A7b9 Dm9 G13 Em7 A7 Dm7,G7 C6', m: "3---5-7- '3--'2'#1-6- 4---6-'1- '3--'2-7-- 5---7-'2- '3---'#1--- '2-6-7--- '1-------" } },
+    form: 'A C B C B C?', end: 'C69' },
+  { id: 'revolving', title: 'Revolving Door Waltz', feel: 'hotel waltz', pl: 'hotel', bpm: 150, tr: -4, style: 'waltz', mt: '3/4', ins: { m: 'piano', m2: 'clarinet', c: 'piano', b: 'upright', p: 'strings' }, mix: { c: .45 },
+    P: { I: { c: 'C G7 C G7' },
+      A: { c: 'C % % G7 Dm7 G7 C % C C7 F Fm C/G G7 C %', m: "3-5 '1-- '3'2'1 7-- 6-4 2-5 '1-5 3-- 3-5 b7-- 6'1'4 '4-b6 5'1'3 '2-7 '1-- ---" },
+      B: { c: 'Am % Em % F % C % Am % Em % Dm7 % G7 %', m: "6'1'3 '3-'1 57'3 '3-7 6'1'4 '4-'1 5'1'3 '3-- '3'16 6-- '275 5-- 46'1 '2-'1 7'2'4 '2--" } },
+    form: 'I A B A~ B A! A?' },
+  { id: 'kettle_on', title: 'Kettle On', feel: 'cosy shuffle', pl: 'home room', bpm: 88, tr: 0, style: 'shuffle', st: { sw: .5, d: { b: '..o...o.' } }, mt: '4/4', ins: { m: 'ep', m2: 'clarinet', c: 'nylon', b: 'upright' },
+    P: { A: { c: 'C6 Am7 Dm7 G7 C6 Am7 D7 G7', m: "5-6-'1-6- 5-3-5--- 4-5-6-'1- 7-5-2--- 5-6-'1-'3- '1-6-'1--- '2-'1-6-#4- 5---.567" },
+      B: { c: 'F F#o7 C/G A7 Dm7 G7 C G7', m: "'1-6-'1-'4- '1-6-#4--- 5-'1-'3-'1- '3-'#1-6--- 4-6-'1-'2- 7-'2-'4--- '3-'1-5-3- 2-------" },
+      C: { c: 'C6 Am7 Dm7 G7 C6 A7 Dm7,G7 C6', m: "5-6-'1-6- 5-3-5--- 4-5-6-'1- 7-5-2--- 5-6-'1-'3- '3-'#1-6--- 4-6-7-'2- '1-------" } },
+    form: 'A-d C B C~ B A~ C!', end: 'C69' },
+  { id: 'toast', title: 'Toast and Slippers', feel: 'morning bounce', out: 'dawn morning|suburb', pl: 'home_am home', bpm: 112, tr: -7, style: 'stride', st: { sw: .3, bl: 36, d: { w: '..o...o.', m: 'o.o.o.o.' } }, mt: '4/4', ins: { m: 'clarinet', m2: 'marimba', c: 'marimba', b: 'upright' },
+    P: { A: { c: 'C % F C Dm7 G7 C G7', m: "1-3-5-3- '1-5-3--- 4-6-'1-6- 5-3-1--- 2-4-6-4- ,7-2-5--- 1-3-5-'1- 7---5---" },
+      B: { c: 'Am % Dm % G7 % C G7', m: "6-'1-'3-'1- 6---3--- 4-6-'2-6- 4---2--- 5-7-'2-'4- '2-7-5--- '1-5-3-5- 2-------" },
+      C: { c: 'C % F C Dm7 G7 C %', m: "1-3-5-3- '1-5-3--- 4-6-'1-6- 5-3-1--- 2-4-6-4- ,7-2-5-7- '1------- ........" } },
+    form: 'A-d C B C~+ B A C!' },
+  { id: 'one_lamp', title: 'One Lamp On', feel: 'late-night ballad', pl: 'home_late', bpm: 62, tr: 4, mo: 60, style: 'hymn', mt: '4/4', ins: { m: 'nylon', m2: 'ep', c: 'ep', b: 'upright', p: 'pad' },
+    P: { A: { c: 'CM9 Am9 FM7 G13 CM9 Am9 Dm9 G7sus', m: "'3---'2--- '1---7--- 6-'1-'3--- '2------- '3---'5--- '3---'1--- '2-'1-6--- '1-------" },
+      B: { c: 'FM7 Em7 Dm7 CM7 FM7 Em7 Dm7 G7', m: "6---'1--- 7---5--- 4-6-'1--- 7------- '1---'3--- '2---7--- '1-6-4--- 5-------" } },
+    form: 'A=cp A B A~ B A?', end: 'CM9' },
+  { id: 'pane', title: 'Rain on the Pane', feel: 'piano waltz, minor', pl: 'home_rain rain', bpm: 96, tr: -1, min: 1, style: 'box3', st: { b: 'R-----' }, mt: '3/4', ins: { m: 'piano', m2: 'celesta', c: 'harp', b: 'upright', p: 'strings' },
+    P: { A: { c: 'Cm % Ab % Eb % G7 % Cm % Ab % Fm G7 Cm %', m: "5-- 3-5 '1-- 6-- 7-- 5-7 '2-- #7-- '3-- '1-'3 '1-- 6-- '1-6 #7-'2 '1-- ---" },
+      B: { c: 'Fm % Cm % Dm7b5 % G7 %', m: "6-'1 '4-- 5-'1 '3-- 4-6 '2-- #7-'2 5--" } },
+    form: 'A-b A B A~ B A?' },
+  { id: 'plants', title: 'Watering the Plants', feel: 'habanera, lightly', out: 'morning midday|park suburb', pl: 'home home_am', bpm: 100, tr: -3, style: 'habanera', mt: '4/4', ins: { m: 'marimba', m2: 'flute', c: 'nylon', b: 'upright' },
+    P: { I: { c: 'C G7 C G7' },
+      A: { c: 'C % G7 % Dm7 G7 C %', m: "3-5-'1--5 3-5-'1--- 2-5-7--5 2-5-7--- 4-6-'2--'1 7-5-4--- 3-5-'1--5 3-------" },
+      B: { c: 'F % C % D7 % G7 %', m: "6-'1-'4--'1 6------- 5-'1-'3--'1 5------- #4-6-'2--6 #4------- 5-7-'2-'4- '2-7-5---" } },
+    form: 'I A A~ B A B~ A!' },
+];
+
+/* ---- src/sim/_music_songs_d.js ---- */
+// Private songbook, part D: rides (cab, bus, train, plane), work shifts and the special moods (date night, family, festival days). Format: see _music_engine.js.
+const SONGS_D = [
+  { id: 'cab_radio', title: 'Cab Radio, Channel Two', feel: 'radio funk-pop', out: 'morning midday|downtown airport', pl: 'cab', bpm: 116, tr: -5, style: 'citypop', mt: '4/4', ins: { m: 'brass', m2: 'vibes', c: 'ep', b: 'ebass' },
+    P: { I: { c: 'CM7 Am7 Dm7 G7' },
+      A: { c: 'CM7 % Am7 % Dm7 % G7sus G7', m: "5-'1-'3--'1 '2-'1-5--- 6-'1-'3--'1 '2-'1-6--- 4-6-'1--6 '2-'1-6--- '1-'1-'2-'1- 7---.567" },
+      B: { c: 'Am7 D9 Am7 D9 FM7 Em7 Dm7 G7', m: "'3-'3-'1-6- '2---6-#4- '3-'3-'5-'3- '2------- 6-'1-'3-'1- 5-7-'2-7- 4-6-'1-'2- 7-'2-5---" } },
+    form: 'I-d A A B A~ I=cbd B! A!', end: 'CM9' },
+  { id: 'meter_running', title: 'Meter Running', feel: 'late-night soul', out: 'late|downtown market harbor oldtown', pl: 'cab', bpm: 84, tr: -2, min: 1, style: 'lofi', st: { s16: .3 }, mt: '4/4', ins: { m: 'flute', m2: 'ep', c: 'ep', b: 'ebass' },
+    P: { A: { c: 'Cm9 Fm9 Cm9 Fm9 AbM7 Bb7 Cm9 G7#5', m: "5-'1-'2--'3 '1-6-4--- 5-'1-'2--'5 '3-'1-6--- '3-'1-6-'1- '2-7-4--- 5-3-2-3- 3---#7---" },
+      B: { c: 'AbM7 Gm7 Fm9 Eb/G AbM7 Bb7 Cm9 %', m: "'3-'1-6--- '2-7-5--- '1-6-4--- 7-5-3--- '1-'3-'5--- '4-'2-7--- '3-'2-'1-5- '1-------" } },
+    form: 'A=cb A A~ B A B~ A?', end: 'Cm9' },
+  { id: 'window_seat', title: 'Window Seat', feel: 'easy guitar ballad', out: 'morning midday golden|suburb park', pl: 'bus', bpm: 104, tr: -8, style: 'ballad', mt: '4/4', ins: { m: 'whistle', m2: 'steel', c: 'steel', b: 'upright' },
+    P: { I: { c: 'C F C G7sus' },
+      A: { c: 'C Em7 F G7sus C Em7 F,G7 C', m: "1-3-5--3 5-7-'2--7 '1-6-4--6 5------- '1-'3-'5--'3 '2-7-5--7 '1-6-7-'2- '1-------" },
+      B: { c: 'Am7 Em7 FM7 C Am7 Em7 Dm7 G7', m: "'1-6-3--6 7-5-2--5 6-4-1--4 3---5--- '1-6-'3--'1 '2-7-5--7 6-4-2--4 5-7-'2---" } },
+    form: 'I-d A A~ B A B~ A!' },
+  { id: 'clickety', title: 'Clickety Line', feel: 'train-beat twang', pl: 'train bus', bpm: 126, tr: -3, mo: 60, style: 'march', st: { d: { r: 'x.ox..o.x.ox..o.', k: 'x.......x.......' } }, mt: '4/4', ins: { m: 'eguitar', m2: 'whistle', c: 'steel', b: 'upright' }, mix: { m: 1.3 },
+    P: { I: { c: 'C % G7 %' },
+      A: { c: 'C % % C7 F % C G7', m: "'1-'1'2'3-'5- '3-'1-5--- '1-'1'2'3-'5- 'b7---'5--- '6-'6'5'4-'6- ''1-'6-'4--- '5-'3-'1-'3- '2---.'5'6'7" },
+      B: { c: 'F % C % D7 G7 C C7', m: "'4-'6-''1-'6- '4------- '3-'5-''1-'5- '3------- '2-'#4-'6-'#4- '2---7--- '1-'3-'5-'3- 'b7-------" },
+      C: { c: 'C % % C7 F % C,G7 C', m: "'1-'1'2'3-'5- '3-'1-5--- '1-'1'2'3-'5- 'b7---'5--- '6-'6'5'4-'6- ''1-'6-'4--- '5-'3-'2-7- '1-------" } },
+    form: 'I A C B C~+ B A~+ C!' },
+  { id: 'bay_express', title: 'Bay Express', feel: 'motorik in minor', out: 'evening late|airport downtown harbor', pl: 'train', bpm: 126, tr: 1, min: 1, style: 'motorik', mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+    P: { I: { c: 'Cm % Ab %' },
+      A: { c: 'Cm % Ab % Eb % Bb %', m: "5-----'1- '3---'2--- '1-----'3- '5---'3--- 7-----'3- '5---'4--- '2-----'4- '2---7---" },
+      B: { c: 'Fm % Cm % Ab % G7sus G7', m: "'4-'3-'1-6- '1------- '3-'2-'1-5- 3------- '1-6-'1-'3- '5---'3--- '1---'2--- #7-------" } },
+    form: 'I=cbp I A A B A~_ I=cbd B A!' },
+  { id: 'above_weather', title: 'Above the Weather', feel: 'airy synth', out: 'dawn morning late|airport downtown', pl: 'plane', bpm: 92, tr: -1, style: 'synthpop', st: { b: 'R-------R-------', d: { k: 'x.......x.......', h: '..o...o...o...o.' } }, mt: '4/4', ins: { m: 'lead', m2: 'celesta', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .6 },
+    P: { A: { c: 'FM7 % CM7 % FM7 % G7sus %', m: "6---'3--- '2---'1--- 5---'2--- 7------- 6---'3--- '5---'3--- '2---'1--- '2-------" },
+      B: { c: 'Am7 % Em7 % FM7 % G %', m: "'1---'3--- '5------- 7---'2--- '5---'2--- 6---'1--- '3------- '2---7--- 5-------" } },
+    form: 'A=cp A B A~ B A?', end: 'CM9' },
+  { id: 'inbox_zero', title: 'Inbox Zero', feel: 'marimba ostinato', out: 'dawn morning|downtown arts', pl: 'work office', bpm: 100, tr: -2, style: 'box', st: { cl: 1, b: 'R---5---', bl: 36, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'celesta', m2: 'flute', c: 'marimba', b: 'upright' },
+    P: { A: { c: 'C69 % Dm7 % Em7 % Dm7 G7', m: "5---3--- ....5-6- 4---2--- ....4-6- 5---7--- ....'2-7- 6---4--- 5-------" },
+      B: { c: 'FM7 % Em7 % Dm7 % G7sus G7', m: "6---'1--- '3------- 5---7--- '2------- 4---6--- '1------- '1---'2--- 7-------" } },
+    form: 'A=cb A B A~ B A A?', end: 'C69' },
+  { id: 'steady_hands', title: 'Steady Hands', feel: 'soft lo-fi', out: 'dawn golden|downtown arts market', pl: 'work office room', bpm: 82, tr: -7, style: 'lofi', st: { d: { k: 'x.........x.....', r: '....o.......o...' } }, mt: '4/4', ins: { m: 'nylon', m2: 'vibes', c: 'ep', b: 'ebass' },
+    P: { A: { c: 'CM7 Em7 Am7 FM7 CM7 Em7 Dm7 G7sus', m: "..3-5-7- ..'2-7-5- ..'1-6-3- ..6-4--- ..3-5-7- ..'2-'3-7- ..6-4-2- 5-------" },
+      B: { c: 'Am7 % FM7 % Dm7 % G7sus G7', m: "'1---6--- ..3-6--- 6---4--- ..'1-6--- 4---6--- ..'1-'2--- '1------- 7-------" } },
+    form: 'A=cb A A~ B A B~ A?', end: 'CM9' },
+  { id: 'candle', title: 'Candle for Two', feel: 'tango-habanera', out: 'evening|market harbor park', pl: 'date', bpm: 108, tr: -3, min: 1, mo: 60, style: 'habanera', mt: '4/4', ins: { m: 'accordion', m2: 'clarinet', c: 'nylon', b: 'upright', p: 'strings' }, mix: { m: 1.5 },
+    P: { I: { c: 'Cm G7 Cm G7' },
+      A: { c: 'Cm % G7 % G7 % Cm %', m: "'5--'3'1-'3- '5------- '4--'2#7-'2- '4------- '6--'4'2-'4- '5---'4-'2- '3--'15-'1- '1-------" },
+      B: { c: 'Fm % Cm % Dm7b5 G7 Cm G7', m: "'4--'16-'1- '4---'6--- '3--'15-'1- '3---'5--- '2-'4-'6-'4- '2-#7-5--- '1-'3-'5-'3- '2-------" },
+      C: { c: 'C % G7 % G7 % C %', m: "'#3--'15-'1- '#3------- '2--#75-#7- '2------- '4--'2#7-'2- '5---'4--- '#3--'15-'#3- '1-------" } },
+    form: 'I A A~ B A C C~ B A!' },
+  { id: 'walk_home', title: 'Walk Me Home', feel: 'slow-dance swing', out: 'evening late|oldtown market suburb', pl: 'date hotel', bpm: 76, tr: 3, mo: 60, style: 'swing', st: { c: ['x-----..', '..x--...'], b: ['R---5---', 'R---3-a.'], d: { b: 'o.o.o.o.', g: '..o...o.' } }, mt: '4/4', ins: { m: 'clarinet', m2: 'ep', c: 'ep', b: 'upright' },
+    P: { A: { c: 'CM7 C7 FM7 Fm6 Em7 A7 Dm7,G7 C6', m: "'3---'5-'3- 'b7---'5--- '6---'3-'1- '4---'2-b6- '2---'5-'2- '#1---'3--- '2-'4-7-'2- '1-------" },
+      B: { c: 'Dm7 G7 CM7 Am7 D7 % Dm7 G7', m: "'4-'2-6-'2- '4---7--- '3-'1-5-'1- '3---6--- '2-#4-6-'1- '2------- '1-6-4-6- 5-7-'2---" } },
+    form: 'A A B A A~ B A?', end: 'C69' },
+  { id: 'nana_table', title: "Nana's Table", feel: 'family waltz', out: 'golden|suburb oldtown', pl: 'family home', bpm: 126, tr: -5, style: 'waltz', mt: '3/4', ins: { m: 'accordion', m2: 'clarinet', c: 'nylon', b: 'upright' }, mix: { m: 1.5 },
+    P: { I: { c: 'C F C G7' },
+      A: { c: 'C % F C G7 % C % C % F C Dm7 G7 C %', m: "5-'1 '3-- '4-'3 '1-- '2-7 5-- '3-'1 5-- 5-'1 '3-- '4-'6 '5-- '4-'2 7-'2 '1-- ---" },
+      B: { c: 'Am % Dm % G7 % C % Am % Dm % D7 % G7 %', m: "6-'1 '3-- '4-'2 6-- 7-'2 '4-- '3-'1 5-- '3-'1 6-- '2-'4 '6-- '#4-'2 6-- '2-7 5--" } },
+    form: 'I A B A~ B A!' },
+  { id: 'confetti', title: 'Confetti Parade', feel: 'street samba', pl: 'festival', bpm: 104, tr: -7, style: 'samba', mt: '4/4', ins: { m: 'brass', m2: 'steelpan', c: 'nylon', b: 'ebass' },
+    P: { I: { c: 'C Dm7 G7 C' },
+      A: { c: 'C % Dm7 G7 C A7 Dm7,G7 C', m: "5-'1-'3'1-5 '1-'3-'5--- 4-6-'26-4 7-'2-'4--- '3-'1-'3'1-5 '3-'#1-6--- 4-6-7-'2- '1-------" },
+      B: { c: 'F % C % D7 % G7 %', m: "6-'1-'4'1-6 '4-'1-6--- 5-'1-'3'1-5 '3-'1-5--- #4-6-'26-#4 '2-6-#4--- 5-7-'2-'4- '5-'4-'2-7-" } },
+    form: 'I=d I A A~ B A B~ A! A^2!' },
+  { id: 'ferris', title: 'Ferris Wheel', feel: 'fairground waltz', pl: 'festival', bpm: 168, tr: -3, style: 'waltz', mt: '3/4', ins: { m: 'whistle', m2: 'chip', c: 'organ', b: 'upright' },
+    P: { I: { c: 'C G7 C G7' },
+      A: { c: 'C % E7 % F % C % F % C A7 D7 G7 C %', m: "'1'3'5 '5-'3 '2'3'#5 '#5-'3 '4'6''1 ''1-'6 '5'3'1 '3-- '4'6''1 '6-'4 '5'3'1 '3-'#1 '2'#4'6 '4-'2 '1-- ---" },
+      B: { c: 'Am % E7 % Am % E7 % F % C % D7 % G7 %', m: "'3'16 '3-- '27#5 '2-- '3'16 '5-'3 '4'27 '3-- '4'16 '6-'4 '3'15 '5-'3 '2'#4'6 '6-'#4 '5'4'2 7--" } },
+    form: 'I A B A~ B A! A?' },
+];
+
+/* ---- src/sim/_music_songs.js ---- */
+// Private: the whole songbook of the background music (parts A-D) and a lookup by id. Format: _music_engine.js. Pools: _music_pools.js.
+const SONGS = [].concat(SONGS_A, SONGS_B, SONGS_C, SONGS_D);
+const SONG = {}; for (const s of SONGS) SONG[s.id] = s;
+
+/* ---- src/sim/_music_levels.js ---- */
+// GENERATED by tools/music_check.mjs --write: the trim (dB) that brings each tune to the same integrated loudness (-17 LUFS at the music bus, before the Music slider). Do not edit by hand.
+const LEVELS = {"gulls":0.5, "dew":4.9};
+
+/* ---- src/sim/_music_engine.js ---- */
+// Private: turns a song from the songbook (_music_songs_*.js) into timed notes and plays them on a Synth (_music_synth.js).
+// Used by src/sim/audio.js (the game), tools/music_check.mjs (offline renders) and docs/audio/jukebox.html. No game imports.
+//
+// A SONG (everything is written in C, major or minor, and moved to its key with `tr`):
+//   { id, title, feel, bpm, tr, min?, bar (beats per bar, default 4), mt ('4/4' for the table), mo (midi of degree 1 of the tune, default 72),
+//     style (key of STYLES: the accompaniment patterns), st? (overrides of that style), ins: { m lead, m2 second lead, h counter line, c chords, b bass, p pad },
+//     P: { A: { c: 'C6 Am7 Dm7,G7 %', m: "5-35 '1-76 ...", h?: counter line, b?: written bass line }, ... }, form: 'I A A& B A~ ...', end?: 'C69', mix?: { m, h, c, b, p, d } }
+// LINES (m, h, b): one word per bar; the bar is split evenly among its tokens (4 tokens in 4/4 = quarters, 8 = eighths, 12 = triplets, 16 = sixteenths).
+//   token: scale degree 1-7 with optional prefixes ' (octave up) , (octave down) # b;  - holds the note before (also over the bar line);  . rest.
+// CHORDS (c): one word per bar, commas split the bar evenly ("Dm7,G7"), % repeats the bar before. Names: C Cm C7 CM7 Cm7 C6 Cm6 C9 CM9 Cm9 Csus C7sus Cdim Co7 Cm7b5 C+ C7b9 C13 Cadd9 C69 C7#5 CmM7 ... with /E bass.
+// FORM: section names with marks: -mhcbdp drop layers, =cb only these layers, & add the counter line, ~ second lead, + / _ lead an octave up / down, ! louder, ? softer, ^2 key up 2 semitones.
+
+const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const Q = { '': [0, 4, 7], m: [0, 3, 7], 7: [0, 4, 7, 10], M7: [0, 4, 7, 11], m7: [0, 3, 7, 10], 6: [0, 4, 7, 9], m6: [0, 3, 7, 9], 9: [0, 4, 7, 10, 14], M9: [0, 4, 7, 11, 14], m9: [0, 3, 7, 10, 14],
+  sus: [0, 5, 7], sus2: [0, 2, 7], '7sus': [0, 5, 7, 10], '9sus': [0, 5, 7, 10, 14], dim: [0, 3, 6], o7: [0, 3, 6, 9], m7b5: [0, 3, 6, 10], '+': [0, 4, 8], '7b9': [0, 4, 7, 10, 13], 13: [0, 4, 10, 14, 21], add9: [0, 4, 7, 14], 69: [0, 4, 7, 9, 14],
+  '7#5': [0, 4, 8, 10], mM7: [0, 3, 7, 11], '7#9': [0, 4, 10, 15], m69: [0, 3, 7, 9, 14], madd9: [0, 3, 7, 14], 11: [0, 7, 10, 14, 17], 5: [0, 7] };
+const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const hash = s => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; };
+
+/* accompaniment patterns. n steps per bar; c chords: x X o stabs (normal / accent / ghost), s d strums, u upper voices, 1-6 single voices (arpeggio), - hold;
+   b bass: R root, 3 5 6 7 chord tones, O octave, a approach to the next root, w a passing chord tone, - hold; d drums by piece (see Synth.drum): x hit, o soft; f: drums of a section's last bar.
+   sw / s16: swing of the off-beat eighths / sixteenths (1 = triplet feel); cl: length of a stab in steps; cw / bl: lowest note of the chord voicing / of the bass. */
+const STYLES = {
+  bossa: { n: 16, c: ['x..x..x...x.x...', '..x..x..x...x...'], cl: 1.6, b: 'R-----5.5-----R.', d: { r: 'x..x..x...x..x..', m: 'o.o.o.o.o.o.o.o.', k: 'x.....o.x.....o.' } },
+  lofi: { n: 16, s16: .5, c: 'x------...x-----', b: 'R-----R...5.R---', d: { k: 'x.....x...x.....', s: '....x.......x...', h: 'o.o.o.o.o.o.o.o.' } },
+  citypop: { n: 16, c: ['x..x..x-...x.x..', 'x..x..x-..x..x..'], cl: 1.2, b: ['R..R..O.R..5.3.a', 'R..R..O.R.5.O.5a'], d: { k: 'x.....x.x.......', s: '....x.......x...', h: 'x.o.x.o.x.o.x.o.' }, f: { o: '............x.xx' } },
+  jwaltz: { bar: 3, n: 6, sw: .8, c: ['..x.x.', '..x..x'], cl: 1.2, b: ['R-..5.', 'R-.3.a'], d: { g: 'x.x.xo', b: '..o.o.', k: 'o.....' } },
+  waltz: { bar: 3, n: 6, c: '..x.x.', cl: 1.5, b: 'R---..', d: {} },
+  stride: { n: 8, sw: .6, c: '..u...u.', cl: 1.2, b: ['R-..5-..', 'R-..3-..'], bl: 33, d: { b: '..o...o.' } },
+  box: { n: 8, c: '1.2.3.2.', cl: 4, b: '', d: {} },
+  box3: { bar: 3, n: 6, c: '1.2.3.', cl: 4, b: '', d: {} },
+  surf: { n: 16, c: 's...s.s.s...s.s.', cl: 1.5, b: 'R.R.5.5.O.O.5.5.', d: { k: 'x.....x.x.......', s: '....x.x.....x...', h: 'x.o.x.o.x.o.x.o.' }, f: { o: '........x.x.x.xx' } },
+  march: { n: 16, c: '..x...x...x...x.', cl: 1.5, b: 'R...5...R...5...', d: { k: 'x.......x.......', r: 'x..xx.x.x..xx.x.', s: '....o.......o...' } },
+  folk: { n: 8, c: ['..3.2.34', '..3.2.43'], cl: 3, b: 'R-5-R-5-', bl: 40, d: {} },
+  bolero: { n: 16, c: '..2.3.4...2.3.4.', cl: 3, b: 'R-----5-R---5---', d: { m: 'o.o.o.o.o.o.o.o.', w: '..x...x...x.x...' } },
+  blues: { n: 12, c: ['x-.x-.x-.x-.', '..x..x..x..x'], cl: 1.5, b: ['R-.3-.5-.6-a', 'O-.7-.5-.3-a'], d: { g: 'x.xx.xx.xx.x', s: '...o.....o..', k: 'x.....o.....' } },
+  synthpop: { n: 16, c: '1.3.2.3.4.3.2.3.', cl: 1.6, b: 'R.R.R.R.R.R.R.R.', d: { k: 'x...x...x...x...', c: '....x.......x...', h: '..o...o...o...o.' }, f: { o: '..........x.x.xx' } },
+  ambient: { n: 8, c: '1...3.2.', cl: 8, b: 'R-------', d: {} },
+  shanty: { bar: 2, n: 6, c: ['x..x.x', 'x..x..'], cl: 1.4, b: 'R--5--', d: { k: 'x.....', r: '...x..', m: 'o.oo.o' } },
+  lull: { bar: 2, n: 6, c: '123123', cl: 3, b: 'R-----', d: {} },
+  polka: { bar: 2, n: 8, c: '..x...x.', cl: 1.3, b: ['R-..5-..', 'R-..3-..'], d: { k: 'x...x...', r: '..x...x.' }, f: { o: '....x.xx' } },
+  swing: { n: 8, sw: .9, c: ['..x..x..', 'x....x..', '...x..x.', '.x...x..'], cl: 1.3, b: ['R.w.5.a.', 'R.3.5.a.', 'O.7.5.a.', 'R.5.3.a.'], d: { g: 'x.xox.xo', h: '..o...o.', k: 'o.......' } },
+  rock: { n: 8, sw: .35, c: 'x.xxx.xx', cl: .9, b: ['R.3.5.6.', '7.6.5.3.'], d: { k: 'x...x...', s: '..x...x.', h: 'oooooooo' }, f: { o: '....x.xx' } },
+  ballad: { n: 8, c: '12343234', cl: 3, b: 'R-----5-', d: { k: 'x...x...', r: '..x...x.', m: 'oooooooo' } },
+  calypso: { n: 16, c: '..x...x...x...x.', cl: 1.4, b: 'R.....5.3...5...', d: { k: 'x.....x.x.....x.', r: '....x.......x...', m: 'o.oxo.oxo.oxo.ox', T: '..x..x....x..x..' } },
+  disco: { n: 16, c: '..x.x..x..x.x..x', cl: 1, b: 'R.O.R.O.R.O.R.O.', d: { k: 'x...x...x...x...', c: '....x.......x...', h: '..x...x...x...x.' }, f: { o: '..........x.x.xx' } },
+  five: { bar: 5, n: 10, sw: .7, c: 'x..x..x.x.', cl: 1.4, b: 'R--5--R-5-', d: { g: 'x.xx.xx.x.', k: 'o.....o...', b: '...o....o.' } },
+  samba: { n: 16, c: 'x..x.x..x.x..x.x', cl: 1, b: 'R..5..R.R..5..R.', d: { k: 'x.......x.......', t: '....x..x....x..x', m: 'xoxoxoxoxoxoxoxo', w: 'x.x..x.x..x.x.x.' } },
+  doowop: { n: 12, c: 'xooxooxooxoo', cl: .9, b: 'R-----5----a', d: { k: 'x.....x.....', s: '...x.....x..', h: 'o.oo.oo.oo.o' } },
+  shuffle: { n: 8, sw: .7, c: '..x...x.', cl: 1.2, b: 'R-..5-..', d: { b: 'xoxoxoxo', k: 'x...x...' } },
+  habanera: { n: 8, c: '..x.x.x.', cl: .9, b: 'R--5R-5-', d: { r: 'x..xx.x.' } },
+  motorik: { n: 16, c: '1.2.3.2.4.2.3.2.', cl: 1.5, b: 'R.R.R.R.R.R.R.R.', d: { k: 'x...x...x...x...', s: '....o.......o...', h: 'o.o.o.o.o.o.o.o.' } },
+  hymn: { n: 8, c: 'x---x---', b: 'R-------', d: {} },
+  solo: { n: 8, c: '1.3.2.3.', cl: 3, b: 'R-------', bl: 40, d: {} },
+};
+const LG = { m: 1, h: .62, c: .55, b: .8, p: .5, d: .75 };
+
+function chord(name) {
+  const m = /^([A-G])([#b]?)([^/]*)(?:\/([A-G])([#b]?))?$/.exec(name), iv = m && Q[m[3]]; if (!iv) throw new Error('chord? ' + name);
+  const acc = s => s === '#' ? 1 : s === 'b' ? -1 : 0, root = (PC[m[1]] + acc(m[2]) + 12) % 12;
+  return { name, root, iv, bass: m[4] ? (PC[m[4]] + acc(m[5]) + 12) % 12 : root, minor: iv[1] === 3 };
+}
+/** 'C6 Am7,D7 %' -> per bar [{ ch, at, len }] (beats) */
+function chords(str, bar) {
+  const out = []; for (const w of str.trim().split(/\s+/)) { if (w === '%') { if (!out.length) throw new Error('% first'); out.push(out[out.length - 1]); continue; } const p = w.split(','); out.push(p.map((n, i) => ({ ch: chord(n), at: i * bar / p.length, len: bar / p.length }))); }
+  return out;
+}
+/** a written line -> { notes: [[beat, midi, len]], bars, grids } */
+function line(str, base, sc, bar) {
+  const notes = []; let last = null, b0 = 0; const grids = new Set();
+  for (const w of str.trim().split(/\s+/)) {
+    const tk = w.match(/[',#b]*[1-7]|-|\./g); if (!tk || tk.join('') !== w) throw new Error('line? "' + w + '"'); const n = tk.length, st = bar / n; grids.add(n);
+    tk.forEach((x, i) => {
+      if (x === '-') { if (last) last[2] += st; return; } if (x === '.') { last = null; return; }
+      let o = 0, a = 0; for (const c of x.slice(0, -1)) { if (c === "'") o++; else if (c === ',') o--; else if (c === '#') a++; else a--; }
+      notes.push(last = [b0 + i * st, base + sc[+x.slice(-1) - 1] + 12 * o + a, st]);
+    });
+    b0 += bar;
+  }
+  return { notes, bars: b0 / bar, grids };
+}
+const inWin = (pc, lo) => lo + (((pc - lo) % 12) + 12) % 12;
+function voicing(ch, tr, lo, rootless) {
+  let iv = ch.iv.slice(); if ((rootless && iv.length >= 4) || iv.length >= 5) iv = iv.filter(x => x !== 0); if (iv.length > 4) iv = iv.filter(x => x !== 7);
+  return [...new Set(iv.map(x => inWin(ch.root + x + tr, lo)))].sort((a, b) => a - b);
+}
+const pat = (p, i) => Array.isArray(p) ? p[i % p.length] : p;
+
+/** song -> { ev: [[t, kind, a, b, c, d]], dur, bars, secs, info }; kind 0 note [t, 0, inst, midi, len, vel], kind 1 drum [t, 1, piece, vel]. Cached on the song. */
+function compile(S) {
+  if (S._c) return S._c;
+  const st = Object.assign({}, STYLES[S.style] || STYLES.ballad, S.st || {}), bar = S.bar || st.bar || 4, spb = 60 / S.bpm, sc = S.min ? MIN : MAJ, mo = S.mo || 72, n = st.n, sw = st.sw || 0, s16 = st.s16 || 0;
+  const ins = S.ins || {}, mix = Object.assign({}, LG, S.mix || {}), rnd = mulberry(hash(S.id)), ev = [], secs = [], warn = [], stepB = bar / n;
+  for (const k of ['c', 'b']) for (const p of [].concat(st[k] || [])) if (p && p.length !== n) throw new Error(S.id + ': style ' + k + ' pattern length ' + p.length + ' != ' + n);
+  for (const k in st.d || {}) if (st.d[k].length !== n) throw new Error(S.id + ': drum ' + k + ' length'); for (const k in st.f || {}) if (st.f[k].length !== n) throw new Error(S.id + ': fill ' + k + ' length');
+  const swing = b => { const f = b - Math.floor(b + 1e-6); if (sw && Math.abs(f - .5) < .02) return b + sw / 6; if (s16 && (Math.abs(f - .25) < .02 || Math.abs(f - .75) < .02)) return b + s16 / 12; return b; };
+  const hum = () => (rnd() - .5) * .012, vel = () => .92 + rnd() * .16;
+  const put = (b, inst, m, len, v, tight) => ev.push([Math.max(0, swing(b) * spb + (tight ? 0 : hum())), 0, inst, m, Math.max(.04, len * spb), v * vel()]);
+  const parts = {}, part = name => { if (parts[name]) return parts[name]; const P = S.P[name]; if (!P) throw new Error(S.id + ': no part ' + name); const o = { ch: chords(P.c, bar) }; o.bars = o.ch.length;
+    for (const k of ['m', 'h', 'b']) if (P[k]) { o[k] = line(P[k], 0, sc, bar); if (o[k].bars !== o.bars) throw new Error(S.id + ' part ' + name + ': line ' + k + ' has ' + o[k].bars + ' bars, chords ' + o.bars); }
+    return parts[name] = o; };
+  const form = S.form.trim().split(/\s+/).map(tok => { const m = /^([A-Za-z][A-Za-z0-9]*)(.*)$/.exec(tok); if (!m) throw new Error(S.id + ': form ' + tok); let mods = m[2], L = null, tr = 0;
+    mods = mods.replace(/([=-])([mhcbdp]+)/, (x, s, l) => { L = [s, l]; return ''; }).replace(/\^(-?\d+)/, (x, v) => { tr = +v; return ''; }); if (/[^&~+_!?]/.test(mods)) throw new Error(S.id + ': form mark ' + tok);
+    return { name: m[1], L, tr, h: mods.includes('&'), alt: mods.includes('~'), oct: mods.includes('+') ? 12 : mods.includes('_') ? -12 : 0, dyn: mods.includes('!') ? 1.18 : mods.includes('?') ? .78 : 1 }; });
+  let b0 = 0; const cw = st.cw || 55, bl = st.bl || 36, allCh = new Set(), mel = [];
+  form.forEach((F, fi) => {
+    const P = part(F.name), tr = (S.tr || 0) + F.tr, on = k => F.L ? (F.L[0] === '=' ? F.L[1].includes(k) : !F.L[1].includes(k)) : true, dy = F.dyn, lastSec = fi === form.length - 1;
+    const nextRoot = (i, s) => { const segs = P.ch[i]; if (s + 1 < segs.length) return segs[s + 1].ch.bass; const nb = P.ch[i + 1] || (form[fi + 1] ? part(form[fi + 1].name).ch[0] : P.ch[0]); return nb[0].ch.bass; };
+    secs.push({ name: F.name, at: b0 * spb, bars: P.bars });
+    for (let i = 0; i < P.bars; i++) {
+      const segs = P.ch[i], bb = b0 + i * bar, segAt = k => { let s = 0; for (let j = 0; j < segs.length; j++) if (k * stepB >= segs[j].at - 1e-6) s = j; return s; }, fill = i === P.bars - 1 && P.bars >= 4 && !lastSec;
+      segs.forEach(sg => allCh.add(sg.ch.name));
+      /* pad */
+      if (ins.p && on('p')) segs.forEach(sg => { for (const m of voicing(sg.ch, tr, cw, true)) put(bb + sg.at, ins.p, m, sg.len * 1.02, .5 * mix.p * dy, true); });
+      /* chords */
+      const cp = pat(st.c, i);
+      if (ins.c && cp && on('c')) {
+        const starts = new Set(); for (let k = 0; k < n; k++) if (cp[k] !== '.' && cp[k] !== '-') starts.add(segAt(k));
+        const play = (k, tk, sgi, len) => { const sg = segs[sgi], v = voicing(sg.ch, tr, cw, st.rl !== false && !!ins.b), b = bb + k * stepB, g = mix.c * dy;
+          if (/[1-6]/.test(tk)) { const j = +tk - 1; put(b, ins.c, v[j % v.length] + 12 * Math.floor(j / v.length), len, .85 * g); return; }
+          const vs = tk === 'u' ? v.slice(-3) : v, a = tk === 'X' ? 1.15 : tk === 'o' ? .55 : .9, str = tk === 's' || tk === 'd' ? .016 / spb : 0;
+          (tk === 'd' ? vs.slice().reverse() : vs).forEach((m, j) => put(b + j * str, ins.c, m, len, a * g / Math.sqrt(vs.length / 3), !str)); };
+        for (let k = 0; k < n; k++) { const tk = cp[k]; if (tk === '.' || tk === '-') continue; let l = 1; while (cp[k + l] === '-') l++; play(k, tk, segAt(k), l > 1 ? l * stepB * .97 : (st.cl || 1) * stepB * .9); }
+        segs.forEach((sg, j) => { if (!starts.has(j)) play(Math.round(sg.at / stepB), /[1-6]/.test(cp.replace(/[.-]/g, '')[0] || 'x') ? '1' : 'x', j, Math.min(sg.len, (st.cl || 1) * stepB) * .9); });
+      }
+      /* bass */
+      if (ins.b && on('b') && !P.b) {
+        let bp = pat(st.b, i); if (bp) {
+          const a = bp.split(''); segs.forEach(sg => { const k = Math.round(sg.at / stepB); if (k > 0 && k < n) a[k] = 'R'; });
+          for (let k = 0; k < n; k++) { const tk = a[k]; if (tk === '.' || tk === '-') continue; let l = 1; while (a[k + l] === '-') l++; const sgi = segAt(k), ch = segs[sgi].ch, r = inWin(ch.bass + tr, bl), third = ch.iv[1] <= 5 ? ch.iv[1] : 4, sev = ch.iv[3] && ch.iv[3] < 12 ? ch.iv[3] : 10;
+            let m = r; if (tk === '5') m = r + (ch.iv.includes(6) ? 6 : ch.iv.includes(8) ? 8 : 7); else if (tk === '3') m = r + third; else if (tk === 'O') m = r + 12; else if (tk === '7') m = r + sev; else if (tk === '6') m = r + (ch.minor ? 10 : 9);
+            else if (tk === 'w') m = r + [third, 7, third, sev - 12][(rnd() * 4) | 0]; else if (tk === 'a') { let nr = inWin(nextRoot(i, sgi) + tr, bl); if (nr - r > 6) nr -= 12; m = nr + (rnd() < .7 ? -1 : 1); if (m < bl - 5) m += 12; }
+            if (ch.bass !== ch.root && tk !== 'R' && tk !== 'O') m = r; while (m > bl + 19) m -= 12;
+            put(bb + k * stepB, ins.b, m, l * stepB * (l > 1 ? .95 : .85), (k === 0 ? 1 : .88) * mix.b * dy); }
+        }
+      }
+      /* drums */
+      if (on('d') && st.d) { const D = fill && st.f ? Object.assign({}, st.d, st.f) : st.d; for (const pc in D) { const p = D[pc]; for (let k = 0; k < n; k++) if (p[k] === 'x' || p[k] === 'o') ev.push([swing(bb + k * stepB) * spb, 1, pc, (p[k] === 'x' ? 1 : .5) * mix.d * dy * (.9 + rnd() * .2)]); } }
+    }
+    /* written lines */
+    const lines = [['m', F.alt && ins.m2 ? ins.m2 : ins.m, mo + F.oct, mix.m, on('m')], ['h', ins.h || ins.m2 || 'strings', (S.ho || mo - 12), mix.h, F.h && on('h')], ['b', ins.b, S.bo || 36, mix.b, on('b')]];
+    for (const [k, inst, base, g, ok] of lines) if (P[k] && ok && inst) for (const [b, m, len] of P[k].notes) { const pm = m + base + tr, f = b - Math.floor(b + 1e-6); put(b0 + b, inst, pm, len * (k === 'b' ? .9 : .95), (f < .02 ? 1 : .9) * g * dy); if (k === 'm') mel.push([b0 + b, pm, len]); }
+    b0 += P.bars * bar;
+  });
+  /* the last chord */
+  const E = chord(S.end || (S.min ? 'Cm' : 'C')), tr = (S.tr || 0) + form[form.length - 1].tr, hold = Math.max(bar, 2.6 / spb);
+  if (ins.c) voicing(E, tr, cw, false).forEach((m, j) => put(b0 + j * .03 / spb, ins.c, m, hold, .8 * mix.c)); if (ins.b) put(b0, ins.b, inWin(E.bass + tr, bl), hold, .9 * mix.b); if (ins.p) for (const m of voicing(E, tr, cw, true)) put(b0, ins.p, m, hold, .5 * mix.p, true);
+  if (ins.m) put(b0, ins.m, inWin(E.root + tr, mo - 5), hold * .8, .7 * mix.m);
+  ev.sort((a, b) => a[0] - b[0]);
+  const ps = mel.map(x => x[1]), names = [...new Set(form.map(f => f.name))];
+  for (const k in parts) for (const l of ['m', 'h']) if (parts[k][l]) for (const g of parts[k][l].grids) if (!((bar * 12) % g === 0 || g % bar === 0)) warn.push('part ' + k + ' ' + l + ': bar of ' + g + ' tokens in a ' + bar + '-beat bar');
+  if (ps.length && (Math.max(...ps) > 93 || Math.min(...ps) < 50)) warn.push('lead range ' + Math.min(...ps) + '..' + Math.max(...ps));
+  const info = { bars: b0 / bar, sections: form.length, parts: names.length, chords: allCh.size, pitches: new Set(ps).size, lo: ps.length ? Math.min(...ps) : 0, hi: ps.length ? Math.max(...ps) : 0, notes: ev.length, mel: mel.slice(0, 400), warn,
+    kit: Object.keys(st.d || {}).join(''), ins: [...new Set([ins.m, ins.m2, ins.h, ins.c, ins.b, ins.p].filter(Boolean))] };
+  return S._c = { ev, dur: (b0 + hold) * spb + 1.6, body: b0 * spb, barS: bar * spb, secs, info };
+}
+
+/** One playing tune. schedule(until) is called often (the game: every frame) and creates the notes that start before `until` (context time). */
+class Player {
+  constructor(ctx, song, dest, send, opts = {}) {
+    this.ctx = ctx; this.song = song; this.id = song.id; this.c = compile(song); this.out = ctx.createGain(); this.out.gain.value = Math.pow(10, ((opts.db || 0)) / 20); this.out.connect(dest);
+    this.syn = new Synth(ctx, this.out, send); this.t0 = (opts.at !== undefined ? opts.at : ctx.currentTime + .15); this.i = 0; this.done = false; this.cut = Infinity; this.next = this.t0 + this.c.dur; this.started = this.t0;
+  }
+  schedule(until) {
+    const ev = this.c.ev, t0 = this.t0, s = this.syn; let n = 0;
+    while (this.i < ev.length) { const e = ev[this.i], t = t0 + e[0]; if (t >= until) break; this.i++; if (t >= this.cut) continue; if (e[1] === 0) s.note(e[2], t, e[3], e[4], e[5]); else s.drum(e[2], t, e[3]); n++; }
+    if (this.i >= ev.length || until >= this.cut) this.done = true; return n;
+  }
+  /** seconds played so far, and where that is */
+  pos() { const t = this.ctx.currentTime - this.t0, S = this.c.secs; let sec = null; for (const s of S) if (t >= s.at) sec = s; return { t: Math.max(0, t), dur: this.c.dur, section: sec ? sec.name : null, bar: Math.max(0, Math.floor(t / this.c.barS)) + 1 }; }
+  /** end musically: play to the end of the bar, then fade over `fade` seconds. Returns the time everything is silent. */
+  wind(fade = 1.6) { const now = this.ctx.currentTime, el = now - this.t0, bs = this.c.barS; let tb = this.t0 + Math.ceil((el + .05) / bs) * bs; if (tb - now > 2.5 || el < 0) tb = now + .1; return this.stop(fade, tb); }
+  stop(fade = 1.5, at) { const ctx = this.ctx, g = this.out.gain, t = Math.max(ctx.currentTime, at || 0); if (this.cut !== Infinity) return this.next; this.cut = t + fade; this.next = t + fade;
+    try { g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(.0001, t + fade); } catch (e) { /* closed context */ }
+    const out = this.out; if (typeof setTimeout !== 'undefined') setTimeout(() => { try { out.disconnect(); } catch (e) { /* gone */ } }, (t - ctx.currentTime + fade + 4) * 1000); return this.next; }
+}
+/** render a whole tune offline -> Promise<AudioBuffer> (stereo). OAC: the OfflineAudioContext constructor */
+function renderSong(song, sr = 48000, db = 0, OAC = (typeof OfflineAudioContext !== 'undefined' ? OfflineAudioContext : webkitOfflineAudioContext)) {
+  const c = compile(song), ctx = new OAC(2, Math.ceil((c.dur + .5) * sr), sr), p = new Player(ctx, song, ctx.destination, echo(ctx, ctx.destination), { db, at: .05 }); p.schedule(Infinity); return ctx.startRendering();
+}
+
+/* ---- src/sim/_music_pools.js ---- */
+// Private: which tunes may play where (the POOLS of the background music) and the shuffle bag that picks from them. No game imports.
+// A tune names its pools itself: pl: 'cafe date' (named pools), out: 'morning midday|oldtown market' (outdoors: times of day | district flavours, * = all),
+// sea: 0-3 (an outdoor tune of that season only). Pool keys: a named pool ('cafe'), or 'out:<time>:<district>:<season>'.
+
+const TIMES = ['dawn', 'morning', 'midday', 'afternoon', 'golden', 'evening', 'late'];
+const DISTRICTS = ['downtown', 'oldtown', 'harbor', 'park', 'suburb', 'arts', 'market', 'airport'];
+const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
+/** hour of the day (0-24, fractional) -> time-of-day pool */
+const timeOf = h => h < 4.5 ? 'late' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17 ? 'afternoon' : h < 19.5 ? 'golden' : h < 23 ? 'evening' : 'late';
+/** what each named pool is for (the jukebox page and the dev chooser show this) */
+const POOL_INFO = {
+  title: 'Title screen', rain: 'Outdoors in the rain', storm: 'Outdoors in a storm', snow: 'Outdoors in the snow', fog: 'Outdoors in fog', heat: 'Outdoors on a hot afternoon',
+  cafe: 'Cafes and bakeries', diner: 'Diners and quick food', bar: 'Bars and clubs', shop: 'Shops and the mall', gym: 'Gym, pool and arena', library: 'Library, bookshop and classrooms',
+  hotel: 'Hotel, fine dining and foyers', museum: 'Museum, aquarium, observatory, conservatory', home: 'At home', home_am: 'At home, morning routine', home_late: 'At home, late at night', home_rain: 'At home while it rains',
+  office: 'Offices, bank, City Hall, clinic', cab: 'Cab radio', bus: 'On the bus', train: 'On the train and the air tram', plane: 'On the plane', work: 'During a work shift',
+  date: 'Date night', family: 'With the family', festival: 'Festival days', room: 'Lobbies and other rooms',
+};
+const named = {}, outs = [];
+for (const s of SONGS) {
+  for (const p of (s.pl || '').split(/\s+/).filter(Boolean)) (named[p] = named[p] || []).push(s.id);
+  if (s.out) { const [t, d] = s.out.split('|'); outs.push({ id: s.id, t: t === '*' ? TIMES : t.split(/\s+/), d: d === '*' ? DISTRICTS : d.split(/\s+/), sea: s.sea }); }
+}
+/** when a pool has fewer than two tunes, borrow from the next one in this chain */
+const BORROW = { storm: 'rain', home_am: 'home', home_late: 'home', home_rain: 'home', office: 'work', work: 'room', bus: 'cab', plane: 'train', family: 'home', date: 'hotel', festival: 'out:midday:market:1', museum: 'library', library: 'museum', hotel: 'cafe', room: 'home', heat: 'out:afternoon:park:1', fog: 'out:dawn:harbor:0', snow: 'out:dawn:suburb:3' };
+const cache = {};
+/** pool key -> ids (never empty while the songbook has outdoor tunes) */
+function pool(key) {
+  if (cache[key]) return cache[key]; let ids;
+  if (key.startsWith('out:')) { const [, t, d, se] = key.split(':'), sea = +se || 0, ok = o => o.sea === undefined || o.sea === sea;
+    ids = outs.filter(o => ok(o) && o.t.includes(t) && o.d.includes(d)).map(o => o.id);
+    if (ids.length < 3) ids = [...new Set(ids.concat(outs.filter(o => ok(o) && o.t.includes(t)).map(o => o.id)))];
+    if (ids.length < 3) ids = [...new Set(ids.concat(outs.filter(ok).map(o => o.id)))]; }
+  else { ids = (named[key] || []).slice(); let k = key, n = 0; while (ids.length < 2 && BORROW[k] && n++ < 4) { k = BORROW[k]; ids = [...new Set(ids.concat(pool(k)))]; } if (!ids.length) ids = pool('out:midday:downtown:0'); }
+  return cache[key] = ids;
+}
+const namedPools = () => Object.keys(POOL_INFO);
+/** every place a tune plays, as text */
+function whereOf(id) { const s = SONG[id], o = []; if (!s) return ''; for (const p of (s.pl || '').split(/\s+/).filter(Boolean)) o.push(POOL_INFO[p] || p);
+  if (s.out) { const [t, d] = s.out.split('|'); o.push('Outdoors' + (s.sea !== undefined ? ' in ' + SEASONS[s.sea] : '') + ': ' + (t === '*' ? 'any time' : t.replace(/golden/, 'golden hour').replace(/late/, 'late night').split(/\s+/).join(', ')) + (d === '*' ? '' : ' (' + d.replace(/oldtown/, 'old town').replace(/arts/, 'arts quarter').split(/\s+/).join(', ') + ')')); }
+  return o.join('; '); }
+
+/** The shuffle bag. st (saved): { bags: { key: [ids not played yet in this round] }, last, recent: [ids], n }.
+ *  draw(st, key): never the tune played last, no tune of a pool again before the others of that pool have played, and it avoids the few most recent tunes of other pools. */
+function draw(st, key, rnd = Math.random) {
+  const ids = pool(key); st.bags = st.bags || {}; st.recent = st.recent || [];
+  let bag = (st.bags[key] || []).filter(id => ids.includes(id));
+  if (!bag.length) { bag = ids.filter(id => id !== st.last); if (!bag.length) bag = ids.slice(); }
+  let c = bag.filter(id => id !== st.last); if (!c.length) c = bag; const fresh = c.filter(id => !st.recent.includes(id)); if (fresh.length) c = fresh;
+  const id = c[(rnd() * c.length) | 0]; st.bags[key] = bag.filter(x => x !== id); const keys = Object.keys(st.bags); if (keys.length > 40) delete st.bags[keys[0]];
+  return id;
+}
+/** record that a tune really played */
+function played(st, id) { st.last = id; st.recent = (st.recent || []).filter(x => x !== id); st.recent.push(id); while (st.recent.length > 5) st.recent.shift(); st.n = (st.n || 0) + 1; }
+/** put a tune back (it was cut off almost at once) */
+function putBack(st, key, id) { st.bags = st.bags || {}; const b = st.bags[key] || (st.bags[key] = []); if (!b.includes(id)) b.push(id); }
+
+/* ---- the page ---- */
+var KEYS=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'],keyOf=function(S){return KEYS[(((S.tr||0)%12)+12)%12]+(S.min?' minor':'')},mmss=function(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
+var GROUPS=[['title','Title screen'],['out:dawn','Outdoors: dawn'],['out:morning','Outdoors: morning'],['out:midday','Outdoors: midday'],['out:afternoon','Outdoors: afternoon'],['out:golden','Outdoors: golden hour'],['out:evening','Outdoors: evening'],['out:late','Outdoors: late night'],['weather','Weather'],['season','Seasons'],
+ ['cafe','Cafes'],['diner','Diners'],['bar','Bars'],['shop','Shops'],['gym','Gym'],['library','Library and museum'],['hotel','Hotel'],['home','At home'],['ride','Rides: cab, bus, train, plane'],['work','Work shifts'],['special','Date night, family, festival days']];
+var OUTN=SONGS_A.length+SONGS_B.length,MAP={rain:'weather',storm:'weather',snow:'weather',fog:'weather',heat:'weather',museum:'library',home_am:'home',home_late:'home',home_rain:'home',room:'home',cab:'ride',bus:'ride',train:'ride',plane:'ride',office:'work',date:'special',family:'special',festival:'special'};
+function groupOf(S,i){var pl=(S.pl||'').split(/\s+/).filter(Boolean);if(pl.indexOf('title')>=0)return'title';if(S.sea!==undefined)return'season';if(S.out&&i<OUTN&&!/^(rain|storm|snow|fog)$/.test(pl[0]||'')){var t=S.out.split('|')[0];return'out:'+(t==='*'?'midday':t.split(' ')[0])}var p=pl[0]||'home';return MAP[p]||p}
+var ctx=null,bus=null,send=null,player=null,cur=null,timer=null,queue=null,rows={};
+function unlock(){if(!ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return false;ctx=new C();var comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.ratio.value=4;comp.connect(ctx.destination);bus=ctx.createGain();bus.connect(comp);setVol();send=echo(ctx,bus)}if(ctx.state==='suspended')ctx.resume();return true}
+function setVol(){if(bus)bus.gain.value=Math.pow(document.getElementById('vol').value/100,1.6)*.9}
+function stop(keepQueue){if(player){player.stop(.25);player=null}if(cur&&rows[cur])mark(cur,false);cur=null;if(!keepQueue)queue=null;show()}
+function mark(id,on){var r=rows[id];r.el.classList.toggle('on',on);r.btn.textContent=on?'Stop':'Play';r.btn.className=on?'stop':''}
+function play(id){if(!unlock()){document.getElementById('sub').textContent='This browser has no Web Audio.';return}stop(true);var S=SONG[id];player=new Player(ctx,S,bus,send,{db:LEVELS[id]||0});cur=id;mark(id,true);tick();if(!timer)timer=setInterval(tick,90);show()}
+function tick(){if(!player)return;player.schedule(ctx.currentTime+.6);if(player.done&&ctx.currentTime>player.next+.3){var was=cur;stop(true);if(queue){var i=queue.indexOf(was);if(i>=0&&i+1<queue.length)play(queue[i+1]);else queue=null}}show()}
+function show(){var n=document.getElementById('now'),s=document.getElementById('sub'),p=document.querySelector('#prog i');if(!player||!cur){n.textContent='Nothing playing';s.textContent='Pick a tune above.';p.style.width='0';return}var S=SONG[cur],q=player.pos();n.textContent=S.title;s.textContent=mmss(q.t)+' / '+mmss(q.dur)+'  ·  '+S.feel+(q.section?'  ·  part '+q.section:'');p.style.width=Math.min(100,100*q.t/q.dur)+'%'}
+var list=document.getElementById('list'),by={},order=[];SONGS.forEach(function(S,i){var g=groupOf(S,i);(by[g]=by[g]||[]).push(S)});
+GROUPS.forEach(function(G){var L=by[G[0]];if(!L)return;var h=document.createElement('h2');h.textContent=G[1]+' ('+L.length+')';list.appendChild(h);L.forEach(function(S){var c=compile(S),d=document.createElement('div');d.className='tune';
+ var a=document.createElement('div'),b=document.createElement('b');b.textContent=S.title;var m=document.createElement('div');m.className='meta';m.textContent=S.feel+'  ·  '+keyOf(S)+'  ·  '+S.bpm+' bpm  ·  '+(S.mt||'4/4')+'  ·  '+mmss(c.dur);a.appendChild(b);a.appendChild(m);
+ var bt=document.createElement('button');bt.textContent='Play';bt.setAttribute('aria-label','Play '+S.title);bt.onclick=function(){if(cur===S.id)stop();else{queue=null;play(S.id)}};
+ var w=document.createElement('div');w.className='where';w.textContent='Plays: '+whereOf(S.id)+'.  Instruments: '+c.info.ins.map(function(i){return INST[i]?INST[i].name:i}).join(', ')+(c.info.kit?', light drums':'')+'.';
+ d.appendChild(a);d.appendChild(bt);d.appendChild(w);list.appendChild(d);rows[S.id]={el:d,btn:bt};order.push(S.id)})});
+document.getElementById('count').textContent=SONGS.length;document.getElementById('stop').onclick=function(){stop()};document.getElementById('vol').oninput=setVol;
+document.getElementById('all').onclick=function(){queue=order.slice();play(cur&&order.indexOf(cur)+1<order.length?order[order.indexOf(cur)+1]:order[0])};
+document.addEventListener('visibilitychange',function(){if(ctx&&!document.hidden&&ctx.state==='suspended')ctx.resume()});
+window.__jukebox={SONGS:SONGS,play:play,stop:stop,state:function(){return{cur:cur,ctx:ctx?ctx.state:'none',pos:player?player.pos():null}}};
+})();
+</script></body></html>

@@ -9,6 +9,21 @@
 </head>
 <body>
 <div id="wrap"><canvas id="cv"></canvas><div id="ui"></div><div id="fade"></div><div id="load">Building Maple Bay...</div></div>
+<script>
+/* Runs before the game script, in plain old JavaScript on purpose (owner msg 149). (1) If the game script cannot start on this browser, say so on the
+   loading screen instead of sitting on "Building Maple Bay..." for ever. (2) Small fills for things iOS 15.0-15.3 lacks. */
+(function () {
+  function show(msg) { var l = document.getElementById('load'); if (!l) return; l.style.whiteSpace = 'normal'; l.style.padding = '0 24px'; l.style.textAlign = 'center'; l.textContent = 'Maple Bay could not start on this browser. ' + msg; }
+  window.addEventListener('error', function (e) { if (document.getElementById('load')) show(String((e && (e.message || (e.error && e.error.message))) || 'Unknown error') + (e && e.lineno ? ' (line ' + e.lineno + ')' : '')); });
+  window.addEventListener('unhandledrejection', function (e) { if (document.getElementById('load')) show(String((e && e.reason && (e.reason.message || e.reason)) || 'Unknown error')); });
+  setTimeout(function () { var l = document.getElementById('load'); if (l && /^Building Maple Bay/.test(l.textContent)) l.textContent = 'Still building Maple Bay... this is taking longer than it should.'; }, 25000);
+  function at(n) { n = Math.trunc(n) || 0; if (n < 0) n += this.length; return n < 0 || n >= this.length ? undefined : this[n]; }
+  if (!Array.prototype.at) Object.defineProperty(Array.prototype, 'at', { value: at, writable: true, configurable: true });
+  if (!String.prototype.at) Object.defineProperty(String.prototype, 'at', { value: function (n) { n = Math.trunc(n) || 0; if (n < 0) n += this.length; return n < 0 || n >= this.length ? undefined : this.charAt(n); }, writable: true, configurable: true });
+  if (!Object.hasOwn) Object.hasOwn = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+  if (typeof globalThis.structuredClone !== 'function') globalThis.structuredClone = function (v) { return JSON.parse(JSON.stringify(v)); };
+})();
+</script>
 <script type="module" src="src/main.js"></script>
 </body>
 </html>

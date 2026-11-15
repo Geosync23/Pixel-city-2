@@ -175,7 +175,10 @@ export class Player {
     try { g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(.0001, t + fade); } catch (e) { /* closed context */ }
     const out = this.out; if (typeof setTimeout !== 'undefined') setTimeout(() => { try { out.disconnect(); } catch (e) { /* gone */ } }, (t - ctx.currentTime + fade + 4) * 1000); return this.next; }
 }
-/** render a whole tune offline -> Promise<AudioBuffer> (stereo). OAC: the OfflineAudioContext constructor */
+/** render a whole tune offline -> Promise<AudioBuffer> (stereo). OAC: the OfflineAudioContext constructor.
+ *  The notes are created two seconds at a time (the context is paused at each step), as in the game: creating them all at once makes the render many times slower. */
 export function renderSong(song, sr = 48000, db = 0, OAC = (typeof OfflineAudioContext !== 'undefined' ? OfflineAudioContext : webkitOfflineAudioContext)) {
-  const c = compile(song), ctx = new OAC(2, Math.ceil((c.dur + .5) * sr), sr), p = new Player(ctx, song, ctx.destination, echo(ctx, ctx.destination), { db, at: .05 }); p.schedule(Infinity); return ctx.startRendering();
+  const c = compile(song), ctx = new OAC(2, Math.ceil((c.dur + .5) * sr), sr), p = new Player(ctx, song, ctx.destination, echo(ctx, ctx.destination), { db, at: .05 }), step = 2;
+  if (!ctx.suspend) p.schedule(Infinity); else { p.schedule(step + .6); for (let t = step; t < c.dur + .5; t += step) ctx.suspend(t).then(() => { p.schedule(t + step + .6); ctx.resume(); }); }
+  return ctx.startRendering();
 }

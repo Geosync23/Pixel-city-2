@@ -126,3 +126,4 @@
 106. (msg 146) The traffic BASELINE measurement must be done by a FABLE agent, not the Opus QA lane (upgrade temporarily or hand it off). Lead: removed it from QA round 14; the Fable traffic worker measures its own baseline (QA14 hands over only raw notes if it already has any).
 107. (msg 147) Keep the Fable docket order: controller support first, then traffic.
 108. (msg 148) Asked whether the game could run on an iPhone 13 mini. Lead answered: probably yes on speed; untested on Safari; risks = memory for cached sprites, 375-wide layout, first-run audio decode.
+109. (msg 149) iPhone 13 mini (Safari): the game opens but stays on the "Building Maple Bay" loading screen (stuck or extremely slow). He has never seen that screen linger on his own phone.

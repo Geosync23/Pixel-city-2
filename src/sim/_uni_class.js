@@ -18,7 +18,8 @@ import { CAST, LECTURES, READING, PRACTICAL, FINAL, LINES } from '../story/unive
 
 const pick = a => a[Math.floor(Math.random() * a.length)], safe = fn => { try { return fn(); } catch (e) { return undefined; } };
 export const wrap = (t, n = 17, max = 4) => { const out = []; let l = ''; for (const w of String(t).toUpperCase().replace(/[^A-Z0-9 .,:'!?%&-]/g, '').split(/\s+/)) { if ((l + ' ' + w).trim().length > n) { out.push(l); l = w; if (out.length >= max) break; } else l = (l + ' ' + w).trim(); } if (l && out.length < max) out.push(l); return out; };
-const firstSentence = t => String(t).split(/(?<=[.!?])\s/)[0];
+/* owner msg 149 (iPhone 13 mini stuck on 'Building Maple Bay'): this used a regex LOOKBEHIND, which Safari before iOS 16.4 cannot even parse: the whole game script failed to load there. No lookbehind anywhere in src, please. */
+const firstSentence = t => { const s = String(t), m = /[.!?]\s/.exec(s); return m ? s.slice(0, m.index + 1) : s; };
 let live = null;   /* the class in progress: { kind, ses, sheet, t0, act } */
 /* camera: while a class runs in the lecture theatre the view pulls back one zoom step and looks at the dais + screen, held in the part of the screen above the sheet */
 let cam = null;

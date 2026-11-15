@@ -93,12 +93,14 @@ function measure(id, pcm) {
   const h = Buffer.alloc(44); h.write('RIFF', 0); h.writeUInt32LE(36 + pcm.length, 4); h.write('WAVEfmt ', 8); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(2, 22); h.writeUInt32LE(SR, 24); h.writeUInt32LE(SR * 4, 28); h.writeUInt16LE(4, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(pcm.length, 40);
   const f = path.join(OUT, id + '.wav'); fs.writeFileSync(f, Buffer.concat([h, pcm]));
   const o = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', f, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' }).stderr, sm = o.slice(o.lastIndexOf('Summary')), num = re => +((re.exec(sm) || [])[1]);
+  /* the same through a phone speaker, roughly: nothing under 200 Hz */
+  const o2 = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', f, '-af', 'highpass=f=200,highpass=f=200,ebur128', '-f', 'null', '-'], { encoding: 'utf8' }).stderr, phone = +((/I:\s+(-?[\d.]+) LUFS/.exec(o2.slice(o2.lastIndexOf('Summary'))) || [])[1]);
   if (!arg('--keep')) fs.unlinkSync(f);
   /* loudest second */
   const W = SR, hop = SR / 4; let best = 0, be = -1, acc = new Float64Array(Math.ceil(n / hop) + 1); for (let i = 0; i < n; i++) acc[(i / hop) | 0] += x[i] * x[i]; for (let k = 0; k + 4 <= acc.length; k++) { const e = acc[k] + acc[k + 1] + acc[k + 2] + acc[k + 3]; if (e > be) { be = e; best = k * hop; } }
   let last = n - 1; while (last > 0 && Math.abs(x[last]) < 1e-4) last--;
   const all = spectrum(x, 0, n), top = spectrum(x, best, Math.min(n, best + W));
-  return { lufs: num(/I:\s+(-?[\d.]+) LUFS/), lra: num(/LRA:\s+(-?[\d.]+) LU/), peak: num(/Peak:\s+(-?[\d.]+) dBFS/), sounding: +(last / SR).toFixed(1), hf: +(all.hf * 100).toFixed(2), flat: +all.flat.toFixed(4), topAt: +(best / SR).toFixed(1), topHf: +(top.hf * 100).toFixed(2), topFlat: +top.flat.toFixed(4) };
+  return { lufs: num(/I:\s+(-?[\d.]+) LUFS/), phone, lra: num(/LRA:\s+(-?[\d.]+) LU/), peak: num(/Peak:\s+(-?[\d.]+) dBFS/), sounding: +(last / SR).toFixed(1), hf: +(all.hf * 100).toFixed(2), flat: +all.flat.toFixed(4), topAt: +(best / SR).toFixed(1), topHf: +(top.hf * 100).toFixed(2), topFlat: +top.flat.toFixed(4) };
 }
 async function render(br) {
   console.log('\nRENDER: every tune, offline, by the shipped code' + (WRITE ? ' (no trims: writing _music_levels.js)' : ' (with the trims)'));
@@ -110,7 +112,7 @@ async function render(br) {
       for (let o = 0; o < n; o += CH) { const m = Math.min(CH, n - o), u = new Int16Array(m * 2); for (let i = 0; i < m; i++) { u[2 * i] = Math.max(-1, Math.min(1, l[o + i])) * 32767; u[2 * i + 1] = Math.max(-1, Math.min(1, r[o + i])) * 32767; } let s = ''; const u8 = new Uint8Array(u.buffer); for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); await saveChunk(id, btoa(s)); }
       return { ms: Math.round(performance.now() - t0), dur: b.duration, trim: K.LEVELS[id] || 0 }; }, [S.id, WRITE, SR]);
     const m = measure(S.id, Buffer.concat(chunks[S.id])); delete chunks[S.id]; m.dur = +r.dur.toFixed(1); m.renderMs = r.ms; m.trim = WRITE ? 0 : r.trim; M[S.id] = m; Object.assign(report.tunes[S.id] || (report.tunes[S.id] = {}), { measured: m });
-    console.log(`     ${S.id.padEnd(17)} ${mmss(m.sounding).padStart(5)}  ${m.lufs.toFixed(1).padStart(6)} LUFS  peak ${m.peak.toFixed(1).padStart(6)}  LRA ${String(m.lra).padStart(4)}  >6k ${String(m.hf).padStart(5)}%  flat ${m.flat.toFixed(3)}  | loudest s @${String(m.topAt).padStart(5)}: >6k ${String(m.topHf).padStart(5)}%  flat ${m.topFlat.toFixed(3)}  (${(r.ms / 1000).toFixed(1)} s)`); } }));
+    console.log(`     ${S.id.padEnd(17)} ${mmss(m.sounding).padStart(5)}  ${m.lufs.toFixed(1).padStart(6)} LUFS  peak ${m.peak.toFixed(1).padStart(6)}  phone ${m.phone.toFixed(1).padStart(6)}  LRA ${String(m.lra).padStart(4)}  >6k ${String(m.hf).padStart(5)}%  flat ${m.flat.toFixed(4)}  | loudest s @${String(m.topAt).padStart(5)}: >6k ${String(m.topHf).padStart(5)}%  flat ${m.topFlat.toFixed(4)}  (${(r.ms / 1000).toFixed(1)} s)`); } }));
   const errs = pages.flatMap(g => g.errs); for (const g of pages) await g.ctx.close();
   const ids = Object.keys(M); console.log(`     ${ids.length} tunes rendered in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   check('rendering raised no page error', !errs.length, errs.slice(0, 3).join(' | '));
@@ -126,6 +128,7 @@ async function render(br) {
   const worst = (k, n = 3) => ids.slice().sort((a, b) => M[b][k] - M[a][k]).slice(0, n).map(id => `${id} ${M[id][k]}`).join(', ');
   check('nothing hiss-like: share of energy above 6 kHz under 3 % in every tune, under 8 % in its loudest second', ids.every(id => M[id].hf < 3 && M[id].topHf < 8), 'worst whole tune: ' + worst('hf') + ' %; worst loudest second: ' + worst('topHf') + ' %');
   check('nothing noise-like: spectral flatness under 0.05 in every tune and in its loudest second (white noise measures 0.56, pink 0.2)', ids.every(id => M[id].flat < .05 && M[id].topFlat < .05), 'worst whole tune: ' + worst('flat') + '; worst loudest second: ' + worst('topFlat'));
+  const ph = ids.map(id => M[id].phone - M[id].lufs); check('through a small speaker (nothing under 200 Hz) the tunes stay within +-3 LU of each other', Math.max(...ids.map(id => M[id].phone)) - Math.min(...ids.map(id => M[id].phone)) <= 6, `${Math.min(...ids.map(id => M[id].phone))} .. ${Math.max(...ids.map(id => M[id].phone))} LUFS; the band under 200 Hz carries ${Math.min(...ph.map(x => -x)).toFixed(1)} to ${Math.max(...ph.map(x => -x)).toFixed(1)} LU of a tune`);
   const len = ids.filter(id => M[id].sounding < 88 || M[id].sounding > 215); check('rendered length 1.5 to 3.5 minutes', !len.length, len.map(id => id + ' ' + M[id].sounding).join(', ') || `${mmss(Math.min(...ids.map(id => M[id].sounding)))} .. ${mmss(Math.max(...ids.map(id => M[id].sounding)))}`);
   report.worst = { hf: worst('hf'), topHf: worst('topHf'), flat: worst('flat'), topFlat: worst('topFlat') };
 }

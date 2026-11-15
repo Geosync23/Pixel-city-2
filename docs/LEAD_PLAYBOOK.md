@@ -39,3 +39,5 @@ art modules auto-discovered; cross-system calls go through `G.<system>` APIs doc
 - Shopping: buy menus for stalls/counters/online; big stores are physical (pick from racks/shelves, pay at counter) AND offer the menu.
 - Activities should have small mechanics; progress bars need good animation and a visible result. Always allow "show up and skip" for work shifts (Auto-work).
 - Expand and convert; never remove or re-lay-out the city.
+
+- BROWSER FLOOR (since Stage 74, owner msg 149): the game must start in Safari on iOS 15+. No regex lookbehind `(?<=` / `(?<!` anywhere (older Safari cannot even parse it: the whole script dies on the loading screen). Check with `grep -c '(?<[=!]' dist/index.html` (must be 0) before every publish. New JS / CSS features need a fallback. Test layouts at 375 x 812 as well as 390 x 844.
