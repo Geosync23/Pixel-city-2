@@ -57,6 +57,8 @@ export const SYSTEMS = [
     how: ['The story of your family in Maple Bay, told in Chapters.', 'A gold marker shows where the next one starts. Whenever you\'re ready: it will keep.'] },
   { id: 'friends', group: 'people', name: 'Friends & family', icon: 'rel.friend',
     how: ['Talk to people, remember what they like, turn up when invited.', 'Friendships grow with time together and fade slowly without it.'] },
+  { id: 'rel', group: 'people', name: 'Relationships & romance', icon: 'ui.heart',
+    how: ['Friends invite you to an evening now and then: a little of their life moves each time.', 'Ten people in town can become more than friends. Ask them out; go at your own pace.'] },
   { id: 'messages', group: 'people', name: 'Messages', icon: 'ui.speech',
     how: ['Family and friends text you with news and invitations.', 'Answer with a tap, or ring someone up for a chat.'] },
   { id: 'post', group: 'people', name: 'Post & parcels', icon: 'sys.post',

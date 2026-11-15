@@ -79,3 +79,5 @@ duplicate "Discovered" toast; bus headways long; terminal has no glass roof; cab
 - CHAPTERS (Stage 49): 15-Chapter main story engine, G.chapters, gold markers, book reader, attic, Dad. docs/reports/chapters.md, docs/story/CHAPTERS.md.
 
 - JOBS (Stage 53): 21 hireable jobs with nine-beat story arcs (G.jobStory), clock-in choice (work / skip), one play per shift, staff door + pass; 4 more jobs wait for rooms (J3). CHAPTERS (Stage 52): all 15 played by taps from natural unlock; nine family moments (G.chapters.moments). See docs/reports/jobs_engine.md, chapters.md.
+
+- RELATIONSHIPS & ROMANCE (Stage 59): G.rel, 12 friend/family arcs + 10 romances (205 scenes), dates on real systems, Porchlight app, move in, wedding. See docs/reports/relationships.md, docs/story/RELATIONSHIPS.md.

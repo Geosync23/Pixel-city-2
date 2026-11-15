@@ -58,6 +58,8 @@ export const WINDOWS = [
   { id: 'haircut', sys: 'hair', topic: 'home', title: 'A new look',   /* now: a barber or salon is entered */
     text: 'Have a leaf through the lookbook. Pick a cut or a colour, sit in the chair and see it in the mirror. It grows out in time, so nothing is for ever.' },
   /* ---------- work & money ---------- */
+  { id: 'rel_invite', sys: 'rel', topic: 'people', title: 'Somebody is expecting you', text: 'A friend has asked you along. Their idea is in My Day with their name on it: add it and it is on your day. It never runs out, and "not now" is always fine.', go: { myday: 1 }, goLabel: 'Open My Day' },
+  { id: 'rel_romance', sys: 'rel', topic: 'people', title: 'Something there', text: 'There is a second meter now, under friendship. Dates warm it; flirting and gifts only go so far. Each person also has something of their own going on, and that matters more than any number.' },
   { id: 'jobsboard', sys: 'jobs', topic: 'work', title: 'Finding work',   /* now: the Jobs app is opened */
     text: 'The Board tab lists every job in town, and so do the free computers at the library. Apply and you hear back at once.', go: { find: 'library' }, goLabel: 'To the library' },
   { id: 'shift', sys: 'jobs', topic: 'work', title: 'You have a job',   /* soon: hired */

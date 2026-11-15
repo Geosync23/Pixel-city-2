@@ -235,7 +235,7 @@ async function openCard(id) {
   const resume = state === 'paused', onShift = !!safe(() => G.jobs.onShift(), false), open = windowOpen(ch);
   const closed = onShift ? "You're on the clock just now. It'll keep until after work." : !open ? shutToday(ch) || ch.window.closed : null;
   const v = await UI.card({ kicker: kicker(ch), title: ch.title, hook: ch.hook, ready: resume ? "Your place is kept. Whenever you're ready." : ch.ready, closed, resume, canBegin: !closed,
-    who: ch.cast.slice(0, 6).map(w => { const i = who(w); return { name: i.short || i.name, spec: i.spec }; }), meta: `About ${ch.minutes[0]} to ${ch.minutes[1]} minutes. No rush.` });
+    who: ch.cast.slice(0, 6).map(w => { const i = who(w); return { name: i.short || i.name, spec: i.spec }; }), meta: `About ${ch.minutes[0]} to ${ch.minutes[1]} minutes.` + (/no rush/i.test(resume ? '' : ch.ready || '') ? '' : ' No rush.') });   /* QA10: 'No rush.' was said twice when the ready line starts with it */
   if (v !== 'begin') return false;
   return resume ? resumeNow() : begin(ch.id);
 }

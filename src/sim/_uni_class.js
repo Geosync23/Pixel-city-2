@@ -72,8 +72,9 @@ export async function lecture(X, ses, seat, sc) {
 export async function practical(X, ses, at, sc, where) {
   const C = X.C(ses.cid), P = CAST[C.prof], T = PRACTICAL[C.id], l = begin('practical', X, ses, at, at.anim, 'Practical'), sh = l.sheet;
   const fail = () => { end(l, false); sh.close(); return { left: true }; };
-  profSay(sc, T.brief[0]); if (await sh.say(P.short, T.brief[0], 'Next') === LEFT || gone(l)) return fail(); G.advance(6);
-  profSay(sc, T.brief[1]); if (await sh.say(P.short, T.brief[1], 'Start') === LEFT || gone(l)) return fail();
+  const Bf = (where === 'lab' && T.wetBrief) || T.brief;   /* QA10: in the rain the pond class is at the lab tank: the brief says so */
+  profSay(sc, Bf[0]); if (await sh.say(P.short, Bf[0], 'Next') === LEFT || gone(l)) return fail(); G.advance(6);
+  profSay(sc, Bf[1]); if (await sh.say(P.short, Bf[1], 'Start') === LEFT || gone(l)) return fail();
   sh.el.style.display = 'none'; const tip = setInterval(() => { if (live === l) profSay(sc, pick(T.tips), 2600); }, 9000);
   let res = null; try { res = await play(Object.assign({ level: X.lvl(C.skill), sub: `${C.code} · practical` }, C.game)); } catch (e) { res = null; } clearInterval(tip);
   if (gone(l)) { sh.close(); return { left: true }; }
