@@ -37,8 +37,8 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
   const { items, spots, H, Wl, S } = mkItems();
   STAND.rows.forEach((r, i) => H('bleacher', STAND.x0, r.y, { w: STAND.x1 - STAND.x0, h: r.z, c: i === 1 ? '#f2c230' : '#1f6fb8' }, { stand: i + 1 }));
   H('rail', 0, STAND.rail, { len: 27.5 }); H('rail', 27.5, 0, { len: 4.5 }, { flip: true });
-  for (const x of [4.5, 11.5, 18.5]) Wl('glasswall', 'y', x, { w: 7, h: 2.2, seed: x }, { glass: 1, mount: 2.5 }); for (const x of [28.4, 33.4, 38.4]) Wl('glasswall', 'y', x, { w: 5, h: 3.6, seed: x + 3 }, { glass: 1, mount: .7 });
-  Wl('glasswall', 'x', 16.4, { w: 5, h: 3.4, seed: 5 }, { glass: 1, mount: .7 }); Wl('doorway', 'y', 1.2, { t: 'EXIT', w: 1.9, c: '#1f6fb8' }); Wl('sign', 'x', 2.2, { t: 'NO RUNNING', w: 2.8, c: '#d8402e' }, { mount: 1.2 });
+  for (const x of [4.5, 11.5, 18.5]) Wl('glasswall', 'y', x, { w: 7, h: 2.2, seed: x }, { glass: 1, mount: 2.5 }); Wl('glasswall', 'y', 38.5, { w: 5, h: 3.6, seed: 41 }, { glass: 1, mount: .7 });
+  Wl('glasswall', 'x', 6.5, { w: 5, h: 3.4, seed: 5 }, { glass: 1, mount: .9 }); Wl('glasswall', 'x', 12, { w: 5, h: 3.4, seed: 7 }, { glass: 1, mount: .9 }); Wl('glasswall', 'x', 17.5, { w: 4, h: 3.4, seed: 9 }, { glass: 1, mount: .9 }); Wl('doorway', 'y', 1.2, { t: 'EXIT', w: 1.9, c: '#1f6fb8' }); Wl('sign', 'x', 2.2, { t: 'NO RUNNING', w: 2.8, c: '#d8402e' }, { mount: 1.2 });
     H('guardchair', 14.4, 5.2, {}, { guard: 1 }); H('guardchair', 42.4, 10.4, {}, { guard: 2, flip: true }); H('guardchair', 1.9, 12.6, {}, { guard: 3, flip: true });
   H('flags', 8.4, POOL.y0 - .3, { len: 10.2 }, { z: 1.9 }); H('flags', 21.6, POOL.y0 - .3, { len: 10.2 }, { z: 1.9 });
   H('divetower', 31, 4, {}, { tower: 1 }); H('judges', 28.5, 9.2, {}, { judges: 1 }); H('podium', 8.5, 18.3, {}, { podium: 1 });
@@ -66,8 +66,8 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
       let wRope = mkPool(true), wOpen = null; const wDive = waterLayer({ x0: O + DIVE.x0, y0: O + DIVE.y0, x1: O + DIVE.x1, y1: O + DIVE.y1, depth: (x, y) => (x - O >= DIVE.x0 && x - O <= DIVE.x1 && y - O >= DIVE.y0 && y - O <= DIVE.y1 ? .95 : -1), floor: (x, y) => (Math.abs(x - O - 36) < .08 || Math.abs(y - O - 11.1) < .08 ? '#2a6fa0' : null), pal: PALS.lane });
       sc.waters = [wRope, wDive]; const ropes = on => { if (on) { sc.waters[0] = wRope; } else { wOpen = wOpen || mkPool(false); sc.waters[0] = wOpen; } };
       /* ----- boards ----- */
-      const SB = board(sc, { axis: 'x', x: O + .03, y: O + 6.4, z: 1.25, w: 9, h: 58, lit: true, bg: '#10141c' }); paceClock(sc, O + .06, O + 5.2, 2.2);
-      const RB = board(sc, { axis: 'y', x: O + 28.6, y: O + .05, z: 4.45, w: 9.6, h: 7, lit: true, bg: '#22304e' }); RB.clear(); RB.text('MAPLE BAY MARLINS  EST 1958', 6, 1, '#f2c230');
+      const SB = board(sc, { axis: 'y', x: O + 28.4, y: O + .04, z: 1.2, w: 9.6, h: 58, lit: true, bg: '#10141c' }); paceClock(sc, O + .06, O + 5.2, 2.2); paceClock(sc, O + 27.2, O + .06, 2.4);
+      const RB = board(sc, { axis: 'x', x: O + .03, y: O + 6.5, z: 4.35, w: 15, h: 7, lit: true, bg: '#22304e' }); RB.clear(); RB.text('HOME OF THE MAPLE BAY MARLINS   EST 1958', 8, 1, '#f2c230');
       /* ----- people ----- */
       const seats = []; STAND.rows.forEach((row, ri) => { for (let x = STAND.x0 + .38; x < STAND.x1 - .3; x += .7) seats.push({ x, y: row.y + .46, z: row.z + .08, dir: 1, seated: true, p: 0, row: ri, roll: r(), label: 'Spectator' }); });
       const LN = ['Go on, Marlins!', 'Lane four. Watch lane four.', 'I swam here in 1986. The tiles are the same tiles.', 'They always fade on the last length. Watch.', 'Is it hot in here or is it the humidity. It is the humidity.'];
@@ -138,7 +138,7 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
           const ev = m.ev, tau = m.tau, mine = NS() && NS().myRace(m); for (let l = 1; l <= 8; l++) { const ln = ev.lanes.find(q => q.lane === l), v = 3 + l * 6; SB.text(String(l), 3, v, C5); if (!ln) { if (ev.open && l === 4) { SB.text(mine ? mine.name : '- OPEN LANE -', 11, v, mine ? C3 : '#5a6a7a'); if (mine && mine.time) { SB.textR(fmtTime(mine.time), SB.w - 12, v, C3); SB.textR(String(mine.place), SB.w - 3, v, C1); } } continue; }
             SB.text(ln.name.split(' ').pop().slice(0, 11), 11, v, ln.club === 'M' ? C2 : ln.club === 'V' ? '#ffb090' : C2); SB.text(ln.club === 'M' ? 'MBM' : ln.club === 'V' ? M.opp.short : 'NOV', 60, v, ln.club === 'M' ? C5 : C4);
             if (m.ph === 'marshal') continue; const fin = tau >= ln.time || m.ph !== 'race'; let sp = 0; for (let k = 1; k < ln.splits.length; k += 2) if (tau >= ln.splits[k]) sp = ln.splits[k]; if (fin) { SB.textR(fmtTime(ln.time), SB.w - 12, v, C1); const pl = mine && mine.time ? ln.place + (mine.time < ln.time ? 1 : 0) : ln.place; SB.textR(String(pl), SB.w - 3, v, pl < 4 ? C3 : C2); } else if (sp) SB.textR(fmtTime(sp), SB.w - 12, v, C2); }
-          if (m.ph === 'race') SB.textR(fmtTime(Math.max(0, tau)), 104, 2, C2); return; }
+          if (m.ph === 'race') SB.textR(fmtTime(Math.max(0, tau)), 96, 2, C2); return; }
         const ses = sc.nat.session, all = sessionsOn(n), nx = all.find(s => s.from > n.hf && (!ses || s.id !== ses.id));
         SB.text('MAPLE BAY NATATORIUM', 3, 2, C5); SB.textR(n.clock, SB.w - 3, 2, C1); SB.text('WATER 27.5 C   AIR 29 C', 3, 12, C2); SB.text(m ? 'WARM-UP: MEET AT ' + MEET.T0 + ':00' : ses ? 'NOW: ' + ses.name.toUpperCase().slice(0, 28) : 'NOW: PUBLIC LANE SWIMMING', 3, 22, C3);
         if (nx) SB.text('NEXT ' + String(Math.floor(nx.from)).padStart(2, '0') + ':' + (nx.from % 1 ? '30' : '00') + ' ' + nx.name.toUpperCase().slice(0, 22), 3, 30, C2); SB.text('LANES 1-2 SLOW  3-5 MEDIUM  6-8 FAST', 3, 40, '#8a9ab0'); SB.text('RECORD W 100 BACK 1:09.8  1974', 3, 48, C1);
@@ -171,7 +171,7 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
       sc.interactables.push({ x: O + 5.2, y: O + 13.9, label: 'Run the inflatable course', h: 1, hit: 16, range: 1.8, spot: { x: O + 3.5, y: O + 13.9 }, visible: () => sc.nat.inflatableOn(), use: () => NS() && NS().inflatable() });
       sc.interactables.push({ x: O + 26.6, y: O + 17.2, label: 'Join the open-water pack', h: 1, hit: 14, range: 1.8, visible: () => !!(sc.nat.session && sc.nat.session.id === 'ow'), use: () => NS() && NS().openWater() });
       sc.interactables.push({ x: O + 36, y: O + DIVE.y1 + .2, label: 'Volunteer for the rescue drill', h: 1, hit: 18, range: 2, spot: { x: O + 36, y: O + DIVE.y1 + .9 }, visible: () => drill.on && !drill.vol, use: () => NS() && NS().drill() });
-      sc.interactables.push({ x: O + .2, y: O + 10.5, label: 'The scoreboard', h: 3, hit: 26, range: 3, spot: { x: O + 1.6, y: O + 10.4 }, use: () => NS() && NS().lookBoard() });
+      sc.interactables.push({ x: O + 33, y: O + .2, label: 'The scoreboard', h: 3, hit: 26, range: 3, spot: { x: O + 33, y: O + 1.6 }, use: () => NS() && NS().lookBoard() });
       hook(sc, 'wb', 'Coach\'s whiteboard', () => NS().whiteboard());
       sc.env = hallEnv(Wd, .62, .5, '#dff4ff'); wireLife(sc, [cr, dk, { count: () => swimmers.filter(e => !e.hidden).length + racers.filter(q => !q.sw.hidden || !q.ch.hidden).length }]); sync(); drawBoard();
       const out = {}, u0 = sc.update; sc.update = (dt, gm) => {
