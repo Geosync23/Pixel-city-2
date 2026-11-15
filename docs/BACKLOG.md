@@ -7,7 +7,7 @@ DONE too: showpieces B — performance venues (docs/reports/shows.md). NOTE: the
 RUNNING: (see docs/HANDOFF.md). DONE too: the Wander guidebook app (docs/reports/guide.md). 2f DONE except item icons (docs/reports/fixpack1.md, fixpack2.md; trip planner 2e done as G.nav). DONE too: item icons (docs/reports/icons.md) and 2h apps (docs/reports/apps.md). ORDER NOW (see docs/HANDOFF.md): 2g unique interiors -> 2g -> 2h -> 2i -> 2j -> 2c -> 3 -> 4b -> 4c -> 4 -> 5 -> 6.
 
 NEXT (in order):
-0. [TOP, owner msg 72] NAV ARROW EVERYWHERE: edge-clamped arrow in every scene, room-to-room guidance, every trip leg end to end, red arrow + "This is your stop" on trains/buses (BIBLE update 15).
+0. [DONE Stage 16, docs/reports/navarrow.md] NAV ARROW EVERYWHERE: edge-clamped arrow in every scene, room-to-room guidance, every trip leg end to end, red arrow + "This is your stop" on trains/buses (BIBLE update 15).
 1. [DONE] "Public places pass" (owner feedback): street names drawn on the phone Map app (world.roads names; label along roads when zoomed in, list/search optional); EVERY cafe / restaurant / shop-looking building
    in the city is either enterable (generic template interiors with varied names/colours: cafe, diner, pizza, bakery, bar, boutique, bookshop, grocery small/medium) or has a walk-up counter that sells; 2-3 more grocery stores of
    different sizes near each starter home (one really detailed supermarket exists: FreshWay); more restaurants; check the enterable-door glow reads well (src/sim/stalls.js) and that non-enterable doors look plain.

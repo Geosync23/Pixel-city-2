@@ -99,7 +99,7 @@ function finder() {
   box(.15, .15, 0, .5, .5, .8, MARBLE, { l: PAT.stone(dk(MARBLE, .1)) }); const P = [[.02, .78, .8], [.78, .78, .8], [.78, .1, 1.12], [.02, .1, 1.12]]; fq(P, BRASS); fq([[.08, .72, .83], [.72, .72, .83], [.72, .16, 1.09], [.08, .16, 1.09]], NAVY_D);
   lit(() => { for (let i = 0; i < 9; i++) dot(.14 + hash2(i, 1, 4) * .52, .66 - hash2(i, 2, 4) * .44, .86 + hash2(i, 2, 4) * .2, i % 3 ? '#b8c6f0' : '#ffe9b0'); }); lw([.4, .44, .96], [.62, .3, 1.03], BRASS_L);
 }
-function domewall(p) { const w = p.w || 3; box(0, 0, 0, w, .4, 2.8, SHELL, { l: (u, v) => (v < 12 ? '#8a8e9a' : (u % 24) === 0 ? SHELL_D : v % 14 === 0 ? SHELL_D : dk(SHELL, .1)), t: '#f4f0e6' }); qy(0, w, .401, 2.62, 2.8, '#8a8e9a'); }
+function domewall(p) { const w = p.w || 3, h = p.h || 1; box(0, 0, 0, w, .4, h, SHELL, { l: (u, v) => (v < 4 ? '#8a8e9a' : (u % 24) === 0 ? SHELL_D : dk(SHELL, .1)), t: '#f4f0e6' }); qy(0, w, .401, h - .12, h, '#8a8e9a'); }
 function arch(p) {
   const w = p.w || 2.5, nm = p.name || 'GREAT TELESCOPE';
   box(0, 0, 0, .3, .4, 2.8, SHELL, { t: '#f4f0e6' }); box(w - .3, 0, 0, .3, .4, 2.8, SHELL, { t: '#f4f0e6' }); box(0, 0, 2.3, w, .4, .5, SHELL, { t: '#f4f0e6' });
@@ -141,7 +141,7 @@ export default [
   A('telescope', ['obs_scope'], [3, 3, 2.2], telescope, { use: { x: .9, y: 3.4 }, vb: [-1.5, -3.5, 0, 5, 4, 6.2], variants: [{ az: 2, alt: 1 }, { az: 0, alt: 0 }, { az: 4, alt: 2 }, { park: 1 }] }),
   A('smallscope', ['obs_tscope'], [.9, .9, 1.2], smallscope, { use: { x: .45, y: 1.35 }, vb: [-.3, -.5, 0, 1.2, 1.2, 1.8], variants: [{}, { kind: 'dob' }, { c: '#f4f0e8' }, { cover: 1 }] }),
   A('finder', ['obs_finder'], [.8, .8, 1.15], finder, { use: { x: .4, y: 1.25 } }),
-  A('domewall', ['wall_segment'], p => [p.w || 3, .4, 2.8], domewall, { variants: [{ w: 3 }] }),
+  A('domewall', ['wall_segment'], p => [p.w || 3, .4, p.h || 1], domewall, { variants: [{ w: 3 }] }),
   A('arch', ['archway'], p => [p.w || 2.5, .4, 2.8], arch, { solid: false, variants: [{}] }),
   A('sketchstool', ['obs_sketch'], [1.1, .9, 1.1], sketchstool, { seats: [{ x: .3, y: .62, z: .42, dir: 3 }], use: { x: .3, y: 1.3 } }),
   A('lantern', ['lamp'], [.5, .5, 1.5], lantern, { solid: false, variants: [{ on: 1 }, {}] }),

@@ -54,3 +54,4 @@
 39. (msg 77) Wants a TON of recipes; the starting food could not be cooked into anything; ingredients must live in the kitchen, not on the player. Lead did the kitchen part (Stage 15c); the recipe batch is queued as the next worker.
 40. (msg 78) Tip pacing: Nestly tips only after the airport; the Wander tip after Nora's first text. Done (Stage 15d); all new-app banners also wait until you leave the airport.
 41. (msg 79) A ton of lines for city folk: same frequency, many more lines, no repeats until the whole pool has fired; a big general pool + contextual pools (e.g. when you stink). An Opus writer does it, outside the 3+1 worker count.
+42. (msg 80) The LEAD plans the structure and categories of the city-folk lines; the writer only writes them. Plan: docs/reports/city_lines.md.

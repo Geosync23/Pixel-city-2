@@ -343,3 +343,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 79 — A ton of written lines for city folk; no repeats until all have fired; contextual pools; hire an Opus writer (outside the worker count)
 > Add a ton of written lines for city folk around time. Don't increase the frequency too much just add many many lines. Also dont repeat until they all fire. There is a big pool of general ones then also many for contextual ones like if you stink for example. Hire an opus 5.5 writer for this it doesnt count against the worker count
+
+## 80 — The lead plans the structure and categories of the lines; the writer writes them
+> You plan it stucture and categories of the lines and the writer writes them

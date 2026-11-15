@@ -77,7 +77,7 @@ function pendulum(p) {
   cyl(cx, cy, 0, 1.98, .3, MARBLE, { t: lt(MARBLE, .1) }); disc(cx, cy, .3, 1.72, MARBLE_D); disc(cx, cy, .22, 1.66, NAVY); disc(cx, cy, .22, 1.2, NAVY_L, NAVY);
   for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, L = i % 4 === 0 ? 1.15 : i % 2 === 0 ? .8 : .45; lw([cx, cy, .221], [cx + Math.cos(a) * L, cy + Math.sin(a) * L, .221], i % 4 === 0 ? BRASS_L : BRASS_D); }
   disc(cx, cy, .222, .16, BRASS);
-  for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2 - Math.PI / 2, x = cx + Math.cos(a) * 1.42, y = cy + Math.sin(a) * 1.42; if (i < down) { dot(x, y, .23, BRASS_D); dot(x, y, .23, BRASS_D, 1, 0); dot(x, y, .23, BRASS_D, 2, 1); } else { const s = S2(x, y, .22); for (let k = 0; k < 4; k++) px(s[0], s[1] - k, C(k === 3 ? '#ffffff' : k % 2 ? RED : CREAM)); } }
+  for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2 - Math.PI / 2, x = cx + Math.cos(a) * 1.42, y = cy + Math.sin(a) * 1.42; if ((i % 12) < down / 2) { dot(x, y, .23, BRASS_D); dot(x, y, .23, BRASS_D, 1, 0); dot(x, y, .23, BRASS_D, 2, 1); } else { const s = S2(x, y, .22); for (let k = 0; k < 4; k++) px(s[0], s[1] - k, C(k === 3 ? '#ffffff' : k % 2 ? RED : CREAM)); } }
   textY('N', cx - .1, cy + 1.99, .26, NAVY);
 }
 
@@ -196,7 +196,7 @@ export default [
   A('rocket', ['obs_rocket'], [1.6, 1, .8], rocket, { use: { x: .35, y: 1.3 }, vb: [-.1, -.1, 0, 1.7, 1.1, 1.5], variants: [{}, { away: 1 }] }),
   A('plaque', ['obs_plaque'], [.5, .5, .8], plaque, { solid: false, use: { x: .25, y: .85 }, variants: [{}, { c: '#b8862c' }] }),
   A('hang', ['model'], [1, 1, .2], hang, { solid: false, overhead: true, vb: [-2.4, -2.4, -1.2, 3.4, 3.4, 2.4], variants: [{ kind: 'jupiter', r: 10 }, { kind: 'saturn', r: 7 }, { kind: 'earth', r: 5 }, { kind: 'mars', r: 4 }, { kind: 'comet' }] }),
-  A('bench', ['obs_bench'], [1.6, .6, .5], bench, { seats: [{ x: .45, y: .32, z: .46, dir: 1 }, { x: 1.15, y: .32, z: .46, dir: 1 }], use: { x: .8, y: 1.1 } }),
+  A('bench', ['obs_bench'], [1.6, .6, .5], bench, { seats: p => [{ x: .45, y: .32, z: .46, dir: p.rev ? 3 : 1 }, { x: 1.15, y: .32, z: .46, dir: p.rev ? 3 : 1 }], use: { x: .8, y: 1.1 } }),
   A('lamp', ['lamp'], [.5, .5, 2.7], lamp, { light: { x: .25, y: .25, z: 0, r: 3.6 } }),
   A('column', ['pillar'], p => [.7, .7, p.h || 4.4], column, {}),
   A('stairs', ['obs_stairs'], [2.5, 2.5, 2.6], stairs, { use: { x: 1.25, y: 3 }, vb: [-.1, -.1, 0, 2.6, 2.7, 3.2] }),
