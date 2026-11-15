@@ -102,8 +102,8 @@ function trainOption(from, D, walk) {
   if (!G.rail || !G.rail.stations) return null; const ST = G.rail.stations().map(s => { const p = place('st_' + s.id), e = s.entrance || s; return { id: s.id, pid: p ? p.id : 'st_' + s.id, name: s.name + ' Station', x: p ? p.x : e.x, y: p ? p.y : e.y }; }); let best = null;
   const near = q => ST.slice().sort((a, b) => man(a, q) - man(b, q)).slice(0, 2);
   for (const A of near(from)) for (const B of near(D)) {
-    if (A.id === B.id) continue; const pl = safe(() => G.rail.plan(A.id, B.id), null); if (!pl || !(pl.stops > 0)) continue;
-    const wa = man(A, from) * WALK, wb = man(B, D) * WALK, wait = pl.departsIn != null ? pl.departsIn : pl.wait || 0, ride = Math.max(1, pl.minutes),   /* QA7: plan().minutes is the ride alone (the wait was subtracted twice: estimates were ~15 min short) */ total = wa + Math.max(wait - wa, 0) + ride + wb;
+    if (A.id === B.id) continue; const wa = man(A, from) * WALK, wb = man(B, D) * WALK, pl = safe(() => G.rail.plan(A.id, B.id, G.state.t + wa), null); if (!pl || !(pl.stops > 0)) continue;   /* QA7: the train you can still catch once you have walked to the station */
+    const wait = wa + (pl.departsIn != null ? pl.departsIn : pl.wait || 0), ride = Math.max(1, pl.minutes),   /* QA7: plan().minutes is the ride alone (the wait was subtracted twice: estimates were ~15 min short) */ total = wait + ride + wb;
     if (wa + wb > walk * .8) continue;
     if (!best || total < best.minutes) best = { mode: 'train', label: 'Train ' + pl.line, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('train'), 2.5), line: pl.line, toward: pl.toward, stops: pl.stops, wait, from: A.id, to: B.id, board: { id: A.pid, name: A.name, x: A.x, y: A.y }, alight: { id: B.pid, name: B.name, x: B.x, y: B.y }, walkA: wa, walkB: wb, ride };
   }
