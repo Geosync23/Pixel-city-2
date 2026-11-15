@@ -91,7 +91,22 @@ G.toScreen = (x, y, z = 0) => { const s = WS(x, y, z); return { x: (s[0] - G.cam
 const extra = [];
 G.addInteractable = it => { extra.push(it); return () => { const i = extra.indexOf(it); if (i >= 0) extra.splice(i, 1); }; };
 G.interactables = () => { const out = []; const add = it => { if (it.scene && it.scene !== G.scene.id) return; if (it.visible && !it.visible()) return; if (it.ent) { it.x = it.ent.x; it.y = it.ent.y; it.z = it.ent.z; } out.push(it); }; G.scene.interactables.forEach(add); extra.forEach(add); return out; };
-function pick(px, py) { let best = null, bd = 1e9; for (const it of G.interactables()) { const z = it.z !== undefined ? it.z : G.world.heightAt(it.x, it.y), s = WS(it.x, it.y, z + (it.h === undefined ? .8 : it.h) * .5), hit = it.hit || 12, dx = px - s[0], dy = (py - s[1]) * .75, d = Math.hypot(dx, dy); if (d < hit + (it.h === undefined ? .8 : it.h) * U * .4 && d < bd) { bd = d; best = it; } } return best; }
+// Doors, exits, stairs and lifts get a generous tap target: a tall capsule from the threshold up over the door itself (owner msg 76: tap the door, not only the ground in front of it).
+const DOORISH = /^(enter|exit|leave|go (in|out|up|down|to)|back to)\b|door|restroom|bathroom|stairs|lift|elevator|entrance|platform/i;
+const isDoor = it => it.exit || it.door || (it.poi && (it.poi.type === 'door' || it.poi.type === 'station')) || (!it.ent && DOORISH.test(it.label || ''));
+function pick(px, py) {
+  let best = null, bd = 1e9;
+  for (const it of G.interactables()) {
+    const z = it.z !== undefined ? it.z : G.world.heightAt(it.x, it.y), h = it.h === undefined ? .8 : it.h; let d, lim;
+    if (isDoor(it)) {
+      const top = Math.max(h, it.exit ? 1.2 : 2.6), a = WS(it.x, it.y, z), b = WS(it.x, it.y, z + top), vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1;
+      const t = Math.max(0, Math.min(1, ((px - a[0]) * vx + (py - a[1]) * vy) / L)), dx = px - (a[0] + vx * t), dy = py - (a[1] + vy * t);
+      lim = Math.max(it.hit || 12, 14) + U * 1.25; d = Math.hypot(dx, dy * .8); if (d >= lim) continue; d = d * .6 + 5;   // rank: precise targets right under the finger still win
+    } else { const s = WS(it.x, it.y, z + h * .5); d = Math.hypot(px - s[0], (py - s[1]) * .75); lim = (it.hit || 12) + h * U * .4; if (d >= lim) continue; }
+    if (d < bd) { bd = d; best = it; }
+  }
+  return best;
+}
 G.nearestInteractable = (range = 1.6) => { let best = null, bd = range; for (const it of G.interactables()) { const d = Math.hypot(it.x - G.player.x, it.y - G.player.y); if (d < bd) { bd = d; best = it; } } return best; };
 /** walk to an interactable and use it */
 G.useInteractable = it => {

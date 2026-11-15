@@ -330,3 +330,6 @@ Very short operational messages are included too, so the sequence is complete. A
 > - FIRST TASK (owner's request): review everything the previous lead session did — `git log --oneline a1d2ffc..HEAD`, the previous lead's own code changes and each worker's output and report (HANDOFF lists them). Report findings to the owner plainly (what is solid, what is risky or wrong, what was never verified), fix anything clearly broken, then start the queue in HANDOFF: the nav-arrow fix first (owner msg 72), the Opus QA & data lane, then the signature showpieces.
 >
 > Keep the standing orders: up to 3 Fable workers + 1 Opus QA/data worker at once on disjoint files, log every owner message verbatim in docs/OWNER_MESSAGES.md, keep docs/HANDOFF.md current, commit and push after every step, and tell the owner plainly what you verified yourself versus what a worker reported.
+
+## 76 — Doors: tap the door itself; wider touch area
+> You need to be able to click doors to go through them not just in front of them. Widen the touch area
