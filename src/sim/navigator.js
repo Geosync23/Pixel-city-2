@@ -46,6 +46,7 @@ let gi = null, giN = -1;
 function guideOf(id) { const all = safe(() => G.guide.all(), []); if (!gi || giN !== all.length) { gi = new Map(); giN = all.length; for (const e of all) if (e.placeId && !gi.has(e.placeId)) gi.set(e.placeId, e); } return gi.get(id); }
 /* QA9: the other rooms of the same building (the University's Commons cafe + restrooms behind the Great Hall): a place matches if one of them does */
 const subMenu = rid => subRooms(rid).some(r => { const v = VENUE_BY_ID[safe(() => ROOMS.get(r).venue, null)]; return !!(v && v.offers && v.offers.menu); });
+const subCafe = rid => subRooms(rid).some(r => { const v = VENUE_BY_ID[safe(() => ROOMS.get(r).venue, null)]; return !!(v && v.offers && v.offers.menu && /caf|coffee/i.test((v.type || '') + ' ' + (v.name || '') + ' ' + ((v.offers.functions || []).join(' ')) + ' ' + (v.blurb || ''))); });
 /* QA9: say where inside when the thing is in another room of the building ("The Quill & Kettle, in The Commons") */
 function subNote(p, kind) {
   if (!p.roomId || !['bladder', 'hunger', 'food', 'energy', 'coffee'].includes(kind)) return {}; const own = p.venue && p.venue.offers || {};
@@ -60,7 +61,7 @@ function info(p) {
 const T = {
   food: i => i.menu || i.vt === 'food' || (i.ch === 'eat' && i.kind !== 'spot'),
   groceries: i => i.shop.includes('ingredient') || /supermarket|grocer|corner shop|bodega|delicatessen|mini mart|provisions/.test(i.type),
-  coffee: i => /caf[eé]|coffee|tea house|bakery|juice/.test(i.type) || (i.menu && i.fns.includes('espresso')),
+  coffee: i => /caf[eé]|coffee|tea house|bakery|juice/.test(i.type) || (i.menu && i.fns.includes('espresso')) || (i.kind === 'venue' && !!i.roomId && subCafe(i.roomId)),
   hygiene: i => i.fns.includes('locker_shower') || /\bgym\b|laundr|salon|barber|\bspa\b|bath|pool/.test(i.type),
   fun: i => i.vt === 'leisure' || (['shows', 'arts', 'outdoors'].includes(i.ch) && i.vt !== 'shop') || i.also.includes('shows') || /arcade|cinema|theat|bowling|karaoke|museum|gallery/.test(i.type) || (i.kind === 'spot' && i.fns.length > 0),
   social: i => /\bbar\b|\bpub\b|caf[eé]|club|tea house|diner|beer|wine|cocktail/.test(i.type) || i.fns.includes('bar_stool') || i.fns.includes('dancefloor'),
@@ -190,7 +191,7 @@ const narrow = () => typeof innerWidth !== 'undefined' && innerWidth < 600;
 function tripText(t) {
   const tw = t.toward && t.alight && t.toward !== t.alight.name ? ` toward ${t.toward}` : '', veh = t.mode === 'bus' ? `${t.line} bus${tw}` : `${t.line}${tw}`;
   const parts = t.mode === 'cab' ? [[0, t.call ? 'head outside to meet your cab' : 'meet your MapleCab at the kerb'], [1, 'ride'], [2, 'walk to the door']]
-    : [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${(lv => lv === 0 ? 'your stop: get off now' : lv === 1 ? 'next stop' : stopsTxt(lv == null ? t.stops : lv) + (lv == null ? '' : ' to go'))(t.mode === 'bus' && t.stage === 1 ? safe(() => G.transit.busStopsLeft(), null) : null)}) - get off yourself`], [2, `walk ${mins(t.walkB)}`]];
+    : [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${(lv => lv === 0 ? 'your stop: get off now' : lv === 1 ? 'next stop' : stopsTxt(lv == null ? t.stops : lv) + (lv == null ? '' : ' to go'))(t.mode === 'bus' && t.stage === 1 ? safe(() => G.transit.busStopsLeft(), null) : null)}) - get off yourself`], [2, G.scene && G.scene.id !== 'city' ? 'you are here: follow the arrow inside' : `walk ${mins(t.walkB)}`]];   /* QA9: not 'walk 8 min' once you are inside */
   // compact: the current step in bold + what comes next (the on-screen arrow does the guiding; the full itinerary is in the route card)
   const box = el('span'), cur = parts.find(q => q[0] === t.stage) || parts[parts.length - 1], nx = parts.find(q => q[0] === t.stage + 1);
   box.append(el('b', { text: cur[1] })); if (nx && !narrow()) box.append(el('span', { style: 'opacity:.65', text: ' · then ' + nx[1] })); return box;   // portrait: the current step only (keeps the strip to one or two lines)

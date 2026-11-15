@@ -45,7 +45,8 @@ import * as WK from './_jobs_work.js';
 import { who, isCast, figures } from './_jobstory_cast.js';
 import { PLAY, STATION, KIND, WORDS } from './_jobplay_games.js';
 import { runPlay, injectCss } from './_jobplay_kit.js';
-import { STATIONS, debugStations } from './_jobstory_stations.js';
+import { STATIONS, debugStations, stationsFor } from './_jobstory_stations.js';
+import { grant, sync as syncKeeps, TEACHES } from './_jobstory_keeps.js';
 import { OUTDOOR } from './_social_data.js';
 
 export const order = 126;   /* right after sim/jobs.js (120) */
@@ -57,7 +58,7 @@ const cl = (v, a, b) => Math.max(a, Math.min(b, v)), today = () => Math.floor(G.
 const fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 
 /* ---------- state ---------- */
-const fresh = () => ({ v: 1, jobs: {}, picks: {}, rel: {}, keeps: [], q: [], sent: {}, textDay: -1, cur: null, held: {}, bags: {}, off: {} });
+const fresh = () => ({ v: 1, jobs: {}, picks: {}, rel: {}, keeps: [], given: {}, q: [], sent: {}, textDay: -1, cur: null, held: {}, bags: {}, off: {} });
 function st() { const J = G.state.jobs || (G.state.jobs = {}); let s = J.story; if (!s || typeof s !== 'object') s = J.story = fresh(); const f = fresh(); for (const k in f) if (s[k] === undefined) s[k] = f[k]; return s; }
 function jr(id) { const s = st(); return s.jobs[id] || (s.jobs[id] = { shifts: 0, day: -1, done: {}, last: -9, wait: 0, plays: 0, best: 0, mem: {} }); }
 const flags = () => G.state.flags || (G.state.flags = {});
@@ -132,8 +133,9 @@ function nextBeat(jobId, n) {
 /* ---------- effects ---------- */
 function regMood(id) { const m = MOODLETS_NEW[id]; if (m && !MOODLETS[id]) MOODLETS[id] = Object.assign({ walkSpeed: 1, workPerf: 0, source: 'work' }, m); }
 function give(id) {
-  const s = st(), it = ITEMS_NEW[id]; if (!it || s.keeps.includes(id)) return; s.keeps.push(id);
-  UI.toastGold(`${it.kind === 'recipe' ? 'A recipe card' : 'A keepsake'}: ${it.name}. ${it.desc}`, 7000); G.emit('jobstory:keepsake', id);
+  const s = st(), it = ITEMS_NEW[id]; if (!it || s.keeps.includes(id)) return; s.keeps.push(id); s.given[id] = 1;
+  const g = grant(id);      /* the thing itself: into the home's storage (hang it through Furnish); a recipe card also teaches its recipe */
+  UI.toastGold(`${it.kind === 'recipe' ? 'A recipe card' : 'A keepsake'}: ${it.name}. ${it.desc}${g.recipe ? ' You can cook ' + g.recipe + ' now.' : ''}${g.item ? ' It is with your things at home: hang it where you like.' : ''}`, 8000); G.emit('jobstory:keepsake', id);
 }
 function offerOpp(id) { const row = OPPS[id]; if (!row) return; safe(() => G.opps.offer(POOL_BY_ID[id] ? id : row, { force: true })); }
 function apply(e, src) {
@@ -218,7 +220,7 @@ function card(job, o) {
     const iv = setInterval(() => { if (o.live && !o.live()) done(null); }, 400);      /* the shift ended underneath the card (a scripted time jump, a load): the card goes too */
     const L = job.levels[(o.level || 1) - 1], hrs = job.shifts.end - job.shifts.start;
     const btn = (id, title, sub, cls) => el('button.jsc-b' + (cls ? '.' + cls : ''), { 'data-js': id, onclick: () => done(id) }, el('b', { text: title }), el('small', { text: sub }));
-    const wrap = el('div.jsc-wrap', null, el('div.jsc', { role: 'dialog', 'aria-label': 'Clocked in' },
+    const wrap = el('div.jsc-wrap', null, el('i.jm-res.js-calm', { hidden: true, style: { display: 'none' } }), el('div.jsc', { role: 'dialog', 'aria-label': 'Clocked in' },
       el('div.jsc-kick', { text: 'Clocked in · shift ' + o.n }), el('h2', { text: L.title }), el('p.jsc-where', { text: `${o.venueName} · ${hrs} hours · ${fmt(L.hourly)} an hour` }),
       o.feel ? el('p.jsc-feel', { text: o.feel }) : null,
       btn('work', 'Work the shift', PLAY[job.id] && !o.mid ? `Do the job yourself: tickets, tips, and ${PLAYS[job.id] ? '"' + PLAYS[job.id].name + '"' : 'the day'}.` : 'Do the job yourself: tickets, tips, and whatever today brings.', 'pri'),
@@ -252,15 +254,56 @@ async function clockIn(job, sh, cb) {
   if (v === 'work') { t.mode = 'work'; t.lineAt = performance.now() + TUNE.lineFirst * 1000; cb.work(); setFigures(job); }
   else { t.mode = 'skip'; cb.skip(); }
 }
-function setFigures(job) {
+function setFigures(job, max, off) {
   const sc = G.scene; if (!sc || !sc.fixtures || job.id === 'courier') return;
+  if (job.isNew && sc._jobSt !== job.id) { sc._jobSt = job.id; safe(() => stationsFor(job, sc)); }
   const tags = job.isNew ? job.workLoop.stations.map(x => 'js:' + job.id + ':' + x) : job.workLoop.stations, per = tags.map(tag => { const a = []; for (const fx of sc.byTag(tag).slice(0, 2)) { const p = fx.staff || fx.use || fx; a.push({ x: p.x + 1.2, y: p.y + .3 }, { x: p.x - 1.2, y: p.y + .6 }, { x: p.x + .4, y: p.y + 1.3 }); } return a; }).filter(a => a.length);
   const door = sc.spawn ? [{ x: sc.spawn.x + 1.5, y: sc.spawn.y - 2 }, { x: sc.spawn.x - 1.5, y: sc.spawn.y - 2.5 }] : [];
   /* the cast lists coworkers before regulars: the first stands by the second station (the working end of the room), the others by the last stations (the public end: tables, the door) */
   const spotsFor = k => { const n = per.length, first = n ? (k === 0 ? 1 % n : (n - k + n) % n) : 0, out = []; for (let i = 0; i < n; i++) out.push(...per[(first + i) % n]); return out.concat(door); };
   const lines = SHIFT_LINES[job.id] || [], talkers = [...new Set(lines.map(l => l.who))], cast = (CASTS[job.id] || { people: [] }).people.map(p => p.id).filter(id => talkers.includes(id));
-  figures.set(sc, cast, spotsFor, (id, c) => { const l = nextLine(job.id, id, true); if (l) bubble(c, fill(l.text), 2600 + l.text.length * 45); });
+  figures.set(sc, max ? cast.slice(0, max) : cast, spotsFor, (id, c) => { if (off) return greet(id, c, job.id); const l = nextLine(job.id, id, true); if (l) lastBubble = bubble(c, fill(l.text), 2600 + l.text.length * 45); });
 }
+/* ---------- off shift: the people of a workplace can be greeted ---------- */
+/* A first tap gives a line that reflects how far the story has gone; the next taps give one of their own lines. In the four job rooms the people are the
+   room's own figures; in the other workplaces up to two of the job's people who are not cast.js characters stand about when the player has worked there. */
+const VISIT = {
+  jo: ['Visitors are welcome. Mind the yellow line, and do not touch the bell.', 'Nine calls in ten are toast. We practice for the tenth.'], dutch: ['It is not ready. It is never ready before nine. Sit down anyway.', 'She pulls to the right. Do not tell her I said so.'], tully: ['Fifty-one seconds. Ask me again next week.', 'You can try the pole. Everybody wants to try the pole.'],
+  calloway: ['Room 4. We are doing sevens. Come in quietly: quiet is catching.', 'Twenty-two of them and one of me. The arithmetic is not in my favor.'], whitlow: ['Good morning. It is a new day and nobody has done anything wrong in it yet.', 'Visitors sign in with their eyes. Thank you.'], nguyen: ['Three mittens this week. No two the same.', 'Mind the floor by the fountain. It is always wet. Nobody knows why.'],
+  cosmo: ['(Cosmo looks at you for a while. Then he draws something small on his clipboard, and turns it so that you can see.)', '(A map of where you are standing. It is accurate.)'], juniper: ['It is seven. Whatever it is, it is seven. Is it seven?', 'I know all the months. Do you want all the months?'], ayo: ['Why are you here? Why is it Tuesday? Why is a stick an insect?', 'My brother is in the other class. He is exactly the same as me, but worse.'],
+  max: ['If you have a story, the counter is there. If you have a complaint, also the counter.', 'Who cares? That is not rude. That is the question.'], lev: ['Light is good today. Low and from the side.', 'Stand still. No. That was it. It is gone.'], edwina: ['Arriving or departing, dear? I keep a note of both.', 'Fifty years of Comings and Goings. The trick is to spell every name right.'],
+  sunny: ['Oh. Hello. We are, um. I am better with the microphone between us.', 'Sit in, if you like. The red sofa. It does not creak on air.'], hattie: ['Do not touch the fader on four. It sticks. I know that it sticks.', 'Forty-one listeners. That we know of.'],
+};
+const STAGE = [
+  ['First week. You are still looking at your feet when you walk in. That will pass.', 'Off the clock, and here anyway. I will take that as a good sign.'],
+  ['You know where things are now. That is most of the job, the first month.', 'Not working today? Then sit down like a person, not like staff.'],
+  ['You have been here long enough to have opinions. Keep the good ones.', 'Day off, and you came by. So did I, for years.'],
+  ['I still think about that shift. You did what you thought was right. So we did.', 'Since that day I do not check your work. Mostly.'],
+  ['It is your place too, now. You know that.', 'Still here. So are we. Go on, you have the day.'],
+];
+const GONE = ['Your hook is still there. Nobody has been told to move it.', 'The door has not changed. Neither has the offer.'];
+const greeted = {};
+function greetLine(id, jobId) {
+  const R = jr(jobId), n = greeted[id + ':' + G.scene.id] = (greeted[id + ':' + G.scene.id] || 0) + 1, c = curJob(), mine = !!c && c.id === jobId;
+  if (mine && c.onShift) { const l = nextLine(jobId, id, true); return l ? l.text : 'Busy night. Back to it.'; }
+  if (n % 2 === 0 || /^(cosmo)$/.test(id) && R.shifts > 0) { const l = nextLine(jobId, id, true); if (l) return l.text; }
+  if (!R.shifts) return (VISIT[id] || ['Hello.'])[(n >> 1) % (VISIT[id] || [0]).length] || 'Hello.';
+  if (!mine) return GONE[(n >> 1) % GONE.length];
+  const done = (ARCS[jobId] ? ARCS[jobId].beats : []).filter(b => isDone(b)), turn = done.some(b => b.n >= 6), all = flag(jobId + '_arc_done') || done.length >= 9, k = all ? 4 : turn ? 3 : done.length >= 4 ? 2 : done.length >= 2 ? 1 : 0;
+  let t = STAGE[k][(n >> 1) % 2]; const ns = c.nextShift; if (k < 2 && ns !== null && ns !== undefined && (n >> 1) % 2 === 1) t = `Your next shift is ${WDL[Math.floor(ns / DAY) % 7]}. Until then you are a customer.`;
+  return t;
+}
+/** tap on one of a job's people (the job rooms' own figures and the off-shift stand-ins come here) */
+function greet(id, ch, jobId) {
+  jobId = jobId || Object.keys(CASTS).find(j => CASTS[j].people.some(p => p.id === id)); if (!jobId || !ch) return null;
+  const text = fill(greetLine(id, jobId)); lastBubble = bubble(ch, text, 2600 + text.length * 45); safe(() => G.needs.add('social', 1)); G.emit('jobstory:greet', id, jobId); return text;
+}
+/** off shift, in a workplace where the player has worked: up to two of its people who are not cast.js characters are about */
+function greeters() {
+  const sc = G.scene; if (!sc || !sc.indoor || !sc.fixtures || safe(() => G.jobs.onShift(), false)) return;
+  for (const id of JOB_IDS) { const job = JOB_BY_ID[id]; if (!job || id === 'courier' || sc.id !== 'int:' + (job.room || job.venue) || !st().jobs[id] || !st().jobs[id].shifts) continue; setFigures(job, 2, true); return; }
+}
+
 function shiftEnd(sum, show, quiet) {
   const t = T; figures.clear(); if (t && t.room && JOB_BY_ID[t.job] && JOB_BY_ID[t.job].isNew) t.room._closing = false;
   const after = () => { show(); offCheck(); if (sum.promoted) for (const id of textsOn('promoted:' + sum.promoted.level)) if (TEXTS[id].job === sum.jobId) queueText(id); };
@@ -313,17 +356,19 @@ function nextLine(jobId, only, asked) {      /* only = a speaker id (somebody st
 let lastBubble = null;
 /* a line from somebody who is not standing in view: a small card just above the shift panel, with their name */
 function caption(name, text, ms) { injectCss(); const c = el('div.js-cap', null, name ? el('b', { text: name }) : null, el('span', { text })); root().append(c); lastBubble = c; setTimeout(() => c.classList.add('out'), ms); setTimeout(() => c.remove(), ms + 300); return c; }
+const onScreen = c => { const p = c && !c.hidden ? safe(() => G.toScreen(c.x, c.y, (c.z || 0) + 1.9), null) : null; return !!p && p.x > 40 && p.x < innerWidth - 40 && p.y > 170 && p.y < innerHeight - 250; };
 function ambient(jobId) {
-  if (lastBubble && lastBubble.isConnected) return;                 /* never two of ours at once */
-  const here = figures.ids().concat((CASTS[jobId] || { people: [] }).people.map(p => p.id).filter(id => isCast(id) && figures.char(id)));
-  /* prefer somebody who is standing in the room; every third line may come from someone who is not (a caption) */
-  let l = null; if (here.length && Math.random() < .75) l = nextLine(jobId, here[Math.floor(Math.random() * here.length)]); if (!l) l = nextLine(jobId);
-  if (!l) return null; const c = figures.char(l.who), text = fill(l.text), ms = 2600 + text.length * 45;
-  /* a bubble over the speaker when they are on screen and clear of the HUD; otherwise (or for somebody who is not in the room) a caption with their name */
-  const p = c ? safe(() => G.toScreen(c.x, c.y, (c.z || 0) + 1.9), null) : null, seen = p && p.x > 50 && p.x < innerWidth - 50 && p.y > 190 && p.y < innerHeight - 260;
-  if (c && seen) { lastBubble = bubble(c, text, ms); safe(() => c.faceTo(G.player.x, G.player.y)); }
+  if (lastBubble && lastBubble.isConnected) return null;                 /* never two of ours at once */
+  const here = figures.ids().concat((CASTS[jobId] || { people: [] }).people.map(p => p.id).filter(id => isCast(id) && figures.char(id))), near = here.filter(id => onScreen(figures.char(id)));
+  /* SEEN FIRST: somebody who is standing in view speaks in a bubble over their head; every fourth line (or when nobody is in view) comes from somebody
+     else in the room or out of it, as a caption with their name above the shift panel */
+  let l = null; if (near.length && Math.random() < .78) l = nextLine(jobId, near[Math.floor(Math.random() * near.length)]);
+  if (!l && here.length && Math.random() < .5) l = nextLine(jobId, here[Math.floor(Math.random() * here.length)]); if (!l) l = nextLine(jobId);
+  if (!l) return null; const c = figures.char(l.who), text = fill(l.text), ms = 2800 + text.length * 50, seen = onScreen(c);
+  if (seen) { lastBubble = bubble(c, text, ms); safe(() => { if (!c.poseOpts) c.faceTo(G.player.x, G.player.y); c._hold = Math.max(c._hold || 0, 2); }); }
   else caption(who(l.who).short || '', text, ms);
-  return l;
+  G.emit('jobstory:line', l.who, seen ? 'bubble' : 'caption', text);
+  return { who: l.who, how: seen ? 'bubble' : 'caption', text };
 }
 
 /* ---------- off-shift beats: invitations ---------- */
@@ -398,7 +443,7 @@ const debug = {
   /** on a shift: one test ticket at a station of the job (to check that the player can walk to it and use it); returns the ticket id for G.jobs.goStep */
   tryStation(station, k) { const o = WK.inject({ title: 'Test: ' + station, task: { id: 'test_station', name: 'Test ' + station, station, minutes: 1, anim: 'work', bonus: 0 }, run: async () => 1 }); if (o && k) o.steps[0].fi = k; if (o) WK.sync(); return o ? o.id : null; },
   texts() { const s = st(); s.textDay = -1; for (const q of s.q) q.at = 0; pumpTexts(); return s.q.length; },
-  today: () => (T ? { job: T.job, n: T.n, beat: T.beat && T.beat.id, mode: T.mode, play: T.play } : null),
+  today: () => (T ? { job: T.job, n: T.n, beat: T.beat && T.beat.id, mode: T.mode, play: T.play } : null), who: id => who(id), figs: () => figures.ids(), give: id => give(id), greet: (id, jobId) => { const c = figures.char(id); return c ? greet(id, c, jobId) : null; }, greeters: () => { greeters(); return figures.ids(); },
   state: () => st(), next: (jobId, n) => { const b = nextBeat(jobId, n === undefined ? jr(jobId).shifts + 1 : n); return b ? b.id : null; },
   async menu() {
     const cur = curJob(), jobId = await choose('Job stories', JOB_IDS.map(id => { const a = arc(id); return { label: (JOB_BY_ID[id] ? '' : '(no room yet) ') + id, sub: `${a.title} · shift ${a.shifts} · ${a.beats.filter(b => b.done).length}/9 beats${cur && cur.id === id ? ' · your job' : ''}`, value: id }; }));
@@ -414,10 +459,10 @@ export function init() {
   st(); for (const id in MOODLETS_NEW) regMood(id);
   for (const id in OPPS) { const row = OPPS[id]; if (row.when && row.when.flag && !POOL_BY_ID[id]) { POOL.push(row); POOL_BY_ID[id] = row; } }      /* flag-gated rows join the normal pool */
   G.jobStory = { clockIn, shiftEnd, addRel, arc, next: jobId => { const id = jobId || (curJob() || {}).id; return id ? nextBeat(id, jr(id).shifts + 1) : null; }, rel: relOf, pick: id => st().picks[id], flag, keepsakes,
-    play, hasPlay: id => !!PLAY[id], playName: id => (PLAYS[id] ? PLAYS[id].name : ''), active: () => running, test, TUNE, debug };
+    play, hasPlay: id => !!PLAY[id], playName: id => (PLAYS[id] ? PLAYS[id].name : ''), active: () => running, test, greet, TUNE, debug };
   G.addSystem({ name: 'jobstory', update });
   G.on('minutes', () => { pumpTexts(); offTry(); });
-  G.on('scene', () => { figures.clear(); if (T && T.mode === 'work' && safe(() => G.jobs.shift(), null) === T.sh && G.scene && G.scene.id === WK.cur()?.roomId) setFigures(JOB_BY_ID[T.job]); setTimeout(offTry, 600); setTimeout(staffDoors, 80); });
+  G.on('scene', () => { figures.clear(); if (T && T.mode === 'work' && safe(() => G.jobs.shift(), null) === T.sh && G.scene && G.scene.id === WK.cur()?.roomId) setFigures(JOB_BY_ID[T.job]); else setTimeout(() => safe(greeters), 300); setTimeout(offTry, 600); setTimeout(staffDoors, 80); });
   G.on('day', () => offCheck());
   G.on('job:hired', () => offCheck());
   G.on('opp:done', (id, row) => { const r = row && row.reward && row.reward.rel; for (const k in r || {}) if (!isCast(k) && k !== 'boss') addRel(k, r[k]); });
@@ -425,7 +470,8 @@ export function init() {
     const s = st(), b = s.cur && BEATS_BY_ID[s.cur.id]; if (!b) { s.cur = null; return; }
     /* a save made in the middle of a beat: carry on from the same line if the player is still standing there */
     setTimeout(() => { const job = JOB_BY_ID[b.job], here = b.at === 'off' ? atPlace(b) : job && G.scene && G.scene.id === 'int:' + (job.room || job.venue); if (here && !running && !chapterBusy()) runBeat(b).then(r => { if (r === 'out') putDown(); }); }, 1600); };
-  G.on('load', wake); G.on('ready', () => { wake(); offCheck(); setTimeout(staffDoors, 80); safe(() => G.myDay.addSource(ideaSource)); safe(() => defineNav()); });
+  const keeps = () => { const s = st(), got = syncKeeps(s.keeps, s.given); if (got.length) toast('Your keepsakes from work are with your things at home now: hang them where you like.', 'info', 5200); };
+  G.on('load', () => { wake(); setTimeout(() => safe(keeps), 2500); }); G.on('ready', () => { wake(); offCheck(); setTimeout(() => safe(keeps), 2500); setTimeout(staffDoors, 80); safe(() => G.myDay.addSource(ideaSource)); safe(() => defineNav()); });
 }
 /* STAFF DOOR. Some workplaces shut their public door outside opening hours and walk visitors out (the Aquarium before 9, the Conservatory before 9: their
    own modules, not ours to edit), but the aquarist and the florist start at 7. For the half hour before a shift and during it, the door of the player's own

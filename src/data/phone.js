@@ -143,7 +143,7 @@ export const NOTIFICATIONS = [
   { id: 'low_balance', app: 'bank', priority: 'normal', trigger: 'balance drops below $50, or below 0', example: 'Balance is low: $38', cooldownMinutes: 1440 },
   { id: 'need_low', app: 'wellness', priority: 'normal', trigger: 'a need enters its low band', example: 'Getting hungry...', cooldownMinutes: 180 },
   { id: 'need_critical', app: 'wellness', priority: 'high', trigger: 'a need enters its critical band', example: 'You are exhausted. Find a bed (or a cab home).', cooldownMinutes: 90 },
-  { id: 'skill_up', app: 'wellness', priority: 'normal', trigger: 'a skill gains a level', example: 'Cooking is now level 3! New recipes unlocked.', cooldownMinutes: 0 },
+  { id: 'skill_up', app: 'wellness', priority: 'low',   /* QA9: the toast + the level card already say it; the phone keeps it quietly */ trigger: 'a skill gains a level', example: 'Cooking is now level 3! New recipes unlocked.', cooldownMinutes: 0 },
   { id: 'journal_first', app: 'wellness', priority: 'low', trigger: 'a Journal "first" is recorded', example: 'Journal: First ride on the Bay Wheel', cooldownMinutes: 0 },
   { id: 'taxi_arriving', app: 'taxi', priority: 'normal', trigger: 'the cab is 1 minute away / has arrived', example: 'Your MapleCab is outside', cooldownMinutes: 0 },
   { id: 'delivery_update', app: 'delivery', priority: 'normal', trigger: 'food order at the door; furniture delivered; parcel ready at ZipParcel', example: 'Ding-dong! Your pizza is here', cooldownMinutes: 0 },

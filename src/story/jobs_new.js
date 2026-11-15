@@ -7,11 +7,11 @@
 //   room      the room id where the time clock is, when it differs from `venue` (airport, the Galleria bay).
 //   boss      speaker id of the boss (CASTS in jobs_arcs.js); the new rows for story/cast.js JOBS and texts.js JOB_TEXTS key off it.
 //   hoursNote one line for the listing when the rhythm is unusual (nights, three long shifts).
-//   needsRoom true = the workplace is a room that does not exist yet (see PLACES_NEW). The job should not be listed until it does.
+//   needsRoom true = the workplace is a room that does not exist yet. (None now: the four rooms of PLACES_NEW are built, scenes/rooms/job_rooms.js.)
 //   texts     { offer, firstDay, goodShift, promotion[3], warning, lastWarning, letGo }  in the shape of texts.js JOB_TEXTS rows,
 //             so the existing boss-text code works unchanged. Tokens: {name} {level}.
 //
-// PLACES_NEW  the four workplaces that need a new ROOM inside a building that already stands on the map (nothing in the city moves).
+// PLACES_NEW  the four workplaces that were new ROOMS inside buildings that already stood on the map (built: scenes/rooms/job_rooms.js; nothing in the city moved).
 // PLAYS       for ALL 25 jobs: the one distinctive piece of play, in one screen. Full descriptions in docs/story/JOBS.md.
 // =============================================================================
 
@@ -246,7 +246,7 @@ export const NEW_JOBS = [
     } },
 
   // ------------------------------------------------------------------ 17. RADIO DJ
-  { id: 'radio_dj', name: 'Radio Host', venue: 'radio_studio', boss: 'hattie', listedOn: 'computer', needsRoom: true,
+  { id: 'radio_dj', name: 'Radio Host', venue: 'radio_studio', boss: 'hattie', listedOn: 'computer',
     blurb: 'Bay Radio 98.6 wants a voice for the hours after nine. Bakers, nurses, cab drivers and the lighthouse are listening.',
     hoursNote: 'Thursday to Monday, nine at night till one in the morning.',
     requires: { charisma: 2 },
@@ -282,7 +282,7 @@ export const NEW_JOBS = [
     } },
 
   // ------------------------------------------------------------------ 18. TEACHER
-  { id: 'teacher', name: 'Teacher', venue: 'school_classroom', boss: 'whitlow', listedOn: 'computer', needsRoom: true,
+  { id: 'teacher', name: 'Teacher', venue: 'school_classroom', boss: 'whitlow', listedOn: 'computer',
     blurb: 'Maplewood Elementary, Room 4. Twenty-two second-graders want a second pair of eyes. School hours, school holidays.',
     hoursNote: 'Monday to Friday, eight till three.',
     requires: { logic: 2, charisma: 2 },
@@ -463,7 +463,7 @@ export const NEW_JOBS = [
     } },
 
   // ------------------------------------------------------------------ 23. REPORTER
-  { id: 'reporter', name: 'Reporter', venue: 'gazette_newsroom', boss: 'max', listedOn: 'computer', needsRoom: true,
+  { id: 'reporter', name: 'Reporter', venue: 'gazette_newsroom', boss: 'max', listedOn: 'computer',
     blurb: 'The Maple Bay Gazette wants a reporter who will go and stand in the place. Assignments all over the city. Spell every name right.',
     hoursNote: 'Monday to Friday, ten till six, mostly out of the office.',
     requires: { writing: 2 },
@@ -536,7 +536,7 @@ export const NEW_JOBS = [
     } },
 
   // ------------------------------------------------------------------ 25. FIREFIGHTER
-  { id: 'firefighter', name: 'Firefighter', venue: 'fire_station', boss: 'jo', listedOn: 'computer', needsRoom: true,
+  { id: 'firefighter', name: 'Firefighter', venue: 'fire_station', boss: 'jo', listedOn: 'computer',
     blurb: 'Maple Bay Fire Station No. 2. Three night shifts a week. Nine calls in ten are toast. We practice for the tenth.',
     hoursNote: 'Wednesday, Friday and Sunday nights, eight in the evening till four in the morning.',
     requires: { fitness: 4, handiness: 2 },

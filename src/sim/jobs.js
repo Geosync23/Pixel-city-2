@@ -18,7 +18,7 @@
 // State G.state.jobs = { job: { id, level, points, hiredDay, from, shifts, streak, warnings, lastDay, offWeek } | null, shift: {...} | null,
 //                        history: { [jobId]: { level, points, day, reapply } }, gigs: { day, count, cool: {id: t}, active }, stats, appts: { [day]: apptId }, last }
 // A save made mid-shift ends the shift on load, paid for the time worked.
-// JOB STORIES (sim/jobstory.js, G.jobStory): the 11 new jobs that need no new room are appended to JOBS here at load (rows: story/jobs_new.js NEW_JOBS; boss texts
+// JOB STORIES (sim/jobstory.js, G.jobStory): the 15 new jobs (the last four work in scenes/rooms/job_rooms.js) are appended to JOBS here at load (rows: story/jobs_new.js NEW_JOBS; boss texts
 //   go into JOB_TEXTS). A job may carry `room` (the room with its stations when it is not `venue`: the airport concourse / terminal) and `boss` (a speaker id that is
 //   not a cast.js person: texts are sent with the speaker's name, relationship is kept by G.jobStory). Clock-in hands over to G.jobStory.clockIn (a clock-in beat, then
 //   the "Work the shift / Skip to the end" card); the pay card waits for G.jobStory.shiftEnd (a clock-out beat).   roomOf(job) -> scene id of the workplace.
@@ -28,15 +28,16 @@ import { DISCOUNTS } from '../data/economy.js';
 import { JOB_TEXTS } from '../story/texts.js';
 import { CAST_BY_ID } from '../story/cast.js';
 import { NEW_JOBS, SPEAKERS } from '../story/jobs_arcs.js';
+import { JOB_WEAR } from './_jobstory_wear.js';
 import { toast } from '../ui/kit.js';
 import * as UI from '../ui/jobs.js';
 import * as WK from './_jobs_work.js';
 import { leash } from './_crowd_animals.js';
 
-/* ---------- the new jobs (story/jobs_new.js): the rows that need no new room go live here; `uniform` is mapped to outfit art that exists ---------- */
-const UNIFORM_ART = { gate_agent: 'pilot', ramp: 'dockworker', station: 'busdriver', retail: 'office', docent: 'librarian', florist: 'grocer', aquarist: 'trainer', chef: 'chef', bellhop: 'taxidriver', barber: 'barista', firefighter: 'dockworker', none: null };
+/* ---------- the 15 new jobs (story/jobs_new.js) go live here ---------- */
+/* shift clothes: a proper uniform per job, made of clothes-system pieces (sim/_jobstory_wear.js JOB_WEAR; the work pieces are drawn in art/jobs/uniforms.js) */
 for (const row of NEW_JOBS) { if (row.needsRoom || JOB_BY_ID[row.id]) continue; /* `uniform` stays empty on purpose: sim/_crowd_rooms.js dresses a venue's ambient staff in the uniform of the job at that venue, and these venues have their own staff looks. The player's shift clothes are `wear`. */
-  const j = Object.assign({}, row, { uniform: null, wear: UNIFORM_ART[row.uniform] !== undefined ? UNIFORM_ART[row.uniform] : null, isNew: true }); JOBS.push(j); JOB_BY_ID[j.id] = j; if (!JOB_TEXTS[j.id]) JOB_TEXTS[j.id] = Object.assign({ boss: row.boss }, row.texts); }
+  const j = Object.assign({}, row, { uniform: null, wear: JOB_WEAR[row.id] || null, isNew: true }); JOBS.push(j); JOB_BY_ID[j.id] = j; if (!JOB_TEXTS[j.id]) JOB_TEXTS[j.id] = Object.assign({ boss: row.boss }, row.texts); }
 export const roomOf = job => 'int:' + (job.room || job.venue);
 const story = () => G.jobStory || null;
 export const SHIFT_SPEED = 2;      // game minutes per real second while on shift (a 6 h shift = 3 real minutes, minus task fast-forwards)

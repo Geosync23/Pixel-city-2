@@ -342,7 +342,7 @@ const teacher = (() => {
     ] },
     arc: { title: 'Room 4', premise: 'A second-grade classroom, a boy who draws maps instead of talking, and a teacher who is about to go on leave and hand you the chalk.', beats: [
       B('room_four', 'The Door With the Paper Sun', { shifts: 1 }, 'clockin', [
-        WH('Good morning. Room 4 is the door with the paper sun on it. You are Mr.'), WH('Calloway\'s classroom aide. That means that you are the second pair of eyes.'),
+        WH('Good morning. Room 4 is the door with the paper sun on it.'), WH('You are Mr. Calloway\'s classroom aide. That means that you are the second pair of eyes.'),
         NR('You\'re actually here. In my building. If you make me laugh during assembly, I\'ll deny that we\'ve ever met.'),
         CL('Welcome! Twenty-two of them. The rule is: never ask "who wants to?". Ask "who can show me?". You\'ll see why inside a minute.'),
         n('Twenty-two faces turn round. Twenty-one of them start talking. One, at the window table, goes on drawing.'),

@@ -165,7 +165,7 @@ const ideaScene = (c, x, y, w, h) => { D.R(c, x, y, w, h, '#fffdf4'); for (let r
 const GAMES = {
   flip: { quietAuto: true, skill: 'cooking', title: () => 'Flip it!', fxc: PAL.good,
     kit: () => ({ kind: 'timing', icon: 'skill.cooking', hint: 'Tap when the marker is in the green to flip at just the right moment.', o: { rounds: 5 }, scene: panScene, verdicts: ['A bit burnt', 'Edible', 'Tasty', 'Chef\'s kiss!'] }),
-    result: R => ({ icon: 'skill.cooking', title: R.played ? `${R.stats.perfect || 0} perfect flips` : 'Cooked the usual way', lines: [R.bonusServing ? 'Chef\'s touch: one extra serving!' : R.played && R.q < .3 ? 'A little scorched. Still dinner.' : null] }) },
+    result: R => ({ icon: 'skill.cooking', title: R.played ? `${R.stats.perfect || 0} perfect flips` : 'Cooked the usual way', lines: [R.bonusServing ? 'Chef\'s touch: one extra serving!' : R.played && R.q < .3 ? 'A little scorched. Still edible.' : null] }) },
   reps: { quietAuto: true, skill: 'fitness', title: l => 'Clean reps: ' + LADDER.fitness.rungs[l - 1], fxc: PAL.heart,
     kit: () => ({ kind: 'timing', icon: 'skill.fitness', hint: 'Tap at the top of each rep, inside the green.', o: { rounds: 6, zone: .32 }, theme: { icon: 'skill.fitness' }, verdicts: ['Sloppy set', 'Decent set', 'Strong set', 'Perfect form!'] }),
     result: R => { const g = R.played ? +(R.q * 1.5).toFixed(1) : .5; safe(() => G.needs.addFitness(g), 0); return { icon: 'skill.fitness', title: R.played ? `${R.stats.perfect || 0} clean reps of ${R.stats.rounds || 6}` : 'A steady workout', lines: [`Fitness +${g}`] }; } },

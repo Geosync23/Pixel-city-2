@@ -104,8 +104,7 @@ for (const j of J.NEW_JOBS) {
   if (!placeOk(j.venue, w + ' venue')) { /* reported */ }
   if (j.room) placeOk(j.room, w + ' room');
   if (j.bay) placeOk(j.bay, w + ' bay');
-  if (J.PLACES_NEW[j.venue] && !j.needsRoom) err(w, 'venue is in PLACES_NEW but needsRoom is not set');
-  if (!J.PLACES_NEW[j.venue] && j.needsRoom) err(w, 'needsRoom set but venue is not in PLACES_NEW');
+  if (j.needsRoom) err(w, 'needsRoom is set, but every room of PLACES_NEW is built now (scenes/rooms/job_rooms.js): remove it or the job is never listed');
   const t = j.texts || {};
   for (const k of ['offer', 'firstDay', 'goodShift', 'warning', 'lastWarning', 'letGo']) { if (typeof t[k] !== 'string') err(w, `texts.${k} missing`); else if (t[k].length > TEXT_LIMIT) err(w, `texts.${k} is ${t[k].length} chars (> ${TEXT_LIMIT})`); }
   if (!Array.isArray(t.promotion) || t.promotion.length !== j.levels.length - 1) err(w, 'texts.promotion needs one line per promotion');
@@ -115,7 +114,7 @@ for (const j of J.NEW_JOBS) {
   if (!J.PLAYS[j.id]) err(w, 'no PLAYS entry');
 }
 for (const id of existingIds) { if (!J.PLAYS[id]) err('job ' + id, 'no PLAYS entry'); if (J.CASTS[id] && CAST.JOBS[id] && J.CASTS[id].boss !== CAST.JOBS[id].boss) err('job ' + id, `boss ${J.CASTS[id].boss} differs from cast.js JOBS (${CAST.JOBS[id].boss})`); }
-for (const id in J.PLACES_NEW) { const p = J.PLACES_NEW[id]; if (!quoted(p.building).some(q => inDirs(q, ['src/world/', 'src/art/', 'src/sim/']))) err('PLACES_NEW.' + id, `building ${p.building} not found in the world / art data`); if (idInGame(id)) err('PLACES_NEW.' + id, 'this id already exists in the game'); }
+for (const id in J.PLACES_NEW) { const p = J.PLACES_NEW[id]; if (!quoted(p.building).some(q => inDirs(q, ['src/world/', 'src/art/', 'src/sim/']))) err('PLACES_NEW.' + id, `building ${p.building} not found in the world / art data`); if (!idInGame(id)) err('PLACES_NEW.' + id, 'this room is not defined in the game source (expected in src/scenes/rooms/job_rooms.js)'); }
 for (const id in J.PLAYS) { const p = J.PLAYS[id]; if (!JOB[id]) err('PLAYS.' + id, 'unknown job'); if (!(p.seconds[0] >= 60 && p.seconds[1] <= 120)) err('PLAYS.' + id, 'seconds outside 60-120'); for (const k of ['name', 'reuses', 'how', 'good', 'bad', 'pays']) if (!p[k]) err('PLAYS.' + id, `missing ${k}`); }
 
 /* ---- casts and speakers ---- */
@@ -395,7 +394,7 @@ try { JSON.stringify(J.ARCS); JSON.stringify(J.NEW_JOBS); JSON.stringify(J.OPPS)
 /* ---- report ---- */
 const lens = beatLens.map(x => x[1]).sort((a, b) => a - b), inBand = lens.filter(n => n >= 6 && n <= 14).length;
 console.log('jobs_check');
-console.log(`  jobs        ${J.JOB_IDS.length} (${existingIds.length} existing + ${newIds.length} new); ${Object.keys(J.PLACES_NEW).length} need a new room`);
+console.log(`  jobs        ${J.JOB_IDS.length} (${existingIds.length} existing + ${newIds.length} new); ${Object.keys(J.PLACES_NEW).length} in the four job rooms`);
 console.log(`  beats       ${nBeats} (min ${Math.min(...J.JOB_IDS.map(j => J.ARCS[j].beats.length))} per job); lines per beat on the longest path: min ${lens[0]}, median ${lens[lens.length >> 1]}, max ${lens[lens.length - 1]}; ${inBand}/${lens.length} within 6-14`);
 console.log(`  dialogue    ${nSay} say lines (${nWords} words), ${nChoices} choices with ${nOptions} options; longest line ${maxLen} chars`);
 console.log(`  cast        ${seenPerson.size} speakers: ${newPeople} new people, ${existingPeople} existing (cast.js or showpiece staff)`);

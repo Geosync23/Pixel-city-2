@@ -27,7 +27,8 @@ function sheet(o) {
   let over = false, res, T = 0, T0 = 0, onTime = null; const done = new Promise(r => { res = r; }), timers = [];
   const body = el('div.jp-body'), hint = el('div.jp-hint'), bar = el('i'), timer = el('div.jp-timer', null, bar), note = el('div.jp-note');
   const end = v => { if (over) return; over = true; clearInterval(iv); timers.forEach(f => f()); wrap.remove(); G.modal--; res(v); };
-  const wrap = el('div.jp-wrap', null, el('div.jp', { role: 'dialog', 'aria-label': o.title },
+  /* the hidden `.jm-res` marker: sim/firsttime.js calm() reads an open result element as "a scene is on", so no first-time window opens over a play */
+  const wrap = el('div.jp-wrap', null, el('i.jm-res.js-calm', { hidden: true, style: { display: 'none' } }), el('div.jp', { role: 'dialog', 'aria-label': o.title },
     el('div.jp-head', null, el('div.jp-tt', null, el('b', { text: o.title }), el('small', { text: o.sub || '' })), o.noAuto ? null : el('button.jp-b.jp-auto', { 'data-jp': 'auto', text: 'Auto', title: 'Skip the game and take the usual result', onclick: () => end(AUTO) }), o.noAuto ? null : el('button.jp-b', { 'data-jp': 'x', text: 'x', 'aria-label': 'Close', onclick: () => end(QUIT) })),
     hint, timer, body, note));
   root().append(wrap);

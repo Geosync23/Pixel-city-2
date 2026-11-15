@@ -195,7 +195,7 @@ export function init() {
   G.on('title:show', () => { if (M) M.done('ok'); });
   void tickT; setInterval(() => { if (!started() || G.onTitle) return;
     if (G.modal > 0 || safe(() => G.phone.isOpen, false) || safe(() => G.furnish.active, false) || document.querySelector('#ph-banners > *')) lastUI = real();   /* QA8: also a banner just swiped away */
-    if (G.pending || safe(() => G.player.path && G.player.path.length, 0)) lastWalk = real();   /* QA9: a walk just ended (at a door the arrow led to: the next tap is 'go in') */
+    if (G.pending || G.busy || safe(() => G.player.path && G.player.path.length, 0)) lastWalk = real();   /* QA9: a walk just ended (at a door the arrow led to: the next tap is 'go in') */
     if (safe(() => G.furnish.active, false) && introDone()) { safe(() => G.shelf.touch('decor')); if (!S().seen.decorate && !S().off) offer('decorate', { now: true }); }
     tick(); }, 500);
 }

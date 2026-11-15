@@ -108,3 +108,23 @@
 .jp-dish.on{background:#ffe9a6;box-shadow:none}
 .jp-dish.done{background:#c9efc5}
 @media (orientation:landscape) and (max-height:520px){.jp-wrap{justify-content:center;align-items:flex-end;padding-right:10px}.jp{border-bottom:2px solid var(--edge);max-height:98%}.jsc-wrap{justify-content:center}}
+
+/* J3: the four room jobs' plays */
+.jp-intro{position:relative;height:40px;background:#e4d6b4;border:2px solid var(--edge);overflow:hidden}
+.jp-intro i{position:absolute;left:0;top:0;bottom:0;width:0;background:#f2c230}
+.jp-intro u{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#c8322c;box-shadow:0 0 0 1px var(--edge)}
+.jp-intro span{position:absolute;left:6px;top:11px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.65}
+.jp-intro span.r{left:auto;right:6px}
+.jp-intro.over i{background:#e0705a}.jp-intro.done i{background:#8fd08a}
+.jp-hold{min-height:64px;touch-action:none;user-select:none;-webkit-user-select:none}
+.jp-hold.on{background:#ffb347;transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.jp-kids{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.jp-kid{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;min-height:74px;padding:4px 2px 5px;font-size:14px;font-weight:700;background:#efe3c4;border:2px solid #9a8a66;opacity:.75}
+.jp-kid.up{background:#fffdf4;border-color:var(--edge);box-shadow:0 3px 0 var(--edge);opacity:1}
+.jp-kid em{position:absolute;right:3px;top:1px;font-style:normal;font-size:19px}
+.jp-kid small{font-size:10.5px;font-weight:600;opacity:.7}
+.jp-kface{display:block;width:34px;height:34px;overflow:hidden}.jp-kface canvas{display:block;image-rendering:pixelated}
+.jp-kid:disabled{opacity:.6}
+.jp-att{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.jp-att .jp-timer{flex:1}
+.jp-dispatch{background:#fff4e0;border-left:10px solid #c8322c}

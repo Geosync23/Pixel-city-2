@@ -243,7 +243,7 @@ export const GOAL_LISTS = {
       { id: 'ride_train', text: 'Ride the light rail', hint: 'Walk up to any station. Tap your phone at the gate.',
         doneWhen: 'rode_train', doneText: 'All aboard. The loop takes 30 minutes and never gets old.' },
       { id: 'library_job', text: 'Find a job on a library computer', hint: 'Public Library, Arts Quarter, upstairs.',
-        doneWhen: 'job_accepted', doneText: "Hired! Check My Day for your first shift." },
+        doneWhen: 'job_accepted', doneText: 'Your first shift is on My Day.' },
       { id: 'say_hi', text: 'Introduce yourself to 3 people', hint: 'Walk up to someone and tap Talk at the bottom of the screen. Most people here like it.',
         doneWhen: 'met_npcs:3', doneText: 'Three names learned. Only a few thousand to go.' },
     ],

@@ -69,14 +69,14 @@ export const GROUP = ['saoirse', 'mateo', 'agnes', 'bao'];
 
 export const LECTURES = {
   cook: [
-    { title: 'Heat: what cooking actually is', open: 'Good. Aprons are for Thursday. Today, heat.',
+    { title: 'Heat: what cooking actually is', open: 'Good. Aprons are for next time. Today, heat.',
       boards: [
         { h: 'Brown food tastes good', t: 'Above about 150 degrees, sugars and proteins on the surface react and make hundreds of new flavours. It is called the Maillard reaction, and it is why toast beats bread.', fig: 'curve' },
         { h: 'Water is the enemy of brown', t: 'Water cannot get hotter than 100 degrees. A wet steak steams; it cannot brown until the surface is dry. So: pat it dry, and do not crowd the pan.', fig: 'pan' },
         { h: 'Rest it', t: 'Heat keeps travelling inward after you take food off. A rested roast finishes cooking on the board and keeps its juice. Five minutes of doing nothing is a technique.', fig: 'layers' }],
       ask: [['Why does a crowded pan give grey meat instead of brown?', ['The pan cools and the food steams in its own water', 'Meat needs to touch other meat', 'Crowding uses up the oxygen'], 0, 'Steam. A hundred degrees is not hot enough to brown anything.'],
         ['Roughly how hot must a surface be before it browns properly?', ['About 60 degrees', 'About 100 degrees', 'About 150 degrees'], 2, 'A hundred and fifty, give or take. Above boiling, which is the whole point.']],
-      close: 'Read chapter two before Thursday. And dry your steak.' },
+      close: 'Read chapter two before next class. And dry your steak.' },
     { title: 'Salt, acid, fat', open: 'Three things fix nine dishes out of ten. Pens out.',
       boards: [
         { h: 'Salt early', t: 'Salt takes time to travel into food. Salted an hour ahead, meat is seasoned through; salted at the table it only tastes salty on top.', fig: 'layers' },
@@ -93,7 +93,7 @@ export const LECTURES = {
         { h: 'Things shrink as they go away', t: 'Parallel lines seem to meet at a point on the horizon. Put that point down first and the street draws itself.', fig: 'grid' }],
       ask: [['What turns a flat circle into a ball on paper?', ['A thicker outline', 'A light side, a dark side and a cast shadow', 'Drawing it bigger'], 1, 'Light and shadow. The outline is the least interesting part.'],
         ['In perspective, where do the edges of a straight road appear to meet?', ['At the vanishing point on the horizon', 'At the bottom of the page', 'They never meet'], 0, 'On the horizon, at eye level. Find it first.']],
-      close: 'Easels on Friday. Wear something you do not love.' },
+      close: 'Easels next class. Wear something you do not love.' },
     { title: 'Colour: warm comes forward', open: 'Everybody thinks they know what colour things are. Everybody is wrong. It is lovely.',
       boards: [
         { h: 'The wheel', t: 'Red, yellow and blue make everything else. Colours opposite each other on the wheel, like blue and orange, are complements: side by side they make each other shout.', fig: 'wheel' },
@@ -110,7 +110,7 @@ export const LECTURES = {
         { h: 'Start late', t: 'Begin as close to the trouble as you can. We do not need the alarm clock, the shower and the bus. Open on the door she is afraid to knock on.', fig: 'flow' }],
       ask: [['Which line shows rather than tells?', ['He was very angry.', 'He folded the letter into a smaller and smaller square.', 'He felt a great deal of anger inside.'], 1, 'The letter. I know exactly how he feels and you never said it.'],
         ['What three things make a story rather than an anecdote?', ['A beginning, a middle and a moral', 'A want, an obstacle and a change', 'A hero, a villain and a twist'], 1, 'Want, obstacle, change. Write it on your wall.']],
-      close: 'For Saturday: read the Marlowe story. It is four pages. Read it twice.' },
+      close: 'For next class: read the Marlowe story. It is four pages. Read it twice.' },
     { title: 'Editing: kill your darlings', open: 'Writing is rewriting. I am sorry. Nobody tells you at the start.',
       boards: [
         { h: 'Cut the throat-clearing', t: 'First drafts warm up on the page. Your real opening is usually hiding in paragraph two or three. Find it and delete everything above.', fig: 'bars' },
@@ -127,7 +127,7 @@ export const LECTURES = {
         { h: 'Repeat: loops', t: 'Do the same steps again and again until something is true: stir UNTIL the sugar is gone. A loop is why a computer can do in a second what would take you a week.', fig: 'loop' }],
       ask: [['Which of these is a proper step for a computer?', ['Make breakfast', 'Do the usual', 'Put one slice of bread in the toaster'], 2, 'One slice, in the toaster. Small and exact.'],
         ['What does a loop do?', ['Repeats steps until a condition is met', 'Chooses between two paths', 'Stores a number'], 0, 'Repeats. Until something tells it to stop, which is the part people forget.']],
-      close: 'Thursday we build something. Bring patience. I will bring the duck.' },
+      close: 'Next class we build something. Bring patience. I will bring the duck.' },
     { title: 'Bugs, and how to find them', open: 'Today is about being wrong, which is most of the job.',
       boards: [
         { h: 'The computer did what you said', t: 'A bug is not the machine misbehaving. It is the program doing exactly what was written, which is not what was meant. The gap between the two is the bug.', fig: 'eye' },
@@ -144,7 +144,7 @@ export const LECTURES = {
         { h: 'Rests count', t: 'A rest is a silence with an exact length. Musicians count through it. The silence before the last chord is why the last chord works.', fig: 'pause' }],
       ask: [['What is the difference between beat and rhythm?', ['They are the same thing', 'The beat is the steady pulse; rhythm is the pattern on top', 'Rhythm is louder'], 1, 'Pulse underneath, pattern on top. Clap it and you feel it.'],
         ['How many beats to the bar in a waltz?', ['Two', 'Three', 'Four'], 1, 'Three. ONE two three. Your feet already knew.']],
-      close: 'Friday at the piano. Clip your nails.' },
+      close: 'Next class, at the piano. Clip your nails.' },
     { title: 'Pitch and four chords', open: 'Today, the secret the radio does not want you to know.',
       boards: [
         { h: 'Twelve notes, then again', t: 'There are only twelve different notes. After the twelfth it starts over, higher: an octave. Same letter, double the vibration.', fig: 'staff' },
@@ -161,7 +161,7 @@ export const LECTURES = {
         { h: 'Half speed', t: 'Nervous people speed up. Aim for what feels far too slow: it will come out as normal. Finish each sentence before you start the next.', fig: 'bars' }],
       ask: [['Your heart is pounding before a talk. What is the most useful way to think of it?', ['Proof you should not be doing this', 'Energy your body is giving you for the job', 'Something to hide at all costs'], 1, 'Fuel. The body is on your side.'],
         ['When should you pause?', ['Never, it looks like you forgot', 'Around the thing that matters most', 'Only at the very end'], 1, 'Before it and after it. Frame it.']],
-      close: 'Thursday, at the podium. Bring one true thing to say. Thirty seconds of it.' },
+      close: 'Next class, at the podium. Bring one true thing to say. Thirty seconds of it.' },
     { title: 'One idea, three parts', open: 'If they remember one thing, which thing? Decide that first.',
       boards: [
         { h: 'One idea', t: 'A talk is not everything you know. It is one idea, said clearly, with reasons. If you cannot write it on a ticket stub, you do not have it yet.', fig: 'tri' },
@@ -178,7 +178,7 @@ export const LECTURES = {
         { h: 'Pull one thread', t: 'Take the otters out and the urchins multiply and eat the kelp forest flat. One animal that holds a whole system up is called a keystone species.', fig: 'tree' }],
       ask: [['About how much energy passes from one level of a food chain to the next?', ['Nearly all of it', 'About half', 'About a tenth'], 2, 'A tenth. Which is why the top of the pyramid is small.'],
         ['What is a keystone species?', ['The biggest animal around', 'One whose loss changes the whole system', 'Any animal that eats plants'], 1, 'Take it out and everything else moves. Otters, here.']],
-      close: 'Friday we go pond dipping behind the quad. If it rains, the tank comes to us.' },
+      close: 'Next class we go pond dipping behind the quad. If it rains, the tank comes to us.' },
     { title: 'The pond and the tide', open: 'Two waters meet in Maple Bay. That is the whole reason there is so much living here.',
       boards: [
         { h: 'Where river meets sea', t: 'Fresh water from the river slides over heavier salt water from the bay. That mixing zone, an estuary, is one of the richest habitats there is: a nursery for young fish.', fig: 'layers' },
@@ -195,7 +195,7 @@ export const LECTURES = {
         { h: 'Tight is not better', t: 'Overtighten a fitting and you crush the washer or crack the nut. Firm, then a quarter turn. If it still weeps, the seal is wrong, and force will not fix it.', fig: 'curve' }],
       ask: [['What do you do before taking a tap apart?', ['Turn the water off at the stop tap', 'Run the hot tap', 'Fetch a bigger spanner'], 0, 'Water off. Every time. Write it on your hand.'],
         ['What usually causes a dripping tap?', ['The pipe is too long', 'A worn rubber washer', 'Too much water pressure in the bay'], 1, 'The washer. Pennies. People call a plumber for it.']],
-      close: 'Thursday at the benches. I have forty taps and they all drip. I checked.' },
+      close: 'Next class, at the benches. I have forty taps and they all drip. I checked.' },
     { title: 'Power: fuses and common sense', open: 'Electricity. It does not give second lessons, so listen to the first.',
       boards: [
         { h: 'A circuit is a loop', t: 'Electricity only flows round a complete loop: out along one wire, through the lamp, back along another. A switch just opens a gap in the loop.', fig: 'loop' },

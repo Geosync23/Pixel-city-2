@@ -10,7 +10,7 @@ NEW (owner msg 107, BIBLE update 21) — WAVE F, starts as slots free, team = 2 
 WAVE B COMPLETE (Stage 34, 2026-11-15). WAVE ORDER (owner msg 91): B = 2i, 2j (without the university), post offices | C = 4c goods + stores, home design, 4 needs + Opportunities, 5 art | D = 2k events, 3 jobs, 4b relationships, university | E = 6 QA. The numbered list below is the item catalogue, not the order.
 
 4b RELATIONSHIPS: (a) designer-writer [RUNNING, Fable] -> (b) engine [next Fable slot after (a)]. J2 [DONE Stage 53] jobs engine. J3 [RUNNING, Fable] four job rooms + real stations + looks/uniforms/keepsakes.
-QA LANE: round 8 [DONE Stage 51] first three days with findability/My Day, university leftovers, perf | round 9 [RUNNING] round-8 leftovers (intro texts, navigator lists, Map closes on WALK, home tap targets, duplicate notices, stamps) + days 3-5 by touch.
+QA LANE: round 8 [DONE Stage 51] first three days with findability/My Day, university leftovers, perf | round 9 [DONE Stage 54] round-8 leftovers (intro texts, navigator lists, Map closes on WALK, home tap targets, duplicate notices, stamps) + days 3-5 by touch. | round 10 [RUNNING] days 6-10 with a job + Chapters 2-5 in natural flow.
 
 NEXT (in order):
 0. [DONE Stage 16, docs/reports/navarrow.md] NAV ARROW EVERYWHERE: edge-clamped arrow in every scene, room-to-room guidance, every trip leg end to end, red arrow + "This is your stop" on trains/buses (BIBLE update 15).

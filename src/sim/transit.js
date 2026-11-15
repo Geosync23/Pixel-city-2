@@ -148,7 +148,8 @@ function arriveTaxi() {
   const r = ride; if (!r || r.kind !== 'taxi') return; const v = r.vehicle, pl = r.place;
   if (r.free) { if (G.state.flags.firstCabFree) G.state.flags.firstCabFree = false; } else if (G.money && G.money.pay) G.money.pay(r.fare, 'Taxi');
   r.progress = 1; rideClock(r, 1); v.parked = true; v.stop = null; v.onStop = null; idle.push({ v, t: 2.5 });
-  finish(curbSpot(v.x, v.y, pl.x, pl.y)); toast('Arrived: ' + (pl.name || 'destination') + (r.free ? ' - ride pre-paid' : ' - fare ' + fmt(r.fare)));
+  finish(curbSpot(v.x, v.y, pl.x, pl.y)); const far = Math.abs(G.player.x - pl.x) + Math.abs(G.player.y - pl.y), m = Math.round(far * 17 / 10) * 10;   /* QA9: the University's kerb is 490 m from its door: say so, not 'Arrived' */
+  toast((far > 10 ? `As close as the road goes: ${pl.name || 'your destination'} is ${m} m on foot` : 'Arrived: ' + (pl.name || 'destination')) + (r.free ? ' - ride pre-paid' : ' - fare ' + fmt(r.fare)), 'info', far > 10 ? 4500 : undefined);
 }
 function skipRide() {
   const r = ride; if (!r || r.kind !== 'taxi' || r.skipping) return; r.skipping = true; const f = G.fadeEl; G.modal++; if (f) f.classList.add('on');
@@ -267,7 +268,7 @@ function update(dt) {
   if (!TX()) return;
   for (let i = idle.length - 1; i >= 0; i--) { const o = idle[i]; if ((o.t -= dt) <= 0) { idle.splice(i, 1); if (!(pend && pend.cab === o.v) && !(ride && ride.vehicle === o.v)) freeCab(o.v); } }
   if ((tI -= dt) <= 0) { tI = 1; for (const v of TX().vehicles) if (v.kind === 'taxi' && !v._it) { v._it = cabInteractable(v); G.addInteractable(v._it); } }
-  const pd = pend; if (!pd) return; const c = pd.cab, p = G.player; pd.t += dt;
+  const pd = pend; if (!pd) return; const c = pd.cab, p = G.player; pd.t += G.modal > 0 || (G.firstTime && G.firstTime.isOpen) ? 0 : dt;   /* QA9: a window over the game does not use up the cab's patience */
   if (!c.active || !inCity()) { pend = null; if (c.active) freeCab(c); pd.resolve(false); return; }
   if (pd.state === 'hail') {
     if (!c.halt) { const e = c.e, g = roadGraph(); if (!c.cornerOn && !c.inNode && (e.s1 - c.s) * e.d > g.ext(e.to, e.axis) + 3.2 && (c.s - e.s0) * e.d > g.ext(e.from, e.axis) + 2.2) c.halt = true; else if (pd.t > 12) c.halt = true; }
@@ -276,7 +277,7 @@ function update(dt) {
   else if (pd.state === 'waiting') {
     if (pd.opts.auto !== false && !G.busy && !G.modal && Math.hypot(p.x - c.x, p.y - c.y) < (pd.hailed ? 4.6 : 3.3)) boardCab();
     else if (pd.hailed && !p.path && !G.busy && (pd.w = (pd.w || 0) + dt) > 1.5) { pd.w = 0; walkTo(c); }
-    else if (pd.t > 80) dropPend(c.stand ? null : 'Your cab gave up waiting.');
+    else if (pd.t > 80) dropPend(c.stand && pd.hailed ? null : 'Your cab gave up waiting. Call another in MapleCab.');   /* QA9: a cab you called never leaves without a word (it did from a stand kerb) */
   }
 }
 

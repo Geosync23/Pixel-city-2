@@ -152,7 +152,10 @@ function routeCard() {
 }
 function navPanel() {
   const list = el('div', { style: { overflowY: 'auto', flex: '1', minHeight: '0', display: 'flex', flexDirection: 'column', gap: '4px' } }), title = (NAVCHIPS.find(c => c[0] === navKind) || [])[1] || 'Places';
-  const pick = r => { navKind = null; const p = typeof r.id === 'string' ? place(r.id) : null; navDest = p ? { id: p.id, name: r.home ? 'Home' : p.name, x: p.x, y: p.y } : { name: r.name, x: r.x, y: r.y }; view.cx = navDest.x; view.cy = navDest.y; sel = null; if (ctxRef) ctxRef.refresh(); };
+  const pick = r => { const p0 = typeof r.id === 'string' ? place(r.id) : null;
+    /* QA9: the building you are standing in: no 'WALK 1 min, 10 m' card, the arrow takes over at once */
+    if (p0 && G.scene && G.scene.roomId && G.navGoals && safe(() => G.navGoals.rootOf(p0.roomId || p0.id) === G.navGoals.rootOf(G.scene.roomId), false)) { navKind = null; setWaypoint(p0.id); safe(() => G.phone.close()); toast('It is right here: follow the arrow.', 'info', 3000); return; }
+    navKind = null; const p = p0; navDest = p ? { id: p.id, name: r.home ? 'Home' : p.name, x: p.x, y: p.y } : { name: r.name, x: r.x, y: r.y }; view.cx = navDest.x; view.cy = navDest.y; sel = null; if (ctxRef) ctxRef.refresh(); };
   const fill = rows => { list.replaceChildren(); for (const r of rows) list.append(el('button', { 'data-navrow': typeof r.id === 'string' ? r.id : 'pos', style: { textAlign: 'left', minHeight: '40px', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }, onclick: () => pick(r) },
       el('span', null, el('b', { text: r.name }), r.note ? el('small', { text: ' · ' + r.note }) : null), el('span', { style: { whiteSpace: 'nowrap' } }, el('small', { text: safe(() => G.nav.fmtDist(r.d), Math.round(r.d) + ' m') + ' ' }), r.open == null ? null : chip(r.open ? 'OPEN' : 'CLOSED', r.open ? 'good' : 'bad'))));
     if (!rows.length) list.append(el('small', { text: navKind === 'search' ? 'Type a place, a dish, a thing to do...' : navKind === 'work' ? 'No job yet - try the job board.' : navKind === 'home' ? 'No home yet.' : 'Nothing like that on the map yet.' })); };

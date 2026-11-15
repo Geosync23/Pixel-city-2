@@ -14,6 +14,7 @@
 import { G } from '../core/game.js';
 import { VENUE_BY_ID, DISTRICTS, isOpen as venueOpen } from '../data/venues.js';
 import { ACTIVITIES } from '../data/activities.js';
+import { ITEM_BY_ID } from '../data/items.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { CHAPTERS, DISTRICT_INFO, TYPE_INFO, KIND_LABEL, CORE, CORE_BLURB, SPOT, LANDMARK_BLURB, ACT_ALSO, ACT_SKIP, ACT_BLURB, EXPERIENCES, STAMP_GROUPS, pick, hash } from './_guide_data.js';
 import { placeInfo } from '../scenes/rooms/unique_rooms.js';
@@ -176,13 +177,13 @@ function wire() {
   on('activity:done', (id, info) => { if (!info || info.completed !== false || (info.minutes || 0) >= 5) stamp('act:' + id); });
   on('ride:end', kind => stamp('x:ride_' + (kind === 'cab' ? 'taxi' : kind)));
   on('show:end', o => stamp('x:show_' + ((o && o.venue) || o)));
-  on('shop:buy', (id, qty, venueId) => { stamp('x:first_buy'); const v = String(venueId || ''); if (/^(mall|skydeck):/.test(v)) stamp('x:mall_shop'); if (v === 'market_stalls') stamp('x:market'); const ve = VENUE_BY_ID[v]; if (/^(stand_|pubw:)/.test(v) || v === 'market_stalls' || (ve && ve.type === 'stall')) stamp('x:street_food'); });
+  on('shop:buy', (id, qty, venueId) => { stamp('x:first_buy'); const v = String(venueId || ''); if (/^(mall|skydeck):/.test(v)) stamp('x:mall_shop'); if (v === 'market_stalls') stamp('x:market'); const ve = VENUE_BY_ID[v]; const it = ITEM_BY_ID[id], ready = !!it && !['ingredient', 'homegood', 'outfit', 'book', 'gift'].includes(it.category) && safe(() => G.inv.isFood(it), false); if (ready && (/^(stand_|pubw:)/.test(v) || v === 'market_stalls' || (ve && ve.type === 'stall'))) stamp('x:street_food'); });   /* QA9: something to eat there and then, not an onion from a market stall */
   on('skydeck:visit', () => stamp('x:skydeck')); on('skydeck:ledge', () => stamp('x:ledge')); on('skydeck:scope', () => stamp('x:telescope')); on('skydeck:photo', () => stamp('x:skyphoto'));
   on('mall:arcade', () => stamp('x:arcade')); on('mall:visit', () => stamp('x:mall'));
   on('service', (id, venueId) => { const pp = safe(() => G.publicPlaces.get(venueId), null); stamp(/hair|barber|salon|cut|trim|shave|fade/i.test(String(id)) || (pp && /barber|salon/.test(pp.kind || '')) ? 'x:haircut' : 'x:service'); });
   on('job:shift:end', () => stamp('x:shift')); on('job:hired', () => stamp('x:hired'));
   on('social:hangout', () => stamp('x:hangout')); on('npc:met', () => stamp('x:met')); on('social:gift', () => stamp('x:gift')); on('friend:up', () => stamp('x:hangout'));
-  on('cooked', () => stamp('x:cooked')); on('home:furnish', () => stamp('x:furnish')); on('photo', v => { if (v) stamp('x:photo'); });
+  on('cooked', () => stamp('x:cooked')); on('home:furnish', () => { if (safe(() => G.furnish.active, false)) stamp('x:furnish'); });   /* QA9: only when you decorate yourself (unpacking the moving boxes gave it) */ on('photo', v => { if (v) stamp('x:photo'); });
   // Botanical Conservatory (src/sim/conservatory.js events)
   on('conservatory:sketch', () => stamp('x:cons_sketch')); on('conservatory:tour', n => { if ((n || 0) >= 5) stamp('x:cons_tour'); }); on('conservatory:sit', () => stamp('x:cons_breathe'));
   on('conservatory:seedling', () => stamp('x:cons_seedling')); on('conservatory:wish', () => stamp('x:cons_wish')); on('conservatory:chain', st => { if (st >= 3) stamp('x:cons_cuttings'); });

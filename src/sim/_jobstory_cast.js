@@ -13,22 +13,14 @@ import { rng } from '../engine/raster.js';
 import { CAST_BY_ID } from '../story/cast.js';
 import { SPEAKERS, CASTS } from '../story/jobs_arcs.js';
 import { buildSpecs } from './_social_data.js';
+import { CAST_LOOKS, STAFF } from './_jobstory_wear.js';
 
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const pname = () => (G.state.player && G.state.player.name) || 'You';
 
-/* hand-set looks (override the derived one). Keep to keys of the character art spec. */
-const LOOKS = {
-  odile: { age: 'adult', hair: 'bun', hairColor: '#4a3022', top: 'jacket', topColor: '#33303f', bottom: 'skirt', bottomColor: '#33303f', glasses: false },
-  gus_door: { age: 'elder', hairColor: '#c8c8d0', top: 'coat', topColor: '#7a2e3a', hat: 'cap', hatColor: '#7a2e3a', beard: false },
-  connie: { age: 'adult', hair: 'bun', hairColor: '#8a8a98', top: 'jacket', topColor: '#2f3f72', bottom: 'slacks', bottomColor: '#2f3f72' },
-  pops: { age: 'elder', hairColor: '#e8e8ee', top: 'shirt', topColor: '#f4f0e8', bottom: 'slacks', bottomColor: '#33303f', beard: true },
-  pet: { age: 'elder', hair: 'bun', hairColor: '#a9a9b4', top: 'long', topColor: '#6f7a48', bottom: 'slacks', bottomColor: '#7a5238' },
-  ada: { age: 'adult', hair: 'locs', hairColor: '#a9a9b4', top: 'coat', topColor: '#2b2d42', bottom: 'slacks', bottomColor: '#2b2d42', hat: 'cap', hatColor: '#2b2d42' },
-  bastien: { age: 'adult', hair: 'buzz', hairColor: '#a9a9b4', outfit: 'chef' },
-  lena: { age: 'adult', top: 'hoodie', topColor: '#e8b83a', bottom: 'cargo', bottomColor: '#4a4a58' },
-};
+/* hand-set looks (sim/_jobstory_wear.js CAST_LOOKS: one for every speaker who is not a cast.js character) override the derived one. */
+const LOOKS = CAST_LOOKS;
 const COLORS = [[/\bnavy\b/, '#2f3f72'], [/\bgr[ae]y\b/, '#8a8a98'], [/\bgreen\b/, '#4a7a58'], [/\bpink\b/, '#f08ab0'], [/\byellow\b/, '#e8b83a'], [/\bpurple\b|\blilac\b/, '#9a7ac8'], [/\bbrown\b|\bcamel\b/, '#8a6238'], [/\bwhite\b|\bwhites\b/, '#f4f0e8'], [/\bblack\b|\bdark\b/, '#33303f'], [/\bred\b/, '#c8483b'], [/\bblue\b/, '#3b6fd0']];
 function derive(p) {
   const A = charArt(), L = String(p.look || '') + ' ' + String(p.role || ''), l = L.toLowerCase(), has = (list, v) => (list || []).includes(v);
@@ -47,10 +39,17 @@ function derive(p) {
   return s;
 }
 const specs = {};
-function specOf(id) {
+export function specOf(id) {
   if (specs[id] !== undefined) return specs[id]; const p = SPEAKERS[id]; if (!p) return specs[id] = null;
-  let s = null; try { s = derive(p); if (LOOKS[id]) Object.assign(s, LOOKS[id]); } catch (e) { s = null; }
+  let s = null; try { s = derive(p); if (LOOKS[id]) { for (const k of ['outer', 'outerColor', 'outerColor2', 'neck', 'neckColor', 'topPat', 'topColor2', 'botPat', 'bottomColor2', 'shoeType', 'gloves', 'belt', 'innerColor', 'accent', 'earring', 'hatBand', 'glassesColor']) delete s[k]; Object.assign(s, LOOKS[id]); } } catch (e) { s = null; }
   return specs[id] = s;
+}
+/** a person of a job's cast who already stands in this room: one of the job rooms' own people (`jobFig`), or a showpiece's own staff figure (Odile, Dr. Reyes ...) */
+export function present(scene, id) {
+  if (!scene || !scene.ents) return null; const re = STAFF[id];
+  const c = scene.ents.find(e => !e.jobStand && (e.jobFig === id || (re && typeof e.label === 'string' && re.test(e.label)))) || null;
+  if (c && re && c.spec) specs[id] = c.spec;      /* the real figure's own look is the portrait from now on */
+  return c;
 }
 export function who(id) {
   if (id === 'narrator') return { id, name: '', short: '', spec: null };
@@ -71,19 +70,22 @@ export const figures = {
     figures.clear(); if (!scene || !scene.world) return;
     const w = scene.world, used = [];
     for (const id of people) {
-      if (figs.length >= 3 || isCast(id)) continue; const spec = specOf(id); if (!spec) continue;
-      let at = null; for (const sp of spotsFor(figs.length)) { const q = freeNear(w, sp.x, sp.y); if (!q) continue; if (used.some(u => Math.hypot(u.x - q.x, u.y - q.y) < 1.4) || Math.hypot(G.player.x - q.x, G.player.y - q.y) < 1) continue; at = q; break; }
+      if (isCast(id)) continue;
+      const here = present(scene, id); if (here) { if (!here.hidden) figs.push({ id, c: here, it: null, scene, own: true }); continue; }      /* already in the room: they speak for themselves, no stand-in */
+      if (SPEAKERS[id] && SPEAKERS[id].existing) continue;      /* somebody who belongs to another place (the lighthouse keeper, a showpiece's staff who are off): heard as a caption, never a stand-in */
+      if (figs.filter(f => !f.own).length >= 3) continue; const spec = specOf(id); if (!spec) continue;
+      let at = null; for (const sp of spotsFor(figs.filter(f => !f.own).length)) { const q = freeNear(w, sp.x, sp.y); if (!q) continue; if (used.some(u => Math.hypot(u.x - q.x, u.y - q.y) < 1.4) || Math.hypot(G.player.x - q.x, G.player.y - q.y) < 1) continue; at = q; break; }
       if (!at) continue; used.push(at);
       let c; try { c = new Char(spec, at.x, at.y); } catch (e) { continue; }
-      c.jobFig = id; c.label = who(id).short; c.t = Math.random() * 3; c.z = safe(() => w.heightAt(c.x, c.y), 0);
+      c.jobFig = id; c.jobStand = true; c.label = who(id).short; c.t = Math.random() * 3; c.z = safe(() => w.heightAt(c.x, c.y), 0);
       c.update = dt => { c.t += dt; c.moving = false; if (Math.floor(c.t) % 5 === 0 && Math.hypot(G.player.x - c.x, G.player.y - c.y) < 4) c.faceTo(G.player.x, G.player.y); };
       scene.ents.push(c);
       const it = { x: c.x, y: c.y, h: 1.5, hit: 12, range: 2.4, label: who(id).short, use: () => { safe(() => { G.player.faceTo(c.x, c.y); c.faceTo(G.player.x, G.player.y); }); if (onTap) onTap(id, c); } };
       scene.interactables.push(it); figs.push({ id, c, it, scene });
     }
   },
-  clear() { for (const f of figs) { let i = f.scene.ents.indexOf(f.c); if (i >= 0) f.scene.ents.splice(i, 1); i = f.scene.interactables.indexOf(f.it); if (i >= 0) f.scene.interactables.splice(i, 1); } figs = []; },
-  char(id) { const f = figs.find(x => x.id === id && x.scene === G.scene); if (f) return f.c; return isCast(id) ? safe(() => (G.social.present(id) ? G.social.char(id) : null), null) : null; },
+  clear() { for (const f of figs) { if (f.own) continue; let i = f.scene.ents.indexOf(f.c); if (i >= 0) f.scene.ents.splice(i, 1); i = f.scene.interactables.indexOf(f.it); if (i >= 0) f.scene.interactables.splice(i, 1); } figs = []; },
+  char(id) { const f = figs.find(x => x.id === id && x.scene === G.scene); if (f) return f.c.hidden ? null : f.c; const h = present(G.scene, id); if (h && !h.hidden) return h; return isCast(id) ? safe(() => (G.social.present(id) ? G.social.char(id) : null), null) : null; },
   ids: () => figs.map(f => f.id),
   castOf: job => (CASTS[job] ? CASTS[job].people.map(p => p.id) : []),
 };

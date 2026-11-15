@@ -96,7 +96,7 @@ const gate = (() => {
         C('I got the job at twenty-one. I kept meaning to.'), C('There was my father, and then the mortgage, and then I was the one who knew how the gate worked.'),
         C('And I like knowing where everybody is going. I know this board the way some people know a garden.'),
         pick('gate_connie',
-          o('where', 'If you did go. Where?', [C('Anywhere on the left side of the aircraft. Mr.'), C('Beaumont says that you can see the lighthouse on the way up. I should like to see whether he is right.')], { rel: { connie: 3 } }),
+          o('where', 'If you did go. Where?', [C('Anywhere on the left side of the aircraft.'), C('Mr. Beaumont says that you can see the lighthouse on the way up. I should like to see whether he is right.')], { rel: { connie: 3 } }),
           o('leave', '(Take the pass from Rafi. Put it back in the drawer, on the top.)', [C('Thank you.'), n('She looks at the drawer for a moment longer than is needed to shut it.')], { rel: { connie: 2 } })),
         R('I\'m going to do something about this. I don\'t know what yet. I\'m telling you so that I can\'t back out.'),
       ], { text: 'gate_rafi_plan' }),

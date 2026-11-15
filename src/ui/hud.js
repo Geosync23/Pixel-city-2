@@ -88,6 +88,7 @@ const FIX = { hunger: /food|restaurant|cafe|diner|noodle|pizza|bakery|grocer|mar
 const SOFT_IDS = Object.fromEntries(NEEDS.filter(n => n.soft).map(n => [n.id, 1]));   /* the gentle needs have their own place finder (src/sim/needs_extra.js) */
 const HOME_TIP = { hunger: 'Home (cook)', energy: 'Home (sleep)', hygiene: 'Home (shower)', fun: 'Home (TV, games)' };
 // data-driven matching lives in src/sim/navigator.js (G.nav.find: venue offers / guide types / home / friends, open-closed, closed last); the regex below is only a fallback
+const hereAlready = id => { try { if (typeof id !== 'string' || !G.scene || !G.scene.roomId || !G.navGoals) return false; const p = G.places.get(id), r = p && (p.roomId || p.id); return !!r && G.navGoals.rootOf(r) === G.navGoals.rootOf(G.scene.roomId); } catch (e) { return false; } };
 function fixPlaces(id) { if (SOFT_IDS[id]) { try { return (G.needsExtra && G.needsExtra.fix(id, 3)) || []; } catch (e) { return []; } } try { if (G.nav && G.nav.find) return G.nav.find(id, 3).map(q => ({ id: q.id, name: q.name + (q.note && !q.friend ? ' (' + q.note + ')' : ''), d: q.d, open: q.open })); } catch (e) { } return fixPlacesOld(id); }
 function fixPlacesOld(id) {
   const re = FIX[id] || FIX.fun, P = G.places, p = G.player; let x = p.x, y = p.y, out = [];
@@ -104,7 +105,8 @@ function fixNeed(n) {
   const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
   if (SOFT_NOTE[n.id]) m.body.append(el('p.nf-note', { text: SOFT_NOTE[n.id] }));
   if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));
-  for (const q of L) m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', onclick: () => { m.close(); togglePanel(false); try { if (!(G.phone.routeTo && G.phone.routeTo(q.id))) { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } } catch (e) { toast('No route there yet.'); } } },
+  for (const q of L) m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', onclick: () => { m.close(); togglePanel(false); try { if (hereAlready(q.id)) { G.phone.setWaypoint(q.id); toast('It is right here: follow the arrow.', 'info', 3000); return; }   /* QA9: not a 'WALK 1 min, 10 m' Map card for the building you stand in */
+      if (!(G.phone.routeTo && G.phone.routeTo(q.id))) { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } } catch (e) { toast('No route there yet.'); } } },
     el('span', { style: 'flex:1', text: q.name }), el('small', { text: G.nav && G.nav.fmtDist ? G.nav.fmtDist(q.d) : Math.max(1, Math.round(q.d / 10)) * 10 + ' m' }), q.open == null ? null : el('small', { style: 'padding:0 4px;border:2px solid #2a2733;background:' + (q.open ? '#bfe3a1' : '#f0b0a0'), text: q.open ? 'OPEN' : 'CLOSED' })));
   return m;
 }
@@ -129,7 +131,8 @@ function fast() {
   if (busy && !cut) {
     if (!H.act.classList.contains('on')) { H.act.classList.add('on'); H.actL.textContent = busy.label || 'Busy'; H.actX.style.display = busy.canCancel === false ? 'none' : ''; }
     else if (H.actL.textContent !== (busy.label || 'Busy')) { H.actL.textContent = busy.label || 'Busy'; H.actX.style.display = busy.canCancel === false ? 'none' : ''; }
-    H.actFill.style.width = (100 - busy.left / Math.max(1, busy.minutes) * 100).toFixed(1) + '%'; H.actT.textContent = hm(busy.left) + ' left';
+    const open = busy.minutes >= 5000;   /* QA9: an open-ended activity (a class: minutes 9999) said '166h 39m left' */
+    H.actFill.style.width = open ? '100%' : (100 - busy.left / Math.max(1, busy.minutes) * 100).toFixed(1) + '%'; H.actT.textContent = open ? '' : hm(busy.left) + ' left';
   } else H.act.classList.remove('on');
   /* QA8 (perf): the nearest-thing scan walks every interactable of the scene; it runs again only when the player has moved, the scene / state changed, or every 6th frame (people walking into range) */
   const on = !busy && !cut && !G.modal && !!G.scene, p = G.player, key = on ? G.scene.id : '';

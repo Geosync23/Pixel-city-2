@@ -23,6 +23,7 @@ import { G } from '../core/game.js';
 import { el, root, toast } from './kit.js';
 import { APPS, APP_BY_ID, NOTIFICATIONS, PHONE } from '../data/phone.js';
 import { VENUE_BY_ID } from '../data/venues.js';
+import { BILLS } from '../data/economy.js';
 import { iconEl, appIcon, portrait, money, balance, weatherNow, weatherIcon, isNight, when, safe, timeInfo, empty, row, section, cap } from './phone_util.js';
 import messagesApp from './phone_messages.js';
 import plannerApp from './phone_planner.js';
@@ -73,6 +74,9 @@ function notify(o) {
   if (T) S.cool[o.type] = t;
   const app = o.app || (T && T.app) || null, e = { id: ++S.seq, app, type: o.type || null, title: String(o.title || (defOf(app) || {}).name || 'Maple Bay'), text: String(o.text || ''), icon: o.icon || null, t, read: 0, pri: o.priority || (T && T.priority) || 'normal' };
   if (o.data) e.data = o.data; if (o.face) e.face = o.face; if (o.appIcon) e.appIcon = o.appIcon;
+  /* QA9: the same news twice within half an hour ('New app: Circle' from the store AND the unlock) is logged once; in the first three days at most ONE 'New app' banner a day, the rest arrive quietly in the phone */
+  if (S.log.some(q => q.title === e.title && q.text === e.text && t - q.t < 30 && t >= q.t)) return null;
+  if (/^New app: /.test(e.title) && e.pri !== 'high') { const d0 = safe(() => G.state.intro.day0, null), dd = Math.floor(t / 1440); if (d0 != null && dd - d0 < 3) { if (S.appBanner === dd) e.pri = 'low'; else S.appBanner = dd; } }
   if (isOpen && current() && current().app === app && app !== 'messages') e.read = 1;
   S.log.unshift(e); if (S.log.length > 40) S.log.length = 40;
   G.emit('phone:notify', e); syncBadge();
@@ -85,6 +89,8 @@ function pump() {
   /* QA round 5: banners expire; a stale 'Leave now' came back for six hours and a spring banner showed in autumn */
   while (queue.length && queue[0].pri !== 'high' && G.state.t - (queue[0].t || G.state.t) > 90) queue.shift();
   while (queue.length && queue[0].pri === 'high' && G.state.t - (queue[0].t || G.state.t) > 60) queue.shift();
+  while (queue.length && queue[0].data && queue[0].data.opp && !safe(() => { const v = G.opps.get(queue[0].data.opp); return !!v && !/done|end|gone/.test(String(v.st || '')); }, true)) queue.shift();   /* QA9: an Opportunity banner held behind the cook menu showed after it was already done */
+  while (queue.length && queue[0].app === 'taxi' && /is here/.test(queue[0].text) && !safe(() => G.transit.pending, null)) queue.shift();   /* QA9: 'Your MapleCab is here' held during the ride showed 40 min later at the destination */
   if (!queue.length) return;
   /* QA round 4: hold banners while a menu / dialog is open over the game (it covered the cook menu's tabs after a new game); they drop in once it closes */
   if (G.modal > (isOpen ? depth : 0)) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
@@ -94,7 +100,7 @@ function pump() {
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
-  showing = b; const shownAt = performance.now(); bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (G.modal > (isOpen ? depth : 0)) { if ((e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); } /* a menu opened over it: take it back, show it again after */ else if (sticky && G.state.t - (e.t || G.state.t) > 45 && performance.now() - shownAt > 20000) done(); /* QA8: a sticky banner does not outlive its news */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
+  showing = b; const shownAt = performance.now(); bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (G.modal > (isOpen ? depth : 0)) { if (performance.now() - shownAt < 3000 && (e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); }   /* QA9: only a banner that was barely seen comes back (seen ones were shown twice) */ /* a menu opened over it: take it back, show it again after */ else if (sticky && G.state.t - (e.t || G.state.t) > 45 && performance.now() - shownAt > 20000) done(); /* QA8: a sticky banner does not outlive its news */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
   requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
   if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }
@@ -234,7 +240,7 @@ function wire() {
   G.on('minutes', () => { if (G.scene && G.scene.id === 'city' && G.player) S.cityPos = { x: Math.round(G.player.x), y: Math.round(G.player.y) }; });
   for (const ev of ['msg:new', 'msg:read', 'appt:add', 'appt:remove', 'money']) G.on(ev, () => { syncBadge(); if (isOpen && ev !== 'money') refresh(); });
   // notification types fed by other systems' events (data/phone.js NOTIFICATIONS)
-  G.on('bills:soon', b => notify({ type: 'bill_reminder', title: 'Bay Bank', text: `Rent & bills tomorrow: ${money((b && b.total) || 0)}`, icon: 'ui.coin' }));
+  G.on('bills:soon', b => notify({ type: 'bill_reminder', title: 'Bay Bank', text: `Rent & bills tomorrow at ${BILLS.due.hour % 12 || 12} ${BILLS.due.hour < 12 ? 'AM' : 'PM'}: ${money((b && b.total) || 0)}`, icon: 'ui.coin' }));
   G.on('bills:due', b => notify({ type: 'bill_paid', title: 'Bay Bank', text: 'Paid: ' + ((b && b.items) || []).map(i => `${i.label} ${money(i.amount)}`).join(', '), icon: 'ui.coin' }));
   G.on('money', () => { const m = balance(); if (m < 50) notify({ type: 'low_balance', title: 'Bay Bank', text: `Balance is low: ${money(m)}`, icon: 'ui.coin' }); });
   G.on('skill:up', (k, lvl) => notify({ type: 'skill_up', title: 'Wellness', text: `${cap(k)} is now level ${lvl}!`, icon: 'skill.' + k }));

@@ -6,7 +6,8 @@
 // shift stationsFor(job, scene) adds the private tag 'js:<job>:<station>' to those fixtures (in memory, on the live scene only) and the work engine looks
 // stations up by that tag. A spot becomes a small invisible fixture that only the work engine sees.
 //
-//   STATIONS[jobId][station] = [selector, x?, y?] | [[selector, x?, y?], ...]
+//   STATIONS[jobId][station] = [selector, x?, y?] | [[selector, x?, y?], ...] | { first: [[selector, x?, y?], ...] }  (first = the first selector that matches: a real
+//       fixture added by scenes/rooms/job_fixtures.js, else the older stand-in)
 //       selector  'tag'            fixtures carrying that function tag            /regex/  fixtures whose asset id matches            '@' a floor spot at (x, y)
 //       x, y      world coordinates (room coordinates + 1). With a point: the ONE nearest match. Without: every match (the work engine picks among them).
 //   stationsFor(job, scene) -> { [station]: n fixtures }          (also used by G.jobStory.debug.stations())
@@ -14,6 +15,7 @@
 //
 // Adding a job: a row in STATIONS (every station of its workLoop.stations) and a script below. Run G.jobStory.debug.stations(jobId) inside the room to see what resolved.
 import { G } from '../core/game.js';
+import { mini as uiMini } from '../ui/jobs.js';
 
 export const STATIONS = {
   gate_agent: {            /* int:airport:concourse — gate B3 */
@@ -21,23 +23,28 @@ export const STATIONS = {
   baggage_handler: {       /* int:airport:terminal — baggage claim */
     bag_cart: ['bag_cart'], baggage_carousel: ['carousel_island'], oversize_desk: ['oversize_desk'], lost_found: ['lost_found'] },
   station_agent: {         /* int:central_station */
-    platform_edge: ['@', 17.2, 3.8],        /* a spot by the gates, looking down at the platforms (the departures portal on the wall cannot be reached) */ station_info: ['info', 14.8, 18], ticket_gate: ['gates', 15, 2.4], lost_property: ['lockers', 22.5, 1.8], announcer_booth: ['tickets', 2.1, 7.5] },
+    platform_edge: ['@', 17.2, 3.8],        /* a spot by the gates, looking down at the platforms (the departures portal on the wall cannot be reached) */ station_info: ['info', 14.8, 18], ticket_gate: ['gates', 15, 2.4], lost_property: { first: [['lost_property'], ['lockers', 22.5, 1.8]] }, announcer_booth: { first: [['announcer_booth'], ['tickets', 2.1, 7.5]] } },
   retail_associate: {      /* int:deptstore — the Thread & Co. Outlet bay */
     folding_table: [/clothing\.foldtable/], clothes_rack: [/clothing\.(round)?rack/], fitting_room: [/clothing\.mirror/, 27.8, 1.8], mallcounter: ['mallcounter', 29.5, 2.3], shop_window: [[/clothing\.mannequin/, 25.8, 5.3], [/clothing\.mannequin/, 27.3, 5.8]] },
   museum_guide: {          /* int:museum */
     mus_info_desk: ['mus_ticket'], mus_gallery_post: ['mus_audio'], mus_exhibit: ['mus_ex'], mus_dig_pit: ['mus_dig'] },
   florist: {               /* int:conservatory — Garden Gifts, by the seedling tables */
-    flower_buckets: ['cons_seedling'], florist_bench: ['cons_shop', 8, 22.8], conservatory_shop_till: ['cons_shop', 3, 22.8], flower_cooler: [/cons\.shelf/, 8, 21.7], delivery_door: ['cons_gate', 15.8, 21.1] },
+    flower_buckets: ['cons_seedling'], florist_bench: { first: [['florist_bench'], ['cons_shop', 8, 22.8]] }, conservatory_shop_till: ['cons_shop', 3, 22.8], flower_cooler: { first: [['flower_cooler'], [/cons\.shelf/, 8, 21.7]] }, delivery_door: ['cons_gate', 15.8, 21.1] },
   aquarist: {              /* int:aquarium */
-    aq_penguin_cove: ['aqua_penguins'], aq_touch_pool: ['aqua_touchpool'], aq_octopus_den: ['aqua_coltank'], aq_fish_kitchen: ['aqua_feeder'], aq_water_lab: ['aqua_bigtank'] },
+    aq_penguin_cove: ['aqua_penguins'], aq_touch_pool: ['aqua_touchpool'], aq_octopus_den: ['aqua_coltank'], aq_fish_kitchen: { first: [['aq_fish_kitchen'], ['aqua_feeder']] }, aq_water_lab: { first: [['aq_water_lab'], ['aqua_bigtank']] } },
   gull_cook: {             /* int:restaurant — the pass is the kitchen's window; the kitchen itself is behind it */
-    gull_pass: ['pass_window'], gull_stove: ['pass_window'], gull_prep: [/restaurant\.winerack/, 3.8, 1.3], gull_walk_in: [/generic\.door/, 6, 1.1], gull_back_door: ['host'] },
+    gull_pass: ['pass_window'], gull_stove: { first: [['gull_stove'], ['pass_window']] }, gull_prep: { first: [['gull_prep'], [/restaurant\.winerack/, 3.8, 1.3]] }, gull_walk_in: { first: [['gull_walk_in'], [/generic\.door/, 6, 1.1]] }, gull_back_door: { first: [['gull_back_door'], ['host']] } },
   hotel_bell: {            /* int:hotel — the Grand Lobby */
     hotel_luggage_cart: ['hotel_cart'], hotel_reception: ['hotel_reception'], hotel_concierge: ['hotel_desk', 9.3, 11.4], hotel_lift: ['hotel_lift'], hotel_bell_710: ['hotel_bell'] },
   observatory_guide: {     /* int:observatory — the gallery floor */
-    obs_small_scope: [/obs\.scopecase/], obs_great_scope: ['obs_stairs'], obs_planetarium_desk: ['obs_lectern'], obs_ticket_desk: ['obs_ticket'], obs_terrace: ['obs_pendulum'] },
+    obs_small_scope: [/obs\.scopecase/], obs_great_scope: ['obs_stairs'], obs_planetarium_desk: ['obs_lectern'], obs_ticket_desk: ['obs_ticket'], obs_terrace: { first: [['obs_terrace'], ['obs_pendulum']] } },
+  /* the four job rooms (scenes/rooms/job_rooms.js): every fixture carries its station tag */
+  radio_dj: { radio_board: ['radio_board'], radio_phone: ['radio_phone'], record_shelf: ['record_shelf'], radio_kettle: ['radio_kettle'] },
+  teacher: { class_board: ['class_board'], class_carpet: ['class_carpet'], class_desks: ['class_desks'], class_reading_corner: ['class_reading_corner'], class_nature_table: ['class_nature_table'] },
+  reporter: { news_assign_board: ['news_assign_board'], news_own_desk: ['news_own_desk'], news_editor_desk: ['news_editor_desk'], news_morgue: ['news_morgue'], assignment_place: ['assignment_place'] },
+  firefighter: { fire_gear_hooks: ['fire_gear_hooks'], fire_engine: ['fire_engine'], fire_kitchen: ['fire_kitchen'], fire_bunk: ['fire_bunk'], fire_hose_rack: ['fire_hose_rack'], call_scene: ['call_scene'] },
   hair_stylist: {          /* int:pub:22 — Otis & Sons Barbershop */
-    barber_chair: [/barber\.armchair/], barber_station: [/barber\.station/], barber_sink: ['browse'], barber_floor: [/generic\.rug/], barber_till: ['till'] },
+    barber_chair: [/barber\.armchair/], barber_station: [/barber\.station/], barber_sink: { first: [['barber_sink'], ['browse']] }, barber_floor: [/generic\.rug/], barber_till: ['till'] },
 };
 
 function virtual(scene, x, y) {
@@ -56,7 +63,9 @@ function matchOne(scene, sel) {
 export function stationsFor(job, scene) {
   const M = STATIONS[job.id], out = {}; if (!M || !scene || !scene.fixtures) return out;
   for (const st in M) {
-    const tag = 'js:' + job.id + ':' + st, sels = Array.isArray(M[st][0]) && !(M[st][0] instanceof RegExp) ? M[st] : [M[st]]; let n = 0;
+    const tag = 'js:' + job.id + ':' + st, row = M[st]; let n = 0;
+    /* { first: [selA, selB] }: the first selector that finds anything (the real fixture, else the old stand-in) */
+    const sels = row && row.first ? [row.first.find(sel => sel[0] !== '@' && matchOne(scene, sel).length) || row.first[row.first.length - 1]] : Array.isArray(row[0]) && !(row[0] instanceof RegExp) ? row : [row];
     for (const sel of sels) for (const fx of matchOne(scene, sel)) { if (!fx.tags.includes(tag)) fx.tags.push(tag); n++; }
     out[st] = n;
   }
@@ -75,7 +84,22 @@ const FOODS = ['Herring', 'Sprats', 'Vitamins', 'Lettuce', 'Squid', 'Shrimp', 'M
 const TABLES = [['Table four', ['Sea bass', 'Lamb', 'Risotto']], ['Table seven', ['Scallops', 'Duck', 'Greens']], ['Table two', ['Mussels', 'Sea bass', 'Fennel']]];
 const DISHES = ['Sea bass', 'Lamb', 'Risotto', 'Scallops', 'Duck', 'Greens', 'Mussels', 'Fennel'];
 const TARGETS = ['Saturn', 'the Moon', 'the Pleiades', 'Jupiter', 'the Ring Nebula'];
+const wxKind = () => { try { return G.weather.current().kind; } catch (e) { return 'clear'; } };
 const TAGS = [['a red tag', 'Carousel 1'], ['a blue tag', 'Carousel 2'], ['a yellow tag', 'Carousel 3'], ['a pair of skis', 'Oversize']];
+
+/* the four room jobs */
+const CALLS_IN = [['Something for the night shift at the bakery?', 'Bright and quick. Brass, if you have it.', ['A lullaby.', 'The shipping forecast, twice.']], ['My husband says you never play the old ones.', 'An old one, then. With his name on it.', ['Tell him to buy a record player.', 'The newest thing in the box.']], ['I am driving cab 22 and I am half asleep.', 'Something with a beat, and the window down.', ['The slowest song on the shelf.', 'Eleven minutes of rain noises.']], ['Is the ferry running in this?', 'Read the harbor bulletin, slowly, twice.', ['Guess.', 'Play a song about boats instead.']], ['(Line three. Nobody speaks. Somewhere, a cello.)', 'Say nothing. Let it go out on the air.', ['Hang up.', 'Ask them to speak up.']]];
+const ASK_CLASS = [['I can not do number four.', 'Show me number three first. You did that one.', ['Then skip it.', 'It is easy. Look.']], ['He took my blue.', 'Blue comes back when you are finished. Two minutes each.', ['Stop it, both of you.', 'There are other colors.']], ['My tooth came out.', 'An envelope, your name on it, and a great deal of ceremony.', ['Put it in the bin.', 'Show me later.']], ['Is a tomato a fruit?', 'Good question. What do YOU think, and why?', ['Yes.', 'We are doing sums.']], ['I finished.', 'Then turn it over and draw me what seven looks like.', ['Sit quietly.', 'Do it again.']]];
+const LESSONS = [['sums to ten', 'Hands are up for "three plus four".', 'Somebody who has not answered yet.', ['Juniper. Again.', 'Answer it yourself.']], ['the months', 'Which month comes after May?', 'The back table: they have been waiting.', ['Juniper.', 'Nobody. Move on.']], ['floating and sinking', 'Will the cork float?', 'Let three of them guess before you drop it.', ['Tell them at once.', 'Drop it without asking.']], ['our town', 'Where is the lighthouse on the map?', 'Ask the child who drew it.', ['Point to it yourself.', 'Juniper knows.']]];
+const ASSIGN = [['pigeons at City Hall', 'The man who counts them, every noon.', ['"Pigeons: a nuisance?"', 'A council press release.'], 'the City Hall steps'], ['a crosswalk', 'Go and stand in the street at ten to three.', ['Read the agenda.', 'Telephone the mayor\'s office.'], 'Main and Third'], ['the last ice machine', 'The engineer who has drawn the missing part, twice.', ['The price of ice.', '"Harbor in meltdown!"'], 'the Bay Fish Hall'], ['the library on Saturdays', 'A man who is learning to read at seventy-nine.', ['Opening hours, in a table.', 'A quote from the budget.'], 'the Public Library'], ['the Arena, sports desk sick', 'The kid who sweeps the ice and knows every score.', ['The final score only.', 'The price of a hot dog.'], 'the Arena'], ['the Lighthouse Fund', 'The keeper, and what the light costs a night.', ['A list of donors.', '"Light fantastic!"'], 'Gull Point Light']];
+const VOICES = [['A first voice. One question.', 'What happened, and when exactly?', ['Any comment?', 'Lovely day, is it not?']], ['A second voice.', 'How long have you been coming here?', ['Can I quote you on anything?', 'Is it always like this?']], ['A third voice.', 'What will you miss, if it goes?', ['Thoughts?', 'Spell your name. That will do.']]];
+const CALLDECK = [['Smoke alarm, Sycamore Lane', 'Roll: Sycamore Lane', 'The caller says it is probably toast. At the door:', 'Check behind the toaster and the stove. Then the windows.', ['Hose line through the hall.', 'Reset the alarm and leave.']], ['A cat up the big maple', 'Roll: Birch Lane', 'Third branch from the top. It has been there since lunch.', 'Foot the ladder. Let the cat come to you.', ['Climb fast and grab.', 'Shake the branch.']], ['A stuck lift, Hartwell Tower', 'Roll: Hartwell Tower', 'Four people and a fern, between nine and ten.', 'Talk to them first. Then key it down by hand.', ['Force the doors.', 'Wait outside.']], ['A trash can, behind the diner', 'Roll: Dot\'s back door', 'Small, smoky, next to a stack of crates.', 'Move the crates. A short burst at the base. Soak it.', ['A long blast from the door.', 'Put the lid on and go.']], ['A smell of gas at the market', 'Roll: Old Town Market', 'The meter says nothing. The smell says a lot.', 'Follow your nose: check the fruit stalls.', ['Clear the whole market.', 'Tell them it is nothing.']]];
+/* "out on a story" / "out on a call": the player (and Engine 2) are away for the length of the task */
+let away = null, hooked = false;
+function back() { if (!away) return; const a = away; away = null; try { G.player.hidden = false; if (a.ob) a.ob.hidden = false; } catch (e) { /* gone */ } }
+function out(withEngine) { if (!hooked) { hooked = true; G.on('activityEnd', back); G.on('scene', back); G.on('job:shift:end', back); } back(); const ob = withEngine && G.scene && G.scene.world ? G.scene.world.objs.find(o => o.id === 'furn.job.fire.engine') : null; away = { ob }; G.player.hidden = true; if (ob) ob.hidden = true; }
+/** a micro-interaction, after which the player is out of the room until the task ends. def = a mini def, or null (no question: just go) */
+const gone = (def, withEngine) => () => (def ? uiMini(def) : Promise.resolve(.9)).then(q => { if (q !== null && q !== undefined) setTimeout(() => { if (G.busy && G.busy.jobTask) out(withEngine); }, 60); return q; });
 
 export function newScripts(h) {
   const { s, pick, shuffle, pickMini, choiceMini, mash, meter } = h, q = (title, a) => choiceMini(title, '"' + a[0] + '"', a[1], a[2]);
@@ -153,6 +177,37 @@ export function newScripts(h) {
       { id: 'show', at: [19, 21], make: () => ({ title: 'The planetarium show', steps: [s('run_cues', { mini: mash('Show cues', 'Cue', 7) })] }) },
       { id: 'great', every: [999, 999], first: 150, limit: 1, lvl: 2, make: () => ({ title: 'The Great Telescope', steps: [s('great_scope', { mini: meter('hold', 'Slew the dome', 'Hold to turn it. Let go on the green line.', 'Hold to slew') })] }) },
       { id: 'dark', filler: 1, make: () => ({ title: 'A quiet gallery', steps: [s('eyes_arrive', { name: 'Check the Red Lamps' })] }) },
+    ],
+    radio_dj: l => [
+      { id: 'hour', every: [52, 62], first: 0, make: () => ({ title: 'The next hour', steps: [s('pull_records', { carry: 'box', mini: pickMini('Pull the next hour', 'Three records, in an order that makes sense', ['A slow one to start', 'A warm one', 'A bright one to finish'], ['A jingle', 'The news, again', 'A test tone'], true) }), s('link', { mini: meter('hold', 'Talk up the record', 'Hold to talk over the intro. Let go just before the singing: on the green line.', 'Hold to talk') })] }) },
+      { id: 'link', every: [16, 22], first: 10, make: () => ({ title: 'The record is ending', steps: [s('link', { name: 'Back-Announce It', mini: meter('timing', 'Three seconds is a pause', 'Come in on the last note: in the green', 'Speak') })] }) },
+      { id: 'call', every: () => (/storm|rain/.test(String(wxKind())) ? [6, 9] : [11, 16]), first: 5, max: 2, patience: 45, make: () => ({ title: 'A line is lit', steps: [s('take_call', { mini: q('On the line', pick(CALLS_IN)) })] }) },
+      { id: 'wx', at: [21.17, 22.17, 23.17, 0.17], make: () => ({ title: 'Ten past: the weather', steps: [s('weather', { mini: mash('From the lighthouse', 'Read', 5) })] }) },
+      { id: 'tea', every: [999, 999], first: 95, limit: 1, make: () => ({ title: 'Hattie has not had a tea', steps: [s('tea', { mini: mash('Two bags', 'Dunk', 5) })] }) },
+      { id: 'quiet', filler: 1, make: () => ({ title: 'A long record', steps: [s('pull_records', { name: 'Put the Sleeves Back' })] }) },
+    ],
+    teacher: l => [
+      { id: 'circle', at: [8.4, 14.2], make: () => ({ title: 'Circle time', steps: [s('carpet')] }) },
+      { id: 'lesson', every: [75, 95], first: 22, make() { const L = pick(LESSONS); return { title: 'A lesson: ' + L[0], steps: [s('lesson', { mini: choiceMini('Who can show me?', L[1], L[2], L[3]) }), s('mark', { any: 1, mini: mash('Mark the worksheets', 'Stamp', 6) })] }; } },
+      { id: 'hand', every: [15, 22], first: 5, max: 2, patience: 55, make: () => ({ title: pick(['A hand is up', 'Somebody is stuck', 'A small emergency']), steps: [s('mark', { any: 1, name: 'Go and See', mini: q('At the table', pick(ASK_CLASS)) })] }) },
+      { id: 'reader', every: [55, 75], first: 40, lvl: 2, make: () => ({ title: 'A reader is waiting', steps: [s('reading')] }) },
+      { id: 'twig', every: [999, 999], first: 180, limit: 1, make: () => ({ title: 'Twiglet wants his leaves', steps: [s('nature', { mini: choiceMini('The tank', 'Check that he is in the tank. Check again.', 'There: the twig that is breathing.', ['He has gone. Raise the alarm.', 'That one. No. That is a twig.']) })] }) },
+      { id: 'tidy', filler: 1, make: () => ({ title: 'A quiet minute', steps: [s('mark', { any: 1, name: 'Sharpen the Pencils' })] }) },
+    ],
+    reporter: l => [
+      { id: 'story', every: [170, 200], first: 1, make() { const a = pick(ASSIGN);
+        return { title: 'Assignment: ' + a[0], steps: [s('take_assignment', { mini: choiceMini('Three slips', 'Max: "Who cares?" Which slip has a person in it?', a[1], a[2]) }), s('go_and_look', { name: 'Go to ' + a[3], mini: gone(null) }),
+          s('get_quotes', { name: 'Three Voices at ' + a[3], mini: (v => gone(choiceMini('At ' + a[3], v[0], v[1], v[2])))(pick(VOICES)) }), s('morgue'), s('write_it', { mini: mash('Write it', 'Type', 8) }), s('file')] }; } },
+      { id: 'phone', every: [70, 90], first: 80, make: () => ({ title: '150 words from the telephone', steps: [s('write_it', { name: 'Take It Down', mini: mash('Shorthand', 'Write', 6) }), s('file', { name: 'Hand It to Max' })] }) },
+      { id: 'tidy', filler: 1, make: () => ({ title: 'Between stories', steps: [s('write_it', { name: 'Check Every Name' })] }) },
+    ],
+    firefighter: l => [
+      { id: 'chores', every: [26, 38], first: 1, make: () => pick([{ title: 'The air bottles', steps: [s('check_gear', { mini: choiceMini('Six gauges', 'One is always low. Which?', 'The fourth: a hair under the line.', ['All of them are fine.', 'The first. It looks at me funny.']) })] }, { title: 'A hose wants rolling', steps: [s('roll_hose', { mini: mash('Roll it tight', 'Roll', 7) })] }, { title: 'Engine 2 shows every fingerprint', steps: [s('wash_engine', { mini: mash('Wash her down', 'Wipe', 7) })] }]) },
+      { id: 'cook', at: [20.6], make: () => ({ title: h.now().weekday === 6 ? 'Chili night: you stir' : 'Kitchen duty', steps: [s('cook', { mini: meter('timing', 'The pot', 'Stir before it catches: in the green', 'Stir') })] }) },
+      { id: 'bell', every: [140, 210], first: 70, limit: 2, make() { const c = pick(CALLDECK);
+        return { title: 'THE BELL: ' + c[0], steps: [s('turnout', { mini: pickMini('Turn out', 'In order: boots, pants, coat, helmet', ['Boots', 'Pants', 'Coat', 'Helmet'], ['Gloves first', 'A hat'], true) }), s('the_call', { name: c[1], mini: gone(choiceMini(c[0], c[2], c[3], c[4]), true) })] }; } },
+      { id: 'bunk', when: w => !w.cnt.bunk && (h.now().hf >= 23 || h.now().hf < 3.4), make(w) { w.cnt.bunk = 1; return { title: 'Get your head down', steps: [s('bunk', { pose: 1, onDone: () => { try { G.needs.add('energy', 24); } catch (e) { /* optional */ } } })] }; } },
+      { id: 'watch', filler: 1, make: () => ({ title: 'A quiet watch', steps: [s('check_gear', { name: 'Walk the Bay' })] }) },
     ],
     hair_stylist: l => [
       { id: 'cust', every: [18, 26], first: 2, max: 2, patience: 70, make: () => ({ title: l >= 2 ? 'A customer for a cut' : 'A customer for Pops', custAt: { tag: 'barber_chair', mode: 'seat', anim: 'sit' }, steps: [s('shampoo'), l >= 2 ? s('the_cut', { mini: meter('timing', 'The line', 'Lift the clippers on the guide', 'Lift') }) : s('hot_towel', { name: 'Hand Pops the Towel' }), s('hot_towel'), s('ring_up', { custLeave: 1 })] }) },
