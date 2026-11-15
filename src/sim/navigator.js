@@ -167,7 +167,7 @@ export function start(o) {
 }
 function toDest(t) {
   t.stage = 2; t.at = false; const c = safe(() => cityPos(), null);
-  if (c && !t.dest.room && man(c, t.dest) < 5) { setWP(null); toast(`You have arrived: ${t.dest.name}`, 'good'); return end('arrived'); }
+  if (c && !t.dest.room && man(c, t.dest) < 5) { setWP(null); if (t.mode !== 'cab') toast(`You have arrived: ${t.dest.name}`, 'good'); return end('arrived'); }   /* QA9: a cab's own 'Arrived: X - fare' toast already says it */
   setWP(t.dest.id || t.dest); G.emit('nav:stage', t); render();
 }
 function onRideEnd(kind, where) {

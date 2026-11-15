@@ -160,7 +160,7 @@ function skipRide() {
 }
 function cabHere(c) {
   if (!pend || pend.cab !== c) return; c.parked = true; c.v = 0; pend.state = 'waiting'; pend.t = 0; sfx('honk');
-  if (!pend.opts.silent) { toast('Your MapleCab is here.'); try { G.phone && G.phone.notify && G.phone.notify({ app: 'taxi', title: 'MapleCab', text: 'Your MapleCab is here.' }); } catch (e) { } }
+  if (!pend.opts.silent) { let shown = null; try { shown = G.phone && G.phone.notify && G.phone.notify({ app: 'taxi', title: 'MapleCab', text: 'Your MapleCab is here.' }); } catch (e) { } if (!shown || (G.state.phone && G.state.phone.settings && G.state.phone.settings.banners === false)) toast('Your MapleCab is here.'); }   /* QA9: the banner, or a toast if there is no phone: not both */
   G.emit('taxi:here', c);
 }
 /* QA7: a cab that is still far away when the pick-up is due (one-way streets, red lights) is moved to the same street a few car lengths up from you and drives the rest */
