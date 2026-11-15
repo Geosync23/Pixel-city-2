@@ -114,7 +114,7 @@ function computeLoc(id, t) {
   for (const k in S.hang) { const h = S.hang[k]; if (h.npc === id && t >= h.t - 15 && t < h.t + h.dur) { l = placeLoc(h.placeId); l.hang = k; l.anim = 'stand'; return l; } }
   const o = S.over[id];
   if (o) { if (o.until && t >= o.until) delete S.over[id]; else { l = placeLoc(o.placeId); if (o.x !== undefined) { l.x = o.x; l.y = o.y; l.fixed = 1; l.sceneId = o.scene || 'city'; } l.anim = o.anim || 'stand'; l.over = 1; return l; } }
-  const b = block(c, t); if (!b) return { placeId: null, label: 'At home', sceneId: null };
+  const b = block(c, t); if (!b) return Object.assign(routineLoc(c, 'home'), { anim: 'stand' });
   l = routineLoc(c, b.place); l.anim = b.anim; l.work = !!(c.work && c.work.venue === b.place); return l;
 }
 const lkey = l => [l.sceneId, l.placeId, l.x, l.y, l.anim, l.hang].join('|');

@@ -1,6 +1,7 @@
 // CHAPTERS — the main story engine ("The Maple Bay Year", owner msg 107, BIBLE direction update 21). Runs the data in src/story/chapters.js.
 // Helpers: _chapters_places.js (place ids -> destinations), _chapters_cast.js (speakers + companions), _chapters_play.js (the `play` adapters, My Day adapters),
-// _chapters_world.js (the marker in the city, the stall, the bell, the ladder, Map pins, home book), ui/chapters_ui.js (dialogue sheet, cards, chip, book).
+// _chapters_world.js (the marker in the city, the stall, the bell, the ladder, Map pins, home book), _chapters_moments.js (the small optional family
+// moments between Chapters: G.chapters.moments), ui/chapters_ui.js (dialogue sheet, cards, chip, book).
 //
 // WHAT A CHAPTER IS (player's view): a gold marker in the city at its `marker` place + a gold row in the Goals list ("Chapter 4 · Theo Draws on a Napkin —
 //   whenever you're ready"). Walk up, tap it: a card (title, hook, who is there, about how long). Begin / Not now. It never expires and is announced once.
@@ -31,13 +32,16 @@ import { G } from '../core/game.js';
 import { toast, choose } from '../ui/kit.js';
 import { CHAPTERS, CHAPTERS_BY_ID, BOOK, FAMILY_PAGES, ITEMS_NEW } from '../story/chapters.js';
 import { STORY_ITEMS } from '../story/story.js';
-import { ITEM_BY_ID, RECIPE_BY_ID } from '../data/items.js';
+import { ITEMS, ITEM_BY_ID, RECIPE_BY_ID } from '../data/items.js';
+import { VIS } from './housing.js';
+import { isHoliday } from '../data/cityhall.js';
 import { enterRoom, exitRoom, ROOMS } from '../scenes/interior.js';
 import { UI } from '../ui/chapters_ui.js';
-import { resolve, here, sameBuilding, inCity, freeNear, cityWorld } from './_chapters_places.js';
+import { resolve, here, sameBuilding, inCity, freeNear, cityWorld, placeIdOf } from './_chapters_places.js';
 import { who, comp } from './_chapters_cast.js';
 import { run as runPlay } from './_chapters_play.js';
 import * as WORLD from './_chapters_world.js';
+import * as MOMENTS from './_chapters_moments.js';
 
 export const order = 140;
 const NEED_FLOOR = 30, DAY = 1440, WD = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], DUSK = [18.5, 19.75, 17.5, 16.75];
@@ -107,7 +111,8 @@ function fill(t) {
 }
 const weatherKind = () => safe(() => G.weather.current().kind, null) || G.state.weather || 'clear';
 function festival(id) {
-  return safe(() => { const C = G.cityEvents; const l = (C.today ? C.today() : C.list ? C.list() : []) || []; return l.some(e => (e.id || e) === id || (e.def && e.def.id === id)); }, false);
+  /* the event's own day (G.cityEvents.current(): m = minutes since that day began), from the morning it is dressed until midnight */
+  return safe(() => { const c = G.cityEvents.current(); return !!c && c.ev.id === id && c.m >= 0 && c.m < DAY; }, false);
 }
 function test1(c) {
   if (!c) return true; let neg = false; if (c[0] === '!') { neg = true; c = c.slice(1); }
@@ -135,11 +140,22 @@ function hm(s) {
   const m = /^dusk([+-])(\d+):(\d+)$/.exec(s); if (m) return duskH() * 60 + (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3]);
   const [h, mm] = String(s).split(':'); return +h * 60 + (+mm || 0);
 }
+/* a place that is shut all day today whatever the hour (City Hall on the three public holidays): the Chapter waits a day and says why */
+const SHUT = { ch09: () => (safe(() => isHoliday(G.now().day), false) ? 'City Hall is shut for the holiday, archive and all. Pip has moved the investigation to tomorrow. In pen.' : null) };
+const shutToday = ch => (SHUT[ch.id] ? SHUT[ch.id]() : null);
+/* while a Chapter is being played nobody is walked to the door at closing time (the two places that have a switch for it) */
+function holdDoors(on) { for (const k of ['cityhall', 'post']) safe(() => { G[k].debug.stay = !!on; }); }
 function windowOpen(ch) {
   const w = ch.window; if (!w) return true; const n = G.now(), tod = n.hf * 60;
-  if (w.weather === 'clear') { const ob = safe(() => G.observatory.sky().observing, null); if (ob === null ? !/clear|partly/.test(weatherKind()) : !ob) return false; }   /* the observatory's own idea of a clear night, when it is there */
+  if (shutToday(ch)) return false;
+  /* the observatory's own idea of a clear night, when it is there. Nobody is kept waiting on the weather for long, though: once the Chapter has been open
+     for two whole days (a cloudy week in winter can run to ten nights) the evening will do as it is, and begin() has the cloud break for it. */
+  if (w.weather === 'clear' && !clearNight() && !cloudWaived(ch)) return false;
   return (w.slots || []).some(sl => (!sl.days || sl.days.includes(WD[n.weekday])) && tod >= hm(sl.from) && tod <= hm(sl.to));
 }
+const clearSky = () => { const ob = safe(() => G.observatory.sky(), null); return ob ? !ob.wx : /clear|partly/.test(weatherKind()); };
+const clearNight = () => { const ob = safe(() => G.observatory.sky().observing, null); return ob === null ? /clear|partly/.test(weatherKind()) : ob; };
+const cloudWaived = ch => { const u = unlockInfo(ch); return u.t !== Infinity && G.state.t - u.t >= 2 * DAY; };
 /** the minute a Chapter opens (Infinity while its predecessor is not done) and whether its life condition still holds it back */
 function unlockInfo(ch) {
   const u = ch.unlock || {}, s = st(); let base;
@@ -191,7 +207,7 @@ async function openCard(id) {
   const s = st(), ch = id ? chOf(id) : (s.cur ? CHAPTERS_BY_ID[s.cur.id] : nextCh()); if (!ch || running) return false;
   const state = stateOf(ch); if (state !== 'open' && state !== 'paused') return false;
   const resume = state === 'paused', onShift = !!safe(() => G.jobs.onShift(), false), open = windowOpen(ch);
-  const closed = onShift ? "You're on the clock just now. It'll keep until after work." : !open ? ch.window.closed : null;
+  const closed = onShift ? "You're on the clock just now. It'll keep until after work." : !open ? shutToday(ch) || ch.window.closed : null;
   const v = await UI.card({ kicker: kicker(ch), title: ch.title, hook: ch.hook, ready: resume ? "Your place is kept. Whenever you're ready." : ch.ready, closed, resume, canBegin: !closed,
     who: ch.cast.slice(0, 6).map(w => { const i = who(w); return { name: i.short || i.name, spec: i.spec }; }), meta: `About ${ch.minutes[0]} to ${ch.minutes[1]} minutes. No rush.` });
   if (v !== 'begin') return false;
@@ -205,12 +221,13 @@ function tickets(ch) {
 function begin(id) {
   const ch = chOf(id), s = st(); if (!ch || running || s.done[ch.id]) return false;
   if (linger) { linger = false; comp.clear(); } comp.follow(true);
+  if (ch.window && ch.window.weather === 'clear' && !clearSky()) { safe(() => G.weather.setWeather('clear', 5)); UI.toastGold('The cloud is tearing open over Hillcrest. Tonight will do after all.', 5200); }
   s.cur = { id: ch.id, pc: 0, paused: false, t0: Math.floor(G.state.t), went: null }; G.emit('chapter:start', ch.id); refresh(); loop(); return true;
 }
 function resumeNow() { const s = st(); if (!s.cur || running) return false; s.cur.paused = false; s.cur.back = 1; refresh(); loop(); return true; }
 function stepOut(quiet) {
   const s = st(); if (!s.cur) return; tok++; running = false; s.cur.paused = true;
-  UI.close(); UI.chip(null); safe(() => G.navGoals.clear()); comp.clear(); G.player.pose = null; hopping = false;
+  UI.close(); UI.chip(null); safe(() => G.navGoals.clear()); comp.clear(); G.player.pose = null; hopping = false; holdDoors(false);
   if (safe(() => G.minigame.isOpen(), false)) safe(() => G.minigame.abort());
   if (!quiet) toast("It'll keep. The gold marker has your place.", 'info', 3600);
   G.emit('chapter:out', s.cur.id); refresh(); G.emit('chapters:change'); save();
@@ -221,7 +238,7 @@ async function loop() {
   const s = st(); if (!s.cur || s.cur.paused || running) return; running = true; const my = ++tok, ch = CHAPTERS_BY_ID[s.cur.id], ops = prog(ch);
   const alive = () => my === tok && st().cur && st().cur.id === ch.id && !st().cur.paused;
   UI.setOut(() => stepOut());
-  safe(() => tickets(ch));
+  safe(() => tickets(ch)); holdDoors(true);
   try {
     if (s.cur.pc > 0 && ops[s.cur.pc] && ops[s.cur.pc].op !== 'scene') { await enterScene(ch, sceneOpAt(ops, s.cur.pc), alive, true); }
     while (alive()) {
@@ -295,7 +312,14 @@ function ctx(ch, alive) {
     setFlag(id, v) { st().flags[id] = v; },
     async until(pred, maxMs) { const t0 = performance.now(); while (alive()) { if (safe(pred, false)) return true; if (maxMs && performance.now() - t0 > maxMs) return false; await sleep(200); } return false; },
     async fade(fn) { const f = G.fadeEl; if (f) { f.classList.add('on'); await sleep(320); } safe(fn); if (f) { await sleep(200); f.classList.remove('on'); } },
-    doAt: (find, label, o) => doAt(ch, alive, find, label, o),
+    /* if the player wanders out of the scene's place while the Chapter waits for them at a thing, it leads them back and asks again */
+    async doAt(find, label, o) {
+      for (let back = 0; ; back++) {
+        const r = await doAt(ch, alive, find, label, o); if (r !== 'left') return r; if (back >= 2) return 'done';      /* twice is asking; a third time it is done from wherever you are */
+        const cur = st().cur, d = cur ? resolve(sceneOpAt(prog(ch), cur.pc).place) : null; if (!d || here(d) || d.ride) return 'done';
+        await travel(ch, d, 'Back to ' + d.name, null, alive); if (!alive()) return 'dead';
+      }
+    },
   };
 }
 /** lead the player to a thing in this scene (or just offer the button), wait until they are at it. -> 'done' | 'skip' | 'dead' */
@@ -317,7 +341,7 @@ function doAt(ch, alive, find, label, o = {}) {
       skip: o.skip ? { label: 'Not today', fn: () => end('skip') } : null });
     iv = setInterval(() => {
       if (!alive()) return end('dead');
-      if (it && G.scene.id !== sid) return end('done');
+      if (it && G.scene.id !== sid) return end('left');
       const dt = pressed ? performance.now() - pressed : 0;
       if (dt > 7000 && !G.modal) end('done');                                                  /* could not walk all the way there: do it from where you stand */
       else if (dt > 1300 && !G.modal && !G.player.path && !G.pending) end('done');             /* as near as the room lets you get */
@@ -421,10 +445,28 @@ function stage(o) {
 }
 
 /* ---------- give / pages / keepsakes ---------- */
-const FURN = { nana_armchair: 'armchair', wobbly_shelf: 'bookshelf' };
+/* Story furniture: the keepsakes that are also things for the home. Each is a real home item (registered here at import, the way data/goods rows are): the
+   armchair comes with tomorrow's deliveries, the shelf is carried up by Dez (straight into storage), the two photographs arrive framed, to hang in Decorate. */
+const STORY_FURN = {
+  ch_nana_armchair: { name: "Nana's Attic Armchair", tag: 'sofa', art: 'armchair', p: { tier: 1, c: '#3f7a52', c2: '#e9dcc0' }, amb: 3, place: 'floor' },
+  ch_wobbly_shelf: { name: "Theo's Wobbly Shelf", tag: 'bookshelf', art: 'bookshelf', p: { tier: 0 }, amb: 2, place: 'floor' },
+  ch_kettle_photo: { name: 'The Copper Kettle, June 1985 (framed)', tag: 'decor', art: 'story.kettlephoto', p: {}, amb: 2, place: 'wall', mount: 1.2 },
+  ch_year_photo: { name: 'Everyone at the Lookout (framed)', tag: 'decor', art: 'story.yearphoto', p: {}, amb: 3, place: 'wall', mount: 1.15 },
+};
+for (const id in STORY_FURN) {
+  const g = STORY_FURN[id]; if (ITEM_BY_ID[id]) continue;
+  const it = { id, name: g.name, category: 'homegood', price: 0, icon: g.name.toLowerCase(), effects: {}, stack: 1, soldAt: [], tag: g.tag, tier: 1, footprint: [1, 1], placement: g.place, bonus: Object.assign({ mult: 1, ambience: g.amb }, g.tag === 'bookshelf' ? { capacity: 6 } : {}), story: 1 };
+  ITEMS.push(it); ITEM_BY_ID[id] = it; VIS[id] = { a: g.art, p: g.p, mount: g.mount };
+}
+const FURN = { nana_armchair: 'ch_nana_armchair', wobbly_shelf: 'ch_wobbly_shelf', kettle_photo: 'ch_kettle_photo', year_photo: 'ch_year_photo' };
+function furnish(id, quiet) {
+  const s = st(); s.furn = s.furn || {}; if (!FURN[id] || s.furn[id]) return; s.furn[id] = 1;
+  const ok = safe(() => G.housing.addFurniture(FURN[id], { quiet: true, instant: id === 'wobbly_shelf' }), false);
+  if (ok && !quiet && /photo/.test(id)) setTimeout(() => toast('It comes framed with tomorrow\'s deliveries. Hang it from Decorate.', 'info', 4200), 5200);
+}
 /* the standing family invitations: they go on the calendar through the old story engine's weekly `recur` list (kind 'friend' appointments you may keep or not) */
 const RECUR = { sunday_dinner: { title: 'Sunday dinner on Sycamore Lane', place: 'home_jules', weekday: 'sun', from: '17:30', to: '20:30' }, kettle_corner_tea: { title: 'Saturday tea at the Kettle Corner', place: 'bakery', weekday: 'sat', from: '15:00', to: '17:00' } };
-const NAMES = { postcard: 'A postcard of the Light', sky_poster: 'The SkyDeck poster', obs_starwheel: 'A star wheel, with the Kettle drawn on in pen', fm_tally: "A brass buyer's tally" };
+const NAMES = { paper_lantern: 'A paper lantern, the spare one', tram_ticket: 'A lifetime ticket for No. 9', postcard: 'A postcard of the Light', sky_poster: 'The SkyDeck poster', obs_starwheel: 'A star wheel, with the Kettle drawn on in pen', fm_tally: "A brass buyer's tally" };
 function itemName(id) { return NAMES[id] || (ITEMS_NEW[id] && ITEMS_NEW[id].name) || (STORY_ITEMS[id] && STORY_ITEMS[id].name) || (ITEM_BY_ID[id] && ITEM_BY_ID[id].name) || (RECIPE_BY_ID[id] && RECIPE_BY_ID[id].name) || id; }
 function keep(id) { const s = st(); if (!s.keeps.includes(id)) s.keeps.push(id); const k = safe(() => G.story.keepsakes(), null); if (k && !k.includes(id)) k.push(id); }
 function give(o, quiet) {
@@ -433,7 +475,7 @@ function give(o, quiet) {
     if (ITEM_BY_ID[o.id] && !ITEMS_NEW[o.id] && !STORY_ITEMS[o.id]) { if (!safe(() => G.inv.add(o.id, o.n || 1, { silent: true }), false)) safe(() => G.inv.fridge.add(o.id, o.n || 1, { silent: true })); }
     else {
       const had = s.keeps.includes(o.id); keep(o.id);
-      if (!had && FURN[o.id]) safe(() => G.housing.addFurniture(FURN[o.id], { quiet: true }));
+      if (FURN[o.id]) furnish(o.id, quiet);
       if (!had && o.id === 'nana_jam') safe(() => G.needs.addMoodlet('home_cooked', 2));
     }
     if (o.id === 'nells_book') { s.pages.cover = s.pages.cover === undefined ? G.now().day : s.pages.cover; WORLD.sync(); }
@@ -444,7 +486,7 @@ function give(o, quiet) {
   else if (o.type === 'contact') contact(o.id);
   else if (o.type === 'flag' || o.type === 'ability' || o.type === 'recurring' || o.type === 'opportunity') { if (o.id) s.flags[o.id] = true; if (o.type === 'flag' && o.id) (G.state.flags || {})[o.id] = true; }
   if (o.type === 'recurring' && RECUR[o.id]) { const r = safe(() => G.story.state().recur, null); if (r && !r[o.id]) r[o.id] = Object.assign({ last: -1 }, RECUR[o.id]); }
-  else if (o.type === 'place') safe(() => G.places.discover(o.id, true));
+  else if (o.type === 'place') safe(() => G.places.discover(placeIdOf(o.id), true));
   else if (o.type === 'page') foundPage(o.id, true);
   else if (o.type === 'rel') rel(o.id, o.n || 0);
   say(o.text);
@@ -483,7 +525,7 @@ function pageOpp() {
   G.goals.add({ id: 'bookpage:' + id, group: 'opportunity', text: 'A page from the book: ' + p.title, hint: (p.todo || 'Go and stand where she stood.') + ' No rush.', placeId: pl ? pl.id : undefined, doneText: 'A page found: ' + p.title });
 }
 async function pageVisit() {
-  const s = st(), g = oppNow(); if (!g || s.cur || G.modal || G.busy || G.cutscene || running) return;
+  const s = st(), g = oppNow(); if (!g || s.cur || G.modal || G.busy || G.cutscene || running || MOMENTS.playing()) return;
   const id = g.id.slice(9), p = BOOK.pages[id], d = p && resolve(p.place); if (!d || !here(d)) return;
   s.pageDay = G.now().day; foundPage(id); safe(() => G.goals.complete(g.id)); save();
   await UI.book({ title: BOOK.title, pages: bookPages(), at: Math.max(0, bookPages().findIndex(q => q.id === id)) });
@@ -513,7 +555,7 @@ function settle(ch, silent) {
   for (const b of BEATS_OF[ch.id] || []) safe(() => G.story.credit(b));
 }
 async function finish(ch) {
-  const s = st(); UI.close(); UI.chip(null); safe(() => G.navGoals.clear()); G.player.pose = null;
+  const s = st(); UI.close(); UI.chip(null); safe(() => G.navGoals.clear()); G.player.pose = null; holdDoors(false);
   settle(ch, false);
   s.done[ch.id] = { t: Math.floor(G.state.t), day: G.now().day }; s.cur = null; tok++; running = false;
   linger = true; comp.follow(false); G.emit('chapter:done', ch.id); G.emit('story:beat', ch.id);   /* the company stays where it stands until you leave the place */ refresh(); G.emit('chapters:change'); save();
@@ -536,6 +578,24 @@ function credit() {
   if (bs('g1_breakfast')) mark('ch01');
   if (bs('f1_welcome_dinner')) { mark('ch01'); mark('ch02'); mark('ch03'); if (safe(() => G.jobs.current(), null) || safe(() => G.state.ach.c.job_accepted, 0)) { mark('ch04'); if (bs('f3_booth_building')) mark('ch05'); } }
   for (const k of s.keeps.concat(safe(() => G.story.keepsakes(), []))) if (!s.keeps.includes(k)) s.keeps.push(k);
+}
+/** saves from before the story furniture existed: the armchair, the shelf and the photographs you already have are sent round (once) */
+function furnishOwed() { const s = st(); for (const k of s.keeps) if (FURN[k] && !(s.furn || {})[k] && safe(() => G.housing.current(), null)) furnish(k, true); }
+
+/* ---------- Dad lives in Pinehollow: asked out from his contact card he answers like himself, and nobody is left waiting for him at a cafe.
+   (He is in town only inside Chapter 15 and, afterwards, for the first week of a season: then he is in your chair and says so.) ---------- */
+const DAD_NO = ['Too far for these knees today. Go, and ring me from there. Tell me what I am looking at.', "It's a long road from Pinehollow. You go. Then describe it. Properly, mind.", 'Not this time. Send a postcard of it. I have the one of the Light on the fridge.'];
+const DAD_HERE = ["I've only just got this chair how I like it. You go on. Tell me about it after.", 'I came to be shown, not marched. Tomorrow, maybe. Tell me what it was like.'];
+function dadStaysHome() {
+  const So = G.social; if (!So || !So.invite || So.invite.chDad) return;
+  const orig = So.invite, f = (npc, a) => {
+    if (npc !== 'dad') return orig(npc, a);
+    const here = safe(() => MOMENTS.list().find(m => m.id === 'fm_dad_visit').due, null), pool = here ? DAD_HERE : DAD_NO, text = pool[Math.floor(G.state.t / 7) % pool.length];
+    safe(() => G.messages.sendMine('dad', `${(a && a.title) || 'Come out with me'}. Want to come?`));
+    safe(() => G.messages.send({ from: 'dad', name: 'Dad', text, delay: 4 }));
+    return false;
+  };
+  f.chDad = 1; So.invite = f;
 }
 
 /* ================= debug ================= */
@@ -573,7 +633,10 @@ export function init() {
     book: { has: () => st().keeps.includes('nells_book') || st().pages.cover !== undefined, open: id => UI.book({ title: BOOK.title, pages: bookPages(), at: id ? Math.max(0, bookPages().findIndex(p => p.id === id)) : 0 }),
       pages: () => Object.keys(BOOK.pages).map(id => ({ id, n: BOOK.pages[id].n, title: BOOK.pages[id].title, place: BOOK.pages[id].place, found: st().pages[id] !== undefined })), pins },
     keepsakes: () => st().keeps.slice(), marker: () => WORLD.marker(), debug, windowOpen: n => windowOpen(chOf(n)),
+    moments: { list: MOMENTS.list, playing: MOMENTS.playing, debug: MOMENTS.debug },
   };
+  MOMENTS.init({ st, test, fill, give: o => give(o), say: o => sayLine({ id: 'fm' }, o), done: id => !!st().done[id], active: () => { const c = st().cur; return (!!c && !c.paused) || running || linger; } });
+  dadStaysHome();
   WORLD.init({ openCard, pins, hasBook: () => G.chapters.book.has(), openBook: () => G.chapters.book.open(), done: id => !!st().done[id] });
   G.on('intro:done', () => { const s = st(); if (s.introT === null || s.introT === undefined) s.introT = Math.floor(G.state.t); });
   G.on('job:shift:end', () => { st().worked = (st().worked || 0) + 1; });
@@ -583,9 +646,9 @@ export function init() {
     const s = st(); if (s.cur && !s.cur.paused && G.needs) for (const k of ['hunger', 'energy', 'hygiene', 'fun', 'social', 'bladder']) { const v = safe(() => G.needs.get(k), 100); if (v < NEED_FLOOR) safe(() => G.needs.set(k, NEED_FLOOR)); }
   });
   let acc = 0;
-  G.addSystem({ name: 'chapters', update(dt) { if (st().cur && !st().cur.paused) comp.update(dt); acc += dt; if (acc > 1) { acc = 0; safe(refresh); safe(pageOpp); pageVisit().catch(() => 0); } } });
-  const wake = () => { S = null; const s = st(); tok++; running = false; hopping = false; PROG = {}; UI.close(); UI.chip(null); comp.clear(); safe(credit); safe(refresh);
+  G.addSystem({ name: 'chapters', update(dt) { if (st().cur && !st().cur.paused) comp.update(dt); acc += dt; if (acc > 1) { acc = 0; safe(refresh); safe(pageOpp); pageVisit().catch(() => 0); safe(MOMENTS.tick); } } });
+  const wake = () => { S = null; const s = st(); tok++; running = false; hopping = false; PROG = {}; UI.close(); UI.chip(null); comp.clear(); safe(credit); safe(furnishOwed); safe(refresh);
     if (s.cur && !s.cur.paused) { s.cur.back = 1; const go = () => { if (!G.scene || G.modal || G.cutscene || !(G.state.flags || {}).introDone && s.cur.id !== 'ch01') return setTimeout(go, 500); loop(); }; setTimeout(go, 900); } };
-  G.on('load', wake); G.on('game:start', () => { safe(credit); safe(refresh); if (st().cur && !st().cur.paused && !running) wake(); });
+  G.on('load', wake); G.on('game:start', () => { safe(dadStaysHome); safe(credit); safe(furnishOwed); safe(refresh); if (st().cur && !st().cur.paused && !running) wake(); });
   G.on('game:new', () => { G.state.chapters = fresh(); G.state.chapters.credited = 1; S = null; st(); });
 }

@@ -21,7 +21,7 @@
 .chd.narrator .chd-id{display:none}
 .chd.narrator .chd-text{font-style:italic;font-weight:500;color:#4d4658;padding-top:6px}
 .chd.hand{background:#fbf6e4;background-image:repeating-linear-gradient(#0000 0 25px,#a9c4dc66 25px 26px)}
-.chd.hand .chd-text{font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;font-style:italic;font-weight:500;font-size:18px;color:#2b3a67;line-height:26px}
+.chd.hand .chd-text{font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script",cursive;font-style:italic;font-weight:500;font-size:18px;color:#2b3a67;line-height:26px}
 .chd.phone .chd-face{background:#d9e6c8;box-shadow:inset 0 -10px 0 #b9cfa2}
 .chd.phone .chd-sub{color:#2f7a3a;font-weight:700;opacity:1}
 .chd.you .chd-name{color:var(--blue)}
@@ -41,6 +41,9 @@
 .chd-log p.you b{color:var(--blue)}
 .chd-menu{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .chd-menu p{margin:0 0 2px}
+
+/* a moment's shield over the world after the sheet closes (see guard() in chapters_ui.js); it sits under every button */
+.chd-guard{position:absolute;inset:0;pointer-events:auto;background:none}
 
 /* ---- cards ---- */
 .chc-wrap{position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:14px;background:#1b1a2488;pointer-events:auto}
@@ -86,7 +89,7 @@
 /* ---- Mom's book ---- */
 .chc.book{width:min(440px,100%);padding:0;background:#6b4a2e;border-color:#2a1c10;display:flex;flex-direction:column}
 .bk-cover{padding:6px 12px;color:#f6e7c8;font-weight:700;letter-spacing:1px;font-size:13px;text-align:center}
-.bk-page{font-style:italic;position:relative;margin:0 8px;min-height:320px;max-height:62vh;overflow:auto;padding:16px 16px 18px 30px;background:#fbf6e4;background-image:linear-gradient(90deg,#0000 21px,#e59a9a 21px 22px,#0000 22px),repeating-linear-gradient(#0000 0 27px,#a9c4dc88 27px 28px);background-attachment:local;border:2px solid #2a1c10;font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;color:#2b3a67}
+.bk-page{font-style:italic;position:relative;margin:0 8px;min-height:320px;max-height:62vh;overflow:auto;padding:16px 16px 18px 30px;background:#fbf6e4;background-image:linear-gradient(90deg,#0000 21px,#e59a9a 21px 22px,#0000 22px),repeating-linear-gradient(#0000 0 27px,#a9c4dc88 27px 28px);background-attachment:local;border:2px solid #2a1c10;font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script",cursive;color:#2b3a67}
 .bk-page h3{margin:0 0 4px;font-size:21px;line-height:28px;text-decoration:underline}
 .bk-page p{margin:0 0 0;font-size:17px;line-height:28px;text-indent:14px}
 .bk-page p+p{margin-top:0}
@@ -127,3 +130,48 @@
 .chp.solo{flex-direction:row;align-items:center;gap:8px}
 .chp.solo .chp-main{flex:1}
 .chp.solo .chp-out{min-height:34px}
+
+/* ---- her handwriting where the device has no script face (ui/chapters_ui.js sets .ch-nohand on <html>): a deliberate italic book hand in the same blue ink,
+   a touch looser, instead of whatever the browser would pick for `cursive` ---- */
+.ch-nohand .chd.hand .chd-text,.ch-nohand .bk-page,.ch-nohand .chd-log p.hand{font-family:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman","DejaVu Serif",serif;font-style:italic;letter-spacing:.25px;word-spacing:1px}
+.ch-nohand .bk-page h3{letter-spacing:.6px}
+.ch-nohand .bk-page.found,.ch-nohand .bk-page.family{font-style:italic}
+
+/* ---- short screens (a phone held sideways, 844 x 390): everything stays in reach; nothing here applies in portrait ---- */
+@media (max-height:480px){
+  .chc-wrap{padding:6px}
+  .chc{max-height:100%;padding:8px 12px 8px}
+  .chc.start,.chc.end,.chc.survey{width:min(600px,100%)}
+  .chc.start,.chc.end{border-top-width:6px}
+  .chc-title{font-size:20px;margin:4px 0 2px}
+  .chc-hook{margin:0 0 6px;font-size:15px}
+  .chc-who{margin:0 0 4px;gap:4px 8px}
+  .chc-p .chd-pc{width:24px;height:26px}
+  .chc-meta{margin:0 0 3px}
+  .chc-ready,.chc-closed{margin:0 0 6px}
+  .chc-sec{margin:6px 0 3px}
+  .chc-list{columns:2;column-gap:18px}
+  .chc-list p{break-inside:avoid}
+  .chc-btns{position:sticky;bottom:-8px;margin-bottom:-8px;padding:6px 0 8px;background:var(--panel)}
+  .chc-btns button{min-height:42px}
+  .chc.film .chc-btns{background:#22242b}
+  .chc.film{width:min(640px,100%)}
+  .mf-paper{margin-bottom:4px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px}
+  .mf-head,.mf-date,.mf-title{grid-column:1 / -1}
+  .mf-head{font-size:18px}
+  .mf-title{font-size:16px;margin-bottom:4px}
+  .mf-cols{grid-column:2;grid-row:4 / span 2;align-self:start}
+  .chc.book{width:min(640px,100%);max-height:100%}
+  .bk-cover{padding:3px 12px}
+  .bk-page{min-height:0;max-height:none;flex:1 1 auto}
+  .bk-nav{padding:5px 8px}
+  .bk-b,.bk-close{min-height:38px}
+  .chd{width:min(760px,100%)}
+  .chd-text{min-height:2.7em;font-size:16px}
+  .chd-opts{gap:5px;max-height:calc(100vh - 150px);overflow:auto;padding-bottom:3px}
+  .chd-opt{min-height:40px;padding:6px 12px;font-size:15px}
+  .chd-over{max-height:94%}
+  .chs-list{grid-template-columns:1fr 1fr 1fr;gap:5px;margin:5px 0}
+  .chs-i{min-height:44px;padding:4px 8px}
+  .chp{bottom:calc(8px + env(safe-area-inset-bottom,0px));left:76px;width:min(296px,calc(100% - 240px))}
+}

@@ -5,7 +5,8 @@
 //   here(dest) -> bool          the player is at that destination right now (in the room, or within NEAR units of the spot)
 //   sameBuilding(dest) -> bool  the player is inside the building `dest.room` belongs to (so a lift / stair / ladder is all that is between)
 //   freeNear(world, x, y, r?) -> { x, y }   nearest walkable cell
-//   NEW spots defined here (city coordinates): spot:second_wind (the pontoon by the Captain's boat), spot:kettle_stall (Market Street),
+//   placeIdOf(id) -> the G.places id a story place stands for (for discovering it), or the id itself
+//   NEW spots defined here (city coordinates): spot:maplewood_park (the park by Nora's house), spot:second_wind (the pontoon by the Captain's boat), spot:kettle_stall (Market Street),
 //   spot:airport_arrivals (the kerb outside Arrivals), spot:building_stoop (outside the player's own door).
 import { G } from '../core/game.js';
 import { ROOMS } from '../scenes/interior.js';
@@ -16,11 +17,12 @@ const safe = (f, d) => { try { const v = f(); return v === undefined || v === nu
 export const cityScene = () => (G.sceneCache && G.sceneCache.get('city')) || null;
 export const cityWorld = () => { const c = cityScene(); return c ? c.world : null; };
 
-/* outdoor spots: [x, y, name, G.places id to prefer (optional)] */
+/* outdoor spots: [x, y, name, G.places id whose position to prefer (optional), G.places id to mark as known when the story gives the place (optional)] */
 export const SPOTS = {
   'spot:playground': [66, 186, 'the playground, Central Park', 'poi_playground'],
+  'spot:maplewood_park': [313.5, 246.5, 'Maplewood Park', null, 'landmark:3'],      /* round the corner from the yellow house on Sycamore Lane (Chapter 3) */
   'spot:lighthouse': [36.5, 356.5, 'the foot of Gull Point Lighthouse', null],
-  'spot:city_hall_steps': [222, 220.5, 'the City Hall steps', null],
+  'spot:city_hall_steps': [226, 219.5, 'the City Hall steps', null],       /* on the steps, clear of the plaza fountain (its tap target is wide) */
   'spot:campus_green': [176, 49, 'the campus green', null],
   'spot:school': [313, 214, 'Maplewood Elementary', null],
   'lookout': [86, 25, 'Hillcrest Lookout', 'poi_lookout'],
@@ -73,4 +75,5 @@ export function sameBuilding(d) {
   const r = x => (/^home:grandma/.test(x) ? 'home:grandma' : rootOf(x));
   return r(cur) === r(d.room);
 }
+export const placeIdOf = id => { const s = SPOTS[ALIAS[id] || id]; return s ? s[4] || s[3] || id : id; };
 export const inCity = () => !!G.scene && G.scene.id === 'city';

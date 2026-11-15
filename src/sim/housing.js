@@ -257,8 +257,11 @@ function roomDef(id, room) {
 function goRoom(id, to, from) {
   const sh = shOf(id, to); if (!sh) return Promise.resolve(null); let sp = null; const l = linkItems(sh).find(i => i.to === from && i.spot);
   if (l) sp = { x: 1 + l.spot[0], y: 1 + l.spot[1], dir: l.spot[2] === undefined ? 1 : l.spot[2] }; else if (sh.exit) sp = { x: 1 + sh.exit.x, y: 1 + sh.exit.y - .2, dir: 3 };
-  return G.go(sceneOf(id, to), Object.assign({ fresh: true }, sp));
+  return G.go(sceneOf(id, to), Object.assign({ fresh: true }, sp)).then(r => { if (l) stepOff(sh); return r; });
 }
+/* QA7: you arrive standing ON the link back (stairs down): its big door-sized tap target then ate the first floor taps and sent you straight back down
+   (the arrow to an attic ladder looped between floors). Take one step into the room. */
+function stepOff(sh) { try { const p = G.player, cx = 1 + sh.w / 2, cy = 1 + sh.d / 2, d0 = Math.hypot(cx - p.x, cy - p.y), dx = d0 > .3 ? cx - p.x : 0, dy = d0 > .3 ? cy - p.y : 1, d = Math.hypot(dx, dy) || 1; for (const k of [1.3, 1, .7]) { const nx = p.x + dx / d * k, ny = p.y + dy / d * k; if (!G.world.isBlocked(nx, ny)) { p.x = nx; p.y = ny; p.path = null; if (G.snapCam) G.snapCam(); return; } } } catch (e) { } }
 /* a home you are only LOOKING AT (a viewing): nothing private works in there (no sleeping in the show bed), you can walk every room and sit down */
 function guard(def, mine) {
   if (mine) return def; const prev = def.setup;

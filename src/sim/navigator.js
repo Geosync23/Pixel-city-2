@@ -20,7 +20,7 @@ import { el, root, toast } from '../ui/kit.js';
 import { innerPlace } from '../ui/navarrow.js';
 import { openState, cityPos, place, homePlace, money } from '../ui/phone_util.js';
 
-const WALK = .215, BUS_V = 20, BUS_DWELL = .6, CAB_V = 9;   // WALK: game minutes per Manhattan unit, measured door to door on three real cross-district walks (QA round 3: .203-.233; was 1.15/3.6 = .32, 40-58% too slow)
+const WALK = .215, BUS_V = 20, BUS_DWELL = .6, CAB_V = 9, BUS_HEADWAY = 10;   // WALK: game minutes per Manhattan unit, measured door to door on three real cross-district walks (QA round 3: .203-.233; was 1.15/3.6 = .32, 40-58% too slow)
 //   // BUS_V: measured along the bus loop incl. lights (units per game minute at the transit.js ride clock 0.2 + signal priority); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
@@ -91,7 +91,7 @@ function busOption(from, D, walk) {
     for (const i of near(from)) for (const j of near(D)) {
       if (i === j) continue; const k = (j - i + n) % n; let ride = 0; const lp = safe(() => G.traffic.loops[r.id], null), ls = lp && lp.stops && lp.stops.length === n ? lp.stops : null;
       if (ls && lp.L) ride = ((ls[j].u - ls[i].u) % lp.L + lp.L) % lp.L; else for (let m = 0; m < k; m++) ride += man(S[(i + m) % n], S[(i + m + 1) % n]);   // the bus's own loop (one-way streets), not a straight line
-      const wa = man(S[i], from) * WALK, wb = man(S[j], D) * WALK, nb = safe(() => G.transit.nextBuses(S[i].id).find(b => b.route === r.id), null), wait = nb ? nb.minutes : 20, rm = ride / BUS_V + (k - 1) * BUS_DWELL, total = wa + Math.max(wait - wa, 0) + rm + wb;
+      const wa = man(S[i], from) * WALK, wb = man(S[j], D) * WALK, nbs = safe(() => G.transit.nextBuses(S[i].id).filter(b => b.route === r.id), []), nb = nbs.find(b => b.minutes >= wa - .5) || null, wait = nb ? nb.minutes : nbs.length ? Math.max(wa, nbs[0].minutes + BUS_HEADWAY) : 20,   /* QA7: the bus you can still catch after walking to the stop (a bus due before you get there was counted: trips ran 15-70% long) */ rm = ride / BUS_V + (k - 1) * BUS_DWELL, total = wa + Math.max(wait - wa, 0) + rm + wb;
       if (wa + wb > walk * WALK * .6) continue;   // (walk is in units here: QA round 3 fixed the minutes-vs-units comparison)
       if (!best || total < best.minutes) best = { mode: 'bus', label: 'Bus ' + r.name, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('bus'), 1.5), route: r.id, line: r.name, stops: k, wait, toward: S[j > i ? n - 1 : j].name, board: pt(S[i]), alight: pt(S[j]), walkA: wa, walkB: wb, ride: rm };
     }
@@ -118,11 +118,11 @@ export function describe(o) {
   const tw = o.toward && o.toward !== o.alight.name ? ` toward ${o.toward}` : '', veh = o.mode === 'bus' ? `ride the ${o.line}${tw}` : `${o.line}${tw}`;   // (a loop bus 'toward' your own stop says nothing)
   return `walk to ${o.board.name} (${mins(o.walkA)}) -> ${veh}, ${stopsTxt(o.stops)} -> get off at ${o.alight.name} -> walk ${mins(o.walkB)}`;
 }
-export function routeTo(dest, from = cityPos()) {
+export function routeTo(dest, from = cityPos(), opts) {   /* opts.all: also the bus / train options that are not worth showing (QA tools) */
   if (typeof dest === 'string') dest = place(dest) || innerPlace(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
   const D = pt(dest), dist = man(D, from), walk = dist * WALK, out = [{ mode: 'walk', label: 'Walk', minutes: walk, cost: 0, dist }];
   if (hasBike()) out.push({ mode: 'bike', label: 'Bike', minutes: walk / 2.2, cost: 0, dist });
-  for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1))) out.push(o);
+  for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((opts && opts.all) || (o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1))) out.push(o);
   if (dist > 25 && G.transit && G.transit.fare) { const fare = safe(() => D.id ? G.transit.fare(D.id) : G.transit.fare('taxi', from, D), null), ce = safe(() => G.transit.cabEstimate(D, from), null);   /* QA7: the cab ride's game time is set by its route (transit.js), so the estimate is exact but for the pick-up */
     if (fare != null && isFinite(fare)) out.push({ mode: 'cab', label: 'Cab', minutes: ce ? ce.minutes : dist / CAB_V + 4, pickup: ce ? ce.wait : undefined, ride: ce ? ce.ride : undefined, cost: safe(() => G.state.flags.firstCabFree, false) ? 0 : fare, free: !!safe(() => G.state.flags.firstCabFree, false) }); }
   for (const o of out) { o.dest = D; o.minutes = Math.max(1, Math.round(o.minutes)); o.text = describe(o); o.costText = o.free ? 'Free - prepaid' : o.cost ? money(o.cost) : 'free'; if (o.wait != null) o.next = o.wait < 1.5 ? 'leaving now' : 'next in ' + mins(o.wait); }

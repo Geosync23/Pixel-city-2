@@ -7,7 +7,8 @@
 //        Resolves true on arrival, false if cancelled / not possible. If G.state.flags.firstCabFree is truthy the ride is free and the flag is cleared.
 //   hailTaxi() -> Promise<bool>          hails the nearest free cab within 28 units (else calls one); destination picker on boarding
 //   cancel()                             cancel a called/hailed cab that has not been boarded
-//   skipRide()                           fade + fast-forward a taxi ride to its destination (time advances proportionally)
+//   skipRide()                           fade + fast-forward a taxi ride to its destination (the clock jumps to the ride's set end)
+//   cabEstimate(to, from?) -> { wait, ride, minutes, len }   QA7: pick-up wait + the ride's game minutes (set by the road route, CAB_RIDE)   busStopsLeft() -> n | null
 //   fare(kind, from?, to?) -> number     kind 'taxi' | 'bus' | 'train' | registered mode; from/to: place id | {x,y}; from defaults to the player.
 //        fare(placeId) is shorthand for a taxi from the player. Taxi: economy.js FARES.taxi (Manhattan distance, night multiplier, airport flat).
 //   boardBus(routeId?, stopId?, destStopId?) -> Promise<bool>   wait at a stop (default: nearest) for a route (default: first to arrive) and ride
@@ -173,6 +174,7 @@ function pickDestination() {
   const p = G.player, w = W(); let list = G.places && G.places.knownList ? G.places.knownList().filter(q => ['venue', 'home', 'station', 'airport', 'landmark'].includes(q.kind)) : [];
   if (!list.length) list = w.pois.filter(q => q.type === 'taxistand' || q.type === 'station').map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, poi: q }));
   const dk = q => q.district && DN[q.district] ? q.district : w.districtAt(q.x, q.y) || 'zz';
+  const seenN = new Set(); list = list.filter(q => { const k = q.name + '|' + Math.round(q.x / 8) + ',' + Math.round(q.y / 8); if (seenN.has(k)) return false; seenN.add(k); return true; });   /* QA7: a place known under two ids (home + door, airport + terminal) was listed twice */
   list = list.filter(q => Math.abs(q.x - p.x) + Math.abs(q.y - p.y) > 14).map(q => ({ q, d: dk(q) })).sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.q.name < b.q.name ? -1 : 1);
   if (!list.length) { toast('The driver does not know anywhere to take you yet.'); return Promise.resolve(null); }
   return choose('Where to?', list.map(o => ({ label: o.q.name, sub: (DN[o.d] || 'Maple Bay') + ' - ' + (G.state.flags.firstCabFree ? 'pre-paid' : fmt(taxiFare(p, o.q))), value: o.q })), { text: G.state.flags.firstCabFree ? 'This ride is pre-paid.' : 'Pay on arrival.' });
@@ -237,7 +239,7 @@ function waitBus(stop, rid, dest, resolve) {
   const here = TX().buses.find(b => b.veh && b.atStop === stop.id && (!rid || b.route === rid)); if (here) { here.hold = true; return boardNow(here, stop, dest, resolve); }
   wait = { stop, rid, dest, resolve };
   G.startActivity({ label: 'Waiting for the bus', anim: null, minutes: 300, rate: 10, canCancel: true,
-    tick() { const nb = TX().nextBuses(stop.id).find(a => !rid || a.route === rid); if (G.busy) G.busy.rate = nb && (nb.bus.veh || nb.minutes <= 6) ? Math.max(1, G.state.speed) : 10; },   // QA round 3: slow down before the bus is due, so an off-screen bus cannot skip past the spawn ring at 10x and go by unseen
+    tick() { const nb = TX().nextBuses(stop.id).find(a => !rid || a.route === rid); if (G.busy) G.busy.rate = nb && (nb.bus.veh || nb.minutes <= 6) ? 1 : 10; },   /* QA7: 1, not the game speed: an activity does not sub-step the world, so at 4x the bus you watch arriving cost 4x the game minutes */   // QA round 3: slow down before the bus is due, so an off-screen bus cannot skip past the spawn ring at 10x and go by unseen
     done() { if (wait) { const w = wait; wait = null; toast('No bus came.'); if (w.resolve) w.resolve(false); } }, cancel() { if (wait && !wait.boarding) { const w = wait; wait = null; if (w.resolve) w.resolve(false); } } });
 }
 function onBusArrive(b, stopId) {

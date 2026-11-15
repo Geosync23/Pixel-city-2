@@ -98,7 +98,7 @@ function pick(px, py) {
   let best = null, bd = 1e9;
   for (const it of G.interactables()) {
     const z = it.z !== undefined ? it.z : G.world.heightAt(it.x, it.y), h = it.h === undefined ? .8 : it.h; let d, lim;
-    if (isDoor(it)) {
+    if (isDoor(it) && !(it.homelink && Math.hypot(it.x - G.player.x, it.y - G.player.y) < 3.5)) {   /* QA7: standing on the stairs, a tap near them is not 'go back down' */
       const top = Math.max(h, it.exit ? 1.2 : 2.6), a = WS(it.x, it.y, z), b = WS(it.x, it.y, z + top), vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1;
       const t = Math.max(0, Math.min(1, ((px - a[0]) * vx + (py - a[1]) * vy) / L)), dx = px - (a[0] + vx * t), dy = py - (a[1] + vy * t);
       lim = Math.max(it.hit || 12, 14) + U * 1.25; d = Math.hypot(dx, dy * .8); if (d >= lim) continue; d = d * .6 + 5;   // rank: precise targets right under the finger still win

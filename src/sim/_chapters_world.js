@@ -4,7 +4,7 @@
 //   - Mom's page PINS on the Map (a little page + her one line at close zoom);
 //   - the ladder under the hatch on Nana's landing (room `home:grandma`) and the way up to `home:grandma:attic`;
 //   - the Little Kettle stall on Market Street (from Chapter 13 done: the event stall prop + sign; the bell hangs on it once Chapter 14 is done), the brass bell
-//     by the Second Wind until then;
+//     by the Second Wind until then; the bell by the door of Rise & Shine (room `bakery`) once Chapter 14 is done; a hoop in Maplewood Park (Chapter 3);
 //   - Mom's book at home: once you have it, a "Mom's book" spot by a shelf / table in your own home opens the reader.
 // setMarker({ id, x, y, label, sub } | null), marker(), sync() (re-place the story props after a state change), init(hooks).
 import { G } from '../core/game.js';
@@ -57,22 +57,34 @@ function mapPins(g, X, Y, z, label) {
 
 /* ---------- story props in the city ---------- */
 function clearProps() { const w = cityWorld(); if (w) for (const ob of props) safe(() => w.remove(ob)); props = []; }
+/* Maplewood Park gets a hoop on a post (Chapter 3 walks the children there, and Pip fouls): added once, never removed */
+function parkHoop(w) { if (w.objs.some(o => o.storyHoop)) return; const ob = safe(() => w.place(asset('prop.park.hoop'), 314.5, 243, { solid: false, p: { c: '#3b7bd8' } }), null); if (ob) { ob.storyHoop = 1; w.version++; } }
 export function sync() {
-  const w = cityWorld(); if (!w || !H) return; const d13 = H.done('ch13'), d14 = H.done('ch14'), run14 = safe(() => G.chapters.current().id === 'ch14', false);
-  const key = [d13 || run14, d14].join('|') + '|' + w.objs.length % 2; if (propKey === key && props.every(o => w.objs.includes(o))) return; propKey = key; clearProps();
+  const w = cityWorld(); if (!w || !H) return; safe(() => parkHoop(w)); const d13 = H.done('ch13'), d14 = H.done('ch14'), run14 = safe(() => G.chapters.current().id === 'ch14', false);
+  const rung = run14 && !!safe(() => G.chapters.pick('c14_bell'), null);       /* the bell hangs on the stall from the moment it is rung until the stall packs up; then it lives by Roz's door */
+  const key = [d13 || run14, d14, rung].join('|') + '|' + w.objs.length % 2; if (propKey === key && props.every(o => w.objs.includes(o))) return; propKey = key; clearProps();
   const put = (id, x, y, o) => { const ob = safe(() => w.place(asset(id), x, y, Object.assign({ solid: false }, o)), null); if (ob) { ob.story = 1; props.push(ob); } return ob; };
   const sw = SPOTS['spot:second_wind'], ks = SPOTS['spot:kettle_stall'];
-  if (!d14) put('prop.story.bell', sw[0] - 1.5, sw[1] - .5);                        /* the bell by the Captain's cabin door */
+  if (!d14 && !rung) put('prop.story.bell', sw[0] - 1.5, sw[1] - .5);                        /* the bell by the Captain's cabin door */
   if (d13 || run14) {                                                              /* the Little Kettle, leaning a little */
     put('prop.event.stall', ks[0] - 1.5, ks[1] - 3.2, { p: { scheme: 'blossom', kind: 'tea', text: 'KETTLE', seed: 7 } });
-    if (d14) put('prop.story.bell', ks[0] + 1.7, ks[1] - 1.7);
+    if (rung) put('prop.story.bell', ks[0] + 1.7, ks[1] - 1.7);
   }
   w.version++;
 }
 
 /* ---------- rooms ---------- */
+/* the Copper Kettle's bell, home again by Roz's door once Chapter 14 is done (the bakery is where the tearoom was) */
+function doorBell(sc) {
+  if (!sc || sc.roomId !== 'bakery' || sc.chBell || !H || !H.done('ch14')) return; sc.chBell = 1;
+  const O = sc.toWorld ? sc.toWorld(0, 0) : { x: 0, y: 0 }, x = O.x + 6.95, y = O.y + 5.75;
+  safe(() => sc.world.place(asset('prop.story.bell'), x, y, { solid: false })); safe(() => { sc.world.version++; });
+  sc.interactables.push({ x: x + .4, y: y + .25, label: "The Copper Kettle's bell", h: 1.5, hit: 16, range: 2,
+    use: () => { safe(() => G.audio.sfx('bell')); safe(() => G.goalsUI.caption(null, 'You ring it. Roz looks up and smiles without meaning to. It rang over this door for thirty-one years.', 4600)); } });
+}
 function onRoom(sc) {
   const rid = sc.roomId; if (!rid || !H) return;
+  if (rid === 'bakery') doorBell(sc);
   if (rid === 'home:grandma') {
     /* the ladder on the landing, under the hatch */
     const x = 9.0 + 1, y = 3.3 + 1; safe(() => sc.world.place(asset('furn.story.ladder'), x, y, { solid: false }));   /* free-standing by the right-hand wall, between the two plants */
@@ -96,8 +108,8 @@ export function init(hooks) {
   G.overlays.push(drawMarker);
   (G.mapPins || (G.mapPins = [])).push(mapPins);
   G.on('room:build', sc => safe(() => onRoom(sc)));
-  G.on('scene', s => { if (s && s.id === 'city') setTimeout(() => safe(sync), 50); });
-  G.on('chapter:done', () => setTimeout(() => safe(sync), 50)); G.on('chapter:start', () => setTimeout(() => safe(sync), 50));
+  G.on('scene', s => { if (s && s.id === 'city') setTimeout(() => safe(sync), 50); else if (s && s.id === 'int:bakery') safe(() => doorBell(G.scene)); });
+  G.on('chapter:done', () => setTimeout(() => safe(sync), 50)); G.on('chapter:start', () => setTimeout(() => safe(sync), 50)); G.on('chapter:choice', id => { if (id === 'c14_bell') setTimeout(() => safe(sync), 50); });
   G.on('load', () => { M = null; if (mkOff) { mkOff(); mkOff = null; } light = null; props = []; propKey = ''; setTimeout(() => safe(sync), 400); });
   /* a tap ON the marker always means the marker, whoever is standing next to it (passers-by and doors must not win the tap) */
   addEventListener('pointerdown', e => {

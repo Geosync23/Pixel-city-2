@@ -1,7 +1,7 @@
 // Chapter art (the main story): the gold Chapter marker (a canvas sprite for the city overlay, the phone Map and the UI), Nana's attic
 // furniture, the ladder on her landing, the brass bell, and the pictures on the two microfilm frames.
 // Assets (registry ids): furn.story.ladder, furn.story.hatch, furn.story.atticbox, furn.story.trunk, furn.story.sheetchair, furn.story.roundwindow,
-//   furn.story.rafters, prop.story.bell, prop.story.stallsign.
+//   furn.story.rafters, prop.story.bell, prop.story.stallsign, furn.home.story.kettlephoto, furn.home.story.yearphoto (the two photographs, framed, for a wall at home).
 // Exports besides the default asset list: markerSprite(frame 0..3) -> canvas 17x26, pageSprite() -> canvas 9x11, photo1985(g, w, h), photo1988(g, w, h).
 import { box, qz, qy, qx, lw, px, C, PW, dk, lt, glow, lit, ellipse, cyl, textY, rect, fq } from '../../engine/raster.js';
 
@@ -129,6 +129,30 @@ export default [
       const s = PW(.5, .25, 1.02), X = Math.round(s[0]), Y = Math.round(s[1]);
       rect(X - 2, Y - 3, 5, 4, BRASS); rect(X - 3, Y + 1, 7, 1, dk(BRASS, .2)); rect(X - 1, Y - 4, 3, 1, BRASS); px(X - 1, Y - 2, C('#fff0c0')); px(X, Y + 2, C('#3a2c22'));
       glow(() => px(X - 1, Y - 3, C('#fff8e0')));
+    } },
+  /* the two photographs, framed, for a wall at home (registered as home items by sim/chapters.js; ids under furn.home. so the home system can hang them) */
+  { id: 'furn.home.story.kettlephoto', kind: 'furniture', tags: ['home', 'decor', 'wall', 'story', 'photo'], wall: true, solid: false, size: [1, .1, .8], mount: 1.2,
+    draw() {      /* the Bay Courier print, June 1985: the shopfront, four people, the door held open */
+      const y = .06, f = '#5a3a2a';
+      qy(0, 1, y - .02, 0, .8, f); qy(.05, .95, y, .05, .75, '#e9e2cc'); qy(.09, .91, y + .005, .1, .7, '#b9b3a2');
+      qy(.09, .91, y + .01, .6, .7, '#d8d2c0');                                    /* sky */
+      qy(.13, .87, y + .01, .22, .62, '#8a877c'); qy(.16, .84, y + .012, .5, .58, '#e2dcc8');     /* the shopfront and its sign */
+      qy(.18, .4, y + .012, .26, .46, '#d0cab8'); qy(.6, .82, y + .012, .26, .46, '#d0cab8');     /* windows */
+      qy(.46, .55, y + .012, .22, .48, '#2a2823');                                  /* the open door */
+      qy(.09, .91, y + .01, .1, .22, '#6e6b62');                                    /* pavement */
+      for (const [x, h, c] of [[.24, .16, '#f2eee0'], [.31, .19, '#3a3832'], [.49, .16, '#c9c3b0'], [.68, .13, '#8a877c']]) { qy(x, x + .045, y + .014, .14, .14 + h, c); qy(x + .005, x + .04, y + .016, .14 + h, .14 + h + .045, '#e8dcc6'); }
+      lw([0, y - .02, .8], [1, y - .02, .8], dk(f, .3)); lw([0, y - .02, 0], [1, y - .02, 0], dk(f, .3));
+    } },
+  { id: 'furn.home.story.yearphoto', kind: 'furniture', tags: ['home', 'decor', 'wall', 'story', 'photo'], wall: true, solid: false, size: [1.25, .1, .9], mount: 1.15,
+    draw() {      /* everyone at the Lookout, squinting; the bay behind them; one small figure looking the other way, at a bird */
+      const y = .06, f = '#c9a24a';
+      qy(0, 1.25, y - .02, 0, .9, f); qy(.05, 1.2, y, .05, .85, '#fbf6e4'); qy(.1, 1.15, y + .005, .11, .79, '#9fd0ea');
+      qy(.1, 1.15, y + .01, .11, .5, '#4f8fb8'); qy(.1, 1.15, y + .012, .11, .3, '#6f9a58');       /* the bay, the hill */
+      qy(.1, 1.15, y + .014, .29, .31, '#e9e4d6');                                                 /* the railing */
+      const P = [['#e8e8e8', '#b8443a', .26], ['#6b4a2e', '#3a5a78', .3], ['#2a2018', '#d9a23a', .3], ['#9a958c', '#6b705c', .31], ['#3a2c22', '#3f7a52', .29], ['#2a2018', '#7a2e3a', .3], ['#5a3a2a', '#d98a3a', .2], ['#2a2018', '#4f9a6a', .17]];
+      P.forEach(([hair, coat, h], i) => { const x = .17 + i * .118; qy(x, x + .07, y + .016, .13, .13 + h, coat); qy(x + .01, x + .06, y + .018, .13 + h, .13 + h + .06, '#e8c9a8'); qy(x + .01, x + .06, y + .02, .13 + h + .045, .13 + h + .075, hair); });
+      qy(1.06, 1.09, y + .02, .66, .68, '#3a3832'); qy(1.04, 1.06, y + .02, .68, .69, '#3a3832'); qy(1.09, 1.11, y + .02, .68, .69, '#3a3832');   /* the bird */
+      lw([0, y - .02, .9], [1.25, y - .02, .9], dk(f, .25)); lw([0, y - .02, 0], [1.25, y - .02, 0], dk(f, .25));
     } },
   { id: 'prop.story.stallsign', kind: 'prop', tags: ['story'], solid: false, size: [2.4, .1, .6], vb: [-.2, -.2, -.1, 2.6, .4, .9],
     draw() { qy(0, 2.4, .05, 0, .55, '#fff4dc', '#f1e2bd'); lw([0, .05, 0], [2.4, .05, 0], INK); lw([0, .05, .55], [2.4, .05, .55], INK); textY('THE LITTLE KETTLE', .12, .06, .4, '#b8443a'); } },

@@ -14,6 +14,7 @@ import { el, root, toast, choose } from '../ui/kit.js';
 import { FAMILIES, INTEREST } from '../data/skills_extra.js';
 import { UI } from '../ui/chapters_ui.js';
 import { photo1985, photo1988 } from '../art/story/chapter_art.js';
+import { OPEN, CAST as UCAST } from '../story/university.js';
 
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const grade = r => (r && !r.quit && !r.auto && (r.score || 0) >= .5 ? 'good' : 'ok');
@@ -197,19 +198,40 @@ const A = {
   /* --- Chapter 11 --- */
   async 'minigame:obs_trace'(st, c) {
     const r = await c.doAt([{ label: /constellation|finder/i }], st.label, { go: 'To the star finder', hint: st.hint }); if (r !== 'done') return r;
+    /* a clear evening that is not dark yet: you wait for the stars (the clock moves on, like waiting for dusk at the Light) */
+    const sk = () => safe(() => G.observatory.sky(), null);
+    if (sk() && sk().clear && !sk().night && G.now().hf > 16) { toast('You wait. The first star is always the one you were not looking at.', 'info', 3600); await c.fade(() => { for (let k = 0; k < 16 && sk() && !sk().night; k++) G.advance(10); }); if (!c.alive()) return 'dead'; }
     let ok = false; if (G.observatory && safe(() => G.observatory.sky().observing, false)) ok = await safe(() => G.observatory.trace(), Promise.resolve(false));
     if (!c.alive()) return 'dead'; if (ok) return 'good';
     return plain({ kind: 'trace', title: "Tonight's constellation", hint: 'Star to star. Take your time.' }, c);
   },
-  /* --- Chapter 12: until the University offers a daytime open lecture, the player takes a seat and listens --- */
+  /* --- Chapter 12: the University's own open lecture is on Wednesday nights; the Chapter is a weekday morning (it ends at the school gate at home time).
+     So this is the morning public lecture of the same series, staged with the theatre's own pieces: the University's talk "How a lighthouse throws a candle
+     twenty miles" (story/university.js OPEN, id 'lens': it sends you up the Light, which is page one of the book), its professor at the lectern, an audience,
+     the three boards on the wall screen, and the talk's own question. If G.university.sitIn({ chapter, talk }) ever exists it is used instead. --- */
   async 'activity:uni_open_lecture'(st, c) {
-    const r = await c.doAt([{ label: /^Take a seat$/ }, { tag: 'seat' }], st.label, { go: 'Take a seat at the front', hint: st.hint }); if (r !== 'done') return r;
-    if (G.university && G.university.sitIn) { const ok = await safe(() => G.university.sitIn({ chapter: true }), Promise.resolve(false)); if (ok) return c.alive() ? 'good' : 'dead'; }
-    const lines = (st.talk || []).slice(); const iv = setInterval(() => { if (!lines.length) return clearInterval(iv); const l = lines.shift(); c.caption(l.who, l.text, 5200); }, 4200);
-    await act('Listening to the lecture', 'sit', 30, { rate: 2.2 }); clearInterval(iv); st._left = lines; if (!c.alive()) return 'dead';
-    safe(() => G.needs.add('inspiration', 10)); safe(() => G.needs.add('fun', 6));
-    const v = await choose('"You, at the front. Why does a harbor town face the way it does?"', [{ label: 'The weather comes from one side.', value: 1 }, { label: 'Because the boats said so.', value: 1 }, { label: '(Look at Kit.)', value: 0 }]);
-    return v ? 'good' : 'ok';
+    const sc = G.scene, U = sc && sc.uni && sc.uni.board ? sc.uni : null, tk = OPEN.find(t => t.id === 'lens') || OPEN[0], prof = safe(() => UCAST[tk.by].short || UCAST[tk.by].name, 'The lecturer');
+    const tidy = () => { if (!U) return; const off = G.on('scene', () => { off(); safe(() => U.clear()); safe(() => U.board.show(null)); }); };
+    const wrap = (t, n) => { const out = []; let l = ''; for (const w of String(t).split(' ')) { if ((l + ' ' + w).trim().length > n) { out.push(l); l = w; } else l = (l + ' ' + w).trim(); } if (l) out.push(l); return out; };
+    if (U) { safe(() => U.setProf(tk.by)); safe(() => U.fill(12, false)); safe(() => U.board.show({ mode: 'stage', title: 'OPEN LECTURE', lines: wrap(tk.title, 30).slice(0, 3).concat([prof, 'TAKE ANY SEAT']) })); }
+    const r = await c.doAt([{ label: /^Take a seat$/ }, { tag: 'seat' }], st.label, { go: 'Take a seat at the front', hint: st.hint }); if (r !== 'done') { tidy(); return r; }
+    if (G.university && G.university.sitIn) { const ok = await safe(() => G.university.sitIn({ chapter: true, talk: tk.id }), Promise.resolve(false)); if (ok) return c.alive() ? 'good' : 'dead'; }
+    const P = G.player, seat = U ? U.seats.filter(q => !q.taken || q.taken === P).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y))[0] : null;
+    const say = (name, text, ms) => safe(() => G.goalsUI.caption(name, text, ms));
+    /* what is said while you sit: Kit, twice, under her breath; then the three boards, each on the screen as it is spoken */
+    const cues = (st.talk || []).map(l => () => c.caption(l.who, l.text, 4300));
+    tk.boards.forEach((b, i) => cues.push(() => { if (U) safe(() => U.board.show({ mode: 'slide', title: tk.title.toUpperCase().slice(0, 34), fig: b.fig, lines: wrap(b.h, 17).concat(wrap(b.t, 17)).slice(0, 4), n: i + 1, of: tk.boards.length })); say(prof, b.t, 6200); }));
+    let k = 0; const step = () => { if (k < cues.length) cues[k++](); }; step(); const iv = setInterval(step, 4600);
+    if (seat) { seat.taken = P; P.poseOpts = { seated: true }; }
+    await act('Listening: "' + tk.title + '"', 'sit', 36, Object.assign({ rate: 36 / (cues.length * 4.6 + 1.5) }, seat ? { at: { x: seat.x, y: seat.y, z: seat.z, dir: seat.dir } } : {}));
+    clearInterval(iv); if (seat) { P.poseOpts = null; if (seat.taken === P) seat.taken = null; } st._left = []; if (!c.alive()) { tidy(); return 'dead'; }
+    safe(() => G.needs.add('inspiration', 12)); safe(() => G.needs.add('fun', 8)); safe(() => { G.state.uni.open[tk.id] = 1; });
+    const q = tk.ask[0], v = await choose(`${prof} looks along the front row. "${q[0]}"`, q[1].map((t, i) => ({ label: t, value: i + 1 })).concat([{ label: '(Look at Kit.)', value: 99 }]));
+    if (!c.alive()) { tidy(); return 'dead'; }
+    const right = v === q[2] + 1;
+    say(prof, right ? q[3] : v === 99 ? 'No? ' + q[3] : 'Not quite. ' + q[3], 5200); await c.sleep(2600);
+    if (U) safe(() => U.board.show({ mode: 'stage', title: 'OPEN LECTURE', lines: ['THANK YOU', 'NEXT: WEDNESDAY 19:30'] }));
+    tidy(); return right ? 'good' : 'ok';
   },
   /* --- Chapter 13 --- */
   async 'minigame:cook'(st, c) {

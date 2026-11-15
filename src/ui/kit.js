@@ -9,7 +9,11 @@ export function el(sel, props, ...kids) {
 }
 export const root = () => document.getElementById('ui');
 /** transient message at the top of the screen. kind: 'info'|'good'|'bad'|'money' */
-export function toast(text, kind = 'info', ms = 2600) { let box = document.getElementById('toasts'); if (!box) { box = el('div', { id: 'toasts' }); root().append(box); } const t = el('div.toast.' + kind, { text }); box.append(t); setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 400); while (box.children.length > 4) box.firstChild.remove(); }
+export function toast(text, kind = 'info', ms = 2600) { let box = document.getElementById('toasts'); if (!box) { box = el('div', { id: 'toasts' }); root().append(box); } 
+  for (const o of box.children) if (o.textContent === text && !o.classList.contains('out')) return o;   /* QA7: the same words twice at once: once */
+  const live = [...box.children].filter(o => !o.classList.contains('out')); if (live.length >= 2) { const old = live[0]; old.classList.add('out'); setTimeout(() => old.remove(), 400); }   /* QA7: at most two; the oldest makes room */
+  if (live.length) ms = Math.min(ms, 2200);   /* QA7: shorter while others queue */
+  const t = el('div.toast.' + kind, { text }); box.append(t); setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 400); while (box.children.length > 4) box.firstChild.remove(); return t; }
 /**
  * Modal window (pauses the game while open). Returns {el, body, close()}.
  * opts: { title, cls, onClose, closable: true, pause: true }

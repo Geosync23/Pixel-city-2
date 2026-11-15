@@ -438,11 +438,11 @@ const ch03 = {
   cast: ['jules', 'pip', 'milo', 'theo', 'vik'],
   unlock: { after: 'ch02', breath: 'next_morning' },
   minutes: [8, 12],
-  play: "Tick your interests on Pip's survey, then one real game in Central Park: hoops with Pip, chess with Mr. Sethi, or sketching the pond with Milo.",
+  play: "Tick your interests on Pip's survey, then one real game in Maplewood Park, round the corner: hoops with Pip, chess with Mr. Sethi, or sketching the squirrels with Milo.",
   teaches: ['Interests: the things you tick lift your mood faster', 'The many ways to have fun: at home, on the phone, outdoors, at venues',
     'Getting better at something makes it more fun (skills)', 'Fun has to be put into the day on purpose'],
   takeaway: [{ type: 'ability', id: 'interests', text: 'Your interests are set (change them any time in the Me app).' }, { type: 'item', id: 'milo_drawing' },
-    { type: 'place', id: 'home:sibling' }, { type: 'place', id: 'park' }, { type: 'contact', id: 'pip' }, { type: 'contact', id: 'theo' },
+    { type: 'place', id: 'home:sibling' }, { type: 'place', id: 'spot:maplewood_park' }, { type: 'contact', id: 'pip' }, { type: 'contact', id: 'theo' },
     { type: 'rel', id: 'pip', n: 6 }, { type: 'rel', id: 'milo', n: 5 }, { type: 'rel', id: 'jules', n: 4 }],
   scenes: [
     sc('porch', 'home:sibling', 'The porch', [
@@ -488,9 +488,9 @@ const ch03 = {
       s('pip', "The ones you ticked are your things. When you do your things you cheer up quicker. That's not my opinion. That's science."),
       s('jules', "Okay, here's the deal. I have forty spelling tests and a husband who is \"fixing\" the gate."),
       s('jules', "Take them to the park for me? An hour. They think you're the entertainment. You'll find it's the other way round."),
-      go('spot:playground', { with: ['pip', 'milo'], label: 'Walk Pip and Milo to Central Park', note: "Pip: 'We can hear the park from here. It's that way. It's always been that way.'" }),
+      go('spot:maplewood_park', { with: ['pip', 'milo'], label: 'Walk Pip and Milo round the corner to Maplewood Park', note: "Pip: 'We can hear the park from here. It's that way. It's always been that way.'" }),
     ]),
-    sc('park', 'spot:playground', 'Central Park', [
+    sc('park', 'spot:maplewood_park', 'Maplewood Park', [
       s('pip', 'Okay. The official list. "Things That Are Fun, by Pip, age nine, for grown-ups who forgot."'),
       s('pip', "One: things at home. Books. TV. Games, if you've got a console. Cooking, if you do it on purpose and not just because you're hungry."),
       s('pip', "Two: things on your phone. There's a book one, a film one and a games one. Mom says a little is lovely and a lot makes your eyes go square."),
@@ -512,15 +512,15 @@ const ch03 = {
           play('minigame', 'chess', { label: 'Play Mr. Sethi under the big maple', with: ['vik', 'pip'], results: {
             good: [s('vik', 'Hm. HM. Who taught you? No. Do not tell me. Come back Thursday.')],
             ok: [s('vik', 'You lost beautifully. That is rarer than winning. Come back Thursday.')] } })], R('pip')),
-        o('sketch', 'Draw the ducks with Milo.', [
-          s('milo', '...You have to be quiet. Ducks know.'),
-          play('minigame', 'sketch', { label: 'Sketch the pond with Milo', with: ['milo'], results: {
-            good: [s('milo', "That's a good duck."), n('From Milo, you gather, this is five stars.')],
+        o('sketch', 'Draw the squirrels with Milo.', [
+          s('milo', '...You have to be quiet. Squirrels know.'),
+          play('minigame', 'sketch', { label: 'Sketch the squirrels with Milo', with: ['milo'], results: {
+            good: [s('milo', "That's a good squirrel."), n('From Milo, you gather, this is five stars.')],
             ok: [s('milo', 'That one looks like a shoe.'), beat(), s('milo', 'I like shoes.')] } })], R('milo'))),
       s('pip', "See? You've gone a different colour. Nana says that. It's true, though."),
-      n('A small hand finds your sleeve and points, through the trees, at a great glass roof.'),
-      s('milo', "There's fish in the glass house. Orange ones. They know me."),
-      s('pip', "The Conservatory. It's four dollars and Milo talks to a fish for an hour. Another day. It's been there a hundred years. It'll wait."),
+      n('A small hand finds your sleeve and points west, over the rooftops, at something only he can see from here.'),
+      s('milo', "There's fish in the glass house. In the big park. Orange ones. They know me."),
+      s('pip', "The Conservatory, in Central Park. It's four dollars and Milo talks to a fish for an hour. Another day. It's been there a hundred years. It'll wait."),
       s('pip', 'Last question. Do you look like Grandma Nell? Nana says the nose.'),
       pick('c03_nell',
         o('think', "So I'm told. What do you think?", [

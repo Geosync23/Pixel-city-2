@@ -22,9 +22,23 @@ import { render } from '../engine/raster.js';
 import { toSprite } from '../engine/sprites.js';
 
 function injectCss() {
+  handCheck();
   if (!document.querySelector('link[href="src/ui/style.css"]') || document.querySelector('link[href="src/ui/chapters.css"]')) return;
   document.head.append(el('link', { rel: 'stylesheet', href: 'src/ui/chapters.css' }));
 }
+
+/* Mom's handwriting: the css asks for a script face ("Segoe Script", "Bradley Hand", "Snell Roundhand", "Dancing Script", then the device's `cursive`).
+   Where none of them exists the browser's `cursive` is just its ordinary serif or sans face: then <html> gets .ch-nohand and the css uses a chosen italic book hand. */
+function hasHand() {
+  try {
+    const g = document.createElement('canvas').getContext('2d'), probe = 'Maple Bay, for F. Go late in the day. 1987', w = f => { g.font = 'italic 24px ' + f; return g.measureText(probe).width; };
+    const ser = w('serif'), san = w('sans-serif'), mono = w('monospace');
+    for (const f of ['"Segoe Script"', '"Bradley Hand"', '"Snell Roundhand"', '"Dancing Script"']) if (w(f + ',serif') === w(f + ',sans-serif') && w(f + ',monospace') === w(f + ',serif')) return true;
+    const cur = w('cursive'); return cur !== ser && cur !== san && cur !== mono;
+  } catch (e) { return true; }
+}
+let handChecked = false;
+function handCheck() { if (handChecked) return; handChecked = true; if (!hasHand()) document.documentElement.classList.add('ch-nohand'); }
 
 /* ---------- portraits ---------- */
 const PW = 16, PH = 17, faces = new WeakMap();
@@ -63,7 +77,14 @@ function build() {
 }
 function open() { if (!D) { D = build(); hold(modalOn); } return D; }
 export function close() {
-  if (!D) return; stopType(); removeEventListener('keydown', D.key, true); D.wrap.remove(); const r = D.res; D = null; hold(false); if (r) r('closed');
+  if (!D) return; stopType(); removeEventListener('keydown', D.key, true); D.wrap.remove(); const r = D.res; D = null; hold(false); guard(); if (r) r('closed');
+}
+/* When the sheet goes away the world is under the thumb that was tapping through the lines: for a moment taps on the world do nothing, so one tap too many
+   does not walk the player off (out of a room's door, as it happens: doors sit at the bottom of the screen). Buttons, the chip and the HUD stay live. */
+let guardEl = null, guardT = 0;
+function guard(ms = 420) {
+  if (!guardEl) { guardEl = el('div.chd-guard'); for (const ev of ['pointerdown', 'pointerup', 'click', 'touchstart']) guardEl.addEventListener(ev, e => { e.stopPropagation(); e.preventDefault(); }); }
+  if (!guardEl.isConnected) root().prepend(guardEl); clearTimeout(guardT); guardT = setTimeout(() => guardEl.remove(), ms);
 }
 export const isOpen = () => !!D;
 function stopType() { if (D && D.typing) { clearInterval(D.typing); D.typing = null; } }
@@ -92,7 +113,7 @@ export function say(line) {
   });
 }
 /** show a line at once, without waiting for a tap (the line a choice answers, when the sheet opens straight onto the choice after a reload) */
-export function context(line) { const d = open(); head(line); stopType(); d.full = line.text; d.text.textContent = line.text; d.more.style.visibility = 'hidden'; }
+export function context(line) { const d = open(); head(line); stopType(); d.full = line.text; d.text.textContent = line.text; d.more.style.visibility = 'hidden'; if (!LOG.length || LOG[LOG.length - 1].text !== line.text) LOG.push({ who: line.name || '', text: line.text, st: line.style || '' }); }
 export function choice(options) {
   const d = open(); stopType(); d.more.style.visibility = 'hidden'; d.box.classList.add('choosing');
   return new Promise(res => {

@@ -104,7 +104,7 @@ function nextOf(id, t = now()) {
   const pond = kind === 'practical' && cs.station === 'pond';
   return { cid: id, unit: u, kind, T, room: kind === 'practical' ? (pond ? 'city' : UR.workshop) : UR.lecture, station: kind === 'practical' ? cs.station : null };
 }
-const wet = () => safe(() => G.weather.isWet(), false) || safe(() => G.now().season, 0) === 3;
+const wet = () => /rain|storm|snow/.test(safe(() => G.weather.current().kind, '') || '') || safe(() => G.now().season, 0) === 3;   /* QA7: was G.weather.isWet(), which is false while YOU are indoors: in the rain the pond class flipped between the pond and the lab tank as you went in and out */
 /** where the practical of a session really happens right now (the pond class moves to the lab tank in the wet and in winter) */
 const stationOf = ses => (ses.station === 'pond' && wet() ? 'lab' : ses.station);
 const roomOf = ses => (ses.kind === 'practical' ? (stationOf(ses) === 'pond' ? 'city' : UR.workshop) : UR.lecture);
@@ -144,6 +144,7 @@ function syncPlanner() {
 function checkMissed() { const t = now(); for (const id of enrolled()) { const c = row(id); if (c.unit > 3) continue; const cs = C(id), sec = cs.sections[c.sec]; if (c.unit === 3 && !ready(id)) continue;
     const prev = (() => { for (let d = dayOf(t); d > dayOf(t) - 8; d--) { if (!sec[0].includes(wd(d))) continue; const T = d * DAY + sec[1] * 60; if (T + TUNE.late <= t) return T; } return null; })();
     if (prev === null || prev <= (c.since || 0) || prev <= (c.miss || 0)) continue; if (CL.running() && CL.running().ses.cid === id) continue;
+    if (c.inClass === prev && t < prev + TUNE.classMin - 10) continue;   /* QA7: you were in this class when the game was saved: it is still yours to rejoin (a load mid-lecture counted it missed) */
     c.miss = prev; c.missed = (c.missed || 0) + 1; G.emit('university:missed', id, c.unit);
     if (c.appt !== null && c.appt !== undefined) { const a = safe(() => G.planner.get(c.appt), null); if (a && a.t <= prev) { safe(() => G.planner.remove(c.appt)); c.appt = null; } }
     const n = nextOf(id); note(CAST[cs.prof].short, `${pick(LINES.missed)}${n && n.T ? ` Next: ${DAYN[wd(dayOf(n.T))]} ${hh((n.T % DAY) / 60)}.` : ''}`, 'low'); } syncPlanner(); }
@@ -175,7 +176,7 @@ async function registrar() {
     if (v === 'f') { await say([{ who, text: `A course is ${fmt(TUNE.tuition)}: two lectures, a practical and the final. The card is ${fmt(TUNE.card)}, once.` }, { who, text: `If your balance is under ${fmt(TUNE.bursaryUnder)} the Ashby Bursary pays half. Shelving for Mr. Mott in the Reading Room earns ${fmt(TUNE.workStudy)} credit a session. And a Distinction earns the Dean's Scholarship: your next course free.` }]); continue; }
     if (v === 't') { const T = transcript(); await say(T.length ? T.map(t => ({ who: 'Your record', text: t })) : [{ who, text: 'A clean sheet. I do like a clean sheet. Shall we put something on it?' }]); continue; }
     if (v === 'm') { const k = en.length === 1 ? en[0] : await choose('My courses', en.map(q => ({ label: C(q).name, sub: todo(q)[0] || '', value: q })).concat({ label: 'Back', value: null })); if (!k) continue; const c = row(k), cs = C(k), o = 1 - c.sec;
-      const a = await choose(cs.name, [{ label: 'What is left to do', value: 'w' }, { label: `Change to the ${o ? 'evening' : 'day'} section`, sub: sectionText(cs.sections[o]) + (clash(k, o) ? ' · clashes' : ''), value: 's', disabled: clash(k, o) }, { label: 'Withdraw', sub: 'No refund, and your progress is lost', value: 'x' }, { label: 'Back', value: null }], { text: `${cs.code} · ${CAST[cs.prof].name} · ${sectionText(cs.sections[c.sec])}` });
+      const a = await choose(cs.name, [{ label: 'What is left to do', value: 'w' }, { label: `Change to the ${(h => (h >= 17 ? 'evening' : h >= 12 ? 'afternoon' : 'morning'))(cs.sections[o][1])} section`, sub: sectionText(cs.sections[o]) + (clash(k, o) ? ' · clashes' : ''), value: 's', disabled: clash(k, o) }, { label: 'Withdraw', sub: 'No refund, and your progress is lost', value: 'x' }, { label: 'Back', value: null }], { text: `${cs.code} · ${CAST[cs.prof].name} · ${sectionText(cs.sections[c.sec])}` });
       if (a === 'w') await say(todo(k).map(t => ({ who: cs.name, text: t })));
       else if (a === 's') { if (setSection(k, o)) toast(`Moved to ${sectionText(cs.sections[o])}. My Day has the new time.`, 'good', 3600); }
       else if (a === 'x') { const y = await choose(`Withdraw from ${cs.name}?`, [{ label: 'Yes, withdraw', value: 1 }, { label: 'No, keep it', value: 0 }]); if (y) { withdraw(k); toast(`You have withdrawn from ${cs.name}.`, 'info'); } }
@@ -183,7 +184,8 @@ async function registrar() {
     const list = COURSES.filter(q => !S.courses[q.id] && !S.certs[q.id]); if (!list.length) { await say([{ who, text: 'You have taken everything we teach. I shall have to speak to the Dean about inventing something.' }]); continue; }
     const id = await choose('Enrol: choose a course', list.map(q => ({ label: `${q.name}`, sub: `${q.code} · ${q.skill[0].toUpperCase() + q.skill.slice(1)} · ${CAST[q.prof].short}`, value: q.id })).concat({ label: 'Back', value: null }), { text: 'Each course: two lectures, one practical, a little coursework and a final.' });
     if (!id) continue; const cs = C(id), pr = price(id), cost = pr.pay + (S.card ? 0 : TUNE.card);
-    const sec = await choose(cs.name, cs.sections.map((s, i) => ({ label: `${i ? 'Evening' : 'Day'} section: ${sectionText(s)}`, sub: clash(id, i) ? 'Clashes with a class you have' : `${fmt(cost)}${pr.why ? ' · ' + pr.why : ''}${S.card ? '' : ' · includes the card'}`, value: i, disabled: clash(id, i) })).concat({ label: 'Not this one', value: null }), { text: `${cs.blurb} You get: ${cs.perk}` });
+    /* QA7: sections are named by their hour (was Day / Evening by position: Bay Ecology's "Evening section" met at 11:30) */
+    const sec = await choose(cs.name, cs.sections.map((s, i) => ({ label: `${s[1] >= 17 ? 'Evening' : s[1] >= 12 ? 'Afternoon' : 'Morning'} section: ${sectionText(s)}`, sub: clash(id, i) ? 'Clashes with a class you have' : `${fmt(cost)}${pr.why ? ' · ' + pr.why : ''}${S.card ? '' : ' · includes the card'}`, value: i, disabled: clash(id, i) })).concat({ label: 'Not this one', value: null }), { text: `${cs.blurb} You get: ${cs.perk}` });
     if (sec === null) continue;
     if (enrol(id, sec)) { const n = nextOf(id); await say([{ who, text: `There. Stamped. ${cs.name}, ${sectionText(cs.sections[sec])}, with ${CAST[cs.prof].name}.` }, { who, text: `Your first class is ${n && n.T ? DAYN[wd(dayOf(n.T))] + ' at ' + hh((n.T % DAY) / 60) : 'this week'} in the lecture theatre, straight ahead. It is on My Day. Do not be late; the clock is already two minutes fast.` }]); return; }
   }

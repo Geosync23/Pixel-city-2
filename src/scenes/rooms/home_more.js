@@ -339,4 +339,4 @@ for (const id of NEW) {
 for (const id in SHELLS) for (const r in SHELLS[id].rooms || {}) defineRoom({ id: 'home:' + id + ':' + r, name: id + ' ' + r, home: true, build: () => G.housing.roomDef(id, r) });
 /* stairs, room doors, hatches: a link piece takes you to another room of the same home */
 registerFixture('homelink', (fx, scene) => { const i = fx.item; if (!i || !i.to || !i.home || !G.housing) return null;
-  return { label: i.label || 'Door', h: 1.5, hit: 16, homelink: true, navTo: 'int:home:' + i.home + (i.to === 'main' ? '' : ':' + i.to), spot: i.spot ? scene.toWorld(i.spot[0], i.spot[1]) : undefined, use: () => G.housing.goRoom(i.home, i.to, i.from) }; });
+  return { label: i.label || 'Door', h: 1.5, hit: 6, homelink: true,   /* QA7: was 16: upstairs, "Stairs down" caught the taps meant for the attic ladder (see core/game.js pick patch in docs/reports/qa_round7.md) */ navTo: 'int:home:' + i.home + (i.to === 'main' ? '' : ':' + i.to), spot: i.spot ? scene.toWorld(i.spot[0], i.spot[1]) : undefined, use: () => G.housing.goRoom(i.home, i.to, i.from) }; });
