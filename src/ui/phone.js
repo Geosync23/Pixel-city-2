@@ -84,6 +84,16 @@ function notify(o) {
   if (isOpen && !stack.length) refresh();
   return e;
 }
+/* QA11: a My Day banner that is no longer true goes (round 10: "Starting now" stayed 21 min, "Leave now" 33 min after leaving, "In 30 min: Shift at 07:00" shown at 07:07 after clocking in):
+   the entry is kept / you are there / it is over; "In N min" once it has started; "Leave now" once you are on your way; any sticky one after 20 game minutes */
+function stale(e) {
+  const id = e && e.data && e.data.appt; if (id === undefined || id === null || e.app !== 'planner') return false;
+  const a = safe(() => G.planner.get(id), null), t = G.state.t; if (!a) return true;
+  if (a.here || a.s >= 3 || t >= a.t + a.dur) return true;
+  if (/· In \d+ min/.test(e.title) && t >= a.t) return true;
+  if (/· Leave now/.test(e.title) && (safe(() => !!G.nav.trip(), false) || t >= a.t)) return true;
+  return e.pri === 'high' && t - (e.t || t) > 20;
+}
 function pump() {
   if (showing || !queue.length || !bannerBox) return;
   /* QA round 5: banners expire; a stale 'Leave now' came back for six hours and a spring banner showed in autumn */
@@ -91,6 +101,7 @@ function pump() {
   while (queue.length && queue[0].pri === 'high' && G.state.t - (queue[0].t || G.state.t) > 60) queue.shift();
   while (queue.length && queue[0].data && queue[0].data.opp && !safe(() => { const v = G.opps.get(queue[0].data.opp); return !!v && !/done|end|gone/.test(String(v.st || '')); }, true)) queue.shift();   /* QA9: an Opportunity banner held behind the cook menu showed after it was already done */
   while (queue.length && queue[0].app === 'taxi' && /is here/.test(queue[0].text) && !safe(() => G.transit.pending, null)) queue.shift();   /* QA9: 'Your MapleCab is here' held during the ride showed 40 min later at the destination */
+  while (queue.length && stale(queue[0])) queue.shift();
   if (!queue.length) return;
   /* QA round 4: hold banners while a menu / dialog is open over the game (it covered the cook menu's tabs after a new game); they drop in once it closes */
   if (G.modal > (isOpen ? depth : 0)) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
@@ -100,7 +111,7 @@ function pump() {
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
-  showing = b; const shownAt = performance.now(); bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (G.modal > (isOpen ? depth : 0)) { if (performance.now() - shownAt < 3000 && (e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); }   /* QA9: only a banner that was barely seen comes back (seen ones were shown twice) */ /* a menu opened over it: take it back, show it again after */ else if (sticky && G.state.t - (e.t || G.state.t) > 45 && performance.now() - shownAt > 20000) done(); /* QA8: a sticky banner does not outlive its news */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
+  showing = b; const shownAt = performance.now(); bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (sticky && stale(e)) done(); else if (G.modal > (isOpen ? depth : 0)) { if (performance.now() - shownAt < 3000 && (e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); }   /* QA9: only a banner that was barely seen comes back (seen ones were shown twice) */ /* a menu opened over it: take it back, show it again after */ else if (sticky && G.state.t - (e.t || G.state.t) > 45 && performance.now() - shownAt > 20000) done(); /* QA8: a sticky banner does not outlive its news */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
   requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
   if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }

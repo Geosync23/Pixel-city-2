@@ -74,7 +74,9 @@ const SOURCES = {};   // kind -> [fn(from) -> extra rows {id, name, x, y, d?, op
 T.hunger = i => T.food(i) || T.groceries(i); T.energy = T.coffee;
 export const matches = (p, kind) => !!(p && T[kind] && T[kind](info(p)));
 const HOME_NOTE = { hunger: 'cook from your fridge', food: 'cook from your fridge', energy: 'sleep or nap', hygiene: 'shower', fun: 'TV, games, music', bladder: 'your bathroom', home: '' };
-const fridgeFood = () => safe(() => G.inv.fridge.items().some(s => G.inv.isFood(G.inv.item(s.id))), false);
+/* QA11: "Home (cook from your fridge)" only when something there can be eaten as it is, or a known recipe has everything it needs (round 10: offered with a fridge of odds and ends that made nothing) */
+const fridgeFood = () => safe(() => G.inv.fridge.items().some(s => G.inv.edible(G.inv.item(s.id)) && !(s.exp && G.state.t >= s.exp)), false)
+  || safe(() => G.cooking.known().some(id => { const c = G.cooking.status(id); return !!c && c.known && !c.miss.length && !/Cooking level/.test(c.why || ''); }), false);
 const row = (p, from, extra) => Object.assign({ id: p.id, name: p.name, x: p.x, y: p.y, d: man(p, from), open: safe(() => openState(p).open, null), note: '' }, extra);
 
 export function find(kind, n = 4, from = cityPos()) {

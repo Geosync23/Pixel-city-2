@@ -1,7 +1,7 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
 import { WS, U, screenBox, renderJob, renderStep, renderResult } from './raster.js';
 import { renderChunk, chunkJob, CH, outskirtChunks } from './ground.js';
-import { toSpritePooled, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, workerObj, BAKE } from './sprites.js';
+import { toSpritePooled, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, workerTestChar, workerObj, BAKE } from './sprites.js';
 import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -30,6 +30,16 @@ export function sortItems(L, n = L.length, out = []) {
   return out;
 }
 
+/* the depth sort as it was before the perf pass, kept word for word for the test hook Renderer.sortCheck (tools/perf.mjs --verify): both must give the same order */
+function sortItemsRef(L) {
+  const n = L.length, deps = new Array(n);
+  for (let i = 0; i < n; i++) deps[i] = null;
+  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if (behind(L[i].B, L[j].B)) (deps[j] || (deps[j] = [])).push(i); else (deps[i] || (deps[i] = [])).push(j); } }
+  const out = [], st = new Uint8Array(n), order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
+  const stack = [];
+  for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (d && idx < d.length) { stack[stack.length - 1]++; const c = d[idx]; if (!st[c]) { st[c] = 1; stack.push(c, 0); } } else { stack.length -= 2; out.push(L[i]); } } }
+  return out;
+}
 let WID = 0;
 const pools = new Map();
 function poolSprite(r, col) { // banded, dithered ellipse of light
@@ -71,6 +81,14 @@ export class Renderer {
   sliceCheck(world, from = 0, n = 1e9, rows = 23) {
     const bad = [], seen = new Set(); let tested = 0;
     for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k); tested++; try { if (sliceTest(screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip, rows)) bad.push(k.slice(0, 80)); } catch (e) { bad.push('ERR ' + k.slice(0, 60) + ' ' + e.message); } }
+    return { tested, bad };
+  }
+  /** test hook: is the draw order of the frame just drawn the same as the old depth sort gives? { items, same } */
+  sortCheck() { const L = this._L.filter(it => it.spr), ref = sortItemsRef(L), S = this._S; let same = ref.length === S.length; for (let i = 0; same && i < ref.length; i++) if (ref[i] !== S[i]) same = false; return { items: S.length, same }; }
+  /** test hook (async): citizens' sprites (every direction, two frames of stand / walk) drawn by the bake worker vs. here; { tested, bad } */
+  async charCheck(ents, max = 12) {
+    const bad = [], seen = new Set(); let tested = 0;
+    for (const e of ents) { if (!e.isCitizen || !e.spec || seen.has(e.spec) || seen.size >= max) continue; seen.add(e.spec); for (const anim of ['stand', 'walk']) for (let dir = 0; dir < 4; dir++) for (let frame = 0; frame < 2; frame++) { const d = await workerTestChar(e.spec, { anim, frame, dir }); if (d === null) continue; tested++; if (d !== 0) bad.push(anim + frame + dir + ' -> ' + d); } }
     return { tested, bad };
   }
   /** test hook (async): objects [from, from + n) drawn by the bake worker vs. here; { tested, skipped (custom art / no worker), bad: [...] }. Expect bad = []. */

@@ -22,7 +22,10 @@ export default {
     b.append(section('Sound'));
     const A = G.state.audio && typeof G.state.audio === 'object' ? G.state.audio : (st.audio = st.audio || { master: .8, music: .6, sfx: .8 }), c = card();
     for (const [k, name] of [['master', 'Master'], ['music', 'Music'], ['sfx', 'Effects']]) { if (A[k] === undefined) A[k] = k === 'music' ? .6 : .8; const out = el('span', { text: Math.round(A[k] * 100) });
-      c.append(el('label.ph-range', null, el('span', { text: name }), el('input', { type: 'range', min: 0, max: 100, step: 5, value: Math.round(A[k] * 100), 'aria-label': name + ' volume', oninput: e => { A[k] = e.target.value / 100; out.textContent = e.target.value; safe(() => G.audio.setVolume(k, A[k]), 0); } }), out)); }
+      c.append(el('label.ph-range', null, el('span', { text: name }), el('input', { type: 'range', min: 0, max: 100, step: 5, value: Math.round(A[k] * 100), 'aria-label': name + ' volume', oninput: e => { A[k] = e.target.value / 100; out.textContent = e.target.value; if (k === 'master' && A.muted) delete A.muted; safe(() => G.audio.setVolume(k, A[k]), 0); } }), out)); }
+    /* QA11: a Mute toggle beside the sliders. Muting keeps your Master level and puts it back when you unmute (G.audio is not changed: only its master volume) */
+    const setMute = on => { if (on) { if (!A.muted) A.muted = A.master > 0 ? A.master : .8; A.master = 0; } else { A.master = A.muted || .8; delete A.muted; } safe(() => G.audio.setVolume('master', A.master), 0); ctx.refresh(); };
+    c.prepend(el('div.ph-chips', { 'data-set': 'mute' }, chip('Sound on', A.muted ? '' : 'on', () => setMute(false)), chip('Mute', A.muted ? 'on' : '', () => setMute(true))));
     b.append(c); if (!G.audio) b.append(el('p.ph-note', { text: 'The speakers are still being unpacked. Your levels are remembered.' }));
     b.append(section('Phone'));
     b.append(card(el('b', { text: 'Text size' }), el('div.ph-chips', null, [[14, 'Small'], [15, 'Normal'], [17, 'Large']].map(([s, l]) => chip(l, (st.text || 15) === s ? 'on' : '', () => { st.text = s; document.querySelector('.ph').style.fontSize = s + 'px'; ctx.refresh(); }))),

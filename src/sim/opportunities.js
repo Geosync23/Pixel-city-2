@@ -165,6 +165,8 @@ function canOfferNow() {
   if (!S) return false; const F = G.state.flags || {};
   if (!(F.introDone || (G.query && G.query.has('opps')))) return false;
   if (G.cutscene || safe(() => G.needs.sleeping, false) || safe(() => G.jobs.onShift(), false)) return false;
+  /* QA11: no Opportunity banner over a Chapter, a job story beat or a relationship scene (round 10: one arrived during Chapter 3); they wait till it ends */
+  if (safe(() => G.chapters.active(), false) || safe(() => G.jobStory.active(), false) || safe(() => G.rel.active(), false)) return false;
   const n = G.now(); if (inRange(n.hf, TUNE.quiet)) return false;
   if (S.cur.filter(c => c.st === 0).length >= TUNE.maxOffered || S.cur.length >= TUNE.maxOpen) return false;
   return true;
@@ -193,7 +195,7 @@ const placeIdOf = c => (c.at === 'home' ? (homeId() ? 'home:' + homeId() : null)
 function hintOf(c) { const def = defOf(c); return def.text + (c.from ? ` (${whenText(c.from)} to ${clockOf(c.until)})` : ` (until ${whenText(c.until)})`); }
 function accept(id, o = {}) {
   const c = find(id), def = defOf(c); if (!c || !def) return false; if (c.st === 1) { if (o.go) go(id); return true; }
-  c.st = 1; S.n.accepted++;
+  c.st = 1; S.n.accepted++; S.next = Math.max(S.next || 0, now() + 60);   /* QA11: taking one does not make room for a new banner the same second */
   if (def.at && String(def.at).startsWith('npc:')) { const w = whereNpc(c.npc); if (w) { c.at = w.at || null; if (w.pos) c.pos = w.pos; else delete c.pos; } }
   safe(() => G.goals.add({ id: gid(id), text: def.title, group: 'opportunity', hint: hintOf(c), placeId: placeIdOf(c) || undefined, doneText: 'Opportunity done: ' + def.title }));
   if (def.appt && c.from && G.planner) c.appt = safe(() => G.planner.add({ title: def.title, placeId: placeIdOf(c), t: c.from, dur: c.until - c.from, kind: 'personal', data: { opp: id } }), null);

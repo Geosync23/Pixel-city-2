@@ -174,7 +174,7 @@ export const SOCIAL = {
 };
 // LOW_NOTICE — the line shown when a need first drops into its low band (and the stronger one at its critical band). It says what to do and where.
 export const LOW_NOTICE = {
-  hunger: { low: 'Getting hungry. Eat something from your fridge at home, or Map > Where to? > Food for the nearest place.', critical: 'Starving! Eat now: at 0 you pass out and wake up at Bayside Clinic ($40). Any snack in your bag helps.' },
+  hunger: { low: 'Getting hungry. A snack from your bag, a meal at home if you have the makings, or Map > Where to? > Food for the nearest place.', critical: 'Starving! Eat now: at 0 you pass out and wake up at Bayside Clinic ($40). Any snack in your bag helps.' },
   energy: { low: 'Getting tired. Plan to be in bed soon: Map > Where to? > Home. A coffee buys an hour or two.', critical: 'Exhausted! Get to a bed now: at 0 you fall asleep where you stand.' },
   hygiene: { low: 'Time for a shower: your bathroom at home, or the showers at a gym or the pool.', critical: 'People are starting to notice. A shower would fix everything.' },
   fun: { low: 'A bit bored. Do something just for you: a book, a game on your phone, a bench in the park.', critical: 'Burnt out. Do something fun before anything else.' },

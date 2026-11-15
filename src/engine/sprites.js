@@ -126,6 +126,8 @@ export function dropBake(key) { const j = jobs.get(key); if (!j) return; jobs.de
 export function rushBake(key) { const j = jobs.get(key); if (!j) return false; STATS.rushed++; finish(j, true); return true; }
 /** re-order the queue (the renderer calls this after it has refreshed the priorities) */
 export function sortBakes() { queue.sort((a, b) => a.pri - b.pri); }
+/* switches for testing on a device: add ?nobakeworker (bake ahead on the main thread only) or ?nobake (the old behaviour: everything baked when it first appears) to the page address */
+try { if (typeof location !== 'undefined' && location.search) { if (/[?&]nobakeworker\b/.test(location.search)) BAKE.worker = false; if (/[?&]nobake\b/.test(location.search)) BAKE.on = false; } } catch (e) { }
 /** push every queued job back by d px (the renderer then resets the ones still in its ring) and forget the unstarted ones that drifted beyond `max` */
 export function ageBakes(d, max) { for (let i = queue.length - 1; i >= 0; i--) { const j = queue[i]; j.pri += d; if (j.pri > max && !j.rj) { queue.splice(i, 1); jobs.delete(j.key); } } }
 /** set a queued job's priority */
@@ -187,6 +189,8 @@ export function workerTest(msg, sb, draw, pad, flip) {
   if (wstate === 0) workerStart(); if (wstate === -1) return Promise.resolve(null);
   return new Promise(res => { const go = () => { if (wstate === -1) return res(null); if (wstate !== 2) return setTimeout(go, 50); const n = ++seq; tests.set(n, m => { if (m.fail) return res(m.err ? 'worker: ' + m.err : null); const a = R.render(sb, draw, null, pad, flip), b = new Uint32Array(m.buf), l = m.lb ? new Uint32Array(m.lb) : null; if (a.w !== m.w || a.h !== m.h || a.x !== m.x || a.y !== m.y || a.hasLight !== m.hasLight) return res(-1); let d = 0; for (let i = 0; i < b.length; i++) if (a.buf[i] !== b[i] || (l && a.lb[i] !== l[i])) d++; res(d); }); try { worker.postMessage(Object.assign({ n, season: R.ENV.season }, msg)); } catch (e) { tests.delete(n); res('post: ' + e.message); } }; go(); });
 }
+/** test hook: a character (spec + pose) drawn by the worker vs. here; resolves like workerTest */
+export function workerTestChar(spec, pose) { const A = MODULES['./chars/char.js']; if (!A || !A.drawChar) return Promise.resolve(null); return workerTest({ t: 'char', sb: A.CHAR_SB, spec, pose }, A.CHAR_SB, () => A.drawChar(spec, pose), 1, false); }
 let allow = 3;   // the current per-frame allowance in ms (between BAKE.msMin and BAKE.msMax)
 /**
  * Spend up to the frame's allowance on the queue. late: true if the last frame came late (the allowance then shrinks; it grows back while

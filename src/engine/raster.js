@@ -91,7 +91,7 @@ export function render(sb, draw, off, pad = 3, flip = false, pooled = false) {
  * recycle(result) once the pixels are on a canvas. Only engine/sprites.js does this, for results that never leave it; everything else that
  * calls render() gets fresh arrays as before and may keep them.
  */
-const POOL = []; let poolBytes = 0; const POOL_MAX = 24e6;
+const POOL = []; let poolBytes = 0; const POOL_MAX = 12e6;
 function take(n) {
   let best = -1; for (let i = 0; i < POOL.length; i++) { const L = POOL[i].length; if (L >= n && L <= n * 3 + 4096 && (best < 0 || L < POOL[best].length)) best = i; }
   if (best < 0) return new Uint32Array(n);
@@ -99,7 +99,7 @@ function take(n) {
 }
 /** give a render result's buffers back to the pool (only for results made with pooled = true / renderJob, and only when nothing uses them any more) */
 export function recycle(r) {
-  for (const v of [r.buf, r.lb]) { if (!v) continue; const a = v.byteOffset === 0 && v.length * 4 === v.buffer.byteLength ? v : new Uint32Array(v.buffer); if (poolBytes + a.length * 4 > POOL_MAX || POOL.length >= 24) continue; POOL.push(a); poolBytes += a.length * 4; }
+  for (const v of [r.buf, r.lb]) { if (!v) continue; const a = v.byteOffset === 0 && v.length * 4 === v.buffer.byteLength ? v : new Uint32Array(v.buffer); if (poolBytes + a.length * 4 > POOL_MAX || POOL.length >= 16) continue; POOL.push(a); poolBytes += a.length * 4; }
   r.buf = r.lb = null;
 }
 /*

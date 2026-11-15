@@ -477,3 +477,6 @@ Lets also wait on the additional jobs. Please list them again but know we are wa
 
 ## 121 (2026-11-15)
 Continue
+
+## 122 (2026-11-15) — another source for recordings?
+Didnt you say there was another source foe recordings?
