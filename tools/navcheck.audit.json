@@ -163,7 +163,7 @@
     "label": "Council Chamber: this way"
    },
    {
-    "go": "int:cityhall_council",
+    "go": "int:cityhall_council", "wait": 2400,
     "label": "take a seat in the gallery"
    }
   ]

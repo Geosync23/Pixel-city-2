@@ -110,7 +110,12 @@ function pick(px, py) {
   }
   return best;
 }
-G.nearestInteractable = (range = 1.6) => { let best = null, bd = range; for (const it of G.interactables()) { const d = Math.hypot(it.x - G.player.x, it.y - G.player.y); if (d < bd) { bd = d; best = it; } } return best; };
+/* perf: the same scan as over G.interactables() (same filters, same order, same refresh of ent-following ones), without building the list: the HUD asks several times a second */
+G.nearestInteractable = (range = 1.6) => {
+  let best = null, bd = range; const sid = G.scene.id, px = G.player.x, py = G.player.y;
+  for (let pass = 0; pass < 2; pass++) { const L = pass ? extra : G.scene.interactables; for (let i = 0; i < L.length; i++) { const it = L[i]; if (it.scene && it.scene !== sid) continue; if (it.visible && !it.visible()) continue; if (it.ent) { it.x = it.ent.x; it.y = it.ent.y; it.z = it.ent.z; } const d = Math.hypot(it.x - px, it.y - py); if (d < bd) { bd = d; best = it; } } }
+  return best;
+};
 /** walk to an interactable and use it */
 G.useInteractable = it => {
   const p = G.player, range = it.range || 1.3, d = Math.hypot(it.x - p.x, it.y - p.y);

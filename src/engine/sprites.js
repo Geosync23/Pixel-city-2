@@ -80,8 +80,9 @@ export function pixSprite(key, sb, draw) { return cached(key, () => toSpritePool
 // Tunables. msMax / msMin: the most / least the queue may spend per frame (bakeTick adapts in between: it backs off while frames come late and
 // creeps back up while they are on time). small: banded jobs up to this many pixels are still drawn in one pass.
 // ring / look / lookMax: how far around the screen the renderer looks for things to queue (px around the screen; frames of camera travel ahead; cap in px).
+// urgent: jobs nearer to the screen than this many px always get the full msMax.
 // worker: use the bake worker when it can start. flying: sprites handed to the worker at a time. patience: ms without an answer before the worker is given up (and twice that for it to start).
-export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 32, look: 150, lookMax: 300, worker: true, flying: 4, patience: 15000 };
+export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 32, look: 150, lookMax: 420, urgent: 56, worker: true, flying: 4, patience: 15000 };
 const jobs = new Map(), queue = [];   // key -> job; queue = the same jobs, most urgent first (the renderer re-sorts by distance to the screen)
 /**
  * Queue a sprite for baking ahead of need. start() -> a raster.renderJob, or null for "nothing to draw" (called when the job first runs).
@@ -199,9 +200,11 @@ export function bakeTick(late) {
   allow = late ? Math.max(BAKE.msMin, allow * .7) : Math.min(BAKE.msMax, allow + .15);
   const t0 = performance.now(); workerPump(t0, allow); let used = performance.now() - t0;
   const wk = wstate === 2 || wstate === 1;   // (while the worker is still starting, its jobs wait for it)
-  for (let i = 0; i < queue.length && used < allow;) {
+  for (let i = 0; i < queue.length;) {
     const job = queue[i]; if (wk && job.msg && !job.rj) { i++; continue; }   // waits for a free worker slot (or is drawn on the spot if it comes on screen first)
-    if (slice(job, allow - used)) finish(job, false);
+    /* a job that is about to scroll into view (pri = px from the screen) may use the full allowance even while frames are late: finishing it in slices is still cheaper than finishing it all at once when it appears */
+    const lim = job.pri < BAKE.urgent ? Math.max(allow, BAKE.msMax) : allow; if (used >= lim) break;
+    if (slice(job, lim - used)) finish(job, false);
     used = performance.now() - t0;
   }
   return used;
