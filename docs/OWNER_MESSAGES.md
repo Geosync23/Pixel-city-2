@@ -465,3 +465,6 @@ The recordings work the generated sounds don't. But theh might if they didn't ha
 
 ## 117 (2026-11-15) — sound test: no footsteps
 Take out foot steps and try soindscape again
+
+## 118 (2026-11-15) — ambience decision: recordings only
+Yeah lets just do recordings. Longer samples and clever editing and remixing to avoid loops

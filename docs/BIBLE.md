@@ -254,3 +254,8 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 23 (owner msg 115, 2026-11-15) — where mail arrives
 - No more mail basket inside the home. Apartments (starting with the starter apartments, which get a LOBBY like the other apartment buildings) have a wall of mailboxes in the lobby with the player's own box; houses have a mailbox at the curb by the front path. Letters, parcels slips and bills notices are collected there. Existing lobbies' mailboxes work the same way for rented/bought apartments. Old saves: mail waiting in the basket moves to the mailbox.
+
+## Direction update 24 (owner msgs 111-118, 2026-11-15) — city ambience = real recordings only
+- The outdoor city ambience is built ONLY from real recordings (public domain / CC0, sources and licences kept in docs/audio/SOURCES.md). No white-noise or generated bed anywhere, no generated car / footstep / fountain layer. Music and the existing one-shot effects stay.
+- Long samples (a minute or more each), several per kind of place (busy street, quiet street, park, harbor, night, rain, airport), mixed so no loop is heard: random entry points, long crossfades between different stretches every 40-70 s, occasional layers that drift in and out (gulls, birds), level and tone following time of day, weather and indoors (muffled). Follows the district the player is in.
+- Budget: keep the added download to a few MB; the game stays one file unless the size forces a separate asset.
