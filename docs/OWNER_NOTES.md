@@ -93,3 +93,4 @@
 73. (msg 113) Asked whether the lead can procure licence-free recordings for ambience option B. Lead answered (see chat / HISTORY).
 74. (msg 114) AMBIENCE: test option D (thin recorded bed + sounds from what is on screen). Wants an artifact that simulates it before it goes into the game.
 75. (msg 115) MAIL: the mail basket inside the home ("writing basket", lead's reading: the Mail basket by the door) makes no sense. Starting apartments get a LOBBY with apartment MAILBOXES; houses get a CURB MAILBOX. Mail is collected there.
+76. (msg 116) SOUND TEST: the recordings work; the generated sounds do not, mainly because of the white noise in them. NO WHITE NOISE LAYER ANYWHERE. Wants: a little putter for cars, footsteps, etc.; the recording as background with a LONGER loop and MORE VARIETY. Show again.

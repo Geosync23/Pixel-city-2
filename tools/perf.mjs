@@ -11,7 +11,8 @@
 //              and the min-max spread: other processes load this machine, so a difference inside the spread is noise.
 //   --profile  also take a CPU profile per scene (uses an un-minified bundle so the functions have names; slower than without). Prints the top
 //              self-time functions for the whole scene and for the long frames only (JS > 40 ms in one frame = "hitch profile").
-//   --html     measure this single-file build instead of bundling the current tree (to compare an old build: keep a copy of dist/index.html).
+//   --html     measure this single-file build instead of bundling the current tree; --html before.html,after.html compares builds with
+//              interleaved runs (keep a copy of dist/index.html before a change to have a "before").
 //   --soak N   instead of the scenes: wander the city and rooms for N minutes, forcing a GC and reading the JS heap every 30 s (leak check).
 //   --out      name of the result files: out/perf/<name>.json (everything) and out/perf/<name>.md (the table). Default: perf_<rate>x_dsf<dsf>.
 //
@@ -38,10 +39,12 @@ async function bundle(minify) {
   let html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   return html.replace(/<style>@font-face.*?<\/style>/, '').replace('<link rel="stylesheet" href="src/ui/style.css">', () => `<style>${font}${css}</style>`).replace('<script type="module" src="src/main.js"></script>', () => `<script>${js}</script>`);
 }
-const HTML = o.html ? fs.readFileSync(path.resolve(o.html), 'utf8') : await bundle(!o.profile);
+/* --html a.html,b.html compares builds: the runs are interleaved (a, b, a, b, ...) so that both see the same machine load */
+const BUILDS = o.html ? o.html.split(',').map(f => ({ name: path.basename(f).replace(/\.html$/, ''), html: fs.readFileSync(path.resolve(f), 'utf8') })) : [{ name: 'tree', html: await bundle(!o.profile) }];
+const HTML = BUILDS[0].html;
 if (o.profile && !o.html) fs.writeFileSync(path.join(OUT, 'bundle_dev.html'), HTML);   // the profile's line numbers (fn:line) are lines of this file
-const srv = http.createServer((req, res) => { res.writeHead(200, { 'content-type': 'text/html' }); res.end(HTML); });
-await new Promise(r => srv.listen(0, r)); const URL0 = `http://localhost:${srv.address().port}/`;
+const srv = http.createServer((req, res) => { const i = +(req.url.split('?')[0].slice(1) || 0); res.writeHead(200, { 'content-type': 'text/html' }); res.end((BUILDS[i] || BUILDS[0]).html); });
+await new Promise(r => srv.listen(0, r)); const URLB = `http://localhost:${srv.address().port}/`;
 const SAVE = fs.readFileSync(o.save, 'utf8');
 
 /* runs in the page before the game: seeded Math.random + frame recorder (rAF deltas and JS time inside rAF callbacks) */
@@ -87,7 +90,8 @@ const SCENES = {
 };
 
 /* ---------- one fresh page ---------- */
-async function openGame(br) {
+async function openGame(br, bi = 0) {
+  const URL0 = URLB + bi;
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: o.dsf, hasTouch: true }); const pg = await ctx.newPage();
   const errs = []; pg.on('pageerror', e => errs.push(e.message.slice(0, 300)));
   await pg.addInitScript(INIT);
@@ -125,8 +129,8 @@ function topFns(profile) {
   return { busyMs: Math.round(tot / 1000), top: top(all, tot, 25), hitchMs: Math.round(hitTot / 1000), hitchFrames: frames.length, hitchTop: top(hit, hitTot || 1, 18), hitchCats: top(cats, hitTot || 1, 16),
     worstFrames: frames.slice(0, 8).map(([t, fc, fp]) => Math.round(t / 1000) + ' ms: ' + Object.entries(fc).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([c, v]) => c + ' ' + Math.round(v / 1000)).join(', ') + '\n      ' + Object.entries(fp).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([c, v]) => Math.round(v / 1000) + ' ms in ' + c).join('\n      ')) };
 }
-async function runScene(br, id) {
-  const sc = SCENES[id], g = await openGame(br); let res = null;
+async function runScene(br, id, bi = 0) {
+  const sc = SCENES[id], g = await openGame(br, bi); let res = null;
   try {
     await g.pg.evaluate(sc.prep);
     await g.cdp.send('Emulation.setCPUThrottlingRate', { rate: o.rate }); await g.pg.waitForTimeout(500);
@@ -158,13 +162,14 @@ if (o.soak) {
   result.soak = await soak(br); const p = result.soak.points; console.log(`soak ${o.soak} min: heap ${p.map(x => x.heapMB).join(' ')} MB; page errors ${result.soak.errors.length}`, result.soak.errors);
 } else {
   const ids = o.scenes === 'all' ? Object.keys(SCENES) : o.scenes.split(','); for (const id of ids) if (!SCENES[id]) { console.log('unknown scene ' + id + ' (have: ' + Object.keys(SCENES).join(', ') + ')'); process.exit(1); }
-  for (const id of ids) { const runs = []; for (let i = 0; i < o.runs; i++) { const r = await runScene(br, id); runs.push(r); console.log(id, i + 1, JSON.stringify({ ...r, prof: undefined, eng: undefined })); if (r.eng) console.log('   engine:', JSON.stringify({ ...r.eng, slow: undefined }), r.eng.slow && r.eng.slow.length ? '\n   slow main-thread bakes: ' + r.eng.slow.slice(-10).join(' | ') : ''); } result.scenes[id] = { title: SCENES[id].title, runs }; }
+  for (const id of ids) { const runs = BUILDS.map(() => []); for (let i = 0; i < o.runs; i++) for (let bi = 0; bi < BUILDS.length; bi++) { const r = await runScene(br, id, bi); runs[bi].push(r); console.log(id, BUILDS.length > 1 ? BUILDS[bi].name : '', i + 1, JSON.stringify({ ...r, prof: undefined, eng: undefined })); if (r.eng) console.log('   engine:', JSON.stringify({ ...r.eng, slow: undefined }), r.eng.slow && r.eng.slow.length ? '\n   slow main-thread bakes: ' + r.eng.slow.slice(-10).join(' | ') : ''); }
+    BUILDS.forEach((b, bi) => { result.scenes[BUILDS.length > 1 ? id + ' / ' + b.name : id] = { title: SCENES[id].title, build: b.name, runs: runs[bi] }; }); }
   const rows = ['| scene | fps | 1% low fps | worst ms | >50 ms /10 s | >100 ms | JS ms p50 / p95 / worst | heap MB start -> end | errors |', '|---|---|---|---|---|---|---|---|---|'];
-  for (const id of ids) { const R = result.scenes[id].runs.filter(r => r && !r.error); if (!R.length) { rows.push(`| ${id} | FAILED: ${(result.scenes[id].runs[0] || {}).error} |`); continue; }
+  for (const id of Object.keys(result.scenes)) { const R = result.scenes[id].runs.filter(r => r && !r.error); if (!R.length) { rows.push(`| ${id} | FAILED: ${(result.scenes[id].runs[0] || {}).error} |`); continue; }
     rows.push(`| ${id} | ${spread(R, 'fps')} | ${spread(R, 'low1')} | ${spread(R, 'worst')} | ${spread(R, 'per10s50')} | ${spread(R, 'over100')} | ${med(R.map(r => r.jsP50))} / ${med(R.map(r => r.jsP95))} / ${spread(R, 'jsWorst')} | ${med(R.map(r => r.heap0))} -> ${med(R.map(r => r.heap1))} | ${R.reduce((n, r) => n + r.errors.length, 0)} |`); }
   const table = `Perf ${o.label || name}: CPU ${o.rate}x slower, dpr ${o.dsf}, 390x844, ${o.runs} run(s) per scene: median (min-max).\n\n` + rows.join('\n') + '\n';
   console.log('\n' + table); fs.writeFileSync(path.join(OUT, name + '.md'), table);
-  if (o.profile) for (const id of ids) { const r = result.scenes[id].runs.find(r => r && r.prof); if (r) console.log(`\n== ${id}: busy ${r.prof.busyMs} ms; top self time ==\n` + r.prof.top.join('\n') + `\n-- long frames only (JS > 40 ms; ${r.prof.hitchFrames} frames, ${r.prof.hitchMs} ms) --\n` + r.prof.hitchTop.join('\n') + '\n-- long frames by cause --\n' + r.prof.hitchCats.join('\n') + '\n-- worst frames --\n' + r.prof.worstFrames.join('\n')); }
+  if (o.profile) for (const id of Object.keys(result.scenes)) { const r = result.scenes[id].runs.find(r => r && r.prof); if (r) console.log(`\n== ${id}: busy ${r.prof.busyMs} ms; top self time ==\n` + r.prof.top.join('\n') + `\n-- long frames only (JS > 40 ms; ${r.prof.hitchFrames} frames, ${r.prof.hitchMs} ms) --\n` + r.prof.hitchTop.join('\n') + '\n-- long frames by cause --\n' + r.prof.hitchCats.join('\n') + '\n-- worst frames --\n' + r.prof.worstFrames.join('\n')); }
 }
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result, null, 1)); console.log('wrote out/perf/' + name + '.json');
 await br.close(); srv.close();
