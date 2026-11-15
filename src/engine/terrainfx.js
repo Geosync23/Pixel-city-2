@@ -31,7 +31,7 @@ function chamfer(D, w, h) { // two-pass 1 / 1.414 chamfer distance transform, in
  *       pave: tiles to the nearest non-paved tile or building, road: tiles to the nearest non-asphalt tile }
  */
 export function fields(world) {
-  let F = world._gfx; if (F && F.gt === world.gt && F.nobj === world.objs.length >> 6) return F; /* rebuilt only if the terrain array is replaced or the object count moves by 64+ (not on season changes) */
+  let F = world._gfx; if (F && F.ver === world.version) return F; /* world.version is bumped whenever ground types change (and on season changes) */
   const w = world.w, h = world.h, n = w * h, gt = world.gt, BIG = 99;
   const minH = (x, y) => Math.min(world.H(x, y), world.H(x + 1, y), world.H(x, y + 1), world.H(x + 1, y + 1));
   const shore = new Float32Array(n).fill(BIG), sea = new Float32Array(n).fill(BIG), bank = new Uint8Array(n), still = new Uint8Array(n);
@@ -69,7 +69,7 @@ export function fields(world) {
   const pave = new Float32Array(n), road = new Float32Array(n);
   for (let i = 0; i < n; i++) { pave[i] = PAVED.has(gt[i]) && !bld[i] ? BIG : 0; road[i] = gt[i] === GT.asphalt ? BIG : 0; }
   chamfer(pave, w, h); chamfer(road, w, h);
-  F = world._gfx = { gt: world.gt, nobj: world.objs.length >> 6, w, h, shore, sea, bank, still, pave, road, anyWater };
+  F = world._gfx = { ver: world.version, w, h, shore, sea, bank, still, pave, road, anyWater };
   return F;
 }
 /** bilinear sample of a tile-centred field (indices clamp, so it also works outside the map) */

@@ -1,0 +1,34 @@
+/* Maple Bay University: the class sheet (src/ui/university_ui.js) and the Campus phone app (src/ui/phone_uni.js). Chunky pixel look, portrait first. */
+.uc{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,404px);background:var(--panel);border:2px solid var(--edge);border-bottom:0;box-shadow:0 -3px 0 #2a273355;padding:6px 8px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:38;animation:uc-in .16s steps(4)}
+.uc.side{left:auto;right:10px;bottom:auto;top:50%;transform:translateY(-50%);border-bottom:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);width:392px;animation:none}
+@keyframes uc-in{from{transform:translate(-50%,40px);opacity:.3}to{transform:translate(-50%,0);opacity:1}}
+.uc-head{display:flex;align-items:center;gap:8px;min-height:40px;border-bottom:2px solid var(--edge);padding-bottom:5px}
+.uc-chip{width:10px;align-self:stretch;border:2px solid var(--edge);background:var(--gold)}
+.uc-tt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.12}.uc-tt b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uc-tt small{font-size:12px;font-weight:600;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uc-leave{min-width:44px;min-height:40px;padding:2px 8px;font-size:13px;background:#ffd9d2;box-shadow:0 2px 0 var(--edge)}
+.uc-body{display:flex;flex-direction:column;gap:6px;min-height:150px}
+.uc-fig{align-self:center;width:216px;height:108px;image-rendering:pixelated;border:2px solid var(--edge);background:#16302a}
+.uc-h{font-size:16px;font-weight:700;line-height:1.15}
+.uc-t{font-size:14px;line-height:1.32;font-weight:500}
+.uc-who{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.7}
+.uc-q{font-size:15px;font-weight:700;line-height:1.25;background:#fffdf4;border:2px solid var(--edge);padding:6px 8px}
+.uc-opt{display:block;width:100%;text-align:left;min-height:44px;padding:5px 9px;font-size:14px;line-height:1.2;background:#fffdf4;box-shadow:0 2px 0 var(--edge)}
+.uc-opt.ok{background:var(--good);color:#fff}.uc-opt.no{background:var(--bad);color:#fff}.uc-opt.dim{opacity:.55}.uc-opt.pick{background:var(--gold)}
+.uc-next{align-self:stretch;min-height:44px;background:var(--gold);font-size:15px;box-shadow:0 2px 0 var(--edge)}
+.uc-row{display:flex;gap:6px}.uc-row>button{flex:1}
+.uc-pips{display:flex;gap:3px;justify-content:center}.uc-pips i{width:14px;height:6px;border:1px solid var(--edge);background:#d9c9a6}.uc-pips i.on{background:var(--good)}.uc-pips i.cur{background:var(--gold)}
+.uc-res{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center}.uc-res b{font-size:19px}.uc-res span{font-size:13.5px;line-height:1.3}
+.uc-grade{font-size:28px;font-weight:700;border:2px solid var(--edge);background:var(--gold);padding:0 14px;box-shadow:0 3px 0 var(--edge)}
+.uc-note{font-size:13px;line-height:1.3;background:#fffdf4;border:2px solid var(--edge);padding:6px 8px}
+.uc-notes{display:flex;flex-direction:column;gap:5px;max-height:44vh;overflow-y:auto}
+@media (max-height:640px){.uc-fig{width:144px;height:72px}.uc-body{min-height:120px}}
+/* Campus app */
+.cu-card{background:#fffdf4;border:2px solid var(--edge);padding:7px 9px;display:flex;flex-direction:column;gap:4px;box-shadow:0 2px 0 var(--edge)}
+.cu-card b{font-size:15px;line-height:1.15}.cu-card small{font-size:12.5px;line-height:1.3;opacity:.85;font-weight:600}
+.cu-head{display:flex;gap:8px;align-items:center}.cu-code{font-size:11.5px;font-weight:700;border:2px solid var(--edge);padding:0 5px;color:#fff;white-space:nowrap}
+.cu-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.cu-steps i{font-style:normal;font-size:11px;font-weight:700;text-align:center;border:2px solid var(--edge);background:#e9dcc0;padding:2px 0;line-height:1.1}.cu-steps i.on{background:var(--good);color:#fff}.cu-steps i.nx{background:var(--gold)}
+.cu-work{display:flex;gap:4px;flex-wrap:wrap}.cu-work i{font-style:normal;font-size:11.5px;font-weight:700;border:2px solid var(--edge);padding:1px 6px;background:#e9dcc0}.cu-work i.on{background:var(--good);color:#fff}
+.cu-btns{display:flex;gap:6px;flex-wrap:wrap}.cu-btns button{flex:1;min-height:40px;font-size:13px;min-width:120px}
+.cu-tabs{display:flex;gap:4px;position:sticky;top:0;z-index:2;background:var(--panel);padding-bottom:4px}.cu-tabs button{flex:1;min-height:40px;font-size:13px;padding:2px}.cu-tabs button.on{background:var(--ink);color:#fff4dc}
+.cu-list{display:flex;flex-direction:column;gap:7px}.cu-row{display:grid;grid-template-columns:54px 1fr;gap:2px 8px;font-size:13px;line-height:1.25;border-top:2px solid #2a273322;padding-top:4px}.cu-row:first-child{border-top:0}.cu-row b{font-size:13px}.cu-row i{font-style:normal;font-weight:700}
+.cu-grade{font-weight:700;border:2px solid var(--edge);background:var(--gold);padding:0 6px;font-size:13px;white-space:nowrap}
