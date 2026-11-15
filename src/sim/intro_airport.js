@@ -75,7 +75,7 @@ export function init() {
         if (!s.msg && (X > TUNE.MSG_AT_X || t > 45)) { s.msg = 1; safe(() => G.messages.send({ from: 'jules', text: 'Are you on the ground yet?? My flight tracker froze. Classic.', replies: [{ label: 'Just landed!', value: 'landed', then: 'OK OK OK. Tram, bag, curb. I will text you properly at recess!' }, { label: 'Wheels down. Hunting for the tram.', value: 'tram', then: 'Follow the signs and do NOT get lost in duty free. Talk soon!' }] })); }
         if (s.msg && !s.replied && X < 52) h = phoneOpen() ? ['reply', 'Open Messages and tap a reply to send it to Nora.', msgBtn] : ['phone', 'Bzzt! A text from your sibling. Tap your phone to read it.', '.hud-phone'];
         else if (!s.belt && X < 19) h = ['belt', 'Follow the signs to the Tram. Step onto the moving walkway - it carries you along, and walking on it is even faster.', sc.spots.belt];
-        else if (X < 38 && !s.talk && !s.shop) h = ['talk', 'No rush: tap a traveller to say hi, or tap a counter (coffee, noodles, books) to buy something. You have $' + Math.round(safe(() => G.state.player.money, 0)) + '.', sc.spots.coffee];
+        else if (X < 38 && !s.talk && !s.shop) h = ['talk', 'No rush: tap a traveller (or the name button at the bottom when you stand next to one) to say hi, or tap a counter (coffee, noodles, books) to buy something. You have $' + Math.round(safe(() => G.state.player.money, 0)) + '.', sc.spots.coffee];
         else h = ['tram', 'Keep following the signs: the tram to Baggage Claim is at the far end of the concourse.', sc.spots.tram];
         if (h[0] !== cur) { cur = h[0]; c.hint(h[1], h[2]); }
       },

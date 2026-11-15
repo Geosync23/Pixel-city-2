@@ -72,6 +72,12 @@ export const wireLife = (sc, parts) => { sc.life = { parts, count: () => parts.r
       const setBoards = () => { const N = NS(); if (!N) return; const c = N.chain(); setP(by(Wd, 'records')[0], { filled: c.st >= 5 ? 1 : 0 }); setP(by(Wd, 'honours')[0], { name: c.st >= 5 ? N.playerName() : '' }); setP(by(Wd, 'mural')[0], { on: c.st >= 5 ? 1 : 0 }); };
       const sync = () => { const h = G.now().hf, op = h >= HOURS.open && h < HOURS.close, L = !op ? 0 : h < 8 ? .4 : h < 16 ? .65 : h < 20 ? .9 : .5; cr.show(op, L > .7); wk.setActive(Math.round(L * 5)); if (NS()) gates(NS().entryOk()); };
       sc.nat = { gates, setBoards, sync, view: V };
+      /* QA6: the bench on the deck side of the turnstiles: its generic "Sit" had no path while the gates were shut (a dead tap). Offer it only when they are open. */
+      for (const f of sc.fixtures || []) if (f.seats && f.seats.some(q => !q.lie) && f.x > O + 22 && !f._sit) { f._sit = true;
+        sc.interactables.push({ x: f.x, y: f.y, h: .6, hit: 10, range: 1.8, spot: f.use || undefined, fx: f, label: 'Sit', act: true, visible: () => !!open, use: () => {
+          if (G.busy) return; const p = G.player, seat = f.seats.filter(q => !q.lie).reduce((a, b) => !a || Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a, null); if (!seat) return;
+          const t0 = G.state.t, rest = () => { const m = Math.max(0, Math.min(120, G.state.t - t0)); try { G.needs.add('energy', m * .08); G.needs.add('fun', m * .03); } catch (e) { /* optional */ } };
+          G.startActivity({ label: 'Sitting', anim: 'sit', minutes: 90, rate: 5, canCancel: true, done: rest, cancel: rest, at: { x: seat.x, y: seat.y, z: seat.z || 0, dir: seat.dir } }); if (seat.z) p.poseOpts = { seated: true }; } }); }
       hook(sc, 'desk', 'Front desk', () => NS().desk()); hook(sc, 'vend', 'Vending machine', () => NS().vending()); hook(sc, 'shop', f => (f.item.till ? SHOP_NAME + ': the till' : SHOP_NAME), () => NS().shop()); hook(sc, 'records', 'Club records', () => NS().records()); hook(sc, 'notice', 'Timetable', () => NS().timetable());
       hook(sc, 'honours', 'Friends of the Marlins', () => NS().honours()); hook(sc, 'mural', 'The community wall', () => NS().lookMural()); hook(sc, 'gate', 'Turnstiles', () => NS().turnstile(), { spot: { x: O + 21.4, y: O + 3.25 }, h: 1 });
       sc.interactables.push({ x: O + 4.7, y: O + .3, label: 'Watch the pool through the window', h: 1.6, hit: 22, range: 2.2, spot: { x: O + 4.7, y: O + 1.1 }, use: () => NS() && NS().lookWindow() });

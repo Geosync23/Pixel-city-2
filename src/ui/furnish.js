@@ -106,7 +106,7 @@ function boxOf(itemId, pos, z) { /* [x0,y0,x1,y1,z0,z1] in room coords */
 const centre = b => G.toScreen(M.O + (b[0] + b[2]) / 2, M.O + (b[1] + b[3]) / 2, (b[4] + b[5]) / 2);
 /** everything you can grab: placed pieces and try pieces */
 function pieces() { const out = []; for (const it of H().items()) { if (!inThisRoom(it)) continue; out.push({ uid: it.uid, itemId: it.itemId, pos: posOfIt(it), z: M.zs[it.uid] || 0, inc: it.inc }); } for (const t of M.tries) out.push({ tid: t.tid, itemId: t.itemId, pos: t.pos, z: t.z || 0, t }); return out; }
-const inThisRoom = it => (H().room() === 'bath' ? it.r === 'bath' : !it.r);
+const inThisRoom = it => { const r = H().room(); return r === 'main' ? !it.r : it.r === r; };   /* any room of the home: main, bath, upstairs ... */
 function pickAt(e) {
   const r = G.cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, touch = e.pointerType !== 'mouse'; let best = null, bd = 1e9;
   for (const p of pieces()) { const b = boxOf(p.itemId, p.pos, p.z), s = centre(b), flat = b[5] - b[4] < .1;
@@ -367,15 +367,23 @@ function homeBody(L, full) {
   const price = [L.rent && `${fmt(L.rent)} / week`, L.price && `${fmt(L.price)} to buy`].filter(Boolean).join('  ·  ');
   b.append(el('div.fz-hrow', null, plan(h.id), el('div.fz-hinfo', null, el('b', { text: h.name }), el('div.fz-sub', { text: `${sc.label} · ${h.rooms.length} rooms · ${sc.furnitureSlots} pieces · up to ${h.maxGuests} guests` }), el('div.fz-price', { text: price }),
     el('div.fz-sub', { text: `+ ${fmt(sc.utilitiesPerWeek)} utilities` + (h.upkeepPerWeekOwned ? ` · upkeep ${fmt(h.upkeepPerWeekOwned)}/wk when owned` : '') }))));
+  if (L.pieces) b.append(el('div.fz-sub', { text: `Pre-furnished: + ${fmt(L.pkg)} once for ${L.pieces} pieces (yours to keep). Or furnish it yourself: no extra.` }));
   b.append(el('p.fz-blurb', { text: h.blurb }));
   if (full) { b.append(el('ul.fz-pros', null, h.pros.map(t => el('li.pro', { text: t })), h.cons.map(t => el('li.con', { text: t })))); if (h.perk) b.append(el('p.fz-sub', { text: 'Perk: ' + h.perk.desc })); }
   return b;
 }
+/** pre-furnished or furnish it yourself? -> true | false | null (cancelled). Homes without a designer's set skip the question. */
+async function askFurnished(L) {
+  if (!L.pieces) return false;
+  const v = await choose('How do you want it?', [{ label: 'Pre-furnished', sub: `+ ${fmt(L.pkg)} once: ${L.pieces} pieces, yours to keep`, value: 1 }, { label: 'Furnish it yourself', sub: 'Empty rooms, fitted kitchen and bathroom, a starter kit', value: 0 }],
+    { text: 'Furnished, the designer\'s pieces stand in the rooms when you arrive. Empty, you get a camp mattress if you have no bed and a welcome box of food, and the furniture shops and the Roomy app do the rest.' });
+  return v === null || v === undefined ? null : !!v;
+}
 async function buyFlow(L, done) {
-  const h = L.home, eq = H().equity ? H().equity() : 0;
+  const h = L.home, eq = H().equity ? H().equity() : 0, furn = await askFurnished(L); if (furn === null) return;
   const t = await choose('Buy ' + h.name, MORTGAGE.terms.map((m, i) => { const total = Math.round((L.price - L.down) * (1 + m.fee)); return { label: `${m.weeks} weeks at ${fmt(Math.ceil(total / m.weeks))} / week`, sub: m.fee ? `${Math.round(m.fee * 100)}% fee` : 'no fee', value: i }; }),
     { text: `Down payment ${fmt(L.down)} today` + (eq ? ` (your current home sells for ${fmt(eq)})` : '') + '. The rest is a weekly mortgage on your Monday bill. No repossession, ever.' });
-  if (t === null || t === undefined) return; if (H().buy(h.id, t)) done();
+  if (t === null || t === undefined) return; if (H().buy(h.id, t, { furnished: furn })) done();
 }
 function openListings() {
   injectCss(); const m = modal({ title: 'Bay Realty & Trust — Listings', cls: 'fz-list' });
@@ -387,7 +395,7 @@ function openListings() {
       const b = homeBody(L, true), row = el('div.fz-btns');
       if (L.current) row.append(el('span.fz-tag', { text: L.owned ? 'Your home' : 'You live here' }));
       if (!L.available) row.append(el('span.fz-tag', { text: `On the market in ${Math.max(1, L.unlockDay - G.now().day)} days` }));
-      if (L.canRent) row.append(el('button', { text: `Rent · ${fmt(L.rent)}/wk`, onclick: async () => { const ok = await choose('Sign the lease?', [{ label: 'Sign', sub: `${fmt(L.rent + (cur ? 40 : 0))} today`, value: 1 }, { label: 'Not yet', value: 0 }], { text: `First week ${fmt(L.rent)}` + (cur ? ' + $40 moving van. Your furniture comes along in boxes; fittings stay.' : '.') }); if (ok && H().rent(L.id)) m.close(); } }));
+      if (L.canRent) row.append(el('button', { text: `Rent · ${fmt(L.rent)}/wk`, onclick: async () => { const furn = await askFurnished(L); if (furn === null) return; const ok = await choose('Sign the lease?', [{ label: 'Sign', sub: `${fmt(L.rent + (cur ? 40 : 0) + (furn ? L.pkg : 0))} today`, value: 1 }, { label: 'Not yet', value: 0 }], { text: `First week ${fmt(L.rent)}` + (furn ? ` + ${fmt(L.pkg)} furniture package` : '') + (cur ? ' + $40 moving van. Your furniture comes along in boxes; fittings stay.' : '.') }); if (ok && H().rent(L.id, { furnished: furn })) m.close(); } }));
       if (L.canBuy) row.append(el('button', { text: `Buy · ${fmt(L.down)} down`, onclick: () => buyFlow(L, () => m.close()) }));
       b.append(row); m.body.append(b);
     }
@@ -396,7 +404,9 @@ function openListings() {
 }
 function showCard(homeId) {
   injectCss(); const L = H().homes().find(x => x.id === homeId); if (!L) return; const m = modal({ title: L.available ? (L.rent ? 'For rent' : 'For sale') : 'Not on the market yet', cls: 'fz-list' });
-  m.body.append(homeBody(L, false), el('p.fz-sub', { text: 'Viewings and paperwork at Bay Realty & Trust, Downtown.' }), el('div.fz-btns', null, el('button', { text: 'OK', onclick: m.close })));
+  m.body.append(homeBody(L, false), el('p.fz-sub', { text: 'Step in and look round. The paperwork is in the Nestly app, or at Bay Realty & Trust, Downtown.' }), el('div.fz-btns', null,
+    H().view ? el('button', { text: 'Look inside', onclick: () => { m.close(); H().view(homeId); } }) : null,
+    G.phone && G.phone.open ? el('button', { text: 'Listing', onclick: () => { m.close(); G.phone.open('homes', { home: homeId }); } }) : null, el('button', { text: 'Not now', onclick: m.close })));
 }
 
 export function init() {

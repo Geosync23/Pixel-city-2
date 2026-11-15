@@ -32,7 +32,7 @@ function build() {
   const hud = document.getElementById('hud'); if (hud && hud.parentNode === root()) root().insertBefore(W, hud); else root().append(W);
 }
 function goalRow(g, cls) {
-  return el('button.gw-item' + (g.done ? '.done' : '') + (cls ? '.' + cls : ''), { 'data-g': g.id, onclick: () => { if (g.hint && !g.done) toast(g.hint, 'info', 3400); if (g.placeId && !g.done) wayTo(g.placeId, !g.hint); } },
+  return el('button.gw-item' + (g.done ? '.done' : '') + (cls ? '.' + cls : ''), { 'data-g': g.id, onclick: () => { if (g.hint && !g.done) toast(tapWords(g.hint), 'info', 3400); if (g.placeId && !g.done) wayTo(g.placeId, !g.hint); } },
     el('span.gw-box'), el('span', null, g.shown || g.text, g.placeId && !g.done ? pin() : null));
 }
 const pName = id => { try { const p = G.places && G.places.get && G.places.get(id); return p && p.name ? p.name : ''; } catch (e) { return ''; } };
@@ -62,9 +62,13 @@ export function refresh() { dirty = true; }
 
 /* ---------- hint bubble ---------- */
 function clearHl() { if (H && H.hl) { H.hl.classList.remove('tut-hl'); H.hl = null; } }
+/* QA6: hints read right for the device: on a touch screen "Click" becomes "Tap" */
+const touchy = () => typeof window !== 'undefined' && ('ontouchstart' in window || (navigator.maxTouchPoints || 0) > 0);
+export const tapWords = t => (t && touchy() ? String(t).replace(/\bClick(ing)?\b/g, (m, g) => g ? 'Tapping' : 'Tap').replace(/\bclick(ing)?\b/g, (m, g) => g ? 'tapping' : 'tap') : t);
 export function hint(text, target, opts = {}) {
   if (H) { clearHl(); H.box.remove(); H.arrow.remove(); H = null; }
   if (!text) return;
+  text = tapWords(text);
   injectCss();
   const box = el('div.tut', { onclick: () => opts.onTap && opts.onTap() }, el('span', { text }), opts.skip ? el('button.tut-skip', { text: opts.skipLabel || 'Skip intro', onclick: e => { e.stopPropagation(); opts.skip(); } }) : null);
   const arrow = el('div.tut-arrow', { style: { display: 'none' } });

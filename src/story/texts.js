@@ -157,14 +157,20 @@ export const CHECK_INS = {
     "You'd tell me if you weren't okay, right? Good. Just checking.",
     "The city's better with you in it. Okay bye.",
   ],
+  // QA6: any relative can send these (no signatures, no voice tics). Voiced / signed lines live in familyBy[senderId] (src/sim/social.js picks
+  // from the sender's own list first), so Nora no longer sends Dez's "CUZ" or Nana's soup, and Theo no longer signs "- J".
   family: [
-    "Are you sleeping enough? You never slept enough. - J",
-    "Milo wants to know if you have seen any dinosaurs yet. Please advise.",
-    "Darling, I made soup. Too much soup. Come and take some. Love Nana",
+    "Are you sleeping enough? Be honest.",
     "Pip made a pie chart of our family. You're 14%. It's a lot, apparently.",
-    "Proud of you. No occasion. Just am. - J",
-    "CUZ. Saw you on Market St but I was going 25 mph. Waved with my heart.",
+    "Proud of you. No occasion. Just am.",
+    "Sunday. Food. Ours. You know the drill.",
   ],
+  familyBy: {
+    jules: ["Are you sleeping enough? You never slept enough. - N", "Milo wants to know if you have seen any dinosaurs yet. Please advise.", "Proud of you. No occasion. Just am. - N"],
+    nana: ["Darling, I made soup. Too much soup. Come and take some. Love Nana", "I put a jar of jam by for you. Strawberry. Love Nana"],
+    dez: ["CUZ. Saw you on Market St but I was going 25 mph. Waved with my heart.", "CUZ. Depot has free donuts. Not anymore. I ate them."],
+    theo: ["Milo wants to know if you have seen any dinosaurs yet. Please advise. - Theo", "Sunday roast is a standing invitation. Sitting, technically. - Theo"],
+  },
 };
 
 export const OCCASIONS = {
@@ -662,7 +668,7 @@ export const ACHIEVEMENTS = [
   { id: 'cab_regular',     name: "Manny's Favorite",       desc: 'Take 10 cab rides.',                                 when: 'taxi_rides:10' },
   { id: 'all_districts',   name: 'Nine for Nine',          desc: 'Set foot in every district.',                        when: 'districts_visited:9' },
   { id: 'stairs',          name: 'Mercy Bench',            desc: 'Climb all 301 Hillcrest stairs.',                    when: 'climbed_hillcrest_stairs' },
-  { id: 'first_hello',     name: 'Say Hi Back',            desc: 'Talk to your first stranger.',                       when: 'met_npcs:1' },
+  { id: 'first_hello',     name: 'Say Hi Back',            desc: 'Meet your first new face in Maple Bay.',             when: 'met_npcs:1' },   // QA6: npc:met fires for Walt and Manny on arrival, so "talk to a stranger" was not true
   { id: 'ten_names',       name: 'Ten Names',              desc: 'Meet 10 named residents.',                           when: 'met_npcs:10' },
   { id: 'knows_everyone',  name: 'Like Your Nana',         desc: 'Meet every named resident of Maple Bay.',            when: 'met_npcs:all' },
   { id: 'first_friend',    name: 'New Contact',            desc: 'Make your first friend.',                            when: 'friends:1' },

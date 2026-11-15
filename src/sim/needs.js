@@ -21,7 +21,7 @@
 // Events: 'needs:change' (after every decay tick or direct change), 'needs:low'(k) entering the low band, 'needs:zero'(k),
 //         'moodlet'(id) when a timed moodlet is applied, 'skill:up'(k, level), 'passout'(k) after a pass-out resolved.
 import { G } from '../core/game.js';
-import { NEEDS, MOODLETS, MOOD, FITNESS, SKILLS, SKILL_XP, SKILL_MAX_LEVEL, levelForXp, bandFor } from '../data/needs.js';
+import { NEEDS, MOODLETS, MOOD, FITNESS, SKILLS, SKILL_XP, SKILL_MAX_LEVEL, levelForXp, bandFor, SOCIAL, LOW_NOTICE } from '../data/needs.js';
 import { toast, say } from '../ui/kit.js';
 import { ROOMS, enterRoom } from '../scenes/interior.js';
 import { moodletIcon } from '../ui/_icons.js';
@@ -127,12 +127,24 @@ function decay(dm) {
   for (const n of NEEDS) {
     let r = asleep ? n.decayAsleep : n.decayAwake;
     if (n.id === 'energy' && !asleep) r *= 1 + (FITNESS.bonusesAt100.energyDecayAwakeMult - 1) * S.fitness / 100;
+    if (n.id === 'social' && r < 0 && !asleep && amongPeople()) r *= SOCIAL.amongPeopleMult;
     if (r) S.v[n.id] = clamp(S.v[n.id] + r * h);
   }
+  guard();
   for (const id in S.ml) if (S.ml[id] > 0 && S.ml[id] <= G.state.t) delete S.ml[id];
   weatherExposure(dm);
   for (const n of NEEDS) check(n.id);
   applySpeed(); G.emit('needs:change');
+}
+/* QA6: inside a public venue (a cafe, a shop, the library...) you are among people: the Social drain is halved */
+function amongPeople() { const sc = G.scene; if (!sc || !sc.indoor || api.sleeping) return false; try { if (G.housing && G.housing.isHome && G.housing.isHome(sc.id)) return false; } catch (e) { return false; } return /^int:/.test(sc.id || ''); }
+/* QA6: a long activity (sleep, feet up, auto-work...) stops before Hunger or Energy reach 0, so a rest never ends at the clinic without a warning you could act on */
+let guarded = 0;
+function guard() {
+  const a = G.busy; if (!a || passing || a.canCancel === false || G.state.t - guarded < 30) return;
+  const hungry = S.v.hunger <= 5, sleepy = S.v.energy <= 3 && !api.sleeping; if (!hungry && !sleepy) return;
+  guarded = G.state.t; const was = a.label || 'that';
+  setTimeout(() => { if (G.busy !== a) return; G.endActivity(false); toast(hungry ? (api.sleeping ? 'Your stomach wakes you up. Eat something before anything else!' : `You stop (${was}): you are starving. Eat something now!`) : `You stop (${was}): you can barely keep your eyes open. Find a bed!`, 'bad', 6000); }, 0);
 }
 function weatherExposure(dm) {
   const out = G.scene && !G.scene.indoor && !api.sleeping, kind = (G.weather && G.weather.current && (G.weather.current() || {}).kind) || G.state.weather;
@@ -154,5 +166,9 @@ export function init() {
   G.on('day', () => { if (S.exDay < G.now().day - 1) S.fitness = Math.max(Math.min(S.fitness, FITNESS.floor), S.fitness + FITNESS.decayPerIdleDay); });
   G.on('scene', applySpeed); G.on('weather', applySpeed);
   const softSaid = {};   /* the gentle needs speak at most once a game day each, even if they bob around the band edge */
-  G.on('needs:low', k => { const b = api.band(k); if (BY[k].soft) { const d = G.now().day; if (softSaid[k] === d) return; softSaid[k] = d; toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
+  /* QA6: everyday Social: a word at the till, and story scenes with family / friends (meals feed you too) */
+  let tillT = -999;
+  G.on('shop:buy', () => { if (G.state.t - tillT < SOCIAL.tillEveryMin) return; tillT = G.state.t; api.add('social', SOCIAL.till); });
+  G.on('story:beat', id => { const g = SOCIAL.beats[id] || SOCIAL.beatDefault; for (const k in g) api.add(k, g[k]); });
+  G.on('needs:low', k => { const b = api.band(k); const L = LOW_NOTICE[k]; if (L && !BY[k].soft) { if (G.busy && /^(Eating|Drinking|Cooking|Making|Baking)\b/.test(G.busy.label || '') && (k === 'hunger' || k === 'energy')) return;   /* QA6: not while you are already eating */ toast(b.id === 'critical' ? L.critical : L.low, 'bad', b.id === 'critical' ? 7000 : 5200); if (b.id === 'critical' && (k === 'hunger' || k === 'energy')) { try { G.phone && G.phone.notify && G.phone.notify({ app: 'wellness', title: k === 'hunger' ? 'Starving' : 'Exhausted', text: L.critical, icon: 'need.' + k, priority: 'high' }); } catch (e) { } } return; } if (BY[k].soft) { const d = G.now().day; if (softSaid[k] === d) return; softSaid[k] = d; toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
 }

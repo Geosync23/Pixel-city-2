@@ -294,12 +294,15 @@ function teaser(r) {
   if (l.friend) return `A friend's recipe: get to know ${LEARN_FROM[l.friend] || l.friend}.`;
   return `A recipe somebody in town will hand you when the time is right (${LEARN_FROM[l.story] || 'the story'}).`;
 }
+/* QA6: the short "what am I missing" line on a recipe row: one shop for the missing ingredients (the shop that covers most of them) */
+const buyAt = miss => { const h = shopHint(miss.slice(0, 3)); const m = /^([^;(]+?)(?: \(closed now\))? sells/.exec(h); return m ? 'at ' + m[1].trim() + (h.indexOf(';') > 0 ? ' +' : '') : 'not sold nearby'; };
 const METHOD = r => (r.appliance === 'none' ? 'No-cook' : r.oven ? 'Oven' : r.stoveTier === 2 ? "Chef's range" : r.stoveTier === 1 ? 'Range' : 'Stove');
 /** everything the menu needs to know about one recipe right now */
 function recipeStatus(r, sb, atStove = true) {
   const lvl = G.skills ? G.skills.level('cooking') : 1, known = knows(r), miss = Object.keys(r.ingredients).filter(k => invCount(k) < r.ingredients[k]);
   const minutes = Math.max(5, Math.round(r.cookMinutes * (r.appliance === 'stove' ? sb.cookTimeMult : 1) * (1 - .03 * (lvl - 1))));
-  const hard = !known ? 'Unknown recipe' : lvl < r.skill ? `Needs Cooking level ${r.skill}` : r.appliance === 'stove' && !atStove ? 'Cook this one at the stove'
+  /* QA6: a family recipe someone wrote out for you (learn.story, e.g. Bea's pancakes) can be followed at any Cooking level */
+  const hard = !known ? 'Unknown recipe' : lvl < r.skill && !(r.learn && r.learn.story) ? `Needs Cooking level ${r.skill}` : r.appliance === 'stove' && !atStove ? 'Cook this one at the stove'
     : r.appliance === 'stove' && sb.stoveTier < r.stoveTier ? (r.stoveTier === 2 ? "Needs a Chef's Range" : r.oven ? 'Needs an oven (Gas Range & Oven)' : 'Needs a real range, not a hot plate') : null;
   const why = hard || (miss.length ? 'Missing: ' + names(miss.map(k => ITEM_BY_ID[k].name), 3) : null);
   return { r, known, miss, minutes, hard, why, can: !why, rank: !known ? 3 : hard ? 2 : miss.length ? 1 : 0 };
@@ -337,7 +340,7 @@ async function cookMenu(fx, appliance = 'stove') {
   const stat = () => pool.map(r => recipeStatus(r, sb, atStove)), byName = (a, b) => a.r.skill - b.r.skill || a.r.name.localeCompare(b.r.name);
   const row = s => {
     const r = s.r, unk = !s.known;
-    const sub = unk ? teaser(r) : s.why || `${hm(s.minutes)} · makes ${r.servings} · ${fxLine(r.effects)}`;
+    const sub = unk ? teaser(r) : s.rank === 1 ? `${s.why} · ${buyAt(s.miss)}` : s.why || `${hm(s.minutes)} · makes ${r.servings} · ${fxLine(r.effects)}`;
     const ic = iconEl('meal_' + r.id, 2, 'meal'); if (unk) ic.classList.add('ck-sil');
     return el('button.ck-row' + (s.can ? '' : '.off') + (s.rank === 1 ? '.miss' : '') + (unk ? '.unk' : ''), { onclick: () => { keep = m.body.scrollTop; sel = r; render(); } }, ic,
       el('span.ck-m', null, el('b', { text: unk ? '? ? ?' : r.name }), el('span.ck-s', { text: sub })),

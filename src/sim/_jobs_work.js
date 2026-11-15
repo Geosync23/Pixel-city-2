@@ -7,6 +7,7 @@
 //   start(job, level, sh)  stop()  pause(bool)  update(dt)  onScene()  hud()  goStep(orderId)  debugStep()  city.set(key, target|null)
 // `sh` is the persistent shift record (G.state.jobs.shift); the engine adds to sh.tasks / count / bonus / tipSum / tipN / missed.
 import { G } from '../core/game.js';
+import { CAST_BY_ID } from '../story/cast.js';
 import { Char, charArt } from '../core/char.js';
 import { rng } from '../engine/raster.js';
 import { toast, bubble } from '../ui/kit.js';
@@ -162,6 +163,8 @@ export function start(job, level, sh) {
   W = { job, level, sh, scene: G.scene, roomId: 'int:' + job.venue, orders: [], custs: [], next: {}, n: {}, cnt: { stack: 0, drinks: 0 }, fired: {}, seq: 0, paused: false, its: [], res: [], carry: null, lock: false, active: null };
   W.tpl = (SCRIPTS[job.id] ? SCRIPTS[job.id](level) : []).filter(t => !t.lvl || level >= t.lvl);
   for (const t of W.tpl) if (t.every) W.next[t.id] = G.state.t + (t.first || 0);
+  /* QA6: you meet your boss on your first shift (a stray tap at the till used to open "Say hello" small talk with an unmet boss, and bosses stayed "Stranger" for good) */
+  try { const b = G.social && G.social.boss && G.social.boss(job.id); if (b && G.social.meet && !(G.social.known() || []).includes(b)) { G.social.meet(b); const nm = (CAST_BY_ID[b] && CAST_BY_ID[b].short) || b; for (const it of (G.scene && G.scene.interactables) || []) if (it.npc === b && it.label === 'Say hello') it.label = 'Talk to ' + nm; } } catch (e) { /* optional */ }
   if (inRoom() && G.crowd && G.crowd.reserve) for (const tag of job.workLoop.stations) for (const fx of fxList(tag)) if (fx.staff || tag === 'own_desk') { try { G.crowd.reserve(fx); W.res.push(fx); } catch (e) { /* optional */ } }
   update(0);
 }

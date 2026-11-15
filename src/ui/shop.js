@@ -31,10 +31,20 @@ const TABS = [['dish', 'Menu'], ['ingredient', 'Groceries'], ['ready_meal', 'Mea
 const COURSE = { drink: 0, snack: 1, main: 2, dessert: 3 };
 
 function stock(venueId) { const s = seasonOf(G.now().day).id; return itemsSoldAt(venueId).filter(i => i.price > 0 && (!i.seasons || i.seasons.includes(s))); }
+/* QA6: the best of your perks at this venue (they do not stack): staff discount (your job), a friend who works here (G.social.discount, 5-10%),
+   a story discount (G.story.discount, percent). Returns { mult, why } */
+function perk(venueId) {
+  let best = 1, why = '';
+  try { const job = G.jobs && G.jobs.current && G.jobs.current(), jid = job && (job.id || job.jobId || job), st = jid && DISCOUNTS.staff[jid]; if (st && st.venue === venueId && st.mult < best) { best = st.mult; why = 'Staff discount'; } } catch (e) { /* optional */ }
+  try { const f = G.social && G.social.discount ? G.social.discount(venueId) || 0 : 0; if (f > 0 && 1 - f < best) { best = 1 - f; why = 'Friends discount'; } } catch (e) { /* optional */ }
+  try { const p = G.story && G.story.discount ? G.story.discount(venueId) || 0 : 0; if (p > 0 && 1 - p / 100 < best) { best = 1 - p / 100; why = 'Family discount'; } } catch (e) { /* optional */ }
+  return { mult: best, why };
+}
+const perkMult = venueId => perk(venueId).mult;
 function price(it, venueId, o = {}) {
   it = typeof it === 'string' ? ITEM_BY_ID[it] : it; const v = VENUE_BY_ID[venueId] || {}, n = G.now(); let m = v.priceMult || 1, d = 1;
   for (const ev of EVENTS) { const ds = ev.special && ev.special.discounts; if (!Array.isArray(ds) || !eventOnDay(ev, n.day)) continue; for (const x of ds) if (x.venue === venueId && (!x.categories || x.categories.includes(it.category)) && (!x.items || x.items.includes(it.id))) d *= x.mult; }
-  const job = G.jobs && G.jobs.current && G.jobs.current(), jid = job && (job.id || job.jobId || job), st = jid && DISCOUNTS.staff[jid]; if (st && st.venue === venueId) d *= st.mult;
+  d *= perkMult(venueId);
   return Math.max(.25, q25(it.price * Math.max(.5, m * d)));
 }
 const ownedBook = id => !!(ITEM_BY_ID[id] && ITEM_BY_ID[id].cookbook && G.state.cook && (G.state.cook.books || []).includes(id));   // QA round 3: a cookbook on your shelf shows Owned
@@ -104,7 +114,7 @@ function open(venueId, o = {}) {
   const head = el('div.shop-top'), tabBar = el('div.shop-tabs'), listEl = el('div.shop-list'); m.body.append(head, tabBar, listEl);
   const render = () => {
     const bal = G.money.get(), top = listEl.scrollTop;
-    head.textContent = ''; head.append(el('span.shop-blurb', { text: o.online ? `Delivery fee ${fmt(DELIVERY.onlineOrderFee)} per order.` : v.blurb || '' }), el('span.shop-wallet' + (bal < 0 ? '.neg' : ''), null, iconEl('ui.coin', 1), fmt(bal)), el('span.shop-bag', null, iconEl('ui.bag', 1), `${G.inv.items().length}/${G.inv.capacity}`));
+    head.textContent = ''; head.append(el('span.shop-blurb', { text: o.online ? `Delivery fee ${fmt(DELIVERY.onlineOrderFee)} per order.` : v.blurb || '' }, (() => { const k = perk(venueId); return k.mult < 1 ? el('b.shop-perk', { text: ` ${k.why}: ${Math.round((1 - k.mult) * 100)}% off.`, style: { color: 'var(--good, #2f8f3a)' } }) : null; })()), el('span.shop-wallet' + (bal < 0 ? '.neg' : ''), null, iconEl('ui.coin', 1), fmt(bal)), el('span.shop-bag', null, iconEl('ui.bag', 1), `${G.inv.items().length}/${G.inv.capacity}`));
     tabBar.textContent = ''; if (tabs.length > 1) for (const [c, name] of tabs) tabBar.append(el('button.shop-tab' + (c === tab ? '.on' : ''), { onclick: () => { tab = c; listEl.scrollTop = 0; render(); } }, name)); tabBar.style.display = tabs.length > 1 ? '' : 'none';
     listEl.textContent = '';
     if (tab === 'service') { for (const s of svcs) listEl.append(el('div.shop-row', null, iconEl('ui.heart', 2), el('div.shop-info', null, el('b', { text: s.name }), el('span', { text: s.desc })), el('div.shop-buy', null, el('span.shop-price', { text: s.price ? fmt(s.price) : 'Free' }), el('button.go', { onclick: () => { close(); G.emit('service', s.id, venueId); services[s.id](s, venueId); } }, 'Go')))); return; }

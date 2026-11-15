@@ -230,7 +230,7 @@ KINDS.aim = E => {
         const aa = stage === 0 ? ang : -1.25 + la * 1.1; line(c, ox, oy, ox + Math.cos(aa) * 28, oy + Math.sin(aa) * 28, stage === 0 ? BAD : INK, 2);
         box(c, 12, 12, 10, 60, SKY); R(c, 13, 13 + (1 - zp - wp / 2) * 58, 8, wp * 58, GOOD); if (stage >= 1) { const pv = stage === 1 ? p : lp; R(c, 10, 13 + (1 - pv) * 58 - 1, 14, 3, stage === 1 ? BAD : INK); }
         let bx = ox, by = oy - 6; if (stage === 3) { const u = clamp(fly / .55), ex = q >= 1 ? tx - 4 : q > 0 ? tx - 10 : tx - 30 + (lp - zp) * 80, ey = q >= 1 ? ty + 2 : q > 0 ? ty - 2 : ty + 30; bx = ox + (ex - ox) * u; by = oy - 6 + (ey - oy + 6) * u - Math.sin(u * Math.PI) * 46; if (u >= 1) { const v = fly - .55; bx = ex + (q >= 1 ? 0 : q > 0 ? -v * 40 : v * 10); by = ey + v * v * 160; } }
-        if (E.theme.icon) drawIcon(c, E.theme.icon, bx - 8, by - 8, 1); else { disc(c, bx, by, 5, INK); disc(c, bx, by, 4, '#e0703a'); R(c, bx - 4, by, 9, 1, INK); }
+        if (E.def.projectile) E.def.projectile(c, bx, by, { q, fly, stage }); /* QA6: e.g. the fair's ring toss draws a ring, not a basketball */ else if (E.theme.icon) drawIcon(c, E.theme.icon, bx - 8, by - 8, 1); else { disc(c, bx, by, 5, INK); disc(c, bx, by, 4, '#e0703a'); R(c, bx - 4, by, 9, 1, INK); }
       }
       drawParts(c, parts);
     },

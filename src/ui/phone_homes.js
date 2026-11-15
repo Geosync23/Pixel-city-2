@@ -1,6 +1,8 @@
 // Phone app: NESTLY — the properties browser (app id 'homes', released through the app store). Data: G.housing.homes(); styles in phone_apps.css.
 // Pages: list (My home card, filters: rent/buy, district, weekly budget) -> listing (picture, facts, walk times, pros/cons, Take me there, Rent, Buy) -> cost sheet (confirm).
 // Deep link: G.phone.open('homes', { home: id }).
+// MORE HOMES (owner msg 107): every listing shows both prices (pre-furnished = the rent / price plus a one-off furniture package; furnish it yourself = no extra),
+// "Look inside" starts a viewing when you stand at the door (G.housing.view), and the cost sheet asks which way you want it.
 import { G } from '../core/game.js';
 import { objSprite } from '../engine/sprites.js';
 import { el, iconEl, btn, section, chip, kv, empty, safe, money, balance, place, DISTRICT_NAME, when } from './phone_util.js';
@@ -87,6 +89,7 @@ function card(l, ctx) {
     el('span.nl-t', null, el('b', null, h.name, l.current ? el('em.as-new', { text: l.owned ? 'YOURS' : 'HOME' }) : null),
       el('small', { text: `${KIND[h.kind] || 'Home'} · ${dn(h.district)} · ${(SIZE_CLASSES[h.sizeClass] || {}).label || ''}, ${(h.rooms || []).length} room${(h.rooms || []).length === 1 ? '' : 's'}` }),
       el('span.nl-price', null, l.rent ? el('b', { text: money(l.rent) + '/wk' }) : null, l.price ? el('i', { text: (l.rent ? 'or ' : '') + 'buy ' + money(l.price) }) : null),
+      l.pieces ? el('small.nl-dim', { text: `Furnished +${money(l.pkg)} once, or furnish it yourself` }) : null,
       l.available ? (bits.length ? el('small.nl-dim', { text: bits.join(' · ') }) : null) : el('small.nl-lock', null, iconEl('ui.lock', 1), availText(l))));
 }
 function list(b, ctx) {
@@ -116,6 +119,7 @@ function detail(b, ctx, id) {
   const c = el('div.ph-card');
   if (l.rent) c.append(kv('Rent', money(l.rent) + ' / week'));
   if (l.price) c.append(kv('Buy', `${money(l.price)} (${money(l.down)} down)`), kv('Upkeep once owned', money(h.upkeepPerWeekOwned || 0) + ' / week'));
+  if (l.pieces) c.append(kv('Pre-furnished', `+ ${money(l.pkg)} once · ${l.pieces} pieces, yours to keep`), kv('Furnish it yourself', 'No extra · fitted kitchen and bathroom'));
   c.append(kv('Utilities', money(sc.utilitiesPerWeek || 0) + ' / week'), kv('Size', `${sc.label || '?'} · ${(h.tiles || sc.tiles || []).join(' x ')} tiles · ${sc.furnitureSlots || '?'} furniture spots`),
     kv('Rooms', (h.rooms || []).map(r => r.name).join(', ')), kv('Guests', 'Up to ' + (h.maxGuests || 2)));
   b.append(c, section('Close by')); const d = el('div.ph-card');
@@ -124,22 +128,28 @@ function detail(b, ctx, id) {
   if ((h.pros || []).length || (h.cons || []).length) b.append(section('Good and less good'), el('ul.nl-pc', null, (h.pros || []).map(t => el('li.pro', { text: t })), (h.cons || []).map(t => el('li.con', { text: t }))));
   if (h.perk) b.append(el('p.nl-perk', null, iconEl('ui.sparkle', 1), el('span', { text: 'Perk: ' + h.perk.desc })));
   if ((h.included || []).length) b.append(el('small.nl-dim', { text: 'Comes with: ' + h.included.map(i => (ITEM_BY_ID[i] && ITEM_BY_ID[i].name) || i).join(', ') + '.' }));
-  ctx.foot.append(el('div.nl-acts', null, btn('Take me there', () => goTo(door(id) || 'home:' + id, ctx, h.name), '', 'ui.pin'),
+  const dp = door(id), atDoor = !l.current && dp && safe(() => G.scene.id === 'city' && Math.hypot(G.player.x - dp.x, G.player.y - dp.y) < 9, false), inside = safe(() => (H().viewing() || {}).id === id, false);
+  if (!l.current) b.append(el('small.nl-dim', { text: inside ? 'You are inside now: have a good look round.' : atDoor ? 'You are at the door: step in and look round before you decide.' : 'Viewings are at the door. "Take me there" shows the way; then tap the door and choose "Look inside".' }));
+  ctx.foot.append(el('div.nl-acts', null, atDoor ? btn('Look inside', () => { ctx.close(); safe(() => H().view(id), 0); }, '', 'ui.home') : btn('Take me there', () => goTo(door(id) || 'home:' + id, ctx, h.name), '', 'ui.pin'),
     l.canRent ? btn('Rent', () => ctx.push('Rent ' + h.name, (bb, cc) => sheet(bb, cc, id, 'rent'), 'sheet'), 'pri') : null,
     l.canBuy ? btn('Buy', () => ctx.push('Buy ' + h.name, (bb, cc) => sheet(bb, cc, id, 'buy'), 'sheet'), 'gold') : null));
 }
-let term = 1;
+let term = 1, furn = false;
 function sheet(b, ctx, id, mode) {
   const l = safe(() => H().homes().find(x => x.id === id), null); if (!l) return; const h = l.home, sc = SIZE_CLASSES[h.sizeClass] || {}, cur = safe(() => H().current(), null), moving = !!(cur && cur.id && cur.id !== id);
   const eq = moving || !cur ? safe(() => H().equity(), 0) : 0, fee = moving ? MOVING.moveFee : 0, bal = balance(), lim = safe(() => G.money.limit, 0) || 0; b.classList.add('as-body');
   const first = el('div.ph-card'), week = el('div.ph-card'); let total = 0;
-  if (mode === 'rent') { total = l.rent + fee; first.append(kv("First week's rent", money(l.rent))); week.append(kv('Rent', money(l.rent))); }
+  const canFurn = l.pieces > 0 && !l.current, fz = canFurn && furn, pkg = fz ? l.pkg : 0;
+  if (canFurn) b.append(section('How do you want it?'), el('div.nl-filters', null, chip(`Pre-furnished · +${money(l.pkg)}`, furn ? 'on' : '', () => { furn = true; ctx.refresh(); }), chip('Furnish it yourself', furn ? '' : 'on', () => { furn = false; ctx.refresh(); })),
+    el('p.as-desc', { text: furn ? `The designer's ${l.pieces} pieces stand in the rooms when you arrive. You pay for them once and they are yours: they move with you, and you can sell them.` : 'Empty rooms, your own style. The kitchen and bathroom are fitted, a camp mattress waits if you have no bed, and a welcome box has a few meals. The furniture shops and the Roomy app do the rest.' }));
+  if (mode === 'rent') { total = l.rent + fee + pkg; first.append(kv("First week's rent", money(l.rent))); week.append(kv('Rent', money(l.rent))); }
   else {
-    const t = MORTGAGE.terms[term] || MORTGAGE.terms[0], w = mortWeekly(l, term); total = l.down + fee - eq;
+    const t = MORTGAGE.terms[term] || MORTGAGE.terms[0], w = mortWeekly(l, term); total = l.down + fee + pkg - eq;
     b.append(section('Mortgage term'), el('div.nl-filters', null, MORTGAGE.terms.map((tt, i) => chip(`${tt.weeks} weeks`, term === i ? 'on' : '', () => { term = i; ctx.refresh(); }))));
     first.append(kv('Down payment (20%)', money(l.down))); week.append(kv(`Mortgage, ${t.weeks} weeks`, money(w)), kv('Upkeep', money(h.upkeepPerWeekOwned || 0)));
     week.append(el('small.nl-dim', { text: `You repay ${money(Math.round((l.price - l.down) * (1 + t.fee)))} in all${t.fee ? ` (${Math.round(t.fee * 100)}% fee)` : ' (no fee)'}. Miss a week and the term just gets a week longer. Pay it off early any time at the bank app.` }));
   }
+  if (pkg) first.append(kv(`Furniture package (${l.pieces} pieces)`, money(pkg)));
   if (fee) first.append(kv('Moving van', money(fee))); if (eq) first.append(kv(mode === 'rent' ? 'Sale of your old home (paid to you)' : 'Sale of your old home', '+' + money(eq)));
   first.append(kv('To pay today', money(Math.max(0, total)), 'tot'), kv('In the bank', money(bal)));
   week.append(kv('Utilities', money(sc.utilitiesPerWeek || 0)));
@@ -148,8 +158,8 @@ function sheet(b, ctx, id, mode) {
   const can = bal - total >= lim;
   if (!can) b.append(el('p.nl-lock.big', null, iconEl('ui.coin', 1), `You need ${money(total - bal + lim)} more for this.`));
   ctx.foot.append(el('div.nl-acts', null, btn('Not now', () => ctx.back()), btn(mode === 'rent' ? `Sign the lease · ${money(total)}` : `Buy it · ${money(Math.max(0, total))}`, () => {
-    const ok = safe(() => (mode === 'rent' ? H().rent(id) : H().buy(id, term)), false);
-    if (ok) { dcache.clear(); safe(() => G.phone.notify({ app: 'homes', title: 'Nestly', text: `Keys to ${h.name} are yours. Your boxes are waiting inside.`, priority: 'low' }), 0); ctx.home(); G.phone.open('homes'); }
+    const ok = safe(() => (mode === 'rent' ? H().rent(id, { furnished: fz }) : H().buy(id, term, { furnished: fz })), false);
+    if (ok) { dcache.clear(); safe(() => G.phone.notify({ app: 'homes', title: 'Nestly', text: fz ? `Keys to ${h.name} are yours. It is furnished and ready.` : `Keys to ${h.name} are yours. Your boxes are waiting inside.`, priority: 'low' }), 0); ctx.home(); G.phone.open('homes'); }
     else toast(can ? 'That did not go through.' : 'Not enough money for that yet.');
   }, mode === 'rent' ? 'pri' : 'gold')));
 }

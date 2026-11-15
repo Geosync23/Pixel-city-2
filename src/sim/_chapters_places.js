@@ -25,8 +25,8 @@ export const SPOTS = {
   'spot:school': [313, 214, 'Maplewood Elementary', null],
   'lookout': [86, 25, 'Hillcrest Lookout', 'poi_lookout'],
   'spot:second_wind': [99, 361, 'the Second Wind, berth 3', null],
-  'spot:kettle_stall': [100.5, 254.5, 'the Little Kettle, Market Street', null],
-  'spot:market_street': [100.5, 254.5, 'Market Street', null],
+  'spot:kettle_stall': [101, 257.2, 'the Little Kettle, Market Street', null],
+  'spot:market_street': [101, 257.2, 'Market Street', null],
   'spot:airport_arrivals': [341, 104, 'Arrivals, Maple Bay International', null],
   'spot:tram_shed': [270, 326, 'the old tram shed', null],
 };

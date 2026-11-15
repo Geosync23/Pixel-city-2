@@ -64,9 +64,8 @@ export function sync() {
   const sw = SPOTS['spot:second_wind'], ks = SPOTS['spot:kettle_stall'];
   if (!d14) put('prop.story.bell', sw[0] - 1.5, sw[1] - .5);                        /* the bell by the Captain's cabin door */
   if (d13 || run14) {                                                              /* the Little Kettle, leaning a little */
-    put('prop.event.stall', ks[0] - 1.5, ks[1] - 3.2, { p: { scheme: 2, kind: 'tea', text: 'KETTLE', seed: 7 } });
-    put('prop.story.stallsign', ks[0] - 1.2, ks[1] - 1.1, { z: 2.3 });
-    if (d14) put('prop.story.bell', ks[0] + 1.6, ks[1] - 2.2);
+    put('prop.event.stall', ks[0] - 1.5, ks[1] - 3.2, { p: { scheme: 'blossom', kind: 'tea', text: 'KETTLE', seed: 7 } });
+    if (d14) put('prop.story.bell', ks[0] + 1.7, ks[1] - 1.7);
   }
   w.version++;
 }

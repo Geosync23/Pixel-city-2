@@ -30,7 +30,8 @@ const mkSpec = (r, o) => { const A = charArt(), q = Object.assign({}, o), ov = {
 /* ------------------------------------------------------------------ shared hall plumbing */
 function mkHall(sc, cfg) {
   const O = sc.toWorld(0, 0), seats = []; sc.world.zmax = 8; sc.house = 1;
-  for (const fx of sc.byTag('seating')) { const ry = fx.ob.B[1]; for (const s of fx.seats) seats.push({ x: s.x, y: s.y, z: s.z, dir: s.dir, ry, fy: ry - .25, taken: null }); }
+  for (const fx of sc.fixtures || []) if ((fx.tags || []).includes('stage')) fx._sit = true;   /* QA6: the orchestra's chairs and piano bench are on the stage: no generic "Sit" (24 dead taps) */
+  for (const fx of sc.byTag('seating')) { fx._sit = true; /* QA6: the per-seat "Sit" below replaces activities.js's generic per-row one (24 dead taps in Symphony Hall: its spot sat inside the row) */ const ry = fx.ob.B[1]; for (const s of fx.seats) seats.push({ x: s.x, y: s.y, z: s.z, dir: s.dir, ry, fy: ry - .25, taken: null }); }
   const ys = [...new Set(seats.map(s => s.ry))].sort((a, b) => a - b), aisles = cfg.aisles.map(a => a + O.x);
   for (const s of seats) { s.row = ys.indexOf(s.ry); s.ax = aisles.reduce((b, a) => (Math.abs(a - s.x) < Math.abs(b - s.x) ? a : b), aisles[0]); }
   for (let i = 0; i < ys.length; i++) seats.filter(s => s.row === i).sort((a, b) => a.x - b.x).forEach((s, n) => { s.n = n; });

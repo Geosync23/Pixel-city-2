@@ -85,6 +85,7 @@ function pump() {
   /* QA round 5: banners expire; a stale 'Leave now' came back for six hours and a spring banner showed in autumn */
   while (queue.length && queue[0].pri !== 'high' && G.state.t - (queue[0].t || G.state.t) > 90) queue.shift();
   while (queue.length && queue[0].pri === 'high' && G.state.t - (queue[0].t || G.state.t) > 240) queue.shift();
+  if (!queue.length) return;
   /* QA round 4: hold banners while a menu / dialog is open over the game (it covered the cook menu's tabs after a new game); they drop in once it closes */
   if (G.modal > (isOpen ? depth : 0)) { if (!held) held = setTimeout(() => { held = 0; pump(); }, 500); return; }
   const e = queue.shift(), sticky = e.pri === 'high';

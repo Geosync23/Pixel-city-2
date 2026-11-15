@@ -87,6 +87,12 @@ button.jm-big.alt{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
 
 @media (max-width:560px){
   #ui>#jobhud{top:auto;bottom:calc(78px + env(safe-area-inset-bottom,0px));right:auto;left:max(8px,env(safe-area-inset-left,0px));width:min(210px,58vw);max-height:38vh;font-size:12px}
+  /* QA6 portrait: the buttons sit right under the header (never below the fold), tickets after the first show only their current step */
+  #ui>#jobhud{display:flex;flex-direction:column;max-height:34vh;width:min(196px,52vw)}
+  #jobhud .jh-btns{order:1;margin:0 0 5px}#jobhud .jh-auto{order:2}#jobhud .jh-tk{order:3;flex:none}
+  #jobhud .jh-tk{padding:3px 5px;margin-bottom:3px}#jobhud .jh-tk>b{font-size:12px}
+  #jobhud .jh-tk.rest .jh-steps span:not(.c){display:none}#jobhud .jh-tk.rest .jh-pat{margin:1px 0}
+  #jobhud .jh-btns button{min-height:34px}
   .jb-name{font-size:15px}
 }
 

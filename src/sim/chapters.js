@@ -197,6 +197,11 @@ async function openCard(id) {
   if (v !== 'begin') return false;
   return resume ? resumeNow() : begin(ch.id);
 }
+/* the company pays your way in where a Chapter goes past a ticket desk (nobody is turned back at the columns mid-story) */
+function tickets(ch) {
+  if (ch.id === 'ch10' && !safe(() => G.museum.hasTicket(), true)) { safe(() => G.money.add(safe(() => G.museum.ticket, 6) || 6, 'gift')); safe(() => G.museum.buyTicket()); }
+  if (ch.id === 'ch11' && !safe(() => G.observatory.hasTicket(), true)) { safe(() => G.money.add(6, 'gift')); safe(() => G.observatory.buyTicket()); }
+}
 function begin(id) {
   const ch = chOf(id), s = st(); if (!ch || running || s.done[ch.id]) return false;
   if (linger) { linger = false; comp.clear(); } comp.follow(true);
@@ -216,6 +221,7 @@ async function loop() {
   const s = st(); if (!s.cur || s.cur.paused || running) return; running = true; const my = ++tok, ch = CHAPTERS_BY_ID[s.cur.id], ops = prog(ch);
   const alive = () => my === tok && st().cur && st().cur.id === ch.id && !st().cur.paused;
   UI.setOut(() => stepOut());
+  safe(() => tickets(ch));
   try {
     if (s.cur.pc > 0 && ops[s.cur.pc] && ops[s.cur.pc].op !== 'scene') { await enterScene(ch, sceneOpAt(ops, s.cur.pc), alive, true); }
     while (alive()) {
@@ -267,6 +273,7 @@ const present = () => comp.ids();
 function rel(id, n) { safe(() => G.social.addRel(id, n, { raw: true })); }
 async function sayLine(ch, o) {
   const i = who(o.who), off = offstage(ch, o.who, st().cur && st().cur.scene), phone = off === 'phone', style = o.who === 'narrator' ? 'narrator' : o.who === 'nell' ? 'hand' : off ? 'phone' : o.who === 'player' ? 'you' : '';
+  if (!safe(() => G.transit.ride, null)) UI.setModal(true);
   const c = !style ? comp.char(o.who) : null, P = G.player; let prev;
   if (c) { if (c.stop) c.stop(); if (!c.zoff) c.faceTo(P.x, P.y); if (!G.cutscene && !G.busy) P.faceTo(c.x, c.y); prev = c.pose; if (o.anim && o.anim !== 'stand') c.pose = o.anim; }
   if (phone || (o.who === 'player' && o.anim === 'phone')) P.pose = 'phone'; else if (P.pose === 'phone' && style !== 'narrator' && style !== 'you') P.pose = null;
@@ -301,12 +308,14 @@ function doAt(ch, alive, find, label, o = {}) {
     }
     let pressed = 0;
     UI.chip({ kicker: kicker(ch), text: label, out: () => stepOut(),
-      go: { label: o.go || 'Go on', fn: () => { if (!it) return end('done'); pressed = performance.now(); safe(() => G.useInteractable(it)); } },
+      go: { label: o.go || 'Go on', fn: () => { if (!it) return end('done'); if (!pressed) pressed = performance.now(); safe(() => G.useInteractable(it)); } },
       skip: o.skip ? { label: 'Not today', fn: () => end('skip') } : null });
     iv = setInterval(() => {
       if (!alive()) return end('dead');
       if (it && G.scene.id !== sid) return end('done');
-      if (pressed && performance.now() - pressed > 7000 && !G.modal) end('done');     /* could not walk there: do it from where you stand */
+      const dt = pressed ? performance.now() - pressed : 0;
+      if (dt > 7000 && !G.modal) end('done');                                                  /* could not walk all the way there: do it from where you stand */
+      else if (dt > 1300 && !G.modal && !G.player.path && !G.pending) end('done');             /* as near as the room lets you get */
     }, 250);
   });
 }
@@ -314,8 +323,14 @@ function doAt(ch, alive, find, label, o = {}) {
 /* ---------- scenes, travel, companions ---------- */
 async function enterScene(ch, o, alive, back) {
   const s = st(), d = resolve(o.place); s.cur.scene = o.id;
-  if (d && d.ride) { comp.set([]); UI.setModal(false); return; }
+  if (d && d.ride) { if (safe(() => G.transit.ride, null)) { comp.hide(true); UI.setModal(false); } return; }
   UI.setModal(true);
+  if (safe(() => G.transit.ride, null)) {            /* still on the road: let the ride finish (or skip the rest of it) */
+    UI.close(); UI.chip({ kicker: kicker(ch), text: 'Riding into town', out: null, go: { label: 'Skip the ride', fn: () => safe(() => G.transit.skipRide()) } });
+    while (alive() && safe(() => G.transit.ride, null)) await sleep(250);
+    UI.chip(null); await sleep(700); if (!alive()) return;
+  }
+  comp.hide(false);
   if (d && !here(d)) {
     if (back || s.cur.back) { UI.close(); comp.set(o.cast); await travel(ch, d, 'Back to ' + d.name, null, alive); }
     else { UI.close(); await hop(d, true); }
@@ -359,12 +374,20 @@ async function go(ch, o, alive) {
   if (!d) { console.warn('chapters: unknown place', o.place); return; }
   comp.set(o.with || []); comp.follow(true); s.cur.went = null; lastRide = null;
   if (o.by === 'cab' && o.must) {
-    /* the cab is called for you; the next scene plays inside it */
+    /* the cab is called for you (no fare); you walk to it; the next scene plays inside it while it drives */
     UI.chip({ kicker: kicker(ch), text: o.label, out: () => stepOut() });
-    let rode = false; const off = G.on('ride:start', () => { rode = true; });
-    const ok = await safe(() => G.transit.callTaxi(d.root || d.room || d.id, { free: true, silent: true }), Promise.resolve(false));
-    for (let k = 0; k < 400 && alive() && !rode && ok !== false; k++) await sleep(250);
-    off(); UI.chip(null); if (!rode && alive()) await hop(d, true);
+    let rode = false, failed = false; const t0 = performance.now(), P = G.player;
+    const off = G.on('ride:start', () => { rode = true; }), offH = G.on('taxi:here', cab => { if (cab && !G.busy && !G.modal) safe(() => P.goTo(G.world, cab.x, cab.y, { snap: 8 })); });
+    if (!inCity()) { safe(() => exitRoom()); await sleep(900); }
+    const pr = safe(() => G.transit.callTaxi(d.root || d.room || d.id, { free: true, silent: true }), null);
+    if (pr && pr.then) pr.then(v => { if (v === false) failed = true; }); else failed = true;
+    while (alive() && !rode && !failed && performance.now() - t0 < 150000) {
+      const cab = safe(() => G.transit.pending.cab, null);
+      if (cab && safe(() => G.transit.pending.state, '') === 'waiting' && !P.path && Math.hypot(P.x - cab.x, P.y - cab.y) > 3) safe(() => P.goTo(G.world, cab.x, cab.y, { snap: 8 }));
+      await sleep(300);
+    }
+    off(); offH(); UI.chip(null); if (!alive()) return;
+    if (!rode) safe(() => G.transit.cancel());
     s.cur.went = 'cab'; return;
   }
   await travel(ch, d, o.label, o.note, alive);

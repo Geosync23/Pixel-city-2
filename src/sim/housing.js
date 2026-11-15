@@ -17,6 +17,14 @@
 //   Delivery boxes (k 'd') may also carry: sz 's' small parcel | 'l' big carton | 'f' flat-pack (needs building), pos [planned place per item, from design
 //   mode's "try it here"], asm 1 (flat-pack that arrives built), from (seller name). Unpacking a delivery PUTS THE PIECE IN THE ROOM (planned place, else the
 //   nearest free spot to the box, else storage): see unpack(uid, { place: true }) and src/sim/homedesign.js.
+// MORE HOMES (owner msg 107): a home may have EXTRA ROOMS besides 'main' and 'bath' (SHELLS[id].rooms: upstairs, a bedroom, a den ...; scene `int:home:<id>:<room>`),
+//   joined by link pieces (stairs, doors: shell items with `to`); a placed piece's room is `r` (none = main). `furnished: 1` = moved in pre-furnished.
+//   PRE-FURNISHED or FURNISH IT YOURSELF: rent(id, { furnished }) / buy(id, term, { furnished }). Furnished = the designer's set (scenes/rooms/home_more.js SETS)
+//   stands in the rooms and is YOURS, for a one-off package price pkgPrice(id) (data/homes.js FURNISH.rate x list prices). Empty = the landlord's kitchen and
+//   bathroom, a camp mattress on the bed slot when you own no bed, and a WELCOME KIT box of food. Your own furniture always comes along in boxes.
+//   More API: rooms(id?) -> ['main', 'bath', ...]   goRoom(id, to, from)   roomWith(tag) -> 'home:<id>[:<room>]' | null   navEdges(sceneId) -> [{ x, y, label, to }] | null
+//   view(id, furnished = true) -> a VIEWING: walk round a home that is not yours (nothing private works there)   viewing() -> { id, furnished } | null
+//   viewFurnished(bool)   pkgPrice(id)   furnishedSet(id)   seedNav()      homes() rows also carry pkg, pieces, roomsN.      Event 'home:view'(id, furnished).
 // SLOT RULE (Wave C): only real furniture counts toward the home's furniture slots (SIZE_CLASSES.furnitureSlots). Wall pieces, rugs, things that stand on a
 //   surface and small floor pieces (a footprint of half a tile: plants, floor lamps, baskets) are DECOR with their own allowance: 2 x the slots + 10.
 //   slots() -> { used, max, decor, decorMax }; isDecor(itemId).
@@ -235,10 +243,10 @@ function roomDef(id, room) {
   if (G.goods && G.goods.surfaceZ) G.goods.surfaceZ(list);   /* goods (sim/goods.js): small pieces stand ON the table / counter / dresser they were put on */
   const flat = i => (!i.wall && !solidDef(i) && sizeOfDef(i)[2] < .1 ? 0 : 1);
   list.sort((a, b) => flat(a) - flat(b));
-  if (bath) { const d = Object.assign(bathDef(id, list), { home: mine, homeId: id, room }); if (sh.from) { d.exits[0].label = sh.exit.label || 'Back'; d.exits[0].use = () => goRoom(id, sh.from, 'bath'); } return guard(d, mine); }
+  if (bath) { const d = Object.assign(bathDef(id, list), { home: mine, homeId: id, room }); if (sh.from) { d.exits[0].label = sh.exit.label || 'Back'; d.exits[0].to = sceneOf(id, sh.from); d.exits[0].use = () => goRoom(id, sh.from, 'bath'); } return guard(d, mine); }
   if (!main) {   /* an extra room: upstairs, a bedroom, a den. Its way back is an exit mat (sh.exit) and / or link pieces (stairs, doors: items with `to`) */
     const d = { name: h.name + ': ' + (sh.name || 'room'), home: mine, homeId: id, room, w: sh.w, d: sh.d, floor: sh.floor, floors: sh.floors, wall: sh.wall, items: list,
-      exits: sh.exit ? [{ x: sh.exit.x, y: sh.exit.y, label: sh.exit.label || 'Back', use: () => goRoom(id, sh.exit.to || 'main', room) }] : [] };
+      exits: sh.exit ? [{ x: sh.exit.x, y: sh.exit.y, label: sh.exit.label || 'Back', to: sceneOf(id, sh.exit.to || 'main'), use: () => goRoom(id, sh.exit.to || 'main', room) }] : [] };
     const sp = spawnOf(sh); if (!sh.exit) d.spawn = { x: sp[0], y: sp[1], dir: 1 };
     return guard(d, mine);
   }
@@ -266,19 +274,27 @@ const pkgCache = {};
 function pkgPrice(id) { if (pkgCache[id] !== undefined) return pkgCache[id]; let n = 0; for (const p of setOf(id)) n += (ITEM_BY_ID[p.itemId] || {}).price || 0; return pkgCache[id] = Math.round(n * FURNISH.rate / 10) * 10; }
 function view(id, furnished = true) {
   if (!SHELLS[id] || S.id === id) return Promise.resolve(null); viewing = { id, furnished: !!furnished && setOf(id).length > 0 };
-  G.state.flags.lastDoor = 'door:home:' + id; G.emit('home:view', id, viewing.furnished); return G.go('int:home:' + id, { fresh: true });
+  G.state.flags.lastDoor = 'door:home:' + id; seedNav(); G.emit('home:view', id, viewing.furnished); return G.go('int:home:' + id, { fresh: true });
 }
-const viewingNow = () => { const s = G.scene && G.scene.id; return viewing && s && (s === 'int:home:' + viewing.id || String(s).startsWith('int:home:' + viewing.id + ':')) ? viewing : null; };
+const viewingNow = () => { const s = G.scene && G.scene.id; return viewing && viewing.id !== S.id && s && (s === 'int:home:' + viewing.id || String(s).startsWith('int:home:' + viewing.id + ':')) ? viewing : null; };
 function viewFurnished(on) { const v = viewingNow(); if (!v) return false; v.furnished = !!on && setOf(v.id).length > 0; G.emit('home:view', v.id, v.furnished); G.go(G.scene.id, { fresh: true, x: G.player.x, y: G.player.y, dir: G.player.dir, fade: false }); return true; }
 /** the room of YOUR home where a piece with this function tag stands ('bed', 'fridge', 'shower' ...) -> room id 'home:<id>[:<room>]' | null (for the guide arrow) */
 function roomWith(tag) { if (!S.id) return null; const it = S.items.find(i => (ITEM_BY_ID[i.itemId] || {}).tag === tag); return it ? 'home:' + S.id + (it.r ? ':' + it.r : '') : null; }
-/** the arrow's scene graph cannot read dynamic rooms: tell it how the rooms of your home connect (the same notes it takes when you walk through a door) */
+/** how the rooms of a multi-room home connect, for the guide arrow (its scene graph cannot read dynamic rooms): sceneId 'int:home:<id>[:<room>]' ->
+ *  [{ x, y (world), label, to (scene id) }] | null (not a home, or a plain home whose only inner door is the legacy bathroom door). Works for ANY home, yours or not. */
+function navEdges(sid) {
+  const m = /^int:home:([^:]+)(?::(.+))?$/.exec(String(sid || '')); if (!m) return null; const id = m[1], r = m[2] || 'main', top = SHELLS[id], sh = shOf(id, r);
+  if (!top || !sh || !(top.rooms || (top.bath && top.bath.from))) return null; const out = [];
+  for (const l of linkItems(sh)) { const s = sizeOfDef(l), o = { label: l.label || 'Door', to: sceneOf(id, l.to) }; if (l.spot) o.spot = { x: 1 + l.spot[0], y: 1 + l.spot[1] };
+    out.push(Object.assign(o, l.wall ? (l.wall === 'y' ? { x: 1 + l.at + s[0] / 2, y: 1 } : { x: 1, y: 1 + l.at + s[0] / 2 }) : { x: 1 + l.x + s[0] / 2, y: 1 + l.y + s[1] / 2 })); }
+  if (r !== 'main' && sh.exit && (r !== 'bath' || sh.from)) out.push({ x: 1 + sh.exit.x, y: 1 + sh.exit.y, label: sh.exit.label || 'Back', to: sceneOf(id, r === 'bath' ? sh.from : sh.exit.to || 'main') });
+  return out;
+}
+/** until the arrow asks navEdges itself (hook in sim/navgoals.js, see docs/reports/homes_more.md): write the links of YOUR home and of the home you are viewing
+ *  into the arrow's own notebook of learned doors (G.state.nav.edges), exactly as if you had walked through each of them once */
 function seedNav() {
-  const id = S.id, nav = G.state.nav; if (!id || !nav || !SHELLS[id] || !(SHELLS[id].rooms || (SHELLS[id].bath && SHELLS[id].bath.from))) return; if (!nav.edges || typeof nav.edges !== 'object') nav.edges = {};
-  for (const r of roomKeys(id)) { const sh = shOf(id, r), out = [];
-    for (const l of linkItems(sh)) { const s = sizeOfDef(l); out.push(l.wall ? (l.wall === 'y' ? { x: 1 + l.at + s[0] / 2, y: 1, to: sceneOf(id, l.to) } : { x: 1, y: 1 + l.at + s[0] / 2, to: sceneOf(id, l.to) }) : { x: Math.round((1 + l.x + s[0] / 2) * 2) / 2, y: Math.round((1 + l.y + s[1] / 2) * 2) / 2, to: sceneOf(id, l.to) }); }
-    if (r !== 'main' && sh.exit) out.push({ x: 1 + sh.exit.x, y: 1 + sh.exit.y, to: sceneOf(id, r === 'bath' ? sh.from || 'main' : sh.exit.to || 'main') });
-    if (out.length) nav.edges[sceneOf(id, r)] = out; }
+  const nav = G.state.nav; if (!nav) return; if (!nav.edges || typeof nav.edges !== 'object') nav.edges = {};
+  for (const id of [S.id, viewing && viewing.id]) { if (!id) continue; for (const r of roomKeys(id)) { const sid = sceneOf(id, r), e = navEdges(sid); if (e && e.length) nav.edges[sid] = e.map(q => ({ x: Math.round(q.x * 2) / 2, y: Math.round(q.y * 2) / 2, to: q.to })); } }
 }
 
 /* delivery boxes: 's' small parcel, 'l' big carton, 'f' flat-pack (art: src/art/homedesign/boxes.js; the old parcel art when that is missing) */
@@ -554,7 +570,7 @@ export function init() {
     isDecor, recolour, snapshot, restore, freeSpot: (itemId, nx, ny) => spotFor(itemId, null, nx, ny, curRoom()), cardboard: () => S.card || 0, recycle,
     storage: () => S.storage.concat(S.stay), items: () => S.items, boxes: () => S.boxes, slots, ambience,
     check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => (id ? SHELLS[id] : shOf(S.id, curRoom())), room: curRoom,
-    rooms: id => roomKeys(id || S.id), goRoom, roomWith, view, viewing: viewingNow, viewFurnished, pkgPrice, furnishedSet: id => setOf(id).slice(), seedNav,
+    rooms: id => roomKeys(id || S.id), goRoom, roomWith, view, viewing: viewingNow, viewFurnished, pkgPrice, furnishedSet: id => setOf(id).slice(), seedNav, navEdges,
   };
   G.on('load', () => { norm(); drain(); seedNav(); });
   G.on('home:move', seedNav); G.on('ready', seedNav);
@@ -562,7 +578,7 @@ export function init() {
   G.on('shop:buy', drain);
   G.on('minutes', () => { if (S.pending.length) land(false); });
   G.on('hour', homeMood);
-  G.on('scene', s => { if (viewing && !viewingNow()) viewing = null; if (s && s.id === 'city') lockDoors(s.world); else homeMood(); if (note) { const n = note; note = null; setTimeout(() => toast(n, 'info', 7000), 900); } });
+  G.on('scene', s => { if (viewing && !viewingNow()) viewing = null; if (s && s.id === 'city') lockDoors(s.world); else { homeMood(); if (isHome() || viewingNow()) seedNav(); } if (note) { const n = note; note = null; setTimeout(() => toast(n, 'info', 7000), 900); } });
   const city = G.sceneCache.get('city'); if (city) lockDoors(city.world);
   let ctx = null;
   G.on('activity:start', (id, c) => { ctx = id === 'unpack_boxes' || id === 'assemble_furniture' ? c : null; });

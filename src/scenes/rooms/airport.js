@@ -56,6 +56,23 @@ function plumbing(sc, G) {
     if (sc.paLines && (pa -= dt) <= 0) { pa = PA_EVERY[0] + Math.random() * (PA_EVERY[1] - PA_EVERY[0]); sc.pa(pick(sc.paLines).replace('{clock}', G.now().clock)); }
   };
 }
+/* QA6: the airport's own "Sit" targets (replace activities.js's generic ones, which it skips when an interactable already carries the fixture).
+   During the arrival tutorial (any intro step) seats are not offered at all; afterwards the tap target is small and sits on the seat itself,
+   so a tap on the aisle / floor walks instead of sitting you down (QA5 A1: 5 of 6 aisle taps sat the player down and raced the clock). */
+function airSeats(sc, G) {
+  const intro = () => !!(G.intro && G.intro.active);
+  for (const fx of sc.fixtures || []) {
+    if (!fx.seats || !fx.seats.some(q => !q.lie) || (fx.tags || []).some(t => t === 'bed' || t === 'bath') || sc.interactables.some(it => it.fx === fx)) continue; fx._sit = true;
+    if (fx.item && fx.item.k === 'fountain') continue;   /* the fountain rim has its own "Sit by the fountain" (a generic one here was a dead tap) */
+    const sit = () => {
+      if (G.busy) return; const p = G.player, ents = sc.ents || [], free = fx.seats.filter(q => !q.lie && !ents.some(c => c !== p && !c.hidden && Math.hypot(c.x - q.x, c.y - q.y) < .3));
+      const seat = free.reduce((a, b) => !a || Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a, null); if (!seat) { toast('Every seat here is taken.'); return; }
+      const t0 = G.state.t, rest = () => { const m = Math.max(0, Math.min(120, G.state.t - t0)); try { G.needs.add('energy', m * .08); G.needs.add('fun', m * .03); } catch (e) { } };
+      G.startActivity({ label: 'Sitting', anim: 'sit', minutes: 90, rate: 5, canCancel: true, done: rest, cancel: rest, at: { x: seat.x, y: seat.y, z: seat.z || 0, dir: seat.dir } }); if (seat.z) p.poseOpts = { seated: true };
+    };
+    sc.interactables.push({ x: fx.x, y: fx.y, h: .5, hit: 7, range: 2.3, spot: fx.use || undefined, fx, label: 'Sit', act: true, visible: () => !intro(), use: sit });
+  }
+}
 const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts = { seated: true }; const end = () => { p.poseOpts = null; }; G.startActivity({ label, anim: 'sit', minutes: 20, at, done: () => { end(); try { G.needs.add('fun', 10); G.needs.add('energy', 3); } catch (e) { } toast(text, 'good'); }, cancel: end }); };
 
 /* ================= the plane ================= */
@@ -67,7 +84,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
     items, npc: [Object.assign(S(19.2, 2.2, 2, 'stand', 'staff'), { outfit: 'pilot', key: 'attendant', label: 'Flight attendant' })],
     exits: [{ x: 19.75, y: .9, label: 'Leave the plane', use: G => G.go('int:airport:concourse', { x: 6.5 + O, y: 2.3 + O, dir: 1 }) }], spawn: { x: 18.6, y: 2.5, dir: 2 },
     setup(sc, G) {
-      const st = populate(sc, {}); sc.cabin = cabinLife(sc, { aisleY: 2.5 + O, doorX: 19.75 + O, doorY: .5 + O, seat: { x: 9.9 + O, y: 3.25 + O } }); sc.cabin.attendant = st.list.find(c => c.key === 'attendant');
+      airSeats(sc, G); const st = populate(sc, {}); sc.cabin = cabinLife(sc, { aisleY: 2.5 + O, doorX: 19.75 + O, doorY: .5 + O, seat: { x: 9.9 + O, y: 3.25 + O } }); sc.cabin.attendant = st.list.find(c => c.key === 'attendant');
       for (const x of [3, 8, 13, 18]) sc.world.lights.push({ x: x + O, y: 2.5 + O, z: 0, r: 3.4, c: '#fff1d0' });
       const u0 = sc.update; sc.update = (dt, gm) => { u0(dt, gm); st.update(dt); sc.cabin.update(dt); };
     } });
@@ -110,7 +127,7 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
   mkRoom({ id: 'airport:concourse', name: 'Maple Bay Intl - Concourse B', venue: 'airport', w: 64, d: 14, zoom: 0, music: 'quiet', noCrowd: true, floor: GT.f_stone, floors: [{ x0: 0, y0: 5.5, x1: 64, y1: 10.5, floor: GT.f_tile }],
     wall: { color: '#eef1f3', trim: '#9aa5b0', h: H }, items, npc, exits: [{ x: 60.5, y: 1.1, label: 'Tram to Baggage Claim', use: G => (G.airtram ? G.airtram.ride('terminal') : G.go('int:airport:terminal')) }], spawn: { x: 6.5, y: 2.3, dir: 1 },
     setup(sc, G) {
-      const tick = plumbing(sc, G), W = sc.world;
+      const tick = plumbing(sc, G), W = sc.world; airSeats(sc, G);
       sc.belts = []; for (const [a, b] of RUNS) sc.belts.push({ x0: a + O + .1, x1: b + O - .1, y0: 6.5 + O, y1: 7.5 + O, dir: -1 }, { x0: a + O + .1, x1: b + O - .1, y0: 8 + O, y1: 9 + O, dir: 1 });
       sc.spots = { jet: { x: 6.5 + O, y: 2.3 + O }, belt: { x: 8.6 + O, y: 8.5 + O }, tram: { x: 60.5 + O, y: 1.2 + O }, coffee: { x: 43 + O, y: 8.75 + O }, pond: { x: 25 + O, y: 8.1 + O } };
       sc.add('coffee', 'Bay Brew coffee bar', shop(G, 'stand_coffee')); sc.add('noodle', 'Noodle bar', shop(G, 'ramen')); sc.add('news', 'News & Books', shop(G, 'bookstore')); sc.add('dutyfree', 'Duty free', shop(G, 'cornerstore'));
@@ -182,14 +199,14 @@ const sitHere = (G, at, label, text) => () => { const p = G.player; p.poseOpts =
     wall: { color: '#eef1f3', trim: '#9aa5b0', h: H }, items, npc, spawn: { x: 2.6, y: 15.5, dir: 0 },
     exits: [{ x: 1.1, y: 15.5, label: 'Exit to the curb', use: G => { if (G.scene.canLeave && !G.scene.canLeave()) return; G.go('city', { poi: 'spawn:airport' }); } }, { x: 35.5, y: 1.1, label: 'Tram to Gates B1-B6', use: G => (G.airtram ? G.airtram.ride('concourse') : G.go('int:airport:concourse', { x: 60.5 + O, y: 2.2 + O })) }],
     setup(sc, G) {
-      const tick = plumbing(sc, G), W = sc.world; sc.belts = [];
+      const tick = plumbing(sc, G), W = sc.world; airSeats(sc, G); sc.belts = [];
       sc.spots = { tram: { x: 35.5 + O, y: 1.9 + O }, claim: { x: 26 + O, y: 13.1 + O }, customs: { x: 19.8 + O, y: 10.5 + O }, corridor: { x: 18.3 + O, y: 13.4 + O }, exit: { x: 1.1 + O, y: 15.5 + O }, fountain: { x: 9.7 + O, y: 8.7 + O } };
       // nav: fountain basin, carousels
       for (let y = 5; y < 12.5; y += .5) for (let x = 6; x < 13; x += .5) if (Math.hypot(x + .25 - 9.7, y + .25 - 8.7) < 3.05) W.block(x + O, y + O, x + O + .5, y + O + .5);
       for (const [x, y] of CAR) W.block(x + O, y + O, x + O + 7, y + O + 3);
       sc.claim = CAR.map(([x, y], i) => carouselBags(sc, x + O, y + O, i === 1 ? 7 : 9, i + 1));
       const shafts = W.objs.filter(o => o.data && o.data.shaft);
-      const ff = sc.fx('fountain'); if (ff) { const s = ff.seats[3]; sc.interactables.push({ x: ff.x, y: ff.y, h: 1.4, hit: 22, range: 4.2, spot: { x: s.x + .0, y: s.y + .55 }, label: 'Sit by the fountain', use: sitHere(G, { x: s.x, y: s.y, z: s.z, dir: s.dir }, 'Listening to the fountain', 'Water, a red maple and a hundred little reunions. Not a bad airport.') }); }
+      const ff = sc.fx('fountain'); if (ff) { const s = ff.seats[3]; sc.interactables.push({ x: ff.x, y: ff.y, h: 1.4, hit: 22, range: 4.2, spot: { x: s.x + .0, y: s.y + .55 }, label: 'Sit by the fountain', visible: () => !(G.intro && G.intro.active), use: sitHere(G, { x: s.x, y: s.y, z: s.z, dir: s.dir }, 'Listening to the fountain', 'Water, a red maple and a hundred little reunions. Not a bad airport.') }); }
       sc.add('cafe', 'Arrivals cafe', shop(G, 'stand_coffee')); sc.add('gifts', 'Maple Gifts', shop(G, 'cornerstore')); sc.add('info', 'Information', () => toast('"Taxis and the light rail are right outside. The tram back to the gates is past baggage claim."'));
       sc.add('exchange', 'Currency exchange', () => toast('"Maple dollars only today. Your wallet is already in the right currency."')); sc.add('rent1', 'Car rental', () => toast('"All out of cars until Thursday. The light rail is honestly faster."'));
       sc.add('lost', 'Lost & Found', () => toast('"One umbrella, one teddy bear, nine single gloves. Nothing with your name on it."')); sc.add('oversize', 'Oversize baggage', () => toast('"Skis, surfboards, cellos. If it is weird-shaped, it comes out here."'));

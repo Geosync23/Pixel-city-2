@@ -61,9 +61,9 @@ function build() {
   const d = G.jobs && G.jobs.hud(); if (!d) return; sig = sigOf(d); hud.textContent = ''; refs = { pats: [], lefts: [] };
   hud.append(el('div.jh-head', null, el('b', { text: d.title }), refs.left = el('span')), el('div.jh-bar', null, refs.bar = el('i')), refs.info = el('small.jh-info'));
   if (d.auto) hud.append(el('div.jh-auto', { text: 'Auto-working... the shift is fast-forwarding.' }));
-  for (const o of d.orders) {
+  for (const [i, o] of d.orders.entries()) {
     const pat = o.pat !== null ? el('div.jh-pat', null, el('i')) : null; refs.pats.push(pat);
-    hud.append(el('div.jh-tk', { onclick: () => G.jobs.goStep(o.id) }, el('b', { text: o.title }), pat,
+    hud.append(el('div.jh-tk' + (i ? '.rest' : ''), { onclick: () => G.jobs.goStep(o.id) }, el('b', { text: o.title }), pat,
       el('div.jh-steps', null, o.steps.map(s => { const c = el('span' + (s.done ? '.d' : s.cur ? '.c' : ''), null, s.color ? el('i.jh-dot', { style: { background: s.color } }) : null, (s.done ? '✓ ' : '') + s.name + (s.hint ? ' → ' + s.hint : '')); if (s.cur && s.left !== null) { const t = el('em'); c.append(t); refs.lefts.push([t, o.id]); } return c; }))));
   }
   let sure = 0;

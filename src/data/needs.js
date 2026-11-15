@@ -91,7 +91,7 @@ export const NEEDS = [
   },
   {
     id: 'social', name: 'Social', icon: 'two speech bubbles, green',
-    start: 50, decayAwake: -2.5, decayAsleep: 0,
+    start: 60, decayAwake: -2.0, decayAsleep: 0,   // QA6: was 50 / -2.5 (a 16 h day cost 40; four of the first five days ended at Social 1-18). See SOCIAL below.
     bands: [
       { id: 'full', min: 85, label: 'Connected', moodlet: 'connected' },
       { id: 'ok', min: 30, label: 'Fine', moodlet: null },
@@ -155,6 +155,32 @@ export const NEEDS = [
   },
 ];
 
+// ---------------------------------------------------------------------------------------------
+// SOCIAL — the everyday ways Social is kept up (QA6; logic in src/sim/needs.js). A waking day costs 32 (16 h x 2.0).
+//   An ordinary day that talks to a few people now covers it: two short chats with strangers (~6-12 each), a couple of texts
+//   answered (+4 each), buying something at a till (+3, at most once an hour) and an hour or two in a cafe or shop (the drain is
+//   halved while you are among people indoors). Story scenes with family / friends count as time with people (BEATS).
+// ---------------------------------------------------------------------------------------------
+export const SOCIAL = {
+  amongPeopleMult: 0.5,          // social drain while inside a public venue (not your home, not a ride)
+  till: 3, tillEveryMin: 60,     // "a word with the person at the till" on a purchase
+  beatDefault: { social: 15 },   // any completed story beat (time with family / friends)
+  beats: {                       // beats that are meals or long visits (story.js rewards have no needs field; applied on 'story:beat')
+    g1_breakfast: { hunger: 45, social: 15 },          // "Full of pancakes" (QA5 A7: it used to give no Hunger at all)
+    f1_welcome_dinner: { hunger: 50, social: 25 },
+    g3_sunday_baking: { hunger: 20, social: 20 },
+    f2_school_run: { social: 20 }, k1_reunion: { social: 20 }, k2_open_mic: { social: 20, fun: 10 },
+  },
+};
+// LOW_NOTICE — the line shown when a need first drops into its low band (and the stronger one at its critical band). It says what to do and where.
+export const LOW_NOTICE = {
+  hunger: { low: 'Getting hungry. Eat something from your fridge at home, or Map > Where to? > Food for the nearest place.', critical: 'Starving! Eat now: at 0 you pass out and wake up at Bayside Clinic ($40). Any snack in your bag helps.' },
+  energy: { low: 'Getting tired. Plan to be in bed soon: Map > Where to? > Home. A coffee buys an hour or two.', critical: 'Exhausted! Get to a bed now: at 0 you fall asleep where you stand.' },
+  hygiene: { low: 'Time for a shower: your bathroom at home, or the showers at a gym or the pool.', critical: 'People are starting to notice. A shower would fix everything.' },
+  fun: { low: 'A bit bored. Do something just for you: a book, a game on your phone, a bench in the park.', critical: 'Burnt out. Do something fun before anything else.' },
+  social: { low: 'Feeling a bit lonely. Text or call someone (Messages), or walk up to anyone and tap Talk.', critical: 'Lonely. Call your sister, or go where people are: a cafe, the market, the park.' },
+  bladder: { low: 'Need the loo. Tap the Bladder bar to find the nearest restroom.', critical: 'Bursting! Tap the Bladder bar for the nearest restroom.' },
+};
 // ---------------------------------------------------------------------------------------------
 // SOFT — tuning of the three gentle needs (used by src/sim/needs_extra.js). All rates are points per GAME HOUR.
 //   A normal day: Outdoors loses ~45 over 14 waking hours indoors + ~5 asleep and wins it back with about two hours outside (a commute on

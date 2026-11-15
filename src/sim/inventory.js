@@ -127,6 +127,8 @@ function use(id, o = {}) {
 }
 
 /* ---------- windows ---------- */
+let ivCss = false;
+function injectIvCss() { if (ivCss || typeof document === 'undefined') return; ivCss = true; const st = document.createElement('style'); st.textContent = '.iv-det.iv-pin{position:sticky;top:-2px;z-index:3;margin:0 0 10px;padding:6px 0 9px;border-top:0;border-bottom:2px solid var(--shade);background:var(--panel,#fff6e3);min-height:58px}'; document.head.appendChild(st); }
 function closeWin() { if (win) { const w = win; win = null; w.m.close(); } }
 function slotBtn(s, inF, sel, on) {
   const it = ITEM_BY_ID[s.id], d = daysLeft(s, inF);
@@ -138,11 +140,12 @@ function openWindow(withFridge, title) {
   let sel = null; // { from: 'bag'|'fridge', id }
   const m = modal({ title: title || (withFridge ? 'Kitchen & Backpack' : 'Backpack'), cls: 'iv-win', onClose: () => { if (win && win.m === m) win = null; } });
   const render = () => {
-    m.body.textContent = '';
+    m.body.textContent = ''; injectIvCss(); const det = el('div.iv-det.iv-pin'); m.body.append(det); /* QA6: the item detail + actions sit pinned at the top of the window */
     const grid = (st, name, key) => {
       const a = st.items(), cells = a.map(s => slotBtn(s, key === 'fridge', sel && sel.from === key && sel.id === s.id && sel.s === s, () => { sel = { from: key, id: s.id, s }; render(); }));
-      for (let i = a.length; i < st.capacity; i++) cells.push(el('span.iv-slot.empty'));
-      return el('div.iv-sec', null, el('div.iv-head', null, iconEl(key === 'fridge' ? 'fridge_t0' : 'ui.bag', 1, key === 'fridge' ? 'homegood' : undefined), el('span', { text: name }), el('span.iv-count', { text: `${a.length}/${st.capacity}` })), el('div.iv-grid', null, cells));
+      const free = Math.max(0, st.capacity - a.length), shown = Math.min(free, a.length ? 3 : 6); /* QA6: empty slots collapsed (55 of them pushed Eat below the fold) */
+      for (let i = 0; i < shown; i++) cells.push(el('span.iv-slot.empty'));
+      return el('div.iv-sec', null, el('div.iv-head', null, iconEl(key === 'fridge' ? 'fridge_t0' : 'ui.bag', 1, key === 'fridge' ? 'homegood' : undefined), el('span', { text: name }), el('span.iv-count', { text: `${a.length}/${st.capacity}` + (free ? ` · ${free} free` : ' · full') })), el('div.iv-grid', null, cells));
     };
     if (withFridge) {
       m.body.append(grid(fridge, 'Kitchen (fridge + cupboards)', 'fridge'));
@@ -151,7 +154,6 @@ function openWindow(withFridge, title) {
     }
     m.body.append(grid(bag, 'Backpack', 'bag'));
     if (sel && !(sel.from === 'fridge' ? S.fridge : S.bag).includes(sel.s)) sel = null;
-    const det = el('div.iv-det');
     if (!sel) det.append(el('span.iv-hint', { text: S.bag.length || (withFridge && S.fridge.length) ? 'Tap an item.' : 'Nothing here yet. Shops are marked on your map.' }));
     else {
       const it = ITEM_BY_ID[sel.id], s = sel.s, inF = sel.from === 'fridge', d = daysLeft(s, inF), src = inF ? fridge : bag, dst = inF ? bag : fridge;
@@ -163,7 +165,6 @@ function openWindow(withFridge, title) {
       if (!withFridge || it.id === 'compost') acts.push(el('button.quiet', { onclick: () => { removeFrom(src, s, s.qty); toast(`Binned ${it.name}.`, 'info'); } }, 'Bin'));
       det.append(iconEl(it.id, 3, it.category), el('div.iv-info', null, el('b', { text: it.name + (s.qty > 1 ? ` x${s.qty}` : '') }), el('span', { text: effectText(it, mealMult(it, s)) || (it.note ? it.note.split('.')[0] + '.' : '') }), life && el('span.iv-life', { text: life })), el('div.iv-acts', null, acts));
     }
-    m.body.append(det);
   };
   win = { m, render }; render();
 }
@@ -172,6 +173,7 @@ function storeAll() {
   let moved = 0, full = false;
   for (const s of S.bag.slice()) { const it = ITEM_BY_ID[s.id]; if (!isFood(it) || s.exp) continue; let n = s.qty; while (n > 0 && !fridge.canAdd(s.id, n)) n--; if (n < s.qty) full = true; if (n > 0 && fridge.add(s.id, n, { age: s.age, q: s.q, silent: true })) { removeFrom(bag, s, n); moved += n; } }
   toast(moved ? `Put away ${moved} item${moved === 1 ? '' : 's'}.${full ? ' The fridge is full.' : ''}` : 'The fridge is full.', moved ? 'good' : 'bad');
+  if (moved) G.emit('fridge:stored', moved);
 }
 /** Coming home: cooking ingredients (and cooked meals / ready meals) go from the backpack into the kitchen by themselves. Snacks and drinks stay on you. */
 const KITCHEN_CATS = ['ingredient', 'meal', 'ready_meal'];
@@ -179,6 +181,7 @@ function putAway(quiet) {
   const names = []; let full = false;
   for (const s of S.bag.slice()) { const it = ITEM_BY_ID[s.id]; if (!it || !KITCHEN_CATS.includes(it.category) || s.exp) continue; let n = s.qty; while (n > 0 && !fridge.canAdd(s.id, n)) n--; if (n < s.qty) full = true;
     if (n > 0 && fridge.add(s.id, n, { age: s.age, q: s.q, silent: true })) { removeFrom(bag, s, n); names.push(it.name + (n > 1 ? ' x' + n : '')); } }
+  if (names.length) G.emit('fridge:stored', names.length);
   if (!quiet && names.length) toast(`Groceries put away in the kitchen: ${names.slice(0, 4).join(', ')}${names.length > 4 ? ` and ${names.length - 4} more` : ''}.${full ? ' The kitchen is full.' : ''}`, 'good', 4200);
   else if (!quiet && full) toast('The kitchen is full — some groceries stay in your backpack.', 'bad');
   return names.length;

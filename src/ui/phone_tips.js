@@ -128,7 +128,15 @@ function render(b, ctx) {
 function wire() {
   const on = (ev, id, test) => G.on(ev, (...a) => { if (!test || safe(() => test(...a), false)) show(typeof id === 'function' ? id(...a) : id); });
   on('needs:low', 'needs_tap'); on('job:hired', 'shift'); on('job:shift:start', 'autowork'); on('home:delivery', 'boxes'); on('home:move', 'decorate');
-  on('money', 'money_low', () => balance() < 50); on('ride:end', 'pass'); on('npc:met', 'talk'); on('friend:up', 'gifts'); on('cooked', 'cooking');
+  on('money', 'money_low', () => balance() < 50); on('ride:end', 'pass'); on('friend:up', 'gifts');
+  /* QA6: tips arrive when they are first useful, not after the thing they explain (QA5: cooking / talking tips came after the first cook / chat).
+     cooking: when groceries go into the kitchen, or on coming home at dinner time.  talk: the first time you are inside a place with people
+     (not home, not the airport intro), or when Social first runs low. */
+  on('fridge:stored', 'cooking');
+  G.on('scene', sc => { if (!sc || !G.state.flags || !G.state.flags.introDone || (G.intro && G.intro.active)) return; let home = false; try { home = !!(G.housing && G.housing.isHome && G.housing.isHome(sc.id)); } catch (e) { /* optional */ }
+    if (home) { const h = G.now().hf; if (h >= 16.5 && h < 22) setTimeout(() => show('cooking'), 2500); }
+    else if (/^int:/.test(sc.id || '') && !/^int:airport/.test(sc.id)) setTimeout(() => show('talk'), 2500); });
+  on('needs:low', 'talk', k => k === 'social');
   on('shop:buy', 'fridge', item => { const it = item && (item.id ? item : null); return !it || /ingredient/.test(it.category || it.cat || it.type || 'ingredient'); });
   on('show:ticket', 'shows'); on('bills:soon', 'bills'); on('app:released', 'store'); on('appt:missed', 'planner');
   // Wander is introduced right after Nora's first text (once you have answered her), not at the first "Discovered" toast

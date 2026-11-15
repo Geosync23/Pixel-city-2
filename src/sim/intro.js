@@ -95,6 +95,8 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
 }
 
 /* ---------- step: curb (phone + MapleCab tutorial) ---------- */
+/* QA6: the curb caption shows the real clock (it used to say 2:00 PM whatever the time was) */
+const curbText = () => safe(() => { const n = G.now(), h = n.hour % 12 || 12; return `Maple Bay Intl., Arrivals. ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][n.weekday]}, ${h}:${String(n.minute).padStart(2, '0')} ${n.hour < 12 ? 'AM' : 'PM'}. ${n.seasonName}.`; }, SEQ.curb.text);
 {
   let offs = [], lug = null, p0 = null, tm = 0, idle = 0;
   const T = id => SEQ[id].prompt;
@@ -116,7 +118,7 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
       const P = G.player; G.state.flags.firstCabFree = true; p0 = { x: P.x, y: P.y }; tm = 0;
       const w = cityW(), sp = w && w.pois.find(p => p.id === 'spawn:airport');
       if (sp && Math.hypot(P.x - sp.x, P.y - sp.y) < 12) lug = safe(() => w.place('prop.airport.luggage', P.x + .6, P.y - .2, { p: { kind: 'single' }, solid: false }), null);
-      if (c.fresh || !s.sub) { caption(null, SEQ.curb.text, 3600); safe(() => G.phone.lock('taxi')); sub('move'); }
+      if (c.fresh || !s.sub) { caption(null, curbText(), 3600); safe(() => G.phone.lock('taxi')); sub('move'); }
       else sub(s.welcomed ? (safe(() => G.messages.unread(), 0) && !safe(() => G.phone.isUnlocked('taxi'), true) ? 'phone' : 'taxi_app') : 'move');
       if (I().sub === 'taxi_app') safe(() => G.phone.unlock('taxi', true));
       const on = (ev, fn) => offs.push(G.on(ev, (...a) => { if (cur && cur.id === 'curb') fn(...a); }));
@@ -215,11 +217,14 @@ function resume() {
 }
 
 /* ---------- after the intro: nudges + one-time hints ---------- */
+/* QA6: has the player already done what a nudge asks? 'job' = has a job; anything else is an achievement counter ('cooked_meal', 'rode_train', 'met_npcs:3') */
+function already(w) { if (w === 'job') return !!safe(() => G.jobs.current(), null); if (w.startsWith('tip:')) return !!safe(() => G.tips.seen(w.slice(4)), false); const c = safe(() => G.state.ach.c, {}) || {}, m = /^(.+):(\d+)$/.exec(w); return m ? (c[m[1]] || 0) >= +m[2] : !!c[w]; }
 function nudges() {
   const s = I(); if (!G.state.flags.introDone || s.day0 === undefined || G.modal) return; const T = G.state.t, d = Math.floor(T / 1440) - s.day0, tod = T % 1440;
   for (const n of NUDGES) {
     if (s.nudges[n.id] || d < n.day || (d === n.day && tod < hm(n.at))) continue; s.nudges[n.id] = 1;
     const g = n.goal; if (g && safe(() => G.goals.isDone(g.id), false)) continue;
+    if (n.unless && already(n.unless)) continue;   /* QA6: no "when you're ready to job hunt" after the first shift, no cooking nudge after you cooked */
     const beat = /^STORY_BEAT:(.+)$/.exec(n.text);
     if (beat) { if (safe(() => G.story.beat(beat[1]).st, 'done') === 'pending') safe(() => G.story.offer(beat[1])); }
     else if (n.from === 'system') { if (!safe(() => G.phone.notify({ app: 'messages', title: 'Maple Bay tip', text: n.text.replace(/^Tip:\s*/, '') }), null)) toast(n.text, 'info', 5000); }
@@ -240,7 +245,8 @@ export function init() {
   G.on('ready', () => { if (dev() && G.query.has('intro')) setTimeout(start, 300); });
   G.on('frame', dt => { const c = cur; if (!c) return; if (c.update) safe(() => c.update(dt, ctx)); if (cur === c && typeof c.done === 'function' && safe(() => c.done(ctx), false)) next(); });
   G.on('minutes', () => safe(nudges));
-  G.on('needs:low', k => tip(NEED_TIP[k])); G.on('friend:up', () => tip('first_friend')); G.on('appt:add', () => tip('appointment'));
+  /* QA6: the needs:low one-time tips are gone: src/sim/needs.js now says what to do and where on every low notice (they doubled up) */
+  G.on('friend:up', () => tip('first_friend')); G.on('appt:add', () => tip('appointment'));
   G.on('ride:end', kind => { if (I().done) tip(kind === 'taxi' ? 'first_taxi' : kind === 'train' ? 'first_train' : kind === 'bus' ? 'first_bus' : ''); });
   G.on('activity:done', id => { if (id === 'sleep') tip('save'); }); G.on('job:hired', () => tip('first_shift'));
 }

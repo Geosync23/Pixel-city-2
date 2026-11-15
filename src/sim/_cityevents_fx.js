@@ -3,6 +3,25 @@
 //   FX.petals(x, y, n, cols?)  FX.leaves(x, y, n)  FX.confetti(x, y, n)  FX.firework(x, y, z?, col?)  FX.lanterns(x, y, n)  FX.sparkle(x, y, z, n)  FX.clear()  FX.count()
 import { G } from '../core/game.js';
 import { WS } from '../engine/raster.js';
+import { CITY_EVENTS } from '../data/cityevents.js';
+
+/* QA6: the River Walk Fair's Ring Toss used the 'aim' mini-game's default art (a basketball hoop and ball). Give it a stall of bottles and a ring.
+   Mini-game canvas coordinates: the target is around (140, 34); the hooks are drawn by ui/minigame.js KINDS.aim (def.scene + def.projectile). */
+const RR = (c, x, y, w, h, col) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+const BOT = ['#3f9a4a', '#2f7f86', '#a0522d', '#3f9a4a', '#c0563a', '#2f7f86'];
+function ringScene(c, x, y, w, h, st) {
+  RR(c, x, y + h - 30, w, 30, '#e8d2a6'); for (let k = 0; k < w; k += 16) RR(c, x + k, y, 8, 10, k % 32 ? '#f2c230' : '#e0453a');   /* sawdust floor, striped awning */
+  RR(c, 104, 46, 76, 6, '#7a4a2a'); RR(c, 104, 46, 76, 1, '#a8703f'); RR(c, 108, 52, 4, 30, '#5a3a20'); RR(c, 172, 52, 4, 30, '#5a3a20');   /* the bottle table */
+  const rows = [[118, 130, 142, 154, 166], [124, 136, 148, 160], [130, 142, 154]];
+  rows.forEach((row, r) => row.forEach((bx, i) => { const by = 46 - r * 12, col = BOT[(i + r) % BOT.length];
+    RR(c, bx - 3, by - 10, 7, 10, '#2a2733'); RR(c, bx - 2, by - 9, 5, 9, col); RR(c, bx - 1, by - 14, 3, 4, '#2a2733'); RR(c, bx, by - 13, 1, 3, col); RR(c, bx - 1, by - 8, 1, 5, '#ffffff66'); }));
+  if (st && st.stage === 3 && st.q >= 1 && st.fly > .55) { RR(c, 136, 21, 11, 2, '#e0453a'); RR(c, 135, 22, 2, 2, '#e0453a'); RR(c, 146, 22, 2, 2, '#e0453a'); }   /* a ringer: the ring sits on the top bottle */
+}
+function ringProjectile(c, bx, by, st) {
+  if (st && st.stage === 3 && st.q >= 1 && st.fly > .55) return;   /* landed: ringScene draws it on the bottle */
+  RR(c, bx - 6, by - 3, 12, 6, '#2a2733'); RR(c, bx - 5, by - 2, 10, 4, '#e0453a'); RR(c, bx - 3, by - 1, 6, 2, '#e8d2a6'); RR(c, bx - 4, by - 2, 3, 1, '#ff9a8a');
+}
+try { for (const ev of CITY_EVENTS || []) for (const g of ev.games || []) if (g.id === 'ringtoss' && g.game) { g.game.scene = ringScene; g.game.projectile = ringProjectile; g.game.theme = Object.assign({ paper: '#f6e6c4' }, g.game.theme); } } catch (e) { /* data shape changed: keep the default art */ }
 
 const P = [], MAX = 900;   /* particles: { k, x, y (screen-space offset from the world anchor), wx, wy, wz (world anchor), vx, vy, t, life, c, s } */
 const PINK = ['#f2a7c3', '#fbe3ea', '#f7c1d4', '#ffffff'], LEAF = ['#e08a2c', '#d9562b', '#e8b63a', '#b8432a'], CONF = ['#e0453a', '#f09a3a', '#f2c230', '#4fa860', '#3b82d6', '#8a5cd0', '#ffffff'],

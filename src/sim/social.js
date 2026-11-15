@@ -409,9 +409,11 @@ function call(id) {
   G.startActivity({ label: 'On the phone with ' + c.short, anim: 'phone', minutes: 12, rate: 3, done() { if (G.needs) G.needs.add('social', 14); if (G.skills) G.skills.addXp('charisma', 3); addRel(id, r.talksToday < 6 ? 1.5 : .5); r.lastTalkDay = today(); r.talksToday++; const P = npcPool(id, r); toast(`${c.short}: "${fill(P.length ? pick(P) : 'Good to catch up. Talk soon!', c)}"`, 'good', 4200); } });
   return true;
 }
+/* QA6: a check-in text in the sender's own voice when they have one (texts.js CHECK_INS.familyBy), else from the shared pool */
+const checkIn = (id, g) => { const B = g === 'family' && TEXTS.CHECK_INS.familyBy && TEXTS.CHECK_INS.familyBy[id]; return B && B.length && rnd() < .6 ? pick(B) : pick(TEXTS.CHECK_INS[g]); };
 function onText(id) {
   const c = info(id), r = rec(id); if (!c || !G.messages) return; const t = G.state.t, g = isFamily(id) ? 'family' : tierIdx(r.rel) >= 3 ? 'close' : 'friend', P = npcPool(id, r);
-  G.messages.send({ from: id, name: c.name, text: fill(rnd() < .5 && P.length ? pick(P) : pick(TEXTS.CHECK_INS[g]), c), delay: 5 + Math.floor(rnd() * 12) });
+  G.messages.send({ from: id, name: c.name, text: fill(rnd() < .5 && P.length ? pick(P) : checkIn(id, g), c), delay: 5 + Math.floor(rnd() * 12) });
   if ((r.cd.text || 0) <= t) { r.cd.text = t + 720; addRel(id, 1); r.lastTalkDay = today(); if (G.needs) G.needs.add('social', 4); }
 }
 function onMissed(a) { const h = S.hang[a.id]; if (!h) return; const c = info(h.npc); if (!h.hung) { addRel(h.npc, -3); if (G.messages) G.messages.send({ from: h.npc, name: c.name, text: fill(pick(TEXTS.INVITE_REPLIES.npcStoodUp), c, { venue: placeLabel(h.placeId), time: clock12(h.t) }), delay: 5 }); } delete S.hang[a.id]; refresh(); }
@@ -423,7 +425,7 @@ function onDay(d) {
   for (const id of allIds()) { const r = rec(id), c = info(id); if (!r.met) continue;
     if (r.lastTalkDay >= 0 && d - r.lastTalkDay > 4 && r.rel > (isFamily(id) ? 40 : 15)) addRel(id, -1);
     const b = c.birthday; if (b && b.season === SEASON[now.season] && b.day === now.dayOfMonth && tierIdx(r.rel) >= 1 && G.phone && G.phone.notify) G.phone.notify({ app: 'messages', title: 'Birthday', text: `It is ${c.short}'s birthday today! A little gift goes a long way.`, icon: 'ui.heart', face: id }); }
-  if (G.messages && rnd() < .35) { const fr = allIds().filter(id => rec(id).met && info(id).age >= 14 && (isFamily(id) || tierIdx(rel(id)) >= 2)); if (fr.length) { const id = pick(fr), c = info(id); G.messages.send({ from: id, name: c.name, text: fill(pick(TEXTS.CHECK_INS[isFamily(id) ? 'family' : tierIdx(rel(id)) >= 3 ? 'close' : 'friend']), c), delay: 540 + Math.floor(rnd() * 500) }); } }
+  if (G.messages && rnd() < .35) { const fr = allIds().filter(id => rec(id).met && info(id).age >= 14 && (isFamily(id) || tierIdx(rel(id)) >= 2)); if (fr.length) { const id = pick(fr), c = info(id); G.messages.send({ from: id, name: c.name, text: fill(checkIn(id, isFamily(id) ? 'family' : tierIdx(rel(id)) >= 3 ? 'close' : 'friend'), c), delay: 540 + Math.floor(rnd() * 500) }); } }
 }
 
 /* ---------- public ---------- */

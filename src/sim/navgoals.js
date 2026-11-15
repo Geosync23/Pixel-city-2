@@ -86,6 +86,8 @@ const graphFor = sid => GRAPH.filter(g => (typeof g[0] === 'string' ? g[0] === s
 const toOf = (g, sid) => { let t = typeof g[2] === 'function' ? g[2](sid) : g[2]; t = Array.isArray(t) ? t : [t]; return t.filter(x => x === 'city' || ROOMS.has(x.slice(4))); };
 /** complete navarrow's edge list for a scene (called from navarrow.edges). live = the scene object when sid is the current scene */
 export function fixEdges(sid, out, live) {
+  const hx = OFF ? null : safe(() => G.housing.navEdges(sid), null);   /* more homes: stairs, room doors and "back" mats of multi-room homes (sim/housing.js) */
+  if (hx) for (const e of hx) { const h0 = out.find(o => Math.abs(o.x - e.x) < .8 && Math.abs(o.y - e.y) < .8); if (h0) { h0.to = e.to; h0._g = 1; } else out.push({ x: e.x, y: e.y, spot: e.spot, label: e.label, to: e.to, exit: false, out: false, _g: 1 }); }
   const gs = OFF ? [] : graphFor(sid); if (!gs.length) return out;
   const at = (x, y) => out.filter(o => Math.abs(o.x - x) < .8 && Math.abs(o.y - y) < .8);
   const put = (x, y, label, to, spot) => { const here = at(x, y); if (here.some(o => o.to === to)) return; const e = here.find(o => !o._g);
@@ -421,7 +423,7 @@ const NEED = { hunger: { home: ['', /^(Cook|Open fridge)$/, 'Cook something: the
   hygiene: { home: [':bath', /^Shower$/, 'The shower'], venue: [/^(Use the Locker-Room Shower|Shower|Rain shower|Wash hands)$/, 'Freshen up here'] } };
 define('need', 'default', 30, ctx => {
   const s = ctx.sel, N = s && s.need && NEED[s.need]; if (!N || !ctx.root || (ctx.pt.id && /^mall:/.test(ctx.pt.id))) return null; if (s.place && s.place !== 'pos' && ctx.pt.id && s.place !== ctx.pt.id) return null;
-  const home = /^home/.test(ctx.root), d = home ? N.home : N.venue, rid = home && ROOMS.has(ctx.root + d[0]) ? ctx.root + d[0] : ctx.root, re = home ? d[1] : d[0], label = home ? d[2] : d[1];
+  const home = /^home/.test(ctx.root), d = home ? N.home : N.venue, ht = { energy: 'bed', hunger: 'fridge', hygiene: 'shower', bladder: 'toilet' }[s.need], hr = home && ht ? safe(() => G.housing.roomWith(ht), null) : null, rid = hr && ROOMS.has(hr) && rootOf(hr) === ctx.root ? hr : home && ROOMS.has(ctx.root + d[0]) ? ctx.root + d[0] : ctx.root, re = home ? d[1] : d[0], label = home ? d[2] : d[1];
   if (usedLately(re) || busyIs(/toilet|restroom|shower|sleep|eat|cook|nap/i)) return { done: true, quiet: 1 };
   if (inRoom(rid) && !locate1(G.scene, { label: re })) return home ? { done: true } : null;   /* nothing of that kind here: fall back to the counter */
   return { room: rid, find: { label: re }, label, short: label.toLowerCase(), near: 1.3, name: ctx.pt.name || placeName(ctx.root) };
