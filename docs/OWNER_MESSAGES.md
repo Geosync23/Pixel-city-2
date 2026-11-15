@@ -530,3 +530,12 @@ Shouldn't be pancakes an grandma's and family lunch same day
 ## 137 (2026-11-15) — more background music; keep the pancakes, move the family lunch
 We need more music for background music. Lots more variery
 Keep grandpas pancakes since its the story move family lunch
+
+## 138 (2026-11-15)
+When sitting by the range at grandma's you sit the wrong way on the chair
+
+## 139 (2026-11-15) — (seen in the owner's screenshot of the chat; it had not reached the lead as its own message)
+When does the game first nudge you to get a job? Don't code anything just asking
+
+## 140 (2026-11-15) — sitting looks wrong everywhere (sent with a screenshot of the aquarium benches)
+Sitting animations are weird all over. Sometimes the are under it  sometimes over it woth no occlusion. See this screenshot

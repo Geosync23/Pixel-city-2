@@ -115,3 +115,6 @@
 95. (msg 135) SOUND: while watching a movie or a show, the ambient MUSIC must stop so the movie / show can be heard.
 96. (msg 136) STORY PACING: pancakes at Nana's (Chapter 1) and the family lunch should NOT fall on the same day.
 97. (msg 137) (a) MUSIC: much more background music, lots more variety. (b) Confirms msg 136: keep the pancakes at Nana's (the story), move the family lunch (done in Stage 70).
+98. (msg 138) BUG: at Nana's house, sitting on the chair by the range (stove), the player faces the wrong way.
+99. (msg 139) QUESTION ONLY, no code: when does the game first nudge you to get a job? (Lead answered in chat.)
+100. (msg 140) SITTING IS WRONG ALL OVER: seated people are sometimes drawn under the seat, sometimes over it with no occlusion (screenshot: the benches around the Big Blue tank at the aquarium). With msg 138 (wrong way on the chair by the range at Nana's): a whole-game seating pass.
