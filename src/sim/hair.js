@@ -60,7 +60,7 @@ function chair(fx, apply, title, venue) {
   if (!safe(() => (G.startActivity(act), true), false)) finish();
 }
 function reveal(before, title) {
-  injectCss(); const now = safe(() => G.wardrobe.currentSpec(), G.state.player.spec), m = modal({ title: 'The reveal', cls: 'wardrobe' });
+  injectCss(); const bare = sp => Object.assign({}, sp, { hat: null, shag: false }) /* QA round 4: a hat hid the new cut in the reveal; the lookbook preview already takes it off */, now = bare(safe(() => G.wardrobe.currentSpec(), G.state.player.spec)), m = modal({ title: 'The reveal', cls: 'wardrobe' }); before = bare(before);
   put(m.body, el('div', { style: { display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '14px' } }, el('div', { style: { textAlign: 'center', fontSize: '11px', opacity: .75 } }, specThumb(before, 'head', 3), el('div', { text: 'before' })), stage(now, 7)),
     el('p', { style: { textAlign: 'center', margin: '8px 0 0' }, text: title }), el('p.cw-note', { style: { textAlign: 'center' }, text: 'The cape comes off with a flourish. Tap the mirror to see the back.' }));
 }
