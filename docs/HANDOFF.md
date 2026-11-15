@@ -2,7 +2,7 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-15 ~01:25 UTC) — FABLE LEAD SESSION; 4 WORKERS + 1 WRITER RUNNING
-- Branch `ccr-e622e92c-7t3ejy`. **Last published: STAGE 22b (see HISTORY tail; = the Stage 22 commit + ui/phone_taxi.js "For you now", msg 84) = everything finished so far: Wave A + QA rounds 1-2 + nav arrow + museum + observatory + 212 recipes + city-folk lines + lead fixes. NOT in it: hotel, arena, aquarium (running), QA round 3.**
+- Branch `ccr-e622e92c-7t3ejy`. **Last published: STAGE 22c (see HISTORY tail; = the Stage 22 commit + ui/phone_taxi.js "For you now" msg 84 + ui/phone_guide.js no Wander counter msg 87) = everything finished so far: Wave A + QA rounds 1-2 + nav arrow + museum + observatory + 212 recipes + city-folk lines + lead fixes. NOT in it: hotel, arena, aquarium (running), QA round 3.**
 - **HOW TO PUBLISH WHILE WORKERS ARE MID-WORK** (simple recipe since Stage 22): `git worktree add --detach <scratchpad>/clean HEAD`, symlink node_modules, `rm -rf clean/src && cp -r src clean/src && cp tools/*.mjs clean/tools/`,
   then DELETE the unfinished workers' files in the copy (now: src/**/hotel*, arena*, aquarium*, src/art/showpiece/*hotel* *arena* *aqua*) and restore any shared file an unfinished worker edits from the last good commit
   (now: src/world/_blocks.js from the 'Stage 20' commit, because the aquarium worker appends to it); validate + build + one smoke shot there; publish that dist with `url`; remove the worktree. Files a QA worker is editing mid-run are a risk: publish right after it finishes.

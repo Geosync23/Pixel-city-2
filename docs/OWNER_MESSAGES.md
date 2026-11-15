@@ -364,3 +364,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 86 — (follow-up to 85) "when it's worked on"
 > When its worked on
+
+## 87 — Wander: no notification counter
+> Wander app doesnt need the notification counter in the upper right cirner

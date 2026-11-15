@@ -60,3 +60,4 @@
 45. (msg 83) Asked for status and which wave we are in — answered: Wave A done; in the signature-showpiece track (S1-S3 done, S4-S5 running), Wave B not started.
 46. (msg 84) MapleCab 'Where to?' should start with what you are likely to want: upcoming planner items and the current arrow/objective. Done (Stage 22b): 'For you now' section.
 47. (msg 85) The aquarium must be really excellent and detailed, with sea turtles among many other animals. Relayed to the running aquarium worker verbatim with a raised bar.
+48. (msg 86) 'When its worked on' — follow-up to 85 (the aquarium is being worked on now). (msg 87) Wander needs no notification counter on its icon. Done (Stage 22c).

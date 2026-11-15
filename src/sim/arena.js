@@ -247,7 +247,7 @@ let con = null;
 function closePop() { if (pop) { pop.remove(); pop = null; } }
 function contestOpen(B, ga) {
   const S = st(), ev = B.ev; if (!ev || S.contest.key === ev.key || !ticketFor(ev) || S.chain.st === 5) return; closePop();
-  pop = mkBar('112px'); pop.append(btn('Enter the half-court shot contest!', () => contestEnter(), 'go')); setTimeout(() => { if (pop && !con) closePop(); }, 16000);
+  pop = mkBar('34%'); pop.append(btn('Enter the half-court shot contest!', () => contestEnter(), 'go')); setTimeout(() => { if (pop && !con) closePop(); }, 16000);
 }
 function contestClose(B) { if (!con) closePop(); }
 async function contestEnter() {
@@ -266,7 +266,7 @@ async function contestEnter() {
 }
 /** the power meter: a marker sweeps a bar; tap to stop it. Resolves 0..1 (.5 = perfect). Non-modal. */
 function meter(tryN) {
-  return new Promise(res => { closePop(); const wrap = mkBar('112px'); pop = wrap; const track = el('div'), gold = el('div'), mark = el('div'), lv = safe(() => G.skills.level('fitness')) || 1, win = (.075 + lv * .012) * 2;
+  return new Promise(res => { closePop(); const wrap = mkBar('34%'); pop = wrap; const track = el('div'), gold = el('div'), mark = el('div'), lv = safe(() => G.skills.level('fitness')) || 1, win = (.075 + lv * .012) * 2;
     Object.assign(track.style, { position: 'relative', width: 'min(80vw, 360px)', height: '26px', background: '#2a2733', border: '2px solid #2a2733', boxShadow: '3px 3px 0 #0006' }); Object.assign(gold.style, { position: 'absolute', left: (50 - win * 50) + '%', width: (win * 100) + '%', top: 0, bottom: 0, background: '#f2c230' }); Object.assign(mark.style, { position: 'absolute', top: '-4px', width: '6px', height: '34px', background: '#fff', border: '1px solid #2a2733', left: '0%' });
     track.append(gold, mark); const b = btn(tryN ? 'SHOOT (last try)' : 'SHOOT', () => stop(), 'go'); wrap.append(track, b); const t0 = performance.now(), ph = Math.random() * 6; let done = false, pos = 0;
     const at = () => { const t = (performance.now() - t0) / 1000; return .5 + .5 * Math.sin(t * 3.1 + ph); };
@@ -279,7 +279,7 @@ function meter(tryN) {
 let teeS = null;
 function wantTee(ev, seat) { const S = st(); if (S.teeKey === ev.key || teeS || con || !seat) return false; const p = seat.tier === 'court' ? .5 : seat.tier === 'lower' ? .4 : .25; if (Math.random() > p && !(S.tees === 0 && G.state.t - ev.T0 > 60)) return false; S.teeKey = ev.key; return true; }
 function teeIncoming(e, B) {
-  closePop(); const wrap = mkBar('112px'); pop = wrap; const b = btn('CATCH!', () => grab(), 'go'); b.style.fontSize = '18px'; wrap.append(b); caption('Big Stan', 'Ollie is aiming at YOUR section! Hands up!', 2600);
+  closePop(); const wrap = mkBar('34%'); pop = wrap; const b = btn('CATCH!', () => grab(), 'go'); b.style.fontSize = '18px'; wrap.append(b); caption('Big Stan', 'Ollie is aiming at YOUR section! Hands up!', 2600);
   teeS = { e, caught: false, tapped: false, state: () => ({ k: Math.round(e.t / e.dur * 100) / 100, tapped: teeS ? teeS.tapped : false }) };
   const grab = () => { if (!teeS || teeS.tapped) return; teeS.tapped = true; const k = e.t / e.dur; teeS.caught = k > 1 - TUNE.CATCH_WINDOW * 2.4 && k <= 1.02; b.textContent = teeS.caught ? 'GOT IT!' : k < .5 ? 'Too early!' : 'Fingertips...'; G.player.pose = 'cheer'; };
   teeS.grab = grab;
@@ -294,7 +294,7 @@ function wantCam(ev, ga) { const S = st(); if (S.camKey === ev.key || camS || co
 function fanCam(B, kiss) {
   const S = st(), p = G.player, spr = safe(() => p.sprite()); closePop(); kiss = !!kiss && Math.random() < .6;
   B.jumbo({ mode: 'fancam', spr, kiss, label: kiss ? 'KISS CAM' : playerName().toUpperCase().slice(0, 14), bounce: 1 }, 7); caption('Big Stan', kiss ? 'KISS CAM! And it has landed on... oh, this fan is here on their own. Give us SOMETHING!' : 'FAN CAM! Look up, you are on the big screen!', 4200);
-  const wrap = mkBar('112px'); pop = wrap; const done = kind => { if (!camS) return; camS = null; closePop(); S.cam++; G.emit('arena:cam', kind);
+  const wrap = mkBar('34%'); pop = wrap; const done = kind => { if (!camS) return; camS = null; closePop(); S.cam++; G.emit('arena:cam', kind);
     if (kind === 'hide') { need('fun', 2); toast('You hide behind your programme. Eight thousand people go "awww".', 'info', 3600); return; }
     B.react(kind === 'dance' ? 'dance' : kind === 'foam' ? 'wave' : kind === 'kiss' ? 'wave' : 'wave'); B.cheer('stand'); moodlet('arena_star'); need('fun', 10); need('social', 6); xp('charisma', 10);
     toast({ wave: 'You wave with both arms. The whole bowl waves back.', dance: 'You dance. Badly, joyfully, twelve feet tall on the big screen. The crowd roars.', foam: 'Foam finger up. The camera operator zooms in. You are, briefly, the number one fan in Maple Bay.', kiss: 'You blow a kiss to the upper bowl. The upper bowl blows eight hundred back.' }[kind] || 'You are on the big screen!', 'good', 4800); };
@@ -418,7 +418,7 @@ function suitTick(dt) {
   if (mas && mas.t0 && G.time - mas.t0 > 4 && !mas.done) mascotMove(-1);
 }
 function startMascot(B) {
-  const p = G.player; p.stop(); p.x = O + COURT.cx; p.y = O + COURT.cy + .3; closePop(); const wrap = mkBar('112px'); pop = wrap; const lab = el('div'); Object.assign(lab.style, { width: '100%', textAlign: 'center', background: '#2a2733', color: '#f2c230', padding: '6px 10px', fontSize: '16px', border: '2px solid #2a2733' }); wrap.append(lab);
+  const p = G.player; p.stop(); p.x = O + COURT.cx; p.y = O + COURT.cy + .3; closePop(); const wrap = mkBar('34%'); pop = wrap; const lab = el('div'); Object.assign(lab.style, { width: '100%', textAlign: 'center', background: '#2a2733', color: '#f2c230', padding: '6px 10px', fontSize: '16px', border: '2px solid #2a2733' }); wrap.append(lab);
   mas = { B, i: 0, hits: 0, seq: Array.from({ length: 6 }, () => Math.floor(Math.random() * 4)), lab, pose: 0, t0: G.time, done: false }; MOVES.forEach((m, k) => wrap.append(btn(m[0], () => mascotMove(k), 'go')));
   G.startActivity({ label: 'Being Ollie', anim: 'stand', minutes: 8, rate: TUNE.WATCH, cancel: () => { }, done: () => { } }); G.busy._mas = true;
   caption('Big Stan', 'And here he is... OLLIE! Show us what you have got, big fella!', 4200); showMove();

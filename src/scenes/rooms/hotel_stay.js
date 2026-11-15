@@ -42,6 +42,7 @@ const POOL = { x0: 2, y0: 7, x1: 14.6, y1: 12.6 }, WH = { x: 3.3, y: 3.1, r: 1.7
         if (e < 0) { if (e > -.12) return '#1f7a8a'; const ln = (Y - POOL.y0) / 1.4, fl = ln - Math.floor(ln); if (fl < .06 && Math.floor(ln) > 0) return Math.floor(X * 2.5) & 1 ? '#e8483a' : '#f4f0e8'; const wv = Math.sin(X * 3.1 + Y * 1.7) + Math.sin(X * 1.3 - Y * 2.9); return wv > 1.3 ? '#a8ecf0' : wv < -1.2 ? '#3aa8bc' : (Math.abs(fl - .5) < .03 ? '#3898b0' : '#4ab8c8'); }
         if (e < .35) return '#f4f0e8'; if (e < .5) return '#2f6a6a';
         const fx = X - Math.floor(X), fy = Y - Math.floor(Y); if (fx < .04 || fy < .04) return '#b8c8c4'; return (Math.floor(X) + Math.floor(Y)) & 1 ? '#e6eeea' : '#d8e4e0'; }); } }); Wd.version++;
+      { const fr = Wd.objs.find(o => o.data && o.data.p && o.data.p.part === 'front'); if (fr) Wd.free(fr.B[0] + 2.5, fr.B[1], fr.B[0] + 3.4, fr.B[4]); }
       Wd.block(O + POOL.x0, O + POOL.y0, O + POOL.x1, O + POOL.y1); Wd.block(O + WH.x - 1.5, O + WH.y - 1.5, O + WH.x + 1.5, O + WH.y + 1.5);
       Wd.lights.push({ x: O + 8, y: O + 9.8, z: 0, r: 7, c: '#b0f0f4' }, { x: O + WH.x, y: O + WH.y, z: 0, r: 3.5, c: '#b0f0f4' }, { x: O + 8.2, y: O + 1.6, z: 0, r: 3, c: '#ffb878' }, { x: O + 18.3, y: O + 7.6, z: 0, r: 4, c: '#ffe9b0' }, { x: O + 12, y: O + 2, z: 0, r: 3, c: '#ffe2a0' });
       const seats = seatsOf(sc, /hotel\.lounger|hotel\.sauna|settee/, { add: (f, i, n) => ({ p: /sauna/.test(f.asset.id) ? .6 : .7, swim: /sauna/.test(f.asset.id) || n % 2 ? 1 : 0, robe: 1, busy: n % 4 === 3 ? 1 : 0, anim: /sauna/.test(f.asset.id) ? 'sit' : n % 3 === 0 ? 'read' : 'sit', label: 'Spa guest' }) });
@@ -128,7 +129,7 @@ defineRoom({ id: HR.room, build: roomDef,
 
 export function init() {
   registerFixture('hotel_lounger', only((fx, sc) => ({ label: 'Pool lounger', hit: 12, use: () => HS() && HS().lounger(fx, sc) })));
-  registerFixture('hotel_sauna', only((fx, sc) => (fx.item.sauna ? { label: 'Sauna', hit: 16, h: 1.6, spot: { x: fx.ob.B[0] + 2.6, y: fx.ob.B[4] + 1.9 }, use: () => HS() && HS().sauna(fx, sc) } : null)));
+  registerFixture('hotel_sauna', only((fx, sc) => (fx.item.sauna ? { label: 'Sauna', hit: 16, h: 1.6, spot: { x: fx.ob.B[0] + 3.2, y: fx.ob.B[4] + 2.4 }, use: () => HS() && HS().sauna(fx, sc) } : null)));
   registerFixture('hotel_massage', only((fx, sc) => ({ label: 'Massage table', hit: 12, use: () => HS() && HS().massage(fx, sc) })));
   registerFixture('hotel_roomdoor', only((fx, sc) => ({ label: 'Room ' + fx.item.p.no, hit: 12, h: 2, use: () => HS() && HS().roomDoor(fx.item.p.no, fx, sc) })));
   registerFixture('hotel_bed', only((fx, sc) => ({ label: 'The bed', hit: 16, use: () => HS() && HS().bed(fx, sc) })));
