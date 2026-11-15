@@ -251,3 +251,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - Buying a home offers PAY IN FULL beside the mortgage.
 - A called cab never makes the player wait long: if it is taking too long, it spawns just off screen and drives in. The wait before it gives up is not lengthened.
 - Confirmed: full jobs board on the phone; romance rules (date several early, one partner once together, no jealousy, Kit a friend only); first-time window amount stays as it is (lead's reading of "Yes").
+
+## Direction update 23 (owner msg 115, 2026-11-15) — where mail arrives
+- No more mail basket inside the home. Apartments (starting with the starter apartments, which get a LOBBY like the other apartment buildings) have a wall of mailboxes in the lobby with the player's own box; houses have a mailbox at the curb by the front path. Letters, parcels slips and bills notices are collected there. Existing lobbies' mailboxes work the same way for rented/bought apartments. Old saves: mail waiting in the basket moves to the mailbox.

@@ -456,3 +456,6 @@ If we go for b, can you procure licence free recordings for us?
 
 ## 114 (2026-11-15) — test ambience option D with a simulation
 Lets test d. Show me an artifact that simulates it
+
+## 115 (2026-11-15) — the mail basket makes no sense: lobbies with mailboxes for the starting apartments, curb mailboxes for houses
+Also the writing basket makes no sense. Add a lobby to the starting apartments and have aparrment mailboxes . For houses its a curb mailbox.

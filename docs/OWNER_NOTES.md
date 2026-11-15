@@ -92,3 +92,4 @@
 72. (msg 112) (a) Laundry hamper stands in the way of the fridge at Juniper Court, maybe other homes: fix + sweep. (b) Explain the Opportunities system (are they the story missions?) and LIST them. (c) Zip Eats still shows as a LOCKED app: no more locked apps; an app simply becomes downloadable once its conditions are met.
 73. (msg 113) Asked whether the lead can procure licence-free recordings for ambience option B. Lead answered (see chat / HISTORY).
 74. (msg 114) AMBIENCE: test option D (thin recorded bed + sounds from what is on screen). Wants an artifact that simulates it before it goes into the game.
+75. (msg 115) MAIL: the mail basket inside the home ("writing basket", lead's reading: the Mail basket by the door) makes no sense. Starting apartments get a LOBBY with apartment MAILBOXES; houses get a CURB MAILBOX. Mail is collected there.
