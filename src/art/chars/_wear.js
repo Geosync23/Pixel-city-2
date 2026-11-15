@@ -6,7 +6,7 @@ import { dk, lt, mix } from '../../engine/raster.js';
 const N = s => (s + '...........').slice(0, 11);
 const SB = ['...hhHhh...', '..hhhHhhh..', '..hhhhhhh..'], PB = ['....hhhh...', '...hhHhhh..', '..hhhHhhh..', '..hhhhhhh..'];
 /** caps: rows from row `t` down to row 4 (the fringe line) */
-const CAP = {
+export const CAP = {
   flat: { t: 6, f: ['...hHHhh...', '..hhHhhhh..', '..hhhh..h..'], b: SB },
   part: { t: 7, f: ['....hhhh...', '...hhHHhh..', '..hhhHHhh..', '..hhh.hhh..'], b: PB },
   bangs: { t: 7, f: ['....hhh....', '...hHHhhh..', '..hhHhhhh..', '..hhhhhhh..'], b: PB },
@@ -26,7 +26,7 @@ const CAP = {
   emo: { t: 7, f: ['....hhhh...', '...hhHHhh..', '..hhhHhhhh.', '..hhhhhhhh.'], b: PB },
 };
 /** tails: rows from row 3 downward; o = overlay for the cap's last row [front, back] (hair ties) */
-const TAIL = {
+export const TAIL = {
   crop: { f: ['..hh.......', '..hs.......'], b: ['..hhhhhh...', '..dhhhhs...', '...ddd.....'] },
   tfade: { f: ['..tt.......', '..t........'], b: ['..ttttt....', '...ttt.s...'] },
   nape: { f: ['..hhh......', '..hh.......', '..hd.......'], b: ['..hhhhhhh..', '..hhhhhh...', '..dhhhhd...'] },
@@ -67,6 +67,8 @@ const COMBO = {
   boxbraids: ['flat', 'box'], shortlocs: ['curl', 'shortlocs'], locbun: ['knot', 'shortlocs'], twa: ['coil', 'tfade'], curlyfade: ['curl', 'tfade'], bigfro: ['bigfro', 'fro'], afropuffs: ['puffs', 'tfade'], emo: ['emo', 'nape'],
 };
 export const HAIR_X = {}; for (const k in COMBO) HAIR_X[k] = mk(COMBO[k][0], COMBO[k][1]);
+/** build a hairstyle template from a cap id and a tail id (see CAP / TAIL above) */
+export const hairFrom = (cap, tail) => { if (!CAP[cap] || !TAIL[tail]) throw new Error('hairFrom: unknown ' + cap + ' / ' + tail); return mk(cap, tail); };
 export const HAIRS_X = Object.keys(COMBO);
 
 /* ---------- garment shapes ---------- */
@@ -84,7 +86,7 @@ export const BAGS_X = ['purse', 'fanny', 'duffel', 'handbag', 'camera'];
 export const BEARDS = ['full', 'stubble', 'goatee', 'mustache', 'long', 'chinstrap', 'soulpatch', 'mutton'];
 export const PATTERNS = ['stripes', 'vstripes', 'plaid', 'dots', 'floral', 'colorblock', 'argyle', 'camo', 'tiedye', 'ombre', 'sparkle', 'chevron', 'leopard', 'pinstripe', 'check', 'hearts'];
 export const BOT_PATTERNS = ['stripes', 'pinstripe', 'plaid', 'camo', 'sidestripe', 'floral', 'acid', 'dots'];
-export const NO_SLEEVE_X = { cami: 1, sundress: 1, minidress: 1, gown: 1, slip: 1, gilet: 1 };
+export const NO_SLEEVE_X = { cami: 1, sundress: 1, minidress: 1, gown: 1, slip: 1 };
 export const SHORT_SLEEVE_X = { shortshirt: 1, blouse: 1, vneck: 1, crop: 1, offshoulder: 1, jersey: 1, maxi: 1, shirtdress: 1, pinafore: 1, teadress: 1 };
 /** rows of hem hanging over the hips */
 export const TAILS = { coat: 3, trench: 4, parka: 3, raincoat: 3, tunic: 2, duster: 4, robe: 5, poncho: 1 };

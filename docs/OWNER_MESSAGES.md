@@ -386,3 +386,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 93 — Garment drawing: 3 Opus agents instead of 1 Fable; bring the Fable worker back after the drawing
 > I feel like we can spread the garment drawing work to 3 opus 5.5 agents instrad of 1 Fable 5.2. Bring back.the 5.2 worker once drawing is done.
+
+## 94 — Pedestrians stop in the middle of the road and hold up traffic
+> Sometimes pedestrians stop in the middle of the road and hold up traffic
