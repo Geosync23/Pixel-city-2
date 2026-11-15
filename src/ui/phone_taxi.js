@@ -52,6 +52,8 @@ export default {
   setup() {
     G.on('ride:start', kind => { if (kind === 'taxi' && S().ride) S().ride.status = 'riding'; });
     G.on('ride:end', kind => { if (kind === 'taxi' || !kind) S().ride = null; });
+    /* QA12: a cab that gave up waiting (transit dropPend emits taxi:cancel) left the card on "On the way" for up to four hours, with no cab coming */
+    G.on('taxi:cancel', () => { const r = S().ride; if (r && r.status !== 'riding') S().ride = null; });
   },
   render(b, ctx) {
     const r = S().ride, a = ctx.arg;

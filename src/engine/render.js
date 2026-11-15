@@ -153,19 +153,20 @@ export class Renderer {
       const hx = lx * .5, hy = ly * .5, pri = (x0, y0, x1, y1) => { const a = Math.max(0, cam.x - x1, x0 - cam.x - W) + Math.max(0, cam.y - y1, y0 - cam.y - H), b = Math.max(0, cam.x + hx - x1, x0 - cam.x - hx - W) + Math.max(0, cam.y + hy - y1, y0 - cam.y - hy - H) + 24; return a < b ? a : b; };
       ageBakes(60, 1500); const Q = A.q; Q.length = 0; world.query(rx0, ry0, rx1, ry1, Q);
       for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const sb = ob.sb, p = pri(sb[0], sb[1], sb[2], sb[3]); prebakeObj(ob, p); }
-      /* ground chunks of the ring (same chunk maths as _ground) */
+      /* ground chunks: their own, longer look-ahead (same chunk maths as _ground) */
       const zr = (world.zmax || 14) * U, oc = outskirtChunks(world), cache = world._chunks || (world._chunks = new Map());
-      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { const sx = i & 1 ? rx1 : rx0, sy = i & 2 ? ry1 + zr : ry0 - 64, a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      const clx = Math.max(-BAKE.chunkLookMax, Math.min(BAKE.chunkLookMax, A.vx * BAKE.chunkLook)), cly = Math.max(-BAKE.chunkLookMax, Math.min(BAKE.chunkLookMax, A.vy * BAKE.chunkLook)), gx0 = cam.x - m + Math.min(0, clx), gy0 = cam.y - m + Math.min(0, cly), gx1 = cam.x + W + m + Math.max(0, clx), gy1 = cam.y + H + m + Math.max(0, cly);
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { const sx = i & 1 ? gx1 : gx0, sy = i & 2 ? gy1 + zr : gy0 - 64, a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
       const c0x = Math.max(-oc, Math.floor(x0 / CH)), c0y = Math.max(-oc, Math.floor(y0 / CH)), c1x = Math.min(Math.ceil(world.w / CH) - 1 + oc, Math.floor(x1 / CH)), c1y = Math.min(Math.ceil(world.h / CH) - 1 + oc, Math.floor(y1 / CH));
       for (let cy = c0y; cy <= c1y; cy++) for (let cx = c0x; cx <= c1x; cx++) {
         const sx = (cx - cy) * CH * U, sy = (cx + cy + 1) * CH * U / 2, bx0 = sx - CH * U, bx1 = sx + CH * U, by0 = sy - CH * U / 2 - zr, by1 = sy + CH * U / 2 + 64;   // the chunk's diamond on screen (world px), with the same slack for heights as _ground
-        if (bx1 < rx0 || bx0 > rx1 || by1 < ry0 || by0 > ry1) continue;
+        if (bx1 < gx0 || bx0 > gx1 || by1 < gy0 || by0 > gy1) continue;
         const key = cx * 4096 + cy, e = cache.get(key); if (e && e.ver === world.version) { if (e.t < this.frameNo - 30) e.t = this.frameNo - 30; continue; }   // a ring chunk counts as recently used
         const jk = this._ck(world, key), p = pri(bx0, by0, bx1, by1) - 8, ver = world.version;   // ground a little before the objects standing on it
         if (!prebake(jk, () => chunkJob(world, cx, cy), p, null, r => { if (ver === world.version) this._putChunk(world, cx, cy, r, ver); }, true)) bakePri(jk, p);
       }
       /* entities near the screen that can say what they will look like (crowd citizens) */
-      for (let i = 0; i < ents.length; i++) { const e = ents[i]; if (e.hidden || !e.prebake) continue; const ex = (e.x - e.y) * U, ey = (e.x + e.y) * U / 2 - e.z * U; if (ex < rx0 - 90 || ex > rx1 + 90 || ey < ry0 - 90 || ey > ry1 + 90) continue; e.prebake(pri(ex - 16, ey - 40, ex + 16, ey + 8)); }   // (they move: a wider ring than for the scenery)
+      for (let i = 0; i < ents.length; i++) { const e = ents[i]; if (e.hidden || !e.prebake) continue; const ex = (e.x - e.y) * U, ey = (e.x + e.y) * U / 2 - e.z * U; if (ex < rx0 - BAKE.entRing || ex > rx1 + BAKE.entRing || ey < ry0 - BAKE.entRing || ey > ry1 + BAKE.entRing) continue; e.prebake(pri(ex - 16, ey - 40, ex + 16, ey + 8)); }   // (they move: a little wider than the ring for the scenery; much wider and every animation frame of every citizen near the screen gets baked, seen or not)
       sortBakes();
     }
     this.stats.aheadMs += bakeTick(late);

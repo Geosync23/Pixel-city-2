@@ -113,7 +113,7 @@ function catalog() {
 // the calendar + polled conditions; at most one release per game hour
 function check() {
   if (G.onTitle) return;
-  if (G.intro && G.intro.active && ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'].includes(G.intro.at)) return;   // no app releases (Nestly, Circle...) while you are still in the airport (owner msg 78)
+  if (G.intro && G.intro.active && ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage', 'curb', 'cab_ride', 'apartment_arrival'].includes(G.intro.at)) return;   // QA12: also not at the curb / in the cab, where the hint is teaching the phone. No app releases (Nestly, Circle...) while you are still in the airport (owner msg 78)
   const s = S(), t = G.state.t || 0, h = safe(() => G.now().hour, 12), early = day() < 7;
   /* QA6 (calm first week): calendar / polled releases only while you are up and about (08:00-21:00, never asleep, so nothing piles up overnight),
      at least 5 game hours apart and at most 2 a day (event releases included) during the first week; afterwards one an hour as before. Event releases still fire at once. */

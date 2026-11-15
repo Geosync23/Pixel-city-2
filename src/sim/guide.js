@@ -191,7 +191,7 @@ function wire() {
   on('use', it => { const s = [it && it.id, it && it.tag, it && it.label, it && it.fn].join(' ').toLowerCase(); if (/piano/.test(s)) stamp('x:piano'); });
   on('scene', s => { dirty = dirty || !list.length; const id = String((s && s.id) || '').replace(/^int:/, ''); if (ROOM_STAMP[id]) stamp(ROOM_STAMP[id]); if (id === 'library') S.seen.library = 1; });
   on('places:built', () => { dirty = true; });
-  on('place:discover', id => { districtStamp(id); if (G.scene && !G.onTitle && S.tipDay !== Math.floor(G.state.t / DAY) && byId.has('place:' + id)) { S.tipDay = Math.floor(G.state.t / DAY); safe(() => G.phone.notify({ app: 'guide', title: 'Added to your Wander guide', text: byId.get('place:' + id).title, priority: 'low', data: { entry: 'place:' + id } }), 0); } });
+  on('place:discover', id => { /* QA12: the plane cinematic plays over the city at your home; no "Explore Old Town" stamp before you have even landed */ if (/^(arrival_plane_cinematic|cabin|concourse|tramride|baggage)$/.test(safe(() => G.intro.at, '') || '')) return; districtStamp(id); if (G.scene && !G.onTitle && S.tipDay !== Math.floor(G.state.t / DAY) && byId.has('place:' + id)) { S.tipDay = Math.floor(G.state.t / DAY); safe(() => G.phone.notify({ app: 'guide', title: 'Added to your Wander guide', text: byId.get('place:' + id).title, priority: 'low', data: { entry: 'place:' + id } }), 0); } });
   on('load', () => { S = G.state.guide; dirty = true; });
 }
 

@@ -480,3 +480,6 @@ Continue
 
 ## 122 (2026-11-15) — another source for recordings?
 Didnt you say there was another source foe recordings?
+
+## 123 (2026-11-15) — recordings approved
+All sound is approved

@@ -81,9 +81,11 @@ export function pixSprite(key, sb, draw) { return cached(key, () => toSpritePool
 // Tunables. msMax / msMin: the most / least the queue may spend per frame (bakeTick adapts in between: it backs off while frames come late and
 // creeps back up while they are on time). small: banded jobs up to this many pixels are still drawn in one pass.
 // ring / look / lookMax: how far around the screen the renderer looks for things to queue (px around the screen; frames of camera travel ahead; cap in px).
+// entRing: extra px beyond the ring in which entities (citizens, vehicles) are asked to prebake. chunkLook / chunkLookMax: the same look-ahead for ground chunks (longer: they are big and painted on the main thread in slices). A wider ring bakes
+// more sprites that are never seen (memory, and main-thread time to make their canvases); a narrower one leaves more to be finished on the spot.
 // urgent: jobs nearer to the screen than this many px always get the full msMax.
 // worker: use the bake worker when it can start. flying: sprites handed to the worker at a time. patience: ms without an answer before the worker is given up (and twice that for it to start).
-export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 32, look: 150, lookMax: 420, urgent: 56, worker: true, flying: 4, patience: 15000 };
+export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 20, look: 80, lookMax: 240, entRing: 36, chunkLook: 150, chunkLookMax: 420, urgent: 56, worker: true, flying: 4, patience: 15000 };
 const jobs = new Map(), queue = [];   // key -> job; queue = the same jobs, most urgent first (the renderer re-sorts by distance to the screen)
 /**
  * Queue a sprite for baking ahead of need. start() -> a raster.renderJob, or null for "nothing to draw" (called when the job first runs).
