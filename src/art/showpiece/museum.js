@@ -35,7 +35,8 @@ function diorama(p) { const d = DIO[p.k || 0]; qy(0, 4, .4, 0, 2.1, WOOD_D); qy(
 function mural(p) {
   const w = p.w || 8, H = 2.4; qy(0, w, .1, 0, H, WOOD_D);
   if (p.kind === 'timeline') {
-    qy(.08, w - .08, .1, .08, H - .08, (u, v, ww, hh) => { const x = u / ww, y = 1 - v / hh, k = Math.floor(x * 5), ux = x * 5 - k, c = (cx, cy, r, q = 1) => (ux - cx) ** 2 + (y - cy) ** 2 * q < r * r, R2 = (a, b, cc, d) => ux >= a && ux < cc && y >= b && y < d;
+    const fl = R.isFlipped(), DT = ['1887', '1911', '1931', '1946', '2004'];
+    qy(.08, w - .08, .1, .08, H - .08, (u, v, ww, hh) => { const x = u / ww, y = 1 - v / hh, k0 = Math.floor(x * 5), k = fl ? 4 - k0 : k0, ux = x * 5 - k0, c = (cx, cy, r, q = 1) => (ux - cx) ** 2 + (y - cy) ** 2 * q < r * r, R2 = (a, b, cc, d) => ux >= a && ux < cc && y >= b && y < d;
       if (y > .8) return y > .83 && y < .86 ? GOLD : '#2c3a5e'; if (ux < .02) return '#f4ecd8'; const sky = ['#f6c8a0', '#d8dce8', '#c8d8e8', '#3a4270', '#9ad0f0'][k];
       if (k === 0) { if (R2(.3, .5, .7, .58)) return '#5a3a2c'; if (R2(.49, .2, .51, .5)) return INK; if (ux > .51 && ux < .51 + (y - .22) * .6 && y < .48) return '#f4f0e0'; if (y > .58) return (u + v) & 1 ? '#4a7a98' : '#3a6a88'; }
       if (k === 1) { if (R2(.2, .36, .8, .62)) return Math.floor(ux * 40) % 4 ? '#b8402f' : '#8a2c28'; if (R2(.62, .16, .7, .36)) return '#6a4a44'; if (c(.7, .12, .06)) return '#e8e4e0'; if (y > .62) return '#8a7860'; }
@@ -43,7 +44,7 @@ function mural(p) {
       if (k === 3) { if (R2(.15, .4, .85, .62)) return R2(.2, .44, .8, .52) && Math.floor(ux * 20) % 3 ? '#ffe08a' : '#c8402f'; if (R2(.25, .62, .35, .67) || R2(.65, .62, .75, .67)) return INK; if (y > .67) return '#232848'; if (hash2(u, v, 3) > .985) return '#fff4d0'; }
       if (k === 4) { if (c(.5, .42, .3, 14) || (ux > .2 && ux < .3 && y > .28 && y < .42 && ux - .2 < (y - .28) * .8)) return '#f0f0ec'; if (R2(.3, .44, .62, .47)) return '#b8c0c8'; if (y > .66) return y > .7 ? '#6a6a70' : '#5a8a58'; if (c(.8, .2, .08, 5)) return '#ffffff'; }
       return y > .68 ? '#b8a080' : sky; });
-    ['1887', '1911', '1931', '1946', '2004'].forEach((s, i) => textY(s, .25 + i * (w - .16) / 5, .1, .3, CREAM)); textY('THE STORY OF MAPLE BAY', .4, .1, H - .14, GOLD);
+    (fl ? DT.slice().reverse() : DT).forEach((s, i) => textY(s, .25 + i * (w - .16) / 5, .1, .3, CREAM)); textY('THE STORY OF MAPLE BAY', .4, .1, H - .14, GOLD);
   } else {
     qy(.08, w - .08, .1, .08, H - .08, (u, v, ww, hh) => { const y = Math.max(0, v / hh + .03 * Math.sin(u / 9)), k = Math.floor(y * 6), x = u, ring = (cx, cy, r) => Math.abs(Math.hypot(x - cx, v - cy) - r) < 1.2 || Math.abs(Math.hypot(x - cx - 1, v - cy) - r * .45) < 1, col = ['#4a4652', '#6a5a5a', '#8a6a52', '#b08a5a', '#c8a878', '#7a5a3a'][Math.min(5, k)];
       if (k === 5) return v > hh - 4 ? '#5a9a4a' : (hash2(u, v, 2) > .9 ? '#5a4030' : col); if (ring(ww * .18, hh * .26, 5) || ring(ww * .7, hh * .1, 4)) return BONE; if (k === 2 && Math.abs(v - hh * .42) < 1 && u > ww * .4 && u < ww * .62) return BONE; if (k === 2 && u > ww * .42 && u < ww * .6 && u % 4 === 0 && Math.abs(v - hh * .42) < 4) return BONE;
@@ -134,7 +135,7 @@ function shelf(p) {
   const w = p.w || 3, k = p.kind || 'gift', r = rng(p.seed || 5); box(0, 0, 0, w, .45, 2.2, WOOD_D, { l: '#3a2a22' });
   if (k === 'coats') { lw([.1, .45, 1.9], [w - .1, .45, 1.9], BRASS); for (let x = .25; x < w - .2; x += .28) { const c = ['#c8402f', '#3a6ab0', '#e8b83a', '#5a5a66', '#3a8a58', '#8a5aa8', '#d8c8a8'][Math.floor(r() * 7)], h = .8 + r() * .5; if (r() < .25) continue; qy(x - .1, x + .1, .46, 1.84 - h, 1.84, c); lw([x - .1, .46, 1.84 - h], [x - .1, .46, 1.84], dk(c, .4)); } return; }
   for (let z = .1; z < 2; z += .5) { qy(.06, w - .06, .45, z, z + .44, '#5a4034'); qy(.06, w - .06, .45, z, z + .04, WOOD);
-    for (let x = .14; x < w - .2; x += k === 'books' ? .08 : .3) { const q = r(); if (k === 'books') { const h = .26 + r() * .12; qy(x, x + .07, .46, z + .04, z + .04 + h, ['#c8402f', '#3a6ab0', '#e8b83a', '#3a8a58', '#f4ecd8', '#8a5aa8', NAVY][Math.floor(q * 7)]); }
+    for (let x = .14; x < w - .2; x += k === 'books' ? .08 : .44) { const q = r(); if (k === 'books') { const h = .26 + r() * .12; qy(x, x + .07, .46, z + .04, z + .04 + h, ['#c8402f', '#3a6ab0', '#e8b83a', '#3a8a58', '#f4ecd8', '#8a5aa8', NAVY][Math.floor(q * 7)]); }
       else if (k === 'cafe') { if (q < .5) { qy(x, x + .16, .46, z + .04, z + .22, PAPER); lw([x, .46, z + .12], [x + .16, .46, z + .12], TEAL); } else qy(x, x + .14, .46, z + .04, z + .3, ['#c89858', '#8a5a3a', '#e8c890'][Math.floor(q * 9) % 3]); }
       else { const s = S2(x + .1, .46, z + .04), c = ['#5aa858', '#3a8ab0', '#e8742a', '#9a6ad0', '#e8b83a'][Math.floor(q * 5)]; if (q < .4) { R.rect(s[0] - 2, s[1] - 5, 5, 5, c); R.rect(s[0] + 2, s[1] - 8, 3, 3, c); R.rect(s[0] + 4, s[1] - 7, 1, 1, '#2a2733'); } else if (q < .7) { R.ellipse(s[0], s[1] - 4, 3, 3, '#bfe4ec'); R.rect(s[0] - 2, s[1] - 1, 5, 1, WOOD); } else R.rect(s[0] - 2, s[1] - 6, 5, 6, c); } } }
   if (p.name) signY(p.name, .2, w - .2, .45, 2.02, 2.2, NAVY, GOLD, { frame: false });

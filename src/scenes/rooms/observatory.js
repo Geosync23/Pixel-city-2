@@ -71,7 +71,7 @@ function buildMain() {
   C('desk', 11, 17, { kind: 'ticket', w: 2.5 }, { tags: ['obs_ticket'] }); S(12.25, 16.55, 1, { kind: 'staff', label: 'Ticket desk', lines: LINES.staff });
   C('rail', 10, 8, { w: 3.5 }, { flip: true }); C('gate', 10, 11.5, { w: 3, name: 'GALLERY' }, { flip: true, gate: 1 }); C('rail', 10, 14.5, { w: 5.5 }, { flip: true });
   C('rail', 10.5, 8, { w: 3 }); C('gate', 13.5, 8, { w: 3, name: 'GALLERY' }, { gate: 1 }); C('rail', 16.5, 8, { w: 3.5 });
-  for (const y of [9, 13.5, 18]) C('column', 20, y); C('lamp', 10.6, 19.2); C('lamp', 19.2, 19.2); C('bench', 16.8, 17.6);
+  for (const y of [9, 13.5, 18]) C('column', 20, y); C('lamp', 19.2, 19.2); C('bench', 16.8, 17.6);
   C('hang', 14.5, 17.5, { kind: 'comet' }, { z: 3.3, comet: 1 }); C('plaque', 13.8, 18.6, { c: '#b8862c' }, { comet: 1, fact: 'comet' });
   S(13.6, 16.3, 0, { p: .6 }); S(17.3, 12.2, 2, { p: .7 }); S(15, 10.9, 1, { p: .5, age: 'kid', lines: LINES.kid }); S(12.6, 13.6, 0, { busy: 1 }); S(16.2, 16.2, 3, { busy: 1, anim: 'phone' }); S(17.3, 17.92, 1, { seated: true, z: .46, p: .5 });
   // ---- gallery: left hall
@@ -91,7 +91,7 @@ function buildMain() {
   C('plaque', 15.5, 1.2, {}, { fact: 'moonwall' }); C('globe', 18.6, .9, { kind: 'moon' }); C('lamp', 19.2, 6.8); C('scopecase', 15.5, 5.8); C('plaque', 17.4, 6.2, {}, { fact: 'scope' });
   S(14.6, 2.3, 3, { p: .6 }); S(17.6, 3.3, 3, { p: .5, anim: 'phone' }); S(16.2, 7, 3, { busy: 1 }); S(18.2, 4.6, 2, { busy: 1 });
   // ---- foyer
-  C('theatredoor', 22.5, .1, { t: '' }, { tdoor: 1 }); C('stairs', 27, .6); C('lamp', 21.4, .8); C('lamp', 26.1, .8); C('bench', 21, 6); C('bench', 24.5, 7.4); C('globe', 29, 7.6, { kind: 'mars' });
+  C('theatredoor', 22.5, .1, { t: '' }, { tdoor: 1 }); C('rail', 21.5, 3, { w: 2 }); C('rail', 25, 3, { w: 1.5 }); C('hang', 24, 5.5, { kind: 'saturn', r: 9 }, { z: 3.4 }); C('stairs', 27, .6); C('lamp', 21.4, .8); C('lamp', 26.1, .8); C('bench', 21, 6); C('bench', 24.5, 7.4); C('globe', 29, 7.6, { kind: 'mars' });
   S(22.2, 3.6, 3, { busy: 1 }); S(25.6, 2.6, 2, { p: .5 }); S(21.45, 6.32, 1, { seated: true, z: .46, p: .5 }); S(25.65, 7.72, 1, { seated: true, z: .46, busy: 1 }); S(26.3, 4.6, 0, { p: .5, anim: 'phone' });
   // ---- Star Shop + Comet Cocoa
   C('shelf', 21.5, 9.5, { kind: 'shop', w: 3 }); C('desk', 21.5, 10.5, { kind: 'shop', w: 3 }, { tags: ['obs_shop'], venue: OBS_VENUES.shop, label: 'The Star Shop' }); S(23, 10.05, 1, { kind: 'staff', label: 'The Star Shop', lines: LINES.shop });
@@ -115,7 +115,7 @@ defineRoom({ id: 'observatory', name: 'Maple Bay Observatory', w: W, d: D, zoom:
     // ---- floors: one ground decal
     Wd.decal({ x0: O, y0: O, x1: O + W, y1: O + D, draw(Rr) { const h2 = Rr.hash2;
       const marble = (x, y) => { const dx = x - PC.x, dy = y - PC.y, d = Math.hypot(dx, dy), a = Math.atan2(dy, dx); if (d < 2.6) return '#bdb6a8'; if (d < 2.75) return '#d9a441'; if (d < 4.6) { const k = Math.floor((a + Math.PI) / (Math.PI / 8)); return Math.abs(((a + Math.PI) / (Math.PI / 8)) % 1 - .5) > .46 ? '#a8a294' : k & 1 ? '#2d3a6e' : '#e6e0d4'; } if (d < 4.75) return '#d9a441'; const fx = x - Math.floor(x), fy = y - Math.floor(y); if (fx < .05 || fy < .05) return '#c4bdb0'; return (Math.floor(x) + Math.floor(y)) & 1 ? '#e6e0d4' : '#dcd5c8'; };
-      const carpet = (x, y) => { const k = h2(Math.floor(x * 16), Math.floor(y * 16), 7), fx = (x + .5) % 2, fy = (y + .5) % 2; if (Math.abs(fx - 1) < .07 && Math.abs(fy - 1) < .2) return '#d9a441'; if (Math.abs(fy - 1) < .07 && Math.abs(fx - 1) < .2) return '#d9a441'; return k < .08 ? '#1f2a56' : k > .93 ? '#2d3a6e' : '#252f60'; };
+      const carpet = (x, y) => { const k = h2(Math.floor(x * 16), Math.floor(y * 16), 7), fx = (x + .5) % 2, fy = (y + .5) % 2; if (Math.abs(fx - 1) + Math.abs(fy - 1) < .13) return '#d9a441'; return k < .08 ? '#1f2a56' : k > .93 ? '#2d3a6e' : '#252f60'; };
       const wood = (x, y) => { const r = Math.floor(y * 2), xx = x + (r & 1) * .9, fy = y * 2 - r; if (fy < .1 || (xx % 1.8) < .06) return '#5a3a26'; return h2(Math.floor(xx / 1.8), r, 9) > .6 ? '#8a5f40' : '#7a5236'; };
       const red = (x, y) => { const k = h2(Math.floor(x * 16), Math.floor(y * 16), 3); return (Math.abs(x - 20.25) < .12 || Math.abs(y - 9.2) < .1) ? '#d9a441' : k < .1 ? '#6a2030' : k > .92 ? '#8a3444' : '#7a2a3a'; };
       for (const [x0, y0, x1, y1, f] of [[10, 8, 20, 20, marble], [0, 0, 10, 20, carpet], [10, 0, 20, 8, carpet], [20, 9.5, 30, 20, wood], [20, 0, 30, 9.5, red]]) Rr.qz(O + x0, O + x1, O + y0, O + y1, 0, (x, y) => f(x - O, y - O)); } }); Wd.version++;
@@ -333,7 +333,7 @@ defineRoom({ id: 'observatory:roof', name: 'Observatory Dome & Terrace', w: RW, 
       if (s.time !== view || s.wx !== wxv || s.season !== seas || mp !== mph || hc !== com) { view = s.time; wxv = s.wx; seas = s.season; mph = mp; com = hc; const cs = CONSTELLATIONS.filter(c => c.season === s.season);
         for (const o of sky) setP(o, { time: view, wx: wxv, season: seas, frame: 0, moon: o.data.moon ? mp : -1, cons: o.data.ci !== undefined && cs[o.data.ci] ? cs[o.data.ci].id : null, comet: o.data.comet && hc ? 1 : 0 });
         for (const o of shells) setP(o, { time: view, wx: wxv }); Wd.bg = view === 'night' ? '#070a1c' : view === 'dusk' ? '#3a2c4c' : '#7fa8c8'; }
-      openT = isOpen && s.observing ? 1 : 0; if (!s.observing && !parked) { parked = true; if (scope) setP(scope, { park: 1 }); }
+      openT = isOpen && s.observing ? 1 : 0; if (!s.observing && !parked) { parked = true; if (scope) setP(scope, { park: 1 }); } else if (isOpen && s.observing && parked) { parked = false; if (scope) setP(scope, { park: 0, az, alt }); }
       if (notice) { const show = isOpen && night && !s.observing; if (notice.hidden !== !show) notice.hidden = !show; if (show) { const b = s.wx === 'rain' ? 'RAIN' : 'CLOUD'; if (notice.p.b !== b) setP(notice, { a: 'CLOSED', b }); } }
       const po = isOpen && !!s.party; if (po !== pOn) { pOn = po; for (const o of party) { o.hidden = !po; if (o.solid) { if (po) Wd.block(o.B[0], o.B[1], o.B[3], o.B[4]); else Wd.free(o.B[0], o.B[1], o.B[3], o.B[4]); } } for (const l of partyL) { const i = Wd.lights.indexOf(l); if (po && i < 0) Wd.lights.push(l); if (!po && i >= 0) Wd.lights.splice(i, 1); } }
       const wet = s.wx === 'rain'; for (const o of tscopes) { const cov = wet || (night && !!s.wx) ? 1 : 0; if ((o.p.cover || 0) !== cov) setP(o, { cover: cov }); }

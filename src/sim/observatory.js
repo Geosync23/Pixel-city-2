@@ -230,7 +230,7 @@ function eyepiece(ob, o = {}) {
   return new Promise(res => {
     const finish = (q, hit) => { if (done) return; done = true; window.removeEventListener('keydown', key); if (q && focus) draw((performance.now() - t0) / 1000, 0); setTimeout(() => { ov.close(); eye = null; res(q === null ? null : { q, hit: !!hit }); }, q === null ? 0 : sweep ? (hit ? 1300 : 500) : focus ? 1500 : 150); };
     const snap = (x, y) => { if (done) return; const t = (performance.now() - t0) / 1000; if (t < .3) return;
-      if (sweep) { const dx = Math.sin(t * .23) * 3, dy = Math.cos(t * .17) * 2; if (x === undefined) { x = o.sx * SZ + dx; y = o.sy * SZ + dy; } const hit = Math.hypot(x - (o.sx * SZ + dx), y - (o.sy * SZ + dy)) < 9; if (hit) { found = true; draw(t, 0); finish(2, true); } else { sweep.miss = (sweep.miss || 0) + 1; ov.tip.textContent = 'That one is a star: sharp, not fuzzy. Keep looking.'; } return; }
+      if (sweep) { const dx = Math.sin(t * .23) * 3, dy = Math.cos(t * .17) * 2; if (x === undefined) { x = o.sx * SZ + dx; y = o.sy * SZ + dy; } const hit = Math.hypot(x - (o.sx * SZ + dx), y - (o.sy * SZ + dy)) < 9; if (hit) { found = true; draw(t, 0); finish(2, true); } else { ov.tip.textContent = 'That one is a star: sharp, not fuzzy. Keep looking.'; } return; }
       const b = blurAt(t); finish(!focus ? (o.small ? 1 : 2) : b < .14 ? 3 : b < .42 ? 2 : 1); };
     const key = e => { if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') { e.preventDefault(); snap(); } else if (e.key === 'Escape') finish(null); };
     ov.cv.addEventListener('pointerdown', e => { e.preventDefault(); const q = ov.at(e); snap(q.x, q.y); }); window.addEventListener('keydown', key);

@@ -349,3 +349,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 81 — Wander "Take me there" must offer the same options as the Map (foot, cab, bus, train)
 > The wonder app take me there needs to give you options like the map does. Foot cab bus train
+
+## 82 — The arrow's target must show on the Map
+> If you have an arrow pointing somewhere it should show on the map when you pulll it up

@@ -25,6 +25,15 @@ export function setWaypoint(p) {
   S().waypoint = p && typeof p.x === 'number' ? Object.assign({ id: p.id || null, name: p.name || 'Waypoint', x: p.x, y: p.y }, p.room ? { room: p.room } : null) : null;
   G.emit('waypoint', S().waypoint ? (place(S().waypoint.id) || S().waypoint) : null); return S().waypoint;
 }
+/** what the guide arrow is leading to, as city points: { pts: [next target, ..., destination] } | null (uses the active trip of G.nav when there is one, else the waypoint) */
+function guidePts() {
+  const wp = getWaypoint(), t = safe(() => G.nav.trip(), null), ok = q => q && typeof q.x === 'number' && typeof q.y === 'number', nm = (q, d) => ({ x: q.x, y: q.y, name: q.name || d });
+  const pts = [];
+  if (t && ok(t.dest)) { if (t.stage === 0 && ok(t.board)) pts.push(nm(t.board, 'Board here')); if (t.stage <= 1 && ok(t.alight)) pts.push(nm(t.alight, 'Get off here')); pts.push(nm(t.dest, 'Destination')); }
+  else if (ok(wp)) pts.push(nm(wp, 'Waypoint'));
+  if (t && ok(wp) && pts.length && Math.hypot(wp.x - pts[0].x, wp.y - pts[0].y) > 8 && wp.name !== pts[0].name && t.stage !== 1) pts.unshift(nm(wp, 'Waypoint'));   // a cab pick-up spot etc.
+  return pts.length ? { pts } : null;
+}
 /** "Take me there" from anywhere (Wander, tips, the need chooser): opens the Map on the route card (foot / bus / train / cab) for that place instead of silently setting a waypoint (owner msg 81).
  *  p: place id | place | { x, y, name }. Falls back to a plain waypoint when there is no navigator or the Map app is not available. Returns true when the route card was opened. */
 export function routeTo(p) {
@@ -96,8 +105,14 @@ function draw() {
     pins.push({ p, x, y, known });
     if (p.id !== sel && (isHome || p.kind === 'station' && z >= 2 || z >= 5)) label(isHome ? 'Home' : p.name, x + 12, y);
   }
-  if (wp) { const x = X(wp.x), y = Y(wp.y); g.fillStyle = INK; g.fillRect(x - 1, y - 20, 3, 21); g.fillStyle = '#e05a3a'; g.fillRect(x + 2, y - 20, 10, 8); g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(x + 2, y - 20, 10, 8); }
-  const me = cityPos(), mx = X(me.x), my = Y(me.y); g.fillStyle = INK; g.fillRect(mx - 8, my - 8, 16, 16); g.fillStyle = CREAM; g.fillRect(mx - 6, my - 6, 12, 12); g.fillStyle = '#e05a3a'; g.fillRect(mx - 3, my - 3, 6, 6); label('You', mx + 12, my, true);
+  // whatever the on-screen arrow is guiding you to is drawn here too (owner msg 82): a dashed red route You -> next stop -> ... -> destination, a ring on the next target, a labelled flag on the destination
+  const me = cityPos(), mx = X(me.x), my = Y(me.y), gd = guidePts();
+  if (gd) {
+    const pts = [me].concat(gd.pts); g.setLineDash([5, 4]); poly(pts, INK, 5); poly(pts, '#ff5a3c', 3); g.setLineDash([]);
+    gd.pts.forEach((q, i) => { const x = X(q.x), y = Y(q.y), last = i === gd.pts.length - 1;
+      if (last) { g.fillStyle = INK; g.fillRect(x - 2, y - 26, 4, 27); g.fillStyle = '#ff5a3c'; g.fillRect(x + 2, y - 26, 14, 10); g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(x + 2, y - 26, 14, 10); label(q.name, x + 20, y - 21, true); }
+      else { g.strokeStyle = INK; g.lineWidth = 5; g.strokeRect(x - 7, y - 7, 14, 14); g.strokeStyle = '#ff5a3c'; g.lineWidth = 3; g.strokeRect(x - 7, y - 7, 14, 14); label((i === 0 ? 'Next: ' : '') + q.name, x + 13, y - 12); } });
+  } g.fillStyle = INK; g.fillRect(mx - 8, my - 8, 16, 16); g.fillStyle = CREAM; g.fillRect(mx - 6, my - 6, 12, 12); g.fillStyle = '#e05a3a'; g.fillRect(mx - 3, my - 3, 6, 6); label('You', mx + 12, my, true);
   const sp = sel && place(sel); if (sp) { const x = X(sp.x), y = Y(sp.y); g.strokeStyle = CREAM; g.lineWidth = 2; g.strokeRect(x - 11, y - 11, 22, 22); g.strokeStyle = INK; g.strokeRect(x - 13, y - 13, 26, 26); stamp('ui.pin', x, y - 22); label(sp.name, Math.min(x + 16, W - g.measureText(sp.name).width - 8), y, true); }
 }
 const clampView = () => { const w = cityWorld(); if (!w) return; view.z = Math.max(1, Math.min(8, view.z)); view.cx = Math.max(0, Math.min(w.w, view.cx)); view.cy = Math.max(0, Math.min(w.h, view.cy)); };
@@ -198,7 +213,8 @@ export default {
     ctxRef = ctx; footEl = ctx.foot; const a = ctx.arg;
     if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) { sel = p.id; view.cx = p.x; view.cy = p.y; view.z = Math.max(view.z, 3); needCenter = false; hidden[placeCat(p)] = false; } }
     if (a && a.route && !a._used) { a._used = 1; const d = a.route; navDest = { id: d.id || null, name: d.name || 'Destination', x: d.x, y: d.y }; view.cx = d.x; view.cy = d.y; view.z = Math.max(view.z, 3); sel = null; navKind = null; streetsOpen = false; needCenter = false; }   // deep link: open on the 'How will you get there?' card
-    if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; navKind = null; navDest = null; }
+    if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; navKind = null; navDest = null;
+      const gd = guidePts(); if (gd) { const q = gd.pts[0], dx = Math.abs(q.x - c.x), dy = Math.abs(q.y - c.y); view.cx = (q.x + c.x) / 2; view.cy = (q.y + c.y) / 2; view.z = Math.max(1, Math.min(4, Math.min(300 / (dx + 8), 330 / (dy + 8)))); } }   // an active arrow: frame you and the next target
     if (G.nav) b.append(whereTo(ctx));
     const present = new Set(allPlaces().map(placeCat));
     b.append(el('div.ph-legend', { role: 'group', 'aria-label': 'Filter' }, streets().length ? el('button.ph-chip' + (streetsOpen ? '.on' : ''), { 'aria-pressed': streetsOpen ? 'true' : 'false', onclick: () => { streetsOpen = !streetsOpen; ctx.refresh(); } }, 'Streets') : null, CATS.filter(c => present.has(c.id)).map(c => el('button.ph-chip' + (hidden[c.id] ? '.off' : ''), { 'aria-pressed': hidden[c.id] ? 'false' : 'true', onclick: () => { hidden[c.id] = !hidden[c.id]; ctx.refresh(); } }, el('i', { style: { background: c.color } }), c.name))));

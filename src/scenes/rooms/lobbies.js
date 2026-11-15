@@ -334,7 +334,7 @@ async function coffee(L, fx) {
   const m = pick !== null && pick >= 0 && menu[pick]; if (!m) return; if (G.money && G.money.pay && !G.money.pay(m[1], m[0] + ' — ' + L.name, { category: 'food' })) return;
   G.emit('lobby:coffee', L.id, m[0]);
   const done = () => { if (m[2]) need('energy', m[2]); need('fun', m[3]); if (m[4]) need('hunger', m[4]);
-    try { const pts = G.bladder && G.bladder.drinkAmount ? G.bladder.drinkAmount(m[4] ? { id: 'bun', name: m[0] } : { id: 'lobby_drink', name: m[0], category: 'drink' }) : 0; if (pts) { need('bladder', -pts); G.emit('bladder:drink', 'lobby_' + m[0], pts); } } catch (e) { }
+    try { const pts = G.bladder && G.bladder.drinkAmount ? G.bladder.drinkAmount(m[4] ? { id: 'bun', name: m[0] } : { id: 'lobby_drink', name: m[0], category: 'drink', effects: m[2] ? { caffeine: 1 } : {} }) : 0; if (pts) { need('bladder', -pts); G.emit('bladder:drink', 'lobby_' + m[0], pts); } } catch (e) { }
     toast(m[0] + ': gone. Worth every cent.', 'good', 2400); };
   // the real activity `lobby_coffee` (data/activities.js) so it shows in the guide and stamps; plain timer if the activity system is missing
   if (!(G.activities && G.activities.start && G.activities.start('lobby_coffee', { fx, label: 'Having a ' + m[0].toLowerCase(), quiet: true, noSummary: true, onDone: done })))
