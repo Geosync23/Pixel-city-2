@@ -143,12 +143,12 @@ export function weddingSheet() {
   const draw = () => {
     const V = venues(), v = V.find(x => x.id === w.venue), sl = v ? slots(v) : [], st2 = standers(), recs = WEDDING.receptions.filter(r => !r.needs || B.test(r.needs));
     const sec = (title, items, cur, set, note) => el('div.relw-sec', null, el('small', { text: title }), el('div.relw-opts', null, ...items.map(it => el('button.relw-o' + (cur === it.id ? '.on' : ''), { 'data-relw': title.split(' ')[0].toLowerCase() + ':' + it.id, onclick: () => { set(it.id); draw(); } }, it.label))), note ? el('p', { text: note }) : null);
-    box.replaceChildren(el('div.relw-h', null, el('small', { text: 'The wedding' }), el('b', { text: `You and ${short(w.id)}` }), el('p', { text: 'Whenever you two are ready. Nothing here has a deadline, and all of it can be changed until the day.' })),
+    box.replaceChildren(...[el('div.relw-h', null, el('small', { text: 'The wedding' }), el('b', { text: `You and ${short(w.id)}` }), el('p', { text: 'Whenever you two are ready. Nothing here has a deadline, and all of it can be changed until the day.' })),
       sec('Where?', V.map(x => ({ id: x.id, label: x.name })), w.venue, id => { w.venue = id; w.t = null; }, v ? v.look + ((P.likes.places || []).some(p => new RegExp(v.place.replace(/^@/, ''), 'i').test(p)) ? ' ' + fill(WEDDING.venueLiked[0].text) : '') + (v.id === 'cityhall' ? ' The licence is $40 at the door.' : '') : ''),
       v ? sec('When?', sl.map(x => ({ id: x.t, label: x.label })), w.t, t => { w.t = t; }, '') : null,
       sec('Who stands up with you?', st2.map(id => ({ id, label: short(id) })), w.stand, id => { w.stand = id; }, w.stand ? '"' + fill(WEDDING.stand[w.stand] || WEDDING.stand.any) + '"' : st2.length ? '' : 'Family, or a Close Friend. It can also be nobody: the Clerk has done it both ways.'),
       sec('And afterwards?', recs.map(r => ({ id: r.id, label: r.name })), w.reception, id => { w.reception = id; }, (recs.find(r => r.id === w.reception) || {}).line || ''),
-      el('div.relp-btns', null, el('button.relp-go', { 'data-relw': 'set', disabled: !(w.venue && w.t) || undefined, text: w.appt ? 'Change the day' : 'Put it on our day', onclick: () => { weddingPlan({}); close(); UI.toastGold(`The wedding is on your day: ${(venues().find(x => x.id === w.venue) || {}).name}.`, 6000); } }), el('button.relp-no', { 'data-relw': 'later', text: 'Not yet', onclick: close })));
+      el('div.relp-btns', null, el('button.relp-go', { 'data-relw': 'set', disabled: !(w.venue && w.t) || undefined, text: w.appt ? 'Change the day' : 'Put it on our day', onclick: () => { weddingPlan({}); close(); UI.toastGold(`The wedding is on your day: ${(venues().find(x => x.id === w.venue) || {}).name}.`, 6000); } }), el('button.relp-no', { 'data-relw': 'later', text: 'Not yet', onclick: close }))].filter(Boolean));
   };
   draw(); root().append(wrap);
 }

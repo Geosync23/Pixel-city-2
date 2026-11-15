@@ -37,22 +37,26 @@ if (IN_WORKER) {
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 /** raster.render() result -> sprite {c: colour canvas, l: light canvas|null, x, y, w, h} (x,y = offset from the anchor in px) */
 export function toSprite(r) {
-  if (!r) return null;
-  const c = mk(r.w, r.h); c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.buf.buffer), r.w, r.h), 0, 0);
-  let l = null; if (r.hasLight) { l = mk(r.w, r.h); l.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.lb.buffer), r.w, r.h), 0, 0); }
+  if (!r) return null; const n = r.w * r.h * 4;   // (buffers from the raster pool can be views into a larger ArrayBuffer)
+  const c = mk(r.w, r.h); c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.buf.buffer, r.buf.byteOffset, n), r.w, r.h), 0, 0);
+  let l = null; if (r.hasLight) { l = mk(r.w, r.h); l.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.lb.buffer, r.lb.byteOffset, n), r.w, r.h), 0, 0); }
   return { c, l, x: r.x, y: r.y, w: r.w, h: r.h };
 }
+/** toSprite for a result this module rendered itself with pooled buffers: the buffers go back to the raster pool */
+export function toSpritePooled(r) { if (!r) return null; const s = toSprite(r); R.recycle(r); return s; }
 const cache = new Map(); let total = 0; export const BUDGET = { px: 36e6 };
-const STATS = { bakes: 0, bakeMs: 0, pre: 0, preMs: 0, slices: 0, rushed: 0, wk: 0, wkMs: 0, worker: '-' };   // on-demand bakes / pre-bakes finished by the main-thread queue / queued bakes that had to be finished on the spot / sprites drawn by the worker (wkMs = main-thread time to make their canvases)
-function store(key, s) { cache.set(key, s); if (s) total += s.w * s.h; if (total > BUDGET.px) for (const [k, v] of cache) { if (total <= BUDGET.px * .8 || k === key) break; cache.delete(k); if (v) total -= v.w * v.h; } }
+const STATS = { bakes: 0, bakeMs: 0, pre: 0, preMs: 0, slices: 0, rushed: 0, wk: 0, wkMs: 0, worker: '-', slow: [] };
+const slow = (key, ms, how) => { if (ms > 6) { STATS.slow.push(how + ' ' + ms.toFixed(0) + 'ms ' + String(key).slice(0, 70)); if (STATS.slow.length > 40) STATS.slow.shift(); } };   // the last main-thread bakes over 6 ms (for tools/perf.mjs)   // on-demand bakes / pre-bakes finished by the main-thread queue / queued bakes that had to be finished on the spot / sprites drawn by the worker (wkMs = main-thread time to make their canvases)
+let tick = 0;   // advanced by bakeTick about once a second
+function store(key, s) { cache.set(key, s); if (s) { total += s.w * s.h; s._t = tick; } if (total > BUDGET.px) for (const [k, v] of cache) { if (total <= BUDGET.px * .8 || k === key) break; cache.delete(k); if (v) total -= v.w * v.h; } }
 /** LRU cache. key: string; make: () => sprite */
 export function cached(key, make) {
   let s = cache.get(key);
-  if (s !== undefined) { cache.delete(key); cache.set(key, s); return s; }
+  if (s !== undefined) { if (s === null || s._t !== tick) { cache.delete(key); cache.set(key, s); if (s) s._t = tick; } return s; }   // perf: "recently used" is refreshed at most once per LRU tick (~1 s), not on every hit of every frame
   const j = jobs.get(key);
   if (j) { STATS.rushed++; return finish(j, true); }   // queued and half-done: finish it now (still less work than starting over)
   if (flying.size && flying.delete(key)) STATS.rushed++;   // the worker is still drawing it: draw it here now (the worker's copy is ignored when it arrives)
-  const t0 = performance.now(); s = make(); STATS.bakes++; STATS.bakeMs += performance.now() - t0; store(key, s);
+  const t0 = performance.now(); s = make(); const ms = performance.now() - t0; STATS.bakes++; STATS.bakeMs += ms; slow(key, ms, 'now'); store(key, s);
   return s;
 }
 /** drop everything (call on season change) */
@@ -62,15 +66,15 @@ const sw = b => [b[1], b[0], b[2], b[4], b[3], b[5]];
 const objKey = ob => ob._key || (ob._key = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''));
 /** sprite for a placed world object (see World.place). Anchor = WS(ob.x, ob.y, ob.z). */
 export function objSprite(ob) {
-  return cached(objKey(ob), () => { try { return toSprite(R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip)); } catch (e) { console.warn('art error in ' + ob.id + ': ' + e.message); return null; } });
+  return cached(objKey(ob), () => { try { return toSpritePooled(R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip, true)); } catch (e) { console.warn('art error in ' + ob.id + ': ' + e.message); return null; } });
 }
 /** sprite for an asset drawn at the origin with params (vehicles etc). vb optional override. */
 export function assetSprite(a, p, flip, key) {
   key = key || (a.id + '|' + JSON.stringify(p) + (flip ? '|F' : ''));
-  return cached(key, () => { let vb = a.vb ? (typeof a.vb === 'function' ? a.vb(p) : a.vb) : null; if (!vb) { const s = typeof a.size === 'function' ? a.size(p) : a.size; vb = [-.3, -.3, 0, s[0] + .3, s[1] + .3, s[2] + .3]; } if (flip) vb = sw(vb); return toSprite(R.render(R.screenBox(vb), () => a.draw(p), null, 3, flip)); });
+  return cached(key, () => { let vb = a.vb ? (typeof a.vb === 'function' ? a.vb(p) : a.vb) : null; if (!vb) { const s = typeof a.size === 'function' ? a.size(p) : a.size; vb = [-.3, -.3, 0, s[0] + .3, s[1] + .3, s[2] + .3]; } if (flip) vb = sw(vb); return toSpritePooled(R.render(R.screenBox(vb), () => a.draw(p), null, 3, flip, true)); });
 }
 /** sprite from a pixel-bounds draw function (characters): sb = [x0,y0,x1,y1] px around the anchor */
-export function pixSprite(key, sb, draw) { return cached(key, () => toSprite(R.render(sb, draw, null, 1))); }
+export function pixSprite(key, sb, draw) { return cached(key, () => toSpritePooled(R.render(sb, draw, null, 1, false, true))); }
 
 /* ---------- bake queue (perf) ---------- */
 // Tunables. msMax / msMin: the most / least the queue may spend per frame (bakeTick adapts in between: it backs off while frames come late and
@@ -92,7 +96,24 @@ export function prebake(key, start, pri = 0, warn = null, fin = null, bands = fa
   const job = { key, start, pri, warn, fin, bands, msg, rj: null, rows: 0, ms: 0, last: 0 }; jobs.set(key, job); queue.push(job); return true;
 }
 /** queue a placed world object (same sprite as objSprite). Registry assets are drawn by the bake worker when there is one. */
-export function prebakeObj(ob, pri) { return prebake(objKey(ob), () => R.renderJob(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip), pri, ob.id, null, false, ASSETS.get(ob.id) === ob.a ? { t: 'obj', a: ob.id, p: ob.p, flip: !!ob.flip, vb: ob.vbl } : null); }
+export function prebakeObj(ob, pri) { const key = objKey(ob); if (cache.has(key) || flying.has(key)) return false; const j = jobs.get(key); if (j) { j.pri = pri; return false; } return prebake(key, () => R.renderJob(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip), pri, ob.id, null, false, workerObj(ob)); }
+/* What the worker needs to draw this object, or null if it must be drawn here. The sprite cache already assumes that a sprite with the standard key
+ * (asset id | params | flip) depends on nothing else, so such an object can be drawn from the registry's asset in the worker. Dressed objects
+ * (world/_dress.js: key = standard key + '|' + JSON of extra params, draw = the asset's draw with params + extra) are sent with the merged params.
+ * Anything else with its own key, and custom drawables (World.placeCustom: closures), cannot be sent. tools/perf.mjs --verify compares every
+ * object of the city, drawn both ways. */
+export function workerObj(ob) {
+  if (!ASSETS.has(ob.id)) return null; const key = objKey(ob), def = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : '');
+  if (key === def) return { t: 'obj', a: ob.id, p: ob.p, flip: !!ob.flip, vb: ob.vbl };
+  if (key.length > def.length + 2 && key.startsWith(def + '|{') && key.endsWith('}')) { try { const extra = JSON.parse(key.slice(def.length + 1)); let a = ob.a, n = 0; while (a && a !== ASSETS.get(ob.id) && n++ < 4) a = Object.getPrototypeOf(a); if (a === ASSETS.get(ob.id) && extra && typeof extra === 'object') return { t: 'obj', a: ob.id, p: Object.assign({}, ob.p, extra), flip: !!ob.flip, vb: ob.vbl }; } catch (e) { } }
+  return null;
+}
+/** queue an asset sprite (same sprite and key as assetSprite(a, p, flip) for a registry asset: vehicles) */
+export function prebakeAsset(a, p, flip, pri) {
+  const key = a.id + '|' + JSON.stringify(p) + (flip ? '|F' : ''); if (cache.has(key)) return false;
+  let vb = a.vb ? (typeof a.vb === 'function' ? a.vb(p) : a.vb) : null; if (!vb) { const s = typeof a.size === 'function' ? a.size(p) : a.size; vb = [-.3, -.3, 0, s[0] + .3, s[1] + .3, s[2] + .3]; } if (flip) vb = sw(vb);
+  return prebake(key, () => R.renderJob(R.screenBox(vb), () => a.draw(p), null, 3, flip), pri, null, null, false, ASSETS.get(a.id) === a ? { t: 'obj', a: a.id, p, flip: !!flip, vb } : null);
+}
 /** queue a pixSprite (characters) */
 export function prebakePix(key, sb, draw, pri) { return prebake(key, () => R.renderJob(sb, draw, null, 1), pri); }
 /** queue a character sprite: the same picture as pixSprite(key, sb, () => drawChar(spec, pose)) with the game's character art; drawn by the bake worker when there is one */
@@ -122,8 +143,8 @@ function finish(job, now) {
   if (now) slice(job, Infinity);
   jobs.delete(job.key); const i = queue.indexOf(job); if (i >= 0) queue.splice(i, 1);
   const t0 = performance.now(), res = job.rj ? R.renderResult(job.rj) : null; let out;
-  if (job.fin) job.fin(res); else { out = toSprite(res); store(job.key, out); }
-  STATS.pre++; STATS.preMs += job.ms + performance.now() - t0; return out;
+  if (job.fin) job.fin(res); else { out = toSpritePooled(res); store(job.key, out); }
+  STATS.pre++; STATS.preMs += job.ms + performance.now() - t0; if (!job.bands) slow(job.key, job.ms, now ? 'rushed' : 'queue'); return out;
 }
 /* ----- the worker's main-thread side ----- */
 let worker = null, wstate = 0, epoch = 0, seq = 0, wlast = 0;   // wstate: 0 not tried, 1 starting, 2 ready, -1 unavailable
@@ -151,7 +172,7 @@ function workerPump(t0, allow) {
     const m = landed.shift(); let key = null, f = null; for (const [k, v] of flying) if (v.n === m.n) { key = k; f = v; break; }
     if (!f) continue; flying.delete(key); if (f.ep !== epoch || cache.has(key)) continue;   // baked meanwhile on the main thread, or the season changed
     if (m.fail) { if (!jobs.has(key)) { f.job.msg = null; jobs.set(key, f.job); queue.push(f.job); } continue; }   // the worker could not draw it: main-thread queue
-    const u0 = performance.now(); store(key, toSprite({ w: m.w, h: m.h, x: m.x, y: m.y, hasLight: m.hasLight, buf: new Uint32Array(m.buf), lb: m.lb ? new Uint32Array(m.lb) : null })); STATS.wk++; STATS.wkMs += performance.now() - u0;
+    const u0 = performance.now(); store(key, toSpritePooled({ w: m.w, h: m.h, x: m.x, y: m.y, hasLight: m.hasLight, buf: new Uint32Array(m.buf), lb: m.lb ? new Uint32Array(m.lb) : null })); STATS.wk++; STATS.wkMs += performance.now() - u0;
   }
   for (let i = 0; i < queue.length && flying.size < BAKE.flying; i++) {
     const job = queue[i]; if (!job.msg || job.rj) continue;
@@ -172,10 +193,12 @@ let allow = 3;   // the current per-frame allowance in ms (between BAKE.msMin an
  * exactly as before. Returns the milliseconds used.
  */
 export function bakeTick(late) {
+  tick = (performance.now() / 1000) | 0; if (!BAKE.on) return 0;
+  if (wstate === 0) workerPump(0, 0);   // start the worker with the first frame, before there is anything to bake
   if (!queue.length && !flying.size) return 0;
   allow = late ? Math.max(BAKE.msMin, allow * .7) : Math.min(BAKE.msMax, allow + .15);
   const t0 = performance.now(); workerPump(t0, allow); let used = performance.now() - t0;
-  const wk = wstate === 2;
+  const wk = wstate === 2 || wstate === 1;   // (while the worker is still starting, its jobs wait for it)
   for (let i = 0; i < queue.length && used < allow;) {
     const job = queue[i]; if (wk && job.msg && !job.rj) { i++; continue; }   // waits for a free worker slot (or is drawn on the spot if it comes on screen first)
     if (slice(job, allow - used)) finish(job, false);

@@ -61,7 +61,7 @@ const SNOWY = new Set([GT.sidewalk, GT.plaza, GT.brickpave, GT.cobble, GT.concre
 export const outskirtChunks = world => world.name === 'city' ? FX.OUT : 0;
 
 /** Render one chunk. Returns raster result {w,h,x,y,buf,lb} (see raster.render) or null if empty. Chunks outside the map are outskirts (city only). */
-export function renderChunk(world, cx, cy) { const d = chunkDraw(world, cx, cy); return d ? R.render(d.sb, d.draw, null, 2) : null; }
+export function renderChunk(world, cx, cy, pooled = false) { const d = chunkDraw(world, cx, cy); return d ? R.render(d.sb, d.draw, null, 2, false, pooled) : null; }   // pooled: see raster.recycle (the renderer only)
 /** The same chunk as a sliced job (raster.renderJob: drawn a band of rows at a time by the renderer's bake queue); null if the chunk is empty. */
 export function chunkJob(world, cx, cy) { const d = chunkDraw(world, cx, cy); return d ? R.renderJob(d.sb, d.draw, null, 2) : null; }
 function chunkDraw(world, cx, cy) {

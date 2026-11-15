@@ -91,3 +91,4 @@
 71. (msg 111) AUDIO: the basic city ambience sounds like a white-noise machine: CUT IT for now. Music and other audio stay. Redesign the city ambience at higher fidelity; lead to pitch options first.
 72. (msg 112) (a) Laundry hamper stands in the way of the fridge at Juniper Court, maybe other homes: fix + sweep. (b) Explain the Opportunities system (are they the story missions?) and LIST them. (c) Zip Eats still shows as a LOCKED app: no more locked apps; an app simply becomes downloadable once its conditions are met.
 73. (msg 113) Asked whether the lead can procure licence-free recordings for ambience option B. Lead answered (see chat / HISTORY).
+74. (msg 114) AMBIENCE: test option D (thin recorded bed + sounds from what is on screen). Wants an artifact that simulates it before it goes into the game.

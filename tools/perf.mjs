@@ -136,8 +136,8 @@ async function runScene(br, id) {
     const note = await g.pg.evaluate(sc.run).catch(e => 'ERR ' + e.message.slice(0, 200));
     const fr = await g.pg.evaluate(() => { const P = window.__perf; P.rec = false; return { d: P.d, js: P.js }; });
     let prof = null; if (o.profile) { const { profile } = await g.cdp.send('Profiler.stop'); prof = topFns(profile); }
-    const h1 = await g.heap();
-    res = { ...stats(fr.d.slice(1), fr.js.slice(1)), heap0: h0, heap1: h1, note, errors: g.errs.slice(0, 5), prof };
+    const h1 = await g.heap(), eng = await g.pg.evaluate(() => { try { return G.renderer.perf ? G.renderer.perf() : null; } catch (e) { return null; } });
+    res = { ...stats(fr.d.slice(1), fr.js.slice(1)), heap0: h0, heap1: h1, note, errors: g.errs.slice(0, 5), prof, eng };
   } catch (e) { res = { error: e.message.slice(0, 300), errors: g.errs.slice(0, 5) }; }
   await g.ctx.close(); return res;
 }
@@ -158,7 +158,7 @@ if (o.soak) {
   result.soak = await soak(br); const p = result.soak.points; console.log(`soak ${o.soak} min: heap ${p.map(x => x.heapMB).join(' ')} MB; page errors ${result.soak.errors.length}`, result.soak.errors);
 } else {
   const ids = o.scenes === 'all' ? Object.keys(SCENES) : o.scenes.split(','); for (const id of ids) if (!SCENES[id]) { console.log('unknown scene ' + id + ' (have: ' + Object.keys(SCENES).join(', ') + ')'); process.exit(1); }
-  for (const id of ids) { const runs = []; for (let i = 0; i < o.runs; i++) { const r = await runScene(br, id); runs.push(r); console.log(id, i + 1, JSON.stringify({ ...r, prof: undefined })); } result.scenes[id] = { title: SCENES[id].title, runs }; }
+  for (const id of ids) { const runs = []; for (let i = 0; i < o.runs; i++) { const r = await runScene(br, id); runs.push(r); console.log(id, i + 1, JSON.stringify({ ...r, prof: undefined, eng: undefined })); if (r.eng) console.log('   engine:', JSON.stringify({ ...r.eng, slow: undefined }), r.eng.slow && r.eng.slow.length ? '\n   slow main-thread bakes: ' + r.eng.slow.slice(-10).join(' | ') : ''); } result.scenes[id] = { title: SCENES[id].title, runs }; }
   const rows = ['| scene | fps | 1% low fps | worst ms | >50 ms /10 s | >100 ms | JS ms p50 / p95 / worst | heap MB start -> end | errors |', '|---|---|---|---|---|---|---|---|---|'];
   for (const id of ids) { const R = result.scenes[id].runs.filter(r => r && !r.error); if (!R.length) { rows.push(`| ${id} | FAILED: ${(result.scenes[id].runs[0] || {}).error} |`); continue; }
     rows.push(`| ${id} | ${spread(R, 'fps')} | ${spread(R, 'low1')} | ${spread(R, 'worst')} | ${spread(R, 'per10s50')} | ${spread(R, 'over100')} | ${med(R.map(r => r.jsP50))} / ${med(R.map(r => r.jsP95))} / ${spread(R, 'jsWorst')} | ${med(R.map(r => r.heap0))} -> ${med(R.map(r => r.heap1))} | ${R.reduce((n, r) => n + r.errors.length, 0)} |`); }

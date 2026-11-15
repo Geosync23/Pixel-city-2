@@ -51,7 +51,7 @@ export function book(o) {
   const id = o.id, P = PEOPLE[id], s = st(); if (!P || stageIdx(id) < 1) return null; const first = o.type === 'first' || !ror(id).dates, T = first ? null : DATE_TYPES[o.type]; if (!first && !T) return null;
   const f = FIRST_DATES[id], key = first ? f.place : o.venue || T.venues[0], d = dest(key, id); if (!d || d.any || d.phone) return null; if (dateOn(Math.floor(o.t / DAY))) return null;
   const title = first ? `A first date with ${short(id)}` : fill(T.plan, { npc: short(id), event: o.title || 'the day out' }), dur = first ? 75 : T.minutes || 60;
-  const appt = safe(() => G.planner.add({ title, placeId: d.placeId || null, t: Math.round(o.t), dur, kind: 'friend', withNpc: id, chosen: true, src: 'mine', data: Object.assign({ relDate: id, blurb: 'A date' }, d.pos ? { pos: d.pos } : null) }), null); if (!appt) return null;
+  const appt = safe(() => G.planner.add({ title, placeId: d.placeId || null, t: Math.round(o.t), dur, kind: 'friend', withNpc: id, chosen: true, data: Object.assign({ relDate: id, blurb: 'A date' }, d.pos ? { pos: d.pos } : null) }), null); if (!appt) return null;
   s.dates[appt] = { id, type: first ? 'first' : o.type, venue: key, t: Math.round(o.t), dur, appt, done: 0 };
   mood('rel_butterflies'); G.emit('rel:date:booked', id, s.dates[appt].type, appt); return appt;
 }

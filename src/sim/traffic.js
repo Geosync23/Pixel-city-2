@@ -56,7 +56,7 @@ function spawn(kindId, ref, opts) {
   const k = KINDS[kindId]; if (!k || !k.ok || !ref || !C) return null; let v = free.pop(); if (!v) { v = new Veh(); all.push(v); C.ents.push(v); }
   v.reset(); const params = (opts && opts.params) || {}; if (k.color && !params.color) params.color = COLORS[Math.floor(Math.random() * COLORS.length)];
   v.setKind(k, params); if (opts) for (const key in opts) if (key !== 'params') v[key] = opts[key];
-  v.active = true; v.hidden = false; place(v, ref.e, ref.off || 1, ref.s); T.list.push(v); return v;
+  v.active = true; v.hidden = false; place(v, ref.e, ref.off || 1, ref.s); T.list.push(v); v.prebake(300);   /* perf: its sprite is baked ahead (vehicles spawn off screen), not in the frame it drives into view */ return v;
 }
 function release(v) {
   const i = T.list.indexOf(v); if (i < 0) return; T.list[i] = T.list[T.list.length - 1]; T.list.pop(); leaveNode(v);

@@ -40,6 +40,7 @@ import * as SMALLBITS from './_rel_small.js';
 import * as VERBS from './_rel_verbs.js';
 import * as DATES from './_rel_dates.js';
 import * as LIFE from './_rel_life.js';
+import { FLATS, flatRoom } from '../scenes/rooms/rel_flat.js';
 
 export const order = 146;   /* after chapters (140), jobstory (126), myday (132), navgoals (136) */
 const NEED_FLOOR = 30;
@@ -120,6 +121,8 @@ async function runOps(key, ops, x) {
 async function start(id, o = {}) {
   const sc = SC[id]; if (!sc) return null; if (running) return 'busy'; const s = st(), d = dest(sc.place, sc.person);
   G.emit('rel:scene:start', id);
+  /* a scene set in their flat: you are let in (one small room, dressed for them), and seen out to their door afterwards */
+  let flat = null; if (d && d.flat && G.scene.id !== 'int:' + d.flat) { flat = d.flat; s.flatBack = { x: G.player.x, y: G.player.y }; for (const p of sc.speakers) safe(() => G.social.place(p, null, { minutes: 240 })); await G.go('int:' + d.flat); await sleep(500); }
   const look = lookFor(sc, o), P = G.player;
   if (!(d && d.phone)) {      /* everybody in the scene stands with you: somebody across the room (behind a counter, at a far table) comes over */
     const far = sc.speakers.filter(p => { const c = safe(() => G.social.char(p), null); return c && Math.hypot(c.x - P.x, c.y - P.y) > 3.6; }); if (far.length) withUs(far, look, true); withUs(sc.speakers, look);
@@ -128,6 +131,7 @@ async function start(id, o = {}) {
   const r = await runOps(id, compile(sc), { person: sc.person === 'kids' ? 'kids' : sc.person, look, phone: !!(d && d.phone), sub: '' });
   if (r === 'done') finish(sc); else if (r === 'out') { toast('It will keep. They will pick it up where you left off.', 'info', 3600); const of = s.off[id]; if (of) of.snooze = G.state.t + 30; }
   if (r !== 'busy') { sendHome(); uncam(); }
+  if (flat && r !== 'busy' && r !== 'gone' && G.scene.id === 'int:' + flat) { for (const p of sc.speakers) safe(() => G.social.place(p)); await sleep(600); await G.go('city', s.flatBack ? { x: s.flatBack.x, y: s.flatBack.y } : {}); }
   return r;
 }
 function finish(sc) {
@@ -203,7 +207,7 @@ function offer(id, o = {}) {
 function pin(id) {
   const sc = SC[id], s = st(), o = s.off[id]; if (!sc || !o || o.done || pinOf(o) || apptOf(o)) return null; const d = dest(sc.place, sc.person), w = nextWindow(sc.window); if (!d || !w) return null;
   o.sent = true; o.pinDay = today(); o.pin = safe(() => G.planner.suggest({ title: titleOf(sc, d), placeId: d.placeId || null, t: Math.max(w.from, Math.min(Math.ceil(G.state.t / 30) * 30, w.to - 40)), dur: 60, kind: 'friend', data: Object.assign({ rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) }), null);
-  safe(() => G.emit('myday:change')); return o.pin;
+  safe(() => G.emit('myday:change')); safe(() => G.firstTime.offer('rel_invite')); return o.pin;
 }
 /* the Idea is pinned on the day the scene can be played (My Day shows pins for today); dismissed or missed, it comes back after three days, with no second notification */
 function pinDue(id) { const sc = SC[id], o = st().off[id]; if (!o || !o.sent || o.done || pinOf(o) || apptOf(o)) return; const w = nextWindow(sc.window); if (!w || Math.floor(w.from / DAY) !== today()) return; if (o.pinDay !== undefined && today() - o.pinDay < 3) return; pin(id); }
@@ -212,7 +216,7 @@ HOOK.inviteArrived = id => { const o = st().off[id]; if (o) { o.sent = true; pin
 function onAdd(x) {
   const pinId = x && x.idea && x.idea.pinId, apptId = x && x.apptId; if (!pinId || !apptId || apptId === true) return; const s = st();
   const id = Object.keys(s.off).find(k => s.off[k].pin === pinId); if (id) { const sc = SC[id], o = s.off[id], d = dest(sc.place, sc.person), a = safe(() => G.planner.get(apptId), null); o.appt = apptId;
-    if (a) safe(() => G.planner.update(apptId, { kind: 'friend', withNpc: B.castOf(lead(sc)) && !d.phone ? lead(sc) : undefined, data: Object.assign({}, a.data, { rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) })); return; }
+    if (a) safe(() => G.planner.update(apptId, { kind: 'friend', withNpc: B.castOf(lead(sc)) && !d.phone ? lead(sc) : undefined, data: Object.assign({}, a.data, { rel: id, blurb: sc.title, idea: undefined }, d.pos ? { pos: d.pos } : null) })); return; }
   safe(() => DATES.onAdd(pinId, apptId));
 }
 /** every game minute: put the people of an open invitation at the place during its window (an accepted one at home: from its time) */
@@ -225,7 +229,6 @@ function stageOffers() {
     const a = apptOf(o); if (d.home && !(a && G.state.t >= a.t - 20)) continue;
     if (o.staged === w.from) continue; o.staged = w.from;
     for (const p of sc.speakers) { if (!B.castOf(p)) continue; safe(() => { if (!(G.social.known() || []).includes(p)) G.social.meet(p); });
-      if (d.flat) continue;
       if (d.room) safe(() => G.social.place(p, d.room, { until: w.to, anim: 'stand' })); else safe(() => G.social.place(p, d.placeId || d.key, { x: d.x + sc.speakers.indexOf(p), y: d.y, scene: 'city', until: w.to, anim: 'stand' })); }
   }
 }
@@ -356,6 +359,7 @@ const debug = {
 
 export function init() {
   st(); B.regMoods();
+  HOOK.flatOf = p => (FLATS[p] ? { flat: flatRoom(p), name: FLATS[p].name } : null);
   HOOK.start = start; HOOK.runOps = runOps; HOOK.compile = steps => { const k = '_'; delete PROG[k]; return compile({ id: k, steps }); }; HOOK.offer = offer; HOOK.busy = busy; HOOK.withUs = withUs; HOOK.sendHome = sendHome; HOOK.SC = SC; HOOK.seen = seen; HOOK.isRunning = () => running; HOOK.card = card;
   G.rel = {
     stage, stageLabel: B.stageLabel, warmth: B.warmth, addWarmth: B.addWarmth, friendStage: B.friendStage, partner: B.partner, remember: B.remember, remembers: B.remembers, pick: id => st().picks[id],

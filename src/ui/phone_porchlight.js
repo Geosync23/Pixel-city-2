@@ -25,7 +25,7 @@ export const order = 147;
 const DAY = 1440, WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const S = () => { const r = G.state.rel || (G.state.rel = {}); const a = r.app || (r.app = {}); for (const [k, v] of [['hidden', []], ['chats', {}], ['prompts', {}]]) if (a[k] === undefined) a[k] = v; return a; };
 const today = () => Math.floor(G.state.t / DAY);
-const first = id => CAST_BY_ID[id].name.split(' ')[0];
+const first = id => { const c = CAST_BY_ID[id], sh = c.short || c.name; return /[\s.]/.test(sh) ? c.name.split(' ')[0] : sh; };
 const met = id => safe(() => G.social.known().includes(id), false);
 const fillT = (t, x) => String(t).replace(/\{name\}/g, (G.state.player && G.state.player.name) || 'you').replace(/\{prompt\}/g, (x && x.prompt) || '');
 let tab = 'cards';
@@ -35,7 +35,7 @@ const SKY = { oldtown: ['#f3c98b', '#b5651d', '#7a4a2a'], harbor: ['#a9d6e5', '#
 const sprites = new Map();
 function sprite(spec, anim = 'stand', frame = 0) { const k = anim + frame; let m = sprites.get(spec); if (!m) sprites.set(spec, m = {}); if (!m[k]) { const A = charArt(); try { m[k] = { c: toSprite(rasterRender(A.CHAR_SB, () => A.drawChar(spec, { anim, frame, dir: 1 }), null, 0)).c, A }; } catch (e) { m[k] = m.stand0 || null; } } return m[k]; }
 /** a w x h pixel picture (scaled by css): backdrop + the figure. kind: 0 portrait (3/4 figure), 1..3 the three photo tiles */
-function picture(id, w, h, kind, spec) {
+function picture(id, w, h, kind, spec, lift = 0) {
   const cv = el('canvas.pix.pl-pic'); cv.width = w; cv.height = h; const g = cv.getContext('2d'), c = CAST_BY_ID[id] || {}, pal = SKY[c.district] || SKY.downtown, seed = [...String(id)].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7 + kind * 13) >>> 0, rnd = i => ((seed * (i + 3) * 2654435761) >>> 8) % 1000 / 1000;
   g.fillStyle = kind === 2 ? pal[1] : pal[0]; g.fillRect(0, 0, w, h);
   if (kind !== 2) { g.fillStyle = '#ffffff55'; g.fillRect(Math.floor(rnd(1) * w * .6), 3 + Math.floor(rnd(2) * 6), 9, 2); g.fillRect(Math.floor(rnd(3) * w * .7) + 4, 9 + Math.floor(rnd(4) * 5), 6, 2); }
@@ -43,8 +43,8 @@ function picture(id, w, h, kind, spec) {
   const hz = Math.round(h * (kind ? .62 : .58)); g.fillStyle = pal[2]; for (let x = 0, i = 0; x < w; i++) { const bw = 5 + Math.floor(rnd(10 + i) * 8), bh = 6 + Math.floor(rnd(30 + i) * (kind === 2 ? 5 : 14)); g.fillRect(x, hz - bh, bw, bh); if (rnd(50 + i) > .5) { g.fillStyle = '#ffe9a6'; g.fillRect(x + 2, hz - bh + 2, 1, 1); g.fillStyle = pal[2]; } x += bw + 1; }
   g.fillStyle = pal[1]; g.fillRect(0, hz, w, h - hz); g.fillStyle = '#00000022'; g.fillRect(0, hz, w, 1); for (let i = 0; i < 6; i++) g.fillRect(Math.floor(rnd(70 + i) * w), hz + 3 + Math.floor(rnd(80 + i) * (h - hz - 4)), 4, 1);
   const sp = spec || safe(() => G.rel.who(id, 'date').spec, null), anim = kind === 2 ? 'sit' : kind === 3 ? 'wave' : 'stand', s = sp && (sprite(sp, anim, 0) || sprite(sp)); if (!s) return cv;
-  const A = s.A, sc = kind ? 2 : 3, fw = 20, fh = kind ? 30 : 24, sx = -A.CHAR_SB[0] - fw / 2, sy = -A.CHAR_SB[1] - 30;
-  g.imageSmoothingEnabled = false; g.drawImage(s.c, sx, sy, fw, fh, Math.round(w / 2 - fw * sc / 2 + (kind === 1 ? -6 : kind === 3 ? 5 : 0)), h - fh * sc + (kind ? 0 : 0), fw * sc, fh * sc);
+  const A = s.A, sc = kind ? (w < 50 ? 1.5 : 2) : 3, fw = 20, fh = kind ? (w < 50 ? 20 : 27) : 21, sx = -A.CHAR_SB[0] - fw / 2, sy = -A.CHAR_SB[1] - 26;
+  g.imageSmoothingEnabled = false; g.drawImage(s.c, sx, sy, fw, fh, Math.round(w / 2 - fw * sc / 2 + (kind === 1 ? -6 : kind === 3 ? 5 : 0)), Math.round(h - fh * sc - lift), fw * sc, fh * sc);
   return cv;
 }
 
@@ -85,7 +85,7 @@ function helloSheet(id, ctx, prompt) {
 function cardView(id) {
   return (b, ctx) => {
     const P = PEOPLE[id], pr = P.profile, has = !!S().chats[id];
-    b.append(el('div.pl-hero', null, picture(id, 119, 100, 0), el('div.pl-hero-t', null, el('b', { text: `${first(id)}, ${P.age}` }), el('small', { text: `${P.pronouns} · ${P.work.title}` }))),
+    b.classList.add('pl'); b.append(el('div.pl-hero', null, picture(id, 119, 100, 0, null, 15), el('div.pl-hero-t', null, el('b', { text: `${first(id)}, ${P.age}` }), el('small', { text: `${P.pronouns} · ${P.work.title}` }))),
       el('p.pl-head', { text: pr.headline }), el('div.pl-sec', { text: 'About' }), el('p.pl-about', { text: pr.about }));
     for (const [q, a] of pr.prompts) b.append(el('div.pl-prompt', null, el('small', { text: q }), el('b', { text: a }), has ? null : el('button.pl-reply', { 'data-pl': 'reply', onclick: () => helloSheet(id, ctx, q) }, 'Reply to this')));
     b.append(el('div.pl-tiles', null, ...pr.photos.map((cap, i) => el('figure', null, picture(id, 55, 55, i + 1), el('figcaption', { text: cap })))),
@@ -98,19 +98,19 @@ function meetSheet(id, ctx) {
   const types = safe(() => G.rel.date.types(id), []); let type = types.length === 1 ? types[0] : null, venue = type && type.venues[0] ? type.venues[0].key : null, t = null;
   const sh = el('div.pl-sheet.meet'); const draw = () => {
     const times = type ? safe(() => G.rel.date.times(id, type.id, venue), []) : [], days = [...new Set(times.map(x => Math.floor(x.t / DAY)))], d0 = today(), day = t ? Math.floor(t / DAY) : days[0];
-    sh.replaceChildren(el('b', { text: 'What sort of thing?' }), el('div.pl-types', null, ...types.slice(0, 9).map(T => el('button.pl-type' + (type === T ? '.on' : ''), { 'data-pl': 'type:' + T.id, onclick: () => { type = T; venue = T.venues[0] ? T.venues[0].key : null; t = null; draw(); } }, el('b', { text: T.name }), el('small', { text: T.sub })))),
+    sh.replaceChildren(...[el('b', { text: 'What sort of thing?' }), el('div.pl-types', null, ...types.slice(0, 9).map(T => el('button.pl-type' + (type === T ? '.on' : ''), { 'data-pl': 'type:' + T.id, onclick: () => { type = T; venue = T.venues[0] ? T.venues[0].key : null; t = null; draw(); } }, el('b', { text: T.name }), el('small', { text: T.sub })))),
       type && type.venues.length > 1 ? el('div.pl-chips', null, ...type.venues.map(v => chip(v.name, venue === v.key ? 'on' : '', () => { venue = v.key; t = null; draw(); }))) : null,
       type ? el('div.pl-days', null, ...[0, 1, 2, 3, 4, 5].map(k => { const d = d0 + k, ok = days.includes(d); return el('button.pl-day' + (ok ? '' : '.off') + (day === d && ok ? '.on' : ''), { disabled: !ok || undefined, 'data-pl': 'day:' + k, onclick: () => { t = times.find(x => Math.floor(x.t / DAY) === d).t; draw(); } }, el('small', { text: k === 0 ? 'Today' : WD[d % 7] }), el('b', { text: ok ? '•' : '' })); })) : null,
       type && !times.length ? el('p', { text: `${first(id)} has no free time for that this week. Try another idea.` }) : null,
       type && day !== undefined ? el('div.pl-chips', null, ...times.filter(x => Math.floor(x.t / DAY) === day).map(x => chip(x.label.split(', ')[1], t === x.t ? 'on' : '', () => { t = x.t; draw(); }))) : null,
       el('button.pl-hello', { 'data-pl': 'askdate', disabled: !(type && t) || undefined, onclick: () => { const ok = safe(() => G.rel.date.book({ id, type: type.id, venue, t }), null); sh.remove(); if (ok) { say(id, 'Would you like to meet? ' + type.name.replace(/^A first date: /, '') + ', ' + times.find(x => x.t === t).label + '.', true); say(id, PEOPLE[id].chat.yes); S().chats[id].unread = 0; ctx.refresh(); ctx.tip("It's on your day."); } else ctx.tip('That day is taken. Pick another.'); } }, 'Ask'),
-      el('button.pl-quiet', { text: 'Not now', onclick: () => sh.remove() }));
+      el('button.pl-quiet', { text: 'Not now', onclick: () => sh.remove() })].filter(Boolean));
   };
   draw(); ctx.body.append(sh); sh.scrollIntoView({ block: 'end' });
 }
 function chatView(id) {
   return (b, ctx) => {
-    const c = S().chats[id], P = PEOPLE[id]; if (!c) return b.append(empty('app.porchlight', 'No chat yet', 'Say hello from their card.')); c.unread = 0;
+    b.classList.add('pl'); const c = S().chats[id], P = PEOPLE[id]; if (!c) return b.append(empty('app.porchlight', 'No chat yet', 'Say hello from their card.')); c.unread = 0;
     b.append(el('div.pl-chat-h', null, picture(id, 40, 40, 1), el('div', null, el('b', { text: first(id) }), el('small', { text: G.rel.stageLabel(id) || (c.due ? 'They answer when they have a minute' : 'Porchlight') }))));
     const list = el('div.pl-msgs'); for (const m of c.msgs) list.append(el('div.pl-msg' + (m.me ? '.me' : ''), { text: m.text })); b.append(list);
     const answered = c.msgs.some(m => !m.me), datedOrBooked = safe(() => G.rel.date.list().some(d => d.id === id), false), si = ['none', 'spark', 'dating', 'exclusive', 'partner', 'engaged', 'married'].indexOf(G.rel.stage(id));
@@ -127,7 +127,7 @@ function chatView(id) {
 }
 function meView(b, ctx) {
   const a = S(), open = G.rel.openTo(), PL = PORCHLIGHT.player, me = G.state.player || {};
-  b.append(el('div.pl-hero', null, picture('@me', 119, 100, 0, G.player && G.player.spec), el('div.pl-hero-t', null, el('b', { text: me.name || 'You' }), el('small', { text: 'Your card, as others see it' }))));
+  b.append(el('div.pl-hero', null, picture('@me', 119, 100, 0, G.player && G.player.spec, 15), el('div.pl-hero-t', null, el('b', { text: me.name || 'You' }), el('small', { text: 'Your card, as others see it' }))));
   const qs = PL.prompts.slice(0, 3); for (const q of qs) { const cur = a.prompts[q] || PL.answers[q][0]; b.append(el('div.pl-prompt', null, el('small', { text: q }), el('b', { text: cur }), el('div.pl-chips', null, ...PL.answers[q].map((t, i) => chip(String(i + 1), cur === t ? 'on' : '', () => { a.prompts[q] = t; ctx.refresh(); })))) ); }
   b.append(el('div.pl-sec', { text: 'Open to' }), el('div.pl-chips', null, ...[['w', 'Women'], ['m', 'Men'], ['n', 'Nonbinary people']].map(([k, n]) => chip(n, open.includes(k) ? 'on' : '', () => { const s = new Set(open); if (s.has(k)) s.delete(k); else s.add(k); G.rel.openTo([...s]); ctx.refresh(); }))),
     el('div.pl-sec', { text: 'Looking for' }), el('div.pl-chips', null, ...PL.lookingFor.map(t => chip(t, (G.state.rel.looking || 'Not sure yet') === t ? 'on' : '', () => { G.state.rel.looking = t; ctx.refresh(); }))),

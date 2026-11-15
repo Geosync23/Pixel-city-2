@@ -3,7 +3,7 @@
 // `ne` is the edge it takes at the next node. Display position rounds perpendicular turns with a quarter arc.
 import { U } from '../engine/raster.js';
 import * as RA from '../engine/raster.js';
-import { assetSprite, toSprite } from '../engine/sprites.js';
+import { assetSprite, toSprite, prebakeAsset } from '../engine/sprites.js';
 import { charArt } from '../core/char.js';
 let RSEED = 97; const rnd = () => (RSEED = (RSEED * 16807) % 2147483647) / 2147483647;
 const RIDERS = { 'veh.scooter': [.62, .52], 'veh.motorbike': [.8, .6], 'veh.bicycle': [.7, .62] }; // seat x (from the rear, local), seat height
@@ -31,6 +31,14 @@ export class Veh {
   }
   setParams(p) { this.params = Object.assign({}, this.params, p); this.spr.fill(undefined); }
   sprite() { const e = this.e; if (!e) return null; const i = (e.axis === 'y' ? 4 : 0) + (e.d < 0 ? 2 : 0) + (T.lit && !this.stand ? 1 : 0); let s = this.spr[i]; if (s === undefined) s = this.spr[i] = this.mk(i); return s; }
+  /** perf: called by the renderer while this vehicle is just off screen: have its sprite baked ahead (same asset, params and key as mk() below; two-wheelers with a rider are drawn on demand as before) */
+  prebake(pri, all) {
+    const e = this.e; if (!e || !this.asset || (RIDERS[this.asset.id] && !this.stand)) return; const i0 = (e.axis === 'y' ? 4 : 0) + (e.d < 0 ? 2 : 0) + (T.lit && !this.stand ? 1 : 0);
+    for (let q = 0; q < (all ? 4 : 1); q++) {   // all: the four headings too (a vehicle that turns in view), a little later than the one it shows now
+      const i = q ? (i0 & 1) + q * 2 : i0; if ((q && i === i0) || this.spr[i] !== undefined) continue;
+      const p = Object.assign({}, this.params, { dir: i & 2 ? -1 : 1, lights: !!(i & 1) }); if (!(i & 1)) p.beam = false; try { prebakeAsset(this.asset, p, i >= 4, q ? pri + 200 : pri); } catch (err) { }
+    }
+  }
   mk(i) {
     const flip = i >= 4, p = Object.assign({}, this.params, { dir: i & 2 ? -1 : 1, lights: !!(i & 1) }); if (!(i & 1)) p.beam = false; let s = null;
     const rd = RIDERS[this.asset.id];

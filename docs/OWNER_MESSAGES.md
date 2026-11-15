@@ -453,3 +453,6 @@ Why is zip eats still a locked app. No more of that. Just make it download able 
 
 ## 113 (2026-11-15) — ambience option B: can the lead get licence-free recordings?
 If we go for b, can you procure licence free recordings for us?
+
+## 114 (2026-11-15) — test ambience option D with a simulation
+Lets test d. Show me an artifact that simulates it

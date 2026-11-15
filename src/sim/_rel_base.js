@@ -50,7 +50,7 @@ const xspec = {};
 const PRON = { 'she/her': 'w', 'he/him': 'm', 'they/them': 'n' };
 export const castOf = id => CAST_BY_ID[id] || null;
 /* on first-name terms once there is Something There (cast.js shorts are "Chef Haru", "Coach Tasha", "Mr. Quill") */
-export const short = id => { const c = castOf(id); if (c && isRom(id) && G.state.rel && G.state.rel.ro[id] && G.state.rel.ro[id].stage !== 'none') return c.name.split(' ')[0]; return c ? c.short || c.name : (SPEAKERS_EXTRA[id] || {}).short || id; };
+export const short = id => { const c = castOf(id); if (c && isRom(id) && G.state.rel && G.state.rel.ro[id] && G.state.rel.ro[id].stage !== 'none') { const sh = c.short || c.name; return /[\s.]/.test(sh) ? c.name.split(' ')[0] : sh; } return c ? c.short || c.name : (SPEAKERS_EXTRA[id] || {}).short || id; };
 export const full = id => { const c = castOf(id); return c ? c.name : (SPEAKERS_EXTRA[id] || {}).name || id; };
 export function who(id, look) {
   const w = chWho(id);
@@ -108,7 +108,7 @@ export function setStage(id, sg, quiet) {
 }
 export function openTrack(id, how) {
   if (canStart(id) !== true || stage(id) !== 'none') return false; const r = ror(id); if (r.closed !== undefined) { remember(id, 'tried_before'); delete r.closed; }
-  r.pts = Math.max(r.pts, 2); setStage(id, 'spark'); r.how = how || 'world'; return true;
+  r.pts = Math.max(r.pts, 2); setStage(id, 'spark'); r.how = how || 'world'; safe(() => G.firstTime.offer('rel_romance')); return true;
 }
 export const pushNews = kind => { const s = st(); s.news = s.news.filter(n => n.kind !== kind && today() - n.day <= 2); s.news.push({ kind, day: today() }); };
 
@@ -181,7 +181,8 @@ export function dest(key, person) {
   if (key === 'phone') return { key, phone: true, name: 'on the telephone' };
   if (key === 'home') { const d = fromResolved('home', safe(() => resolve('home:player'), null)); if (d) d.home = true; return d; }
   if (key === 'theirs') {
-    const P = PEOPLE[person], flat = safe(() => HOOK.flatOf(person), null); if (flat) { const d = fromResolved(key, safe(() => resolve(P.home.anchor), null)) || { key }; return Object.assign(d, flat); }
+    const P = PEOPLE[person], flat = safe(() => HOOK.flatOf(person), null);
+    if (flat) { const a = safe(() => resolve(P.home.anchor), null) || safe(() => resolve('spot:building_stoop'), null); if (a) { const f = kerb(a.x + 1.5, a.y + 1.5); return { key, name: flat.name, room: null, x: f.x, y: f.y, spot: true, door: true, placeId: (safe(() => G.places.get(a.root || a.room), null) || {}).id || null, pos: { x: f.x, y: f.y, name: 'their door' }, flat: flat.flat }; } }
     const hr = homeRoomOf(person === 'kids' ? 'jules' : person); if (hr) return fromResolved(key, safe(() => resolve(hr), null));
     if (P && P.home && P.home.anchor) { const d = fromResolved(key, safe(() => resolve(P.home.anchor), null)); if (d) { d.door = true; d.name = 'their door'; return d; } }
     const c = castOf(person), w = c && c.work && c.work.venue; return w ? dest(w, person) : dest('spot:building_stoop', person);
@@ -195,7 +196,7 @@ export function dest(key, person) {
 }
 export function at(d) {
   if (!d || !G.scene) return false; if (d.any || d.phone) return true;
-  if (d.flat) return G.scene.id === 'int:' + d.flat;
+  if (d.flat && G.scene.id === 'int:' + d.flat) return true;
   if (d.room) return G.scene.id === 'int:' + d.room || (d.root && G.scene.id === 'int:' + d.root && !ROOMS.has(d.room));
   return G.scene.id === 'city' && Math.hypot(G.player.x - d.x, G.player.y - d.y) < (d.door ? 5 : 7.5);
 }

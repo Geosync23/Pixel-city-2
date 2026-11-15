@@ -21,7 +21,7 @@ const cd = (id, v) => (frr(id).cd || {})[v] || 0, setCd = (id, v, h) => { const 
 const lastTalk = id => safe(() => G.state.social.npcs[id].lastTalkDay, -1);
 const cookedDish = () => safe(() => G.inv.items().find(s => /^meal_/.test(s.id)), null);
 const eventSoon = () => safe(() => G.planner.list(G.state.t, G.state.t + 2 * DAY, { events: true }).find(a => a.event && a.placeId), null);
-function deciding() { const d = today(), s = st(), e = s.small.ev || {}; if (Object.values(s.dates).some(x => !x.done && x.t - G.state.t < 2 * DAY && x.t > G.state.t)) return 'heart'; if (!safe(() => G.jobs.current(), null) || d - (e.promoted || -9) <= 2) return 'work'; if (d - (e.moved || -9) <= 7) return 'home'; if (d - (e.chapter || -9) <= 2) return 'family'; return null; }
+function deciding() { const d = today(), s = st(), e = s.small.ev || {}; if (Object.values(s.dates).some(x => !x.done && x.t - G.state.t < 2 * DAY && x.t > G.state.t)) return 'heart'; if (d - (e.promoted || -9) <= 2 || d - (e.hired || -9) <= 2) return 'work'; if (d - (e.moved || -9) <= 7) return 'home'; if (d - (e.chapter || -9) <= 2) return 'family'; return null; }
 const freshNews = id => { const s = st(); return s.news.filter(n => today() - n.day <= 2 && !((s.told[n.kind + ':' + n.day] || []).includes(id))); };
 const otherFriend = (ses) => safe(() => Object.keys(G.social._rt()).find(o => o !== ses.id && fr(o) >= 40 && G.social.char(o) && !B.flag('knows:' + [ses.id, o].sort().join(':')) && Math.hypot(G.social.char(o).x - G.player.x, G.social.char(o).y - G.player.y) < 9), null);
 const walking = id => { const w = st().walk; return !!w && w.id === id && w.until > G.state.t; };
@@ -165,5 +165,6 @@ export function init() {
     if (cs !== true) return; r.flirts = (r.flirts || 0) + 1; if (r.flirts >= 2 && fr(id) >= 15) { openTrack(id, 'flirt'); mood('rel_butterflies'); }
   });
   G.on('social:gift', (id, item, kind) => { if (kind === 'loved' && isRom(id)) addWarmth(id, WARMTH.giftLoved, 'gift'); });
+  G.on('job:hired', () => { const sm = st().small; (sm.ev || (sm.ev = {})).hired = today(); });
 }
 export { ITEM_BY_ID, RECIPE_BY_ID, toast };

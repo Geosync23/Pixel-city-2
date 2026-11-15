@@ -73,16 +73,34 @@ export function screenBox(b) {
  * off = world offset [x,y,z] applied to everything drawn (and to sb).
  * Returns {w,h,x,y,buf,lb,hasLight}: buf = colour (ABGR uint32), lb = light layer (pixels that glow at night).
  */
-export function render(sb, draw, off, pad = 3, flip = false) {
+export function render(sb, draw, off, pad = 3, flip = false, pooled = false) {
   off = off || [0, 0, 0];
   const o = WS(off[0], off[1], off[2] || 0);
   const x0 = Math.floor(sb[0] + o[0]) - pad, y0 = Math.floor(sb[1] + o[1]) - pad;
   const w = Math.max(1, Math.ceil(sb[2] + o[0]) - x0 + pad), h = Math.max(1, Math.ceil(sb[3] + o[1]) - y0 + pad);
   const prev = [T, MODE, OFX, OFY, OFZ, FL];
-  T = { buf: new Uint32Array(w * h), lb: new Uint32Array(w * h), w, h, ox: x0, oy: y0, hasLight: false, cy0: 0, cy1: h };
+  T = { buf: pooled ? take(w * h) : new Uint32Array(w * h), lb: pooled ? take(w * h) : new Uint32Array(w * h), w, h, ox: x0, oy: y0, hasLight: false, cy0: 0, cy1: h };
   MODE = 0; OFX = off[0]; OFY = off[1]; OFZ = off[2] || 0; FL = !!flip;
   try { draw(); } finally { var out = T;[T, MODE, OFX, OFY, OFZ, FL] = prev; }
   return { w, h, x: x0, y: y0, buf: out.buf, lb: out.lb, hasLight: out.hasLight };
+}
+/*
+ * Pixel buffer pool (perf). A sprite's two pixel buffers live only until they are copied into canvases; allocating megabytes of typed arrays
+ * for every sprite and ground chunk made the garbage collector run a full collection every few bakes (30-60 ms pauses on a phone-speed CPU).
+ * render(..., pooled = true) / renderJob() take zeroed buffers from this pool (views of exactly w*h pixels), and the caller hands them back with
+ * recycle(result) once the pixels are on a canvas. Only engine/sprites.js does this, for results that never leave it; everything else that
+ * calls render() gets fresh arrays as before and may keep them.
+ */
+const POOL = []; let poolBytes = 0; const POOL_MAX = 24e6;
+function take(n) {
+  let best = -1; for (let i = 0; i < POOL.length; i++) { const L = POOL[i].length; if (L >= n && L <= n * 3 + 4096 && (best < 0 || L < POOL[best].length)) best = i; }
+  if (best < 0) return new Uint32Array(n);
+  const a = POOL[best]; POOL[best] = POOL[POOL.length - 1]; POOL.pop(); poolBytes -= a.length * 4; a.fill(0, 0, n); return a.length === n ? a : a.subarray(0, n);
+}
+/** give a render result's buffers back to the pool (only for results made with pooled = true / renderJob, and only when nothing uses them any more) */
+export function recycle(r) {
+  for (const v of [r.buf, r.lb]) { if (!v) continue; const a = v.byteOffset === 0 && v.length * 4 === v.buffer.byteLength ? v : new Uint32Array(v.buffer); if (poolBytes + a.length * 4 > POOL_MAX || POOL.length >= 24) continue; POOL.push(a); poolBytes += a.length * 4; }
+  r.buf = r.lb = null;
 }
 /*
  * Sliced rendering (perf: engine/sprites.js bakes sprites ahead of the camera a few milliseconds per frame instead of all at once).
@@ -97,7 +115,7 @@ export function renderJob(sb, draw, off, pad = 3, flip = false) {
   const o = WS(off[0], off[1], off[2] || 0);
   const x0 = Math.floor(sb[0] + o[0]) - pad, y0 = Math.floor(sb[1] + o[1]) - pad;
   const w = Math.max(1, Math.ceil(sb[2] + o[0]) - x0 + pad), h = Math.max(1, Math.ceil(sb[3] + o[1]) - y0 + pad);
-  return { T: { buf: new Uint32Array(w * h), lb: new Uint32Array(w * h), w, h, ox: x0, oy: y0, hasLight: false, cy0: 0, cy1: 0 }, draw, off, flip: !!flip, w, h, row: 0 };
+  return { T: { buf: take(w * h), lb: take(w * h), w, h, ox: x0, oy: y0, hasLight: false, cy0: 0, cy1: 0 }, draw, off, flip: !!flip, w, h, row: 0 };
 }
 export function renderStep(job, rows) {
   const t = job.T; if (job.row >= t.h) return true;

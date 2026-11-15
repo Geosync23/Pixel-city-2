@@ -1,7 +1,7 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
 import { WS, U, screenBox, renderJob, renderStep, renderResult } from './raster.js';
 import { renderChunk, chunkJob, CH, outskirtChunks } from './ground.js';
-import { toSprite, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, BAKE } from './sprites.js';
+import { toSpritePooled, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, workerObj, BAKE } from './sprites.js';
 import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -15,14 +15,18 @@ function behind(A, B) {
   if (A[5] <= B[2] + 1e-6) return true; if (B[5] <= A[2] + 1e-6) return false;
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
 }
-/** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint} */
-export function sortItems(L) {
-  const n = L.length, deps = new Array(n);
-  for (let i = 0; i < n; i++) deps[i] = null;
-  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if (behind(L[i].B, L[j].B)) (deps[j] || (deps[j] = [])).push(i); else (deps[i] || (deps[i] = [])).push(j); } }
-  const out = [], st = new Uint8Array(n), order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
-  const stack = [];
-  for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (d && idx < d.length) { stack[stack.length - 1]++; const c = d[idx]; if (!st[c]) { st[c] = 1; stack.push(c, 0); } } else { stack.length -= 2; out.push(L[i]); } } }
+/** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint}. n: only the first n items of L; out: array to fill (perf: the renderer reuses its lists; the scratch arrays below are reused too, so a frame allocates nothing here) */
+let sDeps = [], sCnt = new Int32Array(256), sOrder = new Int32Array(256), sStack = new Int32Array(1024), sSt = new Uint8Array(256);
+export function sortItems(L, n = L.length, out = []) {
+  if (sCnt.length < n) { sCnt = new Int32Array(n * 2); sOrder = new Int32Array(n * 2); sSt = new Uint8Array(n * 2); sStack = new Int32Array(n * 8); }
+  const deps = sDeps, cnt = sCnt, st = sSt, order = sOrder, stack = sStack; while (deps.length < n) deps.push([]);
+  cnt.fill(0, 0, n); st.fill(0, 0, n);
+  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if (behind(L[i].B, L[j].B)) deps[j][cnt[j]++] = i; else deps[i][cnt[i]++] = j; } }
+  /* order = indices by sort hint k, stable (an insertion sort: the same order as the Array.sort((p, q) => L[p].k - L[q].k) it replaces, without its temporary arrays) */
+  for (let i = 0; i < n; i++) { const k = L[i].k; let j = i - 1; while (j >= 0 && L[order[j]].k > k) { order[j + 1] = order[j]; j--; } order[j + 1] = i; }
+  let sp = 0, m = 0;
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const c = deps[i][idx]; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } } else { sp -= 2; out[m++] = L[i]; } } }
+  if (out.length !== m) out.length = m;
   return out;
 }
 
@@ -62,7 +66,7 @@ function treeLayer(world, cx, cy) {
 }
 
 export class Renderer {
-  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0 }; this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
+  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0 }; this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
   /** test hook (tools/perf.mjs --verify): paint objects [from, from + n) of the world and every chunk both ways (whole / in bands); returns { tested, bad: [ids...] }. Expect bad = []. */
   sliceCheck(world, from = 0, n = 1e9, rows = 23) {
     const bad = [], seen = new Set(); let tested = 0;
@@ -71,10 +75,10 @@ export class Renderer {
   }
   /** test hook (async): objects [from, from + n) drawn by the bake worker vs. here; { tested, skipped (custom art / no worker), bad: [...] }. Expect bad = []. */
   async workerCheck(world, from = 0, n = 1e9) {
-    const bad = [], seen = new Set(); let tested = 0, skipped = 0;
-    for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k); if (ASSETS.get(ob.id) !== ob.a) { skipped++; continue; }
-      let d = null; try { d = await workerTest({ t: 'obj', a: ob.id, p: ob.p, flip: !!ob.flip, vb: ob.vbl }, screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip); } catch (e) { d = 'ERR ' + e.message; } if (d === null) skipped++; else { tested++; if (d !== 0) bad.push(k.slice(0, 80) + ' -> ' + d); } }
-    return { tested, skipped, bad };
+    const bad = [], fell = [], seen = new Set(); let tested = 0, skipped = 0;
+    for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob._key || (ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : '')); if (seen.has(k)) continue; seen.add(k); const msg = workerObj(ob); if (!msg) { skipped++; continue; }
+      let d = null; try { d = await workerTest(msg, screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip); } catch (e) { d = 'ERR ' + e.message; } if (d === null) skipped++; else if (typeof d === 'string' && d.startsWith('worker: ')) fell.push(k.slice(0, 60) + ' -> ' + d); else { tested++; if (d !== 0) bad.push(k.slice(0, 80) + ' -> ' + d); } }
+    return { tested, skipped, bad, fell };   // fell = the art threw in the worker: such sprites fall back to the main thread (where world/_ctx.js safe() swallows the error)
   }
   /** test hook: cost of painting objects [from, from + n): [[ms in one go, ms for a quarter-height band, w, h, id]...] (a band that costs as much as the whole = art that plots pixel by pixel) */
   bakeCost(world, from = 0, n = 1e9) {
@@ -97,14 +101,14 @@ export class Renderer {
     if (budget.n <= 0) return e ? e.spr : undefined; budget.n--;
     /* perf: a chunk the bake queue has already started (see _ahead) is finished now instead of being painted again from scratch */
     if (rushBake(this._ck(world, key))) { e = cache.get(key); if (e && e.ver === world.version) { e.t = this.frameNo; return e.spr; } }
-    const t0 = performance.now(), r = renderChunk(world, cx, cy); this.stats.chunkBakes++; this.stats.chunkMs += performance.now() - t0;
+    const t0 = performance.now(), r = renderChunk(world, cx, cy, true); this.stats.chunkBakes++; this.stats.chunkMs += performance.now() - t0;
     return this._putChunk(world, cx, cy, r, world.version);
   }
   _ck(world, key) { return 'chunk|' + (world._wid || (world._wid = ++WID)) + '|' + key; }
   /* store a painted chunk (raster result or null). The cache keeps 140 chunks; the one that was drawn longest ago goes first (it used to be the oldest painted one, which could be a chunk still on screen). */
   _putChunk(world, cx, cy, r, ver) {
     const cache = world._chunks || (world._chunks = new Map()), key = cx * 4096 + cy;
-    const spr = toSprite(r); if (spr && (cx < 0 || cy < 0 || cx * CH >= world.w || cy * CH >= world.h)) spr.over = treeLayer(world, cx, cy); cache.delete(key); cache.set(key, { spr, ver, t: this.frameNo });
+    const spr = toSpritePooled(r); if (spr && (cx < 0 || cy < 0 || cx * CH >= world.w || cy * CH >= world.h)) spr.over = treeLayer(world, cx, cy); cache.delete(key); cache.set(key, { spr, ver, t: this.frameNo });
     if (cache.size > 140) { let k0, t0 = Infinity; for (const [k, v] of cache) if (v.t < t0) { t0 = v.t; k0 = k; } cache.delete(k0); }
     return spr;
   }
@@ -119,7 +123,7 @@ export class Renderer {
   _ahead(world, cam, ents) {
     const now = performance.now(), W = this.W, H = this.H, A = this.ahead;
     const late = A.last > 0 && now - A.last > A.base * 1.35 + 2; if (A.last > 0) { const d = now - A.last; A.base = d < A.base ? d : Math.min(d, A.base * 1.002 + .002); } A.last = now;   // base = this display's frame interval (a slowly rising minimum)
-    if (!BAKE.on) return;
+    if (!BAKE.on) { bakeTick(late); return; }
     if (A.world !== world) { A.world = world; A.cx = cam.x; A.cy = cam.y; A.vx = A.vy = 0; this._scan = 0; }
     A.vx += (cam.x - A.cx - A.vx) * .1; A.vy += (cam.y - A.cy - A.vy) * .1; A.cx = cam.x; A.cy = cam.y;   // camera speed in px per frame, smoothed
     if (--this._scan <= 0) {
@@ -130,7 +134,7 @@ export class Renderer {
       /* priority = px between the thing and the screen (now, or where the screen will be in half the look-ahead: whichever is nearer) */
       const hx = lx * .5, hy = ly * .5, pri = (x0, y0, x1, y1) => { const a = Math.max(0, cam.x - x1, x0 - cam.x - W) + Math.max(0, cam.y - y1, y0 - cam.y - H), b = Math.max(0, cam.x + hx - x1, x0 - cam.x - hx - W) + Math.max(0, cam.y + hy - y1, y0 - cam.y - hy - H) + 24; return a < b ? a : b; };
       ageBakes(60, 1500); const Q = A.q; Q.length = 0; world.query(rx0, ry0, rx1, ry1, Q);
-      for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const sb = ob.sb, p = pri(sb[0], sb[1], sb[2], sb[3]); if (!prebakeObj(ob, p) && ob._key) bakePri(ob._key, p); }
+      for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const sb = ob.sb, p = pri(sb[0], sb[1], sb[2], sb[3]); prebakeObj(ob, p); }
       /* ground chunks of the ring (same chunk maths as _ground) */
       const zr = (world.zmax || 14) * U, oc = outskirtChunks(world), cache = world._chunks || (world._chunks = new Map());
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { const sx = i & 1 ? rx1 : rx0, sy = i & 2 ? ry1 + zr : ry0 - 64, a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
@@ -143,20 +147,20 @@ export class Renderer {
         if (!prebake(jk, () => chunkJob(world, cx, cy), p, null, r => { if (ver === world.version) this._putChunk(world, cx, cy, r, ver); }, true)) bakePri(jk, p);
       }
       /* entities near the screen that can say what they will look like (crowd citizens) */
-      for (let i = 0; i < ents.length; i++) { const e = ents[i]; if (e.hidden || !e.prebake) continue; const w = WS(e.x, e.y, e.z); if (w[0] < rx0 || w[0] > rx1 || w[1] < ry0 || w[1] > ry1) continue; e.prebake(pri(w[0] - 16, w[1] - 40, w[0] + 16, w[1] + 8)); }
+      for (let i = 0; i < ents.length; i++) { const e = ents[i]; if (e.hidden || !e.prebake) continue; const ex = (e.x - e.y) * U, ey = (e.x + e.y) * U / 2 - e.z * U; if (ex < rx0 - 90 || ex > rx1 + 90 || ey < ry0 - 90 || ey > ry1 + 90) continue; e.prebake(pri(ex - 16, ey - 40, ex + 16, ey + 8)); }   // (they move: a wider ring than for the scenery)
       sortBakes();
     }
     this.stats.aheadMs += bakeTick(late);
   }
   _ground(world, cam, ctx) {
-    const W = this.W, H = this.H, zr = (world.zmax || 14) * U, corners = [[cam.x, cam.y - 64], [cam.x + W, cam.y - 64], [cam.x, cam.y + H + zr], [cam.x + W, cam.y + H + zr]];
-    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [sx, sy] of corners) { const a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const W = this.W, H = this.H, zr = (world.zmax || 14) * U;
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { const sx = i & 1 ? cam.x + W : cam.x, sy = i & 2 ? cam.y + H + zr : cam.y - 64   /* the four screen corners, with slack for heights */, a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
     const oc = outskirtChunks(world), c0x = Math.max(-oc, Math.floor(x0 / CH)), c0y = Math.max(-oc, Math.floor(y0 / CH)), c1x = Math.min(Math.ceil(world.w / CH) - 1 + oc, Math.floor(x1 / CH)), c1y = Math.min(Math.ceil(world.h / CH) - 1 + oc, Math.floor(y1 / CH));
-    const budget = { n: this.maxNewChunks }; let n = 0, ov = this._ov || (this._ov = []); ov.length = 0;
+    const budget = this._bud || (this._bud = { n: 0 }); budget.n = this.maxNewChunks; let n = 0, ov = this._ov || (this._ov = []); ov.length = 0;
     for (let s = c0x + c0y; s <= c1x + c1y; s++) for (let cx = Math.max(c0x, s - c1y); cx <= Math.min(c1x, s - c0y); cx++) {
       const cy = s - cx;
       // quick reject: chunk diamond centre vs screen
-      const cs = WS(cx * CH + CH / 2, cy * CH + CH / 2, 0); if (cs[0] < cam.x - CH * U - 8 || cs[0] > cam.x + W + CH * U + 8 || cs[1] < cam.y - CH * U / 2 - 8 - 64 || cs[1] > cam.y + H + CH * U / 2 + zr + 8) continue;
+      const csx = (cx * CH + CH / 2 - (cy * CH + CH / 2)) * U, csy = (cx * CH + CH / 2 + cy * CH + CH / 2) * U / 2;   /* = WS(chunk centre, z 0) */ if (csx < cam.x - CH * U - 8 || csx > cam.x + W + CH * U + 8 || csy < cam.y - CH * U / 2 - 8 - 64 || csy > cam.y + H + CH * U / 2 + zr + 8) continue;
       const spr = this._chunk(world, cx, cy, budget); if (!spr) continue; n++;
       if (ctx) { ctx.drawImage(spr.c, spr.x - cam.x, spr.y - cam.y); if (spr.over) ov.push(spr.over); }
     }
@@ -175,15 +179,19 @@ export class Renderer {
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.fillStyle = world.bg || env.bg || '#9fd6e8'; ctx.fillRect(0, 0, W, H);
     this._ground(world, cam, ctx);
     if (hooks.under) hooks.under(ctx, cam);
-    const L = [], vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4;
-    for (const ob of world.query(vx0, vy0, vx1, vy1)) { if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const w = WS(ob.x, ob.y, ob.z); if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + w[0] - cam.x, spr.y + w[1] - cam.y); continue; } L.push({ B: ob.B, spr, ax: w[0], ay: w[1], r: ob.sb, k: ob.k, ob }); }
-    for (const e of ents) {
-      if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const w = WS(e.x, e.y, e.z), ax = Math.round(w[0]), ay = Math.round(w[1]);
-      const r = [spr.x + ax, spr.y + ay, spr.x + ax + spr.w, spr.y + ay + spr.h]; if (r[2] < vx0 || r[0] > vx1 || r[3] < vy0 || r[1] > vy1) continue;
-      const b = e.bb || BB, B = [e.x + b[0], e.y + b[1], e.z, e.x + b[2], e.y + b[3], e.z + b[4]];
-      L.push({ B, spr, ax, ay, r, k: B[0] + B[3] + B[1] + B[4], e });
+    /* perf: the item list, its items and the object query are reused from frame to frame (they were ~15 KB of garbage per frame) */
+    const L = this._L, vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4; let n = 0;
+    const Q = this._Q; Q.length = 0; world.query(vx0, vy0, vx1, vy1, Q);
+    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; }
+    for (let i = 0; i < ents.length; i++) {
+      const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U), ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
+      const rx0 = spr.x + ax, ry0 = spr.y + ay, rx1 = rx0 + spr.w, ry1 = ry0 + spr.h; if (rx1 < vx0 || rx0 > vx1 || ry1 < vy0 || ry0 > vy1) continue;
+      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++;
+      const b = e.bb || BB, B = it._B, r = it._r; B[0] = e.x + b[0]; B[1] = e.y + b[1]; B[2] = e.z; B[3] = e.x + b[2]; B[4] = e.y + b[3]; B[5] = e.z + b[4]; r[0] = rx0; r[1] = ry0; r[2] = rx1; r[3] = ry1;
+      it.B = B; it.spr = spr; it.ax = ax; it.ay = ay; it.r = r; it.k = B[0] + B[3] + B[1] + B[4]; it.ob = null; it.e = e;
     }
-    const S = sortItems(L); this.stats.items = S.length;
+    for (let i = n; i < L.length && L[i].spr; i++) { L[i].spr = null; L[i].ob = null; L[i].e = null; }   // do not keep last frame's sprites / entities alive
+    const S = sortItems(L, n, this._S); this.stats.items = S.length;
     // see-through: tall static objects drawn in front of the focus entity (the player) fade out
     let fi = -1; for (let i = 0; i < S.length; i++) if (S[i].e && S[i].e.ghost && !S[i].e.hidden) { fi = i; break; }
     const fading = this.fading || (this.fading = new Set()); for (const ob of fading) ob._want = 1;
@@ -194,12 +202,14 @@ export class Renderer {
     const dark = env.dark || 0;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
-      if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = Math.min(1, dark * .5); for (const l of world.lights) { const s = WS(l.x, l.y, l.z), ps = poolSprite(l.r, l.c || '#ffd9a0'), x = Math.round(s[0]) - cam.x - (ps.width >> 1), y = Math.round(s[1]) - cam.y - (ps.height >> 1); if (x > W || y > H || x + ps.width < 0 || y + ps.height < 0) continue; m.drawImage(ps, x, y); } if (hooks.lights) hooks.lights(m, cam, poolSprite); }
+      if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = Math.min(1, dark * .5); const LL = world.lights; for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2)   /* half size of its pool sprite (see poolSprite) */, x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue;   /* perf: off-screen lights are rejected before the pool sprite is looked up (every light of the city, every frame) */ m.drawImage(poolSprite(l.r, l.c || '#ffd9a0'), x, y); } if (hooks.lights) hooks.lights(m, cam, poolSprite); }
       ctx.globalCompositeOperation = 'multiply'; ctx.drawImage(this.M, 0, 0); ctx.globalCompositeOperation = 'source-over';
     }
     if (dark > .02) {
       const b = this.Bx; b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
-      for (const it of S) { if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; } }
+      /* perf: an item only has to be cut out of the light buffer where light has been drawn: lx0..ly1 = the box around all light sprites drawn so far (cutting elsewhere changed nothing, but was a draw call per item per frame) */
+      let lx0 = 1e9, ly0 = 1e9, lx1 = -1e9, ly1 = -1e9;
+      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && x < lx1 && x + sp.w > lx0 && y < ly1 && y + sp.h > ly0) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; if (x < lx0) lx0 = x; if (y < ly0) ly0 = y; if (x + sp.w > lx1) lx1 = x + sp.w; if (y + sp.h > ly1) ly1 = y + sp.h; } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     if (hooks.over) hooks.over(ctx, cam);

@@ -222,14 +222,16 @@ function doorStart() {
   const s = st(); if (running || G.modal || G.cutscene || G.busy || !G.scene || !/^int:/.test(G.scene.id)) return;
   const ch = s.cur ? CHAPTERS_BY_ID[s.cur.id] : nextCh(); if (!ch) return; const state = stateOf(ch); if (state !== 'open' && state !== 'paused') return;
   const d = markerPlace(ch); if (!d || !d.room || G.scene.id !== 'int:' + d.room) return;
+  if (performance.now() - lastCardAt < 60000) return;   /* QA10: the card was just shown at the door (the closed card came up three times for one visit to Nora's) */
   const day = Math.floor(G.state.t / DAY); s.doorDay = s.doorDay || {}; if (s.doorDay[ch.id] === day && d.id === 'home:player') return; s.doorDay[ch.id] = day;      /* your own front door asks once a day, not every time you come home */
   openCard(ch.id);
 }
 
 /* ================= the start card ================= */
+let lastCardAt = -1e9;
 async function openCard(id) {
   const s = st(), ch = id ? chOf(id) : (s.cur ? CHAPTERS_BY_ID[s.cur.id] : nextCh()); if (!ch || running) return false;
-  const state = stateOf(ch); if (state !== 'open' && state !== 'paused') return false;
+  const state = stateOf(ch); if (state !== 'open' && state !== 'paused') return false; lastCardAt = performance.now();
   const resume = state === 'paused', onShift = !!safe(() => G.jobs.onShift(), false), open = windowOpen(ch);
   const closed = onShift ? "You're on the clock just now. It'll keep until after work." : !open ? shutToday(ch) || ch.window.closed : null;
   const v = await UI.card({ kicker: kicker(ch), title: ch.title, hook: ch.hook, ready: resume ? "Your place is kept. Whenever you're ready." : ch.ready, closed, resume, canBegin: !closed,
