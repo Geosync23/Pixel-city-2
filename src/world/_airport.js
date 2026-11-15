@@ -22,7 +22,7 @@ export function ground(c) {
   c.bld('bld.airport.terminal.hall', h.x, h.y, { p: { w: h.w, seed: 5, name: 'MAPLE BAY INTL' } }); c.bld('bld.airport.terminal.wing', h.x - 12, h.y + 2, { p: { w: 12, seed: 2 } }); c.bld('bld.airport.terminal.wing', h.x + h.w, h.y + 2, { p: { w: 12, seed: 3 } }); c.bld('bld.airport.terminal.endcap', h.x + h.w + 12, h.y + 2, { p: { seed: 4 } });
   c.bld('bld.airport.tower', 364, 92, { p: c.vp('bld.airport.tower', c.sub(3)) }); c.bld('bld.airport.fire', 356, 80, { p: { w: 10, seed: 2 } }); c.bld('bld.airport.radome', 376, 62, { p: { h: 4, seed: 1 } });
   c.bld('bld.airport.hangar.arch', 276, 58, { p: { w: 10, d: 12, seed: 3, open: true }, flip: true }); c.bld('bld.airport.hangar.box', 276, 72, { p: { w: 12, d: 8, seed: 4, name: 'BAYJET' } }); c.bld('bld.airport.cargo', 276, 84, { p: { w: 14, d: 8, seed: 2 } });
-  c.bld('bld.airport.fueltanks', 290, 36, { p: { n: 2 } });
+  c.bld('bld.airport.fueltanks', 277, 93, { p: { n: 2 } }); /* fuel farm on the hangar-row concrete beside the cargo shed (was on the grass island at 290,36 between taxiway and runway) */
   c.bld('bld.airport.carpark', 280, 112, { p: { w: 16, d: 10, floors: 3, seed: 2 } }); c.bld('bld.airport.rental', 291, 104, { p: c.vp('bld.airport.rental', c.sub(4)) });
   const ht = c.bld('bld.airport.hotel', 357, 112, { p: { w: 12, d: 7, floors: 6, seed: 3, name: 'SKYWAY INN' } });
   w.airport = { runways: [{ ...rw }], apron: { ...AP.apron }, taxiway: { axis: 'x', c: 47, a: 280, b: 378 }, gates: [{ x: 303, y: 66, dir: 1 }, { x: 333, y: 66, dir: 1 }], curb: { ...AP.curb },

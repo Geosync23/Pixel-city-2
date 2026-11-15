@@ -22,6 +22,7 @@
 import { traitStep } from '../sim/traits.js';
 import { G } from '../core/game.js';
 import { ENV } from '../engine/raster.js';
+import { objSprite } from '../engine/sprites.js';
 import { el, root, modal } from './kit.js';
 import { openCreator } from './creator.js';
 import { charArt } from '../core/char.js';
@@ -65,25 +66,37 @@ function injectCss() {
 }
 
 /* ---------- title camera ---------- */
+// A slow tour of framed landmark views. Each view drifts a few tiles for ~24 s, then the backdrop dips to dark and cuts to the next.
+// The logo and buttons sit in the middle of the screen, so every view keeps its landmark in the upper part (camera aims a few tiles "below" it).
+// [landmark poi name, fallback x, y, aim offset dx, dy (tiles, +,+ = landmark higher on screen), drift dx, dy]
+const VIEWS = [
+  ['The Bay Wheel', 100, 369, -2, 7, -3, 3],
+  ['Market Square', 97, 252, 5, 5, -4, 2],
+  ['City Hall Plaza', 220, 222, -1, -14, 2, 2],
+  ['Gull Point Lighthouse', 32, 352, 2, 2, 3, 3],
+  ['Duck Pond', 98, 158, 6, 6, 4, -3],
+];
 function startPan() {
   const w = G.world, p = G.player; p.hidden = true; p.stop && p.stop();
-  const pts = [];
-  const pois = (w.pois || []).filter(o => o && isFinite(o.x) && isFinite(o.y));
-  const nice = pois.filter(o => /landmark|view|park|plaza|station|square|lookout/i.test(String(o.type) + ' ' + String(o.id)));
-  for (const o of (nice.length >= 2 ? nice : pois).slice(0, 5)) pts.push([o.x, o.y]);
-  if (pts.length < 2) { const cx = p.x, cy = p.y; pts.length = 0; for (const [dx, dy] of [[-10, -6], [8, -8], [12, 6], [-6, 10]]) pts.push([cx + dx, cy + dy]); }
-  const cl = (v, m) => Math.max(4, Math.min(m - 4, v)); for (const q of pts) { q[0] = cl(q[0], w.w); q[1] = cl(q[1], w.h); }
-  // ordered loop; travel at ~1.1 units/s with eased segments
-  let seg = 0, s = 0; const cam = { x: pts[0][0], y: pts[0][1], z: w.heightAt(pts[0][0], pts[0][1]) };
-  const segLen = i => { const a = pts[i % pts.length], b = pts[(i + 1) % pts.length]; return Math.max(1, Math.hypot(b[0] - a[0], b[1] - a[1])); };
+  const q = G.query, cl = (v, m) => Math.max(6, Math.min(m - 6, v));
+  const views = VIEWS.map(v => { const o = (w.pois || []).find(o => o && o.name === v[0] && isFinite(o.x) && isFinite(o.y)); const x = (o ? o.x : v[1]) + v[3], y = (o ? o.y : v[2]) + v[4]; return [cl(x - v[5] / 2, w.w), cl(y - v[6] / 2, w.h), cl(x + v[5] / 2, w.w), cl(y + v[6] / 2, w.h)]; });
+  let vi = Math.max(0, Math.min(views.length - 1, q && q.has('tview') ? +q.get('tview') | 0 : 0)), s = 0, cutting = false; const DUR = 24;
+  const cam = { x: views[vi][0], y: views[vi][1], z: w.heightAt(views[vi][0], views[vi][1]) };
   const cut = { title: true, update(dt) {
-    p.hidden = true; s += dt * 1.1 / segLen(seg); if (s >= 1) { s = 0; seg = (seg + 1) % pts.length; }
-    const a = pts[seg], b = pts[(seg + 1) % pts.length], e = s * s * (3 - 2 * s);
-    cam.x = a[0] + (b[0] - a[0]) * e; cam.y = a[1] + (b[1] - a[1]) * e; cam.z = G.world.heightAt(cam.x, cam.y);
+    p.hidden = true; const v = views[vi]; s = Math.min(1, s + dt / DUR); const e = s * s * (3 - 2 * s) * .9 + s * .1;
+    cam.x = v[0] + (v[2] - v[0]) * e; cam.y = v[1] + (v[3] - v[1]) * e; cam.z = G.world.heightAt(cam.x, cam.y);
+    if (s >= 1 && !cutting && views.length > 1) { // dip the backdrop (not the logo), jump, come back up
+      cutting = true; const veil = wrap && wrap.querySelector('.tt-veil'); if (veil) veil.classList.add('on');
+      setTimeout(() => { if (G.cutscene !== cut) return; vi = (vi + 1) % views.length; s = 0; cutting = false; const n = views[vi]; cam.x = n[0]; cam.y = n[1]; cam.z = G.world.heightAt(cam.x, cam.y); G.snapCam && G.snapCam(); try { G.renderer.warm(G.world, G.cam); } catch (e) { /* not ready */ } setTimeout(() => { const vl = wrap && wrap.querySelector('.tt-veil'); if (vl) vl.classList.remove('on'); }, 120); }, 420);
+    }
   } };
+  /* pull the camera back as far as the player can, so a whole landmark fits around the logo; the game's zoom comes back when the title closes */
+  if (prevZoom === null && G.setZoom && G.zmin) { prevZoom = G.zoom; G.setZoom(G.zmin); }
   myCut = cut; myCam = cam; G.cutscene = cut; G.camTarget = cam; G.snapCam && G.snapCam();
 }
+let prevZoom = null;
 function stopPan(unhide = true) {
+  if (prevZoom !== null) { const z = prevZoom; prevZoom = null; G.setZoom(z); }
   if (G.cutscene === myCut) G.cutscene = null; if (G.camTarget === myCam) G.camTarget = null; myCut = myCam = null;
   if (unhide && G.player) G.player.hidden = false;
 }
@@ -116,6 +129,7 @@ function buildTitle() {
     el('button.tt-btn.tt-quiet', { onclick: settings }, 'Settings'));
   [...btns.children].forEach((b, i) => b.style.setProperty('--d', (0.35 + i * 0.08) + 's'));
   wrap = el('div.tt-wrap', null,
+    el('div.tt-veil'),
     el('div.tt-center', null,
       el('div.tt-logo', null, leafIcon(5), el('h1.tt-word', null, el('span.tt-maple', { text: 'MAPLE' }), el('span.tt-bay', { text: 'BAY' }))),
       el('p.tt-tag', { text: 'A new city. A new key. A whole new life.' }),
@@ -181,8 +195,34 @@ async function newGame(step) {
   commitNewGame(who.name, who.spec, homeId);
 }
 
+/** thumbnail of a starter home: the real building sprite from the city (the one its front door belongs to), on a patch of ground */
 function homeArt(h, i) {
-  // little pixel building per district (24x20 at 1x)
+  const BOX = 104, dpr = window.devicePixelRatio || 1;
+  try {
+    const w = G.sceneCache && G.sceneCache.get('city') && G.sceneCache.get('city').world, door = w && w.pois.find(p => p.type === 'door' && p.room === 'home:' + h.id);
+    let ob = null, bd = 3; if (door) for (const o of w.objs) { if (o.a.kind !== 'building') continue; const d = Math.hypot(Math.max(o.B[0], Math.min(door.x, o.B[3])) - door.x, Math.max(o.B[1], Math.min(door.y, o.B[4])) - door.y); if (d < bd) { bd = d; ob = o; } }
+    const spr = ob && objSprite(ob);
+    if (spr) {
+      // device pixels per art pixel: a whole number when the screen is dense enough (crisp), otherwise a smooth reduction
+      const fit = Math.min((BOX - 8) / spr.w, (BOX - 14) / spr.h) * dpr, k = fit >= 1 ? Math.floor(fit) : fit, px = Math.round(BOX * dpr);
+      const c = document.createElement('canvas'); c.width = px; c.height = px; c.className = 'hp-art hp-real' + (fit >= 1 ? ' pix' : ''); const g = c.getContext('2d');
+      const sky = { oldtown: '#bfe3ee', harbor: '#b5ddf0', arts: '#cfe6ee', maplewood: '#c4e6e4' }[h.district] || '#bfe3ee', gnd = { oldtown: ['#b9705a', '#8f5443'], harbor: ['#b08a5a', '#84633c'], arts: ['#bab5a7', '#9d988a'], maplewood: ['#79b964', '#5c9a4c'] }[h.district] || ['#bab5a7', '#9d988a'];
+      g.fillStyle = sky; g.fillRect(0, 0, px, px);
+      const bw = spr.w * k, bh = spr.h * k, bx = Math.round((px - bw) / 2), by = Math.round(px - bh - 5 * dpr);
+      // ground diamond under the footprint (the sprite anchor is the footprint's back corner)
+      const ax = bx - spr.x * k, ay = by - spr.y * k, U = 16 * k, sx = ob.size[0], sy = ob.size[1], m = 1.2;
+      const P = (x, y) => [ax + (x - y) * U, ay + (x + y) * U / 2];
+      const poly = (pts, col) => { g.fillStyle = col; g.beginPath(); pts.forEach((q, n) => n ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.fill(); };
+      poly([P(-m, -m), P(sx + m, -m), P(sx + m, sy + m), P(-m, sy + m)], gnd[1]); poly([P(-m, -m), P(sx + m, -m), P(sx + m, sy + m - .35), P(-m, sy + m - .35)], gnd[0]);
+      g.imageSmoothingEnabled = fit < 1; if (fit < 1) g.imageSmoothingQuality = 'high';
+      g.drawImage(spr.c, bx, by, bw, bh);
+      c.style.width = BOX + 'px'; c.style.height = BOX + 'px'; return c;
+    }
+  } catch (e) { console.warn('home thumbnail: ' + e.message); }
+  return homeToy(h, i);
+}
+function homeToy(h, i) {
+  // fallback: little pixel building per district (24x20 at 1x)
   const c = document.createElement('canvas'); c.width = 24; c.height = 20; c.className = 'pix hp-art'; const g = c.getContext('2d');
   const pal = { oldtown: ['#b8553a', '#8f3a28', '#f2c230'], harbor: ['#5a8ab8', '#3a5f88', '#f4f0e8'], arts: ['#e8b83a', '#7a55c8', '#f07aa8'], maplewood: ['#e8d8b0', '#4fa860', '#7a5238'] }[h.district] || [['#b8553a', '#5a8ab8', '#e8b83a', '#e8d8b0'][i % 4], '#4a4a58', '#f2c230'];
   const R = (x, y, w, hh, col) => { g.fillStyle = col; g.fillRect(x, y, w, hh); };
@@ -191,9 +231,6 @@ function homeArt(h, i) {
   R(3, 3, 18, 3, '#2a2733'); R(4, 4, 16, 1, pal[1]);
   for (const [x, y] of [[6, 8], [11, 8], [15, 8], [6, 12], [15, 12]]) { R(x, y, 3, 3, '#2a2733'); R(x + 1, y + 1, 1, 1, pal[2]); }
   R(11, 13, 3, 5, '#2a2733'); R(12, 14, 1, 4, '#7a5238');
-  if (h.district === 'maplewood') { R(0, 10, 4, 6, '#3d8a4a'); R(20, 9, 4, 7, '#3d8a4a'); }
-  if (h.district === 'harbor') { R(0, 17, 24, 3, '#3b6fd0'); R(2, 18, 4, 1, '#9fd0e8'); }
-  if (h.district === 'arts') { R(6, 12, 3, 3, '#4fa860'); }
   c.style.width = '72px'; c.style.height = '60px'; return c;
 }
 

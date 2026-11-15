@@ -1,6 +1,10 @@
 /* Title screen, character creator, home picker (src/ui/title.js, src/ui/creator.js) */
 .tt-wrap{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1b1a2440;padding:16px;transition:opacity .2s}
 .tt-wrap.out,.cc-wrap.out{opacity:0;pointer-events:none}
+.tt-veil{position:absolute;inset:0;background:#1b1a24;opacity:0;transition:opacity .38s;pointer-events:none}
+.tt-veil.on{opacity:1}
+.tt-center,.tt-credits{z-index:1}
+.tt-center{position:relative}
 .tt-center{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:-4vh}
 .tt-logo{display:flex;flex-direction:column;align-items:center;gap:2px}
 .tt-leaf{filter:drop-shadow(0 4px 0 #2a2733);transform-origin:50% 90%}
@@ -86,6 +90,7 @@
 .hp-card.on{background:#fff0b8;outline:3px solid var(--accent);outline-offset:0}
 .hp-top{display:flex;gap:10px;align-items:center}
 .hp-art{border:2px solid var(--edge);flex:0 0 auto}
+.hp-real{box-shadow:0 3px 0 var(--edge)}
 .hp-id{display:flex;flex-direction:column;min-width:0}
 .hp-name{font-weight:700;font-size:18px}
 .hp-dist{font-size:13px;font-weight:700;color:var(--blue)}
@@ -105,7 +110,7 @@
   .cc-body{flex-direction:column;padding:8px;gap:8px}
   .cc-left{width:auto;flex:0 0 auto;gap:6px}
   .cc-right{flex:1 1 0}
-  .cc-stage{flex:0 0 auto;height:min(30vh,250px);min-height:140px}
+  .cc-stage{flex:0 0 auto;height:min(34vh,292px);min-height:140px}
   .cc-presets-wrap .cc-lab{display:none}
   .cc-title{font-size:18px}
   .hp-cards{grid-template-columns:1fr}

@@ -213,3 +213,35 @@ and a short label says what to do there ("Deliver to Rosa at the counter", "Coun
 
 ## Direction update 20 — festivals spread out (owner msg 106)
 Small seasonal festivals and the six big city events never share a day; the calendar is spread so something is on roughly every few days: Spring 6-7 Blossom Festival, Spring 13 Blossom Parade; Summer 3-4 Boardwalk Days, Summer 6 Harbor Day, Summer 10 Summer Fireworks, Summer 13 River Walk Summer Fair; Autumn 2-3 Harvest Fair, Autumn 6 Harvest Festival, Autumn 10 Lantern Night, Autumn 13 Dragon Walk; Winter 5 Winter Lights Parade, Winter 7/9/10/12/13 Winter Lights Market. New events should take a free day rather than stack.
+
+## Direction update 21 — "Sims with a story": Chapters, My Day, findability, more homes (owner msg 107; the lead's design, owner asleep)
+The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has a lot of content and no clear way INTO it, and no thrust. Four linked answers.
+
+### 21.1 CHAPTERS — the main story (proper noun: "Chapter"; working title of the story: "The Maple Bay Year")
+- Structure like an open-world game: a Chapter is a marker on the map (and a row in the schedule, in its own colour: warm gold) that you walk to and START WHEN YOU ARE READY. Chapters never expire, never nag and are never on the clock. Everything else stays on the clock (work, needs, appointments, events).
+  A Chapter may have a natural window ("Nana is home in the daytime", "after dark on a clear night"): outside it the marker says so kindly and nothing is lost. Wording rule: never state mechanics; say "whenever you're ready", "no rush", "it'll keep".
+- About 15 Chapters, each 5-12 minutes: character-driven, dialogue-heavy, with choices that colour relationships (not branching plots), one small piece of play each (reuse the mini-game kit and existing systems), and a place the player may not have found yet.
+  Only one or two are available at a time; finishing one opens the next after a breath (usually the next morning, sometimes "after you have done X in your own life": got a job, cooked a meal, made a friend).
+- ACT ONE = the tutorial in disguise (Chapters 1-5, the first few days; a gentle push): arriving and Nana Bea's dinner (needs: eat, sleep, wash); the family shows you the town (travel, Map, Wander); "what do you do for fun?" (interests: every way to fill Fun, taking up an interest); "you'll want work" (jobs, the schedule); making the flat yours (furniture stores, delivery, design mode). Each teaches by doing with a family member, never by lecture.
+- ACT TWO / THREE = the larger story, about FAMILY (expanding the existing cast: Nana Bea, Nora, Theo, Pip, Milo, Dez; canon from the post-office letters: Mom has died, she grew up in Maple Bay, Nana Bea is her mother, Dad and Aunt June are back in Pinehollow).
+  Premise for the story designer to develop: you came to the town your mother left. Nobody quite says why she left. Across the Chapters you find her traces around the city (the showpieces are the stages: lighthouse, harbor, City Hall archive, museum, observatory, university, the big festivals), each family member holds one piece and one unhealed thing, and the year ends with the family doing together the thing she never finished. Warm, funny, a little bittersweet; no villains.
+- Existing story beats (src/story/story.js, 18 beats) are not thrown away: they are re-housed as Chapters or become smaller optional family moments.
+- In the schedule a Chapter shows as "Chapter 4 · Nana's Attic — whenever you're ready". On the map and in the city: a distinct gold marker.
+
+### 21.2 MY DAY — schedule vs. ideas (replaces the Planner's mixed list)
+- Two clearly different things. MY SCHEDULE: only what you chose to do, plus the few things life puts there (work shifts, Chapters, family invitations you accepted, booked classes/tickets). IDEAS: everything you COULD add, pulled from all content (events, shows, classes, Opportunities, friends, places for a low need, festivals, sales), ranked for you right now, each with one tap "Add to my day" (pick a time if it needs one).
+  Nothing arrives pre-added except Chapters and family/story items. The old calendar tab the owner dislikes is replaced by a simple day timeline (today / tomorrow / this week).
+- It gets its own button on the game screen, UPPER-LEFT, the only phone feature with one: "My Day". One tap opens a compact sheet: what is next (with Take me there), the rest of today, 3-5 suggestions, the open Chapter. It drives "what do I do next".
+- An early explainer (a Chapter in Act One uses it for real) shows how adding things fills a day.
+
+### 21.3 FINDABILITY — quick tools + first-time windows
+- Wander (the guide app) keeps its encyclopedic categories and gains a front page of quick tools: "Fun right now" (what is open and near, by interest), "Something new" (never tried), "Fix a need", "Tonight", "This weekend", and a SYSTEMS shelf: one-tap ways into every system (cook, decorate, clothes, classes, post, jobs, friends, events, opportunities...), each with a two-line "how it works".
+- FIRST-TIME WINDOWS: the first time the player touches a system, one short friendly window explains the loop and where it leads (first furniture move: "Shops around town sell furniture; big pieces arrive the next morning"). Once each, dismissible, all re-readable in Tips. Not hand-holdy; the game stays free-form.
+
+### 21.4 MORE HOMES
+- More places to live: build real interiors for houses that already stand on the map (several styles and sizes: cottage, bungalow, craftsman, split-level, townhouse, a cliff house), plus a few more apartments for variety (loft, garden flat, a tower one-bedroom). Add, never re-lay-out.
+- Moving in offers a choice: PRE-FURNISHED (as designed today, costs more) or FURNISH IT YOURSELF (empty, cheaper, with a starter kit so needs can be met on night one).
+
+### 21.5 Order and team
+- Team from now: 2 Fable + 1 Opus QA (owner: one less worker; let running workers finish).
+- Order: (1) CHAPTERS story design + writing (a Fable story designer writes the full 15-Chapter plan and scripts as data) and, in parallel, (2) MORE HOMES; then (3) the Chapter engine + map markers + Act One played through, (4) MY DAY, (5) quick tools + first-time windows. The remaining Wave D items (jobs expansion, relationships/romance) follow, shaped by the Chapters' family cast. Full QA wave last.

@@ -254,8 +254,9 @@ function top() {
   M.undoB.disabled = !M.undo.length;
   if (k.c !== null) { const d = k.c - M.c0; M.comfort.firstChild.textContent = `Comfort ${k.c}`; M.comfort.lastChild.textContent = d ? (d > 0 ? ' +' : ' ') + d : ''; M.comfort.lastChild.className = d > 0 ? 'up' : 'dn'; M.meter.style.width = Math.max(4, Math.min(100, k.c)) + '%'; if (M.cLast !== undefined && k.c !== M.cLast) { M.comfort.classList.remove('bump'); void M.comfort.offsetWidth; M.comfort.classList.add('bump'); } M.cLast = k.c; }
   else { M.comfort.firstChild.textContent = `Cosy ${k.a}`; M.comfort.lastChild.textContent = ''; }
-  M.slots.textContent = `Furniture ${sl.used}/${sl.max} · Decor ${sl.decor}/${sl.decorMax} · Cosy ${k.a}`;
-  M.cart.style.display = cart ? '' : 'none'; M.cart.textContent = `Cart ${cart}`;
+  M.slots.textContent = `Furniture ${sl.used}/${sl.max} · Decor ${sl.decor}/${sl.decorMax}`;
+  const priceT = t => safe(() => G.orders.sellers(t.itemId).find(q => q.store === t.store).price, (GOOD_BY_ID[t.itemId] || {}).price || 0), loose = M.tries.filter(t => !t.line);
+  M.cart.style.display = cart || loose.length ? '' : 'none'; M.cart.textContent = loose.length ? `Trying ${fmt(loose.reduce((a, t) => a + priceT(t), 0))}` + (cart ? ` · cart ${cart}` : '') : `Cart ${cart} · ${fmt(safe(() => G.orders.quote().total, 0))}`;
 }
 function bar() {
   const a = M.act; a.textContent = '';
@@ -308,7 +309,7 @@ function open(o = {}) {
   M.slots = el('span.fz-slots'); M.tray = el('div.fz-tray', { onscroll: () => { const t = M.tray; if (t.scrollLeft + t.clientWidth > t.scrollWidth - 240 && M.shown < (M.list || []).length) more(); } }); M.act = el('div.fz-act');
   M.money = el('b.fz-money'); M.meter = el('i'); M.comfort = el('span.fz-comfort', { title: 'What your Comfort settles at in this home' }, el('span'), el('em'));
   M.undoB = el('button.fz-undo', { text: 'Undo', onclick: undo, 'aria-label': 'Undo' });
-  M.cart = el('button.fz-cart', { onclick: () => { const done = close(); Promise.resolve(done).then(() => safe(() => G.phone.open(G.orders.APP, { tab: 'cart' }))); } });
+  M.cart = el('button.fz-cart', { title: 'Your cart (opens Roomy)', onclick: () => { if (M.tries.some(t => !t.line)) { close(); return; } const done = close(); Promise.resolve(done).then(() => setTimeout(() => safe(() => G.phone.open(G.orders.APP, { tab: 'cart' })), 200)); } });
   M.top = el('div', { id: 'fz-top' }, el('div.fz-row', null, M.undoB, M.money, el('span.fz-cwrap', null, M.comfort, el('span.fz-meter', null, M.meter)), el('button.go', { text: 'Done', onclick: () => close() })), el('div.fz-row.sub', null, M.slots, M.cart));
   M.search = el('input.fz-search', { type: 'search', placeholder: 'Search', 'aria-label': 'Search', oninput: e => { M.q = e.target.value; clearTimeout(M.qt); M.qt = setTimeout(() => { if (M) tray(); }, 140); } });
   M.chips = el('div.fz-chips', null, M.search);
@@ -341,7 +342,7 @@ function close() {
   const loose = M.tries.filter(t => !t.line), carted = M.tries.filter(t => t.line).length; teardown(); const done = H().refresh();
   if (loose.length) Promise.resolve(done).then(async () => {
     const total = loose.reduce((a, t) => a + safe(() => G.orders.sellers(t.itemId).find(q => q.store === t.store).price, (GOOD_BY_ID[t.itemId] || {}).price || 0), 0);
-    const v = await choose(loose.length === 1 ? `Keep the ${short(loose[0].itemId)} in mind?` : `Keep the ${loose.length} pieces you tried?`, [{ label: 'Add to my cart', sub: `${fmt(total)} · order in the Roomy app`, value: 1 }, { label: 'No, leave ' + (loose.length === 1 ? 'it' : 'them'), value: 0 }], { text: 'Their places in the room are remembered: after delivery they are unpacked right there.' });
+    const v = await choose(loose.length === 1 ? `Keep the ${short(loose[0].itemId)} in mind?` : `Keep the ${loose.length} pieces you tried?`, [{ label: 'Add to my cart', sub: `${fmt(total)} · order in the Roomy app`, value: 1 }, { label: 'No, leave ' + (loose.length === 1 ? 'it' : 'them'), value: 0 }], { text: loose.length === 1 ? 'Its place in the room is remembered: after delivery it is unpacked right there.' : 'Their places in the room are remembered: after delivery they are unpacked right there.' });
     if (v) { for (const t of loose) safe(() => G.orders.add(t.itemId, { store: t.store, pos: t.pos })); toast(`${loose.length + carted} ${loose.length + carted === 1 ? 'piece' : 'pieces'} in your cart. Open Roomy on your phone to order.`, 'good', 4200); }
   });
   else if (carted) toast(`${carted} ${carted === 1 ? 'piece' : 'pieces'} in your cart. Open Roomy on your phone to order.`, 'good', 4200);

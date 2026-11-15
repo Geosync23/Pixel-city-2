@@ -71,7 +71,7 @@ function charCanvas(spec, pose) {
   try { const r = render(sb, () => A.drawChar(spec, pose), null, 1); const s = toSprite(r); return s; } catch (e) { console.error(e); return null; }
 }
 // crop regions relative to the feet anchor: [x0, y0, w, h]
-const CROPS = { head: [-6, -24, 12, 11], torso: [-7, -17, 14, 12], legs: [-6, -10, 12, 11], body: [-8, -25, 16, 27], stage: [-12, -27, 24, 30] };
+const CROPS = { head: [-6, -24, 12, 11], torso: [-7, -17, 14, 12], legs: [-6, -10, 12, 11], body: [-8, -25, 16, 27], stage: [-12, -26, 24, 29] };
 function thumb(spec, region, scale = 3) {
   const s = charCanvas(spec, { anim: 'stand', frame: 0, dir: 0 }); const [x0, y0, w, h] = CROPS[region] || CROPS.body;
   const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'pix';
@@ -125,12 +125,19 @@ export function openCreator(opts = {}) {
       if (!s) return;
       const [x0, y0, w, h] = CROPS.stage;
       if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; fit(); }
-      const g = cv.getContext('2d'); g.clearRect(0, 0, w, h); g.drawImage(s.c, -(x0 - s.x), -(y0 - s.y));
+      const g = cv.getContext('2d'); g.clearRect(0, 0, w, h);
+      /* soft pixel shadow on the floor under the feet (the sprite anchor is at -y0 rows from the top) */
+      g.fillStyle = '#5f9a50'; g.fillRect(-x0 - 6, -y0 - 1, 12, 3); g.fillRect(-x0 - 4, -y0 - 2, 8, 5); g.fillStyle = '#6aa85a'; g.fillRect(-x0 - 7, -y0, 14, 1);
+      g.drawImage(s.c, -(x0 - s.x), -(y0 - s.y));
     }
     function fit() {
       if (!cv.width) return; const r = stage.getBoundingClientRect(); if (!r.height) return;
-      scale = Math.max(2, Math.min(10, Math.floor(Math.min((r.height - 6) / cv.height, (r.width - 60) / cv.width))));
+      /* whole number of CSS px per art px (so it is a whole number of device px too: crisp), as large as the box allows */
+      scale = Math.max(2, Math.min(12, Math.floor(Math.min((r.height - 4) / cv.height, (r.width - 110) / cv.width))));
       cv.style.width = cv.width * scale + 'px'; cv.style.height = cv.height * scale + 'px';
+      /* stand on the floor band (bottom 20% of the stage): feet about a third of the way down the band */
+      const below = (cv.height + CROPS.stage[1]) * scale, feet = Math.round(r.height * .2 * .62);
+      cv.style.position = 'absolute'; cv.style.left = Math.round((r.width - cv.width * scale) / 2) + 'px'; cv.style.bottom = Math.round(feet - below) + 'px'; cv.style.margin = '0';
     }
     const tick = dt => { animT += dt; if (flourish > 0) flourish -= dt; draw(false); };
     const changed = (wave) => { cache = new Map(); lastKey = ''; if (wave) flourish = 1.6; draw(true); refreshRows(); };

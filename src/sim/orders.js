@@ -119,7 +119,7 @@ function land(sh) {
   for (const l of sh.lines) { if (sizeG(l.id) === 's') continue; const flat = isFlat(GOOD_BY_ID[l.id], sh.store); put({ label: ITEM_BY_ID[l.id].name, items: [l.id], pos: [l.pos || null], sz: flat ? 'f' : 'l', asm: flat && l.asm ? 1 : 0, from: st.short }); }
   sh.st = 'delivered'; sh.at = Math.floor(G.state.t); sh.boxes = boxes; sh.stored = stored; if (sh.appt) safe(() => G.planner.remove(sh.appt)); sh.appt = null;
   const what = boxes ? `${boxes} ${boxes === 1 ? 'box' : 'boxes'} from ${st.short}` : `your order from ${st.short}`, extra = stored ? ` No room for more boxes, so ${stored === 1 ? 'one piece went' : stored + ' pieces went'} straight into storage.` : '';
-  if (H.isHome()) { toast(`Ding-dong! ${COURIER}: ${what}.${extra}`, 'good', 5200); safe(() => G.audio.sfx('shop_bell')); safe(() => H.refresh()); }
+  if (H.isHome()) { toast(`Ding-dong! ${COURIER}: ${what}.${extra}${boxes ? ' Tap a box to unpack it.' : ''}`, 'good', 5200); safe(() => G.audio.sfx('shop_bell')); safe(() => H.refresh()); }
   else safe(() => G.phone.notify({ app: APP, title: COURIER, text: `Delivered: ${what} ${sh.left ? 'put inside your door' : 'left at your door'}.${extra} Unpack at home.`, icon: sh.lines[0].id, data: { tab: 'orders', ship: sh.id } }));
   trim(); G.emit('order:delivered', sh);
 }

@@ -26,6 +26,7 @@ const NAMES = { clear: 'Clear', cloudy: 'Cloudy', rain: 'Rain', storm: 'Storm', 
 const TYPE = k => (WEATHER_TYPES && WEATHER_TYPES[k]) || {};
 
 let S = null, urlKind = null, lastT = null, lastAmb = null, fx = null;
+let wetness = 0; // 0..1 how wet the ground is: fills while it rains, dries slowly afterwards (visual only: puddles and sheen; not saved)
 const fresh = () => ({ seed: 7, days: [], kind: 'clear', int: 1, override: null });
 
 function today() { return Math.floor(G.state.t / DAYM); }
@@ -53,12 +54,13 @@ function publish(force) {
   const a = ambientKind(); G.state.weather = a;
   if (force || a !== lastAmb) { lastAmb = a; G.emit('weather', S.kind, S.int); }
 }
-function snap() { S.kind = targetAt(G.state.t); S.int = 1; publish(true); }
+function snap() { S.kind = targetAt(G.state.t); S.int = 1; if (S.kind === 'rain' || S.kind === 'storm') wetness = 1; publish(true); }
 
 function step(gm) {
   const t = G.state.t;
   if (lastT === null || Math.abs(t - lastT) > 90 || gm > 45) { lastT = t; ensureDays(); return snap(); }
   lastT = t; ensureDays(); const tgt = targetAt(t), was = S.int, k0 = S.kind;
+  if (S.kind === 'rain' || S.kind === 'storm') wetness = Math.min(1, wetness + gm * S.int / 12); else wetness = Math.max(0, wetness - gm / (S.kind === 'clear' ? 60 : 110));
   if (tgt !== S.kind) { S.int -= gm * DOWN; if (S.int <= 0) { S.kind = tgt; S.int = 0; } }
   else S.int = Math.min(1, S.int + gm * UP);
   if (S.kind !== k0) publish(true); else if (was < 1 && S.int >= 1) publish(true); else publish(false);
@@ -70,7 +72,7 @@ export function current() {
   if (!S) return { kind: 'clear', intensity: 1, name: 'Clear', ambient: 'clear', target: 'clear', tempC: 18, tempF: 64, wet: false, indoor: false };
   const t = G.state.t, d = dayData(0), mf = (t - today() * DAYM) / 60, h = Math.floor(mf), f = mf - h, c1 = h < 23 ? d.c[h + 1] : dayData(1).c[0];
   const tempC = Math.round(d.c[h] + (c1 - d.c[h]) * f);
-  return { kind: S.kind, intensity: S.int, name: NAMES[S.kind], ambient: G.state.weather, target: targetAt(t), tempC, tempF: toF(tempC), wet: isWet(), indoor: !!(G.scene && G.scene.indoor) };
+  return { kind: S.kind, intensity: S.int, name: NAMES[S.kind], ambient: G.state.weather, target: targetAt(t), tempC, tempF: toF(tempC), wet: isWet(), wetness, indoor: !!(G.scene && G.scene.indoor) };
 }
 /** hourly forecast for today + dayOffset -> [{hour, kind, tempC, tempF}] x 24 (debug overrides included) */
 export function forecast(dayOffset = 0) {
@@ -138,7 +140,9 @@ export function init(g) {
   G.on('season', () => { if (S) { ensureDays(); lastT = null; } });
   G.addSystem({ name: 'weather', update(dt, gm) { step(gm); } });
   fx = createFX(G);
-  const info = { kind: 'clear', int: 1, dark: 0, hf: 12, season: 0, indoor: false };
+  const info = { kind: 'clear', int: 1, dark: 0, hf: 12, season: 0, indoor: false, wetness: 0 };
+  let uT = 0;
+  G.underlays.push((ctx, cam) => { if (!S || !G.scene || wetness <= .03) return; const dt = Math.min(.1, Math.max(0, G.time - uT)); uT = G.time; info.kind = S.kind; info.int = S.int; info.indoor = !!G.scene.indoor; info.wetness = ENV.season === 3 ? wetness * .5 : wetness; fx.under(ctx, cam, dt, info); });
   G.overlays.push((ctx, cam, dt) => {
     if (!S || !G.scene) return; if (lastT === null) step(0);
     const t = G.state.t, m = t - Math.floor(t / DAYM) * DAYM;

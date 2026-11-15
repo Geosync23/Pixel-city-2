@@ -13,7 +13,7 @@
 #fz-top .fz-comfort em.dn{color:var(--bad)}
 #fz-top .fz-comfort.bump{animation:fzbump .5s}
 @keyframes fzbump{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
-#fz-top .fz-meter{display:block;height:6px;border:2px solid var(--edge);background:#fff8}
+#fz-top .fz-meter{display:block;height:10px;border:2px solid var(--edge);background:#fff8;box-sizing:border-box}
 #fz-top .fz-meter i{display:block;height:100%;background:var(--good);transition:width .35s}
 #fz-top .fz-cart{min-height:28px;padding:2px 8px;font-size:12px;background:#3b82d6;color:#fff;flex:none}
 #fz-bot{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-top:2px solid var(--edge);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
