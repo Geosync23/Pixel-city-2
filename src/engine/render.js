@@ -1,7 +1,7 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
-import { WS, U } from './raster.js';
-import { renderChunk, CH, outskirtChunks } from './ground.js';
-import { toSprite, objSprite, assetSprite } from './sprites.js';
+import { WS, U, screenBox, renderStep, renderResult } from './raster.js';
+import { renderChunk, chunkJob, CH, outskirtChunks } from './ground.js';
+import { toSprite, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, BAKE } from './sprites.js';
 import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -26,6 +26,7 @@ export function sortItems(L) {
   return out;
 }
 
+let WID = 0;
 const pools = new Map();
 function poolSprite(r, col) { // banded, dithered ellipse of light
   const key = r + col; let c = pools.get(key); if (c) return c;
@@ -61,18 +62,78 @@ function treeLayer(world, cx, cy) {
 }
 
 export class Renderer {
-  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0 }; this.maxNewChunks = 2; }
+  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0 }; this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
+  /** test hook (tools/perf.mjs --verify): paint objects [from, from + n) of the world and every chunk both ways (whole / in bands); returns { tested, bad: [ids...] }. Expect bad = []. */
+  sliceCheck(world, from = 0, n = 1e9, rows = 23) {
+    const bad = [], seen = new Set(); let tested = 0;
+    for (let i = from; i < Math.min(world.objs.length, from + n); i++) { const ob = world.objs[i], k = ob.id + '|' + JSON.stringify(ob.p) + (ob.flip ? '|F' : ''); if (seen.has(k)) continue; seen.add(k); tested++; try { if (sliceTest(screenBox(ob.vbl), () => ob.a.draw(ob.p), 3, ob.flip, rows)) bad.push(k.slice(0, 80)); } catch (e) { bad.push('ERR ' + k.slice(0, 60) + ' ' + e.message); } }
+    return { tested, bad };
+  }
+  chunkCheck(world, cx0, cy0, cx1, cy1, rows = 23) {
+    const bad = []; let tested = 0;
+    for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) { const a = renderChunk(world, cx, cy), j = chunkJob(world, cx, cy); if (!a || !j) { if (!!a !== !!j) bad.push(cx + ',' + cy + ' null'); continue; } tested++; let k = 0; while (!renderStep(j, rows + (k++ % 3) * 7)); const b = renderResult(j); let d = a.w !== b.w || a.h !== b.h || a.x !== b.x || a.y !== b.y ? 1 : 0; for (let i = 0; !d && i < a.buf.length; i++) if (a.buf[i] !== b.buf[i] || a.lb[i] !== b.lb[i]) d = 1; if (d) bad.push(cx + ',' + cy); }
+    return { tested, bad };
+  }
+  /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
+  perf() { return Object.assign({}, this.stats, spriteStats()); }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.ctx.imageSmoothingEnabled = false; }
   _chunk(world, cx, cy, budget) {
     const cache = world._chunks || (world._chunks = new Map()); const key = cx * 4096 + cy; let e = cache.get(key);
-    if (e && e.ver === world.version) return e.spr;
+    if (e && e.ver === world.version) { e.t = this.frameNo; return e.spr; }
     if (budget.n <= 0) return e ? e.spr : undefined; budget.n--;
-    const spr = toSprite(renderChunk(world, cx, cy)); if (spr && (cx < 0 || cy < 0 || cx * CH >= world.w || cy * CH >= world.h)) spr.over = treeLayer(world, cx, cy); cache.delete(key); cache.set(key, { spr, ver: world.version });
-    if (cache.size > 140) { const k = cache.keys().next().value; cache.delete(k); }
+    /* perf: a chunk the bake queue has already started (see _ahead) is finished now instead of being painted again from scratch */
+    if (rushBake(this._ck(world, key))) { e = cache.get(key); if (e && e.ver === world.version) { e.t = this.frameNo; return e.spr; } }
+    const t0 = performance.now(), r = renderChunk(world, cx, cy); this.stats.chunkBakes++; this.stats.chunkMs += performance.now() - t0;
+    return this._putChunk(world, cx, cy, r, world.version);
+  }
+  _ck(world, key) { return 'chunk|' + (world._wid || (world._wid = ++WID)) + '|' + key; }
+  /* store a painted chunk (raster result or null). The cache keeps 140 chunks; the one that was drawn longest ago goes first (it used to be the oldest painted one, which could be a chunk still on screen). */
+  _putChunk(world, cx, cy, r, ver) {
+    const cache = world._chunks || (world._chunks = new Map()), key = cx * 4096 + cy;
+    const spr = toSprite(r); if (spr && (cx < 0 || cy < 0 || cx * CH >= world.w || cy * CH >= world.h)) spr.over = treeLayer(world, cx, cy); cache.delete(key); cache.set(key, { spr, ver, t: this.frameNo });
+    if (cache.size > 140) { let k0, t0 = Infinity; for (const [k, v] of cache) if (v.t < t0) { t0 = v.t; k0 = k; } cache.delete(k0); }
     return spr;
   }
-  /** make sure all chunks around the camera exist (call after teleports to avoid pop-in) */
-  warm(world, cam) { const m = this.maxNewChunks; this.maxNewChunks = 1e9; this._ground(world, cam, null); this.maxNewChunks = m; }
+  /** make sure everything around the camera exists (call after teleports to avoid pop-in): the ground chunks and, perf, the sprites of the objects in view (so they are baked under the scene fade, not in the first frames after it) */
+  warm(world, cam) { const m = this.maxNewChunks; this.maxNewChunks = 1e9; this._ground(world, cam, null); this.maxNewChunks = m; for (const ob of world.query(cam.x - 4, cam.y - 4, cam.x + this.W + 4, cam.y + this.H + 4)) if (!ob.hidden) objSprite(ob); this._scan = 0; }
+  /**
+   * perf: bake AHEAD of the camera. Every few frames, look at a ring around the screen (wider in the direction the camera moves) and queue
+   * what is not painted yet: ground chunks, object sprites, and entities that offer prebake(pri) (citizens). bakeTick() then spends a few
+   * milliseconds per frame on the queue (engine/sprites.js). Nothing on screen depends on it: whatever is not ready when it scrolls into
+   * view is finished on the spot, as before.
+   */
+  _ahead(world, cam, ents) {
+    const now = performance.now(), W = this.W, H = this.H, A = this.ahead;
+    const late = A.last > 0 && now - A.last > A.base * 1.35 + 2; if (A.last > 0) { const d = now - A.last; A.base = d < A.base ? d : Math.min(d, A.base * 1.002 + .002); } A.last = now;   // base = this display's frame interval (a slowly rising minimum)
+    if (!BAKE.on) return;
+    if (A.world !== world) { A.world = world; A.cx = cam.x; A.cy = cam.y; A.vx = A.vy = 0; this._scan = 0; }
+    A.vx += (cam.x - A.cx - A.vx) * .1; A.vy += (cam.y - A.cy - A.vy) * .1; A.cx = cam.x; A.cy = cam.y;   // camera speed in px per frame, smoothed
+    if (--this._scan <= 0) {
+      this._scan = 6;
+      /* the ring: BAKE.ring px around the screen, stretched by BAKE.look frames of camera travel (at most BAKE.lookMax px) */
+      const lx = Math.max(-BAKE.lookMax, Math.min(BAKE.lookMax, A.vx * BAKE.look)), ly = Math.max(-BAKE.lookMax, Math.min(BAKE.lookMax, A.vy * BAKE.look)), m = BAKE.ring;
+      const rx0 = cam.x - m + Math.min(0, lx), ry0 = cam.y - m + Math.min(0, ly), rx1 = cam.x + W + m + Math.max(0, lx), ry1 = cam.y + H + m + Math.max(0, ly);
+      /* priority = px between the thing and the screen (now, or where the screen will be in half the look-ahead: whichever is nearer) */
+      const hx = lx * .5, hy = ly * .5, pri = (x0, y0, x1, y1) => { const a = Math.max(0, cam.x - x1, x0 - cam.x - W) + Math.max(0, cam.y - y1, y0 - cam.y - H), b = Math.max(0, cam.x + hx - x1, x0 - cam.x - hx - W) + Math.max(0, cam.y + hy - y1, y0 - cam.y - hy - H) + 24; return a < b ? a : b; };
+      ageBakes(60, 1500); const Q = A.q; Q.length = 0; world.query(rx0, ry0, rx1, ry1, Q);
+      for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const sb = ob.sb, p = pri(sb[0], sb[1], sb[2], sb[3]); if (!prebakeObj(ob, p) && ob._key) bakePri(ob._key, p); }
+      /* ground chunks of the ring (same chunk maths as _ground) */
+      const zr = (world.zmax || 14) * U, oc = outskirtChunks(world), cache = world._chunks || (world._chunks = new Map());
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { const sx = i & 1 ? rx1 : rx0, sy = i & 2 ? ry1 + zr : ry0 - 64, a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      const c0x = Math.max(-oc, Math.floor(x0 / CH)), c0y = Math.max(-oc, Math.floor(y0 / CH)), c1x = Math.min(Math.ceil(world.w / CH) - 1 + oc, Math.floor(x1 / CH)), c1y = Math.min(Math.ceil(world.h / CH) - 1 + oc, Math.floor(y1 / CH));
+      for (let cy = c0y; cy <= c1y; cy++) for (let cx = c0x; cx <= c1x; cx++) {
+        const sx = (cx - cy) * CH * U, sy = (cx + cy + 1) * CH * U / 2, bx0 = sx - CH * U, bx1 = sx + CH * U, by0 = sy - CH * U / 2 - zr, by1 = sy + CH * U / 2 + 64;   // the chunk's diamond on screen (world px), with the same slack for heights as _ground
+        if (bx1 < rx0 || bx0 > rx1 || by1 < ry0 || by0 > ry1) continue;
+        const key = cx * 4096 + cy, e = cache.get(key); if (e && e.ver === world.version) { if (e.t < this.frameNo - 30) e.t = this.frameNo - 30; continue; }   // a ring chunk counts as recently used
+        const jk = this._ck(world, key), p = pri(bx0, by0, bx1, by1) - 8, ver = world.version;   // ground a little before the objects standing on it
+        if (!prebake(jk, () => chunkJob(world, cx, cy), p, null, r => { if (ver === world.version) this._putChunk(world, cx, cy, r, ver); })) bakePri(jk, p);
+      }
+      /* entities near the screen that can say what they will look like (crowd citizens) */
+      for (let i = 0; i < ents.length; i++) { const e = ents[i]; if (e.hidden || !e.prebake) continue; const w = WS(e.x, e.y, e.z); if (w[0] < rx0 || w[0] > rx1 || w[1] < ry0 || w[1] > ry1) continue; e.prebake(pri(w[0] - 16, w[1] - 40, w[0] + 16, w[1] + 8)); }
+      sortBakes();
+    }
+    this.stats.aheadMs += bakeTick(late);
+  }
   _ground(world, cam, ctx) {
     const W = this.W, H = this.H, zr = (world.zmax || 14) * U, corners = [[cam.x, cam.y - 64], [cam.x + W, cam.y - 64], [cam.x, cam.y + H + zr], [cam.x + W, cam.y + H + zr]];
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [sx, sy] of corners) { const a = sx / U, b = sy / (U / 2), x = (a + b) / 2, y = (b - a) / 2; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
@@ -96,7 +157,7 @@ export class Renderer {
    * hooks: { under(ctx,cam) after ground, over(ctx,cam) after lighting (markers, bubbles, weather) }
    */
   draw(world, cam, ents, env, hooks = {}) {
-    const ctx = this.ctx, W = this.W, H = this.H;
+    const ctx = this.ctx, W = this.W, H = this.H; this.frameNo++;
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.fillStyle = world.bg || env.bg || '#9fd6e8'; ctx.fillRect(0, 0, W, H);
     this._ground(world, cam, ctx);
     if (hooks.under) hooks.under(ctx, cam);
@@ -128,6 +189,7 @@ export class Renderer {
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     if (hooks.over) hooks.over(ctx, cam);
+    this._ahead(world, cam, ents);
     return S;
   }
 }

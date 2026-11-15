@@ -2,7 +2,7 @@
 // Event 'crowd:say'(citizen, text) whenever an anonymous citizen's bubble is shown (QA round 3; for tests and listeners).
 import { G } from '../core/game.js';
 import { Char, charArt } from '../core/char.js';
-import { pixSprite } from '../engine/sprites.js';
+import { pixSprite, prebakePix } from '../engine/sprites.js';
 import { U } from '../engine/raster.js';
 import { GT } from '../engine/world.js';
 import { stepToward } from '../engine/nav.js';
@@ -35,7 +35,15 @@ export class Cit extends Char {
     const A = charArt(), AN = A.ANIMS; let a = this.pose || (this.moving ? (this.carry ? 'carry' : this.run ? 'run' : 'walk') : this.carry ? 'carry' : 'stand'), n = AN[a]; if (!n) { a = 'stand'; n = AN.stand || 1; }
     const f = (!this.moving && !this.pose && this.carry) ? 0 : Math.floor(this.t * (FPS[a] || 4)) % n, dir = this.dir, seated = this.seated; let ai = AI[a]; if (ai === undefined) ai = AI[a] = ++AIN;
     const k = ai * 256 + f * 16 + dir * 2 + (seated ? 1 : 0); if (k === this._sk && this._spr) return this._spr; this._sk = k; const spec = this.spec, item = a === 'carry';
+    if (n > 1) this._pre(A, a, (f + 1) % n, dir, seated, -1);   // perf: the next animation frame is baked by the queue before it is shown
     return this._spr = pixSprite('cz' + this.sid + a + f + dir + (seated ? 's' : ''), A.CHAR_SB, () => A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : item ? { anim: a, frame: f, dir, item: 'bag' } : { anim: a, frame: f, dir }));
+  }
+  /* perf: queue one frame of this citizen with the sprite bake queue (same key and drawing as sprite()) */
+  _pre(A, a, f, dir, seated, pri) { const spec = this.spec, item = a === 'carry'; prebakePix('cz' + this.sid + a + f + dir + (seated ? 's' : ''), A.CHAR_SB, () => A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : item ? { anim: a, frame: f, dir, item: 'bag' } : { anim: a, frame: f, dir }), pri); }
+  /** perf: called by the renderer while this citizen is just off screen: queue the frame it shows now and the next one */
+  prebake(pri) {
+    if (!this.spec) return; const A = charArt(), AN = A.ANIMS; let a = this.pose || (this.moving ? (this.carry ? 'carry' : this.run ? 'run' : 'walk') : this.carry ? 'carry' : 'stand'), n = AN[a]; if (!n) { a = 'stand'; n = AN.stand || 1; }
+    const f = (!this.moving && !this.pose && this.carry) ? 0 : Math.floor(this.t * (FPS[a] || 4)) % n; this._pre(A, a, f, this.dir, this.seated, pri); if (n > 1) this._pre(A, a, (f + 1) % n, this.dir, this.seated, pri);
   }
 }
 /** straight step toward a point with nav sliding; sets moving/facing/z. Returns distance moved. */

@@ -171,8 +171,11 @@ const ROOM_ALIAS = { 'museum:cafe': ['museum_cafe', 'museum'], 'conservatory:caf
 const SPOT_ALIAS = { poi_pier: 'pier', poi_ferris_wheel: 'poi_ferris_wheel', '@Bandstand': 'park', stand_coffee: 'spot:central_plaza' };
 const SPOT_NAME = { stand_coffee: 'the Little Drip coffee cart, Central Station plaza', '@Bandstand': 'the bandstand in Central Park' };
 export const homeRoomOf = id => { const c = castOf(id); return c && HOME_ROOM[c.home] && ROOMS.has(HOME_ROOM[c.home]) ? HOME_ROOM[c.home] : null; };
-function spotDest(key, x, y, name, placeId) { const f = freeNear(cityWorld(), x, y); return { key, name, room: null, x: f.x, y: f.y, spot: true, placeId: placeId || null, pos: { x: f.x, y: f.y, name } }; }
-function fromResolved(key, d) { if (!d) return null; const pid = d.room ? (safe(() => G.places.get(d.root || d.room), null) || {}).id || null : (safe(() => G.places.get(key), null) || {}).id || null; return { key, name: d.name, room: d.room || null, root: d.root || null, x: d.x, y: d.y, spot: !!d.spot, placeId: pid, pos: d.spot && !pid ? { x: d.x, y: d.y, name: d.name } : null }; }
+/* a spot that turns out to be in the roadway (several cast spots are street corners): the nearest pavement, grass or square */
+function kerb(x, y) { const w = cityWorld(); if (!w) return { x, y }; const road = (a, b) => { const t = safe(() => w.tileType(a, b), 0); return t === 3 || t === 12 || t === 0; }, f = freeNear(w, x, y); if (!road(f.x, f.y)) return f;
+  for (let d = 1; d <= 8; d += .5) for (let k = 0; k < 24; k++) { const a = k / 24 * 6.283, cx = Math.round((x + Math.cos(a) * d) * 2) / 2, cy = Math.round((y + Math.sin(a) * d) * 2) / 2; if (!safe(() => w.isBlocked(cx, cy), true) && !road(cx, cy) && !road(cx + 1, cy) && !road(cx, cy + 1)) return { x: cx, y: cy }; } return f; }
+function spotDest(key, x, y, name, placeId) { const f = kerb(x, y); return { key, name, room: null, x: f.x, y: f.y, spot: true, placeId: placeId || null, pos: { x: f.x, y: f.y, name } }; }
+function fromResolved(key, d) { if (!d) return null; if (d.spot) { const f = kerb(d.x, d.y); d = Object.assign({}, d, f); } const pid = d.room ? (safe(() => G.places.get(d.root || d.room), null) || {}).id || null : (safe(() => G.places.get(key), null) || {}).id || null; return { key, name: d.name, room: d.room || null, root: d.root || null, x: d.x, y: d.y, spot: !!d.spot, placeId: pid, pos: d.spot && !pid ? { x: d.x, y: d.y, name: d.name } : null }; }
 export function dest(key, person) {
   if (!key || key === 'any') return { key: 'any', any: true, name: 'wherever you are' };
   if (key === 'phone') return { key, phone: true, name: 'on the telephone' };

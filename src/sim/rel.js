@@ -49,6 +49,9 @@ export const SC = {};
 for (const p in ARCS) for (const s of ARCS[p].scenes) SC[s.id] = Object.assign({}, s, { arc: 'a:' + p, track: 'friend', key: s.id.split('.')[1], speakers: ARC_SPEAKERS[p] || [p] });
 for (const p in HEARTS) for (const s of HEARTS[p].scenes) SC[s.id] = Object.assign({}, s, { arc: 'h:' + p, track: 'romance', key: s.id.split('.')[1], speakers: [p] });
 for (const p in FIRST_DATES) SC['fd.' + p] = Object.assign({}, FIRST_DATES[p], { id: 'fd.' + p, person: p, arc: 'h:' + p, track: 'romance', key: 'fd', speakers: [p], n: 0 });
+/* everybody who speaks in a scene stands in it (Felix in Mr. Pike's shed, Fenn on Noor's steps...) */
+{ const scan = (steps, set) => { for (const x of steps || []) { if (x.do === 'say' && x.who !== 'narrator' && x.who !== 'player' && B.castOf(x.who)) set.add(x.who); if (x.options) for (const o of x.options) scan(o.reply, set); scan(x.then, set); scan(x.else, set); } return set; };
+  for (const id in SC) { const set = scan(SC[id].steps, new Set(SC[id].speakers)); SC[id].speakers = [...set].slice(0, 5); } }
 const INVITED = ['h1', 'h2', 'h3', 'm1', 'm2'];           /* heart scenes that arrive as invitations; the rest are started by a verb, a date or a talk */
 const arcOf = key => (key[0] === 'a' ? ARCS[key.slice(2)] : HEARTS[key.slice(2)]);
 const lead = sc => sc.speakers[0];
@@ -223,7 +226,7 @@ function stageOffers() {
     if (o.staged === w.from) continue; o.staged = w.from;
     for (const p of sc.speakers) { if (!B.castOf(p)) continue; safe(() => { if (!(G.social.known() || []).includes(p)) G.social.meet(p); });
       if (d.flat) continue;
-      if (d.room) safe(() => G.social.place(p, d.room, { until: w.to, anim: 'stand' })); else safe(() => G.social.place(p, d.placeId || d.key, { x: d.x + 1 + sc.speakers.indexOf(p), y: d.y + .5, scene: 'city', until: w.to, anim: 'stand' })); }
+      if (d.room) safe(() => G.social.place(p, d.room, { until: w.to, anim: 'stand' })); else safe(() => G.social.place(p, d.placeId || d.key, { x: d.x + sc.speakers.indexOf(p), y: d.y, scene: 'city', until: w.to, anim: 'stand' })); }
   }
 }
 /** is there an invitation that can begin here and now (optionally: with this person)? */
@@ -240,7 +243,7 @@ function hereNow(person) {
 /* the Chapters' card in rose: these are people, not the gold story */
 const rose = () => { const c = [...document.querySelectorAll('.chc.start')].pop(); if (c) c.classList.add('rel'); };
 HOOK.rose = rose;
-let carding = false;
+let carding = false, wakeN = 0;
 async function card(sc) {
   if (carding || running) return 'busy'; carding = true;
   try {
@@ -285,7 +288,7 @@ function govern(force) {
 function markers() { const s = st(), out = []; for (const id of openOffers()) { const sc = SC[id], o = s.off[id]; if (!o.sent || !inWindow(sc.window)) continue; const d = dest(sc.place, sc.person); if (d && isFinite(d.x) && !d.any && !d.phone && !d.home) out.push({ id, x: d.x, y: d.y, room: d.room, label: short(lead(sc)) }); } return out.concat(safe(() => DATES.markers(), [])); }
 let MK = [], mkT = 0;
 function drawMarkers(ctx, cam) {
-  if (!G.scene || G.scene.id !== 'city' || (G.cutscene && G.cutscene.hideMarkers) || !MK.length) return; const t = performance.now() / 1000;
+  if (!G.scene || G.scene.id !== 'city' || (G.cutscene && G.cutscene.hideMarkers) || !MK.length || running) return; const t = performance.now() / 1000;
   for (const m of MK) {
     const z = safe(() => G.world.heightAt(m.x, m.y), 0), p = WS(m.x, m.y, z), X = Math.round(p[0] - cam.x), Y = Math.round(p[1] - cam.y) - (m.room ? 6 : 0); if (X < -20 || Y < -30 || X > G.W + 20 || Y > G.H + 40) continue;
     const k = (t * .7) % 1, rx = 5 + k * 6; ctx.globalAlpha = .7 * (1 - k); ctx.fillStyle = '#ffc2d1'; for (let a = 0; a < 24; a++) { const an = a / 24 * 6.283; ctx.fillRect(Math.round(X + Math.cos(an) * rx), Math.round(Y + Math.sin(an) * rx / 2), 1, 1); }
@@ -317,7 +320,7 @@ const debug = {
   state: () => st(), scenes: () => Object.keys(SC), list: () => Object.keys(ARCS).map(arcView).concat(Object.keys(HEARTS).map(arcView)), people,
   /** play a scene here and now, whatever its conditions */
   fire(id) { const s = st(); delete s.seen[id]; delete s.held[id]; if (s.cur && s.cur.id === id) s.cur = null; return start(id, { force: true }); },
-  offer(id) { const s = st(); delete s.seen[id]; delete s.off[id]; return offer(id, { quiet: true }); },
+  offer(id) { const s = st(); delete s.seen[id]; if (s.off[id] && s.off[id].pin) safe(() => G.planner.remove(s.off[id].pin)); delete s.off[id]; return offer(id, { quiet: true }); },
   /** offer it and deliver the invitation now; `go` also takes you to the place inside its window */
   async invite(id, go) { const sc = SC[id]; if (!sc) return null; debug.offer(id); pumpTexts(true); st().off[id].sent = true; if (go) { const w = nextWindow(sc.window); if (w && G.state.t < w.from) G.advance(w.from + 5 - G.state.t); pin(id); stageOffers(); await debug.goto(sc.place, sc.person); } return st().off[id]; },
   async goto(place, person) { const d = dest(place, person); if (!d || d.any || d.phone) return false; if (d.flat) { await G.go('int:' + d.flat); return true; } if (d.room) { await G.go('int:' + d.room); return true; } await G.go('city', { x: d.x - .5, y: d.y + 2 }); return true; },
@@ -377,6 +380,6 @@ export function init() {
   const wake = () => { st(); tok++; running = false; carding = false; mine = false; const s = st(), sc = s.cur && SC[s.cur.id];
     if (s.cur && !sc) { s.cur = null; return; } if (!sc) return;
     /* a save made in the middle of a scene: carry on from the same line if the player is still standing there */
-    setTimeout(() => { const d = dest(sc.place, sc.person); if (d && at(d) && !busy()) start(sc.id); }, 1700); };
+    const my = ++wakeN; let k = 0; const again = () => { if (my !== wakeN || running || !st().cur || st().cur.id !== sc.id) return; const d = dest(sc.place, sc.person); if (G.started && d && at(d) && !busy()) { start(sc.id); return; } if (++k < 12) setTimeout(again, 1000); }; setTimeout(again, 1700); };
   G.on('load', wake); G.on('ready', () => { wake(); safe(defineNav); safe(stageOffers); });
 }

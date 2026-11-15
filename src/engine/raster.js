@@ -21,11 +21,17 @@ export function C(h) {
   return v;
 }
 const hx = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
-export const mix = (h, h2, k) => { const a = rgb(h), b = rgb(h2); return '#' + hx(a[0] + (b[0] - a[0]) * k) + hx(a[1] + (b[1] - a[1]) * k) + hx(a[2] + (b[2] - a[2]) * k); };
+const mix0 = (h, h2, k) => { const a = rgb(h), b = rgb(h2); return '#' + hx(a[0] + (b[0] - a[0]) * k) + hx(a[1] + (b[1] - a[1]) * k) + hx(a[2] + (b[2] - a[2]) * k); };
+// perf: mix / dk / lt are pure and art calls them per pixel with the same few arguments (they were ~25% of all sprite baking: two hex parses and
+// three number -> hex conversions per call, and a fresh string every time, which also made the C() lookup slow). The results are remembered
+// per (colour, colour, amount); the tables are emptied if they ever grow past MIXMAX entries (art that blends by a continuously varying amount).
+const MIXT = new Map(), DKT = new Map(), LTT = new Map(), MIXMAX = 400000; let mixN = 0;
+const memo2 = (T2, h, k, h2) => { let a = T2.get(h); if (a === undefined) T2.set(h, a = new Map()); let v = a.get(k); if (v === undefined) { v = mix0(h, h2, k); if (++mixN > MIXMAX) { MIXT.clear(); DKT.clear(); LTT.clear(); mixN = 0; } else a.set(k, v); } return v; };
+export const mix = (h, h2, k) => { let a = MIXT.get(h2); if (a === undefined) MIXT.set(h2, a = new Map()); return memo2(a, h, k, h2); };
 /** darken toward the house shadow colour (cool purple) */
-export const dk = (h, k) => mix(h, '#2a1f45', k);
+export const dk = (h, k) => memo2(DKT, h, k, '#2a1f45');
 /** lighten toward the house highlight colour (warm cream) */
-export const lt = (h, k) => mix(h, '#fff8e0', k);
+export const lt = (h, k) => memo2(LTT, h, k, '#fff8e0');
 const PC = new Map();
 /** face palette for a base colour: t top, l +y wall, r +x wall, o outline, h highlight edge, m mid edge */
 export function pal(c) {

@@ -61,7 +61,10 @@ const SNOWY = new Set([GT.sidewalk, GT.plaza, GT.brickpave, GT.cobble, GT.concre
 export const outskirtChunks = world => world.name === 'city' ? FX.OUT : 0;
 
 /** Render one chunk. Returns raster result {w,h,x,y,buf,lb} (see raster.render) or null if empty. Chunks outside the map are outskirts (city only). */
-export function renderChunk(world, cx, cy) {
+export function renderChunk(world, cx, cy) { const d = chunkDraw(world, cx, cy); return d ? R.render(d.sb, d.draw, null, 2) : null; }
+/** The same chunk as a sliced job (raster.renderJob: drawn a band of rows at a time by the renderer's bake queue); null if the chunk is empty. */
+export function chunkJob(world, cx, cy) { const d = chunkDraw(world, cx, cy); return d ? R.renderJob(d.sb, d.draw, null, 2) : null; }
+function chunkDraw(world, cx, cy) {
   const x0 = cx * CH, y0 = cy * CH, oc = outskirtChunks(world), outside = x0 < 0 || y0 < 0 || x0 >= world.w || y0 >= world.h;
   if (outside && (!oc || cx < -oc || cy < -oc || x0 >= world.w + oc * CH || y0 >= world.h + oc * CH)) return null;
   const x1 = outside ? x0 + CH : Math.min(world.w, x0 + CH), y1 = outside ? y0 + CH : Math.min(world.h, y0 + CH);
@@ -86,7 +89,7 @@ export function renderChunk(world, cx, cy) {
     if (outside) fn = FX.hazeWrap(world, fn);
     return paint[key] = fn;
   };
-  return R.render(sb, () => {
+  return { sb, draw: () => {
     for (let ty = y0; ty < y1; ty++) for (let tx = x0; tx < x1; tx++) {
       const t = T(tx, ty); if (!t) continue;
       const a = HH(tx, ty), b = HH(tx + 1, ty), c = HH(tx + 1, ty + 1), d = HH(tx, ty + 1);
@@ -126,7 +129,7 @@ export function renderChunk(world, cx, cy) {
       }
     }
     if (!outside) { const dl = world.decals.get(cx + ',' + cy); if (dl) { const zAt = (x, y) => world.heightAt(x, y); for (const d of dl) d.draw(R, zAt); } }
-  }, null, 2);
+  } };
 }
 let _ox = 0, _oy = 0;
 // inverse projection helper for sloped tiles; needs the current target origin which raster does not expose -> derive from PW(0,0,0)

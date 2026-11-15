@@ -439,3 +439,6 @@ First-time windows: days 0 to 2 had 7 to 8 a day, days 3 to 5 had 2 to 4. Fine, 
 Called cab: it waits 80 real seconds before giving up. Longer? No, just cheat it ahve the cab spawn off acreen if taking too long.
 Jobs board: the full board is now on the phone, not only at the library. Keep? Yes
 Romance: you can date several people at first, but have one partner once together, with no jealousy. Kit is a friend only. OK? Yes ok
+
+## 110 (2026-11-15) — intro hint covers the text replies
+Great - also quixk thing.  In the intro, the tool tip (yelled at the top) slides to the bottom of the screen when opening your phone and it blocks responses in the text

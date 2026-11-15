@@ -60,7 +60,7 @@ const destOfDate = d => dest(d.venue, d.id);
 const due = d => !d.done && G.state.t >= d.t - 25 && G.state.t <= d.t + d.dur + 60;
 function stageDate(d) {      /* they are there a little early, in view, waiting */
   if (d.staged || G.state.t < d.t - 25) return; d.staged = 1; const x = destOfDate(d), id = d.id; if (!x) return; safe(() => { if (!(G.social.known() || []).includes(id)) G.social.meet(id); });
-  if (x.room) safe(() => G.social.place(id, x.room, { until: d.t + d.dur + 60, anim: 'stand' })); else safe(() => G.social.place(id, x.placeId || x.key, { x: x.x + 1, y: x.y + .5, scene: 'city', until: d.t + d.dur + 60, anim: 'stand' }));
+  if (x.room) safe(() => G.social.place(id, x.room, { until: d.t + d.dur + 60, anim: 'stand' })); else safe(() => G.social.place(id, x.placeId || x.key, { x: x.x, y: x.y, scene: 'city', until: d.t + d.dur + 60, anim: 'stand' }));
 }
 export const markers = () => list().filter(d => due(d)).map(d => { const x = destOfDate(d); return x && isFinite(x.x) && !x.home ? { id: 'date:' + d.appt, x: x.x, y: x.y, room: x.room, label: short(d.id) } : null; }).filter(Boolean);
 export const navStep = () => null;      /* the appointment carries `withNpc`: the existing 'meet' resolver leads to them */

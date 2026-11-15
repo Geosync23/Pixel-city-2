@@ -92,7 +92,9 @@ function frame() {
   if (cap && performance.now() > capT) { cap.remove(); cap = null; }
   if (!H) return; const w = H.world;
   /* QA8: with the phone up, the bubble sat on the app's own header (the ride's destination, the Chats tabs); it moves to the bottom unless what it points at is down there */
-  if (++H.k % 10 === 1) { let low = false; try { if (G.phone && G.phone.isOpen) { const hl = H.hl && H.hl.getBoundingClientRect(); low = !hl || !hl.height || hl.top < innerHeight * .55; } } catch (e) { low = false; } if (low !== H.low) { H.low = low; H.box.classList.toggle('low', low); } }
+  if (++H.k % 10 === 1) { let low = false; try { if (G.phone && G.phone.isOpen) { const hl = H.hl && H.hl.getBoundingClientRect(); low = !hl || !hl.height || hl.top < innerHeight * .55;
+      /* owner msg 110: down there it covered the reply buttons in Messages; if any phone button sits in the band the bubble would take, it stays at the top */
+      if (low) { const bh = (H.box.offsetHeight || 60) + 10, y1 = innerHeight - 62, y0 = y1 - bh; for (const b of document.querySelectorAll('button, [role=button], input, textarea')) { if (H.box.contains(b) || !b.offsetParent) continue; const r = b.getBoundingClientRect(); if (r.height && r.bottom > y0 && r.top < y1 && r.width > 30) { low = false; break; } } } } } catch (e) { low = false; } if (low !== H.low) { H.low = low; H.box.classList.toggle('low', low); } }
   if (!w || G.modal) { H.arrow.style.display = 'none'; return; }
   /* QA8: 2.7 (a head / door height) left the arrow floating over the player for a floor spot or a bag on the belt; plain points and props get a low arrow */
   const s = G.toScreen(w.x, w.y, (w.z === undefined ? (G.world ? G.world.heightAt(w.x, w.y) : 0) : w.z) + (w.h || (w.sprite || w.bb || !('label' in w || 'ent' in w || 'name' in w) ? 1.3 : 2.7)));
