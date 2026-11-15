@@ -165,7 +165,8 @@ function dressHome(scene) {
   if (rid !== 'home:' + hid || scene._care) return; scene._care = 1;
   const W = scene.world, spots = freeSpots(scene); if (!spots.length) return;
   /* the broom + bucket: a free reachable tile against a back wall, not by the door */
-  const corner = spots.slice().sort((a, b) => (a.wall - b.wall) || (b.exitD - a.exitD))[0];
+  const lowBy = q => scene.fixtures.some(f => !f.item.wall && f.ob.size[2] <= 1 && f.ob.B[0] < q.x + .8 && f.ob.B[3] > q.x - .8 && f.ob.B[1] < q.y + .8 && f.ob.B[4] > q.y - .8) ? 1 : 0;   /* QA9: not at the foot of a bed (its tap point sat on the mattress: Saltbox Lofts) */
+  const corner = spots.slice().sort((a, b) => (lowBy(a) - lowBy(b)) || (a.wall - b.wall) || (b.exitD - a.exitD))[0];
   safe(() => W.placeCustom(CADDY, corner.x - .35, corner.y - .5, { z: 0 }));
   scene.interactables.push({ x: corner.x, y: corner.y - .2, h: 1.1, hit: 14, range: 1.5, label: 'Cleaning things', care: true, use: () => caddyMenu() });
   /* up to five bits of mess on open floor (hidden until the home is dirty enough) */

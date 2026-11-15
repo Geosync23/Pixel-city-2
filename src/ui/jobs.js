@@ -86,7 +86,7 @@ export function showResults(s) {
     el('div.jr-head', null, el('b', { text: `${s.title} · ${s.venueName}` }), el('div.jr-stars', null, [0, 1, 2, 3, 4].map(i => el('span' + (i < s.stars ? '.on' : ''), { text: '★' }))), el('small', { text: `${s.band} (${s.score}/100)${s.late ? ' · clocked in late' : ''}${s.auto > .05 ? ` · ${Math.round(s.auto * 100)}% auto-worked` : ''}` })),
     row('Tasks done', `${s.tasks}${s.perfect ? ` (${s.perfect} perfect)` : ''}${s.missed ? ` · ${s.missed} missed` : ''}`),
     row(`Wages: ${s.hours} h × ${$(s.hourly)}${s.payMult !== 1 ? ' × ' + s.payMult : ''}`, $(s.base)),
-    row('Task bonuses', $(s.bonus)), s.tips ? row('Tips', $(s.tips)) : null, row('Paid to your account', $(s.pay), 'total'));
+    row('Task bonuses', $(s.bonus)), ...(s.tips ? [row('Tips', $(s.tips))] : []), row('Paid to your account', $(s.pay), 'total'));
   if (s.promoted) m.body.append(el('div.jr-promo', null, el('b', { text: `You are now ${s.promoted.title}!` }), el('small', { text: `${$(s.promoted.hourly)}/h from today · bonus ${$(s.promoted.bonus)}${s.promoted.unlocks.length ? ' · new: ' + s.promoted.unlocks.join(', ') : ''}` })));
   if (s.nextTitle) m.body.append(el('div.jr-prog', null, el('small', { text: `Promotion to ${s.nextTitle}: ${s.points} / ${s.need}${s.nextNeeds.length ? ' · also needs ' + s.nextNeeds.join(', ') : ''}` }), el('div.jh-bar', null, el('i', { style: { width: Math.round(s.progress * 100) + '%' } }))));
   else if (!s.promoted) m.body.append(el('small', { text: 'Top of the ladder. Nothing left to prove.' }));

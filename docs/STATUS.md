@@ -77,3 +77,5 @@ generic eateries reuse the pizza counter art (a taqueria shows "PIZZA"): needs a
 duplicate "Discovered" toast; bus headways long; terminal has no glass roof; cabin passengers hidden by seat backs; no full human playthrough/QA pass yet; mobile layout only spot-checked.
 - FINDABILITY (Stage 48): Wander quick tools, the Systems shelf (G.shelf), first-time windows (G.firstTime, 55), Settings toggle. docs/reports/findability.md.
 - CHAPTERS (Stage 49): 15-Chapter main story engine, G.chapters, gold markers, book reader, attic, Dad. docs/reports/chapters.md, docs/story/CHAPTERS.md.
+
+- JOBS (Stage 53): 21 hireable jobs with nine-beat story arcs (G.jobStory), clock-in choice (work / skip), one play per shift, staff door + pass; 4 more jobs wait for rooms (J3). CHAPTERS (Stage 52): all 15 played by taps from natural unlock; nine family moments (G.chapters.moments). See docs/reports/jobs_engine.md, chapters.md.

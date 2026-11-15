@@ -231,7 +231,7 @@ export function bathReturn(sh) { const b = sh.bathDoor; if (!b) return {}; const
 export function enterBath(mainId) { const rid = mainId + ':bath', def = ROOMS.get(rid); if (!def) return Promise.resolve(null); return G.go('int:' + rid, { fresh: !!def.build }); }
 export function leaveBath(mainId) { const def = ROOMS.get(mainId), sh = SHELLS[mainId.slice(5)] || STORY_HOMES[mainId] || {}; return G.go('int:' + mainId, Object.assign({ fresh: !!(def && def.build) }, bathReturn(sh))); }
 // 38 Sycamore Street's vegetable bed (perk home_garden): the world's `garden` activity, at home
-registerFixture('homegarden', (fx, scene) => (scene.def && scene.def.home && G.activities ? { label: 'Tend the garden bed', act: true, use: () => G.activities.start('garden', { fx }) } : null));
+registerFixture('homegarden', (fx, scene) => (scene.def && scene.def.home && G.activities ? { label: 'Tend the garden bed', act: true, hit: fx.ob && fx.ob.B ? Math.max(12, Math.round(Math.max(fx.ob.B[3] - fx.ob.B[0], fx.ob.B[4] - fx.ob.B[1]) * 8.4 + 1)) : 12, use: () => G.activities.start('garden', { fx }) } : null));   /* QA9: the hit covers the whole long, low bed (41% of it found nothing) */
 registerFixture('bathdoor', (fx, scene) => (ROOMS.has(scene.roomId + ':bath') ? { label: 'Bathroom', h: 1.5, hit: 16, bathdoor: true, use: () => enterBath(scene.roomId) } : null));
 
 const PRIVATE = ['bed', 'fridge', 'stove', 'shower', 'bath', 'wardrobe', 'pantry', 'microwave', 'computer', 'laundry', 'moving_box', 'delivery_box', 'toys', 'coffee'];

@@ -59,7 +59,7 @@ export const WINDOWS = [
     text: 'Have a leaf through the lookbook. Pick a cut or a colour, sit in the chair and see it in the mirror. It grows out in time, so nothing is for ever.' },
   /* ---------- work & money ---------- */
   { id: 'jobsboard', sys: 'jobs', topic: 'work', title: 'Finding work',   /* now: the Jobs app is opened */
-    text: 'The Board tab has a few starter jobs. The full board, with every job in town, is on the free computers at the library. Apply and you hear back at once.', go: { find: 'library' }, goLabel: 'To the library' },
+    text: 'The Board tab lists every job in town, and so do the free computers at the library. Apply and you hear back at once.', go: { find: 'library' }, goLabel: 'To the library' },
   { id: 'shift', sys: 'jobs', topic: 'work', title: 'You have a job',   /* soon: hired */
     text: 'Your shifts are on My Day. Be at the door when one starts and you clock in by walking through it. Good shifts lead to promotions.' },
   { id: 'autowork', sys: 'jobs', topic: 'work', title: 'On shift',   /* soon: the first shift starts */

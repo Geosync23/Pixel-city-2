@@ -139,12 +139,12 @@ export function log() {
 let onOut = null;
 export function setOut(fn) { onOut = fn; }
 function menu() {
-  if (!D) return; let shut = null;
+  if (!D) return; let shut = null; const job = !!(G.jobStory && G.jobStory.active && G.jobStory.active());   /* J2: the same sheet plays job scenes */
   const body = el('div.chd-menu', null,
-    el('p', { text: 'No rush. The Chapter keeps your place.' }),
+    el('p', { text: job ? 'No rush. The moment waits for your next shift.' : 'No rush. The Chapter keeps your place.' }),
     el('button.chd-opt', { 'data-out': '1', text: "Let's pick this up later", onclick: () => { shut(); const r = D && D.res; if (D) { D.res = null; D.mode = null; } if (r) r('out'); else if (onOut) onOut(); } }),
     el('button.chd-opt', { text: 'Carry on', onclick: () => shut() }));
-  shut = over('Chapter', body);
+  shut = over(job ? 'At work' : 'Chapter', body);
 }
 
 /* ---------- cards ---------- */
