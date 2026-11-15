@@ -119,14 +119,15 @@ function topFns(profile) {
   /* cause of a sample = the OUTERMOST frame on its stack that is one of CATS (objSprite > cached > render ...); else the function called directly by the game's frame() */
   const catC = new Map(), catOf = id => { if (catC.has(id)) return catC.get(id); let x = id, r = null; const st = []; while (x !== undefined) { const f = fnOf(x); if (f === '__perfRaf') break; st.push(f); for (const [fn, c] of CATS) if (f === fn) { r = c; break; } x = parent.get(x); } if (!r) { const top = st.length >= 2 ? st[st.length - 2] : st[0]; r = 'other: ' + (top || '?'); } catC.set(id, r); return r; };
   const key = n => { const cf = n.callFrame; return (cf.functionName || '(anon)') + (cf.url ? ':' + (cf.lineNumber + 1) : ''); };
+  const nat = new Map(), natOf = id => { const n = byId.get(id), cf = n.callFrame; if (cf.url || !cf.functionName || cf.functionName.startsWith('(')) return null; const st = []; let x = parent.get(id); while (x !== undefined && st.length < 3) { const f = fnOf(x); if (f === '__perfRaf') break; st.push(f || '(anon)'); x = parent.get(x); } return cf.functionName + ' < ' + st.join(' < '); };   // browser calls (drawImage ...) by who calls them
   const all = new Map(), hit = new Map(), cats = new Map(), frames = []; let tot = 0, hitTot = 0, run = [], runT = 0, gap = 0;   // a run = one frame's JS: it ends at an idle sample or after >= 2 ms of (program) (the browser's own work between frames)
   const pathC = new Map(), pathOf = id => { if (pathC.has(id)) return pathC.get(id); const st = []; let x = id; while (x !== undefined) { const f = fnOf(x); if (f === '__perfRaf') break; st.push(f || '(anon)'); x = parent.get(x); } const r = st.reverse().slice(1, 8).join(' > '); pathC.set(id, r); return r; };
   const flush = () => { if (runT > 40000) { const fc = {}, fp = {}; for (const [k, v, c, id] of run) { hit.set(k, (hit.get(k) || 0) + v); hitTot += v; cats.set(c, (cats.get(c) || 0) + v); fc[c] = (fc[c] || 0) + v; if (id !== undefined) { const pk = pathOf(id); fp[pk] = (fp[pk] || 0) + v; } } frames.push([runT, fc, fp]); } run = []; runT = 0; };
-  for (let i = 0; i < profile.samples.length; i++) { const id = profile.samples[i], n = byId.get(id), dt = profile.timeDeltas[i] || 0, k = key(n); if (/^\((idle)\)/.test(k)) { flush(); continue; } all.set(k, (all.get(k) || 0) + dt); tot += dt; if (k.startsWith('(garbage')) { run.push([k, dt, 'GC']); runT += dt; } else if (isRaf(id)) { gap = 0; run.push([k, dt, catOf(id), id]); runT += dt; } else if (k.startsWith('(program')) { gap += dt; if (gap >= 2000) flush(); } else flush(); }
+  for (let i = 0; i < profile.samples.length; i++) { const id = profile.samples[i], n = byId.get(id), dt = profile.timeDeltas[i] || 0, k = key(n); if (/^\((idle)\)/.test(k)) { flush(); continue; } all.set(k, (all.get(k) || 0) + dt); tot += dt; { const nk = natOf(id); if (nk) nat.set(nk, (nat.get(nk) || 0) + dt); } if (k.startsWith('(garbage')) { run.push([k, dt, 'GC']); runT += dt; } else if (isRaf(id)) { gap = 0; run.push([k, dt, catOf(id), id]); runT += dt; } else if (k.startsWith('(program')) { gap += dt; if (gap >= 2000) flush(); } else flush(); }
   flush();
   const top = (m, t, n) => [...m.entries()].sort((x, y) => y[1] - x[1]).slice(0, n).map(([k, v]) => `${k} ${(100 * v / t).toFixed(1)}%`);
   frames.sort((x, y) => y[0] - x[0]);
-  return { busyMs: Math.round(tot / 1000), top: top(all, tot, 25), hitchMs: Math.round(hitTot / 1000), hitchFrames: frames.length, hitchTop: top(hit, hitTot || 1, 18), hitchCats: top(cats, hitTot || 1, 16),
+  return { busyMs: Math.round(tot / 1000), top: top(all, tot, 25), natives: top(nat, tot, 16), hitchMs: Math.round(hitTot / 1000), hitchFrames: frames.length, hitchTop: top(hit, hitTot || 1, 18), hitchCats: top(cats, hitTot || 1, 16),
     worstFrames: frames.slice(0, 8).map(([t, fc, fp]) => Math.round(t / 1000) + ' ms: ' + Object.entries(fc).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([c, v]) => c + ' ' + Math.round(v / 1000)).join(', ') + '\n      ' + Object.entries(fp).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([c, v]) => Math.round(v / 1000) + ' ms in ' + c).join('\n      ')) };
 }
 async function runScene(br, id, bi = 0) {
@@ -136,11 +137,11 @@ async function runScene(br, id, bi = 0) {
     await g.cdp.send('Emulation.setCPUThrottlingRate', { rate: o.rate }); await g.pg.waitForTimeout(500);
     const h0 = await g.heap();
     if (o.profile) { await g.cdp.send('Profiler.enable'); await g.cdp.send('Profiler.setSamplingInterval', { interval: 1000 }); await g.cdp.send('Profiler.start'); }
-    await g.pg.evaluate(() => { const P = window.__perf; P.d = []; P.js = []; P.rec = true; });
+    await g.pg.evaluate(() => { const P = window.__perf; P.d = []; P.js = []; P.rec = true; try { const st = G.renderer.stats; P.st0 = Object.assign({}, st); } catch (e) { } });
     const note = await g.pg.evaluate(sc.run).catch(e => 'ERR ' + e.message.slice(0, 200));
     const fr = await g.pg.evaluate(() => { const P = window.__perf; P.rec = false; return { d: P.d, js: P.js }; });
     let prof = null; if (o.profile) { const { profile } = await g.cdp.send('Profiler.stop'); prof = topFns(profile); }
-    const h1 = await g.heap(), eng = await g.pg.evaluate(() => { try { return G.renderer.perf ? G.renderer.perf() : null; } catch (e) { return null; } });
+    const h1 = await g.heap(), eng = await g.pg.evaluate(() => { try { if (!G.renderer.perf) return null; const e = G.renderer.perf(), s0 = window.__perf.st0 || {}, n = (e.frames - (s0.frames || 0)) || 1; e.drawMsPerFrame = {}; for (const k of ['tGround', 'tUnder', 'tItems', 'tAmb', 'tGlow', 'tOver', 'aheadMs']) if (e[k] !== undefined) { e.drawMsPerFrame[k.replace(/^t/, '').replace('Ms', '').toLowerCase()] = +((e[k] - (s0[k] || 0)) / n).toFixed(2); delete e[k]; } return e; } catch (e) { return null; } });
     res = { ...stats(fr.d.slice(1), fr.js.slice(1)), heap0: h0, heap1: h1, note, errors: g.errs.slice(0, 5), prof, eng };
   } catch (e) { res = { error: e.message.slice(0, 300), errors: g.errs.slice(0, 5) }; }
   await g.ctx.close(); return res;
@@ -169,7 +170,7 @@ if (o.soak) {
     rows.push(`| ${id} | ${spread(R, 'fps')} | ${spread(R, 'low1')} | ${spread(R, 'worst')} | ${spread(R, 'per10s50')} | ${spread(R, 'over100')} | ${med(R.map(r => r.jsP50))} / ${med(R.map(r => r.jsP95))} / ${spread(R, 'jsWorst')} | ${med(R.map(r => r.heap0))} -> ${med(R.map(r => r.heap1))} | ${R.reduce((n, r) => n + r.errors.length, 0)} |`); }
   const table = `Perf ${o.label || name}: CPU ${o.rate}x slower, dpr ${o.dsf}, 390x844, ${o.runs} run(s) per scene: median (min-max).\n\n` + rows.join('\n') + '\n';
   console.log('\n' + table); fs.writeFileSync(path.join(OUT, name + '.md'), table);
-  if (o.profile) for (const id of Object.keys(result.scenes)) { const r = result.scenes[id].runs.find(r => r && r.prof); if (r) console.log(`\n== ${id}: busy ${r.prof.busyMs} ms; top self time ==\n` + r.prof.top.join('\n') + `\n-- long frames only (JS > 40 ms; ${r.prof.hitchFrames} frames, ${r.prof.hitchMs} ms) --\n` + r.prof.hitchTop.join('\n') + '\n-- long frames by cause --\n' + r.prof.hitchCats.join('\n') + '\n-- worst frames --\n' + r.prof.worstFrames.join('\n')); }
+  if (o.profile) for (const id of Object.keys(result.scenes)) { const r = result.scenes[id].runs.find(r => r && r.prof); if (r) console.log(`\n== ${id}: busy ${r.prof.busyMs} ms; top self time ==\n` + r.prof.top.join('\n') + '\n-- browser calls by caller --\n' + r.prof.natives.join('\n') + `\n-- long frames only (JS > 40 ms; ${r.prof.hitchFrames} frames, ${r.prof.hitchMs} ms) --\n` + r.prof.hitchTop.join('\n') + '\n-- long frames by cause --\n' + r.prof.hitchCats.join('\n') + '\n-- worst frames --\n' + r.prof.worstFrames.join('\n')); }
 }
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result, null, 1)); console.log('wrote out/perf/' + name + '.json');
 await br.close(); srv.close();

@@ -161,7 +161,7 @@ function addIndicator(o) {
 let toastT = 0, toastM = 0;
 function toastsClear(dt) {
   if ((toastT -= dt) > 0) return; toastT = .15; const ts = document.getElementById('toasts'), ar = document.getElementById('nav-arrow'); if (!ts) return;
-  let m = 0; const r = ts.getBoundingClientRect();
+  let m = 0; if (!ts.firstElementChild && !toastM) return;   /* perf: no toast on screen and nothing to undo: no layout read */ const r = ts.getBoundingClientRect();
   if (ar && r.height > 0 && getComputedStyle(ar).display !== 'none') { const a = ar.getBoundingClientRect(), top = r.top - toastM, bot = r.bottom - toastM; if (a.width && a.left < r.right && a.right > r.left && a.top < bot && a.bottom > top && a.top < innerHeight / 2) m = Math.ceil(a.bottom + 6 - top); }
   if (m !== toastM) { toastM = m; ts.style.marginTop = m ? m + 'px' : ''; }
 }

@@ -32,8 +32,8 @@ export function bubble(target, text, ms = 2800, cls = '') {
   const b = el('div.bubble' + (cls ? '.' + cls : ''), { text }); root().append(b); const t0 = performance.now(); let half = -1, ox = 0;
   const upd = () => { if (performance.now() - t0 > ms || !b.isConnected) { b.remove(); G.off('frame', upd); return; } const s = G.toScreen(target.x, target.y, (target.z || 0) + (target.bubbleH || 1.9)); 
     if (half < 0) { b.style.left = s.x + 'px'; b.style.top = s.y + 'px'; const r = b.getBoundingClientRect(); half = r.width / 2; ox = r.left + half - s.x; }   /* QA8: measured once (the text never changes): no layout read every frame */
-    const dx = Math.max(6 - (s.x + ox - half), 0) + Math.min(innerWidth - 6 - (s.x + ox + half), 0); b.style.left = (s.x + dx) + 'px'; b.style.top = s.y + 'px'; };
-  G.on('frame', upd); upd(); return b;
+    const dx = Math.max(6 - (s.x + ox - half), 0) + Math.min(innerWidth - 6 - (s.x + ox + half), 0); const L = (s.x + dx) + 'px', Tp = s.y + 'px'; if (L !== pl) b.style.left = pl = L; if (Tp !== pt) b.style.top = pt = Tp; };   /* perf: written only when it moved */
+  let pl = '', pt = ''; G.on('frame', upd); upd(); return b;
 }
 /** dialogue box at the bottom with speaker name; lines: [{who, text}] or strings. Resolves when dismissed. */
 export function say(lines, opts = {}) { return new Promise(res => { lines = [].concat(lines).map(l => typeof l === 'string' ? { text: l } : l); let i = 0; G.modal++; const who = el('div.say-who'), tx = el('div.say-text'), box = el('div.say', { onclick: next }, who, tx, el('div.say-next', { text: '>' })); function show() { who.textContent = lines[i].who || opts.who || ''; who.style.display = who.textContent ? '' : 'none'; tx.textContent = lines[i].text; } function next() { if (++i >= lines.length) { box.remove(); G.modal--; removeEventListener('keydown', key, true); res(); } else show(); } function key(e) { if (e.key === ' ' || e.key === 'Enter' || e.key === 'e') { e.preventDefault(); e.stopPropagation(); next(); } } addEventListener('keydown', key, true); root().append(box); show(); }); }

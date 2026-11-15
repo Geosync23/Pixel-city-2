@@ -238,13 +238,14 @@ function frame(dt) {
   if (!box) return; if (banT > 0 && (banT -= dt) <= 0) banEl.classList.remove('on');
   const t = cur = compute();
   if (!t || G.modal > 0) { if (box.classList.contains('on')) box.className = ''; return; }   // (a window / the phone is open: nothing to steer by)
-  const wrap = G.cv.parentElement, W = wrap.clientWidth, H = wrap.clientHeight, M = margins(W, H);
+  if ((wT -= 1) <= 0 || !wW) { wT = 12; const wrap = G.cv.parentElement; wW = wrap.clientWidth; wH = wrap.clientHeight; }   /* perf: the wrapper's size is read (a layout read) every 12th frame and on resize, like the margins, not every frame */
+  const W = wW, H = wH, M = margins(W, H);
   let cls = 'on' + (t.red ? ' red' : ''), txt = t.label || '', x, y, rot = 0;
   if (t.mode === 'chip') { cls += ' chip'; } else if (t.dist != null && t.dist >= 1) txt += ` · ${safe(() => G.nav.fmtDist(t.dist), Math.round(t.dist) + ' m')}`;
   if (txt !== lastTxt) { lEl.textContent = lastTxt = txt; sizeKey = ''; }
   if (t.mode === 'chip') {
     if (box.className !== cls) { box.className = cls; sizeKey = ''; } if (sizeKey !== cls + txt) { sizeKey = cls + txt; bw = box.offsetWidth; bh = box.offsetHeight; }
-    x = (W - bw) / 2; y = M.t + 2; aEl.style.transform = '';
+    x = (W - bw) / 2; y = M.t + 2; setRot('');
   } else {
     const z = t.z || 0, top = G.toScreen(t.x, t.y, z + (t.h || HEAD)), gp = G.toScreen(t.x, t.y, z), pad = 18;
     // right-bottom corner belongs to the HUD buttons
@@ -257,18 +258,20 @@ function frame(dt) {
       edge = kx < ky ? (dx > 0 ? 'e-r' : 'e-l') : (dy > 0 ? 'e-b' : 'e-t'); x = ox + dx * k; y = oy + dy * k; rot = Math.round(Math.atan2(dy, dx) * 180 / Math.PI + 90);
     }
     cls += ' ' + edge; if (box.className !== cls) { box.className = cls; sizeKey = ''; } if (sizeKey !== cls + txt) { sizeKey = cls + txt; bw = box.offsetWidth; bh = box.offsetHeight; }
-    if (edge === 'near') { x = top.x - bw / 2; y = top.y - bh; aEl.style.transform = ''; }
-    else { x -= edge === 'e-r' ? bw : edge === 'e-l' ? 0 : bw / 2; y -= edge === 'e-b' ? bh : edge === 'e-t' ? 0 : bh / 2; aEl.style.transform = `rotate(${rot}deg)`; }
+    if (edge === 'near') { x = top.x - bw / 2; y = top.y - bh; setRot(''); }
+    else { x -= edge === 'e-r' ? bw : edge === 'e-l' ? 0 : bw / 2; y -= edge === 'e-b' ? bh : edge === 'e-t' ? 0 : bh / 2; setRot(`rotate(${rot}deg)`); }
     x = Math.max(M.l, Math.min(M.r - bw, x)); y = Math.max(M.t, Math.min(Math.min(x + bw > W - 96 ? Math.min(M.b, H - 150) : M.b, margins.jh && x < margins.jh.r ? margins.jh.t : 1e9) - bh, y));
   }
-  box.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`;
+  const tf = `translate(${Math.round(x)}px,${Math.round(y)}px)`; if (tf !== lastTf) box.style.transform = lastTf = tf;   // perf: styles are written only when they change
 }
+let wW = 0, wH = 0, wT = 0, lastTf = '', lastRot = null;
+function setRot(v) { if (v !== lastRot) aEl.style.transform = lastRot = v; }
 
 export function init() {
   if (typeof document === 'undefined') return;
   document.head.append(el('style', { text: CSS }));
   aEl = el('span.a'); lEl = el('span.l'); box = el('div', { id: 'nav-arrow', 'aria-hidden': 'true' }, el('span.w', null, aEl), lEl); banEl = el('div', { id: 'nav-stop', role: 'alert' }); root().append(box, banEl);
-  G.on('frame', frame);
+  G.on('frame', frame); addEventListener('resize', () => { wT = 0; });
   G.on('use', it => { if (it && G.scene) lastUse = { scene: G.scene.id, it, time: G.time }; });
   G.on('scene', (s, prev) => {
     if (prev && s && lastUse && lastUse.scene === prev.id && G.time - lastUse.time < 30 && /^int:/.test(prev.id) && (s.id === 'city' || /^int:/.test(s.id))) learn(prev.id, lastUse.it, s.id);

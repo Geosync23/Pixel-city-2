@@ -462,3 +462,6 @@ Also the writing basket makes no sense. Add a lobby to the starting apartments a
 
 ## 116 (2026-11-15) — sound test verdict: recordings yes, generated sounds no; kill all white noise; putter for cars, footsteps; longer, more varied recorded loops
 The recordings work the generated sounds don't. But theh might if they didn't have so much white noise. Kill it and show me again. I want a little putter for cars, foot steps, etc. Then the recording as background but witu a longer loop and more variety. No white noise layer anywhere
+
+## 117 (2026-11-15) — sound test: no footsteps
+Take out foot steps and try soindscape again

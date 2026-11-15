@@ -120,8 +120,9 @@ function missed(a) {
 }
 /** the quiet way to make it right: a text of two honest lines (also cleared by a loved gift or by simply talking to them) */
 async function repair(id) { const r = ror(id); if (!r.owe && r.owe !== 0) return false; const v = await choose(`A text to ${short(id)}`, REPAIR.texts.map((t, i) => ({ label: t, value: i }))); if (v === null || v === undefined) return false;
-  safe(() => G.messages.sendMine(id, REPAIR.texts[v])); delete r.owe; addWarmth(id, 3, 'scene'); queueText({ from: id, text: 'Thank you for saying. Yes. Pick a day.', after: 1, force: true }); return true; }
-export function daily() { const s = st(); for (const k in s.dates) if (s.dates[k].done && today() - Math.floor(s.dates[k].t / DAY) > 3) delete s.dates[k]; }
+  safe(() => G.messages.sendMine(id, REPAIR.texts[v])); delete r.owe; delete r.owePin; addWarmth(id, 3, 'scene'); queueText({ from: id, text: 'Thank you for saying. Yes. Pick a day.', after: 1, force: true }); return true; }
+export function daily() { const s = st(); for (const id in s.ro) { const r = s.ro[id]; if (r.owePin && r.owe !== undefined && today() - r.owe >= 3) safe(() => HOOK.unpinRepair(r)); }      /* the "make it up" Idea does not linger: after three days it goes, and simply talking to them clears the dip */
+  for (const k in s.dates) if (s.dates[k].done && today() - Math.floor(s.dates[k].t / DAY) > 3) delete s.dates[k]; }
 /** debug: make sure there is a track, book this date for five minutes from now and stand at the place */
 export async function debugStage(id, type, venue) {
   const r = ror(id); if (stageIdx(id) < 2 && type !== 'first') { B.setStage(id, 'dating', true); if (!r.dates) { r.dates = 1; st().seen['fd.' + id] = today() - 1; } } if (stageIdx(id) < 1) B.setStage(id, 'spark', true);
@@ -134,7 +135,9 @@ export function init() {
   G.on('appt:missed', a => safe(() => missed(a)));
   G.on('appt:remove', a => { const d = a && st().dates[a.id]; if (d && !d.done) { delete st().dates[a.id]; safe(() => G.social.place(d.id)); } });
   G.on('myday:add', x => { const p = x && x.idea && x.idea.pinId; if (!p) return; const s = st(), id = Object.keys(s.ro).find(k => s.ro[k].owePin === p); if (!id) return; delete s.ro[id].owePin; if (x.apptId && x.apptId !== true) safe(() => G.planner.remove(x.apptId)); setTimeout(() => repair(id), 500); });
-  G.on('social:talk', id => { const r = st().ro[id]; if (r && r.owe !== undefined && today() - r.owe >= 1) { delete r.owe; addWarmth(id, 2, 'scene'); } });
-  G.on('social:gift', (id, it, kind) => { const r = st().ro[id]; if (r && r.owe !== undefined && kind === 'loved') { delete r.owe; addWarmth(id, 3, 'scene'); } });
+  const unpin = r => { if (r.owePin) { safe(() => G.planner.remove(r.owePin)); delete r.owePin; } };
+  HOOK.unpinRepair = unpin;
+  G.on('social:talk', id => { const r = st().ro[id]; if (r && r.owe !== undefined && today() - r.owe >= 1) { delete r.owe; unpin(r); addWarmth(id, 2, 'scene'); } });
+  G.on('social:gift', (id, it, kind) => { const r = st().ro[id]; if (r && r.owe !== undefined && kind === 'loved') { delete r.owe; unpin(r); addWarmth(id, 3, 'scene'); } });
 }
 export { UI, sleep, comp };

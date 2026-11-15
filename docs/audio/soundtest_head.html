@@ -26,11 +26,11 @@ label.sl{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:cente
 ul{margin:0;padding-left:18px;font-size:13px;color:var(--mute)}a{color:var(--accent)}
 </style>
 <main>
-<h1>City sound test, take 2</h1>
-<p class="lede">Real recordings in the background, changing over time, and a small clean sound for each thing you can see: a putter for cars, soft steps, bells. No white noise anywhere. Tap the scene to move the listener (the white ring); sounds come from the left or right and fade with distance. Headphones help.</p>
+<h1>City sound test, take 3</h1>
+<p class="lede">Real recordings in the background, changing over time, and a small clean sound for each thing you can see: a putter for cars, bells, drips. People walk silently. No white noise anywhere. Tap the scene to move the listener (the white ring); sounds come from the left or right and fade with distance. Headphones help.</p>
 <div class="stage"><canvas id="cv" width="360" height="300"></canvas><button id="start">Tap to start the sound</button></div>
 <div class="row seg" role="group" aria-label="Scene"><button id="s0" aria-pressed="true">Downtown, day</button><button id="s1" aria-pressed="false">Harbor</button><button id="s2" aria-pressed="false">Side street, night</button></div>
-<div class="row"><button class="tog" id="tBed" aria-pressed="true">Recorded bed<small>real places, changing every minute or so</small></button><button class="tog" id="tSpot" aria-pressed="true">On-screen sounds<small>putter, steps, bells, drips</small></button></div>
+<div class="row"><button class="tog" id="tBed" aria-pressed="true">Recorded bed<small>real places, changing every minute or so</small></button><button class="tog" id="tSpot" aria-pressed="true">On-screen sounds<small>putter, bells, drips</small></button></div>
 <label class="sl" for="vBed">Bed level<input id="vBed" type="range" min="0" max="100" value="35"></label>
 <label class="sl" for="vSpot">On-screen level<input id="vSpot" type="range" min="0" max="100" value="70"></label>
 <p class="now" id="now">Sound is off.</p>

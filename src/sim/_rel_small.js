@@ -47,7 +47,7 @@ const budget = () => { const d = today(), work = ev().worked === d || !!safe(() 
 export function hourly(force) {
   const n = G.now(), sm = smallDay(), s = st(); if (!force && (n.hf < 8 || n.hf > 21 || sm.n >= budget() || sm.texts >= textCap() || s.q.length > 1)) return null;
   if (!force && Math.random() > .34) return null;
-  const p = partner(), ids = Object.keys(SMALL).filter(id => known(id) && !sm.per[id] && (fr(id) >= 40 || stage(id) !== 'none' || safe(() => G.social.isFamily(id), false)) && !(s.ro[id] && s.ro[id].quiet !== undefined && today() < s.ro[id].quiet) && !(id === 'dad' && !safe(() => G.chapters.done('ch07'), false)));
+  const p = partner(), ids = Object.keys(SMALL).filter(id => known(id) && !sm.per[id] && !s.q.some(q => q.from === id) && (fr(id) >= 40 || stage(id) !== 'none' || safe(() => G.social.isFamily(id), false)) && !(s.ro[id] && s.ro[id].quiet !== undefined && today() < s.ro[id].quiet) && !(id === 'dad' && !safe(() => G.chapters.done('ch07'), false)));
   if (!ids.length) return null;
   /* who: somebody with something particular to say first (a gap, a birthday, the morning after), a partner often, family at least once a day */
   const w = id => { const b = draw(id, 'texts', true); if (!b) return 0; let v = 1 + (b.ctx !== 'any' ? 3 : 0); if (id === p) v += 3; else if (stage(id) !== 'none') v += 2; if (safe(() => G.social.isFamily(id), false) && !sm.fam) v += 2; if (fr(id) >= 75) v += 1; return v; };
