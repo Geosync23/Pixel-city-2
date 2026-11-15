@@ -528,7 +528,7 @@ export function init() {
     const special = tags.some(x => ['fridge', 'pantry', 'stove', 'microwave', 'bed'].includes(x)); if (!special && !forTags(tags, scene).length) return null;
     seen.add(fx); const acts = forTags(tags, scene);
     /* QA9: a bed is long and flat: its tap target covers the whole mattress (a tap on its far end found nothing, near the head the clothes rail won) */
-    const bedHit = tags.includes('bed') && fx.ob && fx.ob.B ? Math.max(12, Math.round(Math.max(fx.ob.B[3] - fx.ob.B[0], fx.ob.B[4] - fx.ob.B[1]) / 2 * U * 1.05 + 1)) : undefined;
+    const long = fx.ob && fx.ob.B ? Math.max(fx.ob.B[3] - fx.ob.B[0], fx.ob.B[4] - fx.ob.B[1]) : 0, bedHit = long >= 1.5 && (tags.includes('bed') || fx.ob.size[2] <= 1.1) ? Math.max(12, Math.round(long / 2 * U * 1.05 + 1)) : undefined;   /* also sofas and baths: long and low */
     return Object.assign({ label: !special && acts.length === 1 ? acts[0].name : LABEL[tags[0]] || 'Use', act: true, use: () => menu({ fx, tags }) }, bedHit ? { hit: bedHit } : null);
   });
   G.on('scene', s => { if (s && s.id === 'city') buildCity(s); })
