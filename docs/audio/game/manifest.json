@@ -28,7 +28,7 @@
    "peak": -4.9,
    "limited_samples": 0,
    "gain_db": 6.3,
-   "cut": "first 14 s (slate burst at 0-2 s, 30 dB hole and a click to 8 s); last 23 s (the same horn figure comes a 4th time)"
+   "cut": "first 14 s (slate burst at 0-2 s, 30 dB hole and a click to 8 s); last 37 s (the same horn figure returns twice more)"
   },
   {
    "name": "busy_b",
@@ -56,7 +56,7 @@
    "peak": -6.5,
    "limited_samples": 0,
    "gain_db": 7.3,
-   "cut": "first 6 s (slate burst); last 12 s (ends in a loud burst, crest 18)"
+   "cut": "first 6 s (slate burst); last 31 s (size; it ends in a loud burst, crest 18)"
   },
   {
    "name": "busy_c",
@@ -284,7 +284,7 @@
    "peak": -2.9,
    "limited_samples": 81,
    "gain_db": 16.1,
-   "cut": "the 30-second wind/hiss loop that the source mix repeats 12 times (subtracted), see docs/reports/ambience.md"
+   "cut": "the 30-second wind/hiss loop that the source mix repeats 12 times (subtracted); everything above 9.5 kHz (hiss; costs the highest bird calls their top), see docs/reports/ambience.md"
   },
   {
    "name": "park_b",

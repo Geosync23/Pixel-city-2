@@ -102,3 +102,4 @@
 82. (msg 122) Asked about the other source for recordings the lead had mentioned (Internet Archive / Freesound).
 83. (msg 123) ALL 16 recordings on the audition page are APPROVED for the city sound.
 84. (msg 124) Asked for a status on all work; lead answered in chat (Stage 62 current; running: ambience, performance, QA round 12; jobs J4 on hold).
+85. (msg 125) (a) Going through the LOBBY to leave/enter the flat: KEEP (he likes it). (b) INDOOR sounds (room tones) were OK: keep them; the "no white noise" rule is about the OUTDOOR city bed. (c) Small UI sounds (phone open, cab, paying, eating): leave for now.

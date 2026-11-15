@@ -46,3 +46,4 @@ Found while measuring: `meadow_6min.mp3` is not one continuous recording but a s
 STILL MISSING (public domain / CC0, 60 s or more, with the link): RAIN (steady rain on a street; ideally a second take with thunder far off); a SECOND and THIRD take of WAVES / harbor water (the only one is 33 s); a real PARK or garden recording with birds (to replace the meadow studio mix); a quiet residential street at night; more market / plaza crowd. Drop them into docs/audio/in/ and add one line to the table in make_library.py.
 
 OWNER APPROVAL (msg 123, 2026-11-15): all 16 recordings on the audition page (the 13 Internet Archive files + street, gulls, beach from Wikimedia) are approved by ear.
+OWNER (msg 125): indoor sounds (room tones, murmur, hvac) were OK as they are: KEEP indoors. The no-noise rule applies to the outdoor city ambience.

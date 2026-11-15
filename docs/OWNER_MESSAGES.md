@@ -486,3 +486,10 @@ All sound is approved
 
 ## 124 (2026-11-15)
 Great. Status on all work
+
+## 125 (2026-11-15) — lobby route ok; indoor sounds ok; small sounds later
+Lobby- thats ok i like going through the lobby.
+
+Indoor sounds were ok..
+
+Small sounds, leave for now

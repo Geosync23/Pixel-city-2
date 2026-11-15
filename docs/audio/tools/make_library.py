@@ -17,8 +17,8 @@ os.makedirs(OUT, exist_ok=True); os.makedirs(TMP, exist_ok=True)
 # name: (source, [segments (t0, t1) in source seconds, joined with a 1.5 s crossfade], X seam seconds, low-pass Hz, place, description, cuts)
 ENC_SR = 24000; VBR = '8'   # MP3 (MPEG-2 Layer III) 24 kHz mono, LAME VBR -V8: see docs/reports/ambience.md for the codec measurements
 S = {
- 'busy_a':   ('in/G16_17_Busy_Downtown_City_Traffic.mp3', [(14, 68)], 4, 7000, 'busy street', 'Busy downtown traffic, a few horns (old film-library take)', 'first 14 s (slate burst at 0-2 s, 30 dB hole and a click to 8 s); last 23 s (the same horn figure comes a 4th time)'),
- 'busy_b':   ('in/G16_19_Medium_Perspective_City_Traffic.mp3', [(6, 55)], 4, 7000, 'busy street', 'City traffic from half a block away', 'first 6 s (slate burst); last 12 s (ends in a loud burst, crest 18)'),
+ 'busy_a':   ('in/G16_17_Busy_Downtown_City_Traffic.mp3', [(14, 68)], 4, 7000, 'busy street', 'Busy downtown traffic, a few horns (old film-library take)', 'first 14 s (slate burst at 0-2 s, 30 dB hole and a click to 8 s); last 37 s (the same horn figure returns twice more)'),
+ 'busy_b':   ('in/G16_19_Medium_Perspective_City_Traffic.mp3', [(6, 55)], 4, 7000, 'busy street', 'City traffic from half a block away', 'first 6 s (slate burst); last 31 s (size; it ends in a loud burst, crest 18)'),
  'busy_c':   ('L_streetA.mp3', [(1, 55)], 4, 8000, 'busy street', 'Sunday city street, take 1 (the owner heard this one in the test page)', 'last 23 s (chirping squeals / calls in the foreground at 60-72 s, speech-proxy 0.6 vs 0.1; and the old loop seam)'),
  'busy_d':   ('L_streetB.mp3', [(2, 56)], 4, 8000, 'busy street', 'Sunday city street, take 2 (the owner heard this one in the test page)', 'last 34 s (the quiet tail, old loop seam, click at the end)'),
  'light_a':  ('in/AMBTraf_Light_traffic_on_Sunset_Blvd_CS_USC.mp3', [(1, 56)], 5, 7000, 'light street', 'Light traffic on a boulevard, single cars passing', 'hiss bursts above 10 kHz (low-passed at 7.5 kHz); last 26 s (a 10 dB quiet patch)'),
@@ -26,7 +26,7 @@ S = {
  'light_c':  ('in/G18_09_Trolley_on_Street.mp3', [(3, 63)], 4, 7000, 'light street', 'A trolley on a quiet street: bell, then it rolls past', 'first 3 s (slate burst); last 3 s'),
  'resid_a':  ('in/CarsAndBirdsong.mp3', [(2, 21.5), (30.5, 64)], 4, 8000, 'quiet residential', 'A few cars and a bird singing close by', 'first 2 s (silence + click, crest 45); 21.5-30.5 s (the recording drops 18 dB to near silence); fade-out after 64 s'),
  'resid_b':  ('in/AMBTraf_Distant_traffic_rumble_CS_USC.mp3', [(1, 51)], 5, 2500, 'far-off city', 'Distant traffic rumble, nothing close', 'a thin whine near 6-7 kHz from 0:20 on (low-passed at 3 kHz; 99.9 % of the energy is below 1.3 kHz); last 16 s (size, click at the end)'),
- 'park_a':   ('meadow', [(1, 55)], 4, 9500, 'park', 'Meadow birds, first minute', 'the 30-second wind/hiss loop that the source mix repeats 12 times (subtracted), see docs/reports/ambience.md'),
+ 'park_a':   ('meadow', [(1, 55)], 4, 9500, 'park', 'Meadow birds, first minute', 'the 30-second wind/hiss loop that the source mix repeats 12 times (subtracted); everything above 9.5 kHz (hiss; costs the highest bird calls their top), see docs/reports/ambience.md'),
  'park_b':   ('meadow', [(60.5, 114.5)], 4, 9500, 'park', 'Meadow birds, second minute', 'as park_a'),
  'park_c':   ('meadow', [(120, 174)], 4, 9500, 'park', 'Meadow birds, third minute', 'as park_a; minutes 4-6 of the source are a repeat of 1-3 (not used)'),
  'harbor_a': ('L_beach.mp3', [(0.5, 32.5)], 3, 9000, 'harbor', 'Waves on a pebble beach (only 33 s exist)', 'nothing (short source)'),
