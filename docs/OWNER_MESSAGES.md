@@ -395,3 +395,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 96 — Bladder drains too fast
 > Bladder drains too fast
+
+## 97 — Movie app: films appear only once you have seen them at the cinema
+> The movies only appear when you've seen them at cinema

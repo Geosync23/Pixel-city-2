@@ -7,7 +7,7 @@ export const HATS = [
   P({ id: 'ht_newsboy_tweed', slot: 'hat', shape: 'newsboy', name: 'Paperboy Tweed Cap', brand: 'second_wind', styles: ['vintage', 'smart'], warmth: 2, c: '#7a6a58' }),
   P({ id: 'ht_pillbox_rose', slot: 'hat', shape: 'pillbox', name: 'Matinee Pillbox', brand: 'marigold', styles: ['formal', 'vintage'], warmth: 1, c: '#f08ab0', accent: '#f4f0e8' }),
   P({ id: 'ht_sombrero_fiesta', slot: 'hat', shape: 'sombrero', name: 'Fiesta Sombrero', brand: 'little_lantern', styles: ['party', 'summer'], warmth: 0, c: '#ecd690', c2: '#d9483b', season: 1 }),
-  P({ id: 'ht_pom_otters', slot: 'hat', shape: 'pom', name: 'Otters Bobble Hat', brand: 'otterline', styles: ['winter', 'sporty'], warmth: 4, c: '#2f9a94', c2: '#f08a20' }),
+  P({ id: 'ht_pom_otters', slot: 'hat', shape: 'pom', name: 'Otters Bobble Hat', brand: 'otterline', styles: ['winter', 'sporty'], warmth: 4, c: '#d2392f', c2: '#f4f0e8' }),
 ];
 export const ACCS = [
   P({ id: 'ac_choker_black', slot: 'acc', kind: 'neck', shape: 'choker', name: 'Velvet Choker', brand: 'nightjar', styles: ['party'], warmth: 0, c: '#33303f' }),

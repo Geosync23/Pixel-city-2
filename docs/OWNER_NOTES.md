@@ -69,3 +69,4 @@
 54. (msg 94) Bug: pedestrians sometimes stop in the middle of the road and hold up traffic. Given to QA round 3 (it owns the crowd + traffic files right now).
 55. (msg 95) Three new phone apps: one to read a book, one to watch movies, one to play games. Each gives a bit of fun, not too much. Worker launched.
 56. (msg 96) Bladder drained too fast. Tuned (Stage 27b): about half the old rate — a full bladder lasts ~8 waking hours before 'Need to go' (was ~4), drinks cost less, a night's sleep costs ~16.
+57. (msg 97) The movie app only shows films you have already seen at the cinema (no automatic release). So new films premiere at the cinema and the app is your collection for re-watching.

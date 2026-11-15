@@ -38,7 +38,7 @@ export const BRANDS = {
   marigold: { name: 'Marigold', tier: 2.4, look: 'boutique luxury: cream, gold, deep jewel tones, belts and gold buttons', shops: ['pub:12', 'hotel'] },
   hollowell: { name: 'Hollowell & Sons', tier: 2.8, look: 'tailoring: suits, coats and oxfords in navy, charcoal, camel; pinstripes', shops: ['pub:12', 'clothing'] },
   nightjar: { name: 'Nightjar', tier: 1.9, look: 'going-out wear: black, plum, sequins and sparkle, metallic accents', shops: ['pub:12', 'mall:bloom', 'hotel'] },
-  otterline: { name: 'Otterline Athletics', tier: 1.2, look: 'sportswear and Otters team merch: teal and orange, side stripes, numbers', shops: ['gym', 'arena', 'mall:kicks'] },
+  otterline: { name: 'Otterline Athletics', tier: 1.2, look: 'sportswear and Maple Bay Otters team merch (team red #d2392f + cream #f4f0e8), side stripes, numbers', shops: ['gym', 'arena', 'mall:kicks'] },
   kicks_lab: { name: 'Kicks Lab', tier: 1.4, look: 'sneakers and street shoes: white soles, loud two-colour pairs', shops: ['mall:kicks', 'online'] },
   pixelpop: { name: 'Pixelpop', tier: 1.1, look: 'graphic streetwear: big prints, colour-block, tie-dye, bright on black', shops: ['mall:thread', 'pub:44', 'online'] },
   second_wind: { name: 'Second Wind', tier: .5, look: 'second-hand finds: faded denim, plaid, corduroy browns, odd florals from another decade', shops: ['pub:44', 'market'] },

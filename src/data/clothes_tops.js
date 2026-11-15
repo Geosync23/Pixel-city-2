@@ -5,7 +5,7 @@ const P = piece;
 export const TOPS = [
   P({ id: 'tp_tee_white', slot: 'top', shape: 'tee', name: 'Everyday Tee, White', brand: 'maple_basics', styles: ['casual'], warmth: 1, c: '#f4f0e8' }),
   P({ id: 'tp_breton_navy', slot: 'top', shape: 'long', name: 'Breton Stripe Long Sleeve', brand: 'thread_co', styles: ['casual', 'smart'], warmth: 2, c: '#2f3f72', c2: '#f4f0e8', pat: 'stripes' }),
-  P({ id: 'tp_raglan_otters', slot: 'top', shape: 'raglan', name: 'Dugout Raglan', brand: 'otterline', styles: ['sporty', 'casual'], warmth: 1, c: '#f4f0e8', c2: '#2f9a94' }),
+  P({ id: 'tp_raglan_otters', slot: 'top', shape: 'raglan', name: 'Dugout Raglan', brand: 'otterline', styles: ['sporty', 'casual'], warmth: 1, c: '#f4f0e8', c2: '#d2392f' }),
   P({ id: 'tp_halter_plum', slot: 'top', shape: 'halter', name: 'Last Dance Halter', brand: 'nightjar', styles: ['party', 'summer'], warmth: 0, c: '#6a3a5a', pat: 'sparkle' }),
   P({ id: 'tp_peplum_cream', slot: 'top', shape: 'peplum', name: 'Gilded Peplum Blouse', brand: 'marigold', styles: ['smart', 'formal'], warmth: 1, c: '#f6ead0' }),
   P({ id: 'tp_shirt_oxford_blue', slot: 'top', shape: 'shirt', name: 'Oxford Button-Down, Sky', brand: 'hollowell', styles: ['smart', 'work'], warmth: 2, c: '#9ac8e8' }),

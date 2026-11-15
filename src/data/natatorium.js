@@ -106,7 +106,7 @@ export function meet(week) {
       const home = k % 2 === 0, r = hsh(week, i * 16 + k, 1), r2 = hsh(week, i * 16 + k, 2), r3 = hsh(week, i * 16 + k, 3);
       let name; if (E.open) name = NOVICES[k % NOVICES.length][0]; else if (E.relay) name = (home ? 'MARLINS ' : opp.short + ' ') + (k < 2 ? 'A' : 'B');
       else { const fem = E.g === 'F' || (E.g === 'X' && k % 4 < 2), pool = home ? (fem ? MF : MM) : null; name = pool ? pool[(Math.floor(k / 2) + i * 3 + week) % pool.length] : (fem ? VF : VM)[Math.floor(r2 * 16)] + ' ' + VL[Math.floor(r3 * 20)]; }
-      const time = E.open ? NOVICES[k % NOVICES.length][1] * (1 + (r - .5) * .03) : E.base[0] + (E.base[1] - E.base[0]) * Math.pow(r, 1.25) + (home ? -.25 : .25) + (r2 - .5) * .8;
+      const time = E.open ? NOVICES[k % NOVICES.length][1] * (1 + (r - .5) * .03) : E.base[0] + (E.base[1] - E.base[0]) * Math.pow(r, 1.25) + (home ? -.08 : .08) + (r2 - .5) * .8;
       sw.push({ name, club: E.open ? 'N' : home ? 'M' : 'V', time: Math.round(time * 10) / 10 });
     }
     if (E.open) sw.pop();                                   // seven novices: lane 4 is kept for you

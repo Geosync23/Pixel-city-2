@@ -7,7 +7,7 @@ export const BOTTOMS = [
   P({ id: 'bt_culottes_rust', slot: 'bottom', shape: 'culottes', name: 'Gallery Culottes', brand: 'little_lantern', styles: ['artsy', 'smart'], warmth: 1, c: '#b8563a' }),
   P({ id: 'bt_harem_teal', slot: 'bottom', shape: 'harem', name: 'Drift Harem Pants', brand: 'tidepool', styles: ['summer', 'cozy'], warmth: 1, c: '#2f9a94' }),
   P({ id: 'bt_wrapskirt_floral', slot: 'bottom', shape: 'wrapskirt', name: 'Market Day Wrap Skirt', brand: 'little_lantern', styles: ['artsy', 'summer'], warmth: 1, c: '#e8b83a', c2: '#b83a6a', pat: 'floral' }),
-  P({ id: 'bt_track_otters', slot: 'bottom', shape: 'track', name: 'Otters Warm-Up Pants', brand: 'otterline', styles: ['sporty'], warmth: 2, c: '#2f9a94', c2: '#f08a20' }),
+  P({ id: 'bt_track_otters', slot: 'bottom', shape: 'track', name: 'Otters Warm-Up Pants', brand: 'otterline', styles: ['sporty'], warmth: 2, c: '#d2392f', c2: '#f4f0e8' }),
   P({ id: 'bt_slacks_pin', slot: 'bottom', shape: 'slacks', name: 'Pinstripe Trousers, Charcoal', brand: 'hollowell', styles: ['formal', 'work'], warmth: 2, c: '#4a4a58', pat: 'pinstripe' }),
 ];
 export const DRESSES = [
