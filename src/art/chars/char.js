@@ -118,7 +118,7 @@ const HAIR = {
 };
 
 Object.assign(HAIR, HAIR_X);
-const hairOf = id => HAIR[id] || HAIR_REG[id];
+const hairOf = id => HAIR_REG[id] || HAIR[id];
 
 BUILTIN.top = ALL_TOPS.slice(); BUILTIN.outer = OUTERS.slice(); BUILTIN.dress = Object.keys(DRESS); BUILTIN.bottom = ALL_BOTTOMS.slice(); BUILTIN.shoes = SHOE_TYPES.slice(); BUILTIN.hat = ALL_HATS.filter(Boolean);
 BUILTIN.neck = NECKS.slice(); BUILTIN.glasses = ['specs', 'sun'].concat(GLASSES_X); BUILTIN.bag = ALL_BAGS.filter(Boolean); BUILTIN.beard = BEARDS.slice(); BUILTIN.hair = ALL_HAIRS.slice();
@@ -153,7 +153,7 @@ function look(spec) {
   const s = Object.assign({}, DEF, spec);
   const k = {
     skin: s.skin, hair: hairOf(s.hair) ? s.hair : 'short', hairC: s.hairColor, top: s.top, topC: s.topColor, inner: s.innerColor || WHITE,
-    bottom: s.bottom, botC: s.bottomColor, shoeC: s.shoes, hat: s.hat, hatC: s.hatColor, hatBand: null, bag: s.bag, bagC: s.bagColor,
+    bottom: s.bottom, botC: s.bottomColor, shoeC: s.shoes, hat: s.hat, hatC: s.hatColor, hatBand: s.hatBand || null, bag: s.bag, bagC: s.bagColor,
     glasses: s.glasses, beard: s.beard, scarf: s.scarf, accent: s.accent || '#e8546a',
     apron: null, vest: null, hivis: false, tie: null, bow: null, badge: null, belt: null, epaul: null, buttons: false, pjStripe: false,
     kid: s.age === 'kid', elder: s.age === 'elder',
@@ -266,7 +266,7 @@ function shoeCols(k, near) {
   const b = k.shoeC || k.skin, c = near ? b : dk(b, .16);
   return k.shoeC ? { up: c, hi: lt(c, .3), sole: dk(c, .22), toe: c } : { up: c, hi: c, sole: dk(c, .08), toe: dk(c, .08) };
 }
-function shoe(k, x, fy, near, n, S) {
+function shoeDraw(k, x, fy, near, n, S) {
   const t = k.shoeT, c = S.up, sk = near ? k.skin : dk(k.skin, .16), c2 = k.shoe2 ? (near ? k.shoe2 : dk(k.shoe2, .16)) : null, Wt = near ? '#f0ece4' : '#cfcbc4';
   const rows = t === 'boot' || t === 'hightop' ? 1 : t === 'tallboot' || t === 'rainboot' ? 2 : 0;
   for (let j = 1; j <= rows && j < n; j++) { p(x, fy - 1 - j, c); p(x + 1, fy - 1 - j, j === rows && t !== 'hightop' ? (c2 || S.hi) : c); }
@@ -305,7 +305,7 @@ function standLegs(k, P, front, hipY) {
     }
     const x = rx + lg[0];
     if (k.sock && n > 2 && legColor(k, n - 1, n) === k.skin) { const sc = near ? k.sock : dk(k.sock, .16); p(x, fy - 2, sc); p(x + 1, fy - 2, sc); }
-    shoe(k, x, fy, near, n, S);
+    shoeDraw(k, x, fy, near, n, S);
   }
 }
 function seatedLegs(k, P, front) {
@@ -318,7 +318,7 @@ function seatedLegs(k, P, front) {
     for (let i = 0; i <= tl; i++) { kx = hx + i; ky = ty + s * (i >> 1); p(kx, ky, sd(lt(thighC, front ? .1 : 0))); p(kx, ky + 1, sd(thighC)); }
     const foot = ky + sh + (front ? 0 : 1);
     for (let y = ky + (front ? 2 : 1); y < foot - 1; y++) { const c = sd(y === foot - 2 ? cuffC : shinC); p(kx - 1, y, c); p(kx, y, c); }
-    { const S = shoeCols(k, near); shoe(k, kx - 1, foot, near, 4, S); }
+    { const S = shoeCols(k, near); shoeDraw(k, kx - 1, foot, near, 4, S); }
   }
 }
 function skirt(k, hipY) {

@@ -38,7 +38,7 @@ const DENS = { downtown: 30, oldtown: 22, harbor: 16, hillcrest: 8, maplewood: 1
 const EV_LINES = { farmers_market: 'market_day', harvest_fair: 'maple_festival', summer_fireworks: 'fireworks', boardwalk_days: 'summer_fair', lantern_night: 'lantern_night', live_music_friday: 'gig_night', open_mic_wednesday: 'gig_night', blossom_festival: 'maple_festival', winter_lights: 'first_snow', founders_day: 'maple_festival', new_years_eve: 'fireworks' };
 const EV_FALLBACK = { poi_city_plaza: [220, 222], poi_ferris_wheel: [100, 369], poi_pier: [100, 352], poi_lighthouse: [36, 352], poi_duck_pond: [96, 170.5] };
 
-const WALK = 1, PAUSE = 2, XWAIT = 3, CROSS = 4, STATIC = 5, FOLLOW = 6, GOTO = 7, WANDER = 8, SHIFT = 9;
+const WALK = 1, PAUSE = 2, XWAIT = 3, CROSS = 4, STATIC = 5, FOLLOW = 6, GOTO = 7, WANDER = 8, SHIFT = 9, ESCAPE = 10;   // ESCAPE (QA round 3): caught standing on the roadway -> hurry to the nearest kerb
 const pool = X.cits, ANCH = [], doors = [], evs = [], CZ = [], cand = [], candR = [], outList = [];
 let net = null, NET = null, world = null, nAct = 0, target = 0, prefill = true, manageT = 0, anchT = 0, envT = 0, bubT = 5, pathBudget = 0, lfx = -999, lfy = -999, cfx = -999, cfy = -999, candTot = 0, lastT = 0, updMs = 0;
 const frac = v => v - Math.floor(v);
@@ -54,6 +54,12 @@ const fadeOut = c => { c.fade = -1; c.st = PAUSE; c.wait = 99; c.moving = false;
 function dress(c, district, outfit, age) { if (!outfit && !age && X.season === 3 && rnd() < .3) outfit = 'winter'; c.district = district; c.setSpec(getSpec(district, outfit, age)); c.spec._n++; }
 const put = (c, x, y) => { c.x = x; c.y = y; c.zoff = 0; c.z = world.heightAt(x, y); c.t = rnd() * 10; };
 
+/* ---------- the roadway rule (QA round 3, owner: "pedestrians stop in the middle of the road and hold up traffic") ----------
+   Someone on asphalt never pauses, chats, answers a tap or waits: they finish crossing; if they stand still on the roadway for a moment anyway (blocked, a leader
+   who stopped, a pause that began at a node by the kerb), they ESCAPE: hurry (run pose) straight to the nearest sidewalk cell, then stroll on. */
+const onRoad = c => world.tileType(c.x, c.y) === GT.asphalt;
+function kerbNear(x, y) { let bx = 0, by = 0, bd = 1e9; for (let r = .5; r <= 6 && bd === 1e9; r += .5) for (let k = 0; k < 16; k++) { const a = k * .3927, px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (!okCell(px, py)) continue; const d = Math.hypot(px - x, py - y); if (d < bd) { bd = d; bx = px; by = py; } } return bd < 1e9 ? [bx, by] : null; }
+function escape(c) { const k = kerbNear(c.x, c.y); if (!k) return fadeOut(c); const L = c.lead; if (L) { if (L.mate === c) L.mate = null; c.lead = null; } if (c.anchor && c.anchor.occ[c.slot] === c) c.anchor.occ[c.slot] = null; c.anchor = null; c.st = ESCAPE; c.tx = k[0]; c.ty = k[1]; c.pose = null; c.chat = false; c.hold = 0; c.run = true; c.link = null; c.path = null; c.goal = null; c.roadT = 0; }
 /* ---------- strolling ---------- */
 function next(c, first) {
   const w = NET[c.ww]; if (!w) return fadeOut(c); c.st = WALK; c.link = null; c.stuck = 0; c.pose = null;
@@ -66,13 +72,13 @@ function next(c, first) {
   }
   const m = Math.min(.5, w.wid / 2 - .05); let bx = 0, by = 0, bd = 1e9;
   for (let k = 0; k < (first ? 5 : 3); k++) { const x = rr(w.x0 + m, w.x1 - m), y = rr(w.y0 + m, w.y1 - m); if (!okCell(x, y)) continue; const d = first ? Math.hypot(x - X.fx, y - X.fy) : 0; if (d < bd) { bd = d; bx = x; by = y; if (!first) break; } }
-  if (bd === 1e9) { c.st = PAUSE; c.wait = 1; return; } c.tx = bx; c.ty = by;
+  if (bd === 1e9) { if (onRoad(c)) return escape(c); c.st = PAUSE; c.wait = 1; return; } c.tx = bx; c.ty = by;
 }
 function pause(c, pose, a, b) { c.st = PAUSE; c.wait = rr(a, b); c.pose = pose; c.moving = false; }
 function arrive(c) {
   const L = c.link;
   if (L) { if (L.cross) { c.st = XWAIT; c.wait = 0; c.moving = false; return; } if (L.bx === L.bx) { c.st = CROSS; c.tx = L.bx; c.ty = L.by; return; } c.pw = c.ww; c.ww = L.to; c.link = null; return next(c); }
-  if (X.wet) return next(c);
+  if (X.wet || onRoad(c)) return next(c);   // QA round 3: nobody pauses, chats or checks a phone on the roadway
   const m = c.mate;
   if (m && m.active && rnd() < .55) { c.chat = true; pause(c, 'talk', 5, 11); c.faceTo(m.x, m.y); }
   else if (c.kind === 'phone' && rnd() < .7) pause(c, 'phone', 3, 8);
@@ -107,13 +113,16 @@ function think(c) {
     if (X.playerOk) { const ox = X.px - c.x, oy = X.py - c.y; if (ox * ox + oy * oy < 1 && ox * hx + oy * hy > .05) { c.sx = hx * oy - hy * ox > 0 ? -1.3 : 1.3; return; } }
     for (let i = 0; i < pool.length; i++) { const o = pool[i]; if (!o.active || o === c || o === c.mate || o === c.lead) continue; const ox = o.x - c.x, oy = o.y - c.y; if (ox * ox + oy * oy < .7 && ox * hx + oy * hy > .05) { c.sx = hx * oy - hy * ox > 0 ? -1 : 1; break; } }
   } else if (st === STATIC) { const s = c.sl; if (s && s.anims.length > 1 && rnd() < .3) { const p = pick(s.anims); c.pose = p === 'stand' ? null : p; } }
-  else if (st === XWAIT) { if (roadClear(c) || c.wait > 7) { const L = c.link; c.st = CROSS; c.tx = L.bx; c.ty = L.by; } }
+  else if (st === XWAIT) { if (roadClear(c) || c.wait > 7) { const L = c.link; c.st = CROSS; c.tx = L.bx; c.ty = L.by; c.run = !roadClear(c); } }
+  if (st === CROSS && !c.run && c.link && c.link.bx === c.link.bx && !roadClear(c)) c.run = true;   // the lights changed / a car is coming: hurry to the far kerb
   else if (st === PAUSE && c.chat) { const m = c.mate; if (m && m.active) { c.faceTo(m.x, m.y); c.pose = rnd() < .6 ? 'talk' : null; } }
 }
 function step(c, dt) {
   c.t += dt;
   if (c.fade) { c.alpha += c.fade * dt * 1.6; if (c.alpha >= 1) { c.alpha = 1; c.fade = 0; } else if (c.alpha <= 0) { freeCit(c); return; } }
-  if (c.hold > 0) { c.hold -= dt; c.moving = false; if (c.hold <= 0) { c.pose = c.hpose || null; if (c.sl) c.dir = c.sl.dir; } return; }
+  const road = !c.keep && !c.seated && onRoad(c);
+  if (c.hold > 0) { if (road) { c.hold = 0; c.pose = null; } else { c.hold -= dt; c.moving = false; if (c.hold <= 0) { c.pose = c.hpose || null; if (c.sl) c.dir = c.sl.dir; } return; } }
+  if (road && c.st !== CROSS && c.st !== ESCAPE) { const ox = c._rx, oy = c._ry; c._rx = c.x; c._ry = c.y; if (ox !== undefined && Math.abs(c.x - ox) + Math.abs(c.y - oy) < .02) { if ((c.roadT = (c.roadT || 0) + dt) > .5) return escape(c); } else c.roadT = 0; } else c.roadT = 0;
   if ((c.think -= dt) <= 0) { c.think = .35 + rnd() * .3; think(c); }
   const sp = c.spd * (X.wet && !c.seated ? 1.45 : 1);
   switch (c.st) {
@@ -123,11 +132,15 @@ function step(c, dt) {
       if (c.sx) { const d = Math.sqrt(d2), nx = c.x - dy / d * c.sx * dt, ny = c.y + dx / d * c.sx * dt; if (okCell(nx, ny)) { c.x = nx; c.y = ny; } else c.sx = 0; }
       if (m < sp * dt * .3) { if ((c.stuck += dt) > .6) unstick(c); } else c.stuck = 0; break;
     }
-    case PAUSE: c.moving = false; if ((c.wait -= dt) <= 0) { c.pose = null; c.chat = false; next(c); } break;
-    case XWAIT: c.moving = false; c.wait += dt; break;
+    case PAUSE: c.moving = false; if ((c.wait -= dt) <= 0 || road) { c.pose = null; c.chat = false; next(c); } break;
+    case XWAIT: c.moving = false; c.wait += dt; if (road) { const L = c.link; if (L && L.bx === L.bx) { c.st = CROSS; c.tx = L.bx; c.ty = L.by; } else escape(c); } break;
     case CROSS: {
-      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy); if (d < .15) { c.pw = c.ww; c.ww = c.link ? c.link.to : c.ww; c.link = null; next(c); break; }
-      if (walkTo(c, c.tx, c.ty, sp * 1.35 * dt) < 1e-4) { const s = Math.min(d, sp * dt); c.x += dx / d * s; c.y += dy / d * s; c.z = world.heightAt(c.x, c.y); c.moving = true; } break;
+      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy); if (d < .15) { c.run = false; c.pw = c.ww; c.ww = c.link ? c.link.to : c.ww; c.link = null; next(c); break; }
+      const hurry = c.run ? 1.9 : 1.35; if (walkTo(c, c.tx, c.ty, sp * hurry * dt) < 1e-4) { const s = Math.min(d, sp * hurry * dt); c.x += dx / d * s; c.y += dy / d * s; c.z = world.heightAt(c.x, c.y); c.moving = true; } break;
+    }
+    case ESCAPE: {   // straight to the kerb at a run, never stopping (vehicles yield as they do to anyone)
+      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy); if (d < .12 || (!onRoad(c) && d < .6)) { c.run = false; c.st = WALK; rejoin(c); break; }
+      const s = Math.min(d, sp * 1.9 * dt); c.x += dx / d * s; c.y += dy / d * s; c.z = world.heightAt(c.x, c.y); c.moving = true; c.face(dx, dy); break;
     }
     case FOLLOW: {
       const L = c.lead; if (!L || !L.active) { c.lead = null; if (c.ww >= 0) next(c); else rejoin(c); break; }

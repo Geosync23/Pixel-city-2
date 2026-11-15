@@ -115,7 +115,7 @@ export function speak(c, text, force) {
 }
 /** tap handler shared by city citizens and room NPCs */
 export function talkTo(c, venue) {
-  if (!c.active) return; const p = G.player; c.hold = 3.2; c.moving = false; c.dir = dirOf(p.x - c.x, p.y - c.y); if (!c.seated) c.hpose = c.pose, c.pose = 'talk'; else c.hpose = c.pose;
+  if (!c.active) return; if (G.scene === X.city && X.world && !c.seated && isRoad(c.x, c.y)) return;   // QA round 3: someone crossing the road does not stop to answer a tap const p = G.player; c.hold = 3.2; c.moving = false; c.dir = dirOf(p.x - c.x, p.y - c.y); if (!c.seated) c.hpose = c.pose, c.pose = 'talk'; else c.hpose = c.pose;
   const info = { char: c, spec: c.spec, district: c.district, mood: c.mood, kind: c.kind };
   if (G.social && G.social.talkToCitizen) { let r = null; try { r = G.social.talkToCitizen(info); } catch (e) { console.error(e); } if (r && r.then) { c.hold = 600; r.then(() => { c.hold = Math.min(c.hold, .6); }, () => { c.hold = .1; }); } return; }
   speak(c, greeting(c), true); c.mood = 'happy';

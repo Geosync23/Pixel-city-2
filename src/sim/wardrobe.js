@@ -8,6 +8,10 @@
 //   wearTemp(outfitKey)     put on a job uniform (art outfit key from jobs.js, e.g. 'barista') without changing `wearing`;  restore() takes it off
 //   setLook(spec)           new base look (from the creator); the current outfit is re-applied on top
 //   open({ preview? })      the wardrobe window: change outfit, "Change your look" (character creator in edit mode)
+//   FRAMEWORK for the piece catalogue (src/data/clothes.js; the systems that own, wear, wash and sell pieces are still to come — flag G.wardrobe.PIECES = false):
+//   previewCanvas(spec, { scale = 6, dir = 0, anim = 'stand', frame = 0 }) -> <canvas>   crisp large render of any character spec (also exported)
+//   specWithPieces([pieceId | piece]) -> spec   your own look wearing those catalogue pieces (nothing is saved)
+//   mirror([pieceId | piece], { title? })      the big fitting-room mirror: you in those pieces, tap to turn round
 // Events: 'wardrobe:change'(itemId), 'wardrobe:add'(itemId)
 // The sim core opens it from wardrobe fixtures / fitting rooms through data activity `change_outfit` (onComplete.opens 'wardrobe').
 import { G } from '../core/game.js';
@@ -17,6 +21,9 @@ import { charArt } from '../core/char.js';
 import { modal, el, toast } from '../ui/kit.js';
 import { iconEl } from '../ui/_icons.js';
 import { openCreator } from '../ui/creator.js';
+import { specWith, PIECE_BY_ID } from '../data/clothes.js';
+import { render } from '../engine/raster.js';
+import { toSprite } from '../engine/sprites.js';
 
 export const order = 61;
 const CLOTH = ['top', 'topColor', 'bottom', 'bottomColor', 'shoes', 'hat', 'hatColor', 'scarf', 'innerColor', 'accent', 'outfit'];
@@ -62,6 +69,22 @@ function preview(itemId, scale = 3) {
   try { const ch = new (G.player.constructor)(specFor(itemId), 0, 0); ch.dir = 1; const sp = ch.sprite(); if (sp && sp.c) c.getContext('2d').drawImage(sp.c, 0, 0, sp.c.width, sp.c.height, Math.round((w - sp.c.width) / 2), h - sp.c.height, sp.c.width, sp.c.height); } catch (e) { /* preview is optional */ }
   return c;
 }
+/** crisp large render of a character spec (previews, mirrors, shop thumbnails) */
+export function previewCanvas(spec, o = {}) {
+  const A = charArt(), sb = A.CHAR_SB, scale = o.scale || 6, x0 = -13, y0 = -34, w = 26, h = 38, c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'pix';
+  c.style.cssText = `width:${w * scale}px;height:${h * scale}px;image-rendering:pixelated;flex:none`;
+  try { const s = toSprite(render(sb, () => A.drawChar(spec, { anim: o.anim || 'stand', frame: o.frame || 0, dir: o.dir || 0 }), null, 1)); if (s) c.getContext('2d').drawImage(s.c, -(x0 - s.x), -(y0 - s.y)); } catch (e) { console.warn('wardrobe preview', e); }
+  return c;
+}
+const specWithPieces = list => specWith(base(), list || []);
+function mirror(list, o = {}) {
+  const spec = specWithPieces(list); let dir = 0;
+  const m = modal({ title: o.title || 'Mirror', cls: 'wardrobe' }), box = el('div', { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }, onclick: () => { dir = (dir + 1) % 4; draw(); } });
+  const names = (list || []).map(p => (typeof p === 'string' ? PIECE_BY_ID[p] : p)).filter(Boolean).map(p => p.name);
+  const draw = () => { box.textContent = ''; box.append(previewCanvas(spec, { scale: 7, dir }), el('div', { style: { fontSize: '12px', opacity: .75 }, text: 'Tap to turn round' })); };
+  draw(); m.body.append(box); if (names.length) m.body.append(el('p', { style: { fontSize: '13px', margin: '8px 0 0' }, text: names.join(' · ') }));
+  return m;
+}
 let win = null;
 function open(o = {}) {
   if (win) win.close();
@@ -85,7 +108,7 @@ function open(o = {}) {
 export function init() {
   G.defineState('wardrobe', blank); norm();
   G.wardrobe = { owned: () => S.owned.slice(), owns: id => S.owned.includes(id), add, wear, wearing: () => S.wearing, styles, perk: () => (S.temp ? {} : (ITEM_BY_ID[S.wearing] || {}).perk || {}),
-    wearTemp(key) { base(); S.temp = key || null; apply(); G.emit('wardrobe:change', S.wearing); }, restore() { if (!S.temp) return; S.temp = null; apply(); G.emit('wardrobe:change', S.wearing); }, setLook, open, specFor };
+    wearTemp(key) { base(); S.temp = key || null; apply(); G.emit('wardrobe:change', S.wearing); }, restore() { if (!S.temp) return; S.temp = null; apply(); G.emit('wardrobe:change', S.wearing); }, setLook, open, specFor, PIECES: false, previewCanvas, specWithPieces, mirror };
   G.on('load', () => { norm(); });
   G.on('game:new', o => { G.state.wardrobe = blank(); norm(); S.base = strip((o && o.spec) || G.state.player.spec || {}); delete S.base.outfit; });
   G.on('shop:buy', drain);

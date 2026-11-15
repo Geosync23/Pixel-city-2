@@ -389,3 +389,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 94 — Pedestrians stop in the middle of the road and hold up traffic
 > Sometimes pedestrians stop in the middle of the road and hold up traffic
+
+## 95 — Three phone apps: read a book, watch movies, play games; a little fun, not too much
+> Add an app to read a book, one towatch movies, and one to play games. All give to fun a bit but not too much
