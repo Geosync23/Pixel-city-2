@@ -34,7 +34,7 @@ def({ id: 'goods:timber', w: 32, d: 24, floor: GT.f_concrete, wall: { color: '#e
 /* 2. FJORD & FOLD — flat-pack warehouse store: room sets on the showroom loop (follow the arrows), the market hall, then the self-serve racking */
 def({ id: 'goods:fjord', w: 28, d: 22, floor: GT.f_lino, wall: { color: '#f4f0e8', pattern: 'plain', trim: '#3f6fb0', h: 3.2 }, zoom: 0,
   floors: [{ x0: 0, y0: 15, x1: 28, y1: 22, floor: GT.f_concrete }],
-  exit: { x: 25, y: 21.5 }, counter: { x: 20, y: 19.5, p: { name: 'FJORD & FOLD', c: '#3f6fb0' } },
+  exit: { x: 25, y: 21.5 }, counter: { x: 20, y: 19.5, p: { name: 'FJORD', c: '#3f6fb0' } },
   items: [
     SIGNY(10, 'SHOWROOM  >  MARKET HALL  >  SELF SERVE', '#3f6fb0', '#f2c230', 2.6),
     ...[[3, 7.5, 0], [8, 7.5, 0], [13, 7.5, 0], [18, 7.5, 0], [23, 7.5, 1], [23, 13, 1]].map(([x, y, d]) => F('goods.arrow', x, y, { dir: d, c: '#f2c230' })),
@@ -82,7 +82,7 @@ def({ id: 'goods:lumen', w: 15, d: 12, floor: GT.f_darkwood, wall: { color: '#2c
   zones: [
     { k: 'wall', wall: 'y', from: .5, to: 14.5, take: {}, gap: .5 }, { k: 'wall', wall: 'x', from: .5, to: 10, take: {}, gap: .5 },
     { k: 'rows', x: 1.5, y: 1.5, w: 13, d: 3.5, take: { place: ['floor'] }, aisle: 1, gap: .5 },
-    { k: 'table', x: 2, y: 6.5, w: 5, d: .5, take: {} }, { k: 'table', x: 8, y: 6.5, w: 5, d: .5, take: {} }, { k: 'table', x: 2, y: 8.5, w: 4, d: .5, h: .9, asset: 'goods.dtable', p: { top: '#d9b65c', c: '#2c2c36' }, take: {} },
+    { k: 'table', x: 2, y: 6.5, w: 5, d: .5, take: {} }, { k: 'table', x: 8, y: 6.5, w: 5, d: .5, take: {} },
     { k: 'rows', x: 1.5, y: 8.5, w: 13, d: 1.5, take: {}, aisle: 1 },
   ] });
 
@@ -101,7 +101,7 @@ def({ id: 'goods:voltaic', w: 17, d: 13, floor: GT.f_tile, wall: { color: '#e8ec
 /* 6. LEAF & LOAM — plant house: slatted benches, big plants in rows, hanging baskets */
 def({ id: 'goods:loam', w: 15, d: 13, floor: GT.f_stone, wall: { color: '#dfeeda', pattern: 'planks', trim: '#2f6a48', h: 3 }, zoom: 1,
   floors: [{ x0: 0, y0: 10, x1: 15, y1: 13, floor: GT.f_wood }],
-  exit: { x: 7.5, y: 12.5 }, counter: { x: 2, y: 11, p: { name: 'LEAF & LOAM', c: '#2f6a48' } },
+  exit: { x: 7.5, y: 12.5 }, counter: { x: 2, y: 11, p: { name: 'LEAF&LOAM', c: '#2f6a48' } },
   items: [SIGNY(5, 'LEAF & LOAM', '#2f6a48', '#e8f4d8', 2.45), F('pshop.hanging', 3, 4, { kind: 'basket' }), F('pshop.hanging', 7, 4, { kind: 'basket' }), F('pshop.hanging', 11, 4, { kind: 'basket' }), F('pshop.hanging', 5, 8, { kind: 'basket' }), F('pshop.hanging', 9, 8, { kind: 'basket' }), F('pshop.flower.buckets', 12.5, 11)],
   zones: [
     { k: 'wall', wall: 'y', from: .5, to: 14.5, take: {}, mount: 1.3 }, { k: 'wall', wall: 'x', from: .5, to: 9, take: {}, mount: 1.3 },

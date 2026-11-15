@@ -17,6 +17,7 @@ FILES="src/ui/phone_taxi.js src/ui/phone_guide.js src/ui/phone.js src/ui/phone_p
  src/sim/_crowd_lines.js src/sim/_crowd_core.js src/sim/crowd.js src/sim/_crowd_rooms.js src/sim/transit.js src/sim/traffic.js src/sim/_traffic_veh.js src/sim/navigator.js src/sim/museum.js src/sim/observatory.js
  src/ui/shop.js src/ui/hud.js src/data/items.js src/data/venues_extra.js src/data/validate.mjs src/data/calendar.js src/scenes/rooms/museum.js src/scenes/rooms/observatory.js src/art/showpiece/museum.js
  src/sim/navgoals.js src/ui/navarrow.js
+ src/data/goods.js src/art/goods/*.js src/art/icons/goods.js src/sim/goods.js src/sim/goods_sheet.js src/sim/goods_city.js src/scenes/rooms/goods_lib.js src/scenes/rooms/goods_stores.js src/scenes/rooms/goods_stores2.js
  src/sim/needs_extra.js src/sim/supplies.js src/sim/opportunities.js src/data/opportunities*.js src/data/supplies.js src/ui/phone_opps.js src/ui/phone_wellness.js src/ui/hud.css src/art/icons/needs_extra.js
  src/scenes/rooms/post*.js src/art/showpiece/post*.js src/art/showpiece/_post_*.js $*"
 for f in $FILES; do mkdir -p "$C/$(dirname $f)"; cp "$f" "$C/$f"; done
@@ -25,5 +26,5 @@ for n in hotel arena aquarium fishmarket lighthouse cityhall natatorium; do for 
 for p in _hotel_ _arena_ _aqua_ _fish_ _lh_ _ch_ _nat_; do for f in $(ls src/*/$p* src/*/*/$p* 2>/dev/null); do cp "$f" "$C/$f"; done; done
 git show $B25:src/world/_blocks.js > "$C/src/world/_blocks.js"
 # files a RUNNING worker is editing: pinned to the last published commit (remove a line when that worker is integrated)
-S35=$(git log --format=%h -1 --grep="^Stage 35"); for f in src/sim/housing.js; do git show $S35:$f > "$C/$f"; done
+S35=$(git log --format=%h -1 --grep="^Stage 35"); for f in ; do git show $S35:$f > "$C/$f"; done
 cd "$C" && node src/data/validate.mjs | tail -1 && node tools/build.mjs | tail -1 && echo "$C"

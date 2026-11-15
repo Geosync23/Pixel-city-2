@@ -3,9 +3,9 @@
 .mg.side{left:auto;right:10px;bottom:auto;top:50%;transform:translateY(-50%);border-bottom:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);width:392px;animation:none}
 .mg.out{opacity:0;transition:opacity .15s}
 @keyframes mg-in{from{transform:translate(-50%,40px);opacity:.3}to{transform:translate(-50%,0);opacity:1}}
-.mg-head{display:flex;align-items:center;gap:7px;min-height:38px}
+.mg-head{display:flex;align-items:center;gap:8px;min-height:44px}
 .mg-tt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.1}.mg-tt b{font-size:15px;line-height:1.08;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.mg-tt small{font-size:12px;font-weight:600;opacity:.75}
-.mg-b{min-width:40px;min-height:38px;padding:2px 8px;box-shadow:0 2px 0 var(--edge);font-size:14px}.mg-b.mg-auto{background:var(--gold)}.mg-b.mg-x{background:#ffd9d2}
+.mg-b{min-width:44px;min-height:44px;padding:2px 8px;box-shadow:0 2px 0 var(--edge);font-size:14px}.mg-b.mg-auto{background:var(--gold)}.mg-b.mg-x{background:#ffd9d2}
 .mg-hint{font-size:13px;font-weight:600;line-height:1.25;min-height:32px;display:flex;align-items:center;justify-content:center;text-align:center;background:#fffdf4;border:2px solid var(--edge);padding:2px 6px}
 .mg-stage{position:relative;align-self:center;width:100%;max-width:364px;border:2px solid var(--edge);background:#f3e8cf;line-height:0}
 .mg-cv{width:100%;aspect-ratio:180/110;display:block;touch-action:none;cursor:pointer}

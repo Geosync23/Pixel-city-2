@@ -206,6 +206,7 @@ function roomDef(id, room) {
       if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : 'furn.home.parcel', x: at[0], y: at[1], box: b.uid, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
     }
   }
+  if (G.goods && G.goods.surfaceZ) G.goods.surfaceZ(list);   /* goods (sim/goods.js): small pieces stand ON the table / counter / dresser they were put on */
   const flat = i => (!i.wall && !solidDef(i) && sizeOfDef(i)[2] < .1 ? 0 : 1);
   list.sort((a, b) => flat(a) - flat(b));
   if (bath) return Object.assign(bathDef(id, list), { home: mine });

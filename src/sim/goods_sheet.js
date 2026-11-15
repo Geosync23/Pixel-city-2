@@ -6,6 +6,7 @@ import { GOOD_BY_ID, STORE_BY_ID, CATS, familyOf } from '../data/goods.js';
 import { asset } from '../art/registry.js';
 import { assetSprite } from '../engine/sprites.js';
 import { modal, el, toast } from '../ui/kit.js';
+import { iconEl } from '../ui/_icons.js';
 
 const fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 const safe = (fn, fb) => { try { const v = fn(); return v === undefined || v === null ? fb : v; } catch (e) { return fb; } };
@@ -22,15 +23,18 @@ let CSS = false;
 function css() {
   if (CSS || typeof document === 'undefined') return; CSS = true;
   document.head.append(el('style', { text: `.gd-win{max-width:360px}.gd-pic{display:flex;align-items:flex-end;justify-content:center;height:156px;background:var(--paper2,#efe6d2);border:2px solid #2a2733;margin:4px 0 6px;position:relative}
-.gd-pic canvas{image-rendering:pixelated}.gd-store{position:absolute;left:4px;top:3px;font-size:11px;opacity:.75}.gd-price{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 4px}
+.gd-pic canvas{image-rendering:pixelated}.gd-store{position:absolute;left:4px;top:3px;font-size:11px;display:flex;align-items:center;gap:3px}.gd-price{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 4px}
 .gd-price b{font-size:20px}.gd-sw{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 6px}.gd-sw button{width:28px;height:28px;border:2px solid #2a2733;padding:0;cursor:pointer;box-shadow:2px 2px 0 #2a2733}
 .gd-sw button.on{outline:3px solid #f2c230;outline-offset:1px}.gd-facts{margin:0 2px 6px;padding:0;list-style:none;font-size:13px;line-height:1.35}.gd-facts li{margin:2px 0}
 .gd-btns{display:flex;gap:6px;flex-wrap:wrap}.gd-btns button{flex:1 1 30%;min-height:40px}` }));
 }
 function picture(g) {
-  const a = asset('furn.home.' + g.art), sp = assetSprite(a, Object.assign({}, g.p, { on: true }), false), k = Math.max(1, Math.min(7, Math.floor(Math.min(300 / sp.c.width, 140 / sp.c.height))));
-  const c = document.createElement('canvas'); c.width = sp.c.width * k; c.height = sp.c.height * k; c.style.width = c.width + 'px'; c.style.height = c.height + 'px';
-  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(sp.c, 0, 0, c.width, c.height); return c;
+  const a = asset('furn.home.' + g.art), sp = assetSprite(a, Object.assign({}, g.p, { on: true }), false), src = sp.c, W = src.width, H = src.height;
+  /* crop to the drawn pixels so small pieces fill the frame too */
+  let x0 = W, y0 = H, x1 = -1, y1 = -1; try { const d = src.getContext('2d').getImageData(0, 0, W, H).data; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } catch (e) { x1 = -1; }
+  if (x1 < 0) { x0 = 0; y0 = 0; x1 = W - 1; y1 = H - 1; } const w = x1 - x0 + 1, h = y1 - y0 + 1, k = Math.max(1, Math.min(8, Math.floor(Math.min(290 / w, 136 / h))));
+  const c = document.createElement('canvas'); c.width = w * k; c.height = h * k; c.style.width = c.width + 'px'; c.style.height = c.height + 'px'; c.style.marginBottom = '8px';
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, x0, y0, w, h, 0, 0, c.width, c.height); return c;
 }
 function facts(g, storeId) {
   const L = [], it = safe(() => G.housing.visual(g.id), null), sz = it && it.size;
@@ -49,7 +53,7 @@ export function openSheet(goodId, storeId, fx) {
   const draw = () => {
     m.body.textContent = ''; const title = m.el.querySelector('.win-title'); if (title) title.textContent = g.name;
     const p = G.goods.price(g.id, storeId), can = !G.money || safe(() => G.money.canAfford(p, { category: 'homegood', venue: storeId }), true), bagFull = g.carry && G.goods.bag().length >= G.goods.BAG_MAX;
-    m.body.append(el('div.gd-pic', null, el('span.gd-store', { text: st.short || '' }), picture(g)));
+    m.body.append(el('div.gd-pic', null, el('span.gd-store', null, st.id ? iconEl('store.' + st.id, 1) : null, ' ' + (st.short || '')), picture(g)));
     m.body.append(el('div.gd-price', null, el('b', { text: fmt(p) }), el('span', { text: fam.length > 1 ? `${colourName(g)} · ${fam.length} colours here` : colourName(g) })));
     if (fam.length > 1) m.body.append(el('div.gd-sw', null, ...fam.map(q => el('button' + (q.id === g.id ? '.on' : ''), { title: colourName(q), style: 'background:' + swatchOf(q), onclick: () => { g = q; draw(); } }))));
     m.body.append(el('ul.gd-facts', null, ...facts(g, storeId).map(t => el('li', { text: t }))));

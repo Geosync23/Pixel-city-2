@@ -61,7 +61,7 @@ export function chooseNext(v) {
   const e = v.e, n = e.to; let ne = null, off = 1;
   if (v.plan) { let k = v.planI + 1; if (k >= v.plan.length && v.cyclic) k = 0; if (k < v.plan.length) { ne = v.plan[k]; off = v.offs ? v.offs[k] : 1; } }
   else {
-    let tw = 0; const o = n.out; for (let i = 0; i < o.length; i++) { const f = o[i]; if (f === e.rev || (f.to.dead && o.length > 2)) continue; const w = f.axis === e.axis ? 3 : 1; tw += w; if (Math.random() * tw < w) ne = f; }
+    let tw = 0; const o = n.out; for (let i = 0; i < o.length; i++) { const f = o[i]; if (f === e.rev || (f.to.dead && o.length > 2) || (f.closed && !e.closed) /* city events: a street closed for a parade is never entered (sim/cityevents.js) */) continue; const w = f.axis === e.axis ? 3 : 1; tw += w; if (Math.random() * tw < w) ne = f; }
     if (!ne) ne = e.rev; off = ne.lanes > 1 ? (ne.axis === e.axis ? v.off : Math.random() < .5 ? 1 : 3) : 1;
   }
   v.ne = ne; v.noff = off; v.turnS = !ne ? 0 : ne.axis !== e.axis ? ne.c + ne.ls * off : ne === e.rev ? e.s1 - e.d * 3 : e.s1;

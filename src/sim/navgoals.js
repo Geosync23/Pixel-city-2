@@ -60,7 +60,7 @@ const SS = () => G.state.navgoals || (G.state.navgoals = { sel: null, pin: null 
 const FAMILY = [[/^cityhall(_|$)|^lobby:4$/, 'cityhall'], [/^hotel(_|$)/, 'hotel'], [/^lighthouse(_|$)/, 'lighthouse'], [/^skydeck/, 'skydeck_lobby'], [/^mall:/, 'deptstore']];
 export function rootOf(rid) {
   if (!rid) return null; rid = String(rid).replace(/^int:/, ''); for (const f of FAMILY) if (f[0].test(rid)) return f[1];
-  const p = rid.split(':'); return /^(home|pub|lobby)$/.test(p[0]) ? p.slice(0, 2).join(':') : p[0];
+  const p = rid.split(':'); return /^(home|pub|lobby|goods)$/.test(p[0]) ? p.slice(0, 2).join(':') : p[0];
 }
 export const doorOf = rid => { const r = rootOf(rid); return cityPoi('door:' + r) || place(r) || null; };
 const placeName = rid => { const r = rootOf(rid), p = place(r) || cityPoi('door:' + r); return (p && p.name) || safe(() => ROOMS.get(r).name, null) || 'the building'; };

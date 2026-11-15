@@ -70,6 +70,7 @@ function trySpawn(prefill, h) {
     let r = Math.random() * nearW, e = near[0]; for (let i = 0; i < near.length; i++) { e = near[i]; r -= e.w * Math.min(e.len, 60); if (r <= 0) break; }
     const sp = graph.span(e), s = sp[0] + (sp[1] - sp[0]) * Math.random(), off = e.lanes > 1 && Math.random() < .5 ? 3 : 1, q = graph.lanePos(e, off, s, tmp), dx = fx - q.x, dy = fy - q.y;
     if (Math.abs(dx - dy) > mx || Math.abs(dx + dy) > my) continue;
+    if (e.closed) continue; /* city events: no traffic appears on a closed street */
     if (!prefill) { if (onScreen(q.x, q.y, 80)) continue; if ((e.axis === 'x' ? dx : dy) * e.d < 0 && Math.random() < .85) continue; }
     if (!p.hidden && Math.abs(p.x - q.x) < 8 && Math.abs(p.y - q.y) < 8) continue; if (!clearLane(q.x, q.y, 7)) continue;
     const kind = pickKind(world.districtAt(q.x, q.y), h, ENV.season), o = {};
@@ -169,7 +170,7 @@ function housekeeping() {
   for (const b of buses) { if (b.veh) continue; const q = loopAt(b.loop, b.u, tmp), dx = q.x - fx, dy = q.y - fy; if (dx * dx + dy * dy < (simR + 4) * (simR + 4) && T.list.length < CAP + 6 && (refill || !onScreen(q.x, q.y, 90)) && clearLane(q.x, q.y, 5)) busReal(b); }
   // taxi stands
   for (let i = 0; i < stands.length; i++) {
-    const st = stands[i], dx = st.ref.x - fx, dy = st.ref.y - fy; if (dx * dx + dy * dy > simR * simR) continue; const want = 1 + (i % 2);
+    const st = stands[i], dx = st.ref.x - fx, dy = st.ref.y - fy; if (dx * dx + dy * dy > simR * simR) continue; if (st.ref.e.closed) continue; /* city events: a taxi stand on a closed street has no cabs */ const want = 1 + (i % 2);
     while (st.cabs.length < want && (refill || !onScreen(st.ref.x, st.ref.y, 90))) {
       const e = st.ref.e, s = st.ref.s - e.d * 4.3 * st.cabs.length, v = spawn('taxi', graph.lanePos(e, st.ref.off, s, tmp), { keep: true, role: 'stand', stand: st, parked: true, curb: .55, taxiFree: true, params: { free: true } });
       if (!v) break; st.cabs.push(v);
@@ -230,7 +231,7 @@ export function init() {
     /** a lane position out of view, `minD..maxD` units (straight line) from the lane ref `nearRef`, preferably heading toward it */
     offscreenLane(nearRef, minD = 24, maxD = 60) {
       let best = null, bs = 1e9; const mid = (minD + maxD) / 2 - 6;
-      for (const e of graph.edges) { if (e.to.dead || e.from.dead) continue; const sp = graph.span(e), q = graph.lanePos(e, 1, (sp[0] + sp[1]) / 2, tmp), dx = nearRef.x - q.x, dy = nearRef.y - q.y, d = Math.hypot(dx, dy); if (d < minD || d > maxD || onScreen(q.x, q.y, 90) || !clearLane(q.x, q.y, 6)) continue; const sc = Math.abs(d - mid) + ((e.axis === 'x' ? dx : dy) * e.d < 0 ? 25 : 0) + Math.random() * 6; if (sc < bs) { bs = sc; best = Object.assign({}, q); } }
+      for (const e of graph.edges) { if (e.to.dead || e.from.dead || e.closed /* city events */) continue; const sp = graph.span(e), q = graph.lanePos(e, 1, (sp[0] + sp[1]) / 2, tmp), dx = nearRef.x - q.x, dy = nearRef.y - q.y, d = Math.hypot(dx, dy); if (d < minD || d > maxD || onScreen(q.x, q.y, 90) || !clearLane(q.x, q.y, 6)) continue; const sc = Math.abs(d - mid) + ((e.axis === 'x' ? dx : dy) * e.d < 0 ? 25 : 0) + Math.random() * 6; if (sc < bs) { bs = sc; best = Object.assign({}, q); } }
       return best;
     },
     count: () => T.list.length,

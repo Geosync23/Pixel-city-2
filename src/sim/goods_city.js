@@ -11,11 +11,12 @@ import { G } from '../core/game.js';
 import { STORES, STORE_BY_ID } from '../data/goods.js';
 import { ROOMS, enterRoom } from '../scenes/interior.js';
 import { toast } from '../ui/kit.js';
+import { GT } from '../engine/world.js';
 import { setSiteLookup } from './goods.js';
 
 export const order = 57.7;
 export const SITES = [
-  { store: 'goods:timber', build: { id: 'bld.ind.warehouse.corrugated', x: 8, y: 254, p: { w: 18, d: 12, h: 5, rh: 1.4, seed: 31, wall: '#d8752e', accent: '#2f5a48', name: 'TIMBER & TROWEL HOME CENTRE', code: 'T&T' } } },
+  { store: 'goods:timber', build: { id: 'bld.ind.warehouse.corrugated', x: 8, y: 254, p: { w: 18, d: 12, h: 5, rh: 1.4, seed: 31, wall: '#d8752e', accent: '#fff3dc', name: 'TIMBER & TROWEL HOME CENTRE', code: 'T&T' } }, door: { x: 17, y: 267.25, dir: 1, face: 'y' }, forecourt: [8, 266, 26, 270] },
   { store: 'goods:fjord', bld: 'bld.ind.warehouse.corrugated', at: [219, 331], repaint: { wall: '#3f6fb0', accent: '#f2c230', name: 'FJORD & FOLD', code: 'FF' } },
   { store: 'goods:bellwether', bld: 'bld.oldtown.rowhouse.bay', at: [70, 214] },
   { store: 'goods:lumen', bld: 'bld.oldtown.rowhouse.stucco', at: [126, 215] },
@@ -60,13 +61,17 @@ export function ensure(w) {
     if (s.repaint) { ob.p = Object.assign({}, ob.p, s.repaint); delete ob._key; }
     const id = 'door:' + s.store; let poi = w.pois.find(p => p.id === id);
     if (!poi) {
-      let sp = doorSpot(w, ob); if (!sp) { console.warn('goods: no doorstep for', s.store); continue; }
+      let sp = s.door && !w.isBlocked(s.door.x, s.door.y) ? s.door : doorSpot(w, ob); if (!sp) { console.warn('goods: no doorstep for', s.store); continue; }
       const district = w.districtAt(sp.x, sp.y) || st.district;
       poi = w.poi({ type: 'door', id, room: s.store, name: st.name, x: sp.x, y: sp.y, dir: sp.dir, district, goods: s.store, blurb: st.blurb });
       if (!s.build && !s.repaint) { const [bg, fg] = SIGN[s.store] || ['#2c2738', '#f6e8c0'], text = st.sign, sw = Math.max(1, Math.ceil((text.length * 4 + 8) / 8) / 2);
         try { const so = sp.face === 'x' ? w.place('furn.pshop.sign', ob.B[3] + .02, Math.max(ob.B[1], Math.min(ob.B[4] - sw, sp.y - sw / 2)), { p: { text, bg, fg, lit: true }, z: ob.B[2] + 2.25, flip: true, solid: false })
           : w.place('furn.pshop.sign', Math.max(ob.B[0], Math.min(ob.B[3] - sw, sp.x - sw / 2)), ob.B[4] - .06, { p: { text, bg, fg, lit: true }, z: ob.B[2] + 2.25, solid: false }); so.goodsSign = s.store; } catch (e) { console.warn('goods sign', e); } }
     }
+    if (s.forecourt && !ob._fore) { ob._fore = true; const f = s.forecourt;   /* the big-box gets a paved forecourt with trolleys and a few garden-centre pallets (add only) */
+      try { w.ground(f[0], f[1], f[2], f[3], GT.concrete); w.version = (w.version || 0) + 1;
+        for (const [id, x, y, p] of [['furn.goods.cart', 19.5, 267, {}], ['furn.goods.cart', 20.5, 267, {}], ['furn.home.g.plant', 9.5, 266.5, { k: 'planter', what: 'flowers', wood: '#f1eee6' }], ['furn.home.g.plant', 11, 266.5, { k: 'planter', what: 'herbs' }], ['furn.home.g.plant', 23, 266.5, { k: 'topiary' }], ['furn.home.g.plant', 24.5, 266.5, { k: 'olive' }], ['furn.home.g.out', 12.5, 266.25, { k: 'parasol', c: '#2f5a48' }]]) { if (!w.isBlocked(x + .25, y + .25)) w.place(id, x, y, { p }); }
+      } catch (e) { console.warn('goods: forecourt', e); } }
     DOOR[s.store] = { poi, ob };
   }
 }

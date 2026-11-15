@@ -14,6 +14,7 @@
 //   stores() -> [store rows (data/goods.js STORES) + { open (bool), hoursText, x, y (door, when the city is built) }]      store(id)
 //   stock(storeId) -> [good]     price(goodId, storeId) -> $     whereSold(goodId) -> [storeId]     isOpen(storeId) -> bool     hoursText(storeId)
 //   inspect(goodId, storeId, fx?)  opens the sheet      buy(goodId, storeId, { quiet }) -> 'bag' | 'delivery' | null
+//   surfaceZ(defs)  (housing.roomDef calls it: small 'surface' goods stand on the table / counter / dresser under them)
 //   bag() -> [goodId] (carried, lands at home)          unpackBag() -> n      lampOn(uid) -> bool     setLamp(uid, on)
 // State G.state.goods = { bag: [goodId], off: { placedUid: 1 }, bought: n, spent: $, visits: { storeId: n } }
 // Events: 'goods:buy'(goodId, storeId, price, 'bag'|'delivery'), 'goods:bag'(ids) when the bag is unpacked at home, 'goods:lamp'(uid, on), 'goods:visit'(storeId)
@@ -98,6 +99,19 @@ function unpackBag() {
   G.emit('goods:bag', ids); return ids.length;
 }
 
+/* ---------- small pieces stand on furniture ---------- */
+const NO_TOP = ['seat', 'sofa', 'bed', 'plant', 'tv', 'shower', 'bath', 'toilet', 'lamp', 'easel', 'instrument', 'exercise', 'game', 'moving_box', 'delivery_box', 'fridge'];
+/** called by housing.roomDef with the room's item defs: a 'surface' good whose middle is over a table, counter, dresser, shelf unit... gets that piece's height as its z */
+function surfaceZ(list) {
+  const box = d => { try { const a = asset(d.id), s = assetSize(a, d.p || {}); return { a, w: d.flip ? s[1] : s[0], d: d.flip ? s[0] : s[1], h: s[2] }; } catch (e) { return null; } };
+  for (const d of list) {
+    const g = d.good && GOOD_BY_ID[d.good]; if (!g || g.place !== 'surface' || d.wall) continue; const b = box(d); if (!b) continue; const cx = d.x + b.w / 2, cy = d.y + b.d / 2; let top = 0;
+    for (const o of list) { if (o === d || o.wall || o.box || o.x === undefined) continue; const q = box(o); if (!q || q.a.solid === false || q.h < .3 || q.h > 1.35 || (q.a.tags || []).some(t => NO_TOP.includes(t))) continue;
+      if (cx > o.x + .05 && cx < o.x + q.w - .05 && cy > o.y + .05 && cy < o.y + q.d - .05) top = Math.max(top, (o.z || 0) + q.h); }
+    if (top) d.z = top; else delete d.z;
+  }
+}
+
 /* ---------- lamps at home ---------- */
 function applyLamp(fx, scene, on) {
   const ob = fx.ob, W = scene.world; if (!ob) return;
@@ -112,7 +126,7 @@ export function init() {
   G.defineState('goods', blank); norm();
   G.goods = {
     stores, store: id => stores().find(s => s.id === id) || null, stock: id => goodsAt(id), price, whereSold, isOpen: storeOpen, hoursText,
-    inspect: (goodId, storeId, fx) => openSheet(goodId, storeId, fx), buy, bag: () => S.bag.slice(), unpackBag, lampOn, setLamp, BAG_MAX,
+    inspect: (goodId, storeId, fx) => openSheet(goodId, storeId, fx), buy, bag: () => S.bag.slice(), unpackBag, lampOn, setLamp, BAG_MAX, surfaceZ,
   };
   G.on('load', norm);
   /* display pieces in the stores: tap -> inspect sheet */
@@ -122,13 +136,13 @@ export function init() {
   });
   /* lamps you own: switch on / off */
   registerFixture('glamp', (fx, scene) => {
-    const uid = fx.item && fx.item.uid; if (!uid || !(G.housing && G.housing.isHome(scene.id))) return null;
-    const ia = { label: lampOn(uid) ? 'Switch off' : 'Switch on', range: 1.6, use: () => { const on = !lampOn(uid); setLamp(uid, on); ia.label = on ? 'Switch off' : 'Switch on'; safe(() => G.audio.sfx('click')); toast(on ? 'Click. Warm light.' : 'Click. Off.', 'info', 1200); } };
+    const uid = fx.item && fx.item.uid; if (!uid || !(scene.def && scene.def.home)) return null;   /* scene.id is not set yet while the room is being built */
+    const ia = { label: lampOn(uid) ? 'Switch off' : 'Switch on', range: 1.6, use: (g, self) => { const on = !lampOn(uid); setLamp(uid, on); (self && self.label ? self : ia).label = on ? 'Switch off' : 'Switch on'; safe(() => G.audio.sfx('click')); toast(on ? 'Click. Warm light.' : 'Click. Off.', 'info', 1200); } };
     return ia;
   });
   G.on('room:build', sc => {
     if (!sc || !sc.fixtures) return;
-    if (G.housing && G.housing.isHome(sc.id)) { for (const fx of sc.fixtures) if (fx.item && fx.item.uid && S.off[fx.item.uid] && fx.tags.includes('glamp')) applyLamp(fx, sc, false); }
+    if (sc.def && sc.def.home) { for (const fx of sc.fixtures) if (fx.item && fx.item.uid && S.off[fx.item.uid] && fx.tags.includes('glamp')) applyLamp(fx, sc, false); }
   });
   G.on('scene', s => {
     if (!s) return;

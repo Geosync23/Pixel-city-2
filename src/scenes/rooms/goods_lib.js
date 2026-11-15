@@ -12,10 +12,14 @@
 //   take: fn(good) | { cat: [..], place: [..], tag: [..], notCat: [..], carry: bool, lamp: bool, max }
 // Diagnostics: def.goodsShown = [good ids on display], def.goodsHidden = [family keys with no room on the floor] (still sold at the counter).
 import { GT } from '../../engine/world.js';
+import { G } from '../../core/game.js';
+import { exitRoom } from '../interior.js';
 import { asset, assetSize } from '../../art/registry.js';
 import { room, S as spotAt } from './venues_lib.js';
 import { GOODS, STORE_BY_ID } from '../../data/goods.js';
 
+/* back to the store's own street door. After loading a save made inside a store the city (and with it the door) may not exist yet: the first go builds it, the second lands on the doorstep. */
+async function leave(sid) { const id = 'door:' + sid; await exitRoom({ poi: id }); const c = G.scene; if (c && c.id === 'city') { const p = c.world.pois.find(q => q.id === id); if (p && Math.hypot(G.player.x - p.x, G.player.y - p.y) > 3) await G.go('city', { poi: id, fade: false }); } }
 const up = v => Math.ceil(v * 2 - 1e-6) / 2;
 const sizeOf = g => { try { return assetSize(asset('furn.home.' + g.art), g.p); } catch (e) { return null; } };
 const matches = (g, t) => {
@@ -65,6 +69,8 @@ export function storeRoom(spec) {
         const s = sizeOf(g); if (!s || n >= max) continue; const w = up(s[0]); if (s[1] > d + .01 || cx + w > z.x + z.w + 1e-6) continue;
         disp(g, cx, z.y + d - up(s[1]), { z: h, solid: false }); browse(cx + s[0] / 2, z.y + d + .45, 3); cx += w; n++;
       }
+      /* room left on the table: show the other colourways too */
+      for (const g of GOODS) { if (n >= max) break; if (!g.stores.includes(sid) || shown.includes(g.id) || g.place !== 'surface' || !matches(g, z.take)) continue; const s = sizeOf(g); if (!s) continue; const w = up(s[0]); if (s[1] > d + .01 || cx + w > z.x + z.w + 1e-6) continue; disp(g, cx, z.y + d - up(s[1]), { z: h, solid: false }); cx += w; n++; }
     } else if (z.k === 'wall') {
       let at = z.from; const gap = z.gap === undefined ? .5 : z.gap;
       for (const g of pickAll(z.take, { place: ['wall'] })) {
@@ -87,7 +93,7 @@ export function storeRoom(spec) {
   const flat = it => { if (it.wall) return 1; try { const a = asset(it.id); return a.flat || (it.solid === false && assetSize(a, it.p || {})[2] < .1) ? 0 : 1; } catch (e) { return 1; } };
   items.sort((a, b) => flat(a) - flat(b));
   const def = room({ id: sid, name: st.name, w: spec.w, d: spec.d, floor: spec.floor || GT.f_wood, floors: spec.floors || [], wall: spec.wall, music: spec.music || 'shop', zoom: spec.zoom, items, npc,
-    exits: [{ x: exit.x, y: exit.y, label: 'Exit to the street' }], venue: sid, goodsStore: true, tags: ['shop', 'goods'] });
+    exits: [{ x: exit.x, y: exit.y, label: 'Exit to the street', use: () => leave(sid) }], venue: sid, goodsStore: true, tags: ['shop', 'goods'] });
   { const cust = npc.filter(q => q.kind !== 'staff'), keep = Math.min(cust.length, spec.crowd || 12), pick = cust.filter((q, i) => Math.floor(i * keep / cust.length) !== Math.floor((i - 1) * keep / cust.length)); const extra = items.filter(i => i.n && i.n.includes('seats')).slice(0, 2); for (const i of items) if (i.n === 'seats' && !extra.includes(i)) delete i.n; npc.length = 0; npc.push(...pick); }
   def.goodsShown = shown; def.goodsHidden = fams.filter(g => left.has(g)).map(g => g.id);
   return def;
