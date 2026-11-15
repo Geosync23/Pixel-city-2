@@ -73,6 +73,24 @@ const objKey = ob => ob._key || (ob._key = ob.id + '|' + JSON.stringify(ob.p) + 
 export function objSprite(ob) {
   return cached(objKey(ob), () => { try { return toSpritePooled(R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip, true)); } catch (e) { console.warn('art error in ' + ob.id + ': ' + e.message); return null; } });
 }
+/**
+ * seating (docs/reports/seating.md): the part of a placed object's sprite that lies on the camera side of the plane x >= v (ax 0) or
+ * y >= v (ax 1), in the object's placed frame relative to (ob.x, ob.y): what must be drawn again over somebody sitting on it. The art is
+ * drawn once more with a depth cut (raster.js setCut) on the main thread, on first use only; a pixel is kept when it is opaque and is the
+ * pixel the whole sprite shows there, so drawing the overlay over the object changes nothing where nobody sits. Returns a sprite whose
+ * x, y are offsets from the object's anchor (like objSprite), or null when nothing of the object is in front.
+ */
+export function frontSprite(ob, ax, v) {
+  const base = objSprite(ob); if (!base) return null;
+  return cached(objKey(ob) + '|cut' + ax + '|' + v, () => {
+    let r = null; R.setCut({ ax, v }); try { r = R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip, false); } catch (e) { r = null; } finally { R.setCut(null); }
+    if (!r || r.w !== base.w || r.h !== base.h) return null;
+    const w = r.w, h = r.h, fb = new Uint8Array(r.buf.buffer, r.buf.byteOffset, w * h * 4), id = base.c.getContext('2d').getImageData(0, 0, w, h), bd = id.data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let j = 0, q = 0; j < h; j++) for (let i = 0; i < w; i++, q += 4) { if (fb[q + 3] === 255 && bd[q + 3] === 255 && fb[q] === bd[q] && fb[q + 1] === bd[q + 1] && fb[q + 2] === bd[q + 2]) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; } else bd[q + 3] = 0; }
+    if (x1 < 0) return null;
+    const c = mk(x1 - x0 + 1, y1 - y0 + 1); c.getContext('2d').putImageData(id, -x0, -y0); return { c, l: null, x: base.x + x0, y: base.y + y0, w: c.width, h: c.height };
+  });
+}
 /** sprite for an asset drawn at the origin with params (vehicles etc). vb optional override. */
 export function assetSprite(a, p, flip, key) {
   key = key || (a.id + '|' + JSON.stringify(p) + (flip ? '|F' : ''));

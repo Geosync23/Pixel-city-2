@@ -127,10 +127,10 @@ export function compile(S) {
       /* bass */
       if (ins.b && on('b') && !P.b) {
         let bp = pat(st.b, i); if (bp) {
-          const a = bp.split(''); segs.forEach(sg => { const k = Math.round(sg.at / stepB); if (k > 0 && k < n) { a[k] = 'R'; if (a[k + 1] === '-' && false) a[k + 1] = '.'; } });
+          const a = bp.split(''); segs.forEach(sg => { const k = Math.round(sg.at / stepB); if (k > 0 && k < n) a[k] = 'R'; });
           for (let k = 0; k < n; k++) { const tk = a[k]; if (tk === '.' || tk === '-') continue; let l = 1; while (a[k + l] === '-') l++; const sgi = segAt(k), ch = segs[sgi].ch, r = inWin(ch.bass + tr, bl), third = ch.iv[1] <= 5 ? ch.iv[1] : 4, sev = ch.iv[3] && ch.iv[3] < 12 ? ch.iv[3] : 10;
             let m = r; if (tk === '5') m = r + (ch.iv.includes(6) ? 6 : ch.iv.includes(8) ? 8 : 7); else if (tk === '3') m = r + third; else if (tk === 'O') m = r + 12; else if (tk === '7') m = r + sev; else if (tk === '6') m = r + (ch.minor ? 10 : 9);
-            else if (tk === 'w') m = r + [third, 7, third, sev - 12][(rnd() * 4) | 0]; else if (tk === 'a') { const nr = inWin(nextRoot(i, sgi) + tr, bl); m = nr + (rnd() < .7 ? -1 : 1); if (nr - r > 6) m = nr - 13 + (m - nr + 1) + 0; }
+            else if (tk === 'w') m = r + [third, 7, third, sev - 12][(rnd() * 4) | 0]; else if (tk === 'a') { let nr = inWin(nextRoot(i, sgi) + tr, bl); if (nr - r > 6) nr -= 12; m = nr + (rnd() < .7 ? -1 : 1); if (m < bl - 5) m += 12; }
             if (ch.bass !== ch.root && tk !== 'R' && tk !== 'O') m = r; while (m > bl + 19) m -= 12;
             put(bb + k * stepB, ins.b, m, l * stepB * (l > 1 ? .95 : .85), (k === 0 ? 1 : .88) * mix.b * dy); }
         }

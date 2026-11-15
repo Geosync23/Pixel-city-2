@@ -94,7 +94,7 @@ With a station a few minutes away at both ends the train is now a third to a hal
 - Railyard -> Harborside (on a Map trip to Old Town Market), **skipped**: card at 13:03 said train 37 (next in 8, 2 stops, walk 14 at the end) -> boarded 13:09 ("Boarding now"), Skip ahead -> got off on Harborside's street at 13:30: **27 min to the platform vs 23 quoted** (37 - 14): the skip lands 0.9 min after arrival plus the door walk; the rest is the train's remaining stop at Railyard.
 - Harborside -> Old Town, **not skipped**: panel said "Train in 4 min", ride about 5 (now "about 9 on board"); doors opened 13:45, "Get off here" by touch, arrived 13:48: on time against the new wording.
 - First attempt (DWELL 2.5) at Harborside: the door tap came too late, "Missed your stop: get off at the next station" (the reason DWELL went back up to 4).
-**Perf**: more trains = more cars to place. `perf.mjs --scenes train,walk` before vs. after (`out/perf/r13_rail.md`, 8 sets, DWELL 2.5): train 59.1 / 59.1 fps; walk 54.7 -> 52.3 fps, >100 ms hitches 7 -> 10. A second run with the final constants is in `out/perf/r13_rail2.md` (see the end of this report). If the walk cost holds, `NSETS 6` (~13-min headway) is the cheaper compromise.
+**Perf**: more trains = more cars to place. `perf.mjs --scenes train,walk` before vs. after (`out/perf/r13_rail.md`, 8 sets, DWELL 2.5): train 59.1 / 59.1 fps; walk 54.7 -> 52.3 fps, >100 ms hitches 7 -> 10. A second run with the final constants (9 sets, DWELL 4; 4 runs each, `out/perf/r13_rail2.md`): **walk 54.8 / 55.4 fps, >100 ms 9 / 8; train 59.5 / 59.4 fps, JS worst 110 / 94 ms: no regression**; the first run's walk dip was noise.
 
 ### Skip the bus ride (owner msg 134)
 `src/sim/transit.js`: the bus ride HUD has **"Skip ride"** next to "Choose stop" (`G.transit.skipBus()`). It fades, advances the clock with `G.advance` (so needs and the hour / day events tick for the skipped time) by the rest of the ride **at the navigator's own bus model** (distance along the loop to your stop / 20 u per game minute + 0.6 min per stop passed, = navigator.js `BUS_V` / `BUS_DWELL`), and gets you off at your stop through the normal `alight()` (fare already paid at boarding, speed restored, `ride:end`, the Map trip moves to its walking leg). **Which stop:** the stop you chose with "Choose stop"; else the Map trip's stop; else (a loop bus has no end of the line) it asks "Get off at..." first. Works at any game speed (a bus ride runs its own clock and restores yours). `src/sim/traffic.js` exports `busU` (the ridden bus's place on its loop).
@@ -114,6 +114,54 @@ With a station a few minutes away at both ends the train is now a third to a hal
 - **A missed shift on a played day** (round 12's radio save, clock running at 4x from 17:11, nothing skipped, the player idle in town): 20:11 "Leave now", 20:30 "In 30 min", 21:00 "Starting now", 21:21 toast "Your shift at Bay Radio 98.6 began at 21:00. You can still clock in until 00:40; after that it counts as missed.", **01:02** "You missed today's shift at Bay Radio 98.6. It happens. It counts as a warning (1 of 3 before they must let you go); the next one is Mon at 21:00." (`r13_c_missed`). Clear and true; the "missed" line comes 22 min after the 00:40 it named.
 - **A play ticket played fully by hand on two jobs, the radio's held "hold to talk", a promotion: not run** (the lead's train / bus items took the time).
 
+
+## Part D: the clock change audit (owner msg 142: `G.CLOCK = .85` in `src/core/game.js`, lead's change)
+At 1x one real second is now 0.85 game minutes on the free-running clock (`gm = dt * speed * CLOCK`); activities (`G.busy`) keep their own `rate`; a cab ride owns the clock. Anything that moves in real time (the player, citizens, cars, buses on screen) now covers the same ground in 15% fewer game minutes. Method: grep of `src` for `G.state.speed`, `-= dt` / `+= dt` timers, `rate:`, `CLOCK`, `performance.now` / `Date.now`, distance -> minutes conversions (`WALK`, `/ 3.8`, `/ 3.1`, vehicle speeds), "in N min" / "N min walk" strings, then a measurement where it was cheap. G.CLOCK is only set on the first frame, so every use below reads `(G.CLOCK || .85)`.
+| file:line | what it assumes | breaks at 0.85? | done |
+|---|---|---|---|
+| `sim/navigator.js:26` `WALK .215`, `BUS_V 20`, `BUS_DWELL .6` | measured at 1 game min per real s | yes: walks quoted 18% long, ridden bus 15% long | **fixed**: `clockK()` rescales them on every `routeTo` (WALK x CLOCK, BUS_V / CLOCK, BUS_DWELL x CLOCK); `walkMinPerUnit()` exported |
+| `sim/myday.js:42` `WALK .215` (Ideas "N min walk", need rows) | same | yes | **fixed** (x CLOCK) |
+| `ui/_guide_quick.js:16` `WALK .215` | same | yes | **fixed** |
+| `ui/phone_guide.js:17`, `ui/phone_store.js:15` `/ 3.8` | a walking pace (and an older, slower one: .26 min/u) | yes (was already 20% off) | **fixed**: the navigator's pace x CLOCK |
+| `sim/planner.js:117` `/ 3.1` | fallback only when the navigator is missing | no (never used in play) | left |
+| `sim/planner.js` "Leave now" = `travelTo()` -> `G.nav.routeTo` + `LEAD.buffer` 10 | the navigator's minutes | follows the navigator | fixed through it |
+| `sim/traffic.js:144` `BUS_REAL_V 5.5` "u per game min at 1x" (ETA of an on-screen bus) | 1:1 | yes: buses in sight arrived 15% late on their ETA | **fixed** (/ CLOCK) |
+| `sim/transit.js` waiting at a stop: activity `rate 1` when the bus is in sight | 1 game min per real s while the world moves in real time | yes: the bus "in 3 min" cost 3.5 | **fixed**: rate = CLOCK |
+| `sim/transit.js` bus ride `BUS_CLOCK .2` (a speed) | the free clock | follows CLOCK (0.17 game min/s) | quotes rescaled above |
+| `sim/transit.js` Skip ride (mine) | the navigator's bus model | yes | **fixed** (same CLOCK scaling) |
+| `sim/transit.js:233-` cab pick-up: `hold` and the "late cab" checks compare **real seconds** (`pd.t`, `pd.hold -= dt`) with the quote in game minutes | 1:1 | yes: pick-ups came 15% early | **fixed** (quote / CLOCK in real s). Measured after: quote 6.0, cab "here" after **4.4** game min (it drives in faster than `CAB_CAR_V` assumes; was already so) |
+| `sim/transit.js` cab ride `rideClock` | owns the clock | no | - |
+| cab patience 80 s, `CAB_REACH` 20 s, hail 12 s | real-time patience | no (lead: fine) | - |
+| `sim/rail.js` trains | positions are a formula of `G.state.t` (game time) | no: the timetable is exact; trains now look 15% slower on screen | - |
+| `scenes/trainride.js` skip `G.advance(timeTo + .9)` | timetable | no | - |
+| `sim/rail.js` waiting for a train: activity `rate max(2.5, wait/4.5)` | activity | no | - |
+| `sim/jobs.js:43,121` `SHIFT_SPEED 2`, `COURIER_SPEED` set as `G.state.speed` | "a 6 h shift = 3 real minutes" | game time right (pay, clock-in / lateness windows are game minutes); a shift now takes **3.5 real minutes** | left (the owner asked for slower time); courier walking deadlines get 15% easier |
+| `sim/intro_airport.js:17` `TUNE.CLOCK .12` as a speed | the intro's slow clock | now .102 game min/s: the airport takes 15% fewer game minutes | left; not measured (the intro's hand-off times are events, not clock times) |
+| activities (`G.busy.rate`: sleep, showers, films `phone_reel.js:132`, reading / playing `data/media.js CLOCK`, aquarium, natatorium, job-room tasks) | their own rate | no: durations and progress bars unchanged | - |
+| needs decay, moodlets, planner / chapter / class / show windows, shop hours, day-night, weather | game minutes | no (only slower in real time) | - |
+| `-= dt` animation timers (mini-games, aquarium keepers, museum tours, `_show_life`, natatorium kids...) | real seconds, for animation | no | - |
+| citizens / NPC routines walking to a venue on a game-time schedule | they walk in real time | they now arrive with 15% more game-minute slack: no visible problem | - |
+| arena (`arena_bowl.js` own world-minute clock `st_.w`), observatory programmes, natatorium swim `SWIM.CLOCK` (stopwatch seconds) | their own clocks | no | - |
+| game-speed buttons 1/2/4, dev 8/16 | multiply the free clock | all 15% slower in game time per real s | intended |
+| first-time-window holds, toasts, banners, autosave, audio / music timers | real time | no | - |
+| `tools/perf.mjs`, `tools/navcheck.mjs` | real seconds / arrow texts | navcheck all passed after the change (below); perf scenes are real-time | - |
+| `tools/ambience_check.mjs` (not mine to touch) | real time | not run | - |
+**Ten trips after the change, quote vs actual** (quotes from the route card at 1x; "actual" walked by the pathfinder (API `goTo`), rides by touch):
+| trip (from downtown 220,226 unless said) | mode | quote | actual |
+|---|---|---|---|
+| Nana's House | walk | 36 | 37.5 |
+| The Sail Loft | walk | 38 | 33.4 |
+| Atelier Nord | walk | 44 | 37.6 |
+| Harbor Tea & Spice | walk | 24 | 25.2 |
+| Old Town Market | walk | 28 | 29.3 |
+| Railyard Station (bus 2, no skip: walk 6, wait, ride, walk 6) | bus | 19 | 21.0 (at the stop 14.4 vs 13) |
+| Railyard Station (bus 2, **Skip ride**, before the CLOCK fix) | bus | ride ~9 | 10.4 |
+| Railyard -> Harborside (Map trip, **Skip ahead**) | train | 23 to the platform | 27 |
+| Harborside -> Old Town (no skip) | train | 4 + 9 on board | doors 13:45, off 13:48 (on time) |
+| cab pick-up near Old Town Market | cab | 6.0 | 4.4 |
+(The walks before the change were quoted 42 / 44 / 51 / 28 / 33 for the same five: 15-20% too long.) Maplewood Elementary: the pathfinder found no path from that spot (a harness start point issue), not measured.
+**A full ordinary game day by touch at 1x with a shift and a class or show: not run** (time). What was played by touch at the new clock: the bus trip above (no skip), the arrival / get-off flow, the Map route cards; the missed-shift day (Part C) was played before the clock change.
+
 ## Fixed (my files this round)
 1. `src/ui/numfont.js` (new), `src/ui/_numfont_data.js` (new, generated), `tools/numfont_gen.mjs` (new): the number switch (Part A).
 2. `src/ui/title.js`: Continue in your own lobby.
@@ -123,7 +171,8 @@ With a station a few minutes away at both ends the train is now a third to a hal
 6. `src/sim/rail.js`: timetable (V, ACC, DWELL, NSETS) and the station panel's "about N min on board"; `src/sim/navigator.js`: `trainOption` gets minutes, no "not worth it" cut for trains (owner rule); `src/scenes/trainride.js`: Skip ahead arms getting off.
 7. `src/sim/transit.js` (+ `src/sim/traffic.js` exports `busU`): Skip ride on the bus.
 8. `src/sim/_rel_verbs.js`, `src/sim/_rel_life.js`: "Say you would rather be friends" asks first.
-9. `src/sim/navgoals.js`: no "wait here" for a meeting in a building that is not the meeting place.
+9. `src/sim/navgoals.js`: no "wait here" for a meeting in a building that is not the meeting place (indoors only; the street's "Go in: X → Kit" stays: navcheck caught my first version).
+10. Clock audit (Part D): `src/sim/navigator.js`, `src/sim/myday.js`, `src/ui/_guide_quick.js`, `src/ui/phone_guide.js`, `src/ui/phone_store.js`, `src/sim/traffic.js`, `src/sim/transit.js`.
 
 ## Patches for files I may not touch
 None.
@@ -144,8 +193,8 @@ None.
 3. **More trains vs. smoothness**: 9 trains a direction costs a little frame time in the city (see perf). *Recommendation: keep 9 unless the owner's phone stutters; 6 is the fallback.*
 
 ## Not verified
-Real phone, Safari (bold at 900, `local()` faces for option (c)), sound; Friend-level talk verbs; the let-down of a second match; two friend-arc and two family-arc scenes; a job play ticket by hand on two jobs and the held "hold to talk"; a promotion; a bus ride without skipping after the change; the last walking leg after the train skip; late-night train service; landscape.
+A full game day by touch at the new clock; the intro at the new clock; Real phone, Safari (bold at 900, `local()` faces for option (c)), sound; Friend-level talk verbs; the let-down of a second match; two friend-arc and two family-arc scenes; a job play ticket by hand on two jobs and the held "hold to talk"; a promotion; a bus ride without skipping after the change; the last walking leg after the train skip; late-night train service; landscape.
 
 ## Files changed
-`src/ui/numfont.js` (new), `src/ui/_numfont_data.js` (new), `tools/numfont_gen.mjs` (new), `src/ui/title.js`, `src/art/props/park.js`, `src/sim/rail.js`, `src/sim/_crowd_animals.js`, `src/sim/planes.js`, `src/ui/furnish.js`, `src/sim/navigator.js`, `src/sim/transit.js`, `src/sim/traffic.js`, `src/scenes/trainride.js`, `src/sim/_rel_verbs.js`, `src/sim/_rel_life.js`, `src/sim/navgoals.js`, `docs/reports/qa_round13.md`. (`dist/index.html` rebuilt by the checks.)
+`src/ui/numfont.js` (new), `src/ui/_numfont_data.js` (new), `tools/numfont_gen.mjs` (new), `src/ui/title.js`, `src/art/props/park.js`, `src/sim/rail.js`, `src/sim/_crowd_animals.js`, `src/sim/planes.js`, `src/ui/furnish.js`, `src/sim/navigator.js`, `src/sim/transit.js`, `src/sim/traffic.js`, `src/scenes/trainride.js`, `src/sim/_rel_verbs.js`, `src/sim/_rel_life.js`, `src/sim/navgoals.js`, `src/sim/myday.js`, `src/ui/_guide_quick.js`, `src/ui/phone_guide.js`, `src/ui/phone_store.js`, `docs/reports/qa_round13.md`. (`dist/index.html` rebuilt by the checks.)
 Screenshots cited (all looked at): `out/shots/r13_font_glyphs, r13_font_sizes_dpr2, r13_font_a_dpr3 (top crop), r13_font_b_dpr2, r13_font_d_dpr3, r13_font_all_planner, r13_t_d_bank, r13_t_c_bank, r13_t_a_bank, r13_inv_bank, r13_inv_board, r13_inv_planner, r13_b1_cont_lobby, r13_b2_art_before, r13_b2_art_after, r13_b2_gazebo_city, r13_b2_dock_city, r13_b4_card_saltbox, r13_t_ot2, r13_t_ot3, r13_t_ot7, r13_t_ot9, r13_bus_map1..5, r13_bus_2, r13_bus_3, r13_train_1, r13_train_3, r13_train_4, r13_train_6 (via state), r13_c_lib1, r13_c_felix3..10, r13_c_verbs_dating, r13_c_cafe2, r13_c_cafe4, r13_c_steady1, r13_c_h2_1, r13_c_h2_5, r13_c_h2_8, r13_c_h2_ch`.

@@ -555,3 +555,6 @@ Lets also design and implement controller support now. I know it is very much a 
 
 ## 144 (2026-11-15)
 Wait for a free worker
+
+## 145 (2026-11-15) — smarter traffic, fewer jams, same density (docket)
+I know you added more busses to decrease wait times. But often they cause traffic jams. I noticed the cab will eventually clip through instead of waiting forever which is good. But maybe we can make things nore efffienct? I dont want to see any decrease in traffic density its awesome the way it is. But smarter systems driving it so less jams? Put it on the docket.

@@ -266,3 +266,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 26 (owner msg 143, 2026-11-15) — controller support
 - The game stays touch-first, and gains full gamepad support: move with the stick, interact / talk / enter with one button, every menu, phone app, sheet, dialogue, shop, mini-game and the map usable with a pad (focus ring, sensible order, back button), on-screen button glyphs that appear only while a pad is in use, nothing touch-only left behind. Works with the standard Gamepad API (Xbox / PlayStation / Switch-style pads on phone, tablet and desktop). Keyboard gets the same focus navigation for free where cheap.
+
+## Direction update 27 (owner msg 145, 2026-11-15) — smarter traffic, same density
+- Traffic density stays exactly as it is (the owner loves it). The driving gets smarter so jams are rare and clear themselves: buses pull fully into stops / bays and do not block the lane while loading, gaps are kept at junctions (no entering a junction that cannot be cleared), sensible right-of-way and turn yielding, vehicles route around a blocked lane or re-plan, dwell times and bus bunching controlled, stuck detection that resolves a gridlock gracefully and invisibly (off screen first), the player's cab never stuck behind a jam. Measure jams before and after; no visible thinning of traffic.

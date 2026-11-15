@@ -58,8 +58,23 @@ const revU = h => typeof h === 'function' ? (u, v, w, hh) => h(w - 1 - u, v, w, 
 /** true while drawing a flipped instance (rarely needed by art code) */
 export const isFlipped = () => FL;
 export const WS = (x, y, z) => [(x - y) * U, (x + y) * U / 2 - z * U];
+/*
+ * Depth cut (seating: engine/sprites.js frontSprite, docs/reports/seating.md). While a cut { ax: 0 | 1, v } is set, only the part of the
+ * drawing on the camera side of the plane x >= v (ax 0) or y >= v (ax 1) is painted, in the placed frame of the object being drawn (after
+ * flip, with at() offsets): polygons and lines given in world coordinates are clipped at the plane exactly; anything plotted in screen
+ * pixels follows the last world point that was projected with PW (art projects an anchor, then plots around it). CUT is null for every
+ * ordinary render, so nothing changes there (one null test in PW, px and fill).
+ */
+let CUT = null, CK = true;
+export function setCut(c) { CUT = c || null; CK = !CUT; }
+const cutD = q => (FL ? (CUT.ax ? q[0] + OFY : q[1] + OFX) : (CUT.ax ? q[1] + OFY : q[0] + OFX)) - CUT.v;
+function cutPoly(p) {
+  const out = [], n = p.length;
+  for (let i = 0; i < n; i++) { const a = p[i], b = p[(i + 1) % n], da = cutD(a), db = cutD(b); if (da >= 0) out.push(a); if ((da < 0) !== (db < 0)) { const t = da / (da - db); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]); } }
+  return out;
+}
 /** world -> pixel in the current target (float) */
-export const PW = (x, y, z) => { if (FL) { const t = x; x = y; y = t; } return [(x + OFX - y - OFY) * U - T.ox, (x + OFX + y + OFY) * U / 2 - (z + OFZ) * U - T.oy]; };
+export const PW = (x, y, z) => { if (FL) { const t = x; x = y; y = t; } if (CUT !== null) CK = (CUT.ax ? y + OFY : x + OFX) >= CUT.v - 1e-6; return [(x + OFX - y - OFY) * U - T.ox, (x + OFX + y + OFY) * U / 2 - (z + OFZ) * U - T.oy]; };
 /** screen-space bounds [x0,y0,x1,y1] of a world AABB [x0,y0,z0,x1,y1,z1] */
 export function screenBox(b) {
   let a = 1e9, c = 1e9, e = -1e9, f = -1e9;
@@ -141,7 +156,7 @@ function put(i, c) {
   else { T.buf[i] = c; T.lb[i] = c; T.hasLight = true; }
 }
 /** plot one pixel (target pixel coords) with a packed colour from C() */
-export function px(x, y, c) { x = Math.floor(x); y = Math.floor(y); if (x < 0 || y < T.cy0 || x >= T.w || y >= T.cy1) return; put(y * T.w + x, c); }   // cy0..cy1 = the row band being drawn (the whole target in render(); see renderStep)
+export function px(x, y, c) { if (CUT !== null && !CK) return; x = Math.floor(x); y = Math.floor(y); if (x < 0 || y < T.cy0 || x >= T.w || y >= T.cy1) return; put(y * T.w + x, c); }   // cy0..cy1 = the row band being drawn (the whole target in render(); see renderStep)
 /** plot one pixel with a hex colour */
 export function pxh(x, y, h) { px(x, y, C(h)); }
 /** plot pixel offset (dx,dy) in screen pixels from a world anchor */
@@ -154,6 +169,7 @@ export function rect(x, y, w, h, hex) { const c = C(hex); for (let j = 0; j < h;
  * h: hex colour | pattern fn (px,py)=>hex|null.  h2: optional 2nd hex for a checker dither, or 'glass' (50% see-through).
  */
 export function fill(p, h, h2) {
+  if (CUT !== null && !CK) return;
   const fn = typeof h === 'function' ? h : null;
   const c = fn ? 0 : C(h), gl = h2 === 'glass', c2 = h2 && !gl ? C(h2) : 0;
   let y0 = 1e9, y1 = -1e9; for (const q of p) { if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; }
@@ -182,9 +198,9 @@ export function ellipse(cx, cy, rx, ry, h, h2) {
 
 /* ---------- world-space primitives ---------- */
 /** fill a convex polygon given as world points [[x,y,z],...] */
-export const fq = (p, h, h2) => fill(p.map(q => PW(q[0], q[1], q[2])), h, h2); // PW handles flip
+export const fq = (p, h, h2) => { if (CUT !== null) { p = cutPoly(p); if (p.length < 3) { CK = false; return; } p = p.map(q => PW(q[0], q[1], q[2])); CK = true; return fill(p, h, h2); } fill(p.map(q => PW(q[0], q[1], q[2])), h, h2); }; // PW handles flip
 /** 1px line between two world points */
-export const lw = (a, b, h) => line(PW(a[0], a[1], a[2]), PW(b[0], b[1], b[2]), h);
+export const lw = (a, b, h) => { if (CUT !== null) { const p = cutPoly([a, b]); if (p.length < 2) { CK = false; return; } const s = PW(p[0][0], p[0][1], p[0][2]), e = PW(p[1][0], p[1][1], p[1][2]); CK = true; return line(s, e, h); } line(PW(a[0], a[1], a[2]), PW(b[0], b[1], b[2]), h); };
 
 // Pattern fns for walls get (u, v, w, h): u = px from the wall's left edge on screen, v = px up from the wall's bottom edge.
 function wallFn(fn, sx0, sy0, slope, wpx, hpx) {
