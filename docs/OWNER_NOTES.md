@@ -109,3 +109,4 @@
 89. (msg 129) Jobs (J4) stay ON HOLD. Tell him when the rain sound is in the game.
 90. (msg 130) SOUND: the crickets at night are way too prominent and loud. Turn them well down / make them occasional.
 91. (msg 131) BUG: "Take me there" from My Day does not offer the TRAIN as a way to travel.
+92. (msg 132) "Just cab bus and foot": lead reads this as what he still sees on the Take-me-there card (no train); the other reading (remove the train option) was asked back.
