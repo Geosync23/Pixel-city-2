@@ -23,7 +23,7 @@ async function page(url) {
   await pg.evaluate(HELP); return pg;
 }
 const HELP = `window.sleep = ms => new Promise(r => setTimeout(r, ms));
-window.dismiss = async () => { for (let i = 0; i < 40; i++) { const s = document.querySelector('.say'); if (s) s.click(); const x = document.querySelector('.modal .x'); if (x) x.click(); if (!document.querySelector('.say,.modal')) break; await sleep(40); } if (G.modal > 0 && !document.querySelector('.say,.modal')) G.modal = 0; };
+window.dismiss = async () => { for (let i = 0; i < 40; i++) { const s = document.querySelector('.say'); if (s) s.click(); const x = document.querySelector('.modal .x'); if (x) x.click(); const fb = [...document.querySelectorAll('#ftw .ftw-card button')], f = fb.find(b => /Got it|OK|Close|Not now/i.test(b.textContent)) || fb[0]; if (f && f.offsetParent) f.click();   /* QA11: a first-time window (a player closes it; the arrow is hidden under it) */ if (!document.querySelector('.say,.modal') && !(document.querySelector('#ftw .ftw-card button') || {}).offsetParent) break; await sleep(40); } if (G.modal > 0 && !document.querySelector('.say,.modal')) G.modal = 0; };
 window.T = (wd, hour) => { const n = G.now(); let d = 0; if (wd !== null && wd !== undefined) while ((n.weekday + d) % 7 !== wd) d++; G.state.t = (n.day + d) * 1440 + Math.round(hour * 60); for (const k of ['hunger', 'energy', 'hygiene', 'fun', 'social', 'bladder']) try { G.needs.add(k, 100); } catch (e) { } G.state.player.money = Math.max(G.state.player.money || 0, 900); G.advance(1); };
 window.arrow = () => { const t = G.navArrow.target(), c = G.navGoals.current(); return { scene: G.scene.id, goal: c && c.id, mode: t && t.mode, label: t ? t.label : null, x: t && t.x, y: t && t.y, shown: G.navArrow.el.classList.contains('on') }; };`;
 const pad = (s, n) => (String(s) + ' '.repeat(n)).slice(0, n);
@@ -35,8 +35,8 @@ const m = await import('/src/scenes/interior.js'), all = ${JSON.stringify(opt.ro
 const ids = [...m.ROOMS.keys()].filter(k => all || !/^(pub|lobby):/.test(k) || /^(pub:(1|2|40)|lobby:(1|7|20))$/.test(k));
 const CAND = /exit|leave|door|lift|elevator|stair|enter|back|lobby|gate|platform|tram|curtain|auditorium|screen \\d|chamber|tunnel|bathroom|into the|climb|ladder|hatch|turnstile|team only|room \\d/i;
 const ALIAS = { airtram: ['int:airport:terminal', 'int:airport:concourse'] }, go0 = G.go, sa0 = G.startActivity, out = [], N = G.navGoals, rootOf = N.rootOf;
-/* one-way or closed by design: the arrow is not expected to lead INTO these (the plane of the intro, the old cinema hall, City Hall's former lobby id) */
-const NOENTRY = /^(airport:plane|cinema:hall|lobby:4)$/;
+/* one-way or closed by design: the arrow is not expected to lead INTO these (the plane of the intro, the old cinema hall, City Hall's former lobby id, Nana's attic before Chapter 5) */
+const NOENTRY = /^(airport:plane|cinema:hall|lobby:4|home:grandma:attic)$/;   /* QA11: Nana's attic ladder appears only from Chapter 5 on (story-gated, _chapters_world.js); a fresh game has no way up by design */
 for (const id of ids) {
   const sid = 'int:' + id; try { G.go = go0; await G.go(sid, { fresh: true }); } catch (e) { out.push({ id, err: String(e).slice(0, 120) }); continue; } await sleep(60); await dismiss();
   if (!G.scene || G.scene.id !== sid) { out.push({ id, err: 'landed in ' + (G.scene && G.scene.id) }); continue; }
@@ -77,7 +77,7 @@ const RUN = `async (row) => {
       if (c.none) ok = a.label === null;
       let reach = '';
       if (ok && a.mode === 'point' && a.scene === G.scene.id && !c.none && c.reach !== false) { const p = G.player, sx = p.x, sy = p.y; const can = p.goTo(G.world, a.x, a.y, { snap: 8, limit: 60000 }); p.stop && p.stop(); p.path = null; p.x = sx; p.y = sy; if (!can) { ok = false; reach = ' (target not reachable on foot)'; } }
-      res.push({ ok, at: c.go || G.scene.id, got: (a.label === null ? 'no arrow' : a.mode + ': ' + a.label) + reach + (a.label !== null && !a.shown ? ' (arrow hidden: ' + (document.querySelector('.ftw') ? 'first-time window open' : G.modal > 0 ? 'modal' : 'not drawn') + ')' : ''), want: c.none ? 'no arrow' : c.label });
+      res.push({ ok, at: c.go || G.scene.id, got: (a.label === null ? 'no arrow' : a.mode + ': ' + a.label) + reach + (a.label !== null && !a.shown ? ' (arrow hidden: ' + (document.querySelector('.ftw') ? 'first-time window open' : G.modal > 0 ? 'modal: ' + String(([...document.querySelectorAll('.modal, .win, .chc, .chd, #ftw .ftw-card')].filter(e => e.offsetParent).pop() || {}).innerText || '?').replace(/\\s+/g, ' ').slice(0, 90) : 'not drawn') + ')' : ''), want: c.none ? 'no arrow' : c.label });
     } catch (e) { res.push({ ok: false, at: c.go, got: 'error ' + String(e).slice(0, 160), want: c.label }); }
   }
   if (row.after) try { await (0, eval)('(async()=>{' + row.after + '})')(); } catch (e) { }

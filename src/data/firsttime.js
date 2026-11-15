@@ -120,7 +120,7 @@ export const WINDOWS = [
   { id: 'events', sys: 'events', topic: 'out', title: 'A big day in town',   /* soon: a city event opens */
     text: 'Today is one of the six big days of the year. A street is closed for stalls, games and a parade. Add it to your day and the arrow takes you there.', go: { sys: 'events' }, goLabel: 'Take me there' },
   { id: 'sight', sys: 'sights', topic: 'out', title: 'One of the big places',   /* now: the first showpiece is entered */
-    text: 'Get a ticket at the desk, then wander. Every room has something to do, and the place changes through the day. Its page in Wander lists what not to miss.' },
+    text: 'Wander in. Where there is a ticket desk, start there; most of the big places are free. Every room has something to do, and the place changes through the day. Its page in Wander lists what not to miss.' },
   { id: 'mall', sys: 'clothesshop', topic: 'out', title: 'The Galleria',   /* now: the mall is entered */
     text: 'Clothes, furniture, a salon and a food court under one roof. A good place to be when it rains.' },
   { id: 'skydeck', sys: 'sights', topic: 'out', title: 'The SkyDeck',   /* now: the SkyDeck is entered */

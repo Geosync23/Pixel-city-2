@@ -550,6 +550,7 @@ const ch03 = {
       give('item', 'milo_drawing', { text: "Milo's drawing. It goes on the fridge. That is the law." }),
       s('theo', "Nora says you'll want work. Nora says a lot of things, and it's annoying how they turn out."),
       s('theo', "Come and find me at lunch one day. Slice of Heaven, by the Arts steps. I'm buying."),
+      s('theo', "Or after work, if they've got you working. I'm back there at half four most days for a late one."),
       s('theo', "Bring your phone and an open mind. I'm going to draw on a napkin."),
       s('jules', "You were good with them. Milo doesn't draw people. He draws trains, and things that are extinct."),
       s('jules', "Come whenever. You don't knock. That's the other rule."),
@@ -559,10 +560,11 @@ const ch03 = {
 
 const ch04 = {
   id: 'ch04', n: 4, act: 1, title: 'Theo Draws on a Napkin',
-  hook: 'Theo is buying lunch. He has a pen, a napkin and opinions about your week.',
-  ready: "Any lunchtime you like. He's there most days anyway.",
+  hook: 'Theo is buying lunch, or a late one after work. He has a pen, a napkin and opinions about your week.',
+  ready: "Any lunchtime you like, or after work: he's back at half past four for a late one. He's there most days anyway.",
   marker: { place: 'pizza', label: 'Slice of Heaven, by the Arts steps' },
-  window: { slots: [{ from: '11:30', to: '15:00' }], closed: "Slice of Heaven is between lunches. Theo's a lunchtime man. Tomorrow will do just as well." },
+  /* QA11 (lead decision): a second, after-work slot, so a player with a 9-4 or 7-2 job can play it on a working day; the lunchtime slot stays */
+  window: { slots: [{ from: '11:30', to: '15:00' }, { from: '16:30', to: '19:30' }], closed: "Theo's at Slice of Heaven at lunchtime (half eleven till three) and again after work for a late one (half four till half seven). Tomorrow will do just as well." },
   cast: ['theo', 'nico'],
   unlock: { after: 'ch03', breath: 'next_morning' },
   minutes: [6, 9],
@@ -574,6 +576,7 @@ const ch04 = {
   scenes: [
     sc('slice', 'pizza', 'A table for two', [
       n('Slice of Heaven. An oven like a brick igloo, and Theo at a table for two in a knitted vest, guarding a napkin.'),
+      iff('after:16', [s('theo', "Late lunch. Loans officers eat at the end of the day, like owls. Nico keeps my table.")]),
       s('theo', "You came. Sit. I've ordered you the one with the basil. Nico knows everybody's slice before they do.", { anim: 'wave' }),
       s('nico', "For the in-law! First one's on the house. Second one's on Theo."),
       give('meal', 'pizza_slice', { text: 'A slice with basil. Correct, as it turns out.' }),
@@ -640,7 +643,8 @@ const ch04 = {
         o('no', "You really don't have to.", [s('theo', "Too late. It's glued.")], R('theo')),
         o('level', 'Is it level?', [s('theo', 'It has character.')], R('theo')),
         o('yes', "I'd love a shelf.", [s('theo', 'You say that now.')], R('theo'))),
-      s('theo', 'Back to the desk. Somebody wants a mortgage on a houseboat. I\'m going to enjoy saying "no" very slowly.'),
+      iff('after:16', [s('theo', 'Right. Home. Somebody at the bank wants a mortgage on a houseboat tomorrow, and I\'m going to enjoy saying "no" very slowly.')],
+        [s('theo', 'Back to the desk. Somebody wants a mortgage on a houseboat. I\'m going to enjoy saying "no" very slowly.')]),
     ]),
   ],
 };

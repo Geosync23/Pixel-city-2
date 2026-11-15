@@ -86,6 +86,9 @@ function curbSpot(w, p, b) {
   const ok = (x, y) => x > 1 && y > 1 && x < w.w - 1 && y < w.h - 1 && !w.isBlocked(x, y) && !ROAD.has(w.tileType(x, y)) && !ROAD.has(w.tileType(x + ox * .45, y + oy * .45)) && !doors.some(q => Math.hypot(q.x - x, q.y - y) < 1.15) && !C.curb.some(q => Math.hypot(q.x - x, q.y - y) < 1.2);
   let road = 0; for (let k = .5; k <= 7; k += .5) if (ROAD.has(w.tileType(p.x + ox * k, p.y + oy * k))) { road = k; break; }
   for (const d of road ? [road - .7, road - 1.2, road - 1.7] : [1.25, .75, 1.75]) { if (d < .4) continue; for (const s of [1.25, -1.25, 1.75, -1.75, .9, -.9, 2.5, -2.5]) { const x = Math.round((p.x + ox * d + sx * s) * 4) / 4, y = Math.round((p.y + oy * d + sy * s) * 4) / 4; if (ok(x, y)) return { x, y }; } }
+  /* a tight old-town alley: any free spot near the door that is not a doorstep */
+  const ok2 = (x, y) => !w.isBlocked(x, y) && !ROAD.has(w.tileType(x, y)) && !doors.some(q => Math.hypot(q.x - x, q.y - y) < .85) && !C.curb.some(q => Math.hypot(q.x - x, q.y - y) < 1);
+  for (let r = 1; r <= 3; r += .5) for (let k = 0; k < 16; k++) { const a = k * .3927, x = Math.round((p.x + Math.cos(a) * r) * 4) / 4, y = Math.round((p.y + Math.sin(a) * r) * 4) / 4; if (ok2(x, y) && ok2(x + .3, y) && ok2(x, y + .3)) return { x, y }; }
   return null;
 }
 function ensureCity(s) {
@@ -185,7 +188,7 @@ function dressHome(sc) {
 
 /* ---------- old saves, the intro ---------- */
 let note = false;
-function migrate() { const S = G.state.post; if (!S || S.mbx) return; S.mbx = 1; if ((G.state.t || 0) > 600 || (S.mail && S.mail.length)) note = true; }
+function migrate() { const S = G.state.post; if (!S || S.mbx) return; S.mbx = 1; note = true; }   /* only ever called on 'load': a save without the mark was made before the mailboxes */
 function showNote() {
   if (!note || !curId() || G.onTitle) return; note = false; const n = safe(() => P().waiting('home').length, 0), apt = kind() === 'apartment';
   const text = `Your post is ${apt ? 'in your mailbox downstairs' : 'in the mailbox at the curb'} now${n ? ` (${n} waiting)` : ''}. The basket by the door is gone. To write a letter, use a desk or table at home.`;
@@ -212,8 +215,9 @@ export function init() {
     if (note) setTimeout(showNote, 1600);
   });
   G.on('load', () => { migrate(); C = C && cityScene() && C.w === cityScene().world ? C : null; });
-  G.on('game:new', () => { if (G.state.post) G.state.post.mbx = 1; });
-  G.on('game:start', o => { if (o && o.isNew) { if (G.state.post) G.state.post.mbx = 1; } else { migrate(); if (note) setTimeout(showNote, 2200); } });
+  G.on('game:new', () => { note = false; if (G.state.post) G.state.post.mbx = 1; });
+  G.on('save', st => { if (st && st.post) st.post.mbx = 1; });   /* every save made from now on carries the mark */
+  G.on('game:start', () => { if (note) setTimeout(showNote, 2200); });
   for (const ev of ['post:mail', 'post:collected', 'post:parcel', 'home:move', 'post:posted']) G.on(ev, () => safe(sync));
   G.on('home:move', () => { safe(() => G.navGoals.clear()); const s = cityScene(); if (s && s.world) queueMicrotask(() => safe(() => wrapDoors(s.world))); });
 }

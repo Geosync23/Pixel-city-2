@@ -118,6 +118,7 @@ function test1(c) {
   if (!c) return true; let neg = false; if (c[0] === '!') { neg = true; c = c.slice(1); }
   const [k, ...rest] = c.split(':'), v = rest.join(':'), n = G.now(), s = st(); let r = false;
   if (k === 'time') r = v === 'morning' ? n.hf >= 5 && n.hf < 11 : v === 'day' ? n.hf >= 11 && n.hf < 17 : v === 'evening' ? n.hf >= 17 && n.hf < 21 : n.hf >= 21 || n.hf < 5;
+  else if (k === 'after') r = n.hf >= +v;   /* QA11: 'after:16' = from 16:00 on (Chapter 4's late-lunch lines) */
   else if (k === 'season') r = ['spring', 'summer', 'autumn', 'winter'][n.season] === v;
   else if (k === 'weather') { const w = weatherKind(); r = v === 'rain' ? /rain|storm/.test(w) : v === 'clear' ? /clear|partly/.test(w) : w === v; }
   else if (k === 'festival') r = festival(v);
@@ -211,9 +212,11 @@ const hhmm = m => { m = Math.round(m); return String(Math.floor(m / 60) % 24).pa
 function hoursOf(ch) {
   const w = ch.window; if (!w || !w.slots || !w.slots.length || shutToday(ch)) return shutToday(ch) ? 'closed' : null; const n = G.now(), tod = n.hf * 60;
   const today = w.slots.filter(sl => !sl.days || sl.days.includes(WD[n.weekday]));
-  if (windowOpen(ch)) { const sl = today.find(sl => tod >= hm(sl.from) && tod <= hm(sl.to)); return sl && hm(sl.to) < 24 * 60 - 1 ? 'until ' + hhmm(hm(sl.to)) : null; }
+  /* QA11: a Chapter with two slots in a day (Chapter 4: lunch and a late lunch) says both: "until 15:00, and again 16:30-19:30" / "from 11:30 until 15:00, and again 16:30-19:30" */
+  const after = (t0, skip) => today.filter(sl => sl !== skip && hm(sl.from) > t0).sort((a, b) => hm(a.from) - hm(b.from)), again = L => L.length ? ', and again ' + L.map(sl => hhmm(hm(sl.from)) + '-' + hhmm(hm(sl.to))).join(', ') : '';
+  if (windowOpen(ch)) { const sl = today.find(sl => tod >= hm(sl.from) && tod <= hm(sl.to)); return sl && hm(sl.to) < 24 * 60 - 1 ? 'until ' + hhmm(hm(sl.to)) + again(after(tod, sl)) : null; }
   if (w.weather === 'clear' && today.some(sl => tod >= hm(sl.from) && tod <= hm(sl.to))) return null;   /* it is the hour but not the sky: the closed card says why */
-  const later = today.filter(sl => hm(sl.from) > tod).sort((a, b) => hm(a.from) - hm(b.from))[0]; return later ? 'from ' + hhmm(hm(later.from)) : 'closed';
+  const L = after(tod), later = L[0]; return later ? 'from ' + hhmm(hm(later.from)) + (L.length > 1 ? ' until ' + hhmm(hm(later.to)) + again(L.slice(1)) : '') : 'closed';
 }
 
 /* The marker stands beside a door, and a new player taps the DOOR: walking in through the door of an open Chapter's place offers the same start card

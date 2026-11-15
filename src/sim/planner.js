@@ -17,6 +17,7 @@
 // G.planner
 //   add({ title, placeId, t, dur = 60, kind = 'personal', withNpc, data, remind = 30 }) -> id
 //   remove(id)    get(id)    update(id, patch)    done(id)  (mark as attended, e.g. by the jobs system when the player clocks in)
+//   finish(id)    (QA11) it is over now: kept, its end moved to now, appt:done; the chip stops saying NOW
 //   add({ ..., flex: true }) -> an "any time today" entry        add({ ..., offer: true }) / suggest(o) -> a pinned Idea (id 'p<n>'), see above
 //   list(fromT = now, toT = from + 7 days, { events = false }) -> time-sorted appts. With { events: true } city events from data/calendar.js are included as
 //        virtual entries { id: 'ev:<eventId>:<day>', kind: 'event', event: true, title, placeId, t, dur, data: { eventId, blurb } }
@@ -73,6 +74,8 @@ export function remove(id) { const j = pinAt(id); if (j >= 0) { const [p] = S.pi
 export function update(id, patch) { const a = get(id); if (!a) return null; Object.assign(a, patch); if (a.pin) return a; if (patch.t !== undefined) { if (a.flex) { delete a.flex; delete a.lv; delete a.lc; } a.s = a.t <= G.state.t ? 1 : 0; S.items.sort((x, y) => x.t - y.t); G.emit('appt:change', a); } return a; }
 export function done(id) { const a = get(id); if (a && a.pin) return remove(id); if (a) a.here = 1; return !!a; }
 /** timed entries (not "any time" ones) that overlap [t, t + dur) */
+/** QA11 (add-only): the thing is over now (a shift ended early, a class finished or was credited): kept, and it stops being "NOW" on the chip */
+export function finish(id) { const a = get(id); if (!a || a.pin) return false; a.here = 1; if (a.s >= 3) return true; const t = G.state.t; if (t < a.t + a.dur) a.dur = Math.max(1, Math.ceil(t - a.t)); a.s = 3; G.emit('appt:done', a); return true; }
 export function conflicts(t, dur, except) { return S ? S.items.filter(a => !a.flex && a.id !== except && a.s < 3 && a.t < t + dur && a.t + a.dur > t) : []; }
 export function eventsOn(day) {
   const out = [];
@@ -176,5 +179,5 @@ export function init() {
   S.pins = S.pins || [];
   G.on('load', () => { S = G.state.planner || (G.state.planner = fresh()); S.items = S.items || []; S.ev = S.ev || {}; S.pins = S.pins || []; migrate(); });
   G.on('minutes', tick); G.on('hour', hourly);
-  G.planner = { add, suggest, remove, get, update, done, list, next, eventsOn, pins, conflicts, srcOf, isLife, SRC_LABEL, alarm, setAlarm, npcShort, travelTo, atPlace, LEAD };
+  G.planner = { add, suggest, remove, get, update, done, finish, list, next, eventsOn, pins, conflicts, srcOf, isLife, SRC_LABEL, alarm, setAlarm, npcShort, travelTo, atPlace, LEAD };
 }

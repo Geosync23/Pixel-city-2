@@ -45,6 +45,8 @@ function inbox(b, ctx) {
 }
 function sent(b, ctx) {
   const p = P(), held = p.held(), out = p.out().slice().reverse(), pk = p.packed(), now = G.state.t;
+  /* writing moved off the mail basket (Direction update 23): a desk or table at home, or here when you are at home (on your knee, if the flat has no table yet) */
+  b.append(btn('Write a letter', () => { if (safe(() => G.housing.isHome())) { safe(() => G.phone.close()); setTimeout(() => safe(() => p.desk(null, G.scene, true)), 350); } else { const o = p.nearest(); ctx.tip('Letters are written at home (with Writing Paper) or at a post-office desk.'); if (o) safe(() => G.phone.routeTo(o.room)); } }, 'wide', 'post_letter'));
   if (pk) b.append(section('Packed, not sent'), row({ icon: 'post_parcel', title: 'Wrapped parcel', sub: `${pk.kg.toFixed(1)} kg · take it to a counter`, cls: 'note' }));
   if (held.length) { b.append(section('Written, not posted', String(held.length))); for (const h of held) b.append(row({ icon: 'post_letter', title: `${h.kind === 'card' ? 'Postcard' : 'Letter'} to ${p.toName(h.to)}`, sub: `Needs a stamp (you have ${p.stamps.count()}) and any mailbox`, onclick: () => ctx.push('Your ' + (h.kind === 'card' ? 'postcard' : 'letter'), bb => bb.append(el('div', { style: { padding: '8px 4px' } }, letterView(p.letterParts(h).hand, p.letterParts(h), 300))), 'held' + h.id) })); }
   const tr = out.filter(o => o.st === 'transit'), dn = out.filter(o => o.st !== 'transit');

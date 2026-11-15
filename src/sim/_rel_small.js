@@ -13,6 +13,7 @@ import { FRIEND_STAGES } from '../story/_rel_kit.js';
 import { st, safe, today, fill, fr, friendStage, stage, isRom, remembers, queueText, smallDay, textCap, castOf, SMALL, NEWS, PEOPLE, PACING, partner, pname, familyTexts, short, HOOK } from './_rel_base.js';
 import { SMALL_ANY } from '../story/rel_small.js';
 
+const REPEAT_DAYS = 14;
 const ev = () => { const s = st().small; return s.ev || (s.ev = { worked: -9, promoted: -9, moved: -9, cooked: -9, chapter: -9, gift: {}, date: {}, scene: {} }); };
 const lastTalk = id => safe(() => G.state.social.npcs[id].lastTalkDay, -1);
 const known = id => safe(() => (G.social.known() || []).includes(id), false);
@@ -37,9 +38,11 @@ function draw(id, kind, peek) {
   const score = (b, i) => { if (!ctxOk(b.ctx, id)) return -1; let v = 0; const fi = FRIEND_STAGES.indexOf(b.stage);
     if (fi >= 0) { if (fi > fsi) return -1; v = fi; if (rs !== 'none' && isRom(id)) v -= 3; } else { if (b.stage !== rs) return -1; v = 10; }
     if (b.ctx !== 'any') v += b.ctx === 'gap' || b.ctx === 'birthday' ? 9 : 5; return v + ((i * 7 + today()) % 5) / 10; };
-  let best = -1, bv = -1; pool.forEach((b, i) => { if (used.includes(i)) return; const v = score(b, i); if (v > bv) { bv = v; best = i; } });
-  if (best < 0 && used.length) { s.bag[key] = []; if (!peek) return draw(id, kind, true) ? draw(id, kind) : null; return pool.some((b, i) => score(b, i) >= 0) ? pool[0] : null; }
-  if (best < 0) return null; if (!peek) used.push(best); return pool[best];
+  /* QA11: a line said to the player is not said again for REPEAT_DAYS, even after the bag empties (Theo's "I've made a thing" came twice in three days) */
+  const rec = (s.rec || (s.rec = {}))[key] || (s.rec[key] = {}), fresh = i => rec[i] === undefined || today() - rec[i] >= REPEAT_DAYS;
+  let best = -1, bv = -1; pool.forEach((b, i) => { if (used.includes(i) || !fresh(i)) return; const v = score(b, i); if (v > bv) { bv = v; best = i; } });
+  if (best < 0 && used.length) { s.bag[key] = []; if (!peek) return draw(id, kind, true) ? draw(id, kind) : null; return pool.some((b, i) => fresh(i) && score(b, i) >= 0) ? pool[0] : null; }
+  if (best < 0) return null; if (!peek) { used.push(best); rec[best] = today(); } return pool[best];
 }
 const budget = () => { const d = today(), work = ev().worked === d || !!safe(() => G.jobs.current().nextShift !== null && Math.floor(G.jobs.current().nextShift / 1440) === d, false), ch = !!safe(() => G.chapters.current(), null);
   let n = work && ch ? PACING.smallPerDay[0] : PACING.smallPerDay[0] + (d * 13 % (PACING.smallPerDay[1] - PACING.smallPerDay[0] + 1)); if (d < 5) n = 1; if (st().chDay === d) n = 1; if (st().fewer) n = Math.max(1, Math.round(n / 2)); return n; };

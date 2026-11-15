@@ -185,6 +185,8 @@ function endShift(reason = 'done') {
   const sum = S.last = { jobId: job.id, title: L.title, venue: job.venue, venueName: vname(job), reason, hours: Math.round(worked * 10) / 10, hourly: L.hourly, score, stars: Math.round(score / 20), band: band.label, payMult: band.payMult, base, bonus, tips, pay, total: pay,
     tasks: sh.count, missed: sh.missed, perfect: sh.perfect || 0, auto: Math.round(autoShare * 100) / 100, late: sh.late, early, points: j ? Math.round(j.points) : 0, need, progress: j ? (j.level >= 4 ? 1 : cl(j.points / need, 0, 1)) : 0,
     nextTitle: N2 ? N2.title : null, nextNeeds: N2 ? Object.keys(N2.requires).filter(k => skill(k) < N2.requires[k]).map(k => `${cap(k)} ${N2.requires[k]}`) : [], promoted, day: sh.day };
+  /* QA11: a shift that ends before its time (a reload, leaving early) closes its My Day entry now, so the chip does not say "NOW 07:00 Shift" all morning */
+  { const ap = S.appts[sh.day], t = G.state.t; if (ap && t < sh.end && G.planner) try { const e = G.planner.get(ap.id); if (e && !e.pin) G.planner.finish(ap.id); } catch (e) { /* optional */ } }
   S.shift = null; ending = false; syncPlanner();
   G.emit('job:shift:end', sum); if (promoted) G.emit('job:promoted', job.id, promoted.level);
   const show = () => { if (reason === 'load') toast(`Shift at ${sum.venueName} wrapped up: ${fmt(pay)} paid.`, 'money'); else if (!quiet) UI.showResults(sum); else if (reason === 'left') toast('You left work early.'); };

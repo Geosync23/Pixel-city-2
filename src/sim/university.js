@@ -201,7 +201,7 @@ const finalMark = c => { const W = TUNE.weights, part = c.part[1] ? c.part[0] / 
 const gradeOf = m => (m >= TUNE.distinction ? 'Distinction' : m >= TUNE.merit ? 'Merit' : 'Pass');
 async function afterClass(ses, res) {
   const c = row(ses.cid), cs = C(ses.cid), sh = res.sheet, kind = ses.kind; if (!c) { sh && sh.close(); return; }
-  if (c.appt !== null && c.appt !== undefined) safe(() => G.planner.done(c.appt)); c.since = now(); c.miss = now();
+  if (c.appt !== null && c.appt !== undefined) safe(() => (G.planner.finish || G.planner.done)(c.appt)); c.since = now(); c.miss = now();   /* QA11: finish = not 'NOW' on the chip after the class */
   need('fun', 5); need('social', 5); stamp('x:uni_class');
   if (kind === 'lecture') { c.part[0] += res.part[0]; c.part[1] += res.part[1]; c.unit++; const xp = Math.round(teach(cs.skill, TUNE.xp.lecture * (.7 + .3 * res.part[0] / Math.max(1, res.part[1])))); teach(cs.also, 8); inspire(8); moodlet('uni_learned'); G.emit('university:class', ses.cid, ses.unit, kind, res.part[0]);
     await sh.result({ title: `${UNITS[ses.unit].name} done`, lines: [`You answered ${res.part[0]} of ${res.part[1]} in class`, xp ? `+${xp} ${cs.skill} xp` : null, ses.unit === 0 ? `Homework: read "${READING[cs.id].title}" at a Reading Room desk` : ready(cs.id) ? 'Next class is your final. You are ready for it.' : 'Before the final: ' + (c.read ? '' : 'the reading') + (!c.read && c.proj === null ? ' and ' : '') + (c.proj === null ? 'your project' : '')], btn: 'Leave the theatre' }); }
@@ -247,7 +247,7 @@ function creditInterrupted() {
   const t = now(); let any = false;
   for (const id of enrolled()) { const c = row(id), T = c.inClass; if (!T || t < T || t >= T + TUNE.classMin + 10 || (c.since || 0) >= T) continue;
     const n = nextOf(id, T); if (!n || n.T !== T) continue; const cs = C(id); c.inClass = 0; any = true;
-    c.doneT = T; if (n.kind === 'lecture' || n.kind === 'practical') { c.since = t; c.miss = t; if (c.appt !== null && c.appt !== undefined) safe(() => G.planner.done(c.appt));
+    c.doneT = T; if (n.kind === 'lecture' || n.kind === 'practical') { c.since = t; c.miss = t; if (c.appt !== null && c.appt !== undefined) safe(() => (G.planner.finish || G.planner.done)(c.appt));
       if (n.kind === 'lecture') { c.part[0] += 1; c.part[1] += 2; teach(cs.skill, TUNE.xp.lecture * .6); } else { c.prac = Math.max(c.prac || 0, .6); teach(cs.skill, TUNE.xp.practical * .6); }
       c.unit++; G.emit('university:class', id, n.unit, n.kind, n.kind === 'lecture' ? 1 : .6);
       const m = nextOf(id); note(CAST[cs.prof].short, `You were in ${UNITS[n.unit].name} when you stopped for the day. It counts: you are down as present.${m && m.T ? ` Next: ${DAYN[wd(dayOf(m.T))]} ${hh((m.T % DAY) / 60)}.` : ''}`, 'normal'); }
