@@ -60,6 +60,7 @@ const HK = kit();
   Wl('portrait', 'y', .7, { k: 0 }); Wl('portrait', 'y', 2.4, { k: 1 }); Wl('crestwall', 'y', 4.6, {}); Wl('hotel.doorway', 'y', 9.8, { name: 'LECTURE THEATRE', c: NAVY_D, w: 4.4, lit: 1 }); Wl('portrait', 'y', 15.1, { k: 2 }); Wl('pennants', 'y', 1, { w: 8 }); Wl('pennants', 'y', 15, { w: 8 });
   Wl('hotel.doorway', 'x', .8, { name: 'READING ROOM', c: '#3f6a48', w: 3.4, lit: 1 }); Wl('pinboard', 'x', 5, { k: 'time' }, { board: 'time' }); Wl('hotel.doorway', 'x', 8.2, { name: 'THE COMMONS', c: '#8a3848', w: 3.4, lit: 1 }); Wl('pinboard', 'x', 12.2, { k: 'exam' }, { board: 'exam' });
   H('counter', 17.4, 1.3, { w: 5, t: 'REGISTRAR', t2: 'BURSAR' }, { desk: 1 }); H('trophy', 14.9, .6, {}); H('gowns', 22.2, 4.4, {}, { flip: true });
+  for (const [x, y] of [[7.4, 4], [16.1, 4], [7.4, 10.4], [16.1, 10.4]]) H('lobby.column', x, y, { kind: 'marble' }); H('lobby.chandelier', 11.5, 3.2, { kind: 'ring', m: 'brass' }, { z: 1.4 }); H('lobby.chandelier', 11.5, 10.6, { kind: 'ring', m: 'brass' }, { z: 1.4 }); H('cityhall.bench', 3.2, 4.2, { w: 3, c: '#f4ecd8', bow: 1 });
   H('lobby.inlay', 10.5, 5.6, { kind: 'compass', c: NAVY, c3: '#b8342e' }); H('bust', 11.6, 6.7, {}); H('hotel.carpet', 10.9, 9.2, { w: 2.2, d: 5.2, c: NAVY_D });
   H('cityhall.bench', 3.4, 12.4, { w: 3, c: '#f4ecd8', bow: 1 }); H('cityhall.bench', 17.6, 12.4, { w: 3, c: '#f4ecd8', bow: 1 }); H('cityhall.planter', 1, 13.6, { k: 'tulips' }); H('cityhall.planter', 21.4, 13.6, {});
   H('generic.plant', .7, 4.5, { kind: 'palm', s: 1.5, pot: '#f1ede4' }); H('generic.plant', 14.3, 3, { s: 1.6, leaf: '#3f7a48', pot: NAVY });
@@ -68,7 +69,7 @@ const HK = kit();
   S(18.3, 3.3, 3, { p: .7, label: 'Student', lines: LINES.student }); S(19.1, 4.2, 3, { p: .45, anim: 'phone' }); S(21.2, 3.2, 3, { busy: 1, label: 'Student' });
   S(6.2, 2.2, 3, { p: .6, anim: 'read', label: 'Student' }); S(3.2, 6.4, 2, { p: .5 }); S(4, 7.1, 3, { p: .5, anim: 'talk' }); S(13.6, 6.2, 2, { p: .4, anim: 'phone' }); S(8.3, 10.6, 0, { busy: 1 }); S(15.2, 10.9, 2, { busy: 1, anim: 'talk' });
 })();
-defineRoom({ id: UR.hall, name: NAME, w: 24, d: 15, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'university', venue: UV.place, floor: GT.f_check, bg: '#17161f', edge: '#4a3a30', wall: WALL,
+defineRoom({ id: UR.hall, name: NAME, w: 24, d: 15, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'university', venue: UV.place, floor: GT.f_stone, bg: '#17161f', edge: '#4a3a30', wall: WALL,
   exits: [{ x: 12, y: 14.4, label: 'Exit to the quad', to: 'city' }, { x: 12, y: 1.25, label: 'Ashby Lecture Theatre', to: 'int:' + UR.lecture, use: () => U().door(UR.lecture) }, { x: 1.2, y: 2.5, label: 'Reading Room', to: 'int:' + UR.library, use: () => U().door(UR.library) },
     { x: 1.2, y: 9.9, label: 'The Commons', to: 'int:' + UR.commons, use: () => U().door(UR.commons) }, { x: 22.9, y: 11, label: 'Workshops & Studios', to: 'int:' + UR.workshop, use: () => U().door(UR.workshop) }],
   spawn: { x: 12, y: 13.4, dir: 3 }, items: HK.items, npcSpots: HK.spots,
@@ -90,7 +91,7 @@ const LK = kit(), SW = 156, SH = 52, ROWS = [4.5, 6.3, 8.1, 9.9], BLK = [2.9, 10
 (function () {
   const { H, Wl } = LK;
   Wl('chalk', 'y', .5, { k: 0, w: 3 }); Wl('screenframe', 'y', 4, { w: 10, h: 3.4 }); Wl('chalk', 'y', 14.5, { k: 2, w: 3 });
-  Wl('window', 'x', 1.4, {}); Wl('window', 'x', 5.2, {}); Wl('window', 'x', 9, {});
+  Wl('window', 'x', 1.4, {}); Wl('window', 'x', 5.2, {}); Wl('window', 'x', 9, {}); Wl('pennants', 'y', 4.5, { w: 9 }, { mount: 4.5 }); Wl('generic.clock', 'y', 3.6, { c: '#d8a848' });
   H('stage', 3, .6, { w: 12, d: 2.7 }); H('obs.lectern', 5.4, 2.3, {}, { z: .22, lect: 1 });
   for (const y of ROWS) for (const x of BLK) H('lecrow', x, y, { n: 6 }, { row: 1 });
   H('generic.plant', 16.8, .8, { kind: 'palm', s: 1.5, pot: NAVY });
@@ -116,7 +117,7 @@ defineRoom({ id: UR.lecture, name: 'Ashby Lecture Theatre', w: 18, d: 13, zoom: 
     const cv = document.createElement('canvas'); cv.width = SW; cv.height = SH; const g = cv.getContext('2d'), sh = document.createElement('canvas'); sh.width = SW + 2; sh.height = SH + SW / 2 + 2; const gx = sh.getContext('2d'); gx.imageSmoothingEnabled = false;
     const spr = { c: sh, l: sh, x: 0, y: -SH - 1, w: sh.width, h: sh.height }; let spec = { mode: 'idle' }, key = '';
     const blit = () => { gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, sh.width, sh.height); gx.setTransform(1, .5, 0, 1, 0, 1); gx.drawImage(cv, 0, 0); };
-    sc.ents.push({ x: O + 4.125, y: O + .06, z: 1.03, bb: [0, 0, SW / 16, .06, SH / 16], sprite: () => spr });
+    sc.ents.push({ x: O + 4.125, y: O + .24, z: 1.03, bb: [0, 0, SW / 16, .06, SH / 16], sprite: () => spr }); for (const f of sc.fixtures) f._sit = true;
     const board = { show(s) { spec = s || { mode: 'idle' }; key = ''; }, spec: () => spec, canvas: cv };
     /* seats */
     const seats = []; for (const fx of sc.byTag('uni_seat')) fx.seats.forEach((s, i) => seats.push({ x: s.x, y: s.y, z: s.z, dir: 3, spot: { x: s.x, y: fx.ob.B[4] + .32 }, row: fx.ob.B[1], i, taken: null }));
@@ -126,7 +127,7 @@ defineRoom({ id: UR.lecture, name: 'Ashby Lecture Theatre', w: 18, d: 13, zoom: 
     const mates = CLASSMATES.map(id => { const c = new Char(castSpec(id), O + 9, O + 11.5); c.hidden = true; c.uniId = id; c.kind = 'npc'; sc.ents.push(c); sc.interactables.push({ ent: c, x: c.x, y: c.y, label: CAST[id].name, h: 1.2, hit: 6, range: 1.8, uni: 1, visible: () => !c.hidden, use: () => U() && U().talk(id, c, sc) }); return c; });
     const P = students(), extras = Array.from({ length: 14 }, (_, i) => { const c = new Char(P[(i * 3 + 2) % P.length], O + 9, O + 11.5); c.hidden = true; c.kind = 'customer'; sc.ents.push(c); sc.interactables.push({ ent: c, x: c.x, y: c.y, label: 'Student', h: 1.2, hit: 6, range: 1.8, uni: 1, visible: () => !c.hidden, use: () => bubble(c, pick(U() && U().examWeek() ? LINES.exam : LINES.aside)) }); return c; });
     const wn = windows(sc);
-    sc.uni = { cast: {}, seats, board, prof, mates, extras, speak: { x: O + 9.4, y: O + 2.2, z: .22, dir: 1 }, lectern: { x: O + 5.8, y: O + 1.85 },
+    sc.uni = { cast: {}, seats, board, prof, mates, extras, speak: { x: O + 9.4, y: O + 2.2, z: .22, dir: 1 }, focus: { x: O + 9, y: O + .3, z: 2.4 }, lectern: { x: O + 5.8, y: O + 1.85 },
       /** seat n people (classmates first); instant or fading in */
       fill(n, withMates = true) { const free = seats.filter(s => !s.taken).sort((a, b) => (a.row + Math.random() * 3) - (b.row + Math.random() * 3)), list = (withMates ? mates : []).concat(extras); let k = 0;
         for (const c of list) { if (k >= n || !free.length) break; if (!c.hidden) { k++; continue; } const s = free.shift(); s.taken = c; c.seat = s; c.x = s.x; c.y = s.y; c.z = s.z; c.dir = 3; c.pose = 'sit'; c.poseOpts = { seated: true }; c.hidden = false; c.alpha = 0; c.fade = .2 + k * .25; k++; } },
@@ -162,10 +163,10 @@ defineRoom({ id: UR.commons, name: 'The Commons', w: 22, d: 14, zoom: 0, music: 
   exits: [{ x: 11, y: 13.4, label: 'Back to the hall', to: 'int:' + UR.hall, use: () => G.go('int:' + UR.hall, { x: O + 2.3, y: O + 9.9, dir: 0 }) }], spawn: { x: 11, y: 12.6, dir: 3 }, items: CK.items, npcSpots: CK.spots,
   setup(sc) {
     const Wd = sc.world; sc.uni = { cast: {} }; sc.env = softEnv(Wd, .5, .45); Wd.lights.push({ x: O + 4, y: O + 3, z: 0, r: 7, c: '#fff0d0' }, { x: O + 13.6, y: O + 2.4, z: 0, r: 6, c: '#ffb870' }, { x: O + 11, y: O + 8, z: 0, r: 9, c: '#fff4dc' }, { x: O + 18, y: O + 8, z: 0, r: 7, c: '#fff0d0' });
-    const gt = by(sc, 'grp').map(o => sc.fixtures.find(f => f.ob === o)), gseats = []; for (const f of gt) f.seats.forEach(s => gseats.push({ x: s.x, y: s.y, z: s.z, dir: s.dir, fx: f }));
+    const gt = by(sc, 'grp').map(o => sc.fixtures.find(f => f.ob === o)), gseats = []; for (const f of gt) { f._sit = true; f.seats.forEach(s => gseats.push({ x: s.x, y: s.y, z: s.z, dir: s.dir, fx: f })); }
     const seats = seatsOf(sc, /cafe\.(tableset|armchair)|generic\.sofa/, { add: (f, i, n) => ({ p: f.item.club ? 0 : .5, club: f.item.club ? 1 : 0, anim: n % 3 === 0 ? 'drink' : n % 3 === 1 ? 'read' : 'talk', label: 'Student', lines: LINES.commons }) });
     const cr = sc.uni.crowd = studentCrowd(sc, sc.def.npcSpots.concat(seats), { seed: 23, fill: .55, lines: LINES.commons });
-    const juno = person(sc, 'juno', 1.9, 1.25, 1); juno.z = 0;
+    const juno = person(sc, 'juno', 1.9, 1.25, 1); juno.z = 0; strip(sc, /cafe\.(till|bar|pastrycase)/); const till = sc.fixtures.find(f => f.item.cafe); if (till) sc.interactables.push({ x: till.x, y: till.y, h: 1.2, hit: 12, label: 'Order at the Quill & Kettle', spot: till.use, uni: 1, use: () => U() && U().talk('juno', juno, sc) });
     /* the study group: four named classmates round the long table; one seat is kept for you */
     const order = [0, 1, 4, 5, 6, 2], my = gseats[7] || gseats[gseats.length - 1], gm = ['saoirse', 'mateo', 'agnes', 'bao'].map((id, i) => { const s = gseats[order[i]], c = person(sc, id, s.x - O, s.y - O, s.dir, 'sit'); c.z = s.z; c.poseOpts = { seated: true }; c.hidden = true; c.homeSeat = s; return c; });
     sc.uni.group = { seat: my, mates: gm }; if (my) sc.interactables.push({ x: my.x, y: my.y, z: my.z - .2, h: .5, hit: 7, label: 'Join the study group', spot: { x: my.x, y: my.y + .75 }, uni: 1, visible: () => !!U() && U().groupOn() && !G.busy, use: () => U().joinGroup(sc) });
@@ -193,7 +194,7 @@ defineRoom({ id: UR.library, name: 'The Reading Room', w: 16, d: 12, zoom: 0, mu
   setup(sc) {
     const Wd = sc.world; sc.uni = { cast: {} }; sc.env = softEnv(Wd, .45, .55); Wd.lights.push({ x: O + 4, y: O + 4.6, z: 0, r: 6, c: '#ffe9b0' }, { x: O + 11, y: O + 6.6, z: 0, r: 7, c: '#fff0d0' }, { x: O + 13.6, y: O + 3, z: 0, r: 4, c: '#ffe9b0' });
     strip(sc, /library\.cart|books\.shelf|library\.table/);
-    const carrels = []; for (const fx of sc.fixtures) if (fx.item.car) fx.seats.forEach(s => carrels.push({ x: s.x, y: s.y, z: s.z, dir: 3, spot: { x: s.x, y: fx.ob.B[4] + .4 }, taken: null, fx }));
+    const carrels = []; for (const fx of sc.fixtures) if (fx.item.car) { fx._sit = true; fx.seats.forEach(s => carrels.push({ x: s.x, y: s.y, z: s.z, dir: 3, spot: { x: s.x, y: fx.ob.B[4] + .4 }, taken: null, fx })); }
     const cr = sc.uni.crowd = studentCrowd(sc, sc.def.npcSpots.concat(carrels.filter((c, i) => i !== 5 && i !== 2).map((c, i) => ({ x: c.x - O, y: c.y - O, z: c.z, dir: 3, seated: true, anim: 'read', p: .5, busy: i % 3 === 0 ? 1 : 0, label: 'Student', lines: LINES.library, car: c }))).concat(seatsOf(sc, /library\.table|cafe\.armchair/, { add: (f, i, n) => ({ p: .4, anim: 'read', label: 'Student', lines: LINES.library }) })), { seed: 37, fill: .5, lines: LINES.library });
     const mott = person(sc, 'mott', 13.7, 2.95, 1); mott.z = 0;
     for (const c of carrels) sc.interactables.push({ x: c.x, y: c.y, z: c.z - .2, h: .6, hit: 7, label: 'Read at this desk', spot: c.spot, uni: 1, visible: () => !c.taken && !cr.list.some(q => q.spot.car === c && !q.hidden), use: () => U() && U().read(c, sc) });
@@ -240,7 +241,7 @@ defineRoom({ id: UR.workshop, name: 'Workshops & Studios', w: 26, d: 14, zoom: 0
   exits: [{ x: 13, y: 13.4, label: 'Up to the hall', to: 'int:' + UR.hall, use: () => G.go('int:' + UR.hall, { x: O + 21.8, y: O + 11, dir: 2 }) }], spawn: { x: 13, y: 12.7, dir: 3 }, items: WK.items, npcSpots: [],
   setup(sc) {
     const Wd = sc.world; sc.uni = { cast: {} }; sc.env = softEnv(Wd, .6, .45); for (const [x, y] of [[4, 5], [11, 4], [17, 4.5], [23, 3], [3, 11], [9, 11], [14.5, 10.5], [22, 11]]) Wd.lights.push({ x: O + x, y: O + y, z: 0, r: 6, c: '#fff4dc' });
-    strip(sc, /kitchen\.range|library\.table/);
+    strip(sc, /kitchen\.range|library\.table|art\.canvases|perf\.piano|mus\.bench|home\.(easel|guitar)|library\.computer/); for (const f of sc.fixtures) f._sit = true;
     const stations = {}; for (const k in STATIONS) { const s = STATIONS[k]; stations[k] = Object.assign({}, s, { x: s.x + O, y: s.y + O, prof: { x: s.prof.x + O, y: s.prof.y + O, dir: s.prof.dir }, mates: s.mates.map(m => Object.assign({}, m, { x: m.x + O, y: m.y + O })) });
       const fx = sc.fixtures.find(f => f.item.st === k); sc.interactables.push({ x: fx ? fx.x : s.x + O, y: fx ? fx.y : s.y + O, h: 1.5, hit: 10, label: s.label, spot: s.seated ? undefined : { x: s.x + O, y: s.y + O }, range: s.seated ? 1.6 : undefined, uni: 1, station: k, visible: () => !!U() && U().stationOn(k), use: () => U().useStation(k, sc) }); }
     const prof = new Char(castSpec('kowal'), O + 13, O + 7); prof.hidden = true; prof.kind = 'npc'; sc.ents.push(prof); sc.interactables.push({ ent: prof, x: prof.x, y: prof.y, label: 'Professor', h: 1.4, hit: 8, range: 2, uni: 1, visible: () => !prof.hidden, use: () => U() && U().talk(prof.uniId, prof, sc) });

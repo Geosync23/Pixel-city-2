@@ -20,9 +20,13 @@ const pick = a => a[Math.floor(Math.random() * a.length)], safe = fn => { try { 
 export const wrap = (t, n = 17, max = 4) => { const out = []; let l = ''; for (const w of String(t).toUpperCase().replace(/[^A-Z0-9 .,:'!?%&-]/g, '').split(/\s+/)) { if ((l + ' ' + w).trim().length > n) { out.push(l); l = w; if (out.length >= max) break; } else l = (l + ' ' + w).trim(); } if (l && out.length < max) out.push(l); return out; };
 const firstSentence = t => String(t).split(/(?<=[.!?])\s/)[0];
 let live = null;   /* the class in progress: { kind, ses, sheet, t0, act } */
+/* camera: while a class runs in the lecture theatre the view pulls back one zoom step and looks at the dais + screen, held in the part of the screen above the sheet */
+let cam = null;
+function focus(sc) { if (cam || !sc || !sc.uni || !sc.uni.focus) return; const F = sc.uni.focus, port = innerHeight > innerWidth, z0 = G.zoom; if (z0 >= 3) G.setZoom(z0 - 1); const lift = port ? (innerHeight * .15 / (G.cssScale || 2)) / 16 : 0; cam = { z0, proxy: { x: F.x, y: F.y, z: (F.z || 0) - lift } }; G.camTarget = cam.proxy; }
+function unfocus() { if (!cam) return; if (G.camTarget === cam.proxy) G.camTarget = null; if (G.zoom !== cam.z0) G.setZoom(cam.z0); cam = null; }
 export const running = () => live;
 /** stop whatever class is running (scene change, load) */
-export function abort() { const l = live; live = null; if (l) { safe(() => l.sheet && l.sheet.close()); if (G.busy && G.busy._uni) G.endActivity(false); } }
+export function abort() { const l = live; live = null; unfocus(); if (l) { safe(() => l.sheet && l.sheet.close()); if (G.busy && G.busy._uni) G.endActivity(false); } }
 
 /** wait (fast-forward) until abs minute T. resolves false when cancelled */
 export function waitUntil(T, label, at, anim) {
@@ -34,9 +38,9 @@ function hold(label, at, anim, onCancel) {
   const p = G.player; if (at.seated) p.poseOpts = { seated: true };
   const a = G.startActivity({ label, anim: anim || 'sit', minutes: 9999, rate: .0001, at: { x: at.x, y: at.y, z: at.z || 0, dir: at.dir }, cancel: () => { p.poseOpts = null; onCancel && onCancel(); }, done: () => { p.poseOpts = null; } }); a._uni = true; return a;
 }
-const release = ok => { if (G.busy && G.busy._uni) G.endActivity(ok !== false); G.player.poseOpts = null; };
+const release = ok => { unfocus(); if (G.busy && G.busy._uni) G.endActivity(ok !== false); G.player.poseOpts = null; };
 const aside = (sc, p = .5) => { if (Math.random() > p || !sc || !sc.uni) return; const c = pick((sc.uni.mates || []).filter(q => !q.hidden)); if (c) bubble(c, pick(LINES.aside), 2400); };
-const profSay = (sc, text, ms = 3200) => { const p = sc && sc.uni && sc.uni.prof; if (p && !p.hidden) { p.pose = 'talk'; p._hold = ms / 1000; bubble(p, text.length > 90 ? text.slice(0, 88) + '…' : text, ms); } };
+const profSay = (sc, text, ms = 3200) => { const p = sc && sc.uni && sc.uni.prof; if (p && !p.hidden) { p.pose = 'talk'; p._hold = ms / 1000; bubble(p, text.length > 52 ? text.slice(0, text.lastIndexOf(' ', 50)) + '…' : text, ms); } };
 /** begin: open the sheet + the hold; returns the live record */
 function begin(kind, X, ses, at, anim, label) {
   const C = X.C(ses.cid), l = { kind, ses, left: false, t0: G.state.t };
@@ -44,12 +48,14 @@ function begin(kind, X, ses, at, anim, label) {
   l.act = hold(`${C.name}: ${label}`, at, anim, () => { l.left = true; l.sheet.leave(); });
   live = l; G.emit('university:classstart', ses.cid, ses.unit, kind); return l;
 }
+function begin2(kind, X, ses, at, anim, label, sc) { const l = begin(kind, X, ses, at, anim, label); focus(sc); return l;
+}
 /** end: pad the clock to the full class length, release the player */
 function end(l, ok) { const used = G.state.t - l.t0; if (ok && used < TUNE.classMin) G.advance(TUNE.classMin - used); if (live === l) live = null; release(ok); }
 const gone = l => l.left || live !== l;
 
 export async function lecture(X, ses, seat, sc) {
-  const C = X.C(ses.cid), P = CAST[C.prof], L = LECTURES[C.id][ses.unit === 0 ? 0 : 1], B = sc.uni.board, l = begin('lecture', X, ses, Object.assign({ seated: true }, seat), 'sit', UNITS[ses.unit].name), sh = l.sheet; let ok = 0;
+  const C = X.C(ses.cid), P = CAST[C.prof], L = LECTURES[C.id][ses.unit === 0 ? 0 : 1], B = sc.uni.board, l = begin2('lecture', X, ses, Object.assign({ seated: true }, seat), 'sit', UNITS[ses.unit].name, sc), sh = l.sheet; let ok = 0;
   const fail = () => { B.show(null); end(l, false); sh.close(); return { left: true }; };
   B.show({ mode: 'stage', title: C.code + ' ' + C.name, color: C.color, lines: [L.title, '', P.short, UNITS[ses.unit].name] }); profSay(sc, L.open);
   if (await sh.say(P.short, (ses.late ? pick(LINES.late) + ' ' : '') + L.open, 'Begin') === LEFT || gone(l)) return fail();
@@ -78,7 +84,7 @@ export async function practical(X, ses, at, sc, where) {
 
 export function paperQs(cid) { const L = LECTURES[cid], all = L[0].ask.concat(L[1].ask, READING[cid].ask, (FINAL[cid] || {}).extra || []); return all.slice().sort(() => Math.random() - .5).slice(0, 8); }
 export async function paper(X, ses, seat, sc) {
-  const C = X.C(ses.cid), P = CAST[C.prof], F = FINAL[C.id], B = sc.uni.board, l = begin('paper', X, ses, Object.assign({ seated: true }, seat), 'read', 'Final paper'), sh = l.sheet, Qs = paperQs(C.id), done = []; let ok = 0;
+  const C = X.C(ses.cid), P = CAST[C.prof], F = FINAL[C.id], B = sc.uni.board, l = begin2('paper', X, ses, Object.assign({ seated: true }, seat), 'read', 'Final paper', sc), sh = l.sheet, Qs = paperQs(C.id), done = []; let ok = 0;
   const fail = () => { B.show(null); end(l, false); sh.close(); return { left: true }; };
   B.show({ mode: 'paper', title: C.code + ' FINAL PAPER', color: C.color, lines: ['EXAM IN PROGRESS', 'NO TALKING', Qs.length + ' QUESTIONS', 'GOOD LUCK'] }); for (const c of sc.uni.mates.concat(sc.uni.extras)) if (!c.hidden) { c.pose = 'read'; c.noFidget = true; }
   profSay(sc, F.intro); if (await sh.say(P.short, F.intro, 'Turn over the paper') === LEFT || gone(l)) return fail();
@@ -88,7 +94,7 @@ export async function paper(X, ses, seat, sc) {
 }
 
 export async function present(X, ses, seat, sc) {
-  const C = X.C(ses.cid), P = CAST[C.prof], F = FINAL[C.id], B = sc.uni.board, sp = sc.uni.speak, l = begin('present', X, ses, Object.assign({ seated: true }, seat), 'sit', F.title), sh = l.sheet;
+  const C = X.C(ses.cid), P = CAST[C.prof], F = FINAL[C.id], B = sc.uni.board, sp = sc.uni.speak, l = begin2('present', X, ses, Object.assign({ seated: true }, seat), 'sit', F.title, sc), sh = l.sheet;
   const fail = () => { B.show(null); end(l, false); sh.close(); return { left: true }; };
   B.show({ mode: 'stage', title: C.code + ' ' + C.name, color: C.color, lines: [F.title, '', 'QUIET PLEASE'] }); profSay(sc, 'Who is first? ... You. Up you come.');
   if (await sh.say(P.short, 'Who is first? ... You. Up you come.', 'Walk to the front') === LEFT || gone(l)) return fail(); G.advance(8);
@@ -106,7 +112,7 @@ export async function present(X, ses, seat, sc) {
 
 export async function openLecture(X, talk, seat, sc) {
   const P = CAST[talk.by], B = sc.uni.board, ses = { cid: null, unit: 0 }, l = { kind: 'open', ses, left: false, t0: G.state.t };
-  l.sheet = openSheet({ title: 'Open Lecture', sub: talk.title, color: '#e8b83a', onLeave: () => { l.left = true; release(false); } }); l.act = hold('Open lecture: ' + talk.title, Object.assign({ seated: true }, seat), 'sit', () => { l.left = true; l.sheet.leave(); }); live = l; const sh = l.sheet; let ok = 0;
+  l.sheet = openSheet({ title: 'Open Lecture', sub: talk.title, color: '#e8b83a', onLeave: () => { l.left = true; release(false); } }); l.act = hold('Open lecture: ' + talk.title, Object.assign({ seated: true }, seat), 'sit', () => { l.left = true; l.sheet.leave(); }); live = l; focus(sc); const sh = l.sheet; let ok = 0;
   const fail = () => { B.show(null); if (live === l) live = null; release(false); sh.close(); return { left: true }; };
   B.show({ mode: 'stage', title: 'OPEN LECTURE NIGHT', lines: [talk.title, '', P.short] }); profSay(sc, 'Good evening, everybody. Thank you for coming out.');
   if (await sh.say(P.short, 'Good evening, everybody. Thank you for coming out. Tonight: ' + talk.title.toLowerCase() + '.', 'Listen') === LEFT || gone(l)) return fail();
