@@ -84,7 +84,7 @@ const clothing = [
   }, { use: { x: .25, y: 1 }, variants: [{ hats: true }, {}] }),
 
   F('clothing.pouf', ['clothing', 'seating'], [1, .5, .45], p => { const c = p.c || '#8a3a5a'; box(.02, .04, .08, .96, .42, .34, c, { t: lt(c, .12) }); for (const x of [.25, .5, .75]) spx(x, .25, .42, 0, 0, dk(c, .4)); posts(.08, .1, .84, .3, 0, .08, '#d8a848'); },
-    { seats: [{ x: .3, y: .25, z: .42, dir: 1 }, { x: .7, y: .25, z: .42, dir: 1 }], variants: [{}, { c: '#3f6a5a' }, { c: '#c0a078' }] }),
+    { seats: [{ x: .22, y: .25, z: .42, dir: 1 }, { x: .78, y: .25, z: .42, dir: 1 }], variants: [{}, { c: '#3f6a5a' }, { c: '#c0a078' }] }),
 ];
 
 /* ---------------- homegoods ---------------- */

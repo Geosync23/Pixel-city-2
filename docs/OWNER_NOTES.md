@@ -123,3 +123,4 @@
 103. (msg 143) (a) THOROUGHLY check for conflicts caused by the time-scale change (clock 0.85x). (b) CONTROLLER (gamepad) SUPPORT: design and implement it now, by a Fable agent; he knows it is a touch game first.
 104. (msg 144) CONTROLLER SUPPORT: wait for a free Fable worker (no third worker).
 105. (msg 145) DOCKET: TRAFFIC JAMS. Buses (more of them now) often cause jams; the cab clipping through after a long wait is good. Wants SMARTER traffic so there are fewer jams, with NO decrease in traffic density ("it's awesome the way it is").
+106. (msg 146) The traffic BASELINE measurement must be done by a FABLE agent, not the Opus QA lane (upgrade temporarily or hand it off). Lead: removed it from QA round 14; the Fable traffic worker measures its own baseline (QA14 hands over only raw notes if it already has any).

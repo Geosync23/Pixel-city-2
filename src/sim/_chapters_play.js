@@ -82,9 +82,11 @@ const A = {
     await act('Upstairs', 'stand', 5, { hide: true }); safe(() => G.needs.set('bladder', 100)); safe(() => G.needs.add('hygiene', 6)); return 'good';
   },
   async 'activity:nap'(st, c) {
-    const r = await c.doAt([{ asset: 'furn.home.armchair' }, { tag: 'seat' }], st.label, { go: 'Sit a while', skip: true }); if (r !== 'done') return r;
-    const seat = c.locate([{ asset: 'furn.home.armchair' }]);
-    await act('Ten minutes in the chair', 'sit', 10, seat ? { at: { x: seat.x, y: seat.y, z: .35, dir: 0 } } : {}); safe(() => G.needs.add('energy', 12)); safe(() => G.needs.add('comfort', 8)); return 'good';
+    /* "the chair by the range": the kitchen chair that stands by the stove (Nana's has one, scenes/rooms/homes.js); elsewhere the nearest armchair / seat. The player sits on the piece's real seat, facing the way it faces. */
+    const byRange = sc => { const fx = (sc.fixtures || []).find(f => f.tags.includes('rangechair') && f.seats.length); return fx ? { x: fx.x, y: fx.y, h: 1.9, fx } : null; }, find = [byRange, { asset: 'furn.home.armchair' }, { tag: 'seat' }];
+    const r = await c.doAt(find, st.label, { go: 'Sit a while', skip: true }); if (r !== 'done') return r;
+    const t = c.locate(find), seat = t && t.fx && t.fx.seats && t.fx.seats.find(q => !q.lie);
+    await act('Ten minutes in the chair', 'sit', 10, seat ? { at: { x: seat.x, y: seat.y, z: seat.z || 0, dir: seat.dir === undefined ? 1 : seat.dir } } : {}); safe(() => G.needs.add('energy', 12)); safe(() => G.needs.add('comfort', 8)); return 'good';
   },
   async 'minigame:flip'(st, c) {
     const r = await c.doAt([{ tag: 'stove' }, { label: /stove|range|cook/i }], st.label, { go: 'To the stove', hint: st.hint }); if (r !== 'done') return r;

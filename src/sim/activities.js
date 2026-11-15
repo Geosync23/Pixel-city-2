@@ -26,6 +26,7 @@ import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { NEEDS, SKILLS, MOODLETS } from '../data/needs.js';
 import { registerFixture } from '../scenes/interior.js';
 import { U } from '../engine/raster.js';
+import { nearestFree } from '../engine/nav.js';
 import { choose, toast, bubble, modal, el } from '../ui/kit.js';
 import { iconEl, weatherIcon } from '../ui/_icons.js';
 
@@ -104,12 +105,15 @@ const plantKey = fx => ((G.scene && G.scene.id) || '') + ':' + fx.x + ',' + fx.y
 
 /* ---------- tier / seats ---------- */
 function goodOf(fx, tag) { const it = fx && fx.item; if (!it) return null; if (it.good && ITEM_BY_ID[it.good]) return ITEM_BY_ID[it.good]; const tier = it.p && it.p.tier !== undefined ? it.p.tier : it.tier; return tier === undefined ? null : homegoodsForTag(tag)[tier] || null; }
+/* seating: nobody sits on somebody. The first seat of a piece that no visible character is on (the first one when they are all taken) */
+const seatTaken = s => ((G.scene && G.scene.ents) || []).some(c => c !== G.player && !c.hidden && !c.isVehicle && (c.alpha === undefined || c.alpha > .5) && Math.hypot(c.x - s.x, c.y - s.y) < .3);
+const freeSeat = seats => seats.find(s => !seatTaken(s)) || seats[0];
 function seatOf(fx, a) {
   if (!fx) return null; const stand = ['work', 'carry', 'stand', 'dance', 'wave', 'cheer', 'talk'].includes(a.anim) && a.tag !== 'shower' && a.tag !== 'locker_shower';
-  if (fx.seats && fx.seats.length && !stand) return fx.seats[0];
+  if (fx.seats && fx.seats.length && !stand) return freeSeat(fx.seats);
   if (a.anim === 'sit' && G.scene && G.scene.fixtures) { // e.g. TV: sit on the nearest sofa/chair
     let best = null, bd = 4.6; for (const f of G.scene.fixtures) { if (!f.seats || !f.seats.length || f.tags.includes('bed') && !f.tags.includes('seat')) continue; const d = Math.hypot(f.x - fx.x, f.y - fx.y); if (d < bd) { bd = d; best = f; } }
-    if (best) return best.seats[0];
+    if (best) return freeSeat(best.seats);
   }
   return null;
 }
@@ -534,4 +538,14 @@ export function init() {
   G.on('scene', s => { if (s && s.id === 'city') buildCity(s); })
   G.on('scene', s => { try { addSeats(s); } catch (e) { console.warn('seats: ' + e.message); } });
   G.on('activityEnd', () => { if (G.player) G.player.poseOpts = G.busy ? G.player.poseOpts : null; });
+  /* seating (docs/reports/seating.md): whatever started the activity (this file, a showpiece, a Chapter), if another character already sits on that seat the player
+     takes the nearest free seat instead (same piece first); venue-room customers are left out, they get up by themselves (sim/_crowd_rooms.js vacate) */
+  G.on('activity', a => {
+    const sc = G.scene, p = G.player; if (!a || !a.at || a.hide || a.anim === 'sleep' || !sc || !sc.fixtures) return;
+    const taken = s => sc.ents.some(c => c !== p && !c.hidden && !c.isVehicle && !(c.isCitizen && sc.indoor) && (c.alpha === undefined || c.alpha > .5) && Math.hypot(c.x - s.x, c.y - s.y) < .3); if (!taken(a.at)) return;
+    let best = null, bd = 3; for (const f of sc.fixtures) for (const s of f.seats || []) { if (s.stand || s.staff || s.lie || taken(s)) continue; const d = Math.hypot(s.x - a.at.x, s.y - a.at.y) + (Math.abs(f.x - a.at.x) < 1.6 && Math.abs(f.y - a.at.y) < 1.6 ? 0 : 1); if (d < bd) { bd = d; best = s; } }
+    if (!best) return; a.at.x = p.x = best.x; a.at.y = p.y = best.y; a.at.z = p.zoff = best.z || 0; if (best.dir !== undefined) a.at.dir = p.dir = best.dir; if (best.z && p.pose !== 'sit' && !p.poseOpts) p.poseOpts = { seated: true };
+  });
+  /* standing up: never left inside furniture (the spot the player sat down from can have been taken by a piece that moved, or the seat was reached from afar) */
+  G.on('activityEnd', a => { const p = G.player, W = G.world; if (!a || !a.at || !p || !W || G.busy || !W.isBlocked(p.x, p.y)) return; const f = nearestFree(W, Math.floor(p.x * 2), Math.floor(p.y * 2), 6); if (f) { p.x = (f[0] + .5) / 2; p.y = (f[1] + .5) / 2; p.z = W.heightAt(p.x, p.y); } });
 }

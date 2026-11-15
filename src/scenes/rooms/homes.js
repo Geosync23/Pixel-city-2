@@ -205,6 +205,7 @@ const STORY = [
       items: [F('bath.mat', .5, 1.15, T(2)), F('bath.bathtub', 0, 0, { p: { tier: 1, c2: '#e9a8b8' } }), F('bath.toilet', 2.3, 0), F('bath.sink', 3, 0), WX('bath.towelrack', 1.6), F('plant.snake', .1, 3.2)] },
     items: [F('rug', .7, 3.5, { p: { w: 2.5, d: 3, pat: 'persian', tier: 2 } }), F('doormat', 4.6, .6),
       F('kitchen.fridge', 0, 0, { p: { tier: 1 } }), F('kitchen.stove', 1, 0, T(1)), F('kitchen.counter', 2, 0, { p: { tier: 1, len: 1, drawers: true } }), F('kitchen.clutter', 3, 0), WY('kitchen.cabinet', 1), WY('kitchen.cabinet', 2), WY('wall.shelf', 3, { p: { tier: 1, seed: 2 }, mount: 1.5 }),
+      F('chair', 3, 1, { p: { tier: 1, c: '#b9653a' }, tags: ['rangechair'] }),   /* the chair by the range (Chapter 1: "sit in the chair by the range"); faces into the room */
       WY('wall.door.front', 4.6, T(1)), F('piano', 6, 0, T(2)), WY('wall.photos', 6, { p: { tier: 2, seed: 7 }, mount: 1.5 }), F('stereo', 7.7, 0, T(0)), WY('wall.clock', 7.9, T(1)), F('bookshelf', 8.9, 0, T(1)),
       WX('wall.window', 2.2, win(1.5, 1.2)), F('fireplace', 0, 4, FL(1)), WX('wall.art', 4.5, { p: { tier: 2, seed: 1 }, mount: 1.5 }), F('armchair', 1.7, 3.5, FL(1, { face: 3 })), F('armchair', 1.7, 5.3, FL(1, { face: 3 })), F('lamp.floor', .1, 3.3), F('plant.snake', .1, 6.3), F('petbed', .4, 7.2),
       F('table.round', 5.4, 3.8), F('chair', 5.9, 3.2), F('chair', 5.9, 5.4, back()), F('chair', 7, 4.3, FL(1, { face: 3 })),
