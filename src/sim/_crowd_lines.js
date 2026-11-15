@@ -11,6 +11,7 @@
 import { G } from '../core/game.js';
 import { LINES } from '../story/ambient_lines.js';
 import { AMBIENT } from '../story/dialogue.js';
+import { EVENTS, eventOnDay } from '../data/calendar.js';
 
 export const PLAYER_CHANCE = .4;      // chance that a bubble from someone standing near the player is about the player's visible state (when one applies)
 const MIX = [['general', .5], ['district', .14], ['timeOfDay', .11], ['weather', .1], ['season', .08], ['weekday', .07]];   // the general mix (weights)
@@ -47,6 +48,37 @@ function draw(key, arr) {
 const DNAME = { downtown: 'Downtown', oldtown: 'Old Town', harbor: 'Harborside', hillcrest: 'Hillcrest', maplewood: 'Maplewood', arts: 'the Arts Quarter', railyard: 'the Railyard', park: 'Central Park', airport: 'the airport' };
 const fill = (s, c) => s.replace(/\{name\}/g, (G.state.player && G.state.player.name) || 'friend').replace(/\{district\}/g, DNAME[c && c.district] || 'Maple Bay');
 
+/* ---------- dormant contexts wired in QA round 3 ----------
+   player: sitting_bench (seated activity outdoors), taking_photo (phone camera or a museum / conservatory / aquarium / observatory photo, 30 s), lost (the Map app opened 3 times
+   within a real minute outdoors, for 90 s), promoted (a promotion in the last game day), full (hunger band full), caffeinated (moodlet).
+   events: rent_day (the weekly bills are due within 24 h or were due < 10 h ago), payday (Fridays), new_year (first day of spring), star_party (Saturday star party today/tomorrow,
+   outdoors or at the observatory), flower_show (at / near the conservatory).   weather: rainbow (rain stopped < 60 game min ago), first_snow (snowing on the first snow day of a winter). */
+const recent = { photo: -1e9, map: [], lost: -1e9, promoted: -1e9, rainT: -1e9 };
+let wired = false;
+function wire() {
+  if (wired || !G.on) return; wired = true; const ph = () => { recent.photo = G.time; };
+  G.on('photo', v => { if (v) ph(); }); for (const e of ['museum:photo', 'conservatory:photo', 'aquarium:photo', 'observatory:photo']) G.on(e, ph);
+  G.on('phone:app', id => { if (id !== 'map' || (G.scene && G.scene.indoor)) return; recent.map = recent.map.filter(t => G.time - t < 60); recent.map.push(G.time); if (recent.map.length >= 3) recent.lost = G.time; });
+  G.on('job:promoted', () => { recent.promoted = G.state.t; });
+  G.on('minutes', () => { const w = safe(() => G.weather.current(), null), k = w && w.kind; if (k === 'rain' || k === 'storm') recent.rainT = G.state.t;
+    if (k === 'snow') { const S = G.state.lines || (G.state.lines = {}), now = G.now(), y = now.year; if (!S._snow || S._snow.y !== y) S._snow = { y, d: now.day }; } });
+}
+function dayEvents(c, venue) {
+  const out = [], now = G.now(), t = G.state.t || 0, indoor = !!(G.scene && G.scene.indoor);
+  const due = safe(() => G.money.bills().dueT, null); if (due != null && due - t < 1440 && due - t > -600) out.push('rent_day');
+  if (now.weekday === 4) out.push('payday');
+  if (now.season === 0 && now.dayOfMonth === 1) out.push('new_year');
+  const sp = EVENTS.find(e => e.id === 'obs_star_party'); if (sp && (!indoor || venue === 'observatory') && (safe(() => eventOnDay(sp, now.day), false) || safe(() => eventOnDay(sp, now.day + 1), false))) out.push('star_party');
+  if (venue === 'conservatory' || (!indoor && nearKey(c) === 'conservatory')) out.push('flower_show');
+  return out.filter(k => poolOf('events', k).length);
+}
+function specialWeather() {
+  const w = safe(() => G.weather.current(), null), k = w && w.kind, t = G.state.t || 0;
+  if (k === 'snow') { const sn = G.state.lines && G.state.lines._snow; if (sn && sn.d === G.now().day) return 'first_snow'; }
+  if (k !== 'rain' && k !== 'storm' && k !== 'snow' && t - recent.rainT < 60 && G.now().hour >= 6 && G.now().hour < 20) return 'rainbow';
+  return null;
+}
+
 /* ---------- what is true right now ---------- */
 function weatherKey(fine) { const w = safe(() => G.weather.current(), null), k = w ? w.kind : 'clear'; if (fine && (k === 'storm' || k === 'wind' || k === 'windy')) return k === 'storm' ? 'storm' : 'wind'; return k === 'rain' || k === 'storm' ? 'rain' : k === 'snow' ? 'snow' : k === 'fog' ? 'fog' : k === 'cloudy' ? 'cloudy' : w && w.tempC > 28 ? 'heat' : 'sunny'; }
 const dayPart = h => h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 18 ? 'afternoon' : h < 21 ? 'evening' : 'late';
@@ -74,6 +106,10 @@ export function playerStates() {
   else { const nx = safe(() => G.jobs.nextShift(), null), mins = nx && (nx.t !== undefined ? nx.t - G.state.t : nx.inMinutes); if (isFinite(mins) && mins > 0 && mins < 90) out.push('on_way_to_work'); const last = safe(() => G.jobs.lastSummary(), null); if (last && isFinite(last.t) && G.state.t - last.t < 90) out.push('after_work'); }
   if (safe(() => G.housing.current().owned, false)) out.push('homeowner');
   const b = G.state.player && G.state.player.birthday; if (b && (b.day === now.dayOfMonth) && (b.season === now.season || b.season === ['spring', 'summer', 'autumn', 'winter'][now.season])) out.push('birthday', 'birthday', 'birthday');
+  // QA round 3: dormant player contexts
+  if (!indoor && G.busy && G.player && G.player.pose === 'sit') out.push('sitting_bench', 'sitting_bench');
+  if (G.time - recent.photo < 30) out.push('taking_photo', 'taking_photo'); if (!indoor && G.time - recent.lost < 90) out.push('lost', 'lost');
+  if ((G.state.t || 0) - recent.promoted < 1440) out.push('promoted'); if (band('hunger') === 'full') out.push('full'); if (safe(() => N.hasMoodlet('caffeinated'), false)) out.push('caffeinated');
   return out.filter(k => poolOf('player', k).length);
 }
 const ROOM_KEY = [[/^central/, 'station'], [/^deptstore/, 'mall'], [/^cinema/, 'cinema'], [/^concerthall/, 'concert'], [/^playhouse/, 'theatre'], [/^conservatory/, 'conservatory'], [/^observatory/, 'observatory'], [/^museum/, 'museum'],
@@ -109,7 +145,7 @@ export function duet(c, ctx = {}) {
 }
 /** what an anonymous citizen says right now (already filled); null when no pool has anything */
 export function cityLine(c, ctx = {}) {
-  const now = G.now(), h = now.hf !== undefined ? now.hf : now.hour, r = Math.random(); let s = null;
+  wire(); const now = G.now(), h = now.hf !== undefined ? now.hf : now.hour, r = Math.random(); let s = null;
   if (ctx.state) s = draw('player.' + ctx.state, poolOf('player', ctx.state));                                         // forced (bumped / staring)
   if (!s && ctx.near && Math.random() < PLAYER_CHANCE) { const st = playerStates(); if (st.length) { const k = st[Math.floor(Math.random() * st.length)]; s = draw('player.' + k, poolOf('player', k)); } }
   if (!s && ctx.legacy && ctx.legacy.length && r < .6) s = draw('legacy.' + (ctx.legacyKey || 'x'), ctx.legacy.filter(usable));
@@ -117,9 +153,11 @@ export function cityLine(c, ctx = {}) {
   const kd = kindKey(ctx.kind); if (!s && kd && r < .55) s = draw('kind.' + kd, poolOf('kind', kd));
   if (!s && !ctx.venue && Math.random() < .4) { const nk = nearKey(c); if (nk) s = draw('near.' + nk, poolOf('near', nk)); }
   if (!s && ctx.venue && r < .7) s = draw('venue.' + ctx.venue, poolOf('venue', ctx.venue));
+  if (!s && !ctx.venue && Math.random() < .25) { const sw = specialWeather(); if (sw) s = draw('weather.' + sw, poolOf('weather', sw)); }
+  if (!s && Math.random() < .2) { const de = dayEvents(c, ctx.venue); if (de.length) { const k = de[Math.floor(Math.random() * de.length)]; s = draw('events.' + k, poolOf('events', k)); } }   // QA round 3: day contexts
   if (!s) {
     let x = Math.random(), g = 'general'; for (const [k, w] of MIX) { if ((x -= w) < 0) { g = k; break; } }
-    const key = g === 'district' ? c && c.district : g === 'timeOfDay' ? dayPart(h) : g === 'weather' ? (poolOf('weather', weatherKey(true)).length ? weatherKey(true) : weatherKey()) : g === 'season' ? ['spring', 'summer', 'autumn', 'winter'][now.season] : g === 'weekday' ? weekdayKey(now) : null;
+    const key = g === 'district' ? c && c.district : g === 'timeOfDay' ? dayPart(h) : g === 'weather' ? ((ctx.venue ? null : specialWeather()) || (poolOf('weather', weatherKey(true)).length ? weatherKey(true) : weatherKey())) : g === 'season' ? ['spring', 'summer', 'autumn', 'winter'][now.season] : g === 'weekday' ? weekdayKey(now) : null;
     if (g !== 'general' && key) s = draw(g + '.' + key, poolOf(g, key));
     if (!s) s = draw('general', poolOf('general'));
   }

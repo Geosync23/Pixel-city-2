@@ -1,4 +1,5 @@
 // Crowd internals shared by crowd.js / _crowd_animals.js / _crowd_rooms.js: the Cit entity, spec pools, helpers, ambient lines.
+// Event 'crowd:say'(citizen, text) whenever an anonymous citizen's bubble is shown (QA round 3; for tests and listeners).
 import { G } from '../core/game.js';
 import { Char, charArt } from '../core/char.js';
 import { pixSprite } from '../engine/sprites.js';
@@ -90,19 +91,27 @@ function hudRects() {
   for (const q of ['.hud-tl', '.hud-tr', '.hud-br', '.hud-bc', '#nav-trip', '#nav-arrow', '.ride-hud']) { const e = document.querySelector(q); if (!e) continue; const r = e.getBoundingClientRect(); if (r.width > 0 && r.height > 0) hudR.push(r); }
   return hudR;
 }
-/** would a bubble over citizen c (text: its line, for the width) be fully visible and off the HUD? */
-export function bubbleOk(c, text) {
+/** cheap pre-check: is citizen c's head on screen with room for a bubble above it (below the top HUD cluster)? */
+export function bubbleOk(c) {
   if (typeof document === 'undefined' || !G.toScreen) return true;
-  const s = G.toScreen(c.x, c.y, (c.z || 0) + (c.bubbleH || 1.9)), W = innerWidth, H = innerHeight, len = text ? text.length : 60;
-  const w = Math.min(224, 20 + len * 7.4), h = 24 + Math.floor(len * 7.4 / 204) * 17, l = s.x - w / 2, r = s.x + w / 2, t = s.y - h - 8, b = s.y;
-  if (l < 4 || r > W - 4 || t < 4 || b > H - 8) return false;
-  for (const q of hudRects()) if (l < q.right && r > q.left && t < q.bottom && b > q.top) return false;
+  const s = G.toScreen(c.x, c.y, (c.z || 0) + (c.bubbleH || 1.9)), W = innerWidth, H = innerHeight;
+  if (s.x < 10 || s.x > W - 10 || s.y > H - 8 || s.y < 40) return false;
+  for (const q of hudRects()) if (s.x > q.left - 30 && s.x < q.right + 30 && s.y - 30 < q.bottom && s.y > q.top) return false;
   return true;
 }
-/** speech bubble with a global cap of two visible. force: always show (player tapped) */
+/** place a just-created bubble element: natural width (not squeezed by the screen edge), slid sideways to stay on screen; false = it would still be cut off or cover the HUD */
+function fitBubble(b, force) {
+  b.style.width = 'max-content'; const r = b.getBoundingClientRect(), W = innerWidth, H = innerHeight; if (!r.width) return true;
+  const sh = r.left < 4 ? 4 - r.left : r.right > W - 4 ? W - 4 - r.right : 0; if (sh) b.style.marginLeft = Math.round(sh) + 'px'; if (force) return true;
+  const L = r.left + sh, R = r.right + sh; if (r.top < 4 || r.bottom > H - 4) return false;
+  for (const q of hudRects()) if (L < q.right && R > q.left && r.top < q.bottom && r.bottom > q.top) return false;
+  return true;
+}
+/** speech bubble with a global cap of two visible. force: true = always show (player tapped); 'slot' = may take a bubble slot but must still fit (a duet's answer) */
 export function speak(c, text, force) {
-  if (!text || typeof document === 'undefined') return false; if (!force && !bubbleOk(c, text)) return false; const now = G.time, i = bubEnd[0] <= now ? 0 : bubEnd[1] <= now ? 1 : force ? 0 : -1; if (i < 0) return false;
-  const ms = Math.min(4200, 1700 + text.length * 38); bubEnd[i] = now + ms / 1000 + .3; bubble(c, text, ms); return true;
+  if (!text || typeof document === 'undefined') return false; if (!force && !bubbleOk(c)) return false; const now = G.time, i = bubEnd[0] <= now ? 0 : bubEnd[1] <= now ? 1 : force ? 0 : -1; if (i < 0) return false;
+  const ms = Math.min(4200, 1700 + text.length * 38), el = bubble(c, text, ms); if (el && !fitBubble(el, force === true)) { el.remove(); return false; }   // (removed before it is ever painted)
+  bubEnd[i] = now + ms / 1000 + .3; G.emit('crowd:say', c, text); return true;
 }
 /** tap handler shared by city citizens and room NPCs */
 export function talkTo(c, venue) {

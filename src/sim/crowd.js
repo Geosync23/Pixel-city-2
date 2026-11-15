@@ -314,7 +314,7 @@ function chatter() {   // -> true when a bubble was shown (QA round 3: a failed 
   }
   if (!best) best = nearC && rnd() < .5 ? nearC : null;   // QA round 3: a plain walker may talk too when nobody is standing / chatting (quiet streets were silent)
   if (!best) return false; const c = best, a = c.anchor, ev = a && a.t === 'event' ? a.ev : evs.length && rnd() < .4 ? evs[0] : null;
-  if (c.chat && c.mate && c.mate.active && !ev && rnd() < .55) { const d = duet(c, { kind: c.kind }); if (d && speak(c, d[0])) { const m = c.mate; setTimeout(() => { if (m.active && G.scene === X.city && bubbleOk(m, d[1])) speak(m, d[1], true); }, 1900); return true; } }
+  if (c.chat && c.mate && c.mate.active && !ev && rnd() < .55) { const d = duet(c, { kind: c.kind }); if (d && speak(c, d[0])) { const m = c.mate; setTimeout(() => { if (m.active && G.scene === X.city) speak(m, d[1], 'slot'); }, 1900); return true; } }
   return speak(c, ambientLine(c, ev ? { event: EV_LINES[ev.id], eventId: ev.id } : c.kind === 'queue' ? { venue: 'queue' } : c.kind === 'bus' ? { venue: 'transit' } : c.kind === 'jogger' && rnd() < .6 ? { reaction: 'running' } : c.kind === 'carrier' && rnd() < .6 ? { reaction: 'carrying' } : c.st === XWAIT ? { kind: 'crosswalk_wait' } : null));
 }
 

@@ -370,3 +370,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 88 — Planner and Wellness counters never clear
 > Also no matter what I do that Counter doesn't clear for planner 1 stays same with wellness
+
+## 89 — Status check
+> Status update

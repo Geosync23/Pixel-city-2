@@ -56,7 +56,7 @@ ITEMS.forEach((i) => {
     venue(v, `item ${i.id}`);
     const o = VENUE_BY_ID[v]?.offers || {};
     if (i.category === 'dish') ok(o.menu, `item ${i.id}: venue ${v} has no menu`);
-    else if (!VENUE_BY_ID[v]?.generic || i.category === 'ingredient' || i.cookbook) ok((o.shop || []).includes(i.category), `item ${i.id}: venue ${v} does not sell category ${i.category}`); // (stock copied onto generic types by venues_extra.js is that file's business)
+    else ok((o.shop || []).includes(i.category), `item ${i.id}: venue ${v} does not sell category ${i.category}`); // (QA round 3: generic venue types are checked too; gallery sketchbook/canvas stock fixed)
   });
   (i.blocksMoodlets || i.perk?.blocksMoodlets || []).forEach((m) => moodlet(m, `item ${i.id}`));
   skills(i.perk?.xpMult, `item ${i.id}`);

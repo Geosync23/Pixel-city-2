@@ -37,6 +37,7 @@ function price(it, venueId, o = {}) {
   const job = G.jobs && G.jobs.current && G.jobs.current(), jid = job && (job.id || job.jobId || job), st = jid && DISCOUNTS.staff[jid]; if (st && st.venue === venueId) d *= st.mult;
   return Math.max(.25, q25(it.price * Math.max(.5, m * d)));
 }
+const ownedBook = id => !!(ITEM_BY_ID[id] && ITEM_BY_ID[id].cookbook && G.state.cook && (G.state.cook.books || []).includes(id));   // QA round 3: a cookbook on your shelf shows Owned
 const ownedOutfit = id => (G.wardrobe && G.wardrobe.owns ? G.wardrobe.owns(id) : (G.state.owned.outfits || []).includes(id));
 function dressOk(venueId) {
   const v = VENUE_BY_ID[venueId]; if (!v || !v.dressCode) return true;
@@ -45,7 +46,7 @@ function dressOk(venueId) {
   return true;
 }
 function buy(id, qty, venueId, o = {}) {
-  const it = ITEM_BY_ID[id]; if (!it || qty < 1) return false; const cost = price(it, venueId) * qty + (o.online ? DELIVERY.onlineOrderFee : 0), payO = { category: it.category, venue: venueId };
+  const it = ITEM_BY_ID[id]; if (!it || qty < 1) return false; if (ownedBook(id)) { toast('That one is already on your kitchen shelf.', 'info'); return false; } const cost = price(it, venueId) * qty + (o.online ? DELIVERY.onlineOrderFee : 0), payO = { category: it.category, venue: venueId };
   const done = () => { bought[venueId] = true; G.emit('shop:buy', id, qty, venueId); G.audio && G.audio.sfx && G.audio.sfx('buy'); return true; };
   if (it.category === 'homegood') {
     if (!G.money.pay(cost, it.name, payO)) return false;
@@ -112,7 +113,7 @@ function open(venueId, o = {}) {
     for (const it of rows) {
       if (tab === 'homegood' && it.tag !== lastTag) { lastTag = it.tag; listEl.append(el('div.shop-sep', { text: it.tag[0].toUpperCase() + it.tag.slice(1) })); }
       const p = price(it, venueId), sale = p < q25(it.price * (v.priceMult || 1)), single = it.category === 'homegood' || it.category === 'outfit' || it.category === 'dish' || it.stack === 1 || !!it.grants, n = single ? 1 : qty[it.id] || 1;
-      const owned = it.category === 'outfit' && ownedOutfit(it.id), blockedWant = bal < 0 && OVERDRAFT.blockedWhileNegative.includes(it.category), poor = !G.money.canAfford(p * n, { category: it.category, venue: venueId });
+      const owned = (it.category === 'outfit' && ownedOutfit(it.id)) || ownedBook(it.id), blockedWant = bal < 0 && OVERDRAFT.blockedWhileNegative.includes(it.category), poor = !G.money.canAfford(p * n, { category: it.category, venue: venueId });
       const acts = el('div.shop-buy');
       acts.append(el('span.shop-price' + (sale ? '.sale' : ''), { text: fmt(p * n) }));
       if (!single) acts.append(el('span.shop-qty', null, el('button', { 'aria-label': 'Less', disabled: n <= 1, onclick: () => { qty[it.id] = n - 1; render(); } }, '−'), el('b', { text: n }), el('button', { 'aria-label': 'More', disabled: n >= it.stack, onclick: () => { qty[it.id] = n + 1; render(); } }, '+')));

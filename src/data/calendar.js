@@ -125,10 +125,10 @@ export const EVENTS = [
     special: { crowdMult: 1.8,
       discounts: [{ venue: 'market_stalls', mult: 0.85, categories: ['ingredient'] }], // on top of the market's usual x0.8
       stalls: [
-        { id: 'stall_farm', name: 'Hillcrest Farm Stand', sells: ['tomato', 'carrot', 'potato', 'lettuce', 'onion', 'apple', 'berries', 'eggs', 'mushroom'] },
-        { id: 'stall_fish', name: 'Pier Fresh Fish', sells: ['fish'] },
+        { id: 'stall_farm', name: 'Hillcrest Farm Stand', sells: ['tomato', 'carrot', 'potato', 'lettuce', 'onion', 'apple', 'berries', 'eggs', 'mushroom', 'garlic', 'herbs', 'spring_onion', 'spinach', 'bell_pepper', 'cucumber', 'cabbage', 'broccoli', 'pumpkin'] },
+        { id: 'stall_fish', name: 'Pier Fresh Fish', sells: ['fish', 'salmon', 'shrimp', 'mussels'] },
         { id: 'stall_flowers', name: 'Petal Pushers', sells: ['gift_flowers', 'gift_wildflowers', 'gift_succulent', 'plant_fern'] },
-        { id: 'stall_honey', name: 'The Honey Man', sells: ['gift_honey'] },
+        { id: 'stall_honey', name: 'The Honey Man', sells: ['gift_honey', 'honey', 'maple_syrup', 'jam'] },
         { id: 'stall_treats', name: 'Crepes & Kettle Corn', sells: ['market_crepe', 'kettle_corn', 'market_dumplings'] },
       ],
       sellYourOwn: 'paintings, caught fish and garden produce sell here for +20%',

@@ -147,7 +147,7 @@ function stall(p) {
   lw([0, D, zAt(D)], [w, D, zAt(D)], top === 'ice' ? '#ffffff' : lt(top === 'wood' ? WOOD : STEEL, .3)); lw([0, D, 0], [0, D, zAt(D)], INK); lw([w, D, 0], [w, D, zAt(D)], dk(TILE, .5)); lw([0, D, 0], [w, D, 0], INK); lw([w, D, 0], [w, .15, 0], INK);
   KIND[kind](w, p, r);
   // chalk slate (standing on the back shelf, left) and the hanging scale (right)
-  if (p.lines && p.lines.length) chalk(p.lines.slice(0, 2), .16, 1.84, .13, 1.12, 1.12 + .2 + Math.min(2, p.lines.length) * .44, {});
+  if (p.lines && p.lines.length) chalk(p.lines.slice(0, 2), .16, 2.5, .13, 1.12, 1.12 + .2 + Math.min(2, p.lines.length) * .44, {});
   const sx = w - .34; lw([sx, .2, 2.18], [sx, .2, 1.98], INK); dial(sx, .2, 1.82, .27, p.kg || 0, {}); const s = S2(sx, .2, 1.56); line([s[0] - 5, s[1]], [s[0], s[1] - 3], INK); line([s[0] + 5, s[1]], [s[0], s[1] - 3], INK); rect(s[0] - 6, s[1], 13, 2, STEEL); rect(s[0] - 5, s[1] + 2, 11, 1, STEEL_D);
   if (p.pan && SPECIES[p.pan]) { const [fw, fh] = fishSize(p.pan); stamp(SPECIES[p.pan].map, SPECIES[p.pan].pal, s[0] - (fw >> 1), s[1] - fh + 1, {}); }
 }
