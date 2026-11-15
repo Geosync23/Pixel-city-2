@@ -63,3 +63,4 @@
 48. (msg 86) 'When its worked on' — follow-up to 85 (the aquarium is being worked on now). (msg 87) Wander needs no notification counter on its icon. Done (Stage 22c).
 49. (msg 88) The Planner and Wellness counters never cleared whatever he did. Fixed (Stage 22d): they clear when the app is opened and only come back for something new. Standing preference: a counter must always be clearable by looking.
 50. (msgs 89-90) Status update, then a recap of the waves — answered with the wave table (A done; showpieces S1-S6 done, S7-S9 running; B-E not started).
+51. (msg 91) Wave order changed: old D (goods + home-goods stores, home design + shipping, new needs + Opportunities, unfinished art) is now WAVE C; old C (big city events, jobs expansion, relationships/romance) is now WAVE D; the university moves from B to the new D.

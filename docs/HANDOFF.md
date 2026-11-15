@@ -14,10 +14,13 @@ Rule: this file is updated every time a worker finishes, a build is published, o
   4. S9 NATATORIUM (Fable, launched ~06:00; the aquarium + its polish pass are DONE and published). New: src/sim/natatorium.js, src/scenes/rooms/natatorium*.js, src/data/natatorium.js, src/art/showpiece/natatorium*.js, _nat_lib.js, _nat_icons.js; converts bld.civic.pool in place, no world edits.
   5. (writer DONE: city-folk lines are live, docs/reports/city_lines.md lists the dormant pools that still need detection hooks or new citizen kinds.)
 - **When each finishes (playbook loop):** docs/reports/<system>.md, build, 1-2 screenshots viewed by the lead, STATUS/BACKLOG/HISTORY, commit + push, publish a stage, rewrite this section, start the next queued item within ~10-15 min.
-- **Queue (3 Fable + 1 Opus):** next free Fable slots: Wave B (2i clothes/hair/laundry, 2j traits/skills/mini-games, university, post offices).
+- **Queue (3 Fable + 1 Opus):** next free Fable slots: Wave B (2i clothes/hair/laundry, 2j traits/skills/mini-games, post offices) — see WAVE ORDER below.
   Opus lane next: QA of nav arrow (real walking between legs, lobbies/homes/halls/SkyDeck, night, the intro with the new arrow) + observatory + museum + recipes; small open items below.
-  Then Wave B: 2i clothes/hair/laundry | 2j traits/skills/mini-games | university | post offices. Wave C: 2k city events | 3 jobs (writer + engine) | 4b relationships/romance. Wave D: 4c goods + MANY home-goods stores
-  (big-box home improvement, department stores, furniture showrooms...; map expansion OK, BIBLE update 13) | home design + shipping | 4 needs + Opportunities | 5 art. Wave E: 6 QA.
+  WAVE ORDER (owner msg 91, BIBLE update 18 — C and D swapped, university moved to D):
+  Wave B: 2i clothes/hair/laundry | 2j traits/skills/mini-games | post offices.
+  Wave C: 4c goods + MANY home-goods stores (big-box home improvement, department stores, furniture showrooms...; map expansion OK, BIBLE update 13) | home design + shipping | 4 needs + Opportunities | 5 art.
+  Wave D: 2k city events | 3 jobs (writer + engine) | 4b relationships/romance | university.
+  Wave E: 6 QA.
 - **Lead TODOs left:** nav gaps (SkyDeck exit, mall shops in G.places, tip banners over the trip strip, MapleCab "on its way" text, unused #ph-way CSS); red-check table sets repeat (taqueria/soul kitchen);
   extra unique home listings need door pois in src/world/_blocks.js (after the museum worker releases that file); conservatory tour times not in the planner.
 - **Small open items:** Circle app releases immediately; `app.*` icons; city-bench sit; two "Beacon" buildings; SkyDeck telescope discovery; weather isWet bug; show music never heard; fuel tanks near runway end;

@@ -376,3 +376,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 90 — Recap of waves
 > Recap of waves
+
+## 91 — Reorder the waves: swap C and D; university moves to D
+> Make d c and c d. Then move the university to d.

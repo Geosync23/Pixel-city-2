@@ -126,7 +126,7 @@ export default [
   A('daisdesk', ['decor'], p => [p.w || 6, .6, 1.11], daisdesk, { vb: p => [-.1, -.1, 0, (p.w || 6) + .1, .8, 1.6], variants: [{ seal: 1 }, { w: 2.4, n: 2 }] }),
   A('cchair', ['ch_cchair'], p => [.6, .7, p.back === 0 ? .45 : p.tall ? 1.6 : 1.3], cchair, { seats: [{ x: .3, y: .42, z: .45, dir: 1 }], variants: [{}, { tall: 1, c: '#2f5a4a' }, { back: 0 }] }),
   A('podium', ['ch_podium'], [1, .7, 1.25], podium, { vb: [-.1, -.1, 0, 1.1, .8, 1.7], use: { x: .5, y: 1.2 }, pose: { x: .5, y: 1.15, z: 0, dir: 3 } }),
-  A('voteboard', ['ch_board'], [7, .2, 3.2], voteboard, Object.assign({ use: { x: 3.5, y: .8 }, variants: [{ t: 'ROUTE 14: PUNCTUALITY', a: 4, n: 2, v: 'AANA-A-', s: 'VOTING', h: 'ITEM 2 OF 4' }, { t: 'NEXT MEETING', t2: 'TUESDAY 18:30', t3: 'PUBLIC WELCOME', s: 'CHAMBER OPEN' }] }, WALL, { mount: 1.5 })),
+  A('voteboard', ['ch_board'], [7, .2, 3.2], voteboard, Object.assign({ use: { x: 3.5, y: .8 }, variants: [{ t: 'ROUTE 14: PUNCTUALITY', a: 4, n: 2, v: 'AANA-A-', s: 'VOTING', h: 'ITEM 2 OF 4' }, { t: 'NEXT MEETING', t2: 'TUESDAY 18:30', t3: 'PUBLIC WELCOME', s: 'CHAMBER OPEN' }] }, WALL, { mount: 1.9 })),
   A('clerktable', ['ch_signup'], [2, .9, .8], clerktable, { vb: [-.1, -.1, 0, 2.1, 1, 1.2], use: { x: 1, y: 1.4 }, staff: { x: 1, y: -.45, dir: 1 } }),
   A('railing', ['decor'], p => [p.w || 4, .2, .95], railing, { variants: [{}, { w: 6 }] }),
 ];

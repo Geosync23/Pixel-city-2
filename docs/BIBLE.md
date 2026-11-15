@@ -199,3 +199,9 @@ Showpiece track (one big worker each, highest priority for free slots after Wave
 ## Direction update 17 — the Aquarium must be excellent (owner msg 85)
 "Really make the aquarium really excellent and detailed. Sea turtles too among many other things!" Sea turtles are a headline (a turtle lagoon with named individuals of several species, feeding, a hatchling nursery, turtles in the tunnel,
 the rescue-and-release chain). 50+ distinct animated species with ID plaques and a logbook; rich detail (caustics, bubbles, kelp, night look); more to do (keeper talks, touch pool game, adoption board, release event). Sent to the S6 worker mid-run.
+
+## Direction update 18 — wave order (owner msg 91)
+- Wave B: 2i clothes/hair/laundry | 2j traits/skills/in-world mini-games | post offices.   (the university moved out)
+- Wave C (was D): 4c goods + MANY home-goods stores (big-box home improvement, department stores, furniture showrooms; map expansion OK) | home design + shipping | 4 new needs + Opportunities | 5 unfinished art (building sets, props, terrain/water, audio, weather, title/creator).
+- Wave D (was C): 2k big city events | 3 jobs expansion (writer + engine) | 4b relationships / vignettes / romance | the UNIVERSITY campus with classes (moved here from B).
+- Wave E: 6 full QA.

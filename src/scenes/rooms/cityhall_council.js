@@ -28,7 +28,7 @@ function build() {
   H('flagpole', 6.6, 1, {}); H('flagpole', 16.9, 1, { k: 'bay' }); H('podium', 11.5, 7.2, {}, { podium: 1 }); H('clerktable', 3.6, 5.6, {}, { signup: 1 });
   H('railing', 2.5, 9.7, { w: 8.5 }); H('railing', 13, 9.7, { w: 8.5 });
   for (const y of [11, 12.7, 14.4]) for (const x of [3.3, 7.5, 12.7, 16.9]) H('bench', x, y, { w: 4, dir: 3, c: '#7a2030' }, { gallery: 1 });
-  H('furn.hotel.carpet', 11.2, 9.4, { w: 2, d: 8.2, c: '#2f6f5f' }); H('furn.hotel.chandelier', 10.8, 4.6, { r: 1 }, { z: 3.8 }); H('furn.hotel.chandelier', 10.8, 11.4, { r: .8 }, { z: 3.8 });
+  H('furn.hotel.carpet', 11.2, 9.4, { w: 2, d: 8.2, c: '#2f6f5f' }); H('furn.hotel.chandelier', 10.8, 11.4, { r: .8 }, { z: 3.8 });
   H('planter', 1, 16.6, { seed: 3 }); H('planter', 21.4, 16.6, { seed: 5 });
   S(20.6, 8.6, 2, { busy: 1, label: 'Reporter', lines: LINES.press, anim: 'phone' }); S(21.4, 8.9, 2, { busy: 1, label: 'Reporter', lines: LINES.press }); S(2.6, 15.6, 0, { p: .5 }); S(19.5, 6.2, 3, { p: .4 });
 }

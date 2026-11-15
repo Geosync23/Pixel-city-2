@@ -10,7 +10,7 @@ function ticketmachine() {
   box(0, 0, 0, .7, .5, 1.25, '#a8342e'); qy(.08, .62, .501, .2, .5, dk('#a8342e', .3)); qy(.25, .45, .502, .3, .42, PAPER); lit(() => { qy(.12, .58, .502, .78, 1.08, '#1c2028'); textY('A', .2, .503, 1.02, '#ffd060'); dot(.5, .5, .64, '#6fe08a', 2); });
   lw([.35, .25, 1.25], [.35, .25, 1.7], STEEL_D); signY('TAKE A', -.35, 1.05, .27, 2.08, 2.44, '#a8342e', LINEN, { frame: false }); signY('NUMBER', -.35, 1.05, .27, 1.7, 2.08, '#a8342e', LINEN, { frame: false }); lw([-.35, .27, 1.7], [1.05, .27, 1.7], dk('#a8342e', .4));
 }
-function nowserving(p) { const W = 5, y = .15; qy(0, W, y, 0, 1.1, SLATE); qy(.08, W - .08, y + .001, .08, 1.02, '#10141c'); lit(() => { ctext('NOW SERVING', 0, 2.4, y + .002, .94, '#ffb040'); textY('A', .5, y + .002, .44, '#ffd060'); num7(String(p.n === undefined ? 41 : p.n).padStart(2, '0'), .85, y + .002, .14, '#ffd060', .22, .36); ctext('WINDOW', 2.5, W - .1, y + .002, .94, '#ffb040'); num7(p.win || 1, 3.6, y + .002, .14, '#6fe08a', .22, .36); }); }
+function nowserving(p) { const W = 5, y = .15; qy(0, W, y, 0, 1.5, SLATE); qy(.08, W - .08, y + .001, .08, 1.42, '#10141c'); lit(() => { ctext('NOW SERVING', 0, 2.5, y + .002, 1.34, '#ffb040'); textY('A', .55, y + .002, .6, '#ffd060'); num7(String(p.n === undefined ? 41 : p.n).padStart(2, '0'), .95, y + .002, .2, '#ffd060', .28, .56); ctext('WINDOW', 2.5, W - .1, y + .002, 1.34, '#ffb040'); num7(p.win || 1, 3.6, y + .002, .2, '#6fe08a', .28, .56); }); }
 function win(p) {
   const w = 3, n = p.n || 1, sh = !!p.shut;
   counter(w, .9, 1.05, OAK, MARBLE); signY(p.name || '', .12, w - .12, .91, .44, .82, sh ? '#6a6a70' : CIVIC, LINEN, { frame: false }); lw([.12, .91, .44], [w - .12, .91, .44], BRASS); lw([.12, .91, .82], [w - .12, .91, .82], BRASS);
@@ -95,7 +95,7 @@ const A = (id, tags, size, draw, x) => Object.assign({ id: 'furn.cityhall.' + id
 const WALL = { wall: true, mount: 0, solid: false };
 export default [
   A('ticketmachine', ['ch_ticket'], [.7, .5, 1.25], ticketmachine, { vb: [-.5, -.1, 0, 1.2, .7, 2.6], use: { x: .35, y: 1.05 } }),
-  A('nowserving', ['decor'], [5, .15, 1.1], nowserving, Object.assign({ variants: [{ n: 47, win: 3 }] }, WALL, { mount: 3.3 })),
+  A('nowserving', ['decor'], [5, .15, 1.5], nowserving, Object.assign({ variants: [{ n: 47, win: 3 }] }, WALL, { mount: 2.9 })),
   A('window', ['ch_window'], [3, .9, 1.12], win, { vb: [-.2, -.2, 0, 3.2, 1.1, 2.8], use: { x: 1.5, y: 1.45 }, staff: { x: 1.5, y: -.45, dir: 1 }, variants: [{ n: 1, short: 'CASHIER', name: 'PAY BILLS' }, { n: 5, short: 'FOUND', name: 'LOST+FOUND' }, { n: 2, shut: 1, name: 'ID + TAGS' }] }),
   A('waitrow', ['ch_wait'], p => [(p.n || 4) * .6, .6, .45], waitrow, { seats: p => Array.from({ length: p.n || 4 }, (_, i) => ({ x: i * .6 + .3, y: .3, z: .45, dir: p.dir === undefined ? 3 : p.dir })), variants: [{}, { n: 6, c: '#8a5a34' }] }),
   A('photobooth', ['ch_photo'], [1.6, 1.2, 2.2], photobooth, { vb: [-.1, -.1, 0, 1.8, 1.4, 2.4], use: { x: .6, y: 1.7 }, variants: [{}, { flash: 1 }] }),

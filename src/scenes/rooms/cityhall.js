@@ -60,11 +60,11 @@ function build() {
   H('seal', CX - 3, CY - 3, {}, { seal: 1 }); H('furn.hotel.chandelier', CX - 1.2, CY - 1.2, { r: 1.2 }, { z: 4 });
   for (let k = 0; k < 8; k++) { const a = Math.PI / 8 + k * Math.PI / 4; H('furn.hotel.column', Math.round((CX + Math.cos(a) * 5.6 - .4) * 2) / 2, Math.round((CY + Math.sin(a) * 5.6 - .4) * 2) / 2, { h: 5.75 }); }
   H('flagpole', 11.5, 4.4, {}); H('flagpole', 16, 4.4, { k: 'bay' });
-  H('desk', 5, 16.4, { kind: 'info', w: 3.4 }, { info: 1 }); H('directory', 9.4, 18.6, {});
+  H('desk', 5, 16.4, { kind: 'info', w: 3.4 }, { info: 1 }); H('directory', 10, 17.4, {});
   H('desk', 16.6, 18.4, { kind: 'guard', w: 2.5 }); H('detector', 13.35, 19, {});
   H('model', 20.6, 13.6, {}, { model: 1 }); H('ballotbox', 19.6, 5.4, {}, { ballot: 1 });
   H('desk', 22.6, 2.6, { kind: 'shop', w: 3 }, { venue: CV.shop }); H('furn.hotel.shopcase', 22.6, .2, { w: 3 }); S(24.1, 2.15, 1, { kind: 'staff', label: 'The Civic Shop', lines: ['The pigeon plush outsells the flag three to one.', 'Toy gavels are behind the mugs. Bang responsibly.', 'Everything here is tax, lovingly recycled.'] });
-  H('bench', 2, 7.6, { w: 3 }, { flip: true }); H('bench', 2, 16.2, { w: 3 }, { flip: true }); H('bench', 25.6, 6, { w: 3, dir: 3 }, { flip: true }); H('bench', 25.6, 9.6, { w: 3, dir: 3 }, { flip: true }); H('bench', 21.2, 18.4, { w: 3 });
+  H('bench', 2, 7.6, { w: 3 }, { flip: true }); H('bench', 2, 16.2, { w: 3 }, { flip: true }); H('bench', 25.6, 6, { w: 3, dir: 3 }, { flip: true }); H('bench', 25.6, 9.6, { w: 3, dir: 3 }, { flip: true });
   for (const [x, y, s] of [[9.4, 20.4, 1], [17, 20.4, 2], [3.4, 1, 3], [18.2, 6.2, 4]]) H('planter', x, y, { seed: s }, { plant: 1 });
   H('furn.hotel.carpet', 12.9, 15, { w: 2.2, d: 5.6, c: '#2f6f5f' });
   // people
