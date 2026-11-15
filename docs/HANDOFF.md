@@ -2,7 +2,7 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-15 ~00:45 UTC) — FABLE LEAD SESSION; 4 WORKERS RUNNING
-- Lead is now a Fable 5.2 session on the same branch `ccr-e622e92c-7t3ejy`. Last published build: Stage 15 (version 1794700378-bed4) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
+- Lead is now a Fable 5.2 session on the same branch `ccr-e622e92c-7t3ejy`. Last published build: Stage 15b (version 1794701451-6fd9; Stage 15 + door tap fix, owner msg 76, built from a clean worktree without the workers' WIP) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG
   (from this session: Artifact `action: read` on that url first, then publish dist/index.html with `url`).
 - **Review of the previous session: DONE** (docs/LEAD_JOURNAL.md section H). Nothing broken found; 124 rooms swept clean; unverified items handed to the QA lane.
 - **RUNNING (launched ~00:40 UTC; a completion notice arrives per worker; if this session restarted they are gone — check the owned files and re-brief "these files exist; continue"):**
