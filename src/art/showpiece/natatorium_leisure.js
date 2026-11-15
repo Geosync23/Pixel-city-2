@@ -32,7 +32,7 @@ function sauna() {
   qz(.12, 3.4, .12, 2.4, .02, PAT.fboards(WOOD, .3)); box(.12, .12, 0, 3.28, .6, .46, lt(CEDAR, .1), { l: PAT.planks(CEDAR, 3) }); box(.12, .12, .46, 3.28, .3, .4, lt(CEDAR, .15), { ol: false }); box(.12, .72, 0, .6, 1.6, .46, lt(CEDAR, .1), { ol: false });
   box(2.6, 1.5, 0, .6, .6, .6, '#5a5560'); for (let i = 0; i < 5; i++) ball(2.72 + (i % 3) * .16, 1.62 + (i % 2) * .2, .66, .1, i % 2 ? '#8a8490' : '#6a6470', { ol: false }); glow(() => dot(2.9, 2.1, .3, '#ff8a3a', 2)); lit(() => dot(2.9, 2.11, .2, '#ff6a2a'));
   box(.3, .05, 1.9, .3, .1, .3, '#f4f0e8', { ol: false }); glow(() => qy(.32, .58, .16, 1.92, 2.18, '#ffd98a'));
-  box(3.28, 0, 0, .12, 2.4, 2.5, CEDAR, { r: PAT.planks(dk(CEDAR, .15), 4), ol: false }); lw([.12, 2.4, 2.5], [3.4, 2.4, 2.5], WOOD_D); lw([.12, 2.4, 0], [.12, 2.4, 2.5], WOOD_D); glassY(.2, 1.3, 2.4, .1, 2.1); signY('SAUNA 85 C', 1.5, 3.3, 2.41, 2.08, 2.42, WOOD_D, '#fff2c8');
+  box(3.28, 0, 0, .12, .5, 2.5, CEDAR, { r: PAT.planks(dk(CEDAR, .15), 4), ol: false }); box(.12, 2.3, 0, 3.28, .1, .1, WOOD_D, { ol: false }); box(3.3, .5, 0, .1, 1.9, .1, WOOD_D, { ol: false }); glassY(.2, 1.1, 2.38, .1, 2); signY('SAUNA 85 C', .8, 3.1, .13, 1.95, 2.4, WOOD_D, '#fff2c8');
 }
 function steam() {
   box(0, 0, 0, 3, .12, 2.4, TILE, { l: tiles('#d8ecf0', 4, TEAL, 30, 33) }); box(0, 0, 0, .12, 2.2, 2.4, TILE, { r: tiles('#c8e0e6', 4) }); qz(.12, 3, .12, 2.2, .02, tiles('#cfe4e6', 4)); box(.12, .12, 0, 2.88, .55, .46, '#e4f2f4', { l: tiles('#d8ecf0', 4) });
