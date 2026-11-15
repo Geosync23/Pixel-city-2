@@ -35,7 +35,7 @@ const SITE_INFO = {
   'goods:bellwether': ['oldtown', 'Old Town, the bay-fronted row on the west side'], 'goods:lumen': ['oldtown', 'Old Town, the stucco row by the post office'],
   'goods:voltaic': ['maplewood', 'Maplewood, the duplex by the FreshWay market'], 'goods:loam': ['oldtown', 'Old Town, the mansard row at the west end'],
   'goods:attic': ['oldtown', 'Old Town, the timber-framed row off Market Square'], 'goods:warp': ['oldtown', 'Old Town, the stucco row off Market Square'],
-  'goods:copper': ['oldtown', 'Old Town, the timber-framed row by the post office'], 'goods:nord': ['hillcrest', 'Hillcrest, the cliff house on the lowest terrace'],
+  'goods:copper': ['maplewood', 'Maplewood, the gabled house by the FreshWay market'], 'goods:nord': ['hillcrest', 'Hillcrest, the cliff house on the lowest terrace'],
   'goods:kestrel': ['maplewood', 'Maplewood, the craftsman house in the south of the district'], 'goods:sleepy': ['maplewood', 'Maplewood, the split-level on the east side'],
   'goods:spoke': ['maplewood', 'Maplewood, the bungalow by the FreshWay market'] };
 for (const s of STORES) { const i = SITE_INFO[s.id] || ['downtown', '']; s.district = i[0]; s.where = i[1]; }

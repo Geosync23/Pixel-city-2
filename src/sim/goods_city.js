@@ -19,7 +19,7 @@ export const SITES = [
   { store: 'goods:fjord', bld: 'bld.ind.warehouse.corrugated', at: [219, 331], repaint: { wall: '#3f6fb0', accent: '#f2c230', name: 'FJORD & FOLD', code: 'FF' } },
   { store: 'goods:bellwether', bld: 'bld.oldtown.rowhouse.bay', at: [70, 214] },
   { store: 'goods:lumen', bld: 'bld.oldtown.rowhouse.stucco', at: [126, 215] },
-  { store: 'goods:copper', bld: 'bld.oldtown.rowhouse.timber', at: [125, 211] },
+  { store: 'goods:copper', bld: 'bld.res.gablehouse', at: [273, 158] },
   { store: 'goods:attic', bld: 'bld.oldtown.rowhouse.timber', at: [74, 253] },
   { store: 'goods:warp', bld: 'bld.oldtown.rowhouse.stucco', at: [72, 246] },
   { store: 'goods:loam', bld: 'bld.oldtown.rowhouse.mansard', at: [33, 230] },

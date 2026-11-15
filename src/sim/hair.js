@@ -114,6 +114,6 @@ export function init() {
   S = G.defineState('hair', mk); const fix = () => { S = G.state.hair || G.defineState('hair', mk); S.hist = S.hist || []; S.known = S.known || []; if (S.last === null || S.last === undefined) S.last = today(); };
   fix(); G.on('load', fix); G.on('game:new', () => { G.state.hair = mk(); fix(); });
   G.hair = { open, current, shaggy, daysSince, history: () => S.hist.slice(), known, bookFor, styles, BOOK };
-  registerFixture('barber', (fx, scene) => { const kind = bookFor(scene.roomId); if (!kind || !/station/.test(fx.asset.id)) return null; return { label: 'Barber mirror: the lookbook', hit: 14, use: () => { const ch = scene.fixtures.filter(f => f.seats && f.seats.length && /barber\.armchair/.test(f.asset.id)).sort((a, b) => Math.abs(a.x - fx.x) - Math.abs(b.x - fx.x))[0] || null; open(kind, scene.roomId, ch); } }; });
+  registerFixture('barber', (fx, scene) => { const kind = bookFor(scene.roomId); if (!kind || !/station/.test(fx.asset.id)) return null; return { label: 'Barber mirror: the lookbook', hit: 14, spot: null, range: 2.4 /* QA round 4: the default spot (in front of the wall mirror) is inside the barber chair, so a tap walked you over and then did nothing */, use: () => { const ch = scene.fixtures.filter(f => f.seats && f.seats.length && /barber\.armchair/.test(f.asset.id)).sort((a, b) => Math.abs(a.x - fx.x) - Math.abs(b.x - fx.x))[0] || null; open(kind, scene.roomId, ch); } }; });
   G.on('room:build', onRoom); G.on('day', onDay);
 }
