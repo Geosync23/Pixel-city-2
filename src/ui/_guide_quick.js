@@ -13,7 +13,7 @@ import { NEEDS } from '../data/needs.js';
 import { FAMILY_OF } from '../data/skills_extra.js';
 import { safe, cityPos } from './phone_util.js';
 
-const DAY = 1440, WALK = .215;
+const DAY = 1440, WALK0 = .215, WALK = () => WALK0 * (G.CLOCK || .85);   /* QA13: slower clock (owner msg 142) */
 export const TOOLS = [
   { id: 'fun', name: 'Fun right now', icon: 'sys.fun', color: '#c2478a', line: 'What is open and near, picked for you. Every way to fill Fun is in here somewhere.' },
   { id: 'new', name: 'Something new', icon: 'myday.new', color: '#2f9aa8', line: 'Things you have never done: a place, a dish, a skill, a part of the game.' },
@@ -26,7 +26,7 @@ export const TOOL_BY_ID = Object.fromEntries(TOOLS.map(t => [t.id, t]));
 const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 10000) / 10000; };
 const hh = t => { const m = ((Math.round(t) % DAY) + DAY) % DAY; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
 const now = () => G.state.t, today = () => Math.floor(G.state.t / DAY);
-const walkOf = p => { const c = cityPos(); return p && isFinite(p.x) ? Math.max(1, Math.round((Math.abs(p.x - c.x) + Math.abs(p.y - c.y)) * WALK)) : 0; };
+const walkOf = p => { const c = cityPos(); return p && isFinite(p.x) ? Math.max(1, Math.round((Math.abs(p.x - c.x) + Math.abs(p.y - c.y)) * WALK())) : 0; };
 const walkText = w => (w <= 1 ? 'right here' : w + ' min walk');
 const openNow = e => safe(() => G.guide.openNow(e).open, null);
 const visits = id => safe(() => G.state.traits.visits[id], 0) || 0;

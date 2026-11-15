@@ -547,3 +547,8 @@ The sea turtle is way too big
 ## 142 (2026-11-15)
 Lets make notes job push to day 2 late in the day
 Time should also go just a little slower
+
+## 143 (2026-11-15) — check the time-scale change thoroughly; controller support
+Yes be sure to throughly check any conflicts die to the time scale cha ge. 
+
+Lets also design and implement controller support now. I know it is very much a touch screen game but if dome by a Fable agent I think they can figure it out!

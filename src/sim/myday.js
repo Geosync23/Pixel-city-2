@@ -39,7 +39,7 @@ import { cityPos } from '../ui/phone_util.js';
 import '../art/icons/myday.js';
 
 export const order = 132;
-const DAY = 1440, WALK = .215;
+const DAY = 1440, WALK0 = .215, WALK_ = () => WALK0 * (G.CLOCK || .85);   /* QA13: game minutes per unit on foot at the owner's slower clock (msg 142) */
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const fresh = () => ({ v: 1, seen: 0, like: {}, no: {}, last: {}, sumDay: -1, nudgeDay: -1, n: { add: 0, no: 0, open: 0 } });
 const st = () => { let s = G.state.myday; if (!s || typeof s !== 'object') s = G.state.myday = fresh(); const f = fresh(); for (const k in f) if (s[k] === undefined) s[k] = f[k]; return s; };
@@ -56,7 +56,7 @@ const EV_BY_ID = Object.fromEntries(EVENTS.map(e => [e.id, e]));
 let ver = 0, cache = new Map(), listeners = [], here = null, sources = [];
 
 /* ---------- small helpers ---------- */
-const walkTo = p => (p && isFinite(p.x) ? Math.max(1, Math.round((Math.abs(p.x - here.x) + Math.abs(p.y - here.y)) * WALK)) : 0);
+const walkTo = p => (p && isFinite(p.x) ? Math.max(1, Math.round((Math.abs(p.x - here.x) + Math.abs(p.y - here.y)) * WALK_())) : 0);
 const walkText = w => (w <= 1 ? 'right here' : w + ' min walk');
 const inRoom = id => { const sc = G.scene ? String(G.scene.id) : ''; return !!id && sc !== 'city' && (sc === id || sc === 'int:' + id || sc.endsWith(':' + id)); };
 const bigIds = () => new Set(safe(() => G.cityEvents.list().map(e => e.id), []));
@@ -123,7 +123,7 @@ function gather(day, at, extra) {
     for (const k in NEED) { const v = need(k); if (v >= 42) continue; const soft = ['comfort', 'outdoors', 'inspiration'].includes(k);
       const rows = soft ? safe(() => G.needsExtra.fix(k, 3), []) : safe(() => G.nav.find(k, 3), []), r = rows.find(q => q && q.open !== false && typeof q.id === 'string' && !inRoom(q.id)) || null; if (!r) continue;
       const home = /^home:/.test(r.id) || r.home, HOME = { hunger: 'Cook something at home', energy: 'Head home and rest', hygiene: 'A shower at home', fun: 'Put your feet up at home', comfort: 'Home, where it is cosy' };
-      push({ id: 'need:' + k + ':' + r.id, key: 'need:' + k, kind: 'need', cat: 'need', needId: k, needV: v, title: home && HOME[k] ? HOME[k] : `${NEED[k][0]} ${String(r.name).replace(/ \(.*\)$/, '')}`, why0: NEED[k][1], icon: NEED[k][2], placeId: r.id, dur: 45, fixed: false, walk: place(r.id) ? undefined : Math.max(1, Math.round((r.d || 0) * WALK)) }); }
+      push({ id: 'need:' + k + ':' + r.id, key: 'need:' + k, kind: 'need', cat: 'need', needId: k, needV: v, title: home && HOME[k] ? HOME[k] : `${NEED[k][0]} ${String(r.name).replace(/ \(.*\)$/, '')}`, why0: NEED[k][1], icon: NEED[k][2], placeId: r.id, dur: 45, fixed: false, walk: place(r.id) ? undefined : Math.max(1, Math.round((r.d || 0) * WALK_())) }); }
   }
   /* 5. friends and family who are free (now only) */
   if (isToday && at === undefined) {

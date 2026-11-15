@@ -23,7 +23,9 @@ import { ROOMS } from '../scenes/interior.js';
 import { VENUE_BY_ID } from '../data/venues.js';
 import { subRooms } from './navgoals.js';
 
-const WALK = .215, BUS_V = 20, BUS_DWELL = .6, CAB_V = 9, BUS_HEADWAY = 10;   // WALK: game minutes per Manhattan unit, measured door to door on three real cross-district walks (QA round 3: .203-.233; was 1.15/3.6 = .32, 40-58% too slow)
+const WALK0 = .215, BUS_V0 = 20, BUS_DWELL0 = .6, CAB_V = 9, BUS_HEADWAY = 10; let WALK = WALK0, BUS_V = BUS_V0, BUS_DWELL = BUS_DWELL0;   /* owner msg 142 (QA13): measured at 1 game minute per real second; the free-running clock now runs G.CLOCK (.85) game minutes per real second, so the same walk / ridden bus costs CLOCK x the minutes. clockK() rescales them per call */
+const clockK = () => { const k = G.CLOCK || .85; WALK = WALK0 * k; BUS_V = BUS_V0 / k; BUS_DWELL = BUS_DWELL0 * k; };
+export const walkMinPerUnit = () => WALK0 * (G.CLOCK || .85);   // WALK: game minutes per Manhattan unit, measured door to door on three real cross-district walks (QA round 3: .203-.233; was 1.15/3.6 = .32, 40-58% too slow)
 //   // BUS_V: measured along the bus loop incl. lights (units per game minute at the transit.js ride clock 0.2 + signal priority); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
@@ -136,7 +138,7 @@ export function describe(o) {
   return `walk to ${o.board.name} (${mins(o.walkA)}) -> ${veh}, ${stopsTxt(o.stops)} -> get off at ${o.alight.name} -> walk ${mins(o.walkB)}`;
 }
 export function routeTo(dest, from = cityPos(), opts) {   /* opts.all: also the bus / train options that are not worth showing (QA tools) */
-  if (typeof dest === 'string') dest = place(dest) || innerPlace(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
+  clockK(); if (typeof dest === 'string') dest = place(dest) || innerPlace(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
   const D = pt(dest), dist = man(D, from), walk = dist * WALK, out = [{ mode: 'walk', label: 'Walk', minutes: walk, cost: 0, dist }];
   if (hasBike()) out.push({ mode: 'bike', label: 'Bike', minutes: walk / 2.2, cost: 0, dist });
   for (const o of [busOption(from, D, dist), trainOption(from, D, walk)]) if (o && ((opts && opts.all) || (o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1) || o.mode === 'train')) out.push(o);   /* owner msgs 131 + 133: the train is ALWAYS offered when a train route exists, even when it is the slower way; its time says so */

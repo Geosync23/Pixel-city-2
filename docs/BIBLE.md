@@ -263,3 +263,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 ## Direction update 25 (owner msg 142, 2026-11-15) — pace
 - The game clock runs a little slower than one game minute per real second: 0.85 at 1x (`G.CLOCK`). Travel estimates and reminders must follow it.
 - The first push to find a job (Nora's text + the to-do) comes on the second day, in the evening.
+
+## Direction update 26 (owner msg 143, 2026-11-15) — controller support
+- The game stays touch-first, and gains full gamepad support: move with the stick, interact / talk / enter with one button, every menu, phone app, sheet, dialogue, shop, mini-game and the map usable with a pad (focus ring, sensible order, back button), on-screen button glyphs that appear only while a pad is in use, nothing touch-only left behind. Works with the standard Gamepad API (Xbox / PlayStation / Switch-style pads on phone, tablet and desktop). Keyboard gets the same focus navigation for free where cheap.

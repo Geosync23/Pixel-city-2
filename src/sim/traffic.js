@@ -141,7 +141,7 @@ function nextBuses(stopId) {
   const out = [];
   for (const b of buses) {
     const l = b.loop, si = l.stops.findIndex(s => s.id === stopId); if (si < 0) continue; const u = busU(b); let min;
-    if (b.atStop === stopId) min = 0; else { const du = (l.stops[si].u - u + l.L) % l.L; let between = 0; for (const s of l.stops) { const d2 = (s.u - u + l.L) % l.L; if (d2 < du - .5 && s.id !== b.atStop) between++; } min = du / (b.veh ? BUS_REAL_V : BUS_SPEED) + between * DWELL + (b.atStop ? Math.max(0, b.dwell) : 0); }
+    if (b.atStop === stopId) min = 0; else { const du = (l.stops[si].u - u + l.L) % l.L; let between = 0; for (const s of l.stops) { const d2 = (s.u - u + l.L) % l.L; if (d2 < du - .5 && s.id !== b.atStop) between++; } min = du / (b.veh ? BUS_REAL_V / (G.CLOCK || .85) : BUS_SPEED) + between * DWELL + (b.atStop ? Math.max(0, b.dwell) : 0);   /* QA13: an on-screen bus moves in real seconds; the clock runs G.CLOCK game minutes per second (owner msg 142) */ }
     out.push({ bus: b, route: b.route, num: l.num, name: l.route.name, color: l.route.color, minutes: Math.ceil(min) });
   }
   return out.sort((a, b) => a.minutes - b.minutes);

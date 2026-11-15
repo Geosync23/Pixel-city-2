@@ -205,7 +205,7 @@ function callTaxi(placeId, opts = {}) {
   if (!rt || rt.len > 220) { const e = pick.e, s0 = g.span(e)[0]; sp = g.lanePos(e, pick.off, (pick.s - s0) * e.d > 26 ? pick.s - e.d * 26 : s0); rt = g.route(sp, pick); }
   const cab = TX().spawn('taxi', sp, { keep: true, role: 'svc', pre: true, params: { free: false } }); if (!cab) { toast('No cabs available right now.'); return Promise.resolve(false); }
   cab.vmax = 9.5; cab.v = 6; TX().setPlan(cab, rt); cab.stop = { e: pick.e, s: pick.s }; cab.onStop = cabHere;
-  const due = pickupMin(), hold = Math.max(0, due - (rt ? rt.len : 30) / CAB_CAR_V - .5); if (hold > 0) { cab.halt = true; cab.v = 0; }   // QA7: the pick-up takes about `due` game minutes (the cab waits off screen when it is close)
+  const due = pickupMin(), hold = Math.max(0, due / (G.CLOCK || .85) - (rt ? rt.len : 30) / CAB_CAR_V - .5);   /* QA13: hold / pd.t are real seconds; the quote is game minutes at G.CLOCK per second */ if (hold > 0) { cab.halt = true; cab.v = 0; }   // QA7: the pick-up takes about `due` game minutes (the cab waits off screen when it is close)
   if (!opts.silent) toast('MapleCab is on the way: about ' + Math.max(1, Math.round(due)) + ' min.');
   return new Promise(res => { pend = { cab, place: pl, opts, state: 'coming', t: 0, resolve: res, pick, due, hold, len: rt ? rt.len : null }; });
 }
@@ -253,7 +253,7 @@ function pickStop(r) { const b = r.bus, l = b.loop, n = l.stops.length, cur = b.
 /* QA13 (owner msg 134): "Skip ride" on a bus, like the cab's. The stop is the one you chose ("Choose stop"), else the Map trip's stop, else you are asked which
    (a loop bus has no end of the line). The clock jumps by the rest of the ride at the navigator's own bus pace (BUS_V u per game minute along the loop
    + BUS_DWELL per stop passed: the quote's model), needs tick through G.advance, and you get off at that stop: the trip goes on to its walking leg. */
-const SKIP_BUS_V = 20, SKIP_BUS_DWELL = .6;   // = navigator.js BUS_V / BUS_DWELL
+const SKIP_BUS_V = 20, SKIP_BUS_DWELL = .6;   // = navigator.js BUS_V0 / BUS_DWELL0 (at 1 game minute per real second; scaled by G.CLOCK below, as the navigator does)
 function skipBus() {
   const r = ride; if (!r || r.kind !== 'bus' || r.skipping) return; const nt = navTrip(), dest = r.destination || (nt && nt.stage === 1 ? nt.alight.id : null);
   if (!dest) { pickStop(r).then(id => { if (id && ride === r) { r.setDest(id); skipBus(); } }); return; }
@@ -262,7 +262,7 @@ function skipBus() {
     try {
       if (ride === r) { const b = r.bus, l = b.loop, L = l.L, i = l.stops.findIndex(s => s.id === dest), u = (TX().busU ? TX().busU(b) : b.u) || 0; let du = i < 0 || b.atStop === dest ? 0 : (l.stops[i].u - u + L) % L, between = 0;
         for (const s of l.stops) { const d2 = (s.u - u + L) % L; if (d2 > .5 && d2 < du - .5 && s.id !== b.atStop) between++; }
-        const m = du / SKIP_BUS_V + between * SKIP_BUS_DWELL; if (m > 0) G.advance(m); r.skipped = m; alight(dest); G.snapCam && G.snapCam(); }
+        const k = G.CLOCK || .85, m = du / (SKIP_BUS_V / k) + between * SKIP_BUS_DWELL * k; if (m > 0) G.advance(m); r.skipped = m; alight(dest); G.snapCam && G.snapCam(); }
     } finally { G.modal--; setTimeout(() => f && f.classList.remove('on'), 80); }
   }, 280);
 }
@@ -305,9 +305,9 @@ function update(dt) {
   if (pd.state === 'hail') {
     if (!c.halt) { const e = c.e, g = roadGraph(); if (!c.cornerOn && !c.inNode && (e.s1 - c.s) * e.d > g.ext(e.to, e.axis) + 3.2 && (c.s - e.s0) * e.d > g.ext(e.from, e.axis) + 2.2) c.halt = true; else if (pd.t > 12) c.halt = true; }
     else if (c.v < .05) { c.parked = true; pd.state = 'waiting'; pd.t = 0; sfx('honk'); G.emit('taxi:here', c); walkTo(c); }
-  } else if (pd.state === 'coming') { if (pd.hold > 0 && (pd.hold -= dt) <= 0) c.halt = false; if (!pd.near && pd.t > (pd.due || 6) - 2 && Math.hypot(c.x - pd.pick.x, c.y - pd.pick.y) > 12) lateCab(pd, c);
+  } else if (pd.state === 'coming') { if (pd.hold > 0 && (pd.hold -= dt) <= 0) c.halt = false; if (!pd.near && pd.t > ((pd.due || 6) - 2) / (G.CLOCK || .85) && Math.hypot(c.x - pd.pick.x, c.y - pd.pick.y) > 12) lateCab(pd, c);
     if (pd.again && pd.t > 8) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); return; }   /* a re-approach is never slow */
-    if (pd.t > (pd.due || 6) + CAB_LATE) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); } }
+    if (pd.t > ((pd.due || 6) + CAB_LATE) / (G.CLOCK || .85)) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); } }
   else if (pd.state === 'waiting') {
     if (pd.opts.auto !== false && !G.busy && !G.modal && Math.hypot(p.x - c.x, p.y - c.y) < (pd.hailed ? 4.6 : 3.3)) boardCab();
     else if (!pd.hailed && (pd.again || 0) < CAB_RESPAWNS && Math.hypot(p.x - c.x, p.y - c.y) > 6 && (pd.reach = (pd.reach || 0) + (G.modal > 0 ? 0 : dt)) > CAB_REACH && !G.busy && respawnNear(pd, c)) { /* driving round to you */ }
