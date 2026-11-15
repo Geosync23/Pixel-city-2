@@ -72,7 +72,7 @@ function sync() {
   if (on && !button) { button = el('button.dev-btn', { text: 'DEV', 'aria-label': 'Developer menu', onclick: open }); ui.append(button); }
   if (button) button.style.display = on ? '' : 'none';
 }
-function set(on) { const d = D(); d.on = !!on; if (!on) { d.needs = false; d.money = false; } sync(); hold(); toast(on ? 'Developer mode on: DEV button, bottom-left.' : 'Developer mode off.'); }
+function set(on) { const d = D(); d.on = !!on; if (!on) { d.needs = false; d.money = false; if (G.state.speed > 4) { G.state.speed = 4; safe(() => G.hud.refresh()); } /* QA round 4: 8x / 16x are dev-only; the HUD has no button to leave them */ } sync(); hold(); toast(on ? 'Developer mode on: DEV button, bottom-left.' : 'Developer mode off.'); }
 
 const CSS = `.dev-btn{position:absolute;left:max(8px,env(safe-area-inset-left,0px));bottom:14px;z-index:6;min-height:0;padding:5px 9px;font:700 12px/1 inherit;letter-spacing:1px;color:#fff;background:#b3261e;border:2px solid #4a0d09;box-shadow:0 3px 0 #4a0d09;border-radius:8px;opacity:.9}
 .win.dev{width:min(430px,94vw);max-height:86vh;display:flex;flex-direction:column}.win.dev .win-body{overflow:auto;padding:8px 10px 12px}
