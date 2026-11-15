@@ -398,3 +398,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 97 — Movie app: films appear only once you have seen them at the cinema
 > The movies only appear when you've seen them at cinema
+
+## 98 — Movie app: yes to phone/TV-only content; cinema films become buyable on the phone a short time after you have seen them
+> Yes phone ans tv only content. But once you see a movie at cinema, it appears on you phone to buy a shirt time later
