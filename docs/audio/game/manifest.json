@@ -545,6 +545,118 @@
    "limited_samples": 37,
    "gain_db": 7.9,
    "cut": "first 18 s (slate burst, then 16 s at -12 dB)"
+  },
+  {
+   "name": "rain_a",
+   "place": "rain",
+   "desc": "Rain on a roof and on concrete: the lighter, pattering rain",
+   "source": "R30_24_Rain_on_Roof_and_Concrete.mp3",
+   "segments": [
+    [
+     3,
+     62
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 55.0,
+   "loopStart": 0.3,
+   "loopEnd": 55.3,
+   "sampleRate": 24000,
+   "kbps": 31.7,
+   "bytes": 220560,
+   "lufs": -22.9,
+   "lufs_phone": -23.0,
+   "lra": 1.3,
+   "lra_source": 2.6,
+   "peak": -10.7,
+   "limited_samples": 0,
+   "gain_db": 3.8,
+   "cut": "first 3 s; last 24 s (size): the take is steady throughout (crest 4)"
+  },
+  {
+   "name": "rain_b",
+   "place": "rain",
+   "desc": "Steady heavy rain",
+   "source": "R30_25a_Steady_Heavy_Rain.mp3",
+   "segments": [
+    [
+     1,
+     39
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 34.0,
+   "loopStart": 0.3,
+   "loopEnd": 34.3,
+   "sampleRate": 24000,
+   "kbps": 31.3,
+   "bytes": 135192,
+   "lufs": -23.0,
+   "lufs_phone": -23.0,
+   "lra": 1.0,
+   "lra_source": 1.9,
+   "peak": -13.5,
+   "limited_samples": 0,
+   "gain_db": 2.2,
+   "cut": "last 7 s (size)"
+  },
+  {
+   "name": "rain_c",
+   "place": "storm",
+   "desc": "Rain driven by wind",
+   "source": "R23_35_Rain_with_Wind.mp3",
+   "segments": [
+    [
+     4,
+     42
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 8000,
+   "seconds": 34.0,
+   "loopStart": 0.3,
+   "loopEnd": 34.3,
+   "sampleRate": 24000,
+   "kbps": 29.9,
+   "bytes": 129312,
+   "lufs": -23.0,
+   "lufs_phone": -23.0,
+   "lra": 2.2,
+   "lra_source": 4.2,
+   "peak": -12.9,
+   "limited_samples": 0,
+   "gain_db": 4.3,
+   "cut": "first 4 s (louder start, speech-proxy 0.35); last 4 s (fade)"
+  },
+  {
+   "name": "storm_a",
+   "place": "storm layer",
+   "desc": "Thunder rolling far away (no close claps)",
+   "source": "G46_04_Distant_Storm.mp3",
+   "segments": [
+    [
+     10,
+     48
+    ]
+   ],
+   "seam": 4,
+   "lowpass": 2500,
+   "seconds": 34.0,
+   "loopStart": 0.3,
+   "loopEnd": 34.3,
+   "sampleRate": 24000,
+   "kbps": 22.3,
+   "bytes": 96504,
+   "lufs": -20.8,
+   "lufs_phone": -23.0,
+   "lra": 7.5,
+   "lra_source": 13.4,
+   "peak": -5.4,
+   "limited_samples": 0,
+   "gain_db": 7.7,
+   "cut": "first 10 s (slate burst, hole); everything after 0:48 (30 dB holes at 0:48 and 1:02-1:10; size). Low-passed at 2.5 kHz: 99.9 % of it is below 1.2 kHz"
   }
  ]
 }

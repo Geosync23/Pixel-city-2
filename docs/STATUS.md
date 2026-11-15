@@ -81,3 +81,5 @@ duplicate "Discovered" toast; bus headways long; terminal has no glass roof; cab
 - JOBS (Stage 53): 21 hireable jobs with nine-beat story arcs (G.jobStory), clock-in choice (work / skip), one play per shift, staff door + pass; 4 more jobs wait for rooms (J3). CHAPTERS (Stage 52): all 15 played by taps from natural unlock; nine family moments (G.chapters.moments). See docs/reports/jobs_engine.md, chapters.md.
 
 - RELATIONSHIPS & ROMANCE (Stage 59): G.rel, 12 friend/family arcs + 10 romances (205 scenes), dates on real systems, Porchlight app, move in, wedding. See docs/reports/relationships.md, docs/story/RELATIONSHIPS.md.
+
+- SOUND (Stage 63): outdoor ambience = real recordings only (19 stretches, no-loop mixer, 'City sound' slider); indoors unchanged. PERFORMANCE (Stage 64): sprites/ground baked ahead (Web Worker + queue); tools/perf.mjs. MAILBOXES (Stage 61): lobbies + curb boxes. See docs/reports/ambience.md, performance.md, mailboxes.md.

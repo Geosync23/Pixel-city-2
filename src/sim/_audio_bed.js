@@ -25,12 +25,12 @@ const SCENE_FADE = 2.5, KEEP_SPARE = 1, WRAP = .12, WRAP_X = .08, RATE_JITTER = 
 function zeroGain(c) { try { return new GainNode(c, { gain: 0 }); } catch (e) { const g = c.createGain(); try { g.gain.setValueAtTime(0, 0); } catch (e2) { g.gain.value = 0; } return g; } }
 const dB = x => Math.pow(10, x / 20), mod = (x, L) => ((x % L) + L) % L;
 
-/* pools of stretches (names from src/data/ambience_audio.js). rain / storm are EMPTY SLOTS: add docs/audio/game/rain_*.mp3 (and storm_*)
-   through make_library.py and they are picked up here with no other change. */
+/* pools of stretches (names from src/data/ambience_audio.js) */
 export const POOLS = {
   busy: ['busy_a', 'busy_b', 'busy_c', 'busy_d'], light: ['light_a', 'light_b', 'light_c'], resid: ['resid_a', 'light_a'], far: ['resid_b'],
   birds: ['park_a', 'park_b', 'park_c'], waves: ['harbor_a'], gulls: ['gulls'], crowd: ['market_a'], crickets: ['crickets_a'], air: ['night_air'],
-  airport: ['airport_a', 'airport_c'], trolley: ['light_c'], rain: [], storm: [],
+  airport: ['airport_a', 'airport_c'], trolley: ['light_c'],
+  rain: ['rain_a', 'rain_b'], storm: ['rain_c', 'rain_b'], thunder: ['storm_a'],   // rain: light patter + steady rain; storm: wind-driven + steady rain, with far thunder drifting in
 };
 // track makers. db = level against the -23 LUFS stretch; lp = low-pass in Hz (0 = open); on/off = [min, max] seconds (a drifting layer)
 const T = (id, db, lp, pool) => ({ id, pool: pool || id, db, lp: lp || 0 });
@@ -99,7 +99,10 @@ export const INDOOR = {
   room: { wall: -15, lp: 420 }, store: { wall: -16, lp: 480 }, cafe: { wall: -18, lp: 420, crowd: -13, clp: 3000 }, restaurant: { crowd: -10, clp: 3200 },
   bar: { crowd: -7, clp: 3500 }, gym: {}, office: {}, library: {}, train: { far: -6, flp: 500 }, vehicle: { far: -10, flp: 400 }, silent: {},
 };
-export const WEATHER = { rain: .5, storm: .4, snow: .55, fog: .8 };   // the dry bed steps back in bad weather (no rain recording yet: see POOLS.rain)
+export const WEATHER = { rain: .5, storm: .4, snow: .55, fog: .8 };   // the dry bed steps back in bad weather
+/* outdoors in rain / storm a rain recording plays over the lowered dry bed (levels are against the lowered bed: rain ends up 3 dB under a dry day street, a storm 2 dB under).
+   The far thunder is a quiet drifting layer of distant rolls only; the clap that goes with a lightning flash is still the game's own one-shot (weather.js 'thunder'). */
+export const WET = { rain: [T('rain', 3)], storm: [T('rain', 6, 0, 'storm'), D('thunder', 1, [14, 28], [35, 100])] };
 export const PLACES = Object.keys(OUTDOOR), PHASES = ['dawn', 'day', 'evening', 'night'];
 
 /** what should play: { key, master, tracks }. q = { place, phase, weather, indoor (kind or null) } */
@@ -114,8 +117,7 @@ export function sceneFor(q) {
     if (I.far !== undefined) tracks.push(T('far', I.far, I.flp));
     master = 1;
   } else tracks = out.slice();
-  const wp = wx === 'storm' && POOLS.storm.length ? 'storm' : (wx === 'rain' || wx === 'storm') && POOLS.rain.length ? 'rain' : null;
-  if (wp && (!q.indoor || (BED_INDOORS && (INDOOR[q.indoor] || INDOOR.room).wall !== undefined))) tracks.push({ id: 'rain', pool: wp, db: q.indoor ? -14 : 0, lp: q.indoor ? 600 : 0, raw: 1 });
+  if (!q.indoor && WET[wx]) tracks = tracks.concat(WET[wx]);   // indoors stays as it is (owner msg 125)
   return { key: (q.indoor ? 'in:' + q.indoor + '@' : '') + place + '_' + phase + (wx ? '+' + wx : ''), master, tracks };
 }
 

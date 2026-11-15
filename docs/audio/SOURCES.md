@@ -48,3 +48,9 @@ STILL MISSING (public domain / CC0, 60 s or more, with the link): RAIN (steady r
 OWNER APPROVAL (msg 123, 2026-11-15): all 16 recordings on the audition page (the 13 Internet Archive files + street, gulls, beach from Wikimedia) are approved by ear.
 OWNER (msg 125): indoor sounds (room tones, murmur, hvac) were OK as they are: KEEP indoors. The no-noise rule applies to the outdoor city ambience.
 OWNER (msg 126): keep all 19 stretches.
+
+## Rain batch (2026-11-15, owner msg 127 "Yes look for rain sounds"; owner approved one more file server, ia601603.us.archive.org)
+Both collections are from the USC sound-effect archive on the Internet Archive, licence CC0 1.0 (metadata licenseurl). Originals in docs/audio/in/.
+- Red_Library_Nature_Rain — https://archive.org/details/Red_Library_Nature_Rain : R10_04_Heavy_Rain_and_Wind (104 s), R30_24_Rain_on_Roof_and_Concrete (86 s), R30_25a_Steady_Heavy_Rain (46 s), R23_35_Rain_with_Wind (46 s)
+- GOLD_TAPE_46_Thunderstorm_Rain — https://archive.org/details/GOLD_TAPE_46_Thunderstorm_Rain : G46_01_Light_Rain_and_Natural_Thunder (95 s), G46_02_Quiet_Rain_Rolling_Thunder (60 s), G46_08_Rain_Distant_Thunder (48 s), G46_09_Steady_Rain_and_Thunder (52 s), G46_04_Distant_Storm (127 s)
+The owner has NOT heard these yet. Not yet cut into game stretches.

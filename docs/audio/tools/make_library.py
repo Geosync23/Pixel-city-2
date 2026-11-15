@@ -36,6 +36,10 @@ S = {
  'night_air': ('in/BackStairwellEvening.mp3', [(9, 41), (45.5, 63)], 4, 6000, 'night', 'Evening air in a back stairwell: far-off hum, small ticks', 'first 9 s and 41-45.5 s (the same loud event twice, speech-proxy 1.3); the second half (splice at 1:20, a bang at 2:06, crest 26); a steady band at 11-16 kHz that carries most of the energy and reads as whine/hiss (low-passed at 7 kHz)'),
  'airport_a': ('in/G16_02_Outdoor_Airport_Ambience.mp3', [(3, 62)], 4, 7000, 'airport', 'Outdoor airport: engines idling and taxiing', 'first 3 s (slate burst); the second half is not used (size)'),
  'airport_c': ('in/G16_01_Small_Airport_Ambience.mp3', [(18.5, 69.5)], 4, 7000, 'airport', 'Small airfield, a propeller plane', 'first 18 s (slate burst, then 16 s at -12 dB)'),
+ 'rain_a':   ('in/R30_24_Rain_on_Roof_and_Concrete.mp3', [(3, 62)], 4, 8000, 'rain', 'Rain on a roof and on concrete: the lighter, pattering rain', 'first 3 s; last 24 s (size): the take is steady throughout (crest 4)'),
+ 'rain_b':   ('in/R30_25a_Steady_Heavy_Rain.mp3', [(1, 39)], 4, 8000, 'rain', 'Steady heavy rain', 'last 7 s (size)'),
+ 'rain_c':   ('in/R23_35_Rain_with_Wind.mp3', [(4, 42)], 4, 8000, 'storm', 'Rain driven by wind', 'first 4 s (louder start, speech-proxy 0.35); last 4 s (fade)'),
+ 'storm_a':  ('in/G46_04_Distant_Storm.mp3', [(10, 48)], 4, 2500, 'storm layer', 'Thunder rolling far away (no close claps)', 'first 10 s (slate burst, hole); everything after 0:48 (30 dB holes at 0:48 and 1:02-1:10; size). Low-passed at 2.5 kHz: 99.9 % of it is below 1.2 kHz'),
 }
 
 def ff(args, **kw): return subprocess.run(['ffmpeg', '-v', 'error', '-nostdin'] + args, capture_output=True, **kw)
