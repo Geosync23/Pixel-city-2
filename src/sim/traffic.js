@@ -226,7 +226,7 @@ function update(dt, gm) {
 
 export function init() {
   G.traffic = {
-    get graph() { return roadGraph(); }, vehicles: T.list, spawn: (k, ref, o) => (ensure(), spawn(k, ref, o)), release, place, setPlan, buses, loops, stands, nextBuses, BUS_SPEED, ensure,
+    get graph() { return roadGraph(); }, vehicles: T.list, spawn: (k, ref, o) => (ensure(), spawn(k, ref, o)), release, place, setPlan, buses, loops, stands, nextBuses, busU, BUS_SPEED, ensure,
     busStopName: id => { const p = world && world.pois.find(q => q.id === id); return p ? p.name : id; },
     /** a lane position out of view, `minD..maxD` units (straight line) from the lane ref `nearRef`, preferably heading toward it */
     offscreenLane(nearRef, minD = 24, maxD = 60) {

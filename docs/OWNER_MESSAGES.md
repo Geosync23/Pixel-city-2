@@ -520,3 +520,6 @@ I meant the former was juat adding to what id already said. I want to see train 
 
 ## 134 (2026-11-15)
 Need to be able to skip bus ride like the cab
+
+## 135 (2026-11-15)
+When watching s movie or a show the ambient music needs to stop so we can hear the movie/show.

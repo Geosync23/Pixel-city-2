@@ -25,6 +25,7 @@ import { G } from '../core/game.js';
 import { A, makeBuffers, gain, filt, panner } from './_audio_lib.js';
 import { SFX, SFX_LEN } from './_audio_sfx.js';
 import { Ambience, PROFILES } from './_audio_amb.js';
+import { ACTIVITY_BY_ID } from '../data/activities.js';
 import { TRACKS, Session, stinger as playStinger } from './_audio_music.js';
 import { BedMixer, sceneFor, BED_ON, BED_GAIN, PLACES, PHASES, INDOOR as BED_ROOMS } from './_audio_bed.js';
 import { STRETCHES } from '../data/ambience_audio.js';
@@ -36,6 +37,8 @@ const ALIAS = { confirm: 'click', tap: 'click', buy: 'pay', success: 'skill', pl
 const vol = { master: .8, music: .6, sfx: .8, city: .7 }, KEYS = Object.keys(vol);
 const clamp = v => Math.max(0, Math.min(1, +v || 0));
 let S = null, dead = false, unlocked = false, buses = null, amb = null, bed = null, bedQ = null, bedForce = null, session = null, forced = null;
+const watch = { show: false, tv: false }; let watchT = 0;
+const safe = (f, d) => { try { return f(); } catch (e) { return d; } };
 let sfxPlayed = 0, errors = 0, lastErr = '', musicGap = 6, ambT = 0, track = null, trackKey = null;
 const unknown = new Set(), lastAt = new Map();
 const fail = e => { errors++; lastErr = String(e && e.message || e); };
@@ -146,7 +149,11 @@ function tick(dt) {
   try {
     ambT -= dt; if (ambT <= 0) { ambT = .5; const sc = G.scene, prof = profile(); amb.set(prof, weatherKind(), !!(sc && sc.indoor)); amb.tick(c.currentTime); bedTick(prof, c.currentTime); }
     // music
-    const showOn = AU.live && AU.live.length > 0, L = levels();
+    /* owner msg 135: while you WATCH something (a show or film in a venue, Reel on the phone or the TV, any TV activity) the game's own music stays out,
+       for the whole of it and a little after: not only while the show's score happens to be sounding */
+    const reel = safe(() => { const m = G.media && G.media.session && G.media.session(); return !!(m && m.app === 'reel'); }, false);
+    if ((AU.live && AU.live.length > 0) || watch.show || watch.tv || reel) watchT = c.currentTime + 12;
+    const showOn = c.currentTime < watchT, L = levels();
     if (showOn || L.music <= 0 || L.master <= 0) { if (session) { stopMusic(1.5); musicGap = 8; } return; }
     const want = forced || wantTrack();
     if (session) {
@@ -201,6 +208,9 @@ export function init() {
   const first = () => { if (unlock() && A.ctx && A.ctx.state === 'running') for (const ev of ['pointerdown', 'keydown', 'touchend']) window.removeEventListener(ev, first, true); };
   for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, first, true);
   document.addEventListener('visibilitychange', () => { try { if (!A.ctx) return; if (document.hidden) A.ctx.suspend(); else if (unlocked) A.ctx.resume(); } catch (e) { fail(e); } });
+  G.on('show:doors', () => { watch.show = true; }); G.on('show:start', () => { watch.show = true; }); G.on('show:end', () => { watch.show = false; });
+  G.on('activity:start', id => { const d = ACTIVITY_BY_ID[id]; watch.tv = !!(d && d.tag === 'tv'); }); G.on('activity:done', () => { watch.tv = false; });
+  G.on('scene', () => { watch.show = false; watch.tv = false; });
   G.on('frame', tick);
   G.on('thunder', loud => play('thunder', { v: .35 + .65 * clamp(loud) }));
   G.on('scene', (s, prev) => { if (!prev || !s) return; if (s.indoor && !prev.indoor) play('door_open', { v: .7 }); else if (!s.indoor && prev.indoor) play('door_close', { v: .7 }); });

@@ -243,8 +243,28 @@ function boardNow(b, stop, dest, resolve) {
   const setDest = id => { r.destination = id; r.offNext = false; const cur = l.stops[b.nsi].id, i = l.stops.findIndex(s => s.id === id), j = l.stops.findIndex(s => s.id === cur); r.left = r.n0 = ((i - j + n) % n) + 1; r.progress = 0; };
   showHud('Bus ' + l.num + ' - ' + l.route.name.replace(/^\s*\w+\s*/, ''), '', [
     r.offBtn = el('button', { text: 'Get off at next stop', onclick: () => { r.offNext = true; if (b.atStop && b.atStop !== r.from) alight(b.atStop); } }),
-    el('button', { text: 'Choose stop', onclick: () => { const cur = b.nsi, opts = []; for (let k = b.atStop ? 1 : 0; k < n; k++) { const s = l.stops[(cur + k) % n]; opts.push({ label: s.poi.name, sub: k + 1 - (b.atStop ? 1 : 0) + (k ? ' stops' : ' stop - next'), value: s.id }); } choose('Get off at...', opts).then(id => { if (id && ride === r) setDest(id); }); } })]);
+    el('button', { text: 'Choose stop', onclick: () => pickStop(r).then(id => { if (id && ride === r) setDest(id); }) }),
+    el('button', { text: 'Skip ride', onclick: () => skipBus() })]);   /* owner msg 134: skip a bus ride like a cab ride */
+  r.setDest = setDest;
   toast(hasPass() ? 'Transit pass accepted.' : 'Bus fare ' + fmt(FARES.bus.single) + ' paid.'); return true;
+}
+/** the stops still ahead on the bus you ride, for "Choose stop" and "Skip ride" */
+function pickStop(r) { const b = r.bus, l = b.loop, n = l.stops.length, cur = b.nsi, opts = []; for (let k = b.atStop ? 1 : 0; k < n; k++) { const s = l.stops[(cur + k) % n]; opts.push({ label: s.poi.name, sub: k + 1 - (b.atStop ? 1 : 0) + (k ? ' stops' : ' stop - next'), value: s.id }); } return choose('Get off at...', opts); }
+/* QA13 (owner msg 134): "Skip ride" on a bus, like the cab's. The stop is the one you chose ("Choose stop"), else the Map trip's stop, else you are asked which
+   (a loop bus has no end of the line). The clock jumps by the rest of the ride at the navigator's own bus pace (BUS_V u per game minute along the loop
+   + BUS_DWELL per stop passed: the quote's model), needs tick through G.advance, and you get off at that stop: the trip goes on to its walking leg. */
+const SKIP_BUS_V = 20, SKIP_BUS_DWELL = .6;   // = navigator.js BUS_V / BUS_DWELL
+function skipBus() {
+  const r = ride; if (!r || r.kind !== 'bus' || r.skipping) return; const nt = navTrip(), dest = r.destination || (nt && nt.stage === 1 ? nt.alight.id : null);
+  if (!dest) { pickStop(r).then(id => { if (id && ride === r) { r.setDest(id); skipBus(); } }); return; }
+  r.skipping = true; const f = G.fadeEl; G.modal++; if (f) f.classList.add('on');
+  setTimeout(() => {
+    try {
+      if (ride === r) { const b = r.bus, l = b.loop, L = l.L, i = l.stops.findIndex(s => s.id === dest), u = (TX().busU ? TX().busU(b) : b.u) || 0; let du = i < 0 || b.atStop === dest ? 0 : (l.stops[i].u - u + L) % L, between = 0;
+        for (const s of l.stops) { const d2 = (s.u - u + L) % L; if (d2 > .5 && d2 < du - .5 && s.id !== b.atStop) between++; }
+        const m = du / SKIP_BUS_V + between * SKIP_BUS_DWELL; if (m > 0) G.advance(m); r.skipped = m; alight(dest); G.snapCam && G.snapCam(); }
+    } finally { G.modal--; setTimeout(() => f && f.classList.remove('on'), 80); }
+  }, 280);
 }
 function alight(stopId) { const r = ride; if (!r || r.kind !== 'bus') return; const p = stopPoi(stopId) || G.player; r.destination = stopId; r.progress = 1; finish(curbSpot(p.x, p.y, p.x, p.y)); toast('You get off at ' + (p.name || 'the stop') + '.'); }
 function waitBus(stop, rid, dest, resolve) {
@@ -300,7 +320,7 @@ export function init() {
   S = G.defineState('transit', () => ({ rides: { taxi: 0, bus: 0 } }));
   if (typeof document !== 'undefined') document.head.append(el('style', { text: CSS }));
   const T = G.transit = {
-    callTaxi, hailTaxi, cabEstimate, CAB_RIDE, busStopsLeft: () => busLeft(ride), cancel: () => { if (pend && pend.state !== 'picking') dropPend(); }, skipRide, fare, payFare, hasPass, boardBus, openStop, roadGraph, route,
+    callTaxi, hailTaxi, cabEstimate, CAB_RIDE, busStopsLeft: () => busLeft(ride), skipBus, cancel: () => { if (pend && pend.state !== 'picking') dropPend(); }, skipRide, fare, payFare, hasPass, boardBus, openStop, roadGraph, route,
     nextBuses: id => TX() ? TX().nextBuses(id).map(a => ({ route: a.route, num: a.num, name: a.name, color: a.color, minutes: a.minutes })) : [],
     stops: () => W().pois.filter(p => p.type === 'busstop'),
     get ride() { return ride; }, get pending() { return pend; },

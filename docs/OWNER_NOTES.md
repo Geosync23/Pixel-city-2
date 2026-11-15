@@ -112,3 +112,4 @@
 92. (msg 132) "Just cab bus and foot": lead reads this as what he still sees on the Take-me-there card (no train); the other reading (remove the train option) was asked back.
 93. (msg 133) Clarified: msg 132 was just describing what he saw. RULE: show the TRAIN on the route card even when it is slow.
 94. (msg 134) The BUS ride needs a Skip like the cab ride has (lead adds: the train ride too).
+95. (msg 135) SOUND: while watching a movie or a show, the ambient MUSIC must stop so the movie / show can be heard.
