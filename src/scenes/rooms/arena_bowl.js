@@ -67,7 +67,7 @@ const OFF = [[5.6, 0], [4.4, -2.9], [4.4, 2.9], [1.9, -1.7], [1.5, 1.5]];
 const spotFor = (E, role, slot, pi) => { let u = OFF[slot][0] + (h2(pi, slot, 3) - .5) * .9, v = OFF[slot][1] + (h2(pi, slot, 4) - .5) * .9; if (role) { u = u * .7 + .2; v *= .76; } const bx = E > 0 ? C.x1 - C.rim : C.x0 + C.rim; return [bx - E * u, C.cy + v]; };
 const endOf = (tm, q) => ((tm === 0) === (q < 2) ? 1 : -1);
 
-defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zoom: 0, music: 'none', noCrowd: true, showpiece: 'arena', venue: ARENA_VENUES.place,
+defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zoom: -2, music: 'none', noCrowd: true, showpiece: 'arena', venue: ARENA_VENUES.place,
   floor: GT.f_stone, bg: '#0e1018', edge: '#262a36', wall: { color: '#232838', trim: '#3a4058', h: 9.5 },
   exits: [{ x: BOWL_ENTRY.x, y: 22.4, label: 'To the concourse', use: () => G.go('int:arena', { x: O + 8.5, y: O + 3.6, dir: 1 }) }], spawn: { x: BOWL_ENTRY.x, y: BOWL_ENTRY.y, dir: 3 }, items: M.items, npcSpots: [],
   setup(sc) {
