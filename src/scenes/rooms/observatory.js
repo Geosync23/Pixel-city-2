@@ -239,12 +239,12 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
       star.prog = pr; star.t = 0; star.watched = 0; star.force = !!force; star.log = [[0, 'doors']]; const n = force ? 5 + Math.floor(Math.random() * 5) : OB() ? OB().shows.crowd() : 12;
       if (at > 3) { seatAud(n, true); star.phase = 'show'; star.t = Math.min(pr.dur - 6, at); sc.house = 0; star.cap = pr.captions.findIndex(c => c[0] > star.t); if (star.cap < 0) star.cap = pr.captions.length; G.emit('observatory:showstart', pr.id); }
       else { star.phase = 'doors'; star.doors = force ? TU.forceDoors : null; seatAud(n, false, force ? 4.5 : 9); bubble(pres, `"${pr.title}" is about to begin. Please take a seat!`, 4200); G.emit('observatory:doors', pr.id); }
-      if (star.mine && G.busy && G.busy._obsSeat) { G.busy.left = 900; G.busy.rate = 1; G.busy.label = 'Watching: ' + pr.title; }
+      if (star.mine && G.busy && G.busy._obsSeat) { G.busy.left = pr.dur + 40; G.busy.minutes = pr.dur + 40; G.busy.rate = 1; G.busy.label = 'Watching: ' + pr.title; }
       return true; };
     const finish = () => { star.phase = 'exit'; star.t = 0; for (const c of aud) if (!c.hidden && c.st === 2) { c.st = 3; c.at = .1 + Math.random() * 5; c.pose = null; } const pr = star.prog, frac = star.watched / Math.max(1, pr.dur), was = !!star.mine;
       if (star.mine && G.busy && G.busy._obsSeat) G.endActivity(true); if (OB()) OB().showDone(pr, was && frac >= .55, frac); };
     star.sit = seat => { if (G.busy || !seat || (seat.taken && seat.taken !== G.player)) return false; const p = G.player, live = star.phase !== 'idle' && star.phase !== 'exit'; seat.taken = p; star.mine = seat; p.poseOpts = { seated: true };
-      const a = G.startActivity({ label: live ? 'Watching: ' + star.prog.title : 'Reclining under the dome', anim: 'sit', minutes: live ? 900 : 20, rate: live ? 1 : 2, at: { x: seat.x, y: seat.y, z: seat.z, dir: seat.dir },
+      const a = G.startActivity({ label: live ? 'Watching: ' + star.prog.title : 'Reclining under the dome', anim: 'sit', minutes: live ? Math.max(20, star.prog.dur + 40 - (star.phase === 'show' ? star.t : 0)) : 20, rate: live ? 1 : 2, at: { x: seat.x, y: seat.y, z: seat.z, dir: seat.dir },
         tick: gm => { if (star.phase === 'idle') safe(() => { G.needs.add('energy', gm * .2); G.needs.add('fun', gm * .15); }); },
         cancel: () => { p.poseOpts = null; seat.taken = null; star.mine = null; }, done: () => { p.poseOpts = null; seat.taken = null; star.mine = null; } }); a._obsSeat = true; return true; };
     for (const st of seats) sc.interactables.push({ x: st.x, y: st.y, z: st.z - .2, h: .5, hit: 5, label: 'Sit', spot: { x: st.fx, y: st.fy }, visible: () => !st.taken, use: () => star.sit(st) });

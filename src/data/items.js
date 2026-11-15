@@ -34,7 +34,12 @@
 //   book        kind ('skill' | 'novel'), skill, minLevel, maxLevel, xpTotal, readMinutes.
 //   gift        relationship (base points when given), giftTags (matched against NPC likes/dislikes:
 //               a liked tag doubles the points, a disliked tag halves them).
-//   misc        see each entry (passes carry `grants`).
+//   misc        see each entry (passes carry `grants`; cookbooks carry `cookbook: true, teaches: [recipeIds]`).
+//
+// THE BIG COOKBOOK lives in recipes_extra.js (65 more ingredients, ~150 more recipes, cookbooks, how recipes are learned). This file
+// merges it in below, so INGREDIENTS / RECIPES / MEALS / RECIPE_BY_ID / ITEMS here are always the complete lists.
+import { INGREDIENTS_EXTRA, RECIPES_EXTRA, LEGACY_PATCH, RECIPE_CATS, LEARN_FROM, LEGACY_RECIPES, buildCookbooks } from './recipes_extra.js';
+export { RECIPE_CATS, LEARN_FROM, LEGACY_RECIPES };
 
 // ---------------------------------------------------------------------------------------------
 // INVENTORY rules
@@ -64,7 +69,7 @@ export const INGREDIENTS = [
   { id: 'cheese', name: 'Cheese', category: 'ingredient', price: 2, icon: 'yellow wedge with holes', effects: { hunger: 8 }, stack: 10, soldAt: GCM, shelfLifeDays: 12, needsFridge: true, edibleRaw: true, eatMinutes: 3 },
   { id: 'rice', name: 'Rice', category: 'ingredient', price: 1, icon: 'small white sack', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: null, needsFridge: false, edibleRaw: false },
   { id: 'pasta', name: 'Pasta', category: 'ingredient', price: 1.5, icon: 'blue box, yellow spirals', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: null, needsFridge: false, edibleRaw: false },
-  { id: 'flour', name: 'Flour', category: 'ingredient', price: 1, icon: 'paper bag, wheat mark', effects: {}, stack: 10, soldAt: G, shelfLifeDays: null, needsFridge: false, edibleRaw: false },
+  { id: 'flour', name: 'Flour', category: 'ingredient', price: 1, icon: 'paper bag, wheat mark', effects: {}, stack: 10, soldAt: ['grocery', 'bakery'], shelfLifeDays: null, needsFridge: false, edibleRaw: false },
   { id: 'noodles', name: 'Dried Noodles', category: 'ingredient', price: 1.5, icon: 'wavy noodle brick', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: null, needsFridge: false, edibleRaw: false },
   { id: 'sugar', name: 'Sugar', category: 'ingredient', price: 1, icon: 'white bag, pink label', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: null, needsFridge: false, edibleRaw: false },
   { id: 'tomato_sauce', name: 'Tomato Sauce', category: 'ingredient', price: 2, icon: 'red jar, green lid', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: null, needsFridge: false, edibleRaw: false },
@@ -85,6 +90,7 @@ export const INGREDIENTS = [
   { id: 'fish', name: 'Fresh Fish', category: 'ingredient', price: 5, icon: 'silver fish, blue back', effects: {}, stack: 10, soldAt: GM, shelfLifeDays: 2, needsFridge: true, edibleRaw: false }, // also caught with the fish_pier activity
   { id: 'bacon', name: 'Bacon', category: 'ingredient', price: 3, icon: 'wavy red-pink strips', effects: {}, stack: 10, soldAt: GC, shelfLifeDays: 7, needsFridge: true, edibleRaw: false },
   { id: 'tofu', name: 'Tofu', category: 'ingredient', price: 2.5, icon: 'white cube in tub', effects: {}, stack: 10, soldAt: G, shelfLifeDays: 7, needsFridge: true, edibleRaw: false },
+  ...INGREDIENTS_EXTRA, // pantry staples, tins, dairy, meat, seafood and produce for the big cookbook (recipes_extra.js)
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -218,6 +224,7 @@ export const DISHES = [
 //   shelfLifeDays  leftovers in the fridge.
 //   xp           cooking xp for cooking one batch.
 //   giftable     true = a serving can be given as a gift (relationship in `gift`).
+//   cat / oven / drink / learn   menu tab, needs-an-oven flag, drink flag and how the recipe is learned — see recipes_extra.js.
 // Ingredient cost per serving is about $1.20-$5 (run validate.mjs --summary) — far cheaper than
 // eating out, at the price of time. Big-batch recipes at higher skill are the best value.
 // ---------------------------------------------------------------------------------------------
@@ -240,12 +247,14 @@ export const RECIPES = [
   { id: 'sunday_roast', name: 'Sunday Roast', icon: 'roast chicken, potatoes around', ingredients: { chicken: 2, potato: 2, carrot: 1, onion: 1, butter: 1 }, skill: 8, appliance: 'stove', stoveTier: 2, cookMinutes: 90, servings: 4, effects: { hunger: 68, fun: 14, moodlet: 'good_meal' }, eatMinutes: 20, shelfLifeDays: 3, xp: 110 },
   { id: 'bay_paella', name: 'Bay Paella', icon: 'wide pan, yellow rice, fish, lemon', ingredients: { fish: 2, rice: 2, tomato: 1, onion: 1, lemon: 1 }, skill: 9, appliance: 'stove', stoveTier: 2, cookMinutes: 70, servings: 4, effects: { hunger: 68, fun: 18, moodlet: 'fine_dining' }, eatMinutes: 20, shelfLifeDays: 2, xp: 130 },
 ];
+for (const r of RECIPES) Object.assign(r, LEGACY_PATCH[r.id]);   // menu tab / oven flag / how it is learned for the originals
+RECIPES.push(...RECIPES_EXTRA);                                   // + the big cookbook
 
 /** Cooked meals as inventory items, derived from RECIPES (id = 'meal_' + recipe id). */
 export const MEALS = RECIPES.map((r) => ({
   id: 'meal_' + r.id, name: r.name, category: 'meal', price: 0, icon: r.icon,
-  effects: r.effects.moodlet ? r.effects : { ...r.effects, moodlet: 'home_cooked' },
-  stack: 4, soldAt: [], recipe: r.id, eatMinutes: r.eatMinutes, shelfLifeDays: r.shelfLifeDays, needsFridge: true, heat: null,
+  effects: r.effects.moodlet || r.drink ? r.effects : { ...r.effects, moodlet: 'home_cooked' },
+  stack: 4, soldAt: [], recipe: r.id, ...(r.drink ? { course: 'drink' } : {}), eatMinutes: r.eatMinutes, shelfLifeDays: r.shelfLifeDays, needsFridge: true, heat: null,
   ...(r.giftable ? { giftable: true, relationship: r.gift.relationship, giftTags: r.gift.giftTags } : {}),
 }));
 
@@ -448,6 +457,9 @@ export const MISC = [
 // ---------------------------------------------------------------------------------------------
 // Aggregates & tiny pure helpers
 // ---------------------------------------------------------------------------------------------
+/** Cookbooks & recipe cards ('misc' items with `teaches`), see recipes_extra.js. */
+export const COOKBOOKS = buildCookbooks(RECIPES);
+MISC.push(...COOKBOOKS);
 export const ITEMS = [...INGREDIENTS, ...PACKAGED_FOOD, ...DISHES, ...MEALS, ...HOMEGOODS, ...OUTFITS, ...BOOKS, ...GIFTS, ...MISC];
 export const ITEM_BY_ID = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 export const RECIPE_BY_ID = Object.fromEntries(RECIPES.map((r) => [r.id, r]));

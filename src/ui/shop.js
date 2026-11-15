@@ -118,7 +118,7 @@ function open(venueId, o = {}) {
       if (!single) acts.append(el('span.shop-qty', null, el('button', { 'aria-label': 'Less', disabled: n <= 1, onclick: () => { qty[it.id] = n - 1; render(); } }, '−'), el('b', { text: n }), el('button', { 'aria-label': 'More', disabled: n >= it.stack, onclick: () => { qty[it.id] = n + 1; render(); } }, '+')));
       if (owned) acts.append(el('span.shop-owned', { text: 'Owned' }));
       else if (it.category === 'dish') {
-        if (!o.online) acts.append(el('button.go', { disabled: poor, onclick: () => eatIn(it.id, venueId) }, canSit ? (it.course === 'drink' ? 'Drink here' : 'Eat here') : it.course === 'drink' ? 'Drink' : 'Eat'));
+        if (!o.online) acts.append(el('button.go', { disabled: poor, onclick: () => eatIn(it.id, venueId) }, canSit ? (it.course === 'drink' || it.category === 'drink' ? 'Drink here' : 'Eat here') : it.course === 'drink' || it.category === 'drink' ? 'Drink' : 'Eat'));
         if (it.takeaway) acts.append(el('button', { disabled: poor, onclick: () => { if (buy(it.id, 1, venueId, o)) { toast(`${it.name} to go — best within ${INVENTORY.takeawayHours} hours.`, 'good'); render(); } } }, 'To go'));
       } else acts.append(el('button.go', { disabled: poor || blockedWant, onclick: () => { if (buy(it.id, n, venueId, o)) { if (!['homegood', 'outfit'].includes(it.category) && !it.grants) toast(`Bought ${it.name}${n > 1 ? ' x' + n : ''}.`, 'good', 1600); qty[it.id] = 1; render(); } } }, 'Buy'));
       const have = G.inv.count(it.id), sub = G.inv.effectText(it) || (it.note ? it.note.split('.')[0] + '.' : '');

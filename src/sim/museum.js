@@ -71,6 +71,8 @@ function ensure(w) {
   if (built === w || !w || !Array.isArray(w.objs)) return; built = w; lost.length = 0;
   door = w.pois.find(p => p.id === DOOR); if (!door) return;
   door.onUse = () => { if (isOpen()) return false; const hr = hours(); toast(`${NAME}: closed. Open daily ${clock(10)} to ${clock(18)}, Fridays until ${clock(21)}${G.now().hf < hr[0] ? '' : '. Marge needs her sleep'}.`, 'info', 4200); return true; };
+  // a paved apron from the steps to the Campus Drive sidewalk (a ground decal only: tile types, occupancy and nav are untouched)
+  safe(() => { w.decal({ x0: 262, y0: 53, x1: 270, y1: 54, draw(Rr, zAt) { Rr.qz(262.5, 269.5, 53, 54, zAt(266, 53.5), (x, y) => { const fx = x - Math.floor(x), fy = (y * 2) - Math.floor(y * 2); return fx < .06 || fy < .1 ? '#b0a892' : (Math.floor(x) + Math.floor(y * 2)) & 1 ? '#d8d0bc' : '#cec6b0'; }); } }); w.version++; });
   const benches = w.pois.filter(p => p.type === 'bench' && isFinite(p.x)).sort((a, b) => (a.y * 1000 + a.x) - (b.y * 1000 + b.x)), used = w.pois.filter(p => /^cutting:/.test(String(p.id || ''))), dOf = p => (w.districtAt ? w.districtAt(p.x, p.y) : null);
   LOST.forEach((c, i) => {
     let poi = w.pois.find(p => p.id === 'lost:' + i);

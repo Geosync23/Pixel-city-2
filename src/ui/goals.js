@@ -52,7 +52,7 @@ function render() {
   W.classList.toggle('empty', !all.length && !ap.length);
   if (gs().collapsed === undefined && innerWidth < 500) gs().collapsed = true;
   W.classList.toggle('shut', !!gs().collapsed);
-  W.head.replaceChildren(el('span', { text: gs().collapsed ? '+' : '-' }), el('span', { text: 'Goals' }), el('i', { text: goals.length ? `${goals.length - open}/${goals.length}` : '' }), ap.today ? el('i', { text: '· ' + ap.today + ' today' }) : null, opps.length || ap.length > (ap.today || 0) ? el('i', { text: '· ' + (opps.filter(o => !o.done).length + ap.length - (ap.today || 0)) + ' more' }) : null);
+  W.head.replaceChildren(...[el('span', { text: gs().collapsed ? '+' : '-' }), el('span', { text: 'Goals' }), el('i', { text: goals.length ? `${goals.length - open}/${goals.length}` : '' }), ap.today ? el('i', { text: '· ' + ap.today + ' today' }) : null, opps.length || ap.length > (ap.today || 0) ? el('i', { text: '· ' + (opps.filter(o => !o.done).length + ap.length - (ap.today || 0)) + ' more' }) : null].filter(Boolean));   // replaceChildren(null) would print the word 'null' (QA wave A)
   const B = W.body; B.replaceChildren();
   if (goals.length) { B.append(el('div.gw-sec', { text: 'Goals' })); let last = null; for (const g of goals) { if (g.listTitle && g.listTitle !== last) { last = g.listTitle; B.append(el('div.gw-list', { text: last })); } B.append(goalRow(g)); } }
   if (opps.length) { B.append(el('div.gw-sec', { text: 'Opportunities' })); for (const g of opps) B.append(goalRow(g, 'opp')); }
