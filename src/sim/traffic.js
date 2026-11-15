@@ -41,7 +41,7 @@ const DDENS = { downtown: 1, oldtown: .7, harbor: .6, hillcrest: .3, maplewood: 
 const timeF = h => h < 5 ? .07 : h < 7 ? .07 + (h - 5) * .4 : h < 9.5 ? 1 : h < 16 ? .62 : h < 19 ? 1 : h < 22 ? .5 : .2;
 
 const all = [], free = [], near = []; let nearW = 0, simR = 40, mx = 25, my = 29, target = 0, refill = true, fx = 0, fy = 0, lfx = -999, lfy = -999, tA = 0, tB = 0, tP = 0;
-const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {};
+const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0;
 
 function onScreen(x, y, m) { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m && sy < G.H + m + 30; }
 function countKind(k) { let n = 0; for (const v of T.list) if (v.kind === k) n++; return n; }
@@ -218,6 +218,9 @@ function update(dt, gm) {
   const L = T.list;
   for (let i = 0; i < L.length; i++) { const v = L[i]; if (!v.parked) step(v, dt); }
   for (let i = 0; i < buses.length; i++) { const b = buses[i]; if (b.veh && b.atStop) { if (!b.hold) b.dwell -= dt; if (b.dwell <= 0) { busU(b); dwellDone(b); } } }
+  // QA round 3: a real bus with the player's (ridden, pre-empting) bus close behind it on the same route drives at ride pace too, so the ride is not stuck behind it stop after stop
+  if ((tL -= dt) <= 0) { tL = .5; for (const b of buses) { const v = b.veh; if (!v || v.ride) continue; let lead = false; for (const o of buses) if (o !== b && o.loop === b.loop && o.veh && o.veh.pre && o.veh.ride) { const d = (busU(b) - busU(o) + b.loop.L) % b.loop.L; if (d > 0 && d < 60) lead = true; }
+    if (lead && !v.leadFast) { v.leadFast = true; v.vmax = Math.max(v.vmax, 10); v.pre = true; } else if (!lead && v.leadFast) { v.leadFast = false; v.vmax = v.vbase || v.vmax; v.pre = false; } } }
 }
 
 export function init() {

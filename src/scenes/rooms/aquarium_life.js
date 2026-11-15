@@ -198,6 +198,7 @@ export function wallTank(o) {
       let F = f.alt ? f.alt[Math.floor(f.t / 4) % f.alt.length] : f.F; if (f.puff > 0) F = flat('pufferB');
       bx.drawImage(F[Math.floor(f.t * (f.mode === 1 ? 5 : 3)) & 1][f.mode === 6 ? f.dir : f.vx < 0 ? 1 : 0], Math.round(f.x) - (F[0][0].width >> 1), Math.round(f.y) - (F[0][0].height >> 1)); }
     bx.fillStyle = '#dff6ff'; for (const b of bub) { b.y -= b.s * dt; if (b.y < 2) { b.y = H - 4; b.x = rnd(4, W - 4); } bx.fillRect(Math.round(b.x + Math.sin(b.y / 6) * 1.5), Math.round(b.y), 1, 1); }
+    if (o.draw) o.draw(bx, W, H, fl, dt, px, night);
     if (night && bright) { bx.fillStyle = 'rgba(6,10,40,.5)'; bx.fillRect(0, 0, W, H); }
     bx.drawImage(over, 0, 0);
     ox.setTransform(1, 0, 0, 1, 0, 0); ox.clearRect(0, 0, W, H + W / 2); if (o.axis === 'x') ox.setTransform(1, -.5, 0, 1, 0, W / 2); else ox.setTransform(1, .5, 0, 1, 0, 0); ox.drawImage(buf, 0, 0);
@@ -235,7 +236,7 @@ export function bigTank(o) {
     dv.t += dt; if (dv.on || dv.alpha > 0) { dv.alpha = Math.max(0, Math.min(1, dv.alpha + (dv.on ? dt : -dt))); if (dv.wave > 0) { dv.wave -= dt; dv.a += ((Math.PI / 4) - dv.a) * Math.min(1, dt * 1.5); dv.z += (o.h * .42 - dv.z) * dt; } else { dv.a = Math.PI / 4 + Math.sin(dv.t * .22) * 1.25; dv.z = o.h * (.42 + Math.sin(dv.t * .3) * .18); } }
     const dp = pos(dv.a, r * .8, dv.z);
     const drawF = front => { for (const f of fish) { const p = pos(f.a, f.rho, f.z); if ((p[2] > 0) !== front) continue; const dir = (-Math.sin(f.a) - Math.cos(f.a)) * f.w; x.drawImage(f.F[Math.floor(f.t * 4) & 1][dir < 0 ? 1 : 0], Math.round(p[0]) - f.hw, Math.round(p[1]) - f.hh); } };
-    for (const f of fish) { f.t += dt; f.a += f.w * dt; if (feeding > 0 && dv.alpha > .5) { let da = dv.a + Math.sin(f.t * .5 + f.rho * 9) * .7 - f.a; da = Math.atan2(Math.sin(da), Math.cos(da)); f.a += da * dt * .8 - f.w * dt * .8; f.z += (dv.z + Math.sin(f.t * .8 + f.rho * 5) * .7 - f.z) * dt * .6; } else f.z += (f.z0 + Math.sin(f.t * .6) * .25 - f.z) * dt; }
+    for (const f of fish) { f.t += dt; f.a += f.w * dt; if (feeding > 0 && dv.alpha > .5 && (f.hw & 1)) { let da = dv.a + Math.sin(f.t * .5 + f.rho * 9) * 1.1 - f.a; da = Math.atan2(Math.sin(da), Math.cos(da)); f.a += da * dt * .5 - f.w * dt * .5; f.z += (dv.z + Math.sin(f.t * .8 + f.rho * 5) * 1.1 - f.z) * dt * .4; } else f.z += (f.z0 + Math.sin(f.t * .6) * .25 - f.z) * dt; }
     x.globalAlpha = .7; drawF(false); x.globalAlpha = 1; if (dv.alpha > 0 && dp[2] <= 0) { x.globalAlpha = dv.alpha * .7; x.drawImage(DV[Math.floor(dv.t * 3) & 1][0], Math.round(dp[0]) - 13, Math.round(dp[1]) - 9); x.globalAlpha = 1; }
     x.drawImage(colm, 0, 0); drawF(true);
     if (dv.alpha > 0 && dp[2] > 0) { x.globalAlpha = dv.alpha; if (dv.wave > 0) x.drawImage(DW[Math.floor(dv.t * 4) & 1], Math.round(dp[0]) - 13, Math.round(dp[1]) - 9); else x.drawImage(DV[Math.floor(dv.t * 3) & 1][Math.cos(dv.t * .22) > 0 ? 1 : 0], Math.round(dp[0]) - 13, Math.round(dp[1]) - 9); x.fillStyle = '#e8fbff'; for (let i = 0; i < 5; i++) x.fillRect(Math.round(dp[0] + 6 + Math.sin(dv.t * 3 + i) * 2), Math.round(dp[1] - 10 - ((dv.t * 14 + i * 9) % 44)), 1 + (i & 1), 1 + (i & 1)); x.globalAlpha = 1; }

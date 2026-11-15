@@ -20,12 +20,13 @@ import { el, root, toast } from '../ui/kit.js';
 import { innerPlace } from '../ui/navarrow.js';
 import { openState, cityPos, place, homePlace, money } from '../ui/phone_util.js';
 
-const WALK = 1.15 / 3.6, BUS_V = 12, BUS_DWELL = 1, CAB_V = 9;   // BUS_V: measured along the bus loop incl. lights (units per game minute at the transit.js ride clock 0.35 + signal priority; QA round 3: 9.6-13.4 measured); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
+const WALK = .215, BUS_V = 20, BUS_DWELL = .6, CAB_V = 9;   // WALK: game minutes per Manhattan unit, measured door to door on three real cross-district walks (QA round 3: .203-.233; was 1.15/3.6 = .32, 40-58% too slow)
+//   // BUS_V: measured along the bus loop incl. lights (units per game minute at the transit.js ride clock 0.2 + signal priority); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
 const mins = m => Math.max(1, Math.round(m)) + ' min';
 // distances shown to the player: city units are scaled so that the shown distance matches the shown walking time (~80 m per walking minute)
-export const M_PER_U = 25;
+export const M_PER_U = 17;   // ~80 m per walking minute with WALK = .215 (QA round 3; was 25 with the old WALK)
 export const fmtDist = u => { const m = Math.max(0, +u || 0) * M_PER_U; return m >= 950 ? (m / 1000).toFixed(m >= 9500 ? 0 : 1) + ' km' : Math.max(10, Math.round(m / 10) * 10) + ' m'; };
 /** lowest bottom edge (viewport px) of the top HUD cluster / trip strip that overlaps the horizontal span x0..x1 (used to keep banners and the strip clear of the clock + needs bar) */
 export function clearTop(x0, x1, skip) {

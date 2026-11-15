@@ -143,9 +143,12 @@ async function desk() {
   if (v === 't') buyTicket(); else if (v === 'p') buyPass(); else if (v === 's') showsBoard(); else if (v === 'a') adopt();
   else if (v === 'l') await choose('Species Logbook', Object.values(L).map(z => ({ label: `${z.stamp ? '[STAMPED] ' : ''}${z.name}`, sub: `${z.got} of ${z.of} species spotted · stamp at ${z.need}`, value: 0 })).concat([{ label: 'Close', value: 0 }]), { text: 'Use the species plaques by each tank to log what you spot. In the Ocean Tunnel the animal has to be in sight: wait for it to come round.' });
 }
+let lastRoom = null;
 function arrived(sc, pv) {
-  const S = st(); if (sc.roomId !== 'aquarium') { if (sc.roomId === 'aquarium:deep' && sleepoverNow() && !sc._so) { sc._so = true; toast('The tunnel lights are down to blue. Sleeping bags are laid out along the glass: yours is the empty one in the middle.', 'good', 5200); } return; }
-  if (pv && pv.def && pv.def.showpiece === 'aquarium') return; const first = !S.visits; S.visits++; safe(() => G.places.discover('aquarium', true)); G.emit('aquarium:visit', first);
+  const S = st(), from = lastRoom; lastRoom = sc.roomId;
+  if (sc.roomId !== 'aquarium' && (sc.roomId === 'aquarium:lab' ? S.chain.st < 1 : !hasTicket())) { setTimeout(() => { if (G.scene === sc) { toast(sc.roomId === 'aquarium:lab' ? 'Staff only: a technician walks you back out to Local Waters.' : '"Ticket, please!" A keeper walks you back up to the hall: the desk is by the door.', 'info', 4400); G.go('int:aquarium', { x: O + 20.5, y: O + 21, dir: 3 }); } }, 400); return; }
+  if (sc.roomId !== 'aquarium') { if (sc.roomId === 'aquarium:deep' && sleepoverNow() && !sc._so) { sc._so = true; toast('The tunnel lights are down to blue. Sleeping bags are laid out along the glass: yours is the empty one in the middle.', 'good', 5200); } return; }
+  if (from && from.startsWith('aquarium')) return; const first = !S.visits; S.visits++; safe(() => G.places.discover('aquarium', true)); G.emit('aquarium:visit', first);
   if (first) toast('Cool blue light, the hum of pumps, and in the middle of the hall a column of water four metres tall with a reef inside it. Tickets are at the desk on your right.', 'good', 5600);
   else if (sleepoverNow()) toast('Sleep with the Sharks: the aquarium is open all night. Sleeping bags are down in the Ocean Tunnel.', 'good', 4600);
   else if (lateNow()) toast('Jellies After Dark: the lights are low and the building is yours until ten.', 'good', 4200);
@@ -392,6 +395,6 @@ export function init() {
   });
   G.on('scene', s => { if (!s || s.id !== 'city' || !s.world) return; if (!s._aquarium) { s._aquarium = true; try { ensure(s.world); } catch (e) { console.warn('aquarium', e); } setGoal(); } try { relSync(s); } catch (e) { console.warn('aquarium', e); } });
   G.on('guide:rebuilt', patchGuide);
-  G.on('scene', () => { photoClose(); tg = null; });
+  G.on('scene', sc2 => { photoClose(); tg = null; if (!sc2 || !sc2.def || sc2.def.showpiece !== 'aquarium') lastRoom = null; });
   G.on('minutes', () => { const sc = scene(); if (!sc || G.busy || G.modal || G.cutscene) return; const h = G.now().hf, hr = hours(); if (!sleepoverNow() && (h >= hr[1] + .33 || h < hr[0] - 1)) { if (sc._closing) return; sc._closing = true; toast(h < 12 ? 'The night is over: a keeper with a cocoa urn walks the last sleepers out into the morning on the boardwalk.' : '"We are closing now. The sharks say goodnight." A keeper walks you out to the boardwalk.', 'info', 4400); exitRoom({ poi: DOOR }).then(() => { sc._closing = false; }, () => { sc._closing = false; }); } });
 }

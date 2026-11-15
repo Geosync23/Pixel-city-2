@@ -21,7 +21,7 @@ export class Veh {
   reset() {
     this.v = 0; this.off = 1; this.noff = 1; this.s = 0; this.lat = 0; this.turnS = 0; this.inNode = null; this.cornerOn = false; this.cx = 0; this.cy = 0; this.cax = 'x'; this.cd = 1;
     this.plan = null; this.offs = null; this.planI = 0; this.cyclic = false; this.stop = null; this.onStop = null; this.halt = false; this.parked = false; this.curb = 0; this.keep = false; this.pre = false;
-    this.stuck = 0; this.gho = 0; this.ghost = false; this.pedWait = 0; this.honk = 1; this.byPlayer = false; this.bus = null; this.stand = null; this.taxiFree = false; this.role = ''; this.acc = 1; this.gap = 1.3; this.age = 0;
+    this.stuck = 0; this.gho = 0; this.ghost = false; this.pedWait = 0; this.honk = 1; this.byPlayer = false; this.bus = null; this.stand = null; this.taxiFree = false; this.role = ''; this.acc = 1; this.gap = 1.3; this.age = 0; this.ride = false; this.leadFast = false;
   }
   /** kind: { id, asset, vmax }, params: art params (color, route, free...) */
   setKind(kind, params) {

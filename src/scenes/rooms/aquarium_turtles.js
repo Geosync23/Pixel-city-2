@@ -11,8 +11,8 @@ import { defineRoom } from '../interior.js';
 import { toast, bubble } from '../../ui/kit.js';
 import { crowd, walkers } from './_show_life.js';
 import { specs } from './_airport_life.js';
-import { wallTank, Swimmer, school, paint, spr } from './aquarium_life.js';
-import { Turtle, DiverEnt, caustics } from './aquarium_life2.js';
+import { wallTank, Swimmer, school, paint, spr, frames } from './aquarium_life.js';
+import { Turtle, DiverEnt, caustics, TV, turtleSide, turtleFront } from './aquarium_life2.js';
 import { AQ_VENUES, SHOWS, TURTLES } from '../../data/aquarium.js';
 
 const O = 1, W = 26, D = 18, GY = 11, PX0 = 11.5, PX1 = 14.5, PY0 = 6.5, pick = a => a[Math.floor(Math.random() * a.length)], AS = () => G.aquarium;
@@ -26,12 +26,12 @@ const LN = { visitor: ['The big one is sixty years old. He was here before the b
   A('bucket', 12.75, 6.75, {}, { tags: ['aqua_lettuce'], lettuce: 1 });
   TURTLES.forEach((t, i) => A('plaque', [2.4, 7.4, 17.4, 22.4][i], GY + .25, { c: '#17666f' }, { sp: t.sp, who: t.name }));
   A('bench', 4, 13.4, { c: '#f0735a' }, { kind: 'turtle' }); A('bench', 8, 13.4, { c: '#f0735a' }, { kind: 'turtle' });
-  A('tankwall', 18.4, 13.6, { w: 5.6, h: 2.4 }); A('plaque', 24.3, 14.2, { c: '#17666f' }, { sp: 'hatchling' }); A('plant', .5, 16.6, { seed: 3 }); A('plant', 24.9, 16.9, { seed: 9 }); A('plant', 10.6, 16.8, { seed: 5 });
+  A('tankwall', 18.4, 13.6, { w: 5.6, h: 2.4 }); A('plaque', 24.3, 14.2, { c: '#17666f' }, { sp: 'hatchling' }); A('plant', 11.6, 16.9, { seed: 3 }); A('plant', 24.9, 16.9, { seed: 9 }); A('plant', 10.6, 16.8, { seed: 5 });
   // lagoon floor
   for (const [x, y, s, sd] of [[4.4, 2.2, 1.5, 2], [17.6, 2.6, 1.4, 4], [21.4, 3.6, 1.2, 6], [22.6, 8.4, 1.3, 8], [7, 9, 1, 3], [1.2, 7, 1.1, 5]]) A('rock', x, y, { seed: sd, s, grow: 1, c: '#b8a888' });
   for (const [x, y, k] of [[19.6, 4.6, 1], [16.4, 3.6, 0], [23.6, 5.6, 2], [9, 3, 1], [2.6, 4.6, 0], [20.6, 1.6, 2], [6, 6.6, 2], [16.6, 8.6, 0]]) A('coral', x, y, { k, big: k === 1, seed: (x * 3) | 0 });
   for (const [x, y, sd] of [[10, 1.4, 1], [24.4, 1.4, 2], [1, 1.6, 3], [9.4, 7.6, 4], [15.6, 6.6, 5]]) A('kelp', x, y, { h: 1.4, seed: sd, frame: 0 }, { anim: 1 });
-  S(3, GY + .9, 3, { p: .7 }); S(6.4, GY + .9, 3, { age: 'kid', label: 'Kid', lines: LN.kid, p: .8 }); S(19, GY + .9, 3, { p: .6, anim: 'phone' }); S(23.4, GY + .9, 3, { busy: 1, age: 'kid', lines: LN.kid }); S(12.3, 9, 2, { age: 'kid', label: 'Kid', lines: LN.kid, p: .6 }); S(20, 15.2, 3, { p: .6 }); S(22, 15.2, 3, { busy: 1, age: 'kid', lines: LN.kid }); S(10, GY + .9, 3, { busy: 1 });
+  S(1.4, 13.2, 2, { age: 'kid', label: 'Kid', lines: LN.kid, p: .8 }); S(1.5, 16.2, 2, { p: .6 }); S(3, GY + .9, 3, { p: .7 }); S(6.4, GY + .9, 3, { age: 'kid', label: 'Kid', lines: LN.kid, p: .8 }); S(19, GY + .9, 3, { p: .6, anim: 'phone' }); S(23.4, GY + .9, 3, { busy: 1, age: 'kid', lines: LN.kid }); S(12.3, 9, 2, { age: 'kid', label: 'Kid', lines: LN.kid, p: .6 }); S(20, 15.2, 3, { p: .6 }); S(22, 15.2, 3, { busy: 1, age: 'kid', lines: LN.kid }); S(10, GY + .9, 3, { busy: 1 });
 })();
 const N = { a: [13, 17], b: [6.2, 12.4], c: [2.6, 12.4], d: [10, 12.3], e: [13.2, 10.6], f: [13.6, 7.8], g: [17, 12.3], h: [21.2, 15.6], i: [15.6, 15.8], m: [13, 11.8] };
 const RT = [['a', 'd', 'b*', 'c*', 'd', 'm', 'e', 'f*', 'e', 'm', 'g*', 'i', 'h*', 'i', 'a'], ['a', 'i', 'h*', 'i', 'g*', 'm', 'e', 'f*', 'e', 'm', 'd', 'b*', 'd', 'a']];
@@ -53,12 +53,22 @@ defineRoom({ id: 'aquarium:turtles', name: 'Maple Bay Aquarium: Turtle Lagoon', 
     Wd.block(O, O, O + PX0 - .2, O + GY); Wd.block(O + PX1 + .2, O, O + W, O + GY); Wd.block(O + PX0 - .2, O, O + PX1 + .2, O + PY0 - .2);
     Wd.lights.push({ x: O + 6, y: O + 12.5, z: 0, r: 6, c: '#8fe8f0' }, { x: O + 20, y: O + 12.5, z: 0, r: 6, c: '#8fe8f0' }, { x: O + 13, y: O + 8.6, z: 0, r: 5, c: '#8fe8f0' });
     const tanks = { back: wallTank({ x: O, y: O + .02, z: 0, w: W, h: 4.1, axis: 'y', kind: 'lagoon', frame: false }), side: wallTank({ x: O + .02, y: O, z: 0, w: GY, h: 4.1, axis: 'x', kind: 'lagoon', frame: false }), nursery: wallTank({ x: O + 18.4, y: O + 14.42, z: .35, w: 5.6, h: 1.9, axis: 'y', kind: 'nursery' }) };
-    for (const k in tanks) sc.ents.push(tanks[k].ent);
     const cst = caustics({ x0: O, y0: O, x1: O + W, y1: O + GY, ok: (x, y) => !(x > O + PX0 - .2 && x < O + PX1 + .2 && y > O + PY0 - .2), col: '#ffffff80', lit: true }); sc.ents.push(cst.ent);
     // ---- the residents
     const glass = p => { const x = p.x - O, y = p.y - O; if (y < GY && x > PX0 - .3 && x < PX1 + .3) return [O + (x < 13 ? PX0 - 1.2 : PX1 + 1.2), O + Math.max(PY0 + .6, y), 1.1]; if (y > GY + 3.2) return null; const gx = Math.max(1.5, Math.min(W - 1.5, x)); return [O + (gx > PX0 - 1.2 && gx < PX1 + 1.2 ? (gx < 13 ? PX0 - 1.4 : PX1 + 1.4) : gx), O + GY - .9, 1]; };
     const sw = [], turtles = TURTLES.map((t, i) => { const h = HABIT[t.id], tt = new Turtle({ sp: t.sp, name: t.name, pts: circ(h.pts), speed: h.speed, at: i * .23, fr: 2, zmin, surf: 3.4, w: h.w, rests: circ(h.rests.map(r => [r[0], r[1], 0])), glass, bb: h.bb || [-.4, -.4, .4, .4, .35] }); tt.id = t.id; sw.push(tt); sc.ents.push(tt); return tt; });
-    const rip = paint(18, 9, set => { for (let a = 0; a < 20; a++) { const an = a / 20 * 6.283; set(9 + Math.cos(an) * 8, 4 + Math.sin(an) * 3.6, '#ffffff'); if (a % 2) set(9 + Math.cos(an) * 5, 4 + Math.sin(an) * 2.2, '#dff8ff'); } }), RS = spr(rip);
+    const rip = paint(30, 15, set => { for (let a = 0; a < 40; a++) { const an = a / 40 * 6.283; set(15 + Math.cos(an) * 14, 7 + Math.sin(an) * 6.5, '#ffffff', 2, 1); if (a % 2) set(15 + Math.cos(an) * 9, 7 + Math.sin(an) * 4, '#dff8ff', 2, 1); if (a % 4 === 0) set(15 + Math.cos(an) * 4, 7 + Math.sin(an) * 2, '#ffffff'); } }), RS = spr(rip);
+    // ---- the underwater window on the deck wall: the same four turtles, seen from the side and large
+    const SIDE = {}, FRONT = {}; for (const t of TURTLES) { SIDE[t.id] = frames('ts:' + t.sp, turtleSide(TV[t.sp])); FRONT[t.id] = frames('tf:' + t.sp, turtleFront(TV[t.sp])); } let wT = 0;
+    const winDraw = (bx, W, H, fl, dt, px) => { wT += dt; const vis = px === null || px === undefined ? null : turtles.find(t => t.id === 'moss' && t.st !== 'rest') || turtles.find(t => t.st !== 'rest') || null;
+      for (const t of turtles.slice().sort((a, b) => b.x - a.x)) { const F = SIDE[t.id], fw = F[0][0].width, fh = F[0][0].height, rest = t.st === 'rest' && t.z < .5; let tx = W - ((t.y - O) / GY) * W, ty = rest ? fl - fh * .55 : fl - 6 - (t.z / 3.5) * (fl - 16) - fh * .2; if (t === vis) { tx = px; ty = H * .52; }
+        if (t._wx === undefined) { t._wx = tx; t._wy = ty; } const k = Math.min(1, dt * (t === vis ? 1.2 : 3)); t._wx += (tx - t._wx) * k; t._wy += (ty - t._wy) * k; if (Math.abs(tx - t._wx) > .6) t._wf = tx < t._wx ? 1 : 0; else if (t !== vis) t._wf = t.vy > 0 ? 1 : 0;
+        const fr = rest ? 0 : Math.floor(wT * (t.id === 'opal' ? 2.2 : t.id === 'tom' ? 1 : 1.5) + t.ph) & 1;
+        if (t === vis && Math.abs(t._wx - px) < 9) { const Q = FRONT[t.id][fr][0]; bx.drawImage(Q, Math.round(t._wx - Q.width / 2), Math.round(t._wy - Q.height / 2)); }
+        else bx.drawImage(F[fr][t._wf || 0], Math.round(t._wx - fw / 2), Math.round(t._wy - fh / 2));
+        if (t.st === 'breath' || t.st === 'up') { bx.fillStyle = '#e8fbff'; for (let i = 0; i < 4; i++) bx.fillRect(Math.round(t._wx + (t._wf ? -1 : 1) * fw * .4 + Math.sin(wT * 3 + i) * 2), Math.round(t._wy - 6 - ((wT * 12 + i * 5) % 16)), 1 + (i & 1), 1); } } };
+    tanks.win = wallTank({ x: O + .02, y: O + 11.3, z: .45, w: 6.6, h: 3.6, axis: 'x', kind: 'lagoon', draw: winDraw }); for (const k in tanks) sc.ents.push(tanks[k].ent);
+    sc.interactables.push({ x: O + .4, y: O + 14.6, label: 'Underwater window', h: 2, hit: 22, range: 1.6, spot: { x: O + 1.5, y: O + 14.6 }, use: () => toast('Through the glass: ' + turtles.map(t => `${t.name} ${{ glide: 'gliding by', up: 'rising for air', breath: 'breathing at the surface', rest: 'asleep on the sand', visit: 'nosing along the glass', food: 'chasing lettuce' }[t.st] || 'swimming'}`).join('; ') + '. Stand close and Moss comes to look at you.', 'info', 6500) });
     const rips = turtles.map(t => { const e = { x: 0, y: 0, z: 3.7, hidden: true, bb: [-.3, -.3, .3, .3, .05], sprite: () => RS }; sc.ents.push(e); return e; });
     for (const s of school({ sp: 'ytang', n: 12, pts: circ([[4, 8, 1.4], [10, 3, 2], [20, 3, 1.6], [23, 8, 1.8], [17, 9.6, 1.2]]), speed: .9, zmin, fr: 5 })) { sw.push(s); sc.ents.push(s); }
     for (const s of school({ sp: 'chromis', n: 16, pts: circ([[20, 5, 1.4], [22.4, 3, 1.8], [19, 2.4, 1.2], [17.4, 4.6, 1.6]]), speed: .6, zmin, fr: 6 })) { sw.push(s); sc.ents.push(s); }
