@@ -92,7 +92,7 @@ registerInfo(NAME, { blurb: 'The public pool under the glass vault on Harbor Bou
   H('towelcart', 16.4, 2.6, {}, { cart: 1 }); H('footbath', 2, 9, { w: 2.4 }); H('footbath', 9, 9, { w: 2.4 }); H('wetsign', 6, 8.6); H('plant', 18.9, .2, { h: 1.4, seed: 2 }); H('furn.generic.bin', 14.1, .3, {});
   S(17.6, 3.2, 2, { kind: 'staff', label: 'The changing-room attendant', lines: ['Towels are two dollars to hire, or bring your own next time.', 'Locker keys go round the wrist. I have fished forty out of the filter this year.', 'Rinse first, please. The showers are right there on the left.'] });
   S(6.2, 4.55, 1, { seated: true, z: .46, p: .6, swim: 1 }); S(7.6, 4.55, 1, { seated: true, z: .46, p: .5 }); S(11.4, 4.55, 1, { seated: true, z: .46, p: .5, swim: 1, age: 'kid' }); S(8.6, 6.95, 1, { seated: true, z: .46, p: .5, anim: 'phone' });
-  S(9.2, 1.4, 3, { p: .6, swim: 1 }); S(12.8, 1.4, 3, { p: .5 }); S(15.6, 1.3, 3, { p: .5, label: 'Drying her hair', lines: ['WHAT? I CAN\'T HEAR YOU. HAIRDRYER.'] }); S(1.2, 3.1, 0, { p: .55, swim: 1, anim: 'shower', sh: 1 }); S(3.4, 8, 1, { p: .4, swim: 1, age: 'kid' }); S(11.2, 8.2, 1, { p: .4, swim: 1 });
+  S(9.2, 1.4, 3, { p: .6, swim: 1 }); S(12.8, 1.4, 3, { p: .5 }); S(15.6, 1.3, 3, { p: .5, label: 'Drying her hair', lines: ['WHAT? I CAN\'T HEAR YOU. HAIRDRYER.'] }); S(1.15, 3, 0, { p: .55, swim: 1, anim: 'shower', sh: 1 }); S(3.4, 8, 1, { p: .4, swim: 1, age: 'kid' }); S(11.2, 8.2, 1, { p: .4, swim: 1 });
   defineRoom({ id: NR.change, name: 'Changing Village', w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'nat', floor: GT.f_tile, bg: '#152028', edge: '#3a4a50', wall: { color: '#e4eef0', pattern: 'tile', trim: TEAL, h: 3 },
     exits: [{ x: 19.2, y: 6, label: 'Entrance Hall', to: 'int:' + NR.hall, use: () => NS() && NS().go('hall') }, { x: 10.2, y: 10.4, label: 'Competition Pool', to: 'int:' + NR.pool, use: () => NS() && NS().go('pool') }, { x: 3.2, y: 10.4, label: 'Leisure Pool', to: 'int:' + NR.leisure, use: () => NS() && NS().go('leisure') }],
     spawn: { x: 18.2, y: 6, dir: 2 }, items, npcSpots: spots,
@@ -100,14 +100,14 @@ registerInfo(NAME, { blurb: 'The public pool under the glass vault on Harbor Bou
       const Wd = sc.world, P = swimPeople();
       floorDecal(sc, W, D, (x, y) => { if (x < 2.1 && y > 1.3 && y < 5.9) { const fx = x * 3 - Math.floor(x * 3), fy = y * 3 - Math.floor(y * 3); return fx < .1 || fy < .1 ? '#8fc8d0' : Math.sin(x * 7 + y * 9) > .8 ? '#d8f6fa' : '#a8dce4'; } const k = R.hash2(Math.floor(x * 2.2), Math.floor(y * 2.2), 9); if (k > .93 && y > 2) return '#bfdfe6'; return deck('#dfeaea', '#d4e2e2', .5)(x, y); });
       Wd.lights.push({ x: O + 9, y: O + 4, z: 0, r: 6, c: '#fff0c8' }, { x: O + 1.4, y: O + 3.5, z: 0, r: 3, c: '#b0f0f4' }, { x: O + 16, y: O + 2, z: 0, r: 3, c: '#ffe9b0' });
-      const jets = [0, 1, 2, 3].map(i => { const j = jet(sc, O + .55, O + 2.1 + i, .1, 'spray'); j.on = false; return j; });
+      const jets = [0, 1, 2, 3].map(i => { const j = jet(sc, O + .55, O + 2 + i, .1, 'spray'); j.on = false; return j; });
       const cr = crowd(sc, sc.def.npcSpots, { seed: 23, fill: .6, lines: ['Which locker was I. One-one-something.', 'I always forget how cold the footbath is.', 'Left sock. Has anyone seen a left sock.', 'The secret is to get dressed while still slightly damp and regret it all day.'] });
       dress(cr, (s, c) => (s.kind === 'staff' ? P.staff[3] : s.swim ? (s.age === 'kid' ? P.kid : P.adult)[Math.floor(c.roll * 97) % (s.age === 'kid' ? P.kid.length : P.adult.length)] : null));
       const shw = cr.list.find(c => c.spot.sh); let tick = 0;
       const sync = () => { const h = G.now().hf, op = h >= HOURS.open && h < HOURS.close; cr.show(op, h > 16 && h < 20); if (shw) jets[1].on = !shw.hidden || jets[1].mine; };
-      sc.nat = { jets, sync, showerSpot: i => ({ x: O + 1.15, y: O + 2.1 + i }), lockers: sc.fixtures.filter(f => f.item.locker) };
+      sc.nat = { jets, sync, showerSpot: i => ({ x: O + 1.15, y: O + 2 + i }), lockers: sc.fixtures.filter(f => f.item.locker) };
       hook(sc, 'locker', 'Lockers', f => NS().locker(f)); hook(sc, 'dryer', 'Hairdryer', () => NS().dryer(), { spot: { x: O + 15.9, y: O + .9 } }); hook(sc, 'cart', 'Towel hire', () => NS().towel()); hook(sc, 'cubicle', 'Changing cubicles', () => NS().cubicle());
-      for (const i of [0, 2, 3]) sc.interactables.push({ x: O + .4, y: O + 2.1 + i, label: 'Shower', h: 1.8, hit: 12, range: 1.4, spot: { x: O + 1.15, y: O + 2.1 + i }, use: () => NS() && NS().shower(i) });
+      for (const i of [0, 2, 3]) sc.interactables.push({ x: O + .4, y: O + 2 + i, label: 'Shower', h: 1.8, hit: 12, range: 1.4, spot: { x: O + 1.15, y: O + 2 + i }, use: () => NS() && NS().shower(i) });
       sc.env = hallEnv(Wd, .75, .3); wireLife(sc, [cr]); sync();
       const u0 = sc.update; sc.update = (dt, gm) => { u0(dt, gm); cr.update(dt); sweep(sc); if ((tick -= dt) <= 0) { tick = 1.5; sync(); } };
       const e0 = sc.onEnter; sc.onEnter = (o, pv) => { e0(o, pv); sync(); if (NS()) NS().arrived('change', sc, pv); };

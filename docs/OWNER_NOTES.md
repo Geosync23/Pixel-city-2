@@ -65,3 +65,4 @@
 50. (msgs 89-90) Status update, then a recap of the waves — answered with the wave table (A done; showpieces S1-S6 done, S7-S9 running; B-E not started).
 51. (msg 91) Wave order changed: old D (goods + home-goods stores, home design + shipping, new needs + Opportunities, unfinished art) is now WAVE C; old C (big city events, jobs expansion, relationships/romance) is now WAVE D; the university moves from B to the new D.
 52. (msg 92) Clothing catalogue target raised to 1,000 items (he typed 100, then corrected to 1000). Sent to the running clothes worker.
+53. (msg 93) Garment DRAWING is split across 3 Opus agents instead of the 1 Fable clothes worker; the Fable worker comes back once the drawing is done (for the systems: shops, laundry, closet app, integration).

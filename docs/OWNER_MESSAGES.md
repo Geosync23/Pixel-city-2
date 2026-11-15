@@ -383,3 +383,6 @@ Very short operational messages are included too, so the sequence is complete. A
 ## 92 — Clothing: 1,000 items (typed "100", then corrected to "1000")
 > Make it 100 clothing items
 > 1000
+
+## 93 — Garment drawing: 3 Opus agents instead of 1 Fable; bring the Fable worker back after the drawing
+> I feel like we can spread the garment drawing work to 3 opus 5.5 agents instrad of 1 Fable 5.2. Bring back.the 5.2 worker once drawing is done.

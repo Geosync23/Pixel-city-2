@@ -55,7 +55,7 @@ export const DIVES = [
   { id: 'inward', name: 'Inward 1 1/2, tuck', dd: 2.3, rot: -1.5, shape: 'tuck', lvl: 4 },
 ];
 export const DIVE = { MIN: 6, hygiene: 1 };
-export const SLIDES = { flume: { id: 'flume', name: 'The Twister', lvl: 1, par: 12.5, best: 9.8 }, drop: { id: 'drop', name: 'The Plunge', lvl: 2, par: 5.4, best: 4.1 } };
+export const SLIDES = { flume: { id: 'flume', name: 'The Twister', lvl: 1, par: 8.4, best: 6.4 }, drop: { id: 'drop', name: 'The Plunge', lvl: 2, par: 3.2, best: 2.4 } };
 export const WAVES = { every: 30, len: 8 };          // game minutes: the wave machine runs for `len` minutes at :00 and :30
 export const BUCKET = 38;                            // real seconds between tips of the big bucket
 export const waveOn = t => { const m = ((t % WAVES.every) + WAVES.every) % WAVES.every; return { on: m < WAVES.len, left: Math.max(0, WAVES.len - m), next: m < WAVES.len ? 0 : WAVES.every - m }; };

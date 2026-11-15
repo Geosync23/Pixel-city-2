@@ -13,12 +13,12 @@ export const FLOATS = ['#f08a2c', '#f28fb0', '#a8d84a', '#f2c230', '#5ab0e0', '#
 export const POOL = { x0: 4, x1: 26, y0: 6.6, y1: 16.2, lanes: 8, lw: 1.2 };
 export const laneY = n => POOL.y0 + (n - .5) * POOL.lw;                    // centre line of lane n (1..8)
 export const DIVE = { x0: 31, x1: 41, y0: 6.6, y1: 15.6 };
-export const BOARD_AT = { b1: { x: 32.6, y: 8.3, z: .85, y0: 5.4 }, b3: { x: 35.6, y: 8.5, z: 2.3, y0: 5.2 }, p5: { x: 38.9, y: 7.9, z: 3.7, y0: 5 } };   // (x, y) = the tip over the water, y0 = where you step on
+export const BOARD_AT = { b1: { x: 32.4, y: 8.1, z: .85, y0: 5.2 }, b3: { x: 35.4, y: 8.3, z: 2.3, y0: 5 }, p5: { x: 38.7, y: 7.7, z: 3.7, y0: 4.8 } };   // (x, y) = the tip over the water, y0 = where you step on
 export const STAND = { x0: 4.5, x1: 25.5, rows: [{ y: .55, z: 1.35 }, { y: 1.45, z: .9 }, { y: 2.35, z: .45 }], rail: 4.45 };
 export const LEIS = {
-  RIVER: { cx: 22, cy: 13.6, rx: 11, ry: 7.4, ix: 8.2, iy: 4.9 }, TUB: { x: 22, y: 12.6, r: 1.55 }, BRIDGE: { x0: 21.2, x1: 22.8, y0: 18.2, y1: 21.2 },
+  RIVER: { cx: 22, cy: 13.6, rx: 11, ry: 7.4, ix: 8.2, iy: 4.9 }, TUB: { x: 22, y: 12.6, r: 1.55 }, BRIDGE: { x0: 21, x1: 22.6, y0: 18, y1: 21 },
   WAVE: { x0: 35.2, x1: 45, y0: 1.2, y1: 13.2 }, TOD: { x0: 35.6, x1: 45, y0: 15.6, y1: 24.6 }, SPLASH: { x0: .9, x1: 8.6, y0: 10.6, y1: 13.2 }, TOWER: { x0: .8, y0: .8, s: 3.2, h: 4 },
-  BUCKET: { x: 40.4, y: 18.4 }, PLUNGE: { x: 21.4, y: 2.2, r: .85 }, RIVER_IN: { x: 13.2, y: 20.2 },
+  BUCKET: { x: 40.5, y: 18.5 }, PLUNGE: { x: 21.4, y: 2.2, r: .85 }, RIVER_IN: { x: 13.2, y: 20.2 },
 };
 export const LIDO = { x0: 4, x1: 20, y0: 5.4, y1: 10.2, lanes: 4, lw: 1.2 };
 export const inEll = (x, y, cx, cy, rx, ry) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;

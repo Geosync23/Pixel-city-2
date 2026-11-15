@@ -15,6 +15,8 @@ import { crowd } from './_show_life.js';
 import { POOL, DIVE, BOARD_AT, STAND, laneY, deck, TEAL } from '../../art/showpiece/_nat_lib.js';
 import { NR, HOURS, LANES, BAND_NAME, CLUB, MEET, laneUse, sessionNow, sessionsOn, meetAt, racePos, fmtTime, STAFF, DIVES, BOARDS } from '../../data/natatorium.js';
 import { O, NS, pick, setP, showOb, viewNow, mkItems, hallEnv, dress, by, hook, floorDecal, wireLife } from './natatorium.js';
+import { asset } from '../../art/registry.js';
+import { assetSprite } from '../../engine/sprites.js';
 import { waterLayer, PALS, swimSpr, wade, look, swimPeople, splash, sweep, board, paceClock, person, diverSpr, cardSpr, ent, txtW } from './natatorium_fx.js';
 
 const W = 44, D = 22;
@@ -37,10 +39,9 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
   H('rail', 0, STAND.rail, { len: 27.5 }); H('rail', 27.5, 0, { len: 4.5 }, { flip: true });
   for (const x of [4.5, 11.5, 18.5]) Wl('glasswall', 'y', x, { w: 7, h: 2.2, seed: x }, { glass: 1, mount: 2.5 }); for (const x of [28.4, 33.4, 38.4]) Wl('glasswall', 'y', x, { w: 5, h: 3.6, seed: x + 3 }, { glass: 1, mount: .7 });
   Wl('glasswall', 'x', 16.4, { w: 5, h: 3.4, seed: 5 }, { glass: 1, mount: .7 }); Wl('doorway', 'y', 1.2, { t: 'EXIT', w: 1.9, c: '#1f6fb8' }); Wl('sign', 'x', 2.2, { t: 'NO RUNNING', w: 2.8, c: '#d8402e' }, { mount: 1.2 });
-  for (let n = 1; n <= 8; n++) H('block', POOL.x1 + .15, laneY(n) - .35, { n }, { block: n });
-  H('guardchair', 14.4, 5.2, {}, { guard: 1 }); H('guardchair', 42.4, 10.4, {}, { guard: 2, flip: true }); H('guardchair', 1.9, 12.6, {}, { guard: 3, flip: true });
+    H('guardchair', 14.4, 5.2, {}, { guard: 1 }); H('guardchair', 42.4, 10.4, {}, { guard: 2, flip: true }); H('guardchair', 1.9, 12.6, {}, { guard: 3, flip: true });
   H('flags', 8.4, POOL.y0 - .3, { len: 10.2 }, { z: 1.9 }); H('flags', 21.6, POOL.y0 - .3, { len: 10.2 }, { z: 1.9 });
-  H('divetower', 31.2, 4.2, {}, { tower: 1 }); H('judges', 28.5, 9.2, {}, { judges: 1 }); H('podium', 8.5, 18.3, {}, { podium: 1 });
+  H('divetower', 31, 4, {}, { tower: 1 }); H('judges', 28.5, 9.2, {}, { judges: 1 }); H('podium', 8.5, 18.3, {}, { podium: 1 });
   H('kit', 1.6, 17.6, { k: 'boards' }); H('kit', 30.5, 18.6, { k: 'reel' }); H('kit', 15.4, 17.3, { k: 'whiteboard' }, { wb: 1 }); H('kit', 27.4, 5.2, { k: 'firstaid' }); H('kit', 3.6, 18.9, { k: 'noodles' });
   H('bench', 1.1, 7.2, { w: 2.4 }, { flip: true, rosa: 1 }); H('bench', 19, 19.6, { w: 3, kit: 1 }); H('bench', 33.5, 17.4, { w: 3, kit: 2 }); H('bench', 37.5, 17.4, { w: 3 });
   H('ladder', 4.6, POOL.y1, {}); H('ladder', 24.4, POOL.y1, {}); H('ladder', 31.6, DIVE.y1, {}); H('ladder', 39.6, DIVE.y1, {});
@@ -56,6 +57,7 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
       { const t = by(Wd, 'tower')[0]; if (t) { t.B = [t.B[0], t.B[1], 0, t.B[0] + .2, t.B[1] + .2, 4.6]; t.k = t.B[0] + t.B[3] + t.B[1] + t.B[4]; } }
       for (const o of by(Wd, 'infl')) { o.B = [o.B[0], o.B[1], -.1, o.B[3], o.B[4], .3]; }
       Wd.lights.push({ x: O + 9, y: O + 11, z: 0, r: 8, c: '#a8f0f8' }, { x: O + 21, y: O + 11, z: 0, r: 8, c: '#a8f0f8' }, { x: O + 36, y: O + 11, z: 0, r: 7, c: '#a8f0f8' }, { x: O + 15, y: O + 3, z: 0, r: 7, c: '#ffe9b0' }, { x: O + 15, y: O + 19, z: 0, r: 7, c: '#fff0d0' }, { x: O + 34, y: O + 19, z: 0, r: 6, c: '#fff0d0' });
+      { const ba = asset('furn.nat.block'); for (let n = 1; n <= 8; n++) { const p = { n }, x = O + POOL.x1 + .15, y = O + laneY(n) - .35; sc.ents.push({ x, y, z: 0, bb: [0, 0, .8, .7, .75], sprite: () => assetSprite(ba, p, false) }); Wd.block(x, y + .1, x + .8, y + .6); } }
       /* ----- water ----- */
       const dep = (x, y) => { x -= O; y -= O; if (x >= POOL.x0 && x <= POOL.x1 && y >= POOL.y0 && y <= POOL.y1) return .32 + .42 * (x - POOL.x0) / (POOL.x1 - POOL.x0); return -1; };
       const rope = (x, y) => { x -= O; y -= O; const k = (y - POOL.y0) / POOL.lw, fr = Math.abs(k - Math.round(k)); if (fr > .05 || Math.round(k) < 1 || Math.round(k) > 7) return null; const m = Math.min(x - POOL.x0, POOL.x1 - x); return m < 4.4 ? (Math.floor(x * 5) & 1 ? '#e8483a' : '#c8302a') : (Math.round(k) === 1 || Math.round(k) === 2) && NS() && NS().chain().st >= 5 ? (Math.floor(x * 4) & 1 ? '#f2c230' : '#fff2a8') : Math.floor(x * 4) & 1 ? '#1c2f7a' : '#f4f8f8'; };
