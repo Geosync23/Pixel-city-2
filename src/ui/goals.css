@@ -29,3 +29,5 @@
 .tut-cap.narr{font-style:italic;text-align:center;background:#2a2733;color:#fff4dc}
 .tut-skipcut{position:absolute;right:12px;bottom:14px;z-index:70;pointer-events:auto}
 @media (max-width:480px){#goalsw{font-size:12px}.tut{font-size:13px}.tut-cap{font-size:14px}}
+
+#ui:has(.modal) #goalsw{display:none}

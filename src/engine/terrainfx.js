@@ -31,7 +31,7 @@ function chamfer(D, w, h) { // two-pass 1 / 1.414 chamfer distance transform, in
  *       pave: tiles to the nearest non-paved tile or building, road: tiles to the nearest non-asphalt tile }
  */
 export function fields(world) {
-  let F = world._gfx; if (F && F.ver === world.version) return F;
+  let F = world._gfx; if (F && F.gt === world.gt && F.nobj === world.objs.length >> 6) return F; /* rebuilt only if the terrain array is replaced or the object count moves by 64+ (not on season changes) */
   const w = world.w, h = world.h, n = w * h, gt = world.gt, BIG = 99;
   const minH = (x, y) => Math.min(world.H(x, y), world.H(x + 1, y), world.H(x, y + 1), world.H(x + 1, y + 1));
   const shore = new Float32Array(n).fill(BIG), sea = new Float32Array(n).fill(BIG), bank = new Uint8Array(n), still = new Uint8Array(n);
@@ -69,7 +69,7 @@ export function fields(world) {
   const pave = new Float32Array(n), road = new Float32Array(n);
   for (let i = 0; i < n; i++) { pave[i] = PAVED.has(gt[i]) && !bld[i] ? BIG : 0; road[i] = gt[i] === GT.asphalt ? BIG : 0; }
   chamfer(pave, w, h); chamfer(road, w, h);
-  F = world._gfx = { ver: world.version, w, h, shore, sea, bank, still, pave, road, anyWater };
+  F = world._gfx = { gt: world.gt, nobj: world.objs.length >> 6, w, h, shore, sea, bank, still, pave, road, anyWater };
   return F;
 }
 /** bilinear sample of a tile-centred field (indices clamp, so it also works outside the map) */
@@ -96,12 +96,13 @@ export function waterPaint(world) {
   const snowB = ['#eef3f6', '#e2eaf0', '#f6fafc', '#b9c8d6'];
   return (x, y) => {
     const PX = Math.floor((x - y) * 16), PY = Math.floor((x + y) * 8), i = tIdx(F, x, y);
-    const d = dAt(F.shore, w, h, x, y), e = d - .5, n1 = vnoise(x * .37, y * .37, 5), n2 = vnoise(x * 1.9, y * 1.9, 8), bt = (BAYER[((PY & 3) << 2) | (PX & 3)] + .5) / 16;
+    const d = dAt(F.shore, w, h, x, y), e = d - .5, n1 = vnoise(x * .37, y * .37, 5), bt = (BAYER[((PY & 3) << 2) | (PX & 3)] + .5) / 16, frozen = winter && F.still[i] === 1;
+    const n2 = e < 1.1 || frozen ? vnoise(x * 1.9, y * 1.9, 8) : 0; /* fine noise is only used near the shore and on ice */
     const bk = F.bank[i];
     if (bk && e < .07) { // soft bank reaching into the water (rounds the staircase of ponds and beaches)
       const B = winter && bk === 1 ? snowB : BANKC[bk]; if (e > .0) return B[3]; const k = hash2(PX, PY, 17); return k < .1 ? B[1] : k > .9 ? B[2] : B[0];
     }
-    if (winter && F.still[i]) { // frozen pond
+    if (frozen) { // frozen pond
       if (e < .2 + n2 * .22) return e < .12 + n2 * .1 || bt < .5 ? '#f2f7fa' : '#dfeaf1';
       const c1 = vnoise(x * .9 + 40, y * .9, 31), drift = vnoise(x * .55, y * .55, 33) + n2 * .25;
       if (drift > .86) return drift > .93 || bt < (drift - .86) / .07 ? '#f2f7fa' : '#dcebf3';
@@ -110,9 +111,8 @@ export function waterPaint(world) {
       const sx = Math.floor(PX / 28), sy = Math.floor(PY / 12), hs = hash2(sx, sy, 37); if (hs < .3) { const lx = PX - sx * 28 - Math.floor(hash2(sx, sy, 38) * 14), ly = PY - sy * 12 - Math.floor(hash2(sx, sy, 39) * 9); if (lx >= 0 && lx < 10 && ly === ((lx * lx) >> 5)) return '#e9f4f9'; }
       return c1 > .62 ? '#c4dcea' : c1 < .3 ? '#d6e8f1' : (PY & 1) ? '#cde2ee' : '#d1e5f0';
     }
-    const surf = dAt(F.sea, w, h, x, y) < 9;
     // shoreline
-    if (surf) {
+    if (e >= 1.1) { /* open water: no shore work */ } else if (dAt(F.sea, w, h, x, y) < 9) {
       if (e < .15 + n1 * .12) return n2 > .78 ? HI[0] : '#f4fbfe';
       if (e < .3 + n1 * .14) return bt < .55 ? '#f4fbfe' : HI[0];
       const sw = Math.abs(e - (.62 + n1 * .3)); if (sw < .06 && n2 > .38) return '#dff2fa';
@@ -155,8 +155,8 @@ const SN = ['#eef3f6', '#e4ecf2', '#c6d3df', '#f8fbfd']; // snow, snow tone 2, r
 export function snowWrap(world, t, f0) {
   const F = fields(world), w = F.w, h = F.h;
   let cov; // cov(x,y) -> coverage value; snow where > 0
-  if (PAVED.has(t)) cov = (x, y) => { const d = dAt(F.pave, w, h, x, y); const a = (1.28 - d) * .9 + (vnoise(x * .8, y * .8, 21) - .5) * .75 + (vnoise(x * 2.3, y * 2.3, 22) - .5) * .22 - (d > 1.3 ? .12 : 0); if (a > 0 || d < 1.6) return a; const o = vnoise(x * .42 + 9, y * .42, 19) + (vnoise(x * 2.1, y * 2.1, 22) - .5) * .12 - .8; return o > a ? o : a; };
-  else if (t === GT.asphalt) cov = (x, y) => { const d = dAt(F.road, w, h, x, y); return (.68 - d) * 1.6 + (vnoise(x * 1.1, y * 1.1, 23) - .5) * .28; };
+  if (PAVED.has(t)) cov = (x, y) => { const d = dAt(F.pave, w, h, x, y); if (d < .55) return .65; const a = (1.28 - d) * .9 + (vnoise(x * .8, y * .8, 21) - .5) * .75 + (vnoise(x * 2.3, y * 2.3, 22) - .5) * .22 - (d > 1.3 ? .12 : 0); if (a > 0 || d < 1.6) return a; const o = vnoise(x * .42 + 9, y * .42, 19) + (vnoise(x * 2.1, y * 2.1, 22) - .5) * .12 - .8; return o > a ? o : a; };
+  else if (t === GT.asphalt) cov = (x, y) => { const d = dAt(F.road, w, h, x, y); if (d > .9) return -1; return (.68 - d) * 1.6 + (vnoise(x * 1.1, y * 1.1, 23) - .5) * .28; };
   else if (t === GT.tarmac) cov = (x, y) => vnoise(x * .5, y * .5, 24) * .8 + vnoise(x * 1.9, y * 1.9, 25) * .25 - .78;
   else if (t === GT.rock || t === GT.ballast) cov = (x, y) => vnoise(x * .7, y * .7, 26) * .8 + vnoise(x * 2.1, y * 2.1, 27) * .3 - .56;
   else cov = (x, y) => vnoise(x * .6, y * .6, 28) * .8 + vnoise(x * 1.8, y * 1.8, 29) * .3 - .34;
@@ -167,7 +167,7 @@ export function snowWrap(world, t, f0) {
     if (v > 0) {
       if (v < .1 && bay(x, y) > v / .1 * .7 + .3) return damp(f0(x, y));
       if (road) return v < .22 || hash2(Math.floor((x - y) * 16), Math.floor((x + y) * 8), 30) < .12 ? '#b8c2cd' : '#dde5eb';
-      if (cov(x + .11, y + .11) <= 0) return SN[2];
+      if (v < .32 && cov(x + .11, y + .11) <= 0) return SN[2];
       return vnoise(x * .33, y * .33, 20) > .58 ? SN[1] : SN[0];
     }
     return damp(f0(x, y)); // cleared ground reads a little damp and darker

@@ -191,7 +191,7 @@ export function createFX(G) {
     // --- precipitation ---
     if (wet > .02) {
       const sl = storm > .3 ? 1 : 0, wind = sl ? .42 : .2;
-      const dens = scale * (storm ? 1.7 : .7);
+      const dens = Math.min(scale, 1.8) * (storm ? 1.4 : .7); /* capped: a phone at its widest zoom draws about 1000 streaks in a storm */
       ctx.globalAlpha = (storm ? .65 : .55) * nightA; rainLayer(ctx, rainFar, DROP.far[sl], Math.min(rainFar.n, Math.round(230 * wet * dens)), cam, .8, wind, dt, RW, RH);
       ctx.globalAlpha = (storm ? .9 : .8) * nightA; rainLayer(ctx, rainNear, sl ? DROP.gust : DROP.near[0], Math.min(rainNear.n, Math.round(170 * wet * dens)), cam, 1.25, wind, dt, RW, RH);
       ctx.globalAlpha = .07 * wet * (1 + storm); ctx.fillStyle = dark > .5 ? '#2c3550' : '#8e9ab4'; ctx.fillRect(0, 0, W, H);

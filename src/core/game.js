@@ -153,7 +153,7 @@ function frame(now) {
       if (inp.hold) { const w = G.toWorld(inp.hold.x, inp.hold.y); if (Math.hypot(w.x - p.x, w.y - p.y) > .3) { const d = Math.hypot(w.x - p.x, w.y - p.y); steer = [(w.x - p.x) / d, (w.y - p.y) / d]; } G.target = null; G.pending = null; }
       else if (inp.kx || inp.ky) { const dx = inp.kx + inp.ky, dy = inp.ky - inp.kx, d = Math.hypot(dx, dy); steer = [dx / d, dy / d]; G.target = null; G.pending = null; }
       p.move(G.world, dt, steer);
-      if (G.pending) { const it = G.pending.it; if (it.ent && !it.spot && p.path) { const e = p.path[p.path.length - 1]; if (e && Math.hypot(e[0] - it.x, e[1] - it.y) > 1.5) p.goTo(G.world, it.x, it.y, { snap: 8 }); } const tx = it.spot ? it.spot.x : it.x, ty = it.spot ? it.spot.y : it.y; if (Math.hypot(tx - p.x, ty - p.y) <= G.pending.range) G.pending.fire(); else if (!p.path) G.pending = null; }
+      if (G.pending) { const it = G.pending.it; if (it.ent && !it.spot && p.path) { const e = p.path[p.path.length - 1]; if (e && Math.hypot(e[0] - it.x, e[1] - it.y) > 1.5) p.goTo(G.world, it.x, it.y, { snap: 8 }); } const tx = it.spot ? it.spot.x : it.x, ty = it.spot ? it.spot.y : it.y; if (Math.hypot(tx - p.x, ty - p.y) <= G.pending.range) G.pending.fire(); else if (!p.path) { if (Math.hypot(tx - p.x, ty - p.y) <= Math.max(G.pending.range, 1.6)) G.pending.fire(); else G.pending = null; } }
       if (!p.path) G.target = null;
     }
     if (G.scene.update) G.scene.update(dt, gm);

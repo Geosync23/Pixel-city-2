@@ -26,7 +26,7 @@ export function choose(title, options, opts = {}) { return new Promise(res => { 
 /** speech bubble above a world position or entity (auto-removes). */
 export function bubble(target, text, ms = 2800, cls = '') {
   const b = el('div.bubble' + (cls ? '.' + cls : ''), { text }); root().append(b); const t0 = performance.now();
-  const upd = () => { if (performance.now() - t0 > ms || !b.isConnected) { b.remove(); G.off('frame', upd); return; } const s = G.toScreen(target.x, target.y, (target.z || 0) + (target.bubbleH || 1.9)); b.style.left = s.x + 'px'; b.style.top = s.y + 'px'; };
+  const upd = () => { if (performance.now() - t0 > ms || !b.isConnected) { b.remove(); G.off('frame', upd); return; } const s = G.toScreen(target.x, target.y, (target.z || 0) + (target.bubbleH || 1.9)); b.style.left = s.x + 'px'; b.style.top = s.y + 'px'; const r = b.getBoundingClientRect(), dx = Math.max(6 - r.left, 0) + Math.min(innerWidth - 6 - r.right, 0); if (dx) b.style.left = (s.x + dx) + 'px'; };
   G.on('frame', upd); upd(); return b;
 }
 /** dialogue box at the bottom with speaker name; lines: [{who, text}] or strings. Resolves when dismissed. */

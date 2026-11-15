@@ -43,7 +43,7 @@ export const CATALOG = [
     release: { day: 3, on: 'place:discover', when: id => VENUES.some(v => String((id && id.id) || id || '').indexOf(v) >= 0), text: 'finding a cinema or hall, or day 3' },
     desc: 'Films at The Orpheum, concerts at Symphony Hall and plays at the Lantern Playhouse, all on one evening list.', does: ["Tonight's and tomorrow's showings", 'Add to planner', 'Take me there'] },
   { id: 'closet', name: 'Closet', cat: 'life', tagline: 'What shall I wear?', size: '8 MB', rating: 4.3, iconIds: ['outfit_casual', 'ui.shirt', 'ui.hanger', 'ui.heart'], color: '#8a5cc2',
-    release: { day: 4, poll: () => safe(() => G.wardrobe.owned().length, 0) >= 2, text: 'owning two outfits, or day 4' },
+    release: { day: 2, on: 'shop:buy', poll: () => safe(() => G.wardrobe.owned().length, 0) >= 2, text: 'your first purchase, or day 2' },
     desc: 'Every outfit you own in one grid. Change in a tap, wherever you are.', does: ['Outfit grid', 'Wear now', "Today's outfit"] },
   { id: 'friends', name: 'Circle', cat: 'people', tagline: 'How are my people?', size: '15 MB', rating: 4.7, iconIds: ['need.social', 'ui.heart'], color: '#e0527a',
     release: { poll: () => friendsMet() >= 3, on: 'npc:met', when: () => friendsMet() >= 3, text: 'meeting three people' },

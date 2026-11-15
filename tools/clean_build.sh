@@ -17,6 +17,7 @@ FILES="src/ui/phone_taxi.js src/ui/phone_guide.js src/ui/phone.js src/ui/phone_p
  src/sim/_crowd_lines.js src/sim/_crowd_core.js src/sim/crowd.js src/sim/_crowd_rooms.js src/sim/transit.js src/sim/traffic.js src/sim/_traffic_veh.js src/sim/navigator.js src/sim/museum.js src/sim/observatory.js
  src/ui/shop.js src/ui/hud.js src/data/items.js src/data/venues_extra.js src/data/validate.mjs src/data/calendar.js src/scenes/rooms/museum.js src/scenes/rooms/observatory.js src/art/showpiece/museum.js
  src/sim/navgoals.js src/ui/navarrow.js
+ src/core/game.js src/ui/kit.js src/ui/style.css src/ui/goals.css src/art/performance/perf.js src/scenes/rooms/arena_bowl.js src/sim/wardrobe.js
  src/data/shipping.js src/sim/orders.js src/sim/homedesign.js src/ui/phone_home.js src/art/homedesign/*.js src/ui/furnish.js src/ui/furnish.css src/sim/activities.js
  src/sim/cityevents.js src/sim/_cityevents_stage.js src/sim/_cityevents_fx.js src/data/cityevents.js src/art/events/*.js
  src/art/civic/arts_street.js src/art/downtown/midrise.js src/art/downtown/towers.js src/art/examples/basics.js src/art/venue/restaurant.js

@@ -31,7 +31,7 @@ export const textW = s => String(s).length * 4 - 1;
 /** 3x5 text through put(x, y, hex); (x, y) = top-left */
 export function glyphs(put, str, x, y, c) { str = String(str).toUpperCase(); for (let i = 0; i < str.length; i++) { const g = FONT[str[i]] || FONT['?']; for (let r = 0; r < 5; r++) { const bits = +g[r]; for (let b = 0; b < 3; b++) if (bits & (4 >> b)) put(x + i * 4 + b, y + r, c); } } }
 
-const CREST = ['nnnnnnnnnnn', 'nnnnngnnnnn', 'nnngngngnnn', 'nnggggggnnn'.replace('gggggg', 'ggggg') + 'n', 'nngggggggnn', 'nnnngggnnnn', 'nnnnngnnnnn', 'npppnnnpppn', 'nppppnppppn', 'nppppnppppn', '.nnnnnnnnn.', '..nnnnnnn..', '....nnn....'];
+const CREST = ['nnnnnnnnnnn', 'nnnnngnnnnn', 'nnngngngnnn', 'nngggggggnn', 'ngggggggggn', 'nnngggggnnn', 'nnnnngnnnnn', 'nppppnppppn', 'nppppnppppn', 'nnnnnnnnnnn', '.nnnnnnnnn.', '..nnnnnnn..', '....nnn....'];
 /** the university shield at (x, y) = top-left, pixel size s */
 export function crest(put, x, y, s = 1, c = {}) {
   const col = { n: c.n || NAVY, g: c.g || GOLD, p: c.p || CREAM };
