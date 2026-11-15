@@ -58,7 +58,7 @@ function playView(b, ctx, id) {
   injectMediaCss(); const d = GAME_BY_ID[id]; b.classList.add('md-play'); const mine = M().begin('playbox', id);
   const view = document.querySelector('#phone-layer .ph-view'), vw = (view && view.clientWidth) || 340, vh = (view && view.clientHeight) || 560;
   const k = Math.max(1, Math.min((vw - 12) / W, (vh - 52 - 44 - 14) / H)), cv = el('canvas.pix.md-gcv', { width: W, height: H, style: { width: Math.floor(W * k) + 'px', height: Math.floor(H * k) + 'px' } }), g = cv.getContext('2d');
-  const scoreEl = el('b'), statEl = el('span'), pauseB = el('button.md-pause', { 'aria-label': 'Pause', text: 'II', onclick: () => { if (st === 'play') { st = 'pause'; panel('Paused', null, [btn('Resume', () => { st = 'play'; over.classList.remove('on'); }, 'pri'), btn('Quit', () => ctx.back())]); } } });
+  const scoreEl = el('b'), statEl = el('span'), bestEl = el('span.md-ghud-b'), best0 = () => safe(() => M().games().find(x => x.id === id).best, 0) || 0, pauseB = el('button.md-pause', { 'aria-label': 'Pause', text: 'II', onclick: () => { if (st === 'play') { st = 'pause'; panel('Paused', null, [btn('Resume', () => { st = 'play'; over.classList.remove('on'); }, 'pri'), btn('Quit', () => ctx.back())]); } } });
   const over = el('div.md-gover'), wrap = el('div.md-gwrap', null, cv, over);
   const api = { W, H, rnd: Math.random, text: pixText, blip, skin: M().skin(id) };
   let game = IMPL[id][0](api), st = 'ready', sessFun = 0, sessMin = 0;
@@ -75,13 +75,13 @@ function playView(b, ctx, id) {
   cv.addEventListener('pointerdown', e => { e.preventDefault(); try { unlock(); } catch (x) { /* no audio */ } try { cv.setPointerCapture(e.pointerId); } catch (x) { /* synthetic */ } if (st === 'ready') { st = 'play'; over.classList.remove('on'); if (id === 'match' || id === 'pairs' || id === 'cab') game.down(...pos(e)); return; } if (st === 'play') game.down(...pos(e)); });
   cv.addEventListener('pointermove', e => { if (st === 'play') game.move(...pos(e)); });
   for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, e => { if (st === 'play') game.up(...pos(e)); });
-  b.append(el('div.md-ghud', null, el('span.md-ghud-s', null, scoreEl, statEl), el('span.md-ghud-b', { text: `Best ${M().games().find(x => x.id === id).best || 0}` }), pauseB), wrap);
+  b.append(el('div.md-ghud', null, el('span.md-ghud-s', null, scoreEl, statEl), bestEl, pauseB), wrap);
   over.replaceChildren(el('div.md-gpanel.ready', null, el('b', { text: d.name }), el('small', { text: d.how }), el('em', { text: 'Tap the game to start' }))); over.classList.add('on'); over.addEventListener('pointerdown', e => { if (st === 'ready' && !e.target.closest('button')) { st = 'play'; over.classList.remove('on'); try { unlock(); } catch (x) { /* no audio */ } } });
   live = { id, state: () => ({ id, st, score: game.score, status: game.status ? game.status() : '' }), game: () => game, canvas: cv, restart };
   onTick(b, dt => {
     if (st === 'play') { game.update(dt); M().spend('play', dt * TUNE.CLOCK.play); if (game.over) finish(); }
     try { g.imageSmoothingEnabled = false; game.draw(g); } catch (e) { console.error('playbox draw', e); }
-    scoreEl.textContent = String(game.score); statEl.textContent = game.status ? game.status() : '';
+    scoreEl.textContent = String(game.score); statEl.textContent = game.status ? game.status() : ''; bestEl.textContent = 'Best ' + Math.max(best0(), game.score);
   }, () => { if (M().session() === mine) M().end(); if (live && live.id === id) live = null; });
 }
 

@@ -21,7 +21,7 @@ export function pairs(api) {
   let open = [], turns = 0, found = 0, time = 0, wait = 0, over = false, final = 0, streak = 0;
   const calc = () => Math.max(50, Math.round(1000 - Math.max(0, turns - 8) * 35 - time * 2));
   return {
-    get score() { return over ? final : found * 40; }, get over() { return over; }, status: () => `${turns} turns`,
+    get score() { return over ? final : found * 40; }, get over() { return over; }, status: () => `${turns} turns`, dbg: () => ({ wait, open: open.length, X0, Y0, CW, CHh, GAP, cards: cards.map(c => ({ k: c.k, up: c.up, done: c.done, c: c.c, r: c.r })) }),
     update(dt) {
       if (found < 8) time += dt; for (const c of cards) { const tgt = c.up || c.done ? 1 : 0; c.flip += Math.sign(tgt - c.flip) * Math.min(Math.abs(tgt - c.flip), dt * 7); }
       if (wait > 0) { wait -= dt; if (wait <= 0) { if (open.length === 2) { const [a, b] = open; if (a.k === b.k) { a.done = b.done = true; found++; streak++; api.blip(72 + streak * 2, .12); } else { a.up = b.up = 0; streak = 0; } open = []; } if (found === 8 && !over) { final = calc(); wait = .9; found = 9; } else if (found === 9) over = true; } }
@@ -67,7 +67,7 @@ export function cab(api) {
   }
   gen();
   return {
-    get score() { return score; }, get over() { return over; }, status: () => `${Math.ceil(time)} s`,
+    get score() { return score; }, get over() { return over; }, status: () => `${Math.ceil(time)} s`, dbg: () => ({ grid: grid.slice(), src, dst, N, C, X0, Y0, win, fares, time }),
     update(dt) { t += dt; time -= dt; for (let i = 0; i < spin.length; i++) spin[i] = Math.max(0, spin[i] - dt * 6); if (time <= 0) { time = 0; over = true; return; } if (win > 0) { win -= dt; if (win <= 0) { win = 0; gen(); } } },
     draw(g) {
       R(g, 0, 0, W, api.H, '#5a8a5a'); R(g, 0, 0, W, 30, '#3a3644'); api.text(g, 'CAB CONNECT', 60, 5, '#f2c230'); api.text(g, `FARES ${fares}   ${Math.ceil(time)} S`, 60, 15, time < 15 ? '#ff8a7a' : '#fff4dc');
@@ -99,7 +99,7 @@ export function beat(api) {
   let t = 0, score = 0, streak = 0, best = 0, over = false, fx = [], press = [0, 0, 0], miss = 0, bassI = 0;
   const COL = ['#6ad8f0', '#f6d24a', '#f28fb0'];
   return {
-    get score() { return score; }, get over() { return over; }, status: () => `streak ${streak}`,
+    get score() { return score; }, get over() { return over; }, status: () => `streak ${streak}`, dbg: () => ({ t, LW, END, miss, best, notes: notes.map(n => ({ t: n.t, lane: n.lane, hit: n.hit })) }),
     update(dt) {
       t += dt; for (let i = 0; i < 3; i++) press[i] = Math.max(0, press[i] - dt * 5); for (const f of fx) f.t += dt; fx = fx.filter(f => f.t < .5);
       while (LEAD + bassI * SPB * 2 <= t && bassI * 2 < TUNE_NOTES.length) { api.blip([36, 41, 43, 36][Math.floor(bassI / 4) % 4], .22, 'bass'); bassI++; }

@@ -18,7 +18,7 @@ export const order = 126;
 
 /* ---------- shared by Pages / Reel / PlayBox ---------- */
 export function injectMediaCss() { if (!document.querySelector('link[href="src/ui/style.css"]') || document.querySelector('link[href="src/ui/phone_media.css"]')) return; document.head.append(el('link', { rel: 'stylesheet', href: 'src/ui/phone_media.css' })); }
-export const fmtMin = m => (m >= 60 ? `${Math.floor(m / 60)} h ${Math.round(m % 60)} min` : `${Math.round(m)} min`);
+export const fmtMin = m => { m = Math.round(m); return m >= 60 ? (m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`) : `${m} min`; };
 /** the "how much fun is this right now" strip every media app shows on its home page */
 export function screenBar(kind) {
   const M = G.media, r = M.rate(kind), p = M.pool(), C = TUNE.SCREEN, tired = p.minutes >= C.taper;
@@ -168,7 +168,8 @@ function sitting(b, ctx, id, minutes) {
   const it = k0.item, rate = minutes / TUNE.bookSecondsPerSitting; let left = minutes, fun = 0, xp = 0, done = false, cancelled = false;
   const mine = M().begin('pages', id); b.classList.add('md-sitting');
   const pg = el('div.md-flip', null, el('i'), el('i'), el('i')), pbar = el('div.md-book-bar', null, bar(k0.pct * 100, 100, it.kind === 'skill' ? '#3b5bdb' : '#e0703a'), el('small', { text: Math.round(k0.pct * 100) + '%' })), status = el('p.md-sit-st'), out = el('div.md-sit-out');
-  b.append(el('div.md-sit-hero', null, iconEl(it.id, 5, 'book'), pg), el('b.md-sit-t', { text: it.name }), status, pbar, out);
+  b.append(el('div.md-sit-hero', null, iconEl(it.id, 5, 'book'), pg), el('b.md-sit-t', { text: it.name }), status, pbar, out,
+    el('p.md-note', { text: it.kind === 'skill' ? 'Same book, same progress as on your shelf. Studying on a small screen is a little slower than at a desk.' : 'Same bookmark as on your shelf at home. An armchair is nicer, but this is the bus.' }));
   const stop = btn('Stop reading', () => { cancelled = true; finish(); }, 'wide'); ctx.foot.append(stop);
   const upd = () => { const k = M().books().find(q => q.id === id) || k0; pbar.firstChild.firstChild.style.width = (k.pct * 100).toFixed(1) + '%'; pbar.lastChild.textContent = Math.round(k.pct * 100) + '%'; status.textContent = `Reading on your phone · ${Math.round(minutes - left)} of ${minutes} min · ${G.now().clock}`; };
   function finish(fin) {

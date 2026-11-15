@@ -28,12 +28,14 @@ const CSS = `
 .cw-note{font-size:12px;opacity:.78;margin:6px 0}
 .cw-line{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dashed #2a273340;font-size:12px}.cw-line span{flex:1;min-width:0}.cw-line button{flex:none}
 `;
+/** append children, skipping null / false (Element.append would print "null") */
+export const put = (host, ...kids) => { host.append(...kids.flat().filter(k => k !== null && k !== undefined && k !== false)); return host; };
 let cssDone = false;
 export function injectCss() { if (cssDone || typeof document === 'undefined') return; cssDone = true; document.head.append(el('style', { text: CSS })); }
 
 // crop [x0, y0, w, h] around the feet anchor
-const CROP = { top: [-9, -25, 18, 18], outer: [-9, -25, 18, 22], dress: [-9, -25, 18, 26], bottom: [-9, -13, 18, 16], shoes: [-8, -8, 16, 11], hat: [-9, -36, 18, 18], neck: [-9, -25, 18, 16], glasses: [-8, -32, 16, 14], earring: [-8, -32, 16, 14],
-  bag: [-10, -22, 20, 22], belt: [-9, -19, 18, 14], gloves: [-10, -19, 20, 16], socks: [-8, -8, 16, 11], tights: [-9, -13, 18, 16], watch: [-10, -19, 20, 16], full: [-11, -35, 22, 38] };
+const CROP = { top: [-9, -23, 18, 18], outer: [-9, -23, 18, 22], dress: [-9, -23, 18, 26], bottom: [-9, -13, 18, 16], shoes: [-8, -8, 16, 11], hat: [-9, -29, 18, 18], neck: [-9, -22, 18, 16], glasses: [-8, -25, 16, 14], earring: [-8, -25, 16, 14],
+  bag: [-10, -20, 20, 22], belt: [-9, -17, 18, 14], gloves: [-10, -17, 20, 16], socks: [-8, -8, 16, 11], tights: [-9, -13, 18, 16], watch: [-10, -17, 20, 16], full: [-11, -32, 22, 36] };
 const cache = new Map();
 function sprite(spec, pose) { const A = charArt(); return toSprite(render(A.CHAR_SB, () => A.drawChar(spec, pose || { dir: 0 }), null, 1)); }
 function cut(s, crop) { const [x0, y0, w, h] = crop, c = document.createElement('canvas'); c.width = w; c.height = h; if (s) c.getContext('2d').drawImage(s.c, -(x0 - s.x), -(y0 - s.y)); return c; }
@@ -49,7 +51,7 @@ export function thumb(it, scale = 3) {
 }
 /** thumbnail of any spec (sets, looks, hairstyles): region 'full' | 'head' */
 export function specThumb(spec, region = 'full', scale = 2) {
-  const src = cut(sprite(spec), region === 'head' ? [-8, -34, 16, 17] : CROP.full); src.className = 'pix'; src.style.cssText = `width:${src.width * scale}px;height:${src.height * scale}px;image-rendering:pixelated;flex:none`; return src;
+  const src = cut(sprite(spec), region === 'head' ? [-8, -27, 16, 17] : CROP.full); src.className = 'pix'; src.style.cssText = `width:${src.width * scale}px;height:${src.height * scale}px;image-rendering:pixelated;flex:none`; return src;
 }
 export function big(spec, o = {}) {
   const scale = o.scale || 6, c = cut(sprite(spec, { anim: o.anim || 'stand', frame: o.frame || 0, dir: o.dir || 0 }), [-13, -35, 26, 39]); c.className = 'pix';
@@ -58,22 +60,26 @@ export function big(spec, o = {}) {
 /** a tap-to-turn mirror element; mirror.set(spec) redraws */
 export function stage(spec, scale = 6) {
   injectCss(); let dir = 0, cur = spec; const box = el('div.cw-stage', { title: 'Tap to turn', onclick: () => { dir = (dir + 1) % 4; draw(); } });
-  const draw = () => { box.textContent = ''; box.append(big(cur, { scale, dir })); };
+  const draw = () => { box.textContent = ''; put(box, big(cur, { scale, dir })); };
   draw(); box.set = s => { cur = s; draw(); }; return box;
 }
 
+// thumbnails are drawn a few per frame (5 ms budget) so a page of new cells never causes a hitch; cached ones are instant
+const queue = []; let pumping = false;
+function pump() { const t0 = performance.now(); while (queue.length && performance.now() - t0 < 5) { const [ph, it] = queue.shift(); if (ph.isConnected) ph.replaceWith(thumb(it, 3)); } if (queue.length) requestAnimationFrame(pump); else pumping = false; }
+function lazy(ph, it) { if (cache.has(it.id)) { queueMicrotask(() => { if (ph.isConnected) ph.replaceWith(thumb(it, 3)); }); return; } queue.push([ph, it]); if (!pumping) { pumping = true; requestAnimationFrame(pump); } }
 export function grid(list, o = {}) {
   injectCss(); const g = el('div.cw-grid'), page = o.page || 36; let n = 0, more = null, io = null;
-  if (!list.length) { g.append(el('p.cw-note', { style: { gridColumn: '1/-1' }, text: o.empty || 'Nothing here.' })); return g; }
+  if (!list.length) { put(g, el('p.cw-note', { style: { gridColumn: '1/-1' }, text: o.empty || 'Nothing here.' })); return g; }
   const add = () => {
     if (more) more.remove(); const end = Math.min(list.length, n + page), frag = document.createDocumentFragment();
     for (; n < end; n++) {
       const it = list[n], d = (o.cell && o.cell(it)) || {}, c = el('button.cw-cell' + (d.cls ? '.' + d.cls : ''), { 'aria-label': it.name });
-      c.append(thumb(it, 3), el('b', { text: it.name })); if (d.sub) c.append(el('small', { text: d.sub })); if (d.tag) c.append(el('span.cw-tag' + (d.tagCls ? '.' + d.tagCls : ''), { text: d.tag })); if (d.fav) c.append(el('span.cw-fav', { text: '♥' }));
-      c.addEventListener('click', () => o.onPick && o.onPick(it, c)); frag.append(c);
+      const ph = el('span', { style: { display: 'block', width: '54px', height: '54px' } }); put(c, ph, el('b', { text: it.name })); lazy(ph, it); if (d.sub) put(c, el('small', { text: d.sub })); if (d.tag) put(c, el('span.cw-tag' + (d.tagCls ? '.' + d.tagCls : ''), { text: d.tag })); if (d.fav) put(c, el('span.cw-fav', { text: '♥' }));
+      c.addEventListener('click', () => o.onPick && o.onPick(it, c)); put(frag, c);
     }
-    g.append(frag);
-    if (n < list.length) { more = el('button.cw-more', { text: `Show more (${list.length - n} left)`, onclick: add }); g.append(more); if (io) io.observe(more); }
+    put(g, frag);
+    if (n < list.length) { more = el('button.cw-more', { text: `Show more (${list.length - n} left)`, onclick: add }); put(g, more); if (io) io.observe(more); }
   };
   if (typeof IntersectionObserver !== 'undefined') io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.unobserve(more); add(); } }, { rootMargin: '300px' });
   add(); return g;
@@ -82,15 +88,15 @@ export function grid(list, o = {}) {
 const SLOT_CHIPS = [['', 'All'], ['top', 'Tops'], ['bottom', 'Bottoms'], ['dress', 'Dresses'], ['outer', 'Outerwear'], ['shoes', 'Shoes'], ['hat', 'Hats'], ['acc', 'Accessories']];
 export function filterBar(st, onChange, o = {}) {
   injectCss(); const wrap = el('div'), chips = el('div.cw-chips');
-  const slots = o.slots || SLOT_CHIPS, drawChips = () => { chips.textContent = ''; for (const [k, name] of slots) chips.append(el('button' + ((st.slot || '') === k ? '.on' : ''), { text: name, onclick: () => { st.slot = k; drawChips(); onChange(); } })); if (o.fav !== false) chips.append(el('button' + (st.fav ? '.on' : ''), { text: '♥ Favourites', onclick: () => { st.fav = !st.fav; drawChips(); onChange(); } })); };
+  const slots = o.slots || SLOT_CHIPS, drawChips = () => { chips.textContent = ''; for (const [k, name] of slots) put(chips, el('button' + ((st.slot || '') === k ? '.on' : ''), { text: name, onclick: () => { st.slot = k; drawChips(); onChange(); } })); if (o.fav !== false) put(chips, el('button' + (st.fav ? '.on' : ''), { text: '♥ Favourites', onclick: () => { st.fav = !st.fav; drawChips(); onChange(); } })); };
   drawChips();
   const q = el('input', { type: 'search', placeholder: 'Search name, brand, colour...', value: st.q || '', 'aria-label': 'Search clothes' }); let tm = 0;
   q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { st.q = q.value; onChange(); }, 220); }); q.addEventListener('keydown', e => e.stopPropagation());
-  const sel = (key, opts, label) => { const s = el('select', { 'aria-label': label }); for (const [v, t] of opts) s.append(el('option', { value: v, text: t, selected: (st[key] || '') === v ? '' : undefined })); s.addEventListener('change', () => { st[key] = s.value; onChange(); }); return s; };
+  const sel = (key, opts, label) => { const s = el('select', { 'aria-label': label }); for (const [v, t] of opts) put(s, el('option', { value: v, text: t, selected: (st[key] || '') === v ? '' : undefined })); s.addEventListener('change', () => { st[key] = s.value; onChange(); }); return s; };
   const bar = el('div.cw-bar', null, q, sel('style', [['', 'Any style']].concat((o.styles || STYLES).map(s => [s, s[0].toUpperCase() + s.slice(1)])), 'Style'));
-  if (o.brands !== false) bar.append(sel('brand', [['', 'Any brand']].concat(Object.keys(BRANDS).map(b => [b, BRANDS[b].name])), 'Brand'));
-  bar.append(sel('sort', o.sorts || [['', 'Sort: default'], ['price', 'Price: low first'], ['price-', 'Price: high first'], ['warm', 'Warmest first'], ['name', 'Name']], 'Sort'));
-  wrap.append(chips, bar); return wrap;
+  if (o.brands !== false) put(bar, sel('brand', [['', 'Any brand']].concat(Object.keys(BRANDS).map(b => [b, BRANDS[b].name])), 'Brand'));
+  put(bar, sel('sort', o.sorts || [['', 'Sort: default'], ['price', 'Price: low first'], ['price-', 'Price: high first'], ['warm', 'Warmest first'], ['name', 'Name']], 'Sort'));
+  put(wrap, chips, bar); return wrap;
 }
 const COLOR_WORDS = [['red', 0], ['orange', 30], ['yellow', 52], ['green', 120], ['teal', 172], ['blue', 215], ['purple', 270], ['pink', 330]];
 function colorWord(hex) { const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx - mn < 28) return mx > 200 ? 'white' : mx < 80 ? 'black' : 'grey'; if (mx < 130 && r > b) return 'brown';

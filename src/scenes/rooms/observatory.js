@@ -229,6 +229,7 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
       sc.interactables.push({ ent: c, x: c.x, y: c.y, label: 'Visitor', h: 1.2, hit: 6, range: 1.7, visible: () => !c.hidden && star.phase !== 'show' && star.phase !== 'dim', use: () => bubble(c, pick(LINES.aud)) }); }
     const pres = new Char(Object.assign({}, P.staff[5], { topColor: '#2d3a6e' }), O + 11.4, O + 9.6); pres.dir = 1; pres.kind = 'staff'; sc.ents.push(pres);
     sc.interactables.push({ ent: pres, x: pres.x, y: pres.y, label: 'Stella, presenter', h: 1.3, hit: 8, range: 1.8, use: () => OB() && OB().talkPresenter(pres, star) });
+    const domeCam = { x: O + 1.6, y: O + 1.6, z: Z0 + SKY_H / 16 * .55 };   // the corner where the two sky walls meet = the middle of the picture
     const star = sc.star = { phase: 'idle', prog: null, t: 0, slot: null, mine: null, watched: 0, seats, aud, col: '#3a4a9a', done: {}, speed: 1, log: [],
       audience: () => aud.filter(a => !a.hidden).length, state: () => ({ phase: star.phase, prog: star.prog && star.prog.id, t: Math.round(star.t * 10) / 10, audience: star.audience(), seated: aud.filter(a => a.st === 2).length, mine: !!star.mine, house: sc.house, watched: Math.round(star.watched) }) };
     const freeSeats = () => seats.filter(s => !s.taken);
@@ -242,6 +243,11 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
       else { star.phase = 'doors'; star.doors = force ? TU.forceDoors : null; seatAud(n, false, force ? 4.5 : 9); bubble(pres, `"${pr.title}" is about to begin. Please take a seat!`, 4200); G.emit('observatory:doors', pr.id); }
       if (star.mine && G.busy && G.busy._obsSeat) { G.busy.left = pr.dur + 40; G.busy.minutes = pr.dur + 40; G.busy.rate = 1; G.busy.label = 'Watching: ' + pr.title; }
       return true; };
+    /* QA round 3: a save loaded while this room exists (mid-show or not) used to leave the theatre idle with the show marked done; now everything is reset and the next
+       check() picks up whatever show the loaded clock says is running, at the right point (the player can take any free seat to join it). */
+    star.reset = () => { if (star.mine && G.busy && G.busy._obsSeat) G.endActivity(false); G.player.poseOpts = null; star.mine = null; star.phase = 'idle'; star.prog = null; star.t = 0; star.done = {}; star.slot = null; star.cpT = 0;
+      for (const s of seats) s.taken = null; for (const c of aud) { c.hidden = true; c.st = 0; c.seat = null; c.pose = null; c.poseOpts = null; c.x = entry.x; c.y = entry.y; } sc.house = 1; idleK = ''; };
+    theatre.sc = sc; if (!theatre.on) { theatre.on = true; G.on('load', () => { const t = theatre.sc; if (t && t.star && t.star.reset) { t.star.reset(); if (G.scene === t) setTimeout(() => { try { t.star.check && t.star.check(); } catch (e) { } }, 0); } }); }
     const finish = () => { star.phase = 'exit'; star.t = 0; for (const c of aud) if (!c.hidden && c.st === 2) { c.st = 3; c.at = .1 + Math.random() * 5; c.pose = null; } const pr = star.prog, frac = star.watched / Math.max(1, pr.dur), was = !!star.mine;
       if (star.mine && G.busy && G.busy._obsSeat) G.endActivity(true); if (OB()) OB().showDone(pr, was && frac >= .55, frac); };
     star.sit = seat => { if (G.busy || !seat || (seat.taken && seat.taken !== G.player)) return false; const p = G.player, live = star.phase !== 'idle' && star.phase !== 'exit'; seat.taken = p; star.mine = seat; p.poseOpts = { seated: true };
@@ -254,13 +260,14 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
     sc.lights = (m, cam, pool) => { const L = 1 - sc.house; if (L < .03) return; const ga = m.globalAlpha, k = .5 + .06 * Math.sin(G.time * 9); try { lp(m, cam, pool, O + 9, O + 3.5, 0, 5, star.col, L * k); lp(m, cam, pool, O + 3.5, O + 9, 0, 5, star.col, L * k); lp(m, cam, pool, O + 4.5, O + 4.5, 0, 4, star.col, L * k * .8); lp(m, cam, pool, O + 10, O + 10, 0, 4, star.col, L * .3); } finally { m.globalAlpha = ga; } };
     let fr = -1, pa = 0, pt = 0, tick = 0, idleK = '';
     const idle = () => { const L = star.phase === 'doors' && star.prog ? ['DOORS OPEN', star.prog.title, 'PLEASE TAKE A SEAT'] : idleLines(), f = Math.floor(G.time * 4), k = L.join('|') + f; if (k === idleK) return; idleK = k; drawIdle(sx, G.time, L); blit(); star.col = '#3a4a9a'; };
-    const check = () => { if (star.phase !== 'idle' || !OB() || !isOpenNow()) return; const cur = OB().shows.current();
+    const check = star.check = () => { if (star.phase !== 'idle' || !OB() || !isOpenNow()) return; const cur = OB().shows.current();
       if (!cur || star.done[cur.key]) { // QA round 3: a clouded-out star party moves in here, and Stella runs the sky back to back until midnight
         if (OB().cloudyParty && OB().cloudyParty()) { if (!star.cpT) star.cpT = G.time + 8; else if (G.time > star.cpT) { star.cpT = 0; star.begin(null, true); } } return; }
       star.done[cur.key] = 1; star.slot = cur; star.begin(cur.prog.id, false, cur.at); };
     idle();
     const u0 = sc.update; sc.update = (dt, gm) => {
       u0(dt, gm); pres.t += dt; const sp = star.speed || 1, d = dt * sp;
+      { const watch = !!star.mine && G.scene === sc && (star.phase === 'dim' || star.phase === 'show' || star.phase === 'applause'); if (watch && G.camTarget !== domeCam) G.camTarget = domeCam; else if (!watch && G.camTarget === domeCam) G.camTarget = null; }   // QA round 3: seated during a show = the camera looks up at the dome
       if ((tick -= dt) <= 0) { tick = 1; check(); }
       if ((pt += dt) > (star.phase === 'show' ? .16 : .5)) { pt = 0; pa = (pa + 1) % 8; if (proj) setP(proj, { a: pa }); }
       if (star.phase === 'idle') { idle(); sc.house = Math.min(1, sc.house + dt * .6); }
@@ -282,7 +289,7 @@ defineRoom({ id: 'observatory:planetarium', name: 'The Star Theatre', w: PW_, d:
       }
     };
     const e0 = sc.onEnter; sc.onEnter = (o, pv) => { e0(o, pv); idleK = ''; check(); if (OB() && OB().onTheatre) OB().onTheatre(sc); };
-    const x0 = sc.onExit; sc.onExit = () => { x0(); caption('', ''); if (star.phase !== 'idle') { for (const c of aud) { c.hidden = true; c.wait = false; if (c.seat) { c.seat.taken = null; c.seat = null; } c.st = 0; } star.phase = 'idle'; star.prog = null; star.slot = null; sc.house = 1; } };
+    const x0 = sc.onExit; sc.onExit = () => { x0(); if (G.camTarget === domeCam) G.camTarget = null; caption('', ''); if (star.phase !== 'idle') { for (const c of aud) { c.hidden = true; c.wait = false; if (c.seat) { c.seat.taken = null; c.seat = null; } c.st = 0; } star.phase = 'idle'; star.prog = null; star.slot = null; sc.house = 1; } };
   },
 });
 
@@ -369,6 +376,7 @@ registerInfo('Maple Bay Observatory', {
 });
 
 const only = fn => (fx, scene) => (scene.def && scene.def.showpiece === 'observatory' ? fn(fx, scene) : null);
+const theatre = { sc: null, on: false };
 export function init() {
   const F = (tag, fn) => registerFixture(tag, only(fn));
   F('obs_pendulum', () => ({ label: 'The Foucault pendulum', hit: 26, range: 2.6, use: () => OB() && OB().watchPendulum() }));

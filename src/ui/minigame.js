@@ -328,7 +328,7 @@ export function play(def) {
     addEventListener('keydown', onKey, true); addEventListener('keyup', onKeyUp, true);
     function setPause(on) { if (done || paused === on) return; paused = on; if (on) { G.modal++; veil.textContent = ''; veil.append(el('b', { text: 'Paused' }), el('button.mg-big', { onclick: () => setPause(false) }, 'Resume'), autoBtn ? el('button.mg-big.alt', { onclick: () => finish({ score: -1, auto: true }) }, 'Auto-finish (usual result)') : null, el('button.mg-big.alt', { onclick: () => finish({ score: 0, quit: true }) }, 'Stop')); veil.classList.add('on'); } else { G.modal--; veil.classList.remove('on'); last = performance.now(); } }
     function frame(now) {
-      if (done) return; raf = requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; if (paused) return;
+      if (done) return; raf = requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; if (paused || G.modal > 0) return;   // another window (phone, a menu) is open: wait
       if (count > 0) { count -= dt; } else { t += dt; try { game.update(dt); } catch (e) { console.error(e); return finish({ score: -1, auto: true, error: true }); } }
       g2.fillStyle = theme.bg || '#f3e8cf'; g2.fillRect(0, 0, W, H); try { game.draw(g2); } catch (e) { console.error(e); return finish({ score: -1, auto: true, error: true }); }
       if (count > 0) { g2.globalAlpha = .55; g2.fillStyle = INK; g2.fillRect(0, 0, W, H); g2.globalAlpha = 1; drawIcon(g2, def.icon || 'ui.star', W / 2 - 24, H / 2 - 24 - Math.sin(count * 9) * 2, 3); }

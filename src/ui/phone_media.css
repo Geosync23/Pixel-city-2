@@ -77,8 +77,8 @@
 .md-about{padding:0 12px;display:flex;flex-direction:column;gap:3px}.md-about b{font-size:17px;line-height:1.2}.md-about small{opacity:.7;font-size:12.5px}.md-about p{margin:3px 0 0;font-size:14px;line-height:1.35}
 .md-player .md-note{padding:0 12px}
 #reel-fs{position:fixed;inset:0;background:#000;z-index:9000;display:grid;place-items:center;overflow:hidden;touch-action:none}
-#reel-fs .md-fs-box{position:relative;display:grid;place-items:center;flex:none}
-#reel-fs.rot .md-fs-box{transform:rotate(90deg)}
+#reel-fs .md-fs-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center}
+#reel-fs.rot .md-fs-box{transform:translate(-50%,-50%) rotate(90deg)}
 #reel-fs canvas{display:block}
 .md-fs-bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px 14px;background:#000a;color:#fff4dc;font-weight:700;transition:opacity .2s}
 #reel-fs.hide .md-fs-bar{opacity:0;pointer-events:none}

@@ -134,10 +134,19 @@ function addIndicator(o) {
   h.set({ icon: o.icon, text: o.text || '', cls: o.cls || '' }); H.ind.append(e); indicators.set(o.id, h); return h;
 }
 
+/* QA round 3: the guide arrow (z 20), clamped to the top edge, used to sit on top of toasts (z 6). While they would overlap, the toast column slides down under
+   the arrow (margin-top, so navigator.js can keep moving #toasts' own top under the trip strip). */
+let toastT = 0, toastM = 0;
+function toastsClear(dt) {
+  if ((toastT -= dt) > 0) return; toastT = .15; const ts = document.getElementById('toasts'), ar = document.getElementById('nav-arrow'); if (!ts) return;
+  let m = 0; const r = ts.getBoundingClientRect();
+  if (ar && r.height > 0 && getComputedStyle(ar).display !== 'none') { const a = ar.getBoundingClientRect(), top = r.top - toastM, bot = r.bottom - toastM; if (a.width && a.left < r.right && a.right > r.left && a.top < bot && a.bottom > top && a.top < innerHeight / 2) m = Math.ceil(a.bottom + 6 - top); }
+  if (m !== toastM) { toastM = m; ts.style.marginTop = m ? m + 'px' : ''; }
+}
 export function init() {
   injectCss(); build();
   G.hud = { show, hide, refresh, addIndicator, togglePanel, pause, saved, setBadge: (k, v) => { badges[k] = v; dirty = true; }, get visible() { return shown; }, get el() { return H.root; } };
-  G.on('frame', onFrame);
+  G.on('frame', onFrame); G.on('frame', toastsClear);
   for (const ev of ['needs:change', 'inv:change', 'hour', 'weather', 'load', 'msg:new', 'moodlet', 'skill:up']) G.on(ev, () => { dirty = true; });
   G.on('money', moneyDelta);
   G.on('game:start', show); G.on('ready', () => { if (!G.started) show(); });

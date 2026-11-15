@@ -10,7 +10,7 @@ import { XP_MAP, FAMILIES, INTEREST, GAME_FOR, COACHES, NEW_BOOKS, LADDER } from
 import { TRAIT_BY_ID, TRAIT_PICKS } from '../data/traits.js';
 import { el, iconEl, empty, tabs, btn, card, section, kv, bar, chip, safe } from './phone_util.js';
 
-let tab = 'me';
+let tab = 'me', lastArg = null;
 const SP = () => G.skillplay, TR = () => G.traits, SKL = () => G.skills;
 const defOf = k => safe(() => SKL().defs.find(d => d.id === k), null);
 const WHERE = { home: 'at home', venue: 'in town', world: 'outdoors', anywhere: 'anywhere' };
@@ -106,7 +106,8 @@ function recordsTab(b, ctx) {
 }
 
 function render(b, ctx) {
-  const a = ctx.arg || {}; if (a.tab && ['me', 'skills', 'traits', 'records'].includes(a.tab)) { tab = a.tab; } const wantPick = a.pick, wantSkill = a.skill; ctx.arg = null;
+  const fresh = !!ctx.arg && ctx.arg !== lastArg, a = fresh ? ctx.arg : {}; if (fresh) lastArg = ctx.arg;   // a deep link applies once, not on every refresh
+  if (a.tab && ['me', 'skills', 'traits', 'records'].includes(a.tab)) tab = a.tab; const wantPick = a.pick, wantSkill = a.skill;
   b.append(tabs([{ id: 'me', name: 'Me' }, { id: 'skills', name: 'Skills' }, { id: 'traits', name: 'Traits' }, { id: 'records', name: 'Records' }], tab, t => { tab = t; ctx.refresh(); }));
   (tab === 'skills' ? skillsTab : tab === 'traits' ? traitsTab : tab === 'records' ? recordsTab : meTab)(b, ctx);
   if (wantSkill && defOf(wantSkill)) setTimeout(() => safe(() => ctx.push(defOf(wantSkill).name, (bb, cc) => skillPage(bb, cc, wantSkill), 'skill:' + wantSkill), 0), 0);

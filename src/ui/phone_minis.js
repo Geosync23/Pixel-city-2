@@ -124,5 +124,5 @@ function weather(b) {
 
 export function init() {
   injectCss(); if (!G.phone || !G.phone.registerApp) return;
-  for (const [id, render] of [['showtime', showtime], ['transit', transit], ['wallet', wallet], ['closet', closet], ['friends', friends], ['weather', weather]]) G.phone.registerApp(Object.assign(regDef(id), { render }));
+  for (const [id, render] of [['showtime', showtime], ['transit', transit], ['wallet', wallet], ['friends', friends], ['weather', weather]]) G.phone.registerApp(Object.assign(regDef(id), { render }));
 }

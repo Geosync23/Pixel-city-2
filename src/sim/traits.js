@@ -168,7 +168,7 @@ function open(opts = {}) {
       slots.textContent = `${sel.length} / ${TRAIT_PICKS}`; ok.disabled = sel.length !== TRAIT_PICKS; info.textContent = '';
       const t = TRAIT_BY_ID[focus];
       if (!t) info.append(el('b', { text: 'Tap a trait to read about it.' }), el('div', { text: 'Each one has a few small perks and at most one gentle downside. You can change them once a week, and habits earn you more.' }));
-      else { const c = conflict(t.id, sel); info.append(el('b', { text: t.name }), el('div', null, el('i', { text: t.blurb })), ...t.plus.map(p => el('div.pl', { text: '+ ' + p })), t.down ? el('div.dn', { text: '− ' + t.down }) : null, c && !sel.includes(t.id) ? el('div.dn', { text: `Does not go with ${TRAIT_BY_ID[c].name}.` }) : null); }
+      else { const c = conflict(t.id, sel); info.append(...[el('b', { text: t.name }), el('div', null, el('i', { text: t.blurb })), ...t.plus.map(p => el('div.pl', { text: '+ ' + p })), t.down ? el('div.dn', { text: '− ' + t.down }) : null, c && !sel.includes(t.id) ? el('div.dn', { text: `Does not go with ${TRAIT_BY_ID[c].name}.` }) : null].filter(Boolean)); }
     }
     const rnd = () => { sel = []; const pool = TRAITS.filter(t => !t.earned).map(t => t.id).sort(() => Math.random() - .5); for (const id of pool) { if (sel.length >= TRAIT_PICKS) break; if (!conflict(id, sel)) sel.push(id); } focus = sel[0]; render(); };
     const wrap = el('div.tp-wrap', null, el('div.tp', { role: 'dialog', 'aria-label': 'Pick your traits' },

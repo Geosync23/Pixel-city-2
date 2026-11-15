@@ -62,7 +62,7 @@ export const GAME_BY_ID = Object.fromEntries(GAMES.map(g => [g.id, g]));
 /** "friends" on the score table are cast first names (flavour only); base = a typical score for that game, they improve a little every week */
 export const FRIEND_SCORES = {
   names: ['Kit', 'Dez', 'Pip', 'Noor', 'Felix', 'Nico', 'Walt', 'Dot'],
-  base: { match: 900, pidge: 180, cast: 260, stack: 14, pairs: 620, cab: 520, beat: 1400 },
+  base: { match: 900, pidge: 180, cast: 170, stack: 14, pairs: 620, cab: 520, beat: 1800 },
 };
 /** daily challenge target = this fraction of the friend base (reachable in one or two tries) */
 export const DAILY = { frac: { match: .75, pidge: .55, cast: .7, stack: .6, pairs: .8, cab: .55, beat: .6 } };

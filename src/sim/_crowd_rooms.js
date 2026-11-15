@@ -128,7 +128,19 @@ export function initRooms() {
   G.on('use', it => { if (scene && it && (it.fx || it.spot)) vacate(it.fx || null, it.spot || null, false); });
   G.on('activity', a => { if (scene && a && a.at) vacate(null, a.at, false); });
 }
+/* QA round 3: showpiece rooms (museum, observatory, mall, SkyDeck, conservatory...) run their own crowds, which only ever spoke when tapped. They get the same
+   ambient rate here (one bubble every 7-15 s), from a visible, unnamed person, with the room's LINES.venue pool; never during a planetarium show. */
+let spT = 6;
+function showpieceChatter(dt) {
+  const sc = G.scene; if (!sc || !sc.indoor || /^int:(home|train|dev)/.test(sc.id || '') || (sc.def && (sc.def.home || sc.def.noCrowd))) return;
+  if ((spT -= dt) > 0) return; spT = 2; if (G.cutscene || G.player.hidden || G.modal > 0) return;
+  const st = sc.star && sc.star.phase; if (st === 'dim' || st === 'show' || st === 'applause') return;
+  const can = [];
+  for (const c of sc.ents) if (c && c !== G.player && c.spec && !c.isVehicle && !c.hidden && !c.npcId && !c.named && (c.alpha === undefined || c.alpha >= 1) && !(c._hold > 0) && !c.isCitizen && bubbleOk(c)) can.push(c);
+  if (!can.length) return; const c = pick(can); if (speak(c, ambientLine(c, { venue: null }))) spT = rr(7, 15);
+}
 export function updateRooms(dt) {
+  if (G.scene && G.scene.indoor && (!scene || G.scene !== scene)) { try { showpieceChatter(dt); } catch (e) { console.warn('chatter', e); spT = 30; } return; }
   if (!scene || G.scene !== scene) return;
   for (let i = 0; i < pool.length; i++) { const c = pool[i]; if (c.active) step(c, dt); }
   if ((checkT -= dt) <= 0) { // player proximity: never share a spot with the player

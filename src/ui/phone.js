@@ -58,7 +58,8 @@ function unlock(id, silent) {
 function lock(id) { if (defOf(id)) { S.locked[id] = 1; delete S.unlocked[id]; if (isOpen) refresh(); } }
 function badge(id) {
   if (!id) { let n = 0; for (const a of defs()) if (isUnlocked(a.id)) n += badge(a.id); return n; }
-  const a = impl.get(id), own = a && a.badge ? safe(() => a.badge(), 0) | 0 : 0;
+  const a = impl.get(id); if (a && a.noBadge) return 0;   /* an app that never shows a counter, not even for its notifications (Wander, owner msg 87) */
+  const own = a && a.badge ? safe(() => a.badge(), 0) | 0 : 0;
   return own + S.log.reduce((n, e) => n + (e.app === id && !e.read && !(a && a.ownsLog) ? 1 : 0), 0);
 }
 function syncBadge() { const n = badge(); if (G.hud && G.hud.setBadge) safe(() => G.hud.setBadge('phone', n || ''), 0); if (fab) { fab.lastChild.textContent = n || ''; fab.lastChild.classList.toggle('on', !!n); } }

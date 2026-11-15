@@ -223,3 +223,4 @@ if (process.argv.includes('--summary')) {
 
 if (errors.length) { console.error(`\n${errors.length} data error(s):\n - ` + errors.join('\n - ')); process.exit(1); }
 console.log('src/data OK: all cross-references resolve.');
+await import('./clothes_validate.mjs'); // wardrobe catalogue: >= 1,000 pieces, >= 60 hairstyles, every piece draws and is unique (exits 1 on failure)

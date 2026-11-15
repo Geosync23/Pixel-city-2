@@ -100,7 +100,7 @@ function edges(sid = G.scene && G.scene.id) {
     else if (/^int:/.test(sid)) out.push({ x: 0, y: 0, label: 'Exit', to: 'city', exit: true });
     for (const e of L) if (!out.some(o => Math.abs(o.x - e.x) < .8 && Math.abs(o.y - e.y) < .8)) out.push({ x: e.x, y: e.y, label: 'Exit', to: e.to, exit: false });
   }
-  return out;
+  return safe(() => G.navGoals.fixEdges(sid, out, live), out);   /* sim/navgoals.js GRAPH: links the room defs do not show (bathrooms, lifts, curtains, turnstiles) */
 }
 /** first hop (an edge of the current scene) on the shortest known way to `goal`; falls back to the way out, then to any exit */
 function route(goal) {
@@ -205,7 +205,10 @@ function compute() {
   if (id === 'train') return trainGuide(t);
   if (ride && ride.kind === 'bus' && id === 'city') return busGuide(ride, t);
   if (ride && ride.kind === 'taxi' && id === 'city') { const pl = (t && t.mode === 'cab' && t.dest) || ride.place; if (!pl || !isFinite(pl.x)) return null; return pointT(pl.x, pl.y, pl.name || 'Destination', { dist: Math.hypot(pl.x - G.player.x, pl.y - G.player.y), z: safe(() => G.world.heightAt(pl.x, pl.y), 0) }); }
-  const o = objective(); if (!o) return null;
+  const o = objective();
+  /* last-metre guidance (sim/navgoals.js, owner msg 102): while an objective is unresolved the arrow goes on INSIDE, to the exact thing; arrival is decided there */
+  if (id !== 'airtram' && (!o || o.kind === 'dest')) { const ng = safe(() => G.navGoals.guide(o), null); if (ng) return ng; }
+  if (!o) return null;
   if (id === 'airtram') return chipT(`Riding the tram → ${o.pt.name}`);
   if (o.kind === 'ride') return chipT(`Riding → ${o.pt.name}`);
   if (G.busy && /^Waiting for the (train|bus)/.test(G.busy.label || '')) return chipT(o.t && o.kind === 'board' ? `${G.busy.label}: ${o.t.line} to ${short(o.t.alight && o.t.alight.name)}` : G.busy.label);

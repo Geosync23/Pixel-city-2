@@ -33,7 +33,7 @@ import { modal, el, toast, bubble } from '../ui/kit.js';
 import { iconEl } from '../ui/_icons.js';
 import { openCreator } from '../ui/creator.js';
 import { specWith, PIECE_BY_ID, BRANDS } from '../data/clothes.js';
-import { big, stage, grid, filterBar, applyFilter, thumb, specThumb, injectCss } from '../ui/phone_closet_kit.js';
+import { big, stage, grid, filterBar, applyFilter, thumb, specThumb, injectCss, put } from '../ui/phone_closet_kit.js';
 import { LINES } from '../story/ambient_lines.js';
 
 export const order = 61;
@@ -171,10 +171,10 @@ function styles() {
   const it = ITEM_BY_ID[S.wearing]; return it && it.styles ? it.styles.slice() : ['casual'];
 }
 function warmth() {
-  if (S.wearing === 'robe') return 3; let w = 0; const add = sl => { const p = P(S.on[sl]); if (p && p.warmth >= 3) w += 1; };
+  if (S.wearing === 'robe') return 3; let w = 0; const plus = sl => { const p = P(S.on[sl]); if (p && p.warmth >= 3) w += 1; };
   if (S.wearing === 'look') { const t = P(S.on.dress) || P(S.on.top), b = P(S.on.bottom), o = P(S.on.outer); w = (t ? t.warmth : 2) + (S.on.dress ? (t.warmth > 1 ? 1 : 0) : b ? Math.min(2, b.warmth) : 2) + (o ? o.warmth * 1.5 : 0) + (P(S.on.shoes) && P(S.on.shoes).warmth >= 2 ? 1 : 0); }
   else { const stl = (ITEM_BY_ID[S.wearing] || {}).styles || []; w = stl.includes('winter') ? 9 : stl.includes('cozy') ? 6 : /summer|swim|sport/.test(S.wearing) ? 2 : 4; }
-  add('hat'); add('neck'); add('gloves'); return Math.round(w);
+  plus('hat'); plus('neck'); plus('gloves'); return Math.round(w);
 }
 const PERKS = { sport: { xpMult: { fitness: 1.1 } }, smart: { xpMult: { charisma: 1.05 } }, formal: { xpMult: { charisma: 1.05, logic: 1.05 }, relationshipGainMult: 1.05 }, party: { funMult: 1.1 }, cozy: { sleepMult: 1.05 }, rain: { blocksMoodlets: ['soaked'] }, winter: { blocksMoodlets: ['chilly'] }, artsy: { xpMult: { creativity: 1.1 } }, work: { xpMult: { handiness: 1.05 } } };
 function perk() {
@@ -269,39 +269,39 @@ export function summaryEl() {
 }
 function todayPanel(host, redraw) {
   const sg = suggest(), box = el('div.ph-card', { style: { padding: '8px', border: '2px solid #2a2733', background: '#fffdf4', marginBottom: '8px' } });
-  box.append(el('b', { text: `Today's suggestion · ${sg.why}` }));
-  if (sg.robe) box.append(el('p.cw-note', { text: 'Every stitch you own is dirty or in the wash. The bathrobe it is. Take the hamper to a washer.' }));
-  else if (sg.set) box.append(el('div.cw-line', null, iconEl(sg.set, 2, 'outfit'), el('span', { text: nameOf(sg.set) })));
-  else box.append(el('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', margin: '6px 0' } }, sg.ids.map(id => thumb(P(id), 2))), el('p.cw-note', { text: sg.ids.map(nameOf).join(' · ') }));
-  box.append(el('button.opt', { disabled: !!S.temp, onclick: () => { wearSuggestion(sg); redraw(); } }, el('span.opt-l', { text: sg.robe ? 'Put on the bathrobe' : 'Wear this' })));
-  host.append(box, el('b', { text: 'What you have on' }));
-  const ids = wornIds(); if (S.wearing === 'robe') host.append(el('div.cw-line', null, el('span', { text: 'Bathrobe and slippers' })));
+  put(box, el('b', { text: `Today's suggestion · ${sg.why}` }));
+  if (sg.robe) put(box, el('p.cw-note', { text: 'Every stitch you own is dirty or in the wash. The bathrobe it is. Take the hamper to a washer.' }));
+  else if (sg.set) put(box, el('div.cw-line', null, iconEl(sg.set, 2, 'outfit'), el('span', { text: nameOf(sg.set) })));
+  else put(box, el('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', margin: '6px 0' } }, sg.ids.map(id => thumb(P(id), 2))), el('p.cw-note', { text: sg.ids.map(nameOf).join(' · ') }));
+  put(box, el('button.opt', { disabled: !!S.temp, onclick: () => { wearSuggestion(sg); redraw(); } }, el('span.opt-l', { text: sg.robe ? 'Put on the bathrobe' : 'Wear this' })));
+  put(host, box, el('b', { text: 'What you have on' }));
+  const ids = wornIds(); if (S.wearing === 'robe') put(host, el('div.cw-line', null, el('span', { text: 'Bathrobe and slippers' })));
   for (const id of ids) { const p = P(id), sl = p ? slotOf(p) : null;
-    host.append(el('div.cw-line', null, p ? thumb(p, 2) : iconEl(id, 2, 'outfit'), el('span', null, el('div', { text: nameOf(id) }), el('small', { style: { opacity: .7 }, text: (p ? SLOT_LABEL[sl] : 'Outfit') + (stateSub(id) ? ' · ' + stateSub(id) : '') })),
+    put(host, el('div.cw-line', null, p ? thumb(p, 2) : iconEl(id, 2, 'outfit'), el('span', null, el('div', { text: nameOf(id) }), el('small', { style: { opacity: .7 }, text: (p ? SLOT_LABEL[sl] : 'Outfit') + (stateSub(id) ? ' · ' + stateSub(id) : '') })),
       p ? el('button.ph-btn', { disabled: !!S.temp, onclick: () => { takeOff(sl); redraw(); } }, el('span', { text: 'Take off' })) : null)); }
   const ham = byState(HAMPER).length, dirty = byState(DIRTY).length, wash = byState(WASH).length + byState(CLEANER).length;
-  host.append(el('p.cw-note', { text: `Laundry: ${ham} in the hamper, ${dirty} dirty and still out, ${wash} being washed.` + (ham + dirty ? ' Take the hamper to a laundromat or your own washer.' : '') }));
+  put(host, el('p.cw-note', { text: `Laundry: ${ham} in the hamper, ${dirty} dirty and still out, ${wash} being washed.` + (ham + dirty ? ' Take the hamper to a laundromat or your own washer.' : '') }));
 }
 const fst = { slot: '', style: '', brand: '', q: '', sort: '', fav: false };
 function drawersPanel(host, redraw) {
   const list = pieces().map(P), holder = el('div');
   const draw = () => { holder.textContent = ''; const out = applyFilter(list, fst, { isFav: id => S.fav.includes(id), order: (a, b) => st(a.id) - st(b.id) });
-    holder.append(el('p.cw-note', { text: `${out.length} of ${list.length} pieces. Tap to put on or take off; hold the heart in the app to favourite.` }), grid(out, { empty: list.length ? 'Nothing matches.' : 'Your drawers are empty. Clothes shops, the Galleria and the market sell pieces.',
+    put(holder, el('p.cw-note', { text: `${out.length} of ${list.length} pieces. Tap one to put it on or take it off.` }), grid(out, { empty: list.length ? 'Nothing matches.' : 'Your drawers are empty. Clothes shops, the Galleria and the market sell pieces.',
       cell: it => ({ sub: stateSub(it.id) || SLOT_LABEL[slotOf(it)], tag: STATE_TAG[st(it.id)] || (S.on[slotOf(it)] === it.id ? 'on' : ''), tagCls: 's' + st(it.id), cls: S.on[slotOf(it)] === it.id ? 'on' : st(it.id) >= DIRTY ? 'off' : '', fav: S.fav.includes(it.id) }),
       onPick: it => { const sl = slotOf(it); if (S.on[sl] === it.id) takeOff(sl); else wearPiece(it.id); redraw(); } })); };
-  host.append(filterBar(fst, draw), holder); draw();
+  put(host, filterBar(fst, draw), holder); draw();
 }
 function outfitsPanel(host, redraw) {
-  host.append(el('b', { text: 'Ready-made outfits' })); const g = el('div.cw-grid');
+  put(host, el('b', { text: 'Ready-made outfits' })); const g = el('div.cw-grid');
   for (const id of S.owned) { const it = ITEM_BY_ID[id]; if (!it) continue; const s = st(id), on = S.wearing === id;
     const c = el('button.cw-cell' + (on ? '.on' : s >= DIRTY ? '.off' : ''), { onclick: () => { if (!on) { wear(id); redraw(); } } }, specThumb(specWith(specFor(id), []), 'full', 2), el('b', { text: it.name }), el('small', { text: on ? 'wearing' : stateSub(id) || (it.styles || []).join(', ') }));
-    if (STATE_TAG[s]) c.append(el('span.cw-tag.s' + s, { text: STATE_TAG[s] })); g.append(c); }
-  host.append(g, el('b', { style: { display: 'block', marginTop: '10px' }, text: 'Outfits you put together' }));
-  if (!S.looks.length) host.append(el('p.cw-note', { text: 'Dress from your drawers, then save the combination here under a name.' }));
-  S.looks.forEach((L, i) => host.append(el('div.cw-line', null, specThumb(specWith(base(), Object.values(L.on)), 'full', 1), el('span', null, el('div', { text: L.n }), el('small', { style: { opacity: .7 }, text: Object.values(L.on).length + ' pieces' })),
+    if (STATE_TAG[s]) put(c, el('span.cw-tag.s' + s, { text: STATE_TAG[s] })); put(g, c); }
+  put(host, g, el('b', { style: { display: 'block', marginTop: '10px' }, text: 'Outfits you put together' }));
+  if (!S.looks.length) put(host, el('p.cw-note', { text: 'Dress from your drawers, then save the combination here under a name.' }));
+  S.looks.forEach((L, i) => put(host, el('div.cw-line', null, specThumb(specWith(base(), Object.values(L.on)), 'full', 1), el('span', null, el('div', { text: L.n }), el('small', { style: { opacity: .7 }, text: Object.values(L.on).length + ' pieces' })),
     el('button.ph-btn', { onclick: () => { if (wearLook(i)) redraw(); } }, el('span', { text: 'Wear' })), el('button.ph-btn', { 'aria-label': 'Delete outfit', onclick: () => { S.looks.splice(i, 1); redraw(); } }, el('span', { text: '✕' })))));
   if (S.wearing === 'look') { const inp = el('input', { type: 'text', maxlength: 24, placeholder: 'Name this outfit', 'aria-label': 'Outfit name', style: { flex: '1 1 120px', font: 'inherit', fontSize: '12px', border: '2px solid #2a2733', padding: '4px', minWidth: '0' } }); inp.addEventListener('keydown', e => e.stopPropagation());
-    host.append(el('div.cw-row', null, inp, el('button.ph-btn', { onclick: () => { if (saveLook(inp.value.trim() || undefined)) { toast('Outfit saved.', 'good'); redraw(); } } }, el('span', { text: 'Save what I am wearing' })))); }
+    put(host, el('div.cw-row', null, inp, el('button.ph-btn', { onclick: () => { if (saveLook(inp.value.trim() || undefined)) { toast('Outfit saved.', 'good'); redraw(); } } }, el('span', { text: 'Save what I am wearing' })))); }
 }
 /** fill `host` with one of the wardrobe panels; redraw() is called after anything changes */
 export function panel(kind, host, redraw) { injectCss(); (kind === 'drawers' ? drawersPanel : kind === 'outfits' ? outfitsPanel : todayPanel)(host, redraw); }
@@ -311,7 +311,7 @@ export function previewCanvas(spec, o = {}) { return big(spec, o); }
 const specWithPieces = list => specWith(S.wearing === 'look' || S.wearing === 'robe' ? specWith(base(), BODY.map(k => S.on[k]).filter(Boolean).concat(accIds())) : specWith(specFor(S.wearing), accIds()), (list || []).map(x => (typeof x === 'string' ? P(x) : x)).filter(Boolean));
 function mirror(list, o = {}) {
   const m = modal({ title: o.title || 'Mirror', cls: 'wardrobe' }), names = (list || []).map(p => (typeof p === 'string' ? P(p) : p)).filter(Boolean).map(p => p.name);
-  m.body.append(el('div', { style: { display: 'flex', justifyContent: 'center' } }, stage(specWithPieces(list), 7)), el('p.cw-note', { style: { textAlign: 'center' }, text: 'Tap to turn round' })); if (names.length) m.body.append(el('p', { style: { fontSize: '13px', margin: '8px 0 0' }, text: names.join(' · ') }));
+  put(m.body, el('div', { style: { display: 'flex', justifyContent: 'center' } }, stage(specWithPieces(list), 7)), el('p.cw-note', { style: { textAlign: 'center' }, text: 'Tap to turn round' })); if (names.length) put(m.body, el('p', { style: { fontSize: '13px', margin: '8px 0 0' }, text: names.join(' · ') }));
   return m;
 }
 let win = null, tab = 'today';
@@ -321,15 +321,15 @@ function open(o = {}) {
   const m = win = modal({ title: 'Dresser', cls: 'wardrobe', onClose: () => { win = null; } });
   const draw = () => {
     m.body.textContent = '';
-    m.body.append(el('div.cw-top', null, stage(G.state.player.spec, 4), summaryEl()));
-    const tabs = el('div.cw-chips'); for (const [k, n] of [['today', 'Today'], ['drawers', `Drawers (${pieces().length})`], ['outfits', `Outfits (${S.owned.length + S.looks.length})`]]) tabs.append(el('button' + (tab === k ? '.on' : ''), { text: n, onclick: () => { tab = k; draw(); } }));
-    const host = el('div'); m.body.append(tabs, host); panel(tab, host, draw);
-    m.body.append(el('button.opt', { style: { marginTop: '10px' }, onclick: async () => { m.close(); const spec = await openCreator({ mode: 'edit', spec: Object.assign({}, base()) }); if (spec) { setLook(spec); toast('Looking good.', 'good'); } } }, iconEl('ui.sparkle', 2), el('span.opt-l', { text: 'Change your look...' }), el('span.opt-s', { text: 'face, build, travel clothes' })));
+    put(m.body, el('div.cw-top', null, stage(G.state.player.spec, 4), summaryEl()));
+    const tabs = el('div.cw-chips'); for (const [k, n] of [['today', 'Today'], ['drawers', `Drawers (${pieces().length})`], ['outfits', `Outfits (${S.owned.length + S.looks.length})`]]) put(tabs, el('button' + (tab === k ? '.on' : ''), { text: n, onclick: () => { tab = k; draw(); } }));
+    const host = el('div'); put(m.body, tabs, host); panel(tab, host, draw);
+    put(m.body, el('button.opt', { style: { marginTop: '10px' }, onclick: async () => { m.close(); const spec = await openCreator({ mode: 'edit', spec: Object.assign({}, base()) }); if (spec) { setLook(spec); toast('Looking good.', 'good'); } } }, iconEl('ui.sparkle', 2), el('span.opt-l', { text: 'Change your look...' }), el('span.opt-s', { text: 'face, build, travel clothes' })));
   };
   draw(); G.emit('wardrobe:open'); return true;
 }
 const byState = n => Object.keys(S.pc).filter(id => S.pc[id][0] === n && (P(id) || isSet(id)));
-function setState(ids, state, fresh) { for (const id of ids) { const r = rec(id); r[0] = state; if (fresh) r[1] = 0; } if (state >= DIRTY) { let ch = false; for (const k of SLOTS) if (ids.includes(S.on[k])) { delete S.on[k]; ch = true; } if (ids.includes(S.wearing)) { S.wearing = 'robe'; ch = true; } if (ch) changed(); } }
+function setState(ids, state, fresh) { for (const id of ids) { const r = rec(id); r[0] = state; if (fresh) r[1] = 0; } if (state >= DIRTY) { let ch = false; for (const k of SLOTS) if (ids.includes(S.on[k])) { delete S.on[k]; ch = true; } if (ids.includes(S.wearing)) { S.wearing = 'robe'; ch = true; } if (S.wearing === 'look' && !BODY.some(k => S.on[k]) && st('outfit_travel') >= DIRTY) { S.wearing = 'robe'; ch = true; } if (ch) changed(); } }
 
 export function init() {
   G.defineState('wardrobe', blank); norm();

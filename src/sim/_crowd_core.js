@@ -28,7 +28,7 @@ export class Cit extends Char {
   clear() {
     this.kind = 'stroll'; this.st = 0; this.tx = 0; this.ty = 0; this.ww = -1; this.pw = -1; this.link = null; this.spd = 1.8; this.think = rnd() * .5; this.wait = 0; this.stuck = 0;
     this.lead = null; this.mate = null; this.side = 1; this.anchor = null; this.slot = -1; this.sl = null; this.fade = 0; this.pet = null; this.mood = 'ok'; this.district = ''; this.path = null; this.goal = null;
-    this.pose = null; this.poseOpts = null; this.seated = false; this.carry = false; this.run = false; this.zoff = 0; this.hold = 0; this.sx = 0; this.chat = false; this.moving = false; this._sk = -1; this._spr = null; this.spot = null; this.stay = 0; this.named = false;
+    this.pose = null; this.poseOpts = null; this.seated = false; this.carry = false; this.run = false; this.zoff = 0; this.hold = 0; this.sx = 0; this.chat = false; this.moving = false; this._sk = -1; this._spr = null; this.spot = null; this.stay = 0; this.named = false; this._stared = false;
   }
   setSpec(s) { this.spec = s; let i = cids.get(s); if (!i) cids.set(s, i = ++CID); this.sid = i; this._sk = -1; }
   sprite() {

@@ -16,7 +16,7 @@
 //   demo(key, level?, opts?) -> Promise<result>   play a game by key right now, outside any activity (tests, the Me app's "Try it")
 //   works(kind?) -> [{ k, n, q, d, s, p, sold }]  everything made: 'painting' | 'photo' | 'sketch' | 'story' | 'app' | 'song' | 'drink'        thumb(work) -> 48x32 canvas
 //   coaches() -> [{ id, name, short, role, skill, fee, hours, x, y, here (bool), doneToday }]        lesson(coachId) -> Promise<bool>
-//   sellables() -> [{ id, label, sub, base }]        sell() (the market menu)        tuned(fx) -> bool        chess() -> { elo, w, l, hi }        current() -> session | null
+//   sellables() -> [{ id, label, sub, base }]        sell() (the market menu)        playerStates() -> ['taking_photo' | 'performing' | 'sitting_bench'] for the city-folk line engine        tuned(fx) -> bool        chess() -> { elo, w, l, hi }        current() -> session | null
 // Events: 'minigame:start'({ game, activity, skill }), 'minigame:done'({ game, activity, skill, score, stars, auto, played, record }), 'skill:level'(skillId, level) (alias of 'skill:up'),
 //   'skill:teach'(skillId, xp, source), 'skill:work'(work), 'skill:sold'({ label, amount }), 'skill:interests'([ids]), 'coach:lesson'(coachId, score)
 // State G.state.skillplay = { v: 1, auto: 0|1, interests: [family ids], first: { skillId: { d: absDay, t: minute it started } }, best: { gameKey: { q, n, stat } }, works: [...] (max 90),
@@ -54,14 +54,15 @@ const dayPart = () => { const h = safe(() => G.now().hf, 12); return h < 5 ? 'ni
 const placeOf = ctx => (ctx && ctx.poi && ctx.poi.name) || safe(() => G.scene.def.name, null) || safe(() => G.places.get(G.scene.roomId).name, null) || 'Maple Bay';
 
 /* ====================================================================== skills: xp wrapper, teach, unlocks ====================================================================== */
-let origAdd = null, noteFirst = {};
+let origAdd = null, noteFirst = {}, firstNames = [], firstTimer = 0;
 const STUDY = ['read_skill_book', 'library_study', 'computer_study', 'library_read'];
 function xpMods(k) {
   const s = st(); let m = T().xpMult(k, STUDY.includes(safe(() => G.activities.current().id, '')) ? 'book' : null);
   if (s.interests.includes(FAMILY_OF[k])) m *= INTEREST.xp;
   if (k === 'chess' || k === 'tech') m *= 1 + .02 * (lvl('logic') - 1);
+  if (k === 'charisma' && lvl('style') >= 4 && safe(() => G.needs.hasMoodlet('looking_sharp'), false)) m *= 1.1;
   const f = s.first[k], d = day();
-  if (!f || f.d !== d) { s.first[k] = { d, t: G.state.t }; if (G.started !== false && !noteFirst[k + d]) { noteFirst[k + d] = 1; const fm = 1 + (TUNE.firstPractice - 1) * T().val('firstMult', 1); setTimeout(() => toast(`First ${SK[k] ? SK[k].name : k} practice today: +${Math.round((fm - 1) * 100)}% xp for ${TUNE.firstMinutes} minutes.`, 'info', 3000), 300); } }
+  if (!f || f.d !== d) { s.first[k] = { d, t: G.state.t }; if (!noteFirst[k + d]) { noteFirst[k + d] = 1; firstNames.push(SK[k] ? SK[k].name : k); clearTimeout(firstTimer); firstTimer = setTimeout(() => { const fm = 1 + (TUNE.firstPractice - 1) * T().val('firstMult', 1), names = firstNames.splice(0); toast(`First ${names.slice(0, 3).join(' + ')} practice today: +${Math.round((fm - 1) * 100)}% xp for ${TUNE.firstMinutes} minutes.`, 'info', 3000); }, 500); } }
   if (G.state.t - s.first[k].t <= TUNE.firstMinutes) m *= 1 + (TUNE.firstPractice - 1) * T().val('firstMult', 1);
   return m;
 }
@@ -83,7 +84,7 @@ function unlocks(k) {
     if (GATES[k] && GATES[k][l]) lines.push('New: ' + GATES[k][l]);
     if (k === 'cooking') { const rs = RECIPES.filter(r => r.learn && r.learn.level === l).map(r => r.name); if (rs.length) lines.push('Recipes: ' + rs.slice(0, 3).join(', ') + (rs.length > 3 ? ` and ${rs.length - 3} more` : '')); }
     for (const j of JOBS) { if (j.requires && j.requires[k] === l) lines.push(`Job: can be hired as ${j.name}`); for (const jl of j.levels || []) if (jl.requires && jl.requires[k] === l && jl.level > 1) lines.push(`Job: meets the bar for ${jl.title}`); }
-    if (l > 1) lines.push(L.perk(l));
+    if (l > 1) lines.push(L.perk(l).split(';')[0]);
     out.push({ level: l, name: L.rungs[l - 1], lines: lines.slice(0, 5), got: cur >= l });
   }
   return out;
@@ -162,19 +163,19 @@ const ideaScene = (c, x, y, w, h) => { D.R(c, x, y, w, h, '#fffdf4'); for (let r
 
 /** key -> { skill (primary), also [skills that get the play bonus], title(l, ctx), kit(l, ctx) -> play() def fields, result(R) -> { title, lines, icon } } */
 const GAMES = {
-  flip: { skill: 'cooking', title: () => 'Flip it!', fxc: PAL.good,
+  flip: { quietAuto: true, skill: 'cooking', title: () => 'Flip it!', fxc: PAL.good,
     kit: () => ({ kind: 'timing', icon: 'skill.cooking', hint: 'Tap when the marker is in the green to flip at just the right moment.', o: { rounds: 5 }, scene: panScene, verdicts: ['A bit burnt', 'Edible', 'Tasty', 'Chef\'s kiss!'] }),
     result: R => ({ icon: 'skill.cooking', title: R.played ? `${R.stats.perfect || 0} perfect flips` : 'Cooked the usual way', lines: [R.bonusServing ? 'Chef\'s touch: one extra serving!' : R.played && R.q < .3 ? 'A little scorched. Still dinner.' : null] }) },
-  reps: { skill: 'fitness', title: l => 'Clean reps: ' + LADDER.fitness.rungs[l - 1], fxc: PAL.heart,
-    kit: () => ({ kind: 'timing', icon: 'skill.fitness', hint: 'Tap at the top of each rep, inside the green.', o: { rounds: 6, zone: .32 }, verdicts: ['Sloppy set', 'Decent set', 'Strong set', 'Perfect form!'] }),
+  reps: { quietAuto: true, skill: 'fitness', title: l => 'Clean reps: ' + LADDER.fitness.rungs[l - 1], fxc: PAL.heart,
+    kit: () => ({ kind: 'timing', icon: 'skill.fitness', hint: 'Tap at the top of each rep, inside the green.', o: { rounds: 6, zone: .32 }, theme: { icon: 'skill.fitness' }, verdicts: ['Sloppy set', 'Decent set', 'Strong set', 'Perfect form!'] }),
     result: R => { const g = R.played ? +(R.q * 1.5).toFixed(1) : .5; safe(() => G.needs.addFitness(g), 0); return { icon: 'skill.fitness', title: R.played ? `${R.stats.perfect || 0} clean reps of ${R.stats.rounds || 6}` : 'A steady workout', lines: [`Fitness +${g}`] }; } },
-  stride: { skill: 'fitness', title: () => 'Find your stride', fxc: PAL.heart,
+  stride: { quietAuto: true, skill: 'fitness', title: () => 'Find your stride', fxc: PAL.heart,
     kit: () => ({ kind: 'rhythm', icon: 'skill.fitness', hint: 'Left, right, left: tap each side as the step reaches the line.', o: { lanes: 2, alt: true, notes: 16, bpm: 96 }, verdicts: ['Out of step', 'Jogging along', 'Good pace', 'Flying!'] }),
     result: R => { const g = R.played ? +(R.q * 1.2).toFixed(1) : .4; safe(() => G.needs.addFitness(g), 0); return { icon: 'skill.fitness', title: R.played ? `Best run of steps: ${R.stats.combo || 0}` : 'An easy run', lines: [`Fitness +${g}`] }; } },
-  pose: { skill: 'fitness', also: ['dancing'], title: () => 'Hold the pose', fxc: PAL.green,
+  pose: { quietAuto: true, skill: 'fitness', also: ['dancing'], title: () => 'Hold the pose', fxc: PAL.green,
     kit: () => ({ kind: 'balance', icon: 'need.fitness', hint: 'Hold to rise, let go to sink. Keep the bar inside the green until the pose is done.', o: { need: 10 }, theme: { icon: 'need.fitness', paper: '#e6dcf2' }, verdicts: ['Wobbly', 'Steady-ish', 'Balanced', 'Like a tree'] }),
     result: R => { if (R.q >= .55) safe(() => G.needs.addMoodlet('zen'), 0); return { icon: 'need.fitness', title: R.played ? (R.q >= .55 ? 'You held it' : 'You wobbled out') : 'A calm class', lines: [R.q >= .55 ? 'Zen: breathing in, breathing out' : null] }; } },
-  study: { skill: 'logic', title: () => 'Make it stick', fxc: PAL.good,
+  study: { quietAuto: true, skill: 'logic', title: () => 'Make it stick', fxc: PAL.good,
     kit: () => ({ kind: 'memory', icon: 'skill.logic', hint: 'Watch the cards light up, then tap them in the same order.', verdicts: ['It did not stick', 'Some of it stuck', 'Good recall', 'Photographic!'] }),
     result: R => ({ icon: 'skill.logic', title: R.played ? `Notes page ${bump('notes')} filed` : 'Studied quietly', lines: [R.played && R.q >= .85 ? 'Every sequence right' : null] }) },
   sketch: { skill: 'painting', also: ['creativity'], title: (l, ctx) => 'Sketch: ' + placeOf(ctx), fxc: ['#55505f', '#77707f'],
@@ -216,12 +217,12 @@ const GAMES = {
       s.garden.g = clamp(s.garden.g + (.22 + .45 * R.q) * clamp(R.minutes / 45, .4, 2.5) * (1 + .05 * (l - 1)) + (T().get('grow') ? .2 : 0));
       if (s.garden.g >= .995) { s.garden.g = 0; s.garden.n++; const crop = CROPS[l - 1], qty = 2 + Math.floor(l / 3) + 1, ok = safe(() => G.inv.add(crop, qty), false); stamp('x:sk_harvest'); return { icon: crop, title: `Harvest: ${qty} x ${ITEM_BY_ID[crop].name}`, lines: [ok ? 'In your bag. Cook them or sell them at the market.' : 'Your bag is full! Come back with room.'] }; }
       return { icon: 'skill.gardening', title: `Your bed is ${Math.round(s.garden.g * 100)}% grown`, lines: [`Growing: ${LADDER.gardening.rungs[l - 1]}`] }; } },
-  dance: { skill: 'dancing', also: ['fitness'], title: l => 'Dance: ' + LADDER.dancing.rungs[l - 1], fxc: ['#e0527a', '#3b82d6', '#f2c230', '#5fb84f'],
+  dance: { quietAuto: true, skill: 'dancing', also: ['fitness'], title: l => 'Dance: ' + LADDER.dancing.rungs[l - 1], fxc: ['#e0527a', '#3b82d6', '#f2c230', '#5fb84f'],
     kit: l => ({ kind: 'rhythm', icon: 'skill.dancing', hint: 'Hit each step as it crosses the line. Keep the combo going.', o: { lanes: l >= 4 ? 4 : 3, notes: 16, bpm: 100 }, verdicts: ['Two left feet', 'Found the beat', 'Smooth', 'Dance floor royalty!'] }),
     result: R => { const l = lvl('dancing'), fun = Math.round((R.played ? 3 + 6 * R.q : 3) * (1 + .04 * (l - 1))); safe(() => G.needs.add('fun', fun), 0); return { icon: 'skill.dancing', title: R.played ? `Best combo x${R.stats.combo || 0}` : 'You danced it out', lines: [`Fun +${fun}`] }; } },
   swim: { skill: 'swimming', also: ['fitness'], title: () => 'Bay swim', fxc: PAL.water,
     kit: () => ({ kind: 'rhythm', icon: 'skill.swimming', hint: 'Left arm, right arm: tap each side as the stroke reaches the line.', o: { lanes: 2, alt: true, notes: 18, bpm: 88 }, theme: { bg: '#bfe3f2' }, verdicts: ['Mostly splashing', 'Steady', 'Strong strokes', 'Like a seal!'] }),
-    result: R => { const l = lvl('swimming'), m = Math.round((120 + 40 * l) * (.5 + R.q) / 10) * 10; safe(() => G.needs.addFitness(.6 + R.q), 0); safe(() => G.needs.addMoodlet('sea_legs'), 0); return { icon: 'skill.swimming', title: `You swam ${m} m`, lines: [l >= 2 && R.q >= .7 ? 'Out past the buoy and back' : null], stat: m, statName: 'm' }; } },
+    result: R => { const l = lvl('swimming'), m = Math.round((120 + 40 * l) * (.5 + R.q) / 10) * 10; safe(() => G.needs.addFitness((.6 + R.q) * (1 + .05 * (l - 1))), 0); safe(() => G.needs.add('energy', 10 * R.minutes / 60 * .03 * (l - 1)), 0); safe(() => G.needs.addMoodlet('sea_legs'), 0); return { icon: 'skill.swimming', title: `You swam ${m} m`, lines: [l >= 2 && R.q >= .7 ? 'Out past the buoy and back' : null], stat: m, statName: 'm' }; } },
   fish: { skill: 'fishing', title: () => 'Fish on!', fxc: PAL.water,
     kit: () => ({ kind: 'balance', icon: 'skill.fishing', hint: 'Hold to reel, let go to give line. Keep the tension in the green until the fish tires.', scene: fishScene, verdicts: ['It got away', 'A nibble', 'Landed it', 'What a catch!'] }),
     result: R => { if (R.played && R.q < .3) return { icon: 'skill.fishing', title: 'It got away', lines: ['Keep the line in the green a little longer.'] };
@@ -260,13 +261,13 @@ const GAMES = {
     result: R => { const l = lvl('comedy'), laughs = R.played ? (R.stats.perfect || 0) + Math.round(R.q * 3) : 2; if (R.id === 'sk_jokes_mirror') return { icon: 'skill.comedy', title: R.q >= .55 ? 'That one is ready for a crowd' : 'Needs work. The mirror was polite.', lines: [] };
       const amt = Math.max(1, Math.round((R.id === 'open_mic' ? 4 + 2 * l : 3 + 2.5 * l) * (.4 + R.q) * (1 + .08 * (l - 1)) * tipMult())); pay(amt, R.id === 'open_mic' ? 'Open mic: extra tips' : 'Street comedy tips', 'tips'); crowdSay('busker');
       return { icon: 'skill.comedy', title: `${laughs} big laughs`, lines: [`${money(amt)} in tips`], stat: laughs, statName: 'laughs' }; } },
-  smalltalk: { skill: 'charisma', title: () => 'Small talk', fxc: PAL.heart,
+  smalltalk: { quietAuto: true, skill: 'charisma', title: () => 'Small talk', fxc: PAL.heart,
     kit: () => ({ kind: 'sort', icon: 'skill.charisma', hint: 'Read what they say and pick the reply that fits.', theme: { icon: 'need.social', color: '#5fb84f' }, o: { bins: SMALLTALK.bins, items: SMALLTALK.lines }, verdicts: ['Awkward', 'Polite', 'A nice chat', 'A new friend, nearly!'] }),
     result: R => { const l = lvl('charisma'), soc = Math.round((R.played ? 2 + 8 * R.q : 3) * (1 + .04 * (l - 1))); safe(() => G.needs.add('social', soc), 0); const n = bump('chats'); return { icon: 'skill.charisma', title: R.q >= .85 ? 'They did not want to stop talking' : R.q >= .55 ? 'A nice chat' : 'A slightly awkward chat', lines: [`Social +${soc} · conversation no. ${n}`] }; } },
-  hoops: { skill: 'fitness', title: l => (l >= 4 ? 'Hoops: from the three-point line' : 'Shoot hoops'), fxc: ['#e0703a', '#f2c230'],
+  hoops: { quietAuto: true, skill: 'fitness', title: l => (l >= 4 ? 'Hoops: from the three-point line' : 'Shoot hoops'), fxc: ['#e0703a', '#f2c230'],
     kit: l => ({ kind: 'aim', icon: 'skill.fitness', hint: 'Tap to lock your aim in the green arc, then tap again to lock the power.', o: { mode: 'throw', shots: l >= 4 ? 6 : 5 }, verdicts: ['All bricks', 'A couple dropped', 'Hot hand', 'Nothing but net!'] }),
     result: R => { const made = R.played ? (R.stats.made || 0) : 2, streak = R.played ? (R.stats.streak || 0) : 1; safe(() => G.needs.addFitness(.4 + R.q * .8), 0); if (streak >= 3) stamp('x:sk_hoops'); return { icon: 'skill.fitness', title: `${made} of ${R.stats.shots || 5} went in`, lines: [streak >= 2 ? `${streak} in a row` : null], stat: streak, statName: 'in a row' }; } },
-  darts: { skill: 'gaming', title: () => 'Darts', fxc: PAL.good,
+  darts: { quietAuto: true, skill: 'gaming', title: () => 'Darts', fxc: PAL.good,
     kit: () => ({ kind: 'aim', icon: 'skill.gaming', hint: 'Tap to lock your aim, then tap again for the throw.', o: { mode: 'throw', shots: 3 }, theme: { icon: 'sk.dart', paper: '#5a3a2c' }, scene: (c, x, y, w, h) => { D.disc(c, 140 - 2, 34, 15, D.INK); D.disc(c, 138, 34, 14, '#fffdf4'); D.disc(c, 138, 34, 10, '#2f7f5f'); D.disc(c, 138, 34, 6, '#fffdf4'); D.disc(c, 138, 34, 2, D.BAD); }, verdicts: ['Hit the wall', 'On the board', 'Trebles', 'One hundred and eighty!'] }),
     result: R => ({ icon: 'skill.gaming', title: R.played ? `${R.stats.made || 0} of 3 in the bull` : 'A friendly game', lines: [] }) },
 };
@@ -294,6 +295,7 @@ async function begin(id, ctx, o = {}) {
   const key = o.key || GAME_FOR[id], gm = GAMES[key], a = G.busy; if (!gm || !a) return;
   const me = sess = { id, key, ctx: ctx || {}, act: a, q: null, played: false, auto: false, stats: {}, coach: o.coach || null, rate0: a.rate, paint0: id === 'paint' ? safe(() => G.inv.count('painting'), 0) : 0, minutes0: a.minutes };
   if (st().auto || (ctx && ctx.noMini)) { me.auto = true; return; }
+  if (id === 'tend_plants') { if (st().n.plantDay === day()) { me.auto = true; return; } st().n.plantDay = day(); }   // one watering game a day, the other plants water themselves
   a.rate = Math.min(a.rate, Math.max(.1, a.minutes / TUNE.slowSecs));
   if (key === 'arcade') {
     const l = lvl('gaming'), home = id !== 'play_arcade' && !o.mall, list = ARCADE.filter(g => !home || l >= g.level);
@@ -314,7 +316,7 @@ function finish(me, info) {
   if (played && q < TUNE.autoScore && T().get('floor')) q = TUNE.autoScore;
   const minutes = info.minutes || me.minutes0 || 15, R = { q, played, auto: !played, lvl: l, ctx: me.ctx, id: me.id, minutes, stats: me.stats || {}, sess: me, bonusServing: me.bonusServing, madePainting: me.id === 'paint' && safe(() => G.inv.count('painting'), 0) > me.paint0 };
   // bonus xp for actually playing: the session's base xp for the game's skills x score
-  let bonus = 0; if (played && me.id) { const a = ACTIVITY_BY_ID[me.id] || {}, base = Object.assign({}, a.xpPerHour || {}, XP_MAP[me.id] || {}); for (const k of [gm.skill].concat(gm.also || [])) if (base[k]) bonus += G.skills.addXp(k, base[k] * minutes / 60 * q * TUNE.playBonus * T().val('mini', 1)); }
+  let bonus = 0; if (played && me.id) { const a = ACTIVITY_BY_ID[me.id] || {}, base = Object.assign({}, a.xpPerHour || {}, XP_MAP[me.id] || {}); for (const k of [gm.skill].concat(gm.also || [])) if (base[k]) bonus += G.skills.addXp(k, base[k] * minutes / 60 * q * TUNE.playBonus * T().val('mini', 1)); if (!base[gm.skill]) bonus += G.skills.addXp(gm.skill, 12 * q * T().val('mini', 1)); }   // (cooking pays its xp per recipe: a flat bonus instead)
   let out = { title: gm.title(l, me.ctx, me.id, me), lines: [] }; try { out = gm.result(R) || out; } catch (e) { console.warn('skillplay result: ' + e.message); }
   // records
   const rk = out.recKey || me.key, b = s.best[rk] || (s.best[rk] = { q: 0, n: 0, stat: 0 }); let record = false;
@@ -322,7 +324,7 @@ function finish(me, info) {
   const st3 = played ? starsOf(q) : undefined;
   if (played) { if (record) { const m = T().get('record'); if (m) safe(() => G.needs.addMoodlet(m), 0); } if (st3 === 3) { safe(() => G.needs.addMoodlet('in_the_zone'), 0); stamp('x:sk_3star'); } if (st3 === 0) { const f = T().get('flop'); if (f) safe(() => G.needs.addMoodlet(f), 0); } stamp('x:sk_first'); }
   const lines = (out.lines || []).filter(Boolean); if (bonus >= 1) lines.push(`Played it yourself: +${Math.round(bonus)} bonus xp`); if (record) lines.push('New personal best!');
-  card({ icon: out.icon || SK[gm.skill].icon && ('skill.' + gm.skill), title: out.title, lines, stars: st3 });
+  if (played || !(gm.quietAuto || me.id === 'tend_plants')) card({ icon: out.icon || SK[gm.skill].icon && ('skill.' + gm.skill), title: out.title, lines, stars: st3 });
   if (played && st3 >= 2 && G.player && !G.busy) { const p = G.player; p.pose = 'cheer'; setTimeout(() => { if (!G.busy && p.pose === 'cheer') p.pose = null; }, 1300); }
   G.emit('minigame:done', { game: me.key, activity: me.id, skill: gm.skill, score: q, stars: st3 || 0, auto: !played, played, record });
   return R;
@@ -370,7 +372,7 @@ function freeNear(w, x, y) { for (let r = 0; r < 4; r += .5) for (let a = 0; a <
 function buildCity(sc) {
   if (!sc || sc.id !== 'city' || sc._skBuilt || !sc.world) return; sc._skBuilt = true; const w = sc.world, A = charArt();
   // basketball hoops (props without a poi) -> "Shoot Hoops"
-  w.objs.filter(o => o.a && o.a.id === 'prop.park.hoop').forEach((o, i) => { const sp = freeNear(w, o.x + 1.5, o.y + 1.5), poi = { type: 'spot', id: 'sk:hoop:' + i, kind: 'hoop', name: 'Basketball hoop', x: o.x, y: o.y };
+  w.objs.filter(o => o.a && o.a.id === 'prop.park.hoop').forEach((o, i) => { const sp = freeNear(w, o.x + 3.5, o.y - 1), poi = { type: 'spot', id: 'sk:hoop:' + i, kind: 'hoop', name: 'Basketball hoop', x: o.x, y: o.y };
     G.addInteractable({ scene: 'city', x: o.x + .5, y: o.y + .5, label: 'Basketball hoop', h: 1.6, range: 2.2, spot: sp, poi, use: () => safe(() => G.activities.menu({ poi, tags: ['hoop'], title: 'Basketball hoop' }), 0) }); });
   // the Old Town Market trading post
   const mk = w.pois.find(p => p && p.id === 'stall:market_stalls'); if (mk) { const sp = clearNear(w, mk.x + 1.5, mk.y + 5.5, 2.2), poi = { type: 'spot', id: 'sk:market', kind: 'market_trade', name: 'Old Town Market', x: sp.x, y: sp.y }; sc._skMarket = poi;
@@ -459,7 +461,7 @@ export function init() {
   G.overlays.push((ctx, cam, dt) => { try { drawFx(ctx, cam, dt); } catch (e) { /* cosmetic */ } });
   G.skillplay = { state: st, games: () => Object.keys(GAMES).map(k => ({ key: k, skill: GAMES[k].skill, title: GAMES[k].title(lvl(GAMES[k].skill), {}, null, {}), best: st().best[k] || null })), best: k => st().best[k] || null,
     setAuto: v => { st().auto = v ? 1 : 0; }, auto: () => !!st().auto, demo, works, thumb, coaches, lesson, sellables, sell: () => sell(safe(() => G.sceneCache.get('city')._skMarket, null)), tuned, chess: () => st().chess, current: () => sess,
-    gameFor: id => GAME_FOR[id] || null, GAMES, arcade: ARCADE, families: FAMILIES, xpMap: XP_MAP, newSkills: NEW_SKILLS.map(s => s.id), drawView };
+    gameFor: id => GAME_FOR[id] || null, playerStates: () => { const o = []; if (sess && sess.key === 'photo') o.push('taking_photo'); if (sess && (sess.key === 'busk' || sess.key === 'punchline')) o.push('performing'); if (sess && sess.key === 'smalltalk') o.push('sitting_bench'); return o; }, GAMES, arcade: ARCADE, families: FAMILIES, xpMap: XP_MAP, newSkills: NEW_SKILLS.map(s => s.id), drawView };
 }
 function startSwim(ctx) {
   const p = G.player, w = G.world, poi = ctx && ctx.poi; if (!p || !w || !poi) return; let best = null;

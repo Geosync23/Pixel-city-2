@@ -19,6 +19,7 @@ import { AU, unlock, play as playScore, sfx } from '../sim/_shows_audio.js';
 import { score } from '../sim/_shows_music.js';
 export const order = 127;
 const M = () => G.media;
+const genre = f => f.genre || (/^([A-Z][a-z-]+)\./.exec(f.blurb || '') || [0, 'Film'])[1];
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const dayName = d => { const k = d - Math.floor(G.state.t / 1440); return k <= 0 ? 'today' : k === 1 ? 'tomorrow' : `in ${k} days`; };
 function thumb(f, w = 84) { const c = document.createElement('canvas'); c.width = FW; c.height = FH; c.className = 'pix md-thumb'; c.style.width = w + 'px'; c.style.height = Math.round(w * FH / FW) + 'px'; safe(() => c.getContext('2d').drawImage(thumbOf(f), 0, 0), 0); return c; }
@@ -34,7 +35,7 @@ function track(f) {
 function filmRow(x, ctx, right) {
   const f = x.film;
   return el('div.md-film', null, el('button.md-film-main', { 'aria-label': `Play ${f.title}`, onclick: () => openFilm(ctx, f.id) }, thumb(f),
-    el('span.md-film-m', null, el('b', { text: f.title }), el('small', { text: `${f.genre} · ${mmss(f.dur)}` }),
+    el('span.md-film-m', null, el('b', { text: f.title }), el('small', { text: `${genre(f)} · ${mmss(f.dur)}` }),
       x.pos > 1 ? el('span.md-prog', null, el('i', { style: { width: Math.round(x.pos / f.dur * 100) + '%' } })) : null)),
     right || (x.isNew ? el('em.md-tag.new', { text: 'NEW' }) : x.done ? el('em.md-tag.ok', { text: 'Seen' }) : null));
 }
@@ -63,13 +64,13 @@ function home(b, ctx) {
   if (owned.length) { b.append(section('Your films', chip(String(owned.length)))); for (const x of owned) b.append(filmRow(x, ctx)); }
   if (buy.length) {
     b.append(section('Now available to own'));
-    for (const x of buy) b.append(el('div.md-film.buy', null, el('div.md-film-main', null, thumb(x.film), el('span.md-film-m', null, el('b', { text: x.film.title }), el('small', { text: `${x.film.genre} · seen at the Orpheum` }))),
+    for (const x of buy) b.append(el('div.md-film.buy', null, el('div.md-film-main', null, thumb(x.film), el('span.md-film-m', null, el('b', { text: x.film.title }), el('small', { text: `${genre(x.film)} · seen at the Orpheum` }))),
       btn(money(TUNE.REEL.price), () => { if (M().buyFilm(x.film.id)) { toast(`${x.film.title} is yours. Watch it here or on your TV at home.`, 'good', 3200); ctx.refresh(); } }, 'gold md-buy')));
   }
   if (wait.length) for (const x of wait) b.append(el('div.md-soon', { text: `${x.film.title}: you saw it at the Orpheum. It arrives here to own ${x.buyT ? when(x.buyT).toLowerCase() : 'soon'}.` }));
   if (cin.length) {
     b.append(section('In cinemas now'), el('p.md-note', { text: 'See it at the Orpheum first. A couple of days later it turns up here to own.' }));
-    for (const x of cin) b.append(el('div.md-cin', null, el('span', null, el('b', { text: x.film.title }), el('small', { text: `${x.film.genre || 'Film'} · ${x.next ? 'next showing ' + when(x.next.t).toLowerCase() : 'see the box office for times'}` })),
+    for (const x of cin) b.append(el('div.md-cin', null, el('span', null, el('b', { text: x.film.title }), el('small', { text: `${genre(x.film)} · ${x.next ? 'next showing ' + when(x.next.t).toLowerCase() : 'see the box office for times'}` })),
       el('button.md-go', { 'aria-label': `Take me to the Orpheum for ${x.film.title}`, onclick: () => goTo('cinema', ctx, 'The Orpheum') }, iconEl('ui.pin', 1), el('span', { text: 'Take me there' }))));
   }
   b.append(el('p.md-note', { text: `${playable.length} to watch. On the big screen: at home, tap your TV and choose Stream on Reel.` }));
@@ -109,8 +110,8 @@ function player(b, ctx, id) {
   }
   function exitFull() { if (!full) return; removeEventListener('resize', full.fit); full.layer.remove(); full = null; }
   b.append(stage, el('div.md-ctrls', null, playB, restart, scrub, time, fullB), over,
-    el('div.md-about', null, el('b', { text: f.title }), el('small', { text: `${f.genre} · ${mmss(f.dur)} · costs ${TUNE.FILM_MINUTES} min of your day` }), el('p', { text: f.blurb })),
-    f.teaches && !safe(() => G.cooking.knows(f.teaches), true) ? el('p.md-note', { text: 'Watch to the end to learn the recipe.' }) : null);
+    el('div.md-about', null, el('b', { text: f.title }), el('small', { text: `${genre(f)} · ${mmss(f.dur)} · costs ${TUNE.FILM_MINUTES} min of your day` }), el('p', { text: f.blurb })),
+    ...(f.teaches && !safe(() => G.cooking.knows(f.teaches), true) ? [el('p.md-note', { text: 'Watch to the end to learn the recipe.' })] : []));
   tr.start(); tr.seek(t); draw(); ui(); live = { id, state: () => ({ id, t, playing, ended, full: !!full }), toggle, seek, goFull, exitFull };
   onTick(b, dt => {
     if (playing && !ended) {

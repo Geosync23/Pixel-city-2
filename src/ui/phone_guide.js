@@ -259,6 +259,6 @@ function injectCss() { if (!document.querySelector('link[href="src/ui/style.css"
 export function init() {
   injectCss(); if (!G.phone || !G.phone.registerApp) return;
   G.phone.registerApp({ id: 'guide', name: 'Wander', question: 'Where shall we go?', iconId: 'ui.star', color: '#b23a2e', slot: -1, render,
-    badge: () => 0 });   // no notification counter on Wander (owner msg 87); new places still show a NEW tag inside the app
+    noBadge: true, badge: () => 0 });   /* no notification counter on Wander at all (owner msg 87); new places still show a NEW tag inside the app */
   safe(() => G.phone.unlock && G.phone.unlock('guide'), 0);
 }

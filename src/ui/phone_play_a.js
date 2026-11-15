@@ -47,7 +47,7 @@ export function match(api) {
   }
   const cellAt = (x, y) => { const c = Math.floor((x - X0) / C), r = Math.floor((y - Y0) / C); return c >= 0 && r >= 0 && c < COLS && r < ROWS ? [c, r] : null; };
   return {
-    get score() { return score; }, get over() { return over; }, status: () => `${moves} moves`,
+    get score() { return score; }, get over() { return over; }, status: () => `${moves} moves`, dbg: () => ({ state, moves, COLS, ROWS, C, X0, Y0, k: grid.map(row => row.map(q => q.k)) }),
     update(dt) {
       shake = Math.max(0, shake - dt); for (const p of pop) p.t += dt; pop = pop.filter(p => p.t < .8);
       if (state === 'clear') { timer -= dt; if (timer <= 0) drop(); }
@@ -82,7 +82,7 @@ export function pidge(api) {
   grow();
   const under = () => roofs.find(r => PX + 3 >= r.x && PX - 3 <= r.x + r.w);
   return {
-    get score() { return Math.floor(dist / 6) + bonus; }, get over() { return over; }, status: () => `${Math.floor(dist / 6)} m`,
+    get score() { return Math.floor(dist / 6) + bonus; }, get over() { return over; }, status: () => `${Math.floor(dist / 6)} m`, dbg: () => ({ y, vy, ground, flaps, PX, speed, dead, roofs: roofs.map(r => ({ x: r.x, w: r.w, y: r.y })) }),
     update(dt) {
       t += dt; if (dead) { dead += dt; y += vy * dt; vy += 500 * dt; if (dead > .9) over = true; return; }
       speed = Math.min(96, 46 + dist / 40); const dx = speed * dt; dist += dx; for (const r of roofs) r.x -= dx; for (const c of crumbs) c.x -= dx; for (const p of puff) { p.x -= dx; p.t += dt; } puff = puff.filter(p => p.t < .4);
@@ -120,7 +120,7 @@ export function cast(api) {
   function add() { const r = rnd(), K = KINDS[r < .42 ? 0 : r < .74 ? 1 : r < .86 ? 2 : 3], dir = rnd() < .5 ? 1 : -1; fish.push({ K, x: dir > 0 ? -16 : W + 16, y: K.y0 + rnd() * (K.y1 - K.y0), dir, v: K.v * (.8 + rnd() * .5), ph: rnd() * 6 }); }
   for (let i = 0; i < 5; i++) { add(); fish[i].x = rnd() * W; }
   return {
-    get score() { return Math.max(0, score); }, get over() { return over; }, status: () => `${Math.ceil(time)} s`,
+    get score() { return Math.max(0, score); }, get over() { return over; }, status: () => `${Math.ceil(time)} s`, dbg: () => ({ depth, time, caught: caught ? caught.K.k : null, fish: fish.map(f => ({ k: f.K.k, x: f.x, y: f.y, dir: f.dir, v: f.v, w: f.K.w })) }),
     update(dt) {
       t += dt; time -= dt; if (time <= 0) { time = 0; over = true; return; }
       depth = Math.max(0, Math.min(H - SURF - 8, depth + (hold ? 52 : -78) * dt)); const hy = SURF + depth;
@@ -156,7 +156,7 @@ export function stack(api) {
   const col = i => (gift ? ['#e0527a', '#3fae5a', '#3b82d6', '#f2c230'][i % 4] : ['#b8794a', '#a86a3a', '#c78a52'][i % 3]);
   const box = (g, x, y, w, i) => { R(g, x, y, w, CH, col(i)); R(g, x, y, w, 1, '#ffffff50'); R(g, x, y + CH - 1, w, 1, '#00000040'); if (gift) { R(g, x + w / 2 - 1, y, 2, CH, '#fff4dc'); R(g, x, y + 5, w, 2, '#fff4dc'); } else { R(g, x + 2, y + 2, 1, CH - 4, '#00000030'); R(g, x + w - 3, y + 2, 1, CH - 4, '#00000030'); if (w > 14) R(g, x + w / 2 - 3, y + 4, 6, 4, '#f4e0c0'); } };
   return {
-    get score() { return crates.length - 1; }, get over() { return over; }, status: () => `${crates.length - 1} crates`,
+    get score() { return crates.length - 1; }, get over() { return over; }, status: () => `${crates.length - 1} crates`, dbg: () => ({ cur: cur ? { x: curX(), w: cur.w } : null, top: crates[crates.length - 1], falling: !!falling }),
     update(dt) {
       t += dt; flash = Math.max(0, flash - dt); const want = Math.max(0, (crates.length - 6) * CH); cam += (want - cam) * Math.min(1, dt * 5);
       for (const c of cut) { c.vy += 400 * dt; c.y += c.vy * dt; c.x += c.vx * dt; } cut = cut.filter(c => c.y < H + cam + 30);

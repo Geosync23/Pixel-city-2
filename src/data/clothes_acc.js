@@ -386,3 +386,15 @@ export const ACCS = [
   K('watch', 'surf', 'Surf Watch, Aqua', 'tidepool', 'summer sporty', 0, '#3fb8a8'),
   K('watch', 'cuff', 'Cuff Watch, Emerald', 'marigold', 'formal party', 0, '#1f7a5a'),
 ];
+// Earrings (engine ear hook; shapes stud | hoop | drop are built in). Added by the wardrobe-systems worker.
+ACCS.push(
+  P({ id: 'ac_earring_stud_gold', slot: 'acc', kind: 'earring', shape: 'stud', name: 'Gold Studs', brand: 'lacquer', styles: ['smart', 'casual'], warmth: 0, c: '#e8c06a' }),
+  P({ id: 'ac_earring_stud_pearl', slot: 'acc', kind: 'earring', shape: 'stud', name: 'Pearl Studs', brand: 'marigold', styles: ['formal', 'smart'], warmth: 0, c: '#f4f0e8' }),
+  P({ id: 'ac_earring_stud_ruby', slot: 'acc', kind: 'earring', shape: 'stud', name: 'Ruby Studs', brand: 'marigold', styles: ['formal', 'party'], warmth: 0, c: '#c02a3a' }),
+  P({ id: 'ac_earring_hoop_gold', slot: 'acc', kind: 'earring', shape: 'hoop', name: 'Big Gold Hoops', brand: 'lacquer', styles: ['party', 'street'], warmth: 0, c: '#e8c06a' }),
+  P({ id: 'ac_earring_hoop_silver', slot: 'acc', kind: 'earring', shape: 'hoop', name: 'Silver Hoops', brand: 'nightjar', styles: ['party', 'casual'], warmth: 0, c: '#c8ccd4' }),
+  P({ id: 'ac_earring_hoop_neon', slot: 'acc', kind: 'earring', shape: 'hoop', name: 'Neon Pink Hoops', brand: 'pixelpop', styles: ['street', 'party'], warmth: 0, c: '#f0508a' }),
+  P({ id: 'ac_earring_drop_jade', slot: 'acc', kind: 'earring', shape: 'drop', name: 'Jade Drops', brand: 'little_lantern', styles: ['artsy', 'smart'], warmth: 0, c: '#2f9a94' }),
+  P({ id: 'ac_earring_drop_amber', slot: 'acc', kind: 'earring', shape: 'drop', name: 'Amber Drops', brand: 'second_wind', styles: ['vintage', 'artsy'], warmth: 0, c: '#d9862e' }),
+  P({ id: 'ac_earring_drop_sapphire', slot: 'acc', kind: 'earring', shape: 'drop', name: 'Sapphire Chandelier Drops', brand: 'marigold', styles: ['formal', 'party'], warmth: 0, c: '#3b6fd0' }),
+);

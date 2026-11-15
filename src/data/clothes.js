@@ -42,7 +42,7 @@ export function applyPiece(s, it) {
 /** the neutral figure a piece is previewed on (shorts for socks, a skirt for tights, short hair under hats and glasses) */
 export function previewBase(it) {
   const s = Object.assign({}, MANNEQUIN);
-  if (it.slot === 'hat' || (it.slot === 'acc' && it.kind === 'glasses')) s.hair = 'short';
+  if (it.slot === 'hat' || (it.slot === 'acc' && (it.kind === 'glasses' || it.kind === 'earring'))) s.hair = 'short';
   if (it.slot === 'acc' && it.kind === 'socks') s.bottom = 'shorts'; else if (it.slot === 'acc' && it.kind === 'tights') s.bottom = 'skirt';
   else if (it.slot === 'acc' && (it.kind === 'watch' || it.kind === 'belt')) s.top = 'tee';
   return s;
