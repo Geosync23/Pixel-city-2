@@ -134,11 +134,11 @@ function ordersTab(b, ctx) {
 function render(b, ctx) {
   css(); const a = ctx.arg || {};
   if (a.tab && !a._done) U.tab = a.tab;
-  if (a.good && !a._done && GOOD_BY_ID[a.good]) { a._done = 1; return ctx.push(short(a.good), itemView(a.good), 'good' + a.good); }
-  a._done = 1;
+  const first = !a._done; a._done = 1;
   const nCart = O().cart().length, nAct = O().active().length, nWish = O().wish().length;
   b.append(tabs([{ id: 'shop', name: 'Shop' }, { id: 'wish', name: 'Wishes', badge: nWish || null }, { id: 'cart', name: 'Cart', badge: nCart || null }, { id: 'orders', name: 'Orders', badge: nAct || null }], U.tab, t => { U.tab = t; ctx.refresh(); }));
   ({ shop: shopTab, wish: wishTab, cart: cartTab, orders: ordersTab }[U.tab] || shopTab)(b, ctx);
+  if (first && a.good && GOOD_BY_ID[a.good]) ctx.push(short(a.good), itemView(a.good), 'good' + a.good);
 }
 export function init() {
   if (!G.phone || !G.phone.registerApp || !G.orders) return;
