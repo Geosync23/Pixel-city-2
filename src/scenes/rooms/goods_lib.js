@@ -88,6 +88,7 @@ export function storeRoom(spec) {
   items.sort((a, b) => flat(a) - flat(b));
   const def = room({ id: sid, name: st.name, w: spec.w, d: spec.d, floor: spec.floor || GT.f_wood, floors: spec.floors || [], wall: spec.wall, music: spec.music || 'shop', zoom: spec.zoom, items, npc,
     exits: [{ x: exit.x, y: exit.y, label: 'Exit to the street' }], venue: sid, goodsStore: true, tags: ['shop', 'goods'] });
+  { const cust = npc.filter(q => q.kind !== 'staff'), keep = Math.min(cust.length, spec.crowd || 12), pick = cust.filter((q, i) => Math.floor(i * keep / cust.length) !== Math.floor((i - 1) * keep / cust.length)); const extra = items.filter(i => i.n && i.n.includes('seats')).slice(0, 2); for (const i of items) if (i.n === 'seats' && !extra.includes(i)) delete i.n; npc.length = 0; npc.push(...pick); }
   def.goodsShown = shown; def.goodsHidden = fams.filter(g => left.has(g)).map(g => g.id);
   return def;
 }
