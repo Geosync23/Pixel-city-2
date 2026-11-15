@@ -51,7 +51,7 @@ import { OUTDOOR } from './_social_data.js';
 
 export const order = 126;   /* right after sim/jobs.js (120) */
 const DAY = 1440, SEASONS = ['spring', 'summer', 'autumn', 'winter'], WDL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-export const TUNE = { midAt: .42, playAt: .3, playUntil: .85, lineEvery: [12, 20], lineFirst: 6, waitButton: 2, offWait: 6, textQuiet: [21.5, 7.5], playBonus: 3, playXp: 18 };
+export const TUNE = { midAt: .42, playAt: .3, playUntil: .85, lineEvery: [25, 40], lineFirst: 6, waitButton: 2, offWait: 6, textQuiet: [21.5, 7.5], playBonus: 3, playXp: 18 };
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const cl = (v, a, b) => Math.max(a, Math.min(b, v)), today = () => Math.floor(G.state.t / DAY);

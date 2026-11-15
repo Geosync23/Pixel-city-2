@@ -63,7 +63,14 @@ function listing(job) {
   const R = reqs(job), h = S.history[job.id], d = today(), wait = h && h.reapply > d ? h.reapply - d : 0, back = h && d - h.day <= 14 ? h.level : 1;
   return { id: job.id, jobId: job.id, name: job.name, title: job.levels[back - 1].title, venue: job.venue, venueName: vname(job), blurb: job.blurb, hourly: job.levels[back - 1].hourly, tips: job.tips ? job.tips.perShift : null,
     days: job.shifts.days.map(x => WD[x]).join(' '), hours: hh(job.shifts.start) + '-' + hh(job.shifts.end), shifts: job.shifts, requires: job.requires, levels: job.levels, perk: job.perk, hoursNote: job.hoursNote || '', isNew: !!job.isNew, listedOn: job.listedOn, reqs: R, eligible: R.every(r => r.met) && !wait,
-    mine: !!(S.job && S.job.id === job.id), level: back, note: wait ? `Re-apply in ${wait} day${wait > 1 ? 's' : ''}` : R.some(r => r.waived) ? 'Your work experience covers the gap' : '' };
+    mine: !!(S.job && S.job.id === job.id), level: back, clash: clash(job.id), note: wait ? `Re-apply in ${wait} day${wait > 1 ? 's' : ''}` : R.some(r => r.waived) ? 'Your work experience covers the gap' : '' };
+}
+/** appointments of the coming week that are not work and overlap this job's shifts (a university section, a booked class): a warning for the hire card, never a block */
+function clash(jobId) {
+  const job = JOB_BY_ID[jobId], P = G.planner; if (!job || !P || !P.list) return '';
+  try { const d0 = today(), L = P.list(G.state.t, (d0 + 8) * DAY, { events: false }).filter(a => a.kind !== 'work' && !a.event && a.s !== 3 && a.s !== 4 && !a.flex);
+    for (let d = d0; d < d0 + 8; d++) { const T = shiftT(job, d); if (!T) continue; const a = L.find(x => x.t < T.end && x.t + (x.dur || 60) > T.start); if (a) return `${WD[d % 7]} ${hh(job.shifts.start)}-${hh(job.shifts.end % 24)} overlaps "${a.title}" at ${hh((a.t % DAY) / 60)}`; } } catch (e) { /* optional */ }
+  return '';
 }
 function listings(source = 'computer') { st(); return JOBS.filter(j => source !== 'phone' || j.listedOn === 'phone').map(listing); }
 function apply(jobId) {
@@ -76,7 +83,9 @@ function apply(jobId) {
   const lvl = L.level, keep = h && today() - h.day <= 14;
   S.job = { id: jobId, level: lvl, points: keep ? h.points || 0 : 0, hiredDay: today(), from: G.state.t, shifts: 0, streak: 0, warnings: 0, lastDay: -1, offWeek: -1 }; delete S.history[jobId];
   if (!S.stats.held.includes(jobId)) S.stats.held.push(jobId);
-  text(job, 'offer', lvl); syncPlanner(); perkTick(); toast(`Hired! ${job.levels[lvl - 1].title} at ${L.venueName}.`, 'good'); G.emit('job:hired', jobId, lvl); G.emit('jobs:hud');
+  text(job, 'offer', lvl); syncPlanner(); perkTick();
+  /* QA9: one clear message (the goal line and the stamp also speak); a clash with something already on the calendar is said here, kindly, and blocks nothing */
+  toast(L.clash ? `${job.levels[lvl - 1].title} at ${L.venueName}. Heads up: ${L.clash}. Ask for a day off, or move the other thing.` : `${job.levels[lvl - 1].title} at ${L.venueName}: your first shift is on My Day.`, L.clash ? 'info' : 'good', L.clash ? 6500 : 3600); G.emit('job:hired', jobId, lvl); G.emit('jobs:hud');
   return { hired: true, level: lvl, title: job.levels[lvl - 1].title };
 }
 function quit(reason = 'quit') {
@@ -121,9 +130,11 @@ function clockIn(force, withStory) {
 }
 function missed(d) {
   const j = S.job, job = JOB_BY_ID[j.id], M = WORK_RULES.missedShift; j.lastDay = d; j.points = Math.max(0, j.points - M.pointsPenalty); j.streak++; G.goals && G.goals.remove && G.goals.remove('job_shift');
-  toast(`You missed your shift at ${vname(job)}.`, 'bad'); G.emit('job:missed', j.id, j.streak);
-  if (j.streak >= M.letGoAfterInARow) { text(job, 'letGo', j.level); quit('letgo'); }
-  else if (j.streak === M.warningAfter) { j.warnings++; text(job, 'warning', j.level); } else if (j.streak === M.letGoAfterInARow - 1) { j.warnings++; text(job, 'lastWarning', j.level); }
+  /* QA9: every missed shift counts as a warning and says so once, kindly: the boss's text when there is one (2nd, 3rd, last), a notice otherwise */
+  j.warnings++; G.emit('job:missed', j.id, j.streak);
+  if (j.streak >= M.letGoAfterInARow) { text(job, 'letGo', j.level); toast(`${vname(job)} has had to fill your place. You can apply again in ${M.reapplyAfterDays} days.`, 'bad', 6000); quit('letgo'); }
+  else if (j.streak === M.warningAfter) text(job, 'warning', j.level); else if (j.streak === M.letGoAfterInARow - 1) text(job, 'lastWarning', j.level);
+  else { const ns = nextShiftT(); toast(`You missed today's shift at ${vname(job)}. It happens. It counts as a warning (${j.streak} of ${M.letGoAfterInARow - 1} before they must let you go)${ns !== null ? `; the next one is ${WD[Math.floor(ns / DAY) % 7]} at ${hh(job.shifts.start)}` : ''}.`, 'info', 7000); }
 }
 function onMinutes(delta) {
   st(); const now = G.state.t, sh = S.shift;
@@ -136,7 +147,7 @@ function onMinutes(delta) {
   for (let d = Math.max(d0 - 6, j.lastDay + 1, j.hiredDay); d <= d0 && S.job === j; d++) { // shifts that came and went (asleep, busy, away)
     const T = shiftT(job, d); if (!T || T.start < j.from - 60) continue; if (j.off === d) { if (now >= T.end) j.lastDay = d; continue; }
     if (now >= T.end) missed(d);
-    else if (d === d0 && now >= T.start - 90 && j.lastDay !== d) { if (atWork(job) && !dbg && clockIn()) return; if (G.goals && G.goals.add && !(G.goals.get && G.goals.get('job_shift'))) try { G.goals.add({ id: 'job_shift', text: `Shift at ${vname(job)} ${hh(job.shifts.start)}`, group: 'opportunity', placeId: job.venue, hint: `Walk into ${vname(job)} between ${hh(job.shifts.start - .5)} and the end of the shift to clock in.` }); } catch (e) { /* optional */ } }
+    else if (d === d0 && now >= T.start - 90 && j.lastDay !== d) { if (atWork(job) && !dbg && clockIn()) return; if (now >= T.start + 20 && j.lateDay !== d) { j.lateDay = d; toast(`Your shift at ${vname(job)} began at ${hh(job.shifts.start)}. You can still clock in until ${hh(((T.end - 20) % DAY) / 60)}; after that it counts as missed.`, 'info', 6500); } if (G.goals && G.goals.add && !(G.goals.get && G.goals.get('job_shift'))) try { G.goals.add({ id: 'job_shift', text: `Shift at ${vname(job)} ${hh(job.shifts.start)}`, group: 'opportunity', placeId: job.venue, hint: `Walk into ${vname(job)} between ${hh(job.shifts.start - .5)} and the end of the shift to clock in.` }); } catch (e) { /* optional */ } }
   }
 }
 
@@ -262,7 +273,7 @@ export const order = 120;
 export function init() {
   G.defineState('jobs', defaults); st(); WK.initWork();
   G.jobs = { listings, apply, quit: () => quit('quit'), current, onShift: () => !!st().shift, shift: () => st().shift, lastSummary: () => st().last, clockIn: () => clockIn(false), autoWork, leaveEarly: () => endShift('early'), requestDayOff,
-    openBoard: ctx => UI.openBoard(ctx, 'jobs'), openGigs: ctx => UI.openBoard(ctx, 'gigs'), gigs, acceptGig, activeGig: () => st().gigs.active, cancelGig, discount, perks, hud, goStep: id => WK.goStep(id),
+    clash, openBoard: ctx => UI.openBoard(ctx, 'jobs'), openGigs: ctx => UI.openBoard(ctx, 'gigs'), gigs, acceptGig, activeGig: () => st().gigs.active, cancelGig, discount, perks, hud, goStep: id => WK.goStep(id),
     debugStart, debugStep: () => WK.debugStep(), debugFinish, debugGig, roomOf, clockInNow: () => clockIn(true), job: id => JOB_BY_ID[id] || null, get quiet() { return quiet; }, set quiet(v) { quiet = !!v; }, SHIFT_SPEED, COURIER_SPEED };
   G.addSystem({ name: 'jobs', update(dt) { if (S && S.shift) WK.update(dt); } });
   G.on('minutes', onMinutes);

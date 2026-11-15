@@ -38,7 +38,7 @@ function jobCard(L, redraw) {
     el('p', { text: L.blurb }),
     el('div.jb-reqs', null, L.reqs.length ? L.reqs.map(r => el('span.jb-req.' + (r.met ? 'ok' : 'no'), { text: `${r.met ? '✓' : '✗'} ${cap(r.skill)} ${r.need}${r.have < r.need ? ' (you: ' + r.have + ')' : ''}` })) : el('span.jb-req.ok', { text: '✓ No requirements' })),
     el('small.jb-perk', { text: 'Perk: ' + L.perk }),
-    el('div.jb-act', null, L.note ? el('small', { text: L.note }) : null,
+    el('div.jb-act', null, L.note ? el('small', { text: L.note }) : null, L.clash && !L.mine ? el('small', { text: 'Heads up: ' + L.clash + '. You can still take it.' }) : null,
       L.mine ? [el('span.jb-req.ok', { text: 'Your job' }), el('button.jb-sm', { text: 'Quit', onclick: e => { if (e.target.dataset.sure) { J.quit(); redraw(); } else { e.target.dataset.sure = 1; e.target.textContent = 'Sure? Tap again'; } } })]
         : el('button.jb-apply', { text: 'Apply', onclick: () => { J.apply(L.id); redraw(); } })));
 }
