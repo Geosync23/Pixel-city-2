@@ -152,12 +152,17 @@ function frame(now) {
       let steer = null;
       if (inp.hold) { const w = G.toWorld(inp.hold.x, inp.hold.y); if (Math.hypot(w.x - p.x, w.y - p.y) > .3) { const d = Math.hypot(w.x - p.x, w.y - p.y); steer = [(w.x - p.x) / d, (w.y - p.y) / d]; } G.target = null; G.pending = null; }
       else if (inp.kx || inp.ky) { const dx = inp.kx + inp.ky, dy = inp.ky - inp.kx, d = Math.hypot(dx, dy); steer = [dx / d, dy / d]; G.target = null; G.pending = null; }
-      p.move(G.world, dt, steer);
-      if (G.pending) { const it = G.pending.it; if (it.ent && !it.spot && p.path) { const e = p.path[p.path.length - 1]; if (e && Math.hypot(e[0] - it.x, e[1] - it.y) > 1.5) p.goTo(G.world, it.x, it.y, { snap: 8 }); } const tx = it.spot ? it.spot.x : it.x, ty = it.spot ? it.spot.y : it.y; if (Math.hypot(tx - p.x, ty - p.y) <= G.pending.range) G.pending.fire(); else if (!p.path) { if (Math.hypot(tx - p.x, ty - p.y) <= Math.max(G.pending.range, 1.6)) G.pending.fire(); else G.pending = null; } }
+      /* game speed moves the WORLD too (QA round 5: at 2x/4x walking and rides cost 2-4x the game time and every ETA was wrong): the walk + scene + systems run `sub` steps per frame */
+      const spd = Math.max(1, G.state.speed || 1), sub = Math.min(4, Math.round(spd)), sdt = dt * spd / sub, sgm = gm / sub;
+      for (let q = 0; q < sub; q++) {
+        p.move(G.world, sdt, steer);
+        if (G.pending) { const it = G.pending.it; if (it.ent && !it.spot && p.path) { const e = p.path[p.path.length - 1]; if (e && Math.hypot(e[0] - it.x, e[1] - it.y) > 1.5) p.goTo(G.world, it.x, it.y, { snap: 8 }); } const tx = it.spot ? it.spot.x : it.x, ty = it.spot ? it.spot.y : it.y; if (Math.hypot(tx - p.x, ty - p.y) <= G.pending.range) G.pending.fire(); else if (!p.path) { if (Math.hypot(tx - p.x, ty - p.y) <= Math.max(G.pending.range, 1.6)) G.pending.fire(); else G.pending = null; } }
+        if (q < sub - 1) { if (G.scene.update) G.scene.update(sdt, sgm); for (const s of G.systems) if (s.update) s.update(sdt, sgm); if (G.modal > 0 || G.busy || G.cutscene || G.scene.world !== G.world) break; }
+      }
+      G._sub = [sdt, sgm];
       if (!p.path) G.target = null;
     }
-    if (G.scene.update) G.scene.update(dt, gm);
-    for (const s of G.systems) if (s.update) s.update(dt, gm);
+    { const ss = G._sub; G._sub = null; if (G.scene.update) G.scene.update(ss ? ss[0] : dt, ss ? ss[1] : gm); for (const s of G.systems) if (s.update) s.update(ss ? ss[0] : dt, ss ? ss[1] : gm); }
   }
   // camera
   const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), k = Math.min(1, dt * 7); G.cam.fx += (a[0] - G.cam.fx) * k; G.cam.fy += (a[1] - 14 - G.cam.fy) * k; placeCam();

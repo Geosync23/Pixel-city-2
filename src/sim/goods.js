@@ -132,7 +132,7 @@ export function init() {
   /* display pieces in the stores: tap -> inspect sheet */
   registerFixture('gdisp', (fx, scene) => {
     const it = fx.item, g = it && GOOD_BY_ID[it.gd]; if (!g) return null; const sid = it.gs || (scene.def && scene.def.venue);
-    return { label: `${g.name} · ${fmt(price(g.id, sid))}`, gdisp: true, range: 1.6, use: () => openSheet(g.id, sid, fx) };
+    return { label: `${g.name} · ${fmt(price(g.id, sid))}`, gdisp: true, spot: null, range: 2.2 /* QA round 5: the spot + 1.6 left the four corner sofas (fjord, bellwether, nord, kestrel) out of reach (path ends 1.67 away) */, use: () => openSheet(g.id, sid, fx) };
   });
   /* lamps you own: switch on / off */
   registerFixture('glamp', (fx, scene) => {

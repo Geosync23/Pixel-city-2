@@ -56,7 +56,7 @@ export function resolve(id) {
   if (ROOMS.has(id)) {
     const root = id === 'home:grandma:attic' ? 'home:grandma' : rootOf(id), p = safe(() => G.places.get(root), null) || safe(() => G.places.get(id), null);
     const poi = safe(() => cityWorld().pois.find(q => q.id === 'door:' + root), null), at = p || poi;
-    return { id, name: (ROOMS.get(id).name) || (p && p.name) || id, room: id, root, door: poi ? poi.id : (p && p.poi && p.poi.id) || null, x: at ? at.x : 0, y: at ? at.y : 0, spot: false, noDoor: !at };
+    return { id, name: (id === root && p && p.name) || ROOMS.get(id).name || (p && p.name) || id, room: id, root, door: poi ? poi.id : (p && p.poi && p.poi.id) || null, x: at ? at.x : 0, y: at ? at.y : 0, spot: false, noDoor: !at };
   }
   const p = safe(() => G.places.get(id), null);
   if (p) { if (p.roomId && ROOMS.has(p.roomId)) return resolve(p.roomId); const f = freeNear(cityWorld(), p.x, p.y); return { id, name: p.name, room: null, root: null, door: null, x: f.x, y: f.y, spot: true }; }

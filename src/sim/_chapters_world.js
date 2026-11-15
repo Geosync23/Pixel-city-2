@@ -32,7 +32,8 @@ export function setMarker(m) {
   const p = m.room ? place(m.x, m.y) : freeNear(w, m.x, m.y);
   M = { key, id: m.id, x: p.x, y: p.y, label: m.label, sub: m.sub };
   light = { x: p.x, y: p.y, z: .4, r: 3.4, c: '#ffd76a' }; w.lights.push(light);
-  mkOff = G.addInteractable({ scene: 'city', x: p.x, y: p.y, label: m.label, h: 2.2, hit: 20, range: 2.2, chapter: m.id, use: () => H && H.openCard(m.id) });
+  M.it = { scene: 'city', x: p.x, y: p.y, label: m.label, h: 2.2, hit: 20, range: 2.8, chapter: m.id, use: () => H && H.openCard(m.id) };
+  mkOff = G.addInteractable(M.it);
   G.emit('chapters:change');
 }
 export const marker = () => (M ? { id: M.id, x: M.x, y: M.y, label: M.label } : null);
@@ -75,8 +76,8 @@ function onRoom(sc) {
   const rid = sc.roomId; if (!rid || !H) return;
   if (rid === 'home:grandma') {
     /* the ladder on the landing, under the hatch */
-    const x = 5.6 + 1, y = 0 + 1; safe(() => sc.world.place(asset('furn.story.ladder'), x + .2, y, { solid: false }));
-    sc.interactables.push({ x: x + .65, y: y + .5, label: 'The attic ladder', h: 2.2, hit: 16, range: 1.6, spot: { x: x + .65, y: y + 1.1 }, visible: () => H.done('ch05') || safe(() => G.chapters.current().id === 'ch06', false) || H.done('ch06'),
+    const x = 9.0 + 1, y = 3.3 + 1; safe(() => sc.world.place(asset('furn.story.ladder'), x, y, { solid: false }));   /* free-standing by the right-hand wall, between the two plants */
+    sc.interactables.push({ x: x + .45, y: y + .4, label: 'The attic ladder', h: 2.2, hit: 16, range: 1.6, spot: { x: x + .45, y: y + 1.1 }, visible: () => H.done('ch05') || safe(() => G.chapters.current().id === 'ch06', false) || H.done('ch06'),
       use: () => { if (H.done('ch06') || safe(() => G.chapters.current().id === 'ch06', false)) G.go('int:home:grandma:attic', {}); else safe(() => G.goalsUI.caption('Nana Bea', 'Not today.', 2600)); } });
   }
   const home = safe(() => G.housing.current().roomId, null);
@@ -95,6 +96,17 @@ export function init(hooks) {
   G.on('scene', s => { if (s && s.id === 'city') setTimeout(() => safe(sync), 50); });
   G.on('chapter:done', () => setTimeout(() => safe(sync), 50)); G.on('chapter:start', () => setTimeout(() => safe(sync), 50));
   G.on('load', () => { M = null; if (mkOff) { mkOff(); mkOff = null; } light = null; props = []; propKey = ''; setTimeout(() => safe(sync), 400); });
+  /* a tap ON the marker always means the marker, whoever is standing next to it (passers-by and doors must not win the tap) */
+  addEventListener('pointerdown', e => {
+    if (!M || !M.it || e.target !== G.cv || !G.scene || G.scene.id !== 'city' || G.modal || G.cutscene || G.busy) return;
+    const r = G.cv.getBoundingClientRect(), z = safe(() => G.world.heightAt(M.x, M.y), 0), s = G.toScreen(M.x, M.y, z), k = G.cssScale || 1;
+    const dx = e.clientX - (r.left + s.x), dy = e.clientY - (r.top + s.y);
+    if (Math.abs(dx) > 13 * k + 8 || dy < -36 * k - 8 || dy > 7 * k + 6) return;
+    e.stopPropagation(); e.preventDefault();
+    const p = G.player, it = M.it, fire = () => { G.pending = null; p.stop(); p.faceTo(it.x, it.y); it.use(G, it); };
+    if (Math.hypot(it.x - p.x, it.y - p.y) <= it.range) return fire();
+    if (p.goTo(G.world, it.x, it.y, { snap: 10, limit: 30000 })) { G.target = null; G.pending = { it, fire, range: it.range }; }
+  }, true);
   /* a tap on the gold row in the Goals list points the arrow at the marker */
   document.addEventListener('click', e => {
     const r = e.target && e.target.closest && e.target.closest('[data-g="chapter"]'); if (!r || !M) return;

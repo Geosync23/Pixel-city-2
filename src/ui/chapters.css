@@ -21,7 +21,7 @@
 .chd.narrator .chd-id{display:none}
 .chd.narrator .chd-text{font-style:italic;font-weight:500;color:#4d4658;padding-top:6px}
 .chd.hand{background:#fbf6e4;background-image:repeating-linear-gradient(#0000 0 25px,#a9c4dc66 25px 26px)}
-.chd.hand .chd-text{font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;font-weight:500;font-size:18px;color:#2b3a67;line-height:26px}
+.chd.hand .chd-text{font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;font-style:italic;font-weight:500;font-size:18px;color:#2b3a67;line-height:26px}
 .chd.phone .chd-face{background:#d9e6c8;box-shadow:inset 0 -10px 0 #b9cfa2}
 .chd.phone .chd-sub{color:#2f7a3a;font-weight:700;opacity:1}
 .chd.you .chd-name{color:var(--blue)}
@@ -67,7 +67,7 @@
 .chc.menu{width:min(360px,100%)}
 
 /* ---- chip ---- */
-.chp{position:absolute;left:8px;bottom:calc(58px + env(safe-area-inset-bottom,0px));width:min(310px,calc(100% - 78px));z-index:4;background:var(--chgold2);border:2px solid var(--edge);border-left:8px solid var(--chgold);box-shadow:0 3px 0 var(--edge);padding:5px 6px 6px 8px;display:flex;flex-direction:column;gap:5px;pointer-events:auto}
+.chp{position:absolute;left:8px;bottom:calc(58px + env(safe-area-inset-bottom,0px));width:min(310px,calc(100% - 78px));z-index:0;background:var(--chgold2);border:2px solid var(--edge);border-left:8px solid var(--chgold);box-shadow:0 3px 0 var(--edge);padding:5px 6px 6px 8px;display:flex;flex-direction:column;gap:5px;pointer-events:auto}
 .chp-main{display:flex;flex-direction:column;line-height:1.2;min-width:0}
 .chp-main small{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--chink)}
 .chp-main span{font-size:14.5px;font-weight:700}
@@ -86,7 +86,7 @@
 /* ---- Mom's book ---- */
 .chc.book{width:min(440px,100%);padding:0;background:#6b4a2e;border-color:#2a1c10;display:flex;flex-direction:column}
 .bk-cover{padding:6px 12px;color:#f6e7c8;font-weight:700;letter-spacing:1px;font-size:13px;text-align:center}
-.bk-page{position:relative;margin:0 8px;min-height:320px;max-height:62vh;overflow:auto;padding:16px 16px 18px 30px;background:#fbf6e4;background-image:linear-gradient(90deg,#0000 21px,#e59a9a 21px 22px,#0000 22px),repeating-linear-gradient(#0000 0 27px,#a9c4dc88 27px 28px);background-attachment:local;border:2px solid #2a1c10;font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;color:#2b3a67}
+.bk-page{font-style:italic;position:relative;margin:0 8px;min-height:320px;max-height:62vh;overflow:auto;padding:16px 16px 18px 30px;background:#fbf6e4;background-image:linear-gradient(90deg,#0000 21px,#e59a9a 21px 22px,#0000 22px),repeating-linear-gradient(#0000 0 27px,#a9c4dc88 27px 28px);background-attachment:local;border:2px solid #2a1c10;font-family:"Segoe Script","Bradley Hand","Snell Roundhand","Dancing Script","Comic Sans MS",cursive;color:#2b3a67}
 .bk-page h3{margin:0 0 4px;font-size:21px;line-height:28px;text-decoration:underline}
 .bk-page p{margin:0 0 0;font-size:17px;line-height:28px;text-indent:14px}
 .bk-page p+p{margin-top:0}
@@ -120,3 +120,6 @@
 .chs-i small{font-size:11.5px;font-weight:500;opacity:.75;line-height:1.15}
 .chs-i.on{background:var(--chgold2);border-left:8px solid var(--chgold)}
 .chs-i.on b::after{content:" ✓"}
+/* no blue tap flash on phones; text is not selectable while tapping through */
+.chd-wrap,.chd-wrap *,.chc-wrap,.chc-wrap *,.chp,.chp *{-webkit-tap-highlight-color:transparent}
+.chd-wrap{-webkit-user-select:none;user-select:none;touch-action:manipulation}

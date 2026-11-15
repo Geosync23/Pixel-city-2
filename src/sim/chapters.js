@@ -43,7 +43,7 @@ export const order = 140;
 const NEED_FLOOR = 30, DAY = 1440, WD = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], DUSK = [18.5, 19.75, 17.5, 16.75];
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const fresh = () => ({ v: 1, done: {}, cur: null, picks: {}, flags: {}, pages: {}, keeps: [], note: {}, introT: null, worked: 0 });
-let S = null, tok = 0, running = false, PROG = {}, hopping = false, lastRide = null, linger = false;
+let S = null, tok = 0, running = false, PROG = {}, hopping = false, lastRide = null, linger = false, curDest = null;
 const st = () => { if (G.state.chapters !== S || !S) { S = G.state.chapters || (G.state.chapters = fresh()); for (const k in fresh()) if (S[k] === undefined) S[k] = fresh()[k]; } return S; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const chOf = n => (typeof n === 'number' ? CHAPTERS[n - 1] : CHAPTERS_BY_ID[n] || CHAPTERS[(+n || 0) - 1]) || null;
@@ -82,14 +82,17 @@ function compile(ch) {
     }
   };
   ch.scenes.forEach((sc, i) => {
-    const cast = [...speakers(sc.steps, new Set())].filter(w => !['narrator', 'player', 'nell'].includes(w) && !isPhone(ch, w));
+    const cast = [...speakers(sc.steps, new Set())].filter(w => !['narrator', 'player', 'nell'].includes(w) && !offstage(ch, w, sc.id));
     ops.push({ op: 'scene', i, id: sc.id, place: sc.place, title: sc.title, cast }); emit(sc.steps);
   });
   ops.push({ op: 'end' });
   return ops;
 }
 const prog = ch => PROG[ch.id] || (PROG[ch.id] = compile(ch));
-const isPhone = (ch, w) => ch.id === 'ch07' && w === 'dad';
+/* voices that are not in the room: Dad on the telephone in Chapter 7; Nana calling up the ladder while you are in her attic */
+const OFF = { 'ch07:dad': 'phone', 'ch06:attic:nana': 'calling up the ladder' };
+const offstage = (ch, w, sceneId) => OFF[ch.id + ':' + w] || OFF[ch.id + ':' + sceneId + ':' + w] || null;
+const isPhone = (ch, w) => offstage(ch, w) === 'phone';
 function sceneOpAt(ops, pc) { for (let i = Math.min(pc, ops.length - 1); i >= 0; i--) if (ops[i].op === 'scene') return ops[i]; return ops[0]; }
 
 /* ================= conditions, tokens, windows, unlocks ================= */
@@ -234,6 +237,7 @@ async function exec(ch, o, alive, ops) {
       const v = await UI.choice(o.options.map(x => ({ id: x.id, text: fill(x.text) }))); if (v === 'out' || v === 'closed') { if (v === 'out') stepOut(); return; }
       const opt = o.options.find(x => x.id === v) || o.options[0]; s.picks[o.id] = opt.id;
       if (opt.fx) { for (const k in opt.fx.rel || {}) rel(k, opt.fx.rel[k]); if (opt.fx.flag) s.flags[opt.fx.flag] = true; }
+      if (o.id === 'c15_page') { s.page13 = [fill(opt.text)]; foundPage('lookout', true); }
       G.emit('chapter:choice', o.id, opt.id); return opt.to;
     }
     case 'if': return test(o.cond) ? undefined : o.els;
@@ -260,13 +264,13 @@ async function exec(ch, o, alive, ops) {
   }
 }
 const present = () => comp.ids();
-function rel(id, n) { if (id === 'dad') { const s = st(); s.flags.rel_dad = (s.flags.rel_dad || 0) + n; return; } safe(() => G.social.addRel(id, n, { raw: true })); }
+function rel(id, n) { safe(() => G.social.addRel(id, n, { raw: true })); }
 async function sayLine(ch, o) {
-  const i = who(o.who), phone = isPhone(ch, o.who), style = o.who === 'narrator' ? 'narrator' : o.who === 'nell' ? 'hand' : phone ? 'phone' : o.who === 'player' ? 'you' : '';
+  const i = who(o.who), off = offstage(ch, o.who, st().cur && st().cur.scene), phone = off === 'phone', style = o.who === 'narrator' ? 'narrator' : o.who === 'nell' ? 'hand' : off ? 'phone' : o.who === 'player' ? 'you' : '';
   const c = !style ? comp.char(o.who) : null, P = G.player; let prev;
   if (c) { if (c.stop) c.stop(); if (!c.zoff) c.faceTo(P.x, P.y); if (!G.cutscene && !G.busy) P.faceTo(c.x, c.y); prev = c.pose; if (o.anim && o.anim !== 'stand') c.pose = o.anim; }
-  if (phone || (o.who === 'player' && o.anim === 'phone')) P.pose = 'phone';
-  const r = await UI.say({ name: i.short || i.name, spec: i.spec, text: fill(o.text), style });
+  if (phone || (o.who === 'player' && o.anim === 'phone')) P.pose = 'phone'; else if (P.pose === 'phone' && style !== 'narrator' && style !== 'you') P.pose = null;
+  const r = await UI.say({ name: i.short || i.name, spec: i.spec, text: fill(o.text), style, sub: off && !phone ? off : '' });
   if (c && o.anim) c.pose = prev || null;
   return r;
 }
@@ -333,6 +337,7 @@ async function hop(d, cut) {
 }
 async function travel(ch, d, label, note, alive) {
   const t0 = performance.now(); let noted = false, pinFor = null;
+  curDest = d;
   while (alive() && !here(d)) {
     const inside = !inCity(), same = sameBuilding(d);
     const info = { kicker: kicker(ch), text: label, out: () => stepOut(), go: null };
@@ -345,7 +350,7 @@ async function travel(ch, d, label, note, alive) {
     if (note && !noted && performance.now() - t0 > 150000 && !G.modal) { noted = true; UI.toastGold(fill(note), 5200); }
     await sleep(220);
   }
-  safe(() => G.navGoals.clear()); UI.chip(null);
+  curDest = null; safe(() => G.navGoals.clear()); UI.chip(null);
   if (alive() && safe(() => G.nav.trip(), null)) safe(() => G.nav.cancel());
   if (alive() && safe(() => G.state.phone.waypoint, null)) safe(() => G.phone.setWaypoint(null));
 }
@@ -385,7 +390,8 @@ function stage(o) {
 
 /* ---------- give / pages / keepsakes ---------- */
 const FURN = { nana_armchair: 'armchair', wobbly_shelf: 'bookshelf' };
-function itemName(id) { return (ITEMS_NEW[id] && ITEMS_NEW[id].name) || (STORY_ITEMS[id] && STORY_ITEMS[id].name) || (ITEM_BY_ID[id] && ITEM_BY_ID[id].name) || (RECIPE_BY_ID[id] && RECIPE_BY_ID[id].name) || id; }
+const NAMES = { postcard: 'A postcard of the Light', sky_poster: 'The SkyDeck poster', obs_starwheel: 'A star wheel, with the Kettle drawn on in pen', fm_tally: "A brass buyer's tally" };
+function itemName(id) { return NAMES[id] || (ITEMS_NEW[id] && ITEMS_NEW[id].name) || (STORY_ITEMS[id] && STORY_ITEMS[id].name) || (ITEM_BY_ID[id] && ITEM_BY_ID[id].name) || (RECIPE_BY_ID[id] && RECIPE_BY_ID[id].name) || id; }
 function keep(id) { const s = st(); if (!s.keeps.includes(id)) s.keeps.push(id); const k = safe(() => G.story.keepsakes(), null); if (k && !k.includes(id)) k.push(id); }
 function give(o, quiet) {
   const s = st(), say = t => { if (!quiet && t) UI.toastGold(fill(t), 4600); };
@@ -483,8 +489,12 @@ function credit() {
 /* ================= debug ================= */
 const debug = {
   state: () => st(), ops: n => prog(chOf(n)),
+  /** where the running Chapter is waiting for the player to get to (tests): { id, name, room, x, y } | null */
+  dest: () => (curDest ? { id: curDest.id, name: curDest.name, room: curDest.room, x: curDest.x, y: curDest.y } : null),
+  /** move the clock forward to the next moment Chapter n can be started */
+  toWindow(n) { const ch = chOf(n); if (!ch) return false; for (let k = 0; k < 8 * 96 && !windowOpen(ch); k++) G.advance(15); return windowOpen(ch); },
   /** make Chapter n the open one right now (earlier ones are marked done, quietly) */
-  unlock(n) { const ch = chOf(n), s = st(); if (!ch) return false; if (s.cur) stepOut(true); s.cur = null; for (const c of CHAPTERS) { if (c.n < ch.n) { if (!s.done[c.id]) s.done[c.id] = { t: 0, day: 0, credit: 1 }; } else delete s.done[c.id]; } refresh(); return true; },
+  unlock(n) { const ch = chOf(n), s = st(); if (!ch) return false; if (s.cur) stepOut(true); s.cur = null; for (const c of CHAPTERS) { if (c.n < ch.n) s.done[c.id] = Object.assign({ t: 0, day: 0 }, s.done[c.id], { credit: 1 }); else delete s.done[c.id]; } s.note[ch.id] = 1; refresh(); return true; },
   start(n) { const ch = chOf(n); if (!debug.unlock(n)) return false; return begin(ch.id); },
   skipTo(n, step) { const ch = chOf(n); if (!debug.unlock(n)) return false; const s = st(); s.cur = { id: ch.id, pc: Math.max(0, Math.min(prog(ch).length - 1, step | 0)), paused: false, t0: Math.floor(G.state.t), went: null, back: 0 }; loop(); return true; },
   finish(n) { const ch = chOf(n), s = st(); if (!ch) return false; if (s.cur) stepOut(true); s.cur = null; for (const c of CHAPTERS) if (c.n <= ch.n && !s.done[c.id]) { s.done[c.id] = { t: Math.floor(G.state.t) - DAY, day: G.now().day - 1, credit: c.n < ch.n ? 1 : undefined }; settle(c, true); } refresh(); G.emit('chapters:change'); return true; },

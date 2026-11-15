@@ -11,12 +11,12 @@ import { toast } from '../../ui/kit.js';
 
 const FL = () => (G.state.chapters && G.state.chapters.flags) || {};
 const NOTE = {
-  kettle: 'Tea towels, a cake stand, forty-one saucers and the copper teapot, wrapped in a 2016 newspaper. LEAVE the teapot.',
-  girls: 'School reports, swimming badges, a 1979 report: "Eleanor would do well to finish what she starts."',
-  tin: 'A biscuit tin. In it, a school exercise book, soft at the corners.',
+  kettle: 'Menus. A stack of order pads. Forty cups in newspaper from 2016. And something round and heavy, wrapped in a tea towel.',
+  girls: 'School reports. A swimming ribbon: THIRD. A recorder with JUNE scratched into it and, under that, in a different hand, IS A PEST.',
+  tin: 'A biscuit tin, wedged down beside the cushion, the way you would hide a thing from a sister.',
 };
 defineRoom({
-  id: 'home:grandma:attic', name: "Nana Bea's attic", owner: 'nana', story: true, noCrowd: true, w: 8, d: 6, floor: GT.f_darkwood, zoom: 1,
+  id: 'home:grandma:attic', name: "Nana Bea's attic", owner: 'nana', story: true, noCrowd: true, w: 8, d: 6, floor: GT.f_darkwood, zoom: 0,
   wall: { color: '#b08a62', pattern: 'planks', trim: '#5e4028', h: 2.2 },
   items: [
     { id: 'furn.story.rafters', wall: 'y', at: 0, p: { w: 8 } },
@@ -31,7 +31,7 @@ defineRoom({
     { id: 'furn.home.boxes', x: 6.6, y: 4.6, p: { seed: 5 } },
     { id: 'furn.story.hatch', x: 3.4, y: 4.7, solid: false },
   ],
-  exits: [{ x: 4, y: 5.2, label: 'Down the ladder', use: () => G.go('int:home:grandma', { x: 10.2, y: 5.6 }) }],
+  exits: [{ x: 4, y: 5.2, label: 'Down the ladder', use: () => G.go('int:home:grandma', { x: 10.5, y: 5.6 }) }],
   spawn: { x: 4, y: 4.2, dir: 3 },
   setup(sc) {
     const mk = (tag, label, which) => {

@@ -31,3 +31,4 @@
 @media (max-width:480px){#goalsw{font-size:12px}.tut{font-size:13px}.tut-cap{font-size:14px}}
 
 #ui:has(.modal) #goalsw{display:none}
+#ui > .tut-arrow{pointer-events:none}

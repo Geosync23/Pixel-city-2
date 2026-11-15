@@ -120,7 +120,9 @@ defineRoom({ id: UR.lecture, name: 'Ashby Lecture Theatre', w: 18, d: 13, zoom: 
     sc.ents.push({ x: O + 4.125, y: O + .24, z: 1.03, bb: [0, 0, SW / 16, .06, SH / 16], sprite: () => spr }); for (const f of sc.fixtures) f._sit = true;
     const board = { show(s) { spec = s || { mode: 'idle' }; key = ''; }, spec: () => spec, canvas: cv };
     /* seats */
-    const seats = []; for (const fx of sc.byTag('uni_seat')) fx.seats.forEach((s, i) => seats.push({ x: s.x, y: s.y, z: s.z, dir: 3, spot: { x: s.x, y: fx.ob.B[4] + .32 }, row: fx.ob.B[1], i, taken: null }));
+    /* QA round 5: the gap behind row 2 is only 0.4 wide (the next row starts there), so its 8 seats were dead taps: those take their spot in front of the row */
+    const rowsB = sc.byTag('uni_seat').map(f => f.ob.B), blocked = B => rowsB.some(q => q !== B && q[0] < B[3] && q[3] > B[0] && q[1] > B[4] - .01 && q[1] < B[4] + .6);
+    const seats = []; for (const fx of sc.byTag('uni_seat')) { const B = fx.ob.B, sy = blocked(B) ? B[1] - .32 : B[4] + .32; fx.seats.forEach((s, i) => seats.push({ x: s.x, y: s.y, z: s.z, dir: 3, spot: { x: s.x, y: sy }, row: B[1], i, taken: null })); }
     for (const st of seats) sc.interactables.push({ x: st.x, y: st.y, z: st.z - .2, h: .5, hit: 6, label: 'Take a seat', spot: st.spot, uni: 1, visible: () => !st.taken && (!U() || U().canSit()), use: () => U() && U().sit(st, sc) });
     const prof = new Char(castSpec('baptiste'), O + 5.8, O + 1.85); prof.dir = 1; prof.z = .22; prof.hidden = true; prof.kind = 'npc'; sc.ents.push(prof);
     sc.interactables.push({ ent: prof, x: prof.x, y: prof.y, label: 'Professor', h: 1.4, hit: 8, range: 2, uni: 1, visible: () => !prof.hidden, use: () => U() && U().talk(prof.uniId, prof, sc) });

@@ -23,7 +23,10 @@
 //   unlock          when the listing appears at Bay Realty & Trust: { day: absolute game day (0 = first Monday) }.
 //   blurb           listing headline.
 
+import { MORE_HOMES } from './homes_more.js';
+
 export const SIZE_CLASSES = {
+  nook:   { label: 'Tiny',   tiles: [6, 5], furnitureSlots: 9, utilitiesPerWeek: 12 },      // more homes: the attic room that is cheaper than a starter studio
   studio: { label: 'Studio', tiles: [7, 6], furnitureSlots: 14, utilitiesPerWeek: 20 },
   small:  { label: 'Small',  tiles: [10, 8], furnitureSlots: 24, utilitiesPerWeek: 30 },
   medium: { label: 'Medium', tiles: [13, 10], furnitureSlots: 34, utilitiesPerWeek: 40 },
@@ -184,6 +187,16 @@ export const HOMES = [
     perk: { id: 'top_of_the_town', desc: 'You made it.', effect: { homeViewpoint: true, ambienceBonus: 6, freeSameDayDelivery: true } },
     unlock: { day: 56 }, blurb: 'Above the clouds on a foggy day. The end-game home.' },
 ];
+
+// MORE HOMES (owner msg 107): nine houses and five apartments in buildings that already stand in the city (data: homes_more.js).
+HOMES.push(...MORE_HOMES);
+
+// PRE-FURNISHED or FURNISH IT YOURSELF (every home, old and new).
+//   Pre-furnished: the designer's set (src/scenes/rooms/home_more.js SETS) stands in the rooms on move-in. You pay a ONE-OFF furniture package on top of the
+//   first costs: `rate` x the list price of the pieces (so it is cheaper than buying them one by one), and every piece is YOURS: it moves with you, you can sell it.
+//   Furnish it yourself: the rooms are empty apart from the landlord's kitchen and bathroom (`included`). If you own no bed, a camp mattress (`kitBed`) lies
+//   on the bedroom floor, and a welcome box (`kitGives`) holds a few meals. Nothing extra to pay.
+export const FURNISH = { rate: 0.6, kitBed: 'bed_t0', kitGives: [{ item: 'instant_ramen', qty: 2 }, { item: 'granola_bar', qty: 2 }, { item: 'tea', qty: 2 }] };
 
 export const HOME_BY_ID = Object.fromEntries(HOMES.map((h) => [h.id, h]));
 export const STARTER_HOMES = HOMES.filter((h) => h.kind === 'starter_studio');

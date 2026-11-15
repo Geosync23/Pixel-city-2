@@ -74,6 +74,8 @@ const GRAPH = [
   ['int:arena', /^(Into the bowl|Turnstiles$)/, 'int:arena:bowl'], ['int:arena', /^TEAM ONLY$/, 'int:arena:backstage'], ['int:arena:backstage', /^Tunnel to the court$/, 'int:arena:bowl'], ['int:arena:bowl', /^Team tunnel$/, 'int:arena:backstage'],
   [/^int:hotel(_floor|_spa|_bar)?$/, /^Lift$/, s => LIFT.filter(x => x !== s)], ['int:hotel_floor', /^Room \d+$/, 'int:hotel_room'], ['int:hotel', /^Stairs up to The Tidewater Spa$/, 'int:hotel_spa'],
   ['int:natatorium', /^Exit to/, 'city'],
+  /* QA round 5: the 13 home-goods stores leave by "Exit to the street" (navarrow only reads Exit/Leave exits); Nana's attic ladder (chapters) */
+  [/^int:goods:[^:]+$/, /^Exit to the street$/, 'city'], ['int:home:grandma', /^The attic ladder$/, 'int:home:grandma:attic'],
   ['int:observatory', /^Planetarium/, 'int:observatory:planetarium'], ['int:observatory', /^Stairs to the dome/, 'int:observatory:roof'], ['int:observatory:roof', /^Stairs down$/, 'int:observatory'],
   ['int:aquarium', /^Staff door/, 'int:aquarium:lab'], ['int:aquarium', /^Stairs to the Turtle Lagoon$/, 'int:aquarium:turtles'], ['int:aquarium', /^Stairs down to the (Ocean Tunnel|Deep)$/, 'int:aquarium:deep'], ['int:aquarium', /^Door to the Harbor Deck$/, 'int:aquarium:deck'],
   ['int:aquarium:deep', /^Stairs up to/, 'int:aquarium'],
@@ -392,6 +394,8 @@ define('story', 'commit', 69, ctx => {
 define('meet', 'commit', 68, ctx => {
   const a = apptsFor(ctx).find(q => q.withNpc && q.kind !== 'work' && !(q.data && q.data.beat)); if (!a) return null; const npc = a.withNpc;
   if (since('social:talk:' + npc, 4) || safe(() => G.state.social.hang[a.id].st, 0) === 1 || usedLately(new RegExp('\\b' + npcShort(npc) + '\\b'))) return { done: true, name: npcShort(npc) };
+  /* QA round 5: inside the meeting place before the friend has arrived, the arrow used to send you out to wherever they were (Dot's Diner -> "Exit -> Dez" at his depot an hour before lunch). Wait here instead. */
+  const c0 = safe(() => G.social.char(npc), null); if ((!c0 || c0.hidden) && ctx.root && ctx.here === ctx.root) return { room: roomId() || 'city', find: null, label: `${a.title}: ${npcShort(npc)} is on the way, wait here`, short: npcShort(npc) };
   return npcStep(npc, a.title, 'say hello to');
 }, (ctx, s) => !!s.appt);
 

@@ -14,7 +14,7 @@
 // Dad (Frank) is a new person: spec + name live here (DAD). He is registered as a phone contact by sim/chapters.js when the story gives him.
 import { G } from '../core/game.js';
 import { Char } from '../core/char.js';
-import { CAST_BY_ID } from '../story/cast.js';
+import { CAST, CAST_BY_ID } from '../story/cast.js';
 import { SPEAKERS_EXTRA } from '../story/chapters.js';
 import { buildSpecs } from './_social_data.js';
 import { freeNear } from './_chapters_places.js';
@@ -28,6 +28,17 @@ const LOOKS = {
   pym: { age: 68, look: '', spec: { skin: 'brown', hair: 'bob', hairColor: '#d0d0d0', top: 'blazer', topColor: '#7a2e3a', bottom: 'skirt', bottomColor: '#2b2d42', hat: 'none', glasses: 'half-moon', bag: 'none', age: 'elder', outfit: 'office' } },
   crier: { age: 55, look: '', spec: { skin: 'tan', hair: 'short', hairColor: '#5a4a3a', top: 'waistcoat', topColor: '#3a5a78', bottom: 'slacks', bottomColor: '#2b2d42', hat: 'flat-cap', glasses: 'none', bag: 'none', age: 'adult', outfit: 'casual' } },
 };
+/* DAD (Frank): a new person, added to the cast at load so the social system, the phone contacts and the Talk panel know him. He has no routine in town
+   (he lives in Pinehollow: "At home" to the social system) and is not met until the story gives his number (Chapter 7). In Chapter 15 he is a companion. */
+export const DAD = {
+  id: 'dad', name: 'Frank', short: 'Dad', age: 62, pronouns: 'he/him', group: 'family', role: 'Your dad, in Pinehollow', district: 'maplewood', home: 'pinehollow', work: null,
+  personality: ['quiet', 'dry', 'steady'], likes: { gifts: ['postcard', 'jam_jar', 'wool_socks', 'fresh_fish'], topics: ['weather', 'history', 'food'] }, dislikes: { gifts: ['gadget'], topics: ['tech', 'money'] },
+  birthday: { season: 'autumn', day: 9 }, flirtable: false, routine: [],
+  look: 'Grey moustache, flat cap, a work jacket older than you, hands like tools.', spec: LOOKS.dad.spec,
+  background: 'Retired quarry fitter from Pinehollow. Kept the ferry Marigold running for two summers, a long time ago.', bio: 'Four words at a time. Would rather be shown.',
+  greetings: { low: ['There you are.', 'Hello, you.'], mid: ['{name}. Good.', 'What am I looking at, then.'], high: ['Keep on. I am listening.', "You're not bad at that."] },
+};
+if (!CAST_BY_ID.dad) { CAST.push(DAD); CAST_BY_ID.dad = DAD; }
 const FIGURE = { silas: /keeper|silas/i, hester: /quill|archivist/i, pym: /pym|registrar/i, crier: /auctioneer/i };
 const specs = {};
 function extraSpec(id) {
