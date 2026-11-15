@@ -122,7 +122,7 @@ function trainOption(from, D, walk) {
   for (const A of near(from)) for (const B of near(D)) {
     if (A.id === B.id) continue; const wa = man(A, from) * WALK, wb = man(B, D) * WALK, pl = safe(() => G.rail.plan(A.id, B.id, G.state.t + wa), null); if (!pl || !(pl.stops > 0)) continue;   /* QA7: the train you can still catch once you have walked to the station */
     const wait = wa + (pl.departsIn != null ? pl.departsIn : pl.wait || 0), ride = Math.max(1, pl.minutes),   /* QA7: plan().minutes is the ride alone (the wait was subtracted twice: estimates were ~15 min short) */ total = wait + ride + wb;
-    if (wa + wb > walk * .8) continue;
+    if (wa + wb >= walk) continue;   /* QA13: `walk` is the direct walk in MINUTES (it was passed the distance in units, so this never filtered); only a train that cannot possibly beat walking is dropped */
     if (!best || total < best.minutes) best = { mode: 'train', label: 'Train ' + pl.line, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('train'), 2.5), line: pl.line, toward: pl.toward, stops: pl.stops, wait, from: A.id, to: B.id, board: { id: A.pid, name: A.name, x: A.x, y: A.y }, alight: { id: B.pid, name: B.name, x: B.x, y: B.y }, walkA: wa, walkB: wb, ride };
   }
   return best;
@@ -140,7 +140,7 @@ export function routeTo(dest, from = cityPos(), opts) {   /* opts.all: also the 
   if (typeof dest === 'string') dest = place(dest) || innerPlace(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
   const D = pt(dest), dist = man(D, from), walk = dist * WALK, out = [{ mode: 'walk', label: 'Walk', minutes: walk, cost: 0, dist }];
   if (hasBike()) out.push({ mode: 'bike', label: 'Bike', minutes: walk / 2.2, cost: 0, dist });
-  for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((opts && opts.all) || (o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1) || (o.mode === 'train' && dist > 80))) out.push(o);   /* owner msg 131: the train is always offered on a longer trip, even when it is the slower way; its time says so */
+  for (const o of [busOption(from, D, dist), trainOption(from, D, walk)]) if (o && ((opts && opts.all) || (o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1) || o.mode === 'train')) out.push(o);   /* owner msgs 131 + 133: the train is ALWAYS offered when a train route exists, even when it is the slower way; its time says so */
   if (dist > 25 && G.transit && G.transit.fare) { const fare = safe(() => D.id ? G.transit.fare(D.id) : G.transit.fare('taxi', from, D), null), ce = safe(() => G.transit.cabEstimate(D, from), null);   /* QA7: the cab ride's game time is set by its route (transit.js), so the estimate is exact but for the pick-up */
     if (fare != null && isFinite(fare)) out.push({ mode: 'cab', label: 'Cab', minutes: ce ? ce.minutes : dist / CAB_V + 4, pickup: ce ? ce.wait : undefined, ride: ce ? ce.ride : undefined, cost: safe(() => G.state.flags.firstCabFree, false) ? 0 : fare, free: !!safe(() => G.state.flags.firstCabFree, false) }); }
   for (const o of out) { o.dest = D; o.minutes = Math.max(1, Math.round(o.minutes)); o.text = describe(o); o.costText = o.free ? 'Free - prepaid' : o.cost ? money(o.cost) : 'free'; if (o.wait != null) o.next = o.wait < 1.5 ? 'leaving now' : 'next in ' + mins(o.wait); }

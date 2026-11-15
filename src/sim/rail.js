@@ -28,7 +28,9 @@ import { getCity } from '../world/_city.js';
 import { el, toast, modal } from '../ui/kit.js';
 
 export const order = 64;
-export const V = 10, ACC = 1.5, DWELL = 6, NSETS = 4, PITCH = 12.4, CARS = 3, VIEW = 95;
+/* QA13 (owner msg 131): was V 10, ACC 1.5, DWELL 6, NSETS 4 = a 163-min loop, a train every ~41 min each way, 2.2x walking speed: the train lost to walking almost everywhere.
+   Now a ~68-min loop, a train every ~8.5 min each way, ~5.6x walking speed between stations (the ride scene and the city both follow trainState, so quotes stay exact). */
+export const V = 26, ACC = 1, DWELL = 2.5, NSETS = 8, PITCH = 12.4, CARS = 3, VIEW = 95;
 const LINE = [{ name: 'Loop A', color: '#d2412f', livery: 'line1' }, { name: 'Loop B', color: '#2f8f96', livery: 'line2' }];
 const SHORT = { hillcrest: 'HILLCR', arts: 'ARTS Q', airport: 'AIRPORT', maplewood: 'MAPLEWD', railyard: 'RAILYD', central: 'CENTRAL', harbor: 'HARBOR', oldtown: 'OLDTOWN' };
 const CSS = `.rail-win .win-body{max-width:340px}
