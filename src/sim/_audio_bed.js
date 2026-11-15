@@ -35,38 +35,43 @@ export const POOLS = {
 // track makers. db = level against the -23 LUFS stretch; lp = low-pass in Hz (0 = open); on/off = [min, max] seconds (a drifting layer)
 const T = (id, db, lp, pool) => ({ id, pool: pool || id, db, lp: lp || 0 });
 const D = (id, db, on, off, lp, pool) => ({ id, pool: pool || id, db, lp: lp || 0, on, off });
+/* CRICKETS (owner, after hearing the night: "way too prominent and loud"): never a steady bed. CR(db, on, off) is a far-off layer that drifts in for a while
+   and stays away for longer, low-passed at 3 kHz (the recording has 75 % of its energy at 3-4 kHz, right where the ear is keenest, and no separate "far" part to cut to:
+   it is one even texture, so distance is made with level and low-pass). Levels are 12-17 dB under the first version. Strongest in the park and the suburbs, faint in the
+   old town, a rare trace downtown, none at the market, harbor, rail yard and airport. The far-city rumble and the night air carry the night. */
+const CR = (db, on, off) => D('crickets', db, on, off, 3000);
 /* place -> time of day -> tracks. Places: city (downtown), town (old town, arts), suburb, industrial, park, harbor, waterfront (boardwalk
-   and pier), market (Market Square), airport. Night = crickets + the far-off city, low-passed and quiet. */
+   and pier), market (Market Square), airport. Night = the far-off city, low-passed and quiet, + night air; crickets only as above. */
 export const OUTDOOR = {
   city: {
     dawn: [T('busy', -7, 5000), T('birds', -6)],
     day: [T('busy', 0), D('trolley', -6, [18, 32], [70, 160])],
     evening: [T('busy', -3, 7000), D('trolley', -8, [18, 30], [120, 240])],
-    night: [T('busy', -13, 1100), T('crickets', -9), T('far', -8)],
+    night: [T('busy', -13, 1100), T('far', -8), CR(-26, [15, 30], [120, 260])],
   },
   town: {
     dawn: [T('light', -6, 5000), T('birds', -5)],
     day: [T('light', 0), D('crowd', -11, [25, 50], [40, 110], 3500)],
     evening: [T('light', -3), D('crowd', -14, [20, 40], [80, 160], 3000)],
-    night: [T('light', -14, 1200), T('crickets', -7), T('far', -8)],
+    night: [T('light', -14, 1200), T('far', -8), CR(-22, [20, 40], [80, 170])],
   },
   suburb: {
     dawn: [T('birds', -2), T('resid', -8, 5000)],
     day: [T('resid', -1), D('birds', -8, [30, 70], [25, 70]), T('far', -9)],
-    evening: [T('resid', -4), T('air', -12), D('crickets', -12, [40, 80], [20, 50])],
-    night: [T('crickets', -5), T('far', -9), T('air', -13)],
+    evening: [T('resid', -4), T('air', -12), CR(-21, [20, 40], [70, 150])],
+    night: [T('far', -8), T('air', -10), T('resid', -15, 1500), CR(-17, [30, 60], [50, 110])],
   },
   industrial: {
     dawn: [T('busy', -8, 4000), T('far', -5)],
     day: [T('busy', -4, 4500), T('far', -5)],
     evening: [T('busy', -7, 4000), T('far', -5)],
-    night: [T('far', -6), T('crickets', -12), T('busy', -16, 900)],
+    night: [T('far', -6), T('busy', -16, 900)],
   },
   park: {
     dawn: [T('birds', 1.5), T('busy', -20, 900)],
     day: [T('birds', 0), T('busy', -17, 1000)],
-    evening: [T('birds', -5), T('crickets', -12), T('busy', -18, 900)],
-    night: [T('crickets', -3), T('far', -12)],
+    evening: [T('birds', -5), T('busy', -18, 900), CR(-21, [20, 40], [60, 130])],
+    night: [T('far', -9), T('air', -11), CR(-15, [35, 70], [45, 95])],
   },
   harbor: {
     dawn: [T('waves', -3), T('gulls', -6), T('light', -14, 2500)],
@@ -84,13 +89,13 @@ export const OUTDOOR = {
     dawn: [T('light', -6, 5000), T('birds', -5)],
     day: [T('crowd', -2, 5000), T('light', -7)],
     evening: [T('crowd', -7, 4000), T('light', -4)],
-    night: [T('light', -14, 1200), T('crickets', -7), T('far', -8)],
+    night: [T('light', -14, 1200), T('far', -8)],
   },
   airport: {
     dawn: [T('airport', -3), T('birds', -10)],
     day: [T('airport', 0)],
     evening: [T('airport', -2)],
-    night: [T('airport', -7, 3500), T('crickets', -11)],
+    night: [T('airport', -7, 3500), T('far', -12)],
   },
 };
 /* indoors: ONLY used when BED_INDOORS is true (it is not: see the switch above). wall = the street outside, muffled (dB added to every steady outdoor track, low-pass in Hz); crowd = the real market crowd as room murmur.

@@ -1,4 +1,4 @@
-// Recorded city ambience: the checks nobody can do by ear.   node tools/ambience_check.mjs [--nobuild] [--quick] [--only live|render|broken]
+// Recorded city ambience: the checks nobody can do by ear.   node tools/ambience_check.mjs [--nobuild] [--quick] [--only live|render|broken] [--scenes city:night,park:day:rain]   (--scenes: which scenes to render)
 //
 // Headless Chromium (phone viewport, touch) on the built single file (dist/index.html):
 //   LIVE   walks the player through every place type, the times of day, weather, rooms; asserts: no AudioContext before the first touch, the
@@ -169,7 +169,7 @@ function repeats(x, win, hop, guard) {
 }
 async function render(br) {
   console.log('\nRENDER: the same mixer, offline, 3 minutes per scene'); const g = await openGame(br), pg = g.pg, SR = 24000, SECS = QUICK ? 60 : 180;
-  const scenes = QUICK ? [['city', 'day']] : [['city', 'day'], ['town', 'day'], ['suburb', 'night'], ['harbor', 'day'], ['park', 'day'], ['city', 'day', 'rain'], ['suburb', 'evening', 'storm']];
+  const scenes = opt('--scenes') ? opt('--scenes').split(',').map(x => x.split(':')) : QUICK ? [['city', 'day']] : [['city', 'day'], ['town', 'day'], ['suburb', 'night'], ['harbor', 'day'], ['park', 'day'], ['city', 'day', 'rain'], ['suburb', 'evening', 'storm']];
   for (const [place, phase, wx] of scenes) {
     const r = await pg.evaluate(async ([place, phase, SR, SECS, wx]) => {
       const K = G.audio.debug.kit(), off = new OfflineAudioContext(1, SR * SECS, SR); let seed = 12345 + place.length * 977 + phase.length * 131; const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -185,16 +185,20 @@ async function render(br) {
     const sr2 = SR / dec, wf = repeats(x, 10 * sr2, 5 * sr2, 10 * sr2);
     /* spectral-shape repeat (survives the 0-3 % speed change): 10 log bands 150 Hz - 9 kHz in 50 ms frames, each band minus its 10 s moving mean; 10 s windows every 5 s against every other place */
     const hop = SR / 20, m = Math.floor((f.length - 1024) / hop), NB = 10, ed = Array.from({ length: NB + 1 }, (_, i) => 150 * Math.pow(60, i / NB)), F = Array.from({ length: NB }, () => new Float64Array(m)), re = new Float64Array(1024), im = new Float64Array(1024);
-    for (let i = 0; i < m; i++) { for (let k = 0; k < 1024; k++) { re[k] = f[i * hop + k] * (.5 - .5 * Math.cos(2 * Math.PI * k / 1023)); im[k] = 0; } fft(re, im, false); for (let b = 0; b < NB; b++) { let a = 0; for (let k = Math.ceil(ed[b] * 1024 / SR); k < ed[b + 1] * 1024 / SR; k++) a += re[k] * re[k] + im[k] * im[k]; F[b][i] = 10 * Math.log10(a + 1e-12); } }
+    let ck = 0, all = 0; const cband = new Float64Array(m);
+    for (let i = 0; i < m; i++) { for (let k = 0; k < 1024; k++) { re[k] = f[i * hop + k] * (.5 - .5 * Math.cos(2 * Math.PI * k / 1023)); im[k] = 0; } fft(re, im, false); { let c = 0, t = 0; for (let k = 3; k < 512; k++) { const p = re[k] * re[k] + im[k] * im[k]; t += p; if (k >= 2800 * 1024 / SR && k < 4500 * 1024 / SR) c += p; } ck += c; all += t; cband[i] = c; } for (let b = 0; b < NB; b++) { let a = 0; for (let k = Math.ceil(ed[b] * 1024 / SR); k < ed[b + 1] * 1024 / SR; k++) a += re[k] * re[k] + im[k] * im[k]; F[b][i] = 10 * Math.log10(a + 1e-12); } }
     for (const d of F) { const c = new Float64Array(m + 1); for (let i = 0; i < m; i++) c[i + 1] = c[i] + d[i]; const o = Float64Array.from(d); for (let i = 0; i < m; i++) { const a = Math.max(0, i - 100), z = Math.min(m, i + 100); d[i] = o[i] - (c[z] - c[a]) / (z - a); } }
     let ev = { r: 0 }; const en = l => { let e = 0; for (const d of F) for (let k = 0; k < 200; k++) e += d[l + k] * d[l + k]; return e; }, E = Array.from({ length: m - 200 }, (_, l) => en(l));
     for (let a = 0; a + 200 < m; a += 100) for (let l = 0; l + 200 < m; l++) { if (Math.abs(l - a) < 200) continue; let c = 0; for (const d of F) for (let k = 0; k < 200; k++) c += d[a + k] * d[l + k]; const r = c / Math.sqrt(E[a] * E[l] + 1e-9); if (r > ev.r) ev = { r, a, b: l }; }
     /* the mixer's own log: when was any second of any recording heard a second time? */
     let first = null; const seen = {}; for (const v of r.log) { const t1 = v.t1 === null ? SECS : Math.min(v.t1, SECS), o = seen[v.name] = seen[v.name] || []; for (let t = v.t0; t < t1; t += .5) { const pos = (v.pos + (t - v.t0) * v.rate) % v.L, hit = o.find(q => Math.abs(q[0] - pos) < .25 || Math.abs(q[0] - pos) > v.L - .25); if (hit && t - hit[1] > 1 && (!first || t < first.t)) first = { t: +t.toFixed(1), name: v.name, pos: +pos.toFixed(1), firstHeard: +hit[1].toFixed(1), track: v.id }; o.push([pos, t]); } }
     const heard = [...new Set(r.log.map(v => v.name))];
-    report.render[r.key] = { seconds: SECS, sampleRate: SR, integrated: L.I, LRA: L.LRA, truePeak: L.truePeak, samplePeak: +(20 * Math.log10(r.peak)).toFixed(1), shortTermMin: L.stMin, shortTermMax: L.stMax, momentaryMax: L.mMax, waveformRepeat: wf, spectralRepeat: ev, firstReuse: first, voices: r.log.length, crossfades: r.xfades, stretches: heard, shortTerm: L.st.filter((_, i) => i % 50 === 0) };
+    /* the crickets' band (2.8-4.5 kHz, where 75 % of that recording's energy sits): its share of the whole mix, and how much of the time it is up (within 10 dB of its own loudest second) */
+    const sec = []; for (let i = 0; i + 20 <= m; i += 20) { let a = 0; for (let k = 0; k < 20; k++) a += cband[i + k]; sec.push(a); } const top = Math.max(...sec), cricket = { share: +(10 * Math.log10(ck / all + 1e-12)).toFixed(1), level: +(L.I + 10 * Math.log10(ck / all + 1e-12)).toFixed(1), upShare: Math.round(100 * sec.filter(x => x > top / 10).length / sec.length) };
+    report.render[r.key] = { seconds: SECS, sampleRate: SR, integrated: L.I, LRA: L.LRA, truePeak: L.truePeak, samplePeak: +(20 * Math.log10(r.peak)).toFixed(1), shortTermMin: L.stMin, shortTermMax: L.stMax, momentaryMax: L.mMax, cricketBand: cricket, waveformRepeat: wf, spectralRepeat: ev, firstReuse: first, voices: r.log.length, crossfades: r.xfades, stretches: heard, shortTerm: L.st.filter((_, i) => i % 50 === 0) };
     console.log(`  ${r.key}: ${SECS} s, ${r.log.length} voices of [${heard.join(', ')}], ${r.xfades} crossfades`);
     console.log(`     loudness: integrated ${L.I} LUFS, LRA ${L.LRA} LU, short-term (3 s) ${L.stMin} .. ${L.stMax} LUFS, loudest 400 ms ${L.mMax} LUFS, true peak ${L.truePeak} dBFS (sample peak ${(20 * Math.log10(r.peak)).toFixed(1)})`);
+    console.log(`     2.8-4.5 kHz band (crickets live here): ${cricket.share} dB under the whole mix, about ${cricket.level} LUFS-equivalent; within 10 dB of its loudest second ${cricket.upShare} % of the time`);
     console.log(`     repeats: best waveform match of any 10 s window elsewhere r = ${wf.r.toFixed(3)}${wf.r > .3 ? ` (at ${(wf.a / sr2).toFixed(0)} s and ${(wf.b / sr2).toFixed(0)} s)` : ''}; best spectral-shape match r = ${ev.r.toFixed(2)}${ev.r > .5 ? ` (at ${(ev.a / 20).toFixed(0)} s and ${(ev.b / 20).toFixed(0)} s)` : ''}; first second of a recording heard twice: ${first ? `${first.name} @${first.pos} s, heard at ${first.firstHeard} s and again at ${first.t} s (track ${first.track})` : 'none in ' + SECS + ' s'}`);
     check(r.key + ' (offline): renders, decodes, crossfades', r.failed.length === 0 && r.xfades >= 1 && L.I !== null, `${r.decodes} decodes, ${r.xfades} crossfades`);
     check(r.key + ' (offline): no clipping', r.peak < .89 && L.truePeak < -1, `true peak ${L.truePeak} dBFS`);
