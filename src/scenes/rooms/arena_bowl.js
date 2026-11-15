@@ -54,7 +54,7 @@ const M = mk();
   CHAIRS.forEach((c, i) => A('chairs', c.x, c.y, { n: c.n, rev: 1, c: i < 2 ? '#30343f' : '#3a3f4e' }, { flip: !!c.flip, tags: ['arena_cseat'], chairs: i, game: i < 2 ? undefined : 1, court: 1 }));
   A('adboard', 24.5, 8.5, { w: 3.6, text: 'OTTER POP' }, { flip: true, game: 1, ad: 0 }); A('adboard', 24.5, 12.5, { w: 3.6, text: 'MAPLECAB' }, { flip: true, game: 1, ad: 1 });
   A('camera', 24, 7, {}, { game: 1 }); A('camera', 7.5, 19); A('ballrack', 1.5, 19.5, {}, {}); A('cannon', 26.5, 17.5, {}, { cannon: 1 }); A('spot', 29.5, 20.5, { on: 1 });
-  A('jumbo', 13, 9.5, {}, { z: 6, solid: false });
+  A('jumbo', 13, 9.5, {}, { z: 6.5, solid: false });
   // concert kit (hidden until a concert)
   A('stage', C.x0, C.cy - 4, {}, { concert: 1, stage: 1 }); A('stageprop', 9, 12, { kind: 'drums' }, { z: 1, concert: 1, solid: false }); A('stageprop', 10, 9.5, { kind: 'keys' }, { z: 1, concert: 1, solid: false, flip: true }); A('stageprop', 9, 15, { kind: 'amp' }, { z: 1, concert: 1, solid: false, flip: true }); A('stageprop', 12, 12.5, { kind: 'mic' }, { z: 1, concert: 1, solid: false });
   // monster-truck kit
@@ -139,7 +139,7 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
     /* ---------- jumbotron ---------- */
     const jc = document.createElement('canvas'); jc.width = JW; jc.height = JH; const jx = jc.getContext('2d');
     const mkFace = () => { const c = document.createElement('canvas'); c.width = JW + 2; c.height = JH + JW / 2 + 2; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return [c, x]; }, [cl, xl] = mkFace(), [cR, xr] = mkFace();
-    const jbx = 13 + O, jby = 9.5 + O, JZ = 6.3;
+    const jbx = 13 + O, jby = 9.5 + O, JZ = 6.65;
     // +y face (constant y, runs along +x: screen right-down) and +x face (constant x, runs along -y: screen right-up)
     const sprY = { c: cl, l: cl, x: 0, y: -JH - 1, w: cl.width, h: cl.height }, sprX = { c: cR, l: cR, x: 0, y: -JH - JW / 2 - 1, w: cR.width, h: cR.height };
     sc.ents.push({ x: jbx + .1, y: jby + 6.22, z: JZ, bb: [0, 0, 6, .05, 3], sprite: () => sprY }, { x: jbx + 6.22, y: jby + 6.1, z: JZ, bb: [0, -6, .05, 0, 3], sprite: () => sprX });

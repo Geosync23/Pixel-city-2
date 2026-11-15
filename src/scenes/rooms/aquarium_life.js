@@ -6,8 +6,8 @@
 //   near(list, species, x, y, r) -> entity | null (used by the logbook to "spot" something that is really swimming by)
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
 const paint = (w, h, fn) => { const c = mk(w, h), x = c.getContext('2d'); fn((px, py, col, ww = 1, hh = 1) => { x.fillStyle = col; x.fillRect(Math.round(px), Math.round(py), ww, hh); }, x); return c; };
-const flipC = c => { const o = mk(c.width, c.height), x = o.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return o; };
-const shearC = (c, sg) => { const W = c.width, o = mk(W, c.height + Math.ceil(W / 2)), x = o.getContext('2d'); x.setTransform(1, sg * .5, 0, 1, 0, sg > 0 ? 0 : W / 2); x.drawImage(c, 0, 0); return o; };
+const flipC = c => { const o = mk(c.width, c.height), x = o.getContext('2d'); x.imageSmoothingEnabled = false; x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return o; };
+const shearC = (c, sg) => { const W = c.width, o = mk(W, c.height + Math.ceil(W / 2)), x = o.getContext('2d'); x.imageSmoothingEnabled = false; x.setTransform(1, sg * .5, 0, 1, 0, sg > 0 ? 0 : W / 2); x.drawImage(c, 0, 0); return o; };
 const spr = (c, lit = true) => ({ c, l: lit ? c : null, x: -(c.width >> 1), y: -(c.height >> 1), w: c.width, h: c.height });
 const ell = (set, cx, cy, rx, ry, col) => { for (let y = -Math.ceil(ry); y <= Math.ceil(ry); y++) { const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y / (ry + .3)) ** 2))); if (hw >= 0) set(cx - hw, cy + y, col, hw * 2 + 1, 1); } };
 const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];

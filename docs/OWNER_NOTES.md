@@ -59,3 +59,4 @@
 44. (msg 82) Whatever the arrow points at must show on the Map when you open it. Done (Stage 16c): dashed red route, ring on the next target, labelled destination flag, Map opens framed on you + the next target.
 45. (msg 83) Asked for status and which wave we are in — answered: Wave A done; in the signature-showpiece track (S1-S3 done, S4-S5 running), Wave B not started.
 46. (msg 84) MapleCab 'Where to?' should start with what you are likely to want: upcoming planner items and the current arrow/objective. Done (Stage 22b): 'For you now' section.
+47. (msg 85) The aquarium must be really excellent and detailed, with sea turtles among many other animals. Relayed to the running aquarium worker verbatim with a raised bar.

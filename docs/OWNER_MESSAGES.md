@@ -358,3 +358,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 84 — MapleCab "Where to?": suggest upcoming planner items and the current arrow/objective
 > The where to screen in the cab app should be populated with anything on your planner coming soon or with the currently selected objective/arrow
+
+## 85 — Aquarium: really excellent and detailed; sea turtles among many other things
+> Really make the aquarium really excellent and detailed. Sea turtles too among many other things!

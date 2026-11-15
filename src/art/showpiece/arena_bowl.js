@@ -68,10 +68,10 @@ const seatList = (n, rev, z = .42) => Array.from({ length: n }, (_, i) => ({ x: 
 function table(p) { const w = p.w || 5; box(0, 0, 0, w, .6, .8, '#1c1f2a'); qz(0, w, 0, .6, .81, '#3a3f4e'); const f = p.f || 0, t = p.text || 'OTTERS'; lit(() => { qy(.05, w - .05, .6, .08, .72, f % 2 ? '#1a1220' : '#200c0c'); for (let x = .2 + (f % 3) * .1; x + textW(t) / 16 < w; x += textW(t) / 16 + .8) textY(t, x, .61, .56, f % 2 ? GOLD : RED_L); }); for (let x = .5; x < w; x += 1.2) { box(x, .15, .81, .5, .3, .28, '#2a2f3d', { ol: false }); lit(() => qy(x + .04, x + .46, .45, .86, 1.06, '#8fd0f0')); } }
 function adboard(p) { const w = p.w || 4, t = p.text || 'OTTER POP', f = p.f || 0; box(0, 0, 0, w, .14, .62, '#14161e', { ol: false }); lit(() => { qy(0, w, .14, .04, .58, ['#2a0e0e', '#0e1a2a', '#2a220a'][f % 3]); const tw_ = textW(t) / 16; for (let x = .25; x + tw_ < w; x += tw_ + .9) textY(t, x, .15, .46, [RED_L, '#8fd0f0', GOLD][f % 3]); }); lw([0, .14, .62], [w, .14, .62], STEEL); }
 function jumbo() {
-  const W = 6.2; for (const [x, y] of [[.3, .3], [W - .3, .3], [.3, W - .3], [W - .3, W - .3]]) lw([x, y, 3.5], [W / 2 + (x - W / 2) * .3, W / 2 + (y - W / 2) * .3, 6.4], '#565c70');
-  box(0, 0, .25, W, W, 3.1, '#161922', { ol: false }); box(-.12, -.12, 3.35, W + .24, W + .24, .28, RED_D, { ol: false, t: '#20232e' }); lw([-.12, W + .12, 3.63], [W + .12, W + .12, 3.63], RED_L); lw([W + .12, -.12, 3.63], [W + .12, W + .12, 3.63], RED_L);
-  box(-.06, -.06, 0, W + .12, W + .12, .25, '#0e1016', { ol: false }); lit(() => { qy(0, W, W + .07, .04, .2, '#3a0f0c'); qx(W + .07, 0, W, .04, .2, '#2a0b0a'); textY('MAPLE BAY ARENA', 1.2, W + .08, .2, LED); textX('GO OTTERS', W + .08, 4.4, .2, LED); });
-  qy(.1, W - .1, W + .01, .3, 3.3, '#05060a'); qx(W + .01, .1, W - .1, .3, 3.3, '#05060a');
+  const W = 6.2, H = 3.3; for (const [x, y] of [[.3, .3], [W - .3, .3], [.3, W - .3], [W - .3, W - .3]]) lw([x, y, H], [W / 2 + (x - W / 2) * .3, W / 2 + (y - W / 2) * .3, 6.4], '#565c70');
+  box(0, 0, 0, W, W, H, '#161922', { ol: false, t: (x, y) => { const d = Math.hypot(x - W / 2, y - W / 2); return d < 1.5 ? (d < 1.1 ? RED : CREAM) : (Math.abs(x - W / 2) < .08 || Math.abs(y - W / 2) < .08) && d < 2.9 ? '#2c303c' : x < .2 || y < .2 || x > W - .2 || y > W - .2 ? RED_D : '#20232e'; } });
+  lw([0, W, H], [W, W, H], RED_L); lw([W, 0, H], [W, W, H], RED_L); lit(() => { qy(0, W, W + .01, 0, .12, RED); qx(W + .01, 0, W, 0, .12, RED_D); });
+  qy(.1, W - .1, W + .01, .15, 3.15, '#05060a'); qx(W + .01, .1, W - .1, .15, 3.15, '#05060a');
 }
 function camera() { lw([.5, .5, 0], [.5, .5, 1.1], INK); lw([.2, .8, 0], [.5, .5, .9], INK); lw([.8, .8, 0], [.5, .5, .9], INK); lw([.5, .2, 0], [.5, .5, .9], INK); box(.25, .32, 1.1, .5, .36, .3, '#30343f'); box(.75, .4, 1.16, .3, .2, .18, '#1c1f2a', { ol: false }); lit(() => dot(.3, .7, 1.36, '#ff4a3a')); }
 function ballrack() { box(0, 0, 0, 1.4, .5, .12, '#30343f', { ol: false }); for (const z of [.3, .75]) { lw([0, .25, z], [1.4, .25, z], STEEL); for (let i = 0; i < 4; i++) ball(.2 + i * .33, .25, z + .15, .13, '#e0762c', { ol: false }); } for (const x of [0, 1.4]) lw([x, .25, 0], [x, .25, 1.05], STEEL); }
@@ -124,7 +124,7 @@ export default [
   A('chairs', ['arena_seat'], p => [(p.n || 5) * .6, .56, .5], p => seatRow(p.n || 5, p.c || '#30343f', !!p.rev), { seats: p => seatList(p.n || 5, !!p.rev), vb: p => [0, 0, 0, (p.n || 5) * .6 + .05, .6, 1], variants: [{ n: 6, rev: 1 }, { n: 4 }] }),
   A('table', [], p => [p.w || 5, .6, .82], table, { vb: p => [0, 0, 0, (p.w || 5) + .05, .65, 1.2], variants: [{ w: 5 }, { w: 5, f: 1, text: 'DOCKSIDE DOGS' }] }),
   A('adboard', [], p => [p.w || 4, .14, .62], adboard, { variants: [{ w: 5 }, { w: 5, f: 1, text: 'RIDE THE LIGHT RAIL' }, { w: 5, f: 2, text: 'MAPLECAB' }] }),
-  A('jumbo', [], [6.2, 6.2, 3.7], jumbo, { solid: false, vb: [-.2, -.2, 0, 6.5, 6.5, 6.5] }),
+  A('jumbo', [], [6.2, 6.2, 3.3], jumbo, { solid: false, vb: [-.2, -.2, 0, 6.5, 6.5, 6.5] }),
   A('camera', [], [1, 1, 1.5], camera), A('ballrack', ['arena_balls'], [1.4, .5, 1.1], ballrack, { use: { x: .7, y: 1 } }),
   A('cannon', [], [1.2, .7, .9], cannon, { vb: [0, 0, 0, 1.6, .9, 1.9], variants: [{}, { fire: 1 }] }),
   A('stage', [], [4, 8, 1], stage, { vb: [0, -1.3, 0, 4.2, 9.3, 5.9], variants: [{ f: 0, name: 'Neon Tide' }, { f: 3, c: '#f09a3a', c2: '#d9483b', name: 'The Gullwings' }] }),

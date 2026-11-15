@@ -195,3 +195,7 @@ Showpiece track (one big worker each, highest priority for free slots after Wave
 - A new game starts with a kitchen you can cook from on day 1. DONE (STARTER_PANTRY).
 - A TON of recipes (target 100+, from 18): breakfasts, sandwiches, salads, soups, pastas, rice bowls, stir-fries, curries, tacos, roasts, baking, desserts, drinks/smoothies, world cuisines matching the city's restaurants;
   more ingredients sold across the groceries/markets/delis; every meal with its own icon; skill tiers 1-10; recipes learned from books, friends, restaurants and the story as well as known from the start. QUEUED: next free worker slot.
+
+## Direction update 17 — the Aquarium must be excellent (owner msg 85)
+"Really make the aquarium really excellent and detailed. Sea turtles too among many other things!" Sea turtles are a headline (a turtle lagoon with named individuals of several species, feeding, a hatchling nursery, turtles in the tunnel,
+the rescue-and-release chain). 50+ distinct animated species with ID plaques and a logbook; rich detail (caustics, bubbles, kelp, night look); more to do (keeper talks, touch pool game, adoption board, release event). Sent to the S6 worker mid-run.
