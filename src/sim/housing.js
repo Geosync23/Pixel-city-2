@@ -33,7 +33,7 @@
 //   storage() -> [itemId] (incl. stay)     items() -> placed     slots() -> { used, max }     ambience() -> number
 //   addBox({ label, items: [itemId], pos?, sz?, asm?, from? }) -> box | null (null = no room for another box)      BOX_MAX
 //   snapshot() -> string / restore(string)   the furniture layout + storage (design mode's undo)      recolour(uid, itemId) -> $ paid | false (same family)
-//   cardboard() -> n      recycle() -> n taken out
+//   cardboard() -> n      recycle() -> n taken out      freeSpot(itemId, nearX, nearY) -> pos | null   the nearest place the piece fits (table tops for small things)
 //   check({ itemId, x, y, flip } | { itemId, wall, at }, ignoreUid?) -> null | reason string
 //       Rules: inside the room and off its void cut-outs (L-shaped homes), not on other solids, doorways (front door, exit mat, bathroom door) stay clear,
 //       the piece must be reachable from the door and must not wall in another piece or the spot you stand on to use one; wall pieces cannot hang
@@ -365,19 +365,19 @@ function addBox(o) {
 }
 function drain() { const o = G.state.owned; if (o && Array.isArray(o.furniture) && o.furniture.length) { for (const f of o.furniture.splice(0)) addFurniture(f.id || f, { quiet: true, instant: !S.id }); } }
 /** a free place for a piece near (nx, ny) in the main room: the planned place when it still works, a table top for small surface pieces, else the nearest free spot */
-function spotFor(itemId, plan, nx, ny) {
-  const v = visual(itemId), ok = pos => pos && !check(Object.assign({ itemId }, pos), undefined, 'main');
+function spotFor(itemId, plan, nx, ny, room = 'main') {
+  const v = visual(itemId), ok = pos => pos && !check(Object.assign({ itemId }, pos), undefined, room);
   if (plan && (v.wall ? plan.wall : plan.x !== undefined) && ok(plan)) return posOf(v, plan);
   const g = GOOD_BY_ID[itemId];
   if (g && g.place === 'surface' && !v.wall && G.goods && G.goods.surfaceZ) {          /* onto the nearest free table / shelf / counter top */
-    const defs = roomDef(S.id, 'main').items, tops = [];
+    const defs = roomDef(S.id, room).items, tops = [];
     for (const d of defs) { if (d.wall || d.box || d.x === undefined || !solidDef(d)) continue; const s = sizeOfDef(d), pos = { x: Math.round((d.x + s[0] / 2 - v.size[0] / 2) * 2) / 2, y: Math.round((d.y + s[1] / 2 - v.size[1] / 2) * 2) / 2, flip: false };
       const probe = { id: v.id, p: v.p, good: itemId, x: pos.x, y: pos.y }; G.goods.surfaceZ(defs.concat([probe])); if (!probe.z) continue;
       if (defs.some(o => o.good && o !== d && !o.wall && GOOD_BY_ID[o.good] && GOOD_BY_ID[o.good].place === 'surface' && Math.abs(o.x - pos.x) < .5 && Math.abs(o.y - pos.y) < .5)) continue;
       if (ok(pos)) tops.push({ pos, d: Math.hypot(pos.x - nx, pos.y - ny) }); }
     if (tops.length) return tops.sort((a, b) => a.d - b.d)[0].pos;
   }
-  return nearest(v.wall ? { itemId, wall: nx >= ny ? 'y' : 'x', at: Math.max(0, nx >= ny ? nx : ny) } : { itemId, x: nx, y: ny, flip: false }, 'main');
+  return nearest(v.wall ? { itemId, wall: nx >= ny ? 'y' : 'x', at: Math.max(0, nx >= ny ? nx : ny) } : { itemId, x: nx, y: ny, flip: false }, room);
 }
 function unpack(boxUid, o = {}) {
   const i = S.boxes.findIndex(b => b.uid === boxUid); if (i < 0) return null; const b = S.boxes[i], got = [], placed = [], stored = [];
@@ -486,7 +486,7 @@ export function init() {
     isHome, homes, rent, buy, payOff, mortgage: () => S.mortgage, start, goHome, refresh, equity,
     canEnter: roomId => !whyNot(roomId), whyNot, invite: (roomId, hours = 3) => { G.state.flags['invited:' + roomId] = G.state.t + hours * 60; },
     addFurniture, deliverNow: () => land(true), unpack: (id, o) => { const r = unpack(id, o); if (r && !(o && o.quiet)) refresh(); return r; }, addBox, BOX_MAX, boxKind,
-    isDecor, recolour, snapshot, restore, cardboard: () => S.card || 0, recycle,
+    isDecor, recolour, snapshot, restore, freeSpot: (itemId, nx, ny) => spotFor(itemId, null, nx, ny, curRoom()), cardboard: () => S.card || 0, recycle,
     storage: () => S.storage.concat(S.stay), items: () => S.items, boxes: () => S.boxes, slots, ambience,
     check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => (id ? SHELLS[id] : shOf(S.id, curRoom())), room: curRoom,
   };
