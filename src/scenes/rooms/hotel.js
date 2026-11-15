@@ -1,6 +1,6 @@
 // The Grand Maple Hotel — the Grand Lobby (room `hotel`, 30 x 20, two storeys with a mezzanine gallery) + the helpers shared by the other hotel rooms
 // (hotel_dine.js: restaurant + rooftop bar, hotel_events.js: ballroom, hotel_stay.js: spa, guest corridor, guest room). Gameplay lives in sim/hotel.js (G.hotel).
-// City door `door:hotel` (the existing Grand Maple Hotel building on Harbor Street). Exits (doormats, all with `to` so the nav arrow can route): the revolving door -> city,
+// City door `door:hotel` (the existing Grand Maple Hotel building on Harbor Boulevard). Exits (doormats, all with `to` so the nav arrow can route): the revolving door -> city,
 //   "The Gilded Maple" -> int:hotel_restaurant, "The Bay Ballroom" -> int:hotel_ballroom, the grand staircase -> int:hotel_spa, the lifts -> floor menu (static edge: int:hotel_floor).
 // The lobby runs its own life (def.noCrowd): scene.life = { crowd, walkers, count() }; scene.hot = { sync(), arrive() (a guest checks in with a bellhop + luggage cart), depart(), ring() (desk bell),
 //   pianist, doorman, concierge, bellhops, carts, playing() -> piece index | -1, nodes }.
@@ -94,12 +94,12 @@ function build() {
   S(2.3, 10, 0, { busy: 1, anim: 'talk' }); S(3.2, 10.1, 2, { busy: 1, anim: 'talk' }); S(27.9, 12.4, 1, { p: .5 }); S(5.2, 3.4, 3, { busy: 1, age: 'kid', lines: ['Can I ring the bell? Can I? Just once?', 'The door goes ROUND. I went round FOUR times.'] }); S(20.3, 9.6, 2, { busy: 1 }); S(12.6, 12.2, 0, { p: .4, anim: 'phone' });
 }
 build();
-const N = { d0: [15, 16.7], d1: [16.9, 14.6], m: [17.2, 8.4], r1: [12.6, 4.5], rcp: [9.4, 4.2], l1: [16.3, 2.5], st: [23, 6.2], s0: [20.6, 6.8], sh: [27, 4], sv: [20.3, 4.4], lg: [21.2, 12.6], c1: [13, 12], c2: [11.9, 9.4], c3: [5, 7.6], rd: [1.7, 7.2], b1: [12.4, 14.7], b2: [6, 14.9], bd: [1.7, 16.3] };
-const ROUTES = [['d0', 'd1', 'm', 'r1', 'rcp*', 'r1', 'l1'], ['l1', 'm', 'd1', 'd0'], ['d0', 'c1', 'c2', 'c3', 'rd'], ['rd', 'c3', 'c2', 'c1', 'd0'], ['l1', 'sv', 'sh*', 'sv', 'l1'], ['d0', 'b1', 'b2', 'bd'], ['l1', 'm', 'lg*', 'm', 'l1'], ['d0', 'd1', 'm', 's0', 'st'], ['st', 's0', 'm', 'l1'], ['rd', 'c3', 'c2', 'm', 'l1'], ['bd', 'b2', 'b1', 'd0']];
+const N = { d0: [15, 16.7], d1: [16.9, 14.6], m: [17.2, 8.4], r1: [12.6, 4.5], rcp: [9.4, 4.2], l1: [16.3, 2.5], st: [23, 6.2], s0: [20.6, 6.8], sh: [27, 4.2], s2: [25.1, 7], lg: [21.2, 12.6], c1: [13, 12], c2: [11.9, 9.4], c3: [5, 7.6], rd: [1.7, 7.2], b1: [12.4, 14.7], b2: [6, 14.9], bd: [1.7, 16.3] };
+const ROUTES = [['d0', 'd1', 'm', 'r1', 'rcp*', 'r1', 'l1'], ['l1', 'm', 'd1', 'd0'], ['d0', 'c1', 'c2', 'c3', 'rd'], ['rd', 'c3', 'c2', 'c1', 'd0'], ['l1', 'm', 's2', 'sh*', 's2', 'm', 'l1'], ['d0', 'b1', 'b2', 'bd'], ['l1', 'm', 'lg*', 'm', 'l1'], ['d0', 'd1', 'm', 's0', 'st'], ['st', 's0', 'm', 'l1'], ['rd', 'c3', 'c2', 'r1', 'l1'], ['bd', 'b2', 'b1', 'd0']];
 
 defineRoom({ id: HR.lobby, name: NAME + ' — Grand Lobby', w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', venue: HV.place, floor: GT.f_stone, bg: '#181420', edge: '#4a3c34',
   wall: { color: '#ead9bd', trim: '#7a5a34', h: 5.6, rail: 3.45 },
-  exits: [{ x: 15, y: 19.4, label: 'Exit to Harbor Street', poi: 'door:hotel' },
+  exits: [{ x: 15, y: 19.4, label: 'Exit to Harbor Boulevard', poi: 'door:hotel' },
     { x: 1.2, y: 7.2, label: REST_NAME + ' (restaurant)', to: 'int:' + HR.rest, use: () => G.go('int:' + HR.rest) }, { x: 1.2, y: 16.3, label: BALL_NAME, to: 'int:' + HR.ball, use: () => G.go('int:' + HR.ball) },
     { x: 23, y: 6.3, label: 'Stairs up to ' + SPA_NAME, to: 'int:' + HR.spa, use: () => HS() && HS().toSpa('stairs') }, { x: 16.1, y: 1.3, label: 'Lift', to: 'int:' + HR.floor, use: () => HS() && HS().lift() }, { x: 18.7, y: 1.3, label: 'Lift', to: 'int:' + HR.floor, use: () => HS() && HS().lift() }],
   spawn: { x: 15, y: 16.8, dir: 3 }, items, npcSpots: spots,
@@ -188,7 +188,7 @@ defineRoom({ id: HR.lobby, name: NAME + ' — Grand Lobby', w: W, d: D, zoom: 0,
 const BALLSHORT = { class: 'DANCE CLASS', wedding: 'WEDDING', gala: 'CHARITY GALA' };
 
 registerInfo('Grand Maple Hotel', {
-  blurb: 'The grand hotel of Maple Bay, under the red canopy on Harbor Street. Through the revolving door: a two-storey marble lobby with a four-thousand-crystal chandelier and a pianist, The Gilded Maple restaurant, the Bay Ballroom, a spa with a pool on the second floor, guest rooms on the seventh and The Weathervane bar on the roof.',
+  blurb: 'The grand hotel of Maple Bay, under the red canopy on Harbor Boulevard. Through the revolving door: a two-storey marble lobby with a four-thousand-crystal chandelier and a pianist, The Gilded Maple restaurant, the Bay Ballroom, a spa with a pool on the second floor, guest rooms on the seventh and The Weathervane bar on the roof.',
   signature: 'The lobby pianist at noon, five and half past eight, and the skyline from the rooftop bar at sunset.',
   tryThis: ['Ring the bell at reception', 'Ask Odile the concierge where to find anything in town', 'Sit in the lounge and listen to the pianist (12:00, 17:00, 20:30)', 'Fill your own plate at the breakfast buffet, 6:30 to 10:30', 'Take afternoon tea at two', 'Order the five-course dinner and watch the waiters work', 'Shake your own cocktail on the roof at sunset', 'Join the dance class on Tuesday or Thursday at seven', 'Slip into a Saturday wedding reception and dance', 'Swim laps, sit in the sauna, book a massage', 'Book a room for the night and order room service', 'Help Odile untangle the three burgundy suitcases'],
   activities: ['hotel_bell', 'hotel_concierge', 'hotel_piano', 'hotel_buffet', 'hotel_tea', 'hotel_dinner', 'hotel_cocktail', 'hotel_dance', 'hotel_swim', 'hotel_sauna', 'hotel_massage', 'hotel_stay', 'hotel_roomservice'], kind: 'hotel',

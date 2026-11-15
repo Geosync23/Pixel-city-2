@@ -66,8 +66,8 @@ const SUR = ['Abara', 'Lund', 'Castro', 'Ito', 'Mbeki', 'Novak', 'Reyes', 'Haas'
 
 /* ---------- tickets + tuning ---------- */
 export const TIERS = {
-  nose: { id: 'nose', name: 'Upper bowl', sub: 'The nosebleeds: rows E to H. You can see the whole play develop, and Hillcrest.', price: { game: 8, concert: 14, ice: 8, trucks: 8 } },
-  lower: { id: 'lower', name: 'Lower bowl', sub: 'Rows A to D, close enough to hear the sneakers.', price: { game: 16, concert: 22, ice: 12, trucks: 12 } },
+  nose: { id: 'nose', name: 'Upper bowl', sub: 'The nosebleeds: rows F to J. You can see the whole play develop, and Hillcrest.', price: { game: 8, concert: 14, ice: 8, trucks: 8 } },
+  lower: { id: 'lower', name: 'Lower bowl', sub: 'Rows A to E, close enough to hear the sneakers.', price: { game: 16, concert: 22, ice: 12, trucks: 12 } },
   court: { id: 'court', name: 'Courtside', sub: 'A folding chair with your feet on the hardwood. Mind the loose balls.', price: { game: 45, ice: 20, trucks: 20 } },
   floor: { id: 'floor', name: 'Standing floor', sub: 'General admission in front of the stage. Dancing is not optional.', price: { concert: 28 } },
 };

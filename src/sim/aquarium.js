@@ -1,5 +1,5 @@
 // Maple Bay Aquarium — city entrance, tickets + annual pass, shows, the species logbook, activities, the sleepover, the head aquarist's turtle opportunity and guide wiring.
-// Rooms: scenes/rooms/aquarium.js ('aquarium'), aquarium_deep.js ('aquarium:deep', 'aquarium:deck', 'aquarium:lab'), life in aquarium_life.js. Data: data/aquarium.js. Art: art/showpiece/aquarium.js, aquarium_ext.js, _aqua_lib.js, _aqua_icons.js.
+// Rooms: scenes/rooms/aquarium.js ('aquarium'), aquarium_turtles.js ('aquarium:turtles'), aquarium_deep.js ('aquarium:deep', 'aquarium:deck', 'aquarium:lab'), life in aquarium_life.js + aquarium_life2.js. Data: data/aquarium.js. Art: art/showpiece/aquarium.js, aquarium_ext.js, _aqua_lib.js, _aqua_icons.js.
 //
 // City: the building `bld.harbor.aquarium` (164-184, 331-339), its door poi `door:aquarium` (171, 339.75) and the whale tail come from world/_blocks.js. This module adds the opening-hours check to the door and,
 //   while the turtle is ready for release, the release spot on Gull Point Beach (poi `aqua:release`, a crate, Dr. Reyes and a small crowd). G.places id 'aquarium'.
@@ -12,17 +12,20 @@
 //   sit(fx, scene, kind), wave(scene), shows: { list() -> [{ id, name, at, where, next }], next(id), plan(id, hour?), start(id) (debug: run it now in the current room), state() }, showsBoard(), talkKeeper(char, scene), talkLine(n, scene),
 //   scope(), highFive(), sleepover() (roll out your bag in the tunnel), talkAquarist(char), chain() -> { st 0 none | 1 caring | 2 ready | 3 release at the beach | 4 done, name, days, lastDay, step }, care(what, fx, scene), lab(kind),
 //   chart(), readPlaque(), release() (at the beach), releaseSpot(), door(), stats() }
+//   + plaque(speciesIds, scene) (a tank plaque listing several species), touchGame(scene) / touchState() (tide-pool challenge: touch the four animals in the order called), feedTurtle(scene) (lettuce on the lagoon pier),
+//     talkDone(kind 'turtle'|'octo', scene), photoMode: { open(scene), snap() -> { list, over, score }, close(), state() } (the tunnel photo spot opens a viewfinder), travel also takes 'turtles'.
+//     Extra state: turtleFed, bestShot, touchGame (best seconds). Extra events: ':turtle'(id), ':touchgame'(phase, seconds), ':talk'(kind). Extra stamp: x:aqua_turtles.
 // State: G.state.aquarium = { ticketDay, visits, log: { speciesId: day }, zones: { zoneId: day }, touch: { id: n }, rays, rayTouch, penguinFed, photos: { spot: n }, quiz: { best, badge }, sketches, sits, jelly, adopt: { name, day } | null,
 //                             waves, talks, sleepovers, five, chain: { st, name, days, lastDay, step } }
 // Events: 'aquarium:visit'(first), ':ticket'(kind), ':spot'(speciesId, fresh), ':zone'(zoneId), ':touch'(id), ':rays'(n), ':penguin'(name), ':adopt'(name), ':quiz'(score), ':photo'(spot), ':sketch'(n), ':sit'(kind), ':wave', ':show'(id, on),
 //         ':talk', ':sleepover', ':care'(day, step), ':chain'(st), ':release'.
 // Guide stamps: x:aqua_visit, x:aqua_tunnel, x:aqua_touch, x:aqua_jelly, x:aqua_feed, x:aqua_log, x:aqua_sleep, x:aqua_release.
-// Tuning: AQ_TICKET 8, AQ_PASS 45, AQ_FEED 2, AQ_ADOPT 25, CARE_DAYS 3 (data/aquarium.js); SKETCH_MIN 40, JELLY_MIN 20, SPOT_R 7 tiles, zone stamps need 4/4/4/3/3/2 species; closing walk-out 20 min after closing.
+// Tuning: AQ_TICKET 8, AQ_PASS 45, AQ_FEED 2, AQ_ADOPT 25, CARE_DAYS 3 (data/aquarium.js); SKETCH_MIN 40, JELLY_MIN 20, SPOT_R 7 tiles, zone stamps need 6/8/4/6/4/5/2 species (53 species in 7 zones); closing walk-out 20 min after closing.
 import { G } from '../core/game.js';
 import { el, root, toast, bubble, say, choose } from '../ui/kit.js';
 import { exitRoom } from '../scenes/interior.js';
 import { Char } from '../core/char.js';
-import { AQ_HOURS, AQ_TICKET, AQ_PASS, AQ_FEED, AQ_ADOPT, CARE_DAYS, LATE, SLEEPOVER, AQ_VENUES, SHOWS, ZONES, SPECIES, TOUCH, PENGUINS, TURTLE_NAMES, QUIZ } from '../data/aquarium.js';
+import { AQ_HOURS, AQ_TICKET, AQ_PASS, AQ_FEED, AQ_ADOPT, CARE_DAYS, LATE, SLEEPOVER, AQ_VENUES, SHOWS, ZONES, SPECIES, TOUCH, PENGUINS, TURTLE_NAMES, TURTLES, QUIZ } from '../data/aquarium.js';
 import { AQUA_ICONS } from '../art/showpiece/_aqua_icons.js';
 import { ICONS } from '../art/icons/icons.js';
 import { CORE, CORE_BLURB, EXPERIENCES } from './_guide_data.js';
@@ -40,6 +43,7 @@ for (const x of [
   { id: 'x:aqua_tunnel', title: 'A Shark Overhead', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Stand in the Ocean Tunnel and spot the sand tiger shark as it really passes by.' },
   { id: 'x:aqua_touch', title: 'Two Fingers, Gently', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Touch all four touch-pool animals: sea star, urchin, anemone and hermit crab.' },
   { id: 'x:aqua_jelly', title: 'Jellyfish Calm', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Sit on a bench in the Jellyfish Gallery and watch until the colours have gone all the way round.' },
+  { id: 'x:aqua_turtles', title: 'Lettuce for a Turtle', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Walk out on the pier in the Turtle Lagoon, hold out a lettuce leaf and wait for a turtle to take it.' },
   { id: 'x:aqua_feed', title: 'Feeding Time', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Feed the bat rays at Ray Bay, or a penguin at the feeding show.' },
   { id: 'x:aqua_log', title: 'Fill the Species Logbook', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Earn the stamp of all six zones, from Local Waters to the Abyss.' },
   { id: 'x:aqua_sleep', title: 'Sleep with the Sharks', group: 'Big days out', glyph: 'tower', place: 'place:aquarium', need: 'aquarium', blurb: 'Spend the monthly sleepover night in a sleeping bag under the Ocean Tunnel.' },
@@ -147,11 +151,11 @@ function arrived(sc, pv) {
   else if (lateNow()) toast('Jellies After Dark: the lights are low and the building is yours until ten.', 'good', 4200);
   if (hasTicket()) stamp('x:aqua_visit');
 }
-const DEST = { deep: ['int:aquarium:deep', 3.2, 9.5, 0, 1], deep2: ['int:aquarium:deep', 30.6, 17.7, 2, 1], reef: ['int:aquarium', 36.9, 10.5, 2, 0], shop: ['int:aquarium', 9.9, 22.4, 2, 0], deck: ['int:aquarium:deck', 2.6, 12, 3, 1], lab: ['int:aquarium:lab', 7, 8.7, 3, 0] };
+const DEST = { turtles: ['int:aquarium:turtles', 13, 16.6, 3, 1], deep: ['int:aquarium:deep', 3.2, 9.5, 0, 1], deep2: ['int:aquarium:deep', 30.6, 17.7, 2, 1], reef: ['int:aquarium', 36.9, 10.5, 2, 0], shop: ['int:aquarium', 9.9, 22.4, 2, 0], deck: ['int:aquarium:deck', 2.6, 12, 3, 1], lab: ['int:aquarium:lab', 7, 8.7, 3, 0] };
 function travel(to) {
   const d = DEST[to]; if (!d || G.busy) return false;
   if (d[4] && !hasTicket()) { toast('"Ticket, please!" The exhibits need an aquarium ticket: the desk is in the hall by the door.', 'info', 3800); return false; }
-  if (to === 'deck' && G.now().hf >= 19) { toast('The Harbor Deck is closed after dark: the otters are asleep, holding paws.', 'info', 3800); return false; }
+  if (to === 'deck' && G.now().hf >= 19 && !lateNow()) { toast('The Harbor Deck is closed after dark: the otters are asleep, holding paws.', 'info', 3800); return false; }
   if (to === 'lab' && st().chain.st < 1) { toast('STAFF ONLY. Through the porthole you can see a round blue pool and somebody in a teal shirt writing on a whiteboard. Dr. Reyes, the head aquarist, is usually out here in Local Waters.', 'info', 5600); return false; }
   G.go(d[0], { x: d[1] + O, y: d[2] + O, dir: d[3] }); return true;
 }
@@ -169,18 +173,37 @@ function logIt(sp) {
   else toast(`Spotted: ${e.name} (${Z.name} ${got}/${Z.need}).`, 'good', 2600);
   return true;
 }
+async function plaque(list, sc) {
+  const S = st(), v = await choose('Species at this tank', list.map(id => ({ label: (S.log[id] !== undefined ? '[x] ' : '[ ] ') + SPECIES[id].name, sub: S.log[id] !== undefined ? 'In your logbook. Read it again' : 'Find it in the tank, then log it', value: id })).concat([{ label: 'Step back', value: null }]), { text: 'Look for each animal behind the glass.' });
+  return v ? spot(v, sc) : false;
+}
 async function spot(sp, sc) {
   const e = SPECIES[sp]; if (!e || G.busy) return false; sc = sc || scene();
   if (e.live) { const kind = e.live === 1 ? sp : e.live, p = G.player, hit = sc && sc.aq && sc.aq.swimmers ? near(sc.aq.swimmers, kind, p.x, p.y, SPOT_R) : null;
     if (!hit) { toast(`${e.name}: not in sight just now. Keep watching the water: it comes round every minute or two.`, 'info', 3800); return false; }
+    if (hit.name && hit.st) { const T = TURTLES.find(t => t.name === hit.name); toast(`${hit.name} is ${{ glide: 'gliding past', up: 'heading up for a breath', breath: 'at the surface, breathing', rest: 'asleep on the sand', visit: 'at the glass, looking straight at you', food: 'after the lettuce' }[hit.st] || 'swimming by'}.${T ? ' ' + T.note : ''}`, 'info', 4200); }
     bubble(p, hit.z > 2.8 && Math.abs(hit.y - p.y) < 2 ? 'Right over my head!' : 'There!'); }
   await say([{ who: e.name, text: e.fact }]); return logIt(sp);
 }
 
 /* ---------- touch pool, Ray Bay ---------- */
+let tg = null;
+function touchGame(sc) {
+  if (G.busy) return false; if (tg) { toast(`Tide-pool challenge: find and touch the ${TOUCH.find(t => t.id === tg.seq[tg.i]).name}! (${tg.i}/${tg.seq.length})`, 'info', 3600); return true; }
+  const seq = TOUCH.map(t => t.id).sort(() => Math.random() - .5); tg = { seq, i: 0, t0: Date.now(), miss: 0 }; bubble(G.player, 'Ready!'); G.emit('aquarium:touchgame', 'start');
+  toast(`Tide-pool challenge! The guide calls out an animal and you find it by feel. Gentle hands. First: the ${TOUCH.find(t => t.id === seq[0]).name}.`, 'good', 5600); return true;
+}
+function touchStep(id) {
+  if (!tg) return false; const want = tg.seq[tg.i];
+  if (id !== want) { tg.miss++; toast(`That is the ${TOUCH.find(t => t.id === id).name}! ${{ sunstar: 'Look for five rough arms.', urchin: 'Look for purple spines.', anemone: 'Look for soft green tentacles.', crab: 'Look for a walking shell.' }[want]}`, 'info', 3800); return true; }
+  tg.i++; if (tg.i < tg.seq.length) { toast(`Yes! Next: the ${TOUCH.find(t => t.id === tg.seq[tg.i]).name}. (${tg.i}/${tg.seq.length})`, 'good', 3400); return true; }
+  const S = st(), sec = Math.round((Date.now() - tg.t0) / 1000), miss = tg.miss; tg = null; S.touchGame = S.touchGame ? Math.min(S.touchGame, sec) : sec; need('fun', 10 - Math.min(6, miss * 2)); xp('logic', 12); G.emit('aquarium:touchgame', 'done', sec);
+  toast(`All four found in ${sec} seconds${miss ? ` with ${miss} wrong guess${miss > 1 ? 'es' : ''}` : ', and not one wrong'}! The guide rings a little brass bell. Best time: ${S.touchGame} s.`, 'good', 5600); return true;
+}
 function touch(id) {
-  const T = TOUCH.find(t => t.id === id); if (!T || G.busy) return false; const S = st(); bubble(G.player, 'Two fingers. Gently.');
-  G.startActivity({ label: `Touching the ${T.name}`, anim: 'work', minutes: 3, rate: 1.2, done: () => { const fresh = !S.touch[id]; S.touch[id] = (S.touch[id] || 0) + 1; need('fun', fresh ? 6 : 2); xp('logic', fresh ? 5 : 1); G.emit('aquarium:touch', id); const n = Object.keys(S.touch).length; if (id === 'sunstar') logIt('sunstar');
+  const T = TOUCH.find(t => t.id === id); if (!T || G.busy) return false; const S = st(); bubble(G.player, 'Two fingers. Gently.'); const game = !!tg;
+  G.startActivity({ label: `Touching the ${T.name}`, anim: 'work', minutes: game ? 1 : 3, rate: game ? 2 : 1.2, done: () => { const fresh = !S.touch[id]; S.touch[id] = (S.touch[id] || 0) + 1; need('fun', fresh ? 6 : 2); xp('logic', fresh ? 5 : 1); G.emit('aquarium:touch', id); const n = Object.keys(S.touch).length; logIt(id);
+    if (game && touchStep(id)) { if (n >= TOUCH.length && fresh) stamp('x:aqua_touch'); return; }
     toast(`${T.feel}${fresh ? ` (${n}/${TOUCH.length} touch-pool animals)` : ''}`, 'good', 5000); if (n >= TOUCH.length && fresh) { stamp('x:aqua_touch'); moodlet('sea_struck'); toast('That is all four touch-pool animals. The guide gives you a sticker of a sea star. You wear it with pride.', 'good', 5200); } } });
   return true;
 }
@@ -199,6 +222,21 @@ function feedRays(fx, sc) {
   toast(free ? 'Feeding time: a cup of chopped clam, on the house.' : `A paper cup of chopped clam (${fmt(AQ_FEED)}). Hold it under the water.`, 'info', 3000);
   G.startActivity({ label: 'Feeding the rays', anim: 'work', minutes: 6, rate: .9, at: lg ? { x: lg.ob.B[0] + 1.4, y: lg.ob.B[4] + .45, dir: 3 } : undefined, done: () => { S.rays++; need('fun', 10); xp('logic', 4); stamp('x:aqua_feed'); logIt('ray'); G.emit('aquarium:rays', S.rays); toast(pick(['Four rays pile up at your hand like puppies. One hoovers the cup clean and splashes your sleeve on the way out.', 'They take it straight from your palm: a soft suck, like a vacuum cleaner with manners.', 'The biggest ray flaps the water over the edge. You are now slightly wet and extremely happy.']), 'good', 5200); } });
   return true;
+}
+
+/* ---------- the Turtle Lagoon ---------- */
+function feedTurtle(sc) {
+  if (G.busy || !sc || !sc.aq || !sc.aq.lure) return false; const S = st(), p = G.player; if (sc.aq.night && sc.aq.night()) { toast('The turtles are asleep on the sand. Leave the lettuce for the morning.', 'info'); return false; }
+  const t = sc.aq.lure(p.x + (p.x < 14 ? -1.5 : 1.5), p.y - .3, 14); bubble(p, 'Come on, then...');
+  G.startActivity({ label: 'Holding out a lettuce leaf', anim: 'work', minutes: 6, rate: .55, done: () => { const near = Math.hypot(t.x - p.x, t.y - p.y) < 3.2; if (!near) { toast(`${t.name} turns toward the lettuce, thinks about it, and glides on. Hold it out again: turtles do nothing in a hurry.`, 'info', 4600); return; }
+    S.turtleFed = (S.turtleFed || 0) + 1; need('fun', 12); xp('logic', 4); stamp('x:aqua_turtles'); logIt(t.sp); G.emit('aquarium:turtle', t.id);
+    toast({ moss: 'Moss arrives first, as always, takes the leaf in one neat bite and stays at the pier to see if there is more.', biscotti: 'Biscotti hauls herself off the sand, crosses the lagoon like a slow barge, and crunches the lettuce stalk and all.', opal: 'Opal darts in under the others, snips the leaf out of your fingers with her beak and is gone round the coral.', tom: 'The water darkens: Old Tom, two metres of him, rising under the pier. He takes the lettuce very gently, looks at you with one ancient eye, and sinks away.' }[t.id] || `${t.name} takes the lettuce.`, 'good', 6500); } });
+  return true;
+}
+function talkDone(kind, sc) {
+  if (scene() !== sc) return; const S = st(), p = G.player;
+  if (kind === 'turtle') { S.talks++; xp('logic', 14); need('fun', 8); for (const t of TURTLES) logIt(t.sp); G.emit('aquarium:talk', 'turtle'); toast('Kekoa finishes to applause. In the lagoon the diver is down to the last lettuce and Old Tom has just noticed.', 'good', 5200); }
+  else if (kind === 'octo' && p.x > 20) { S.talks++; xp('logic', 14); need('fun', 8); logIt('octopus'); G.emit('aquarium:talk', 'octo'); toast('Inky flushes brick red, pours herself across the tank from one den to the next, and puts one sucker on the glass exactly where your hand is.', 'good', 5600); }
 }
 
 /* ---------- penguins ---------- */
@@ -228,8 +266,22 @@ async function quiz(answers) {
   else toast(score >= 5 ? `${score} out of ${QUIZ.length}. You already have the badge, but the machine plays its little tune anyway.` : `${score} out of ${QUIZ.length}. The answers are all on the plaques by the tanks: five or more wins a badge.`, score >= 5 ? 'good' : 'info', 4800);
   return score;
 }
+let pm = null;
+const SHOT = { sandtiger: 'sand tiger shark', leopard: 'leopard shark', blacktip: 'blacktip reef shark', hammerhead: 'hammerhead', ray: 'eagle ray', manta: 'manta ray', mola: 'sunfish', turtle: 'green turtle', hawks: 'hawksbill turtle', bass: 'giant sea bass', sardine: 'the sardine ball' };
+function inShot(sc) { const p = G.player, got = {}; let over = false; for (const e of sc.aq.swimmers) { if (!SHOT[e.sp] || e.hidden || e.lead) continue; const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < 5) { got[e.sp] = 1; if (e.z > 2.8 && d < 2.2) over = true; } } return { list: Object.keys(got), over }; }
+function photoClose() { if (!pm) return; clearTimeout(pm.to); pm.box.remove(); pm = null; }
+function photoSnap() {
+  if (!pm) return null; const sc = pm.sc, S = st(), r = inShot(sc), n = r.list.length, score = n + (r.over ? 2 : 0); photoClose(); flash(); S.photos.tunnel = (S.photos.tunnel || 0) + 1; S.bestShot = Math.max(S.bestShot || 0, score); need('fun', 3 + Math.min(9, score * 2)); G.emit('aquarium:photo', 'tunnel', score);
+  toast(n ? `Click! In the frame: ${r.list.map(k => SHOT[k]).join(', ')}${r.over ? ', with one of them right over your head' : ''}. ${score >= 5 ? 'That one is going on the wall.' : score >= 3 ? 'A good one.' : 'Not bad: wait for more to come round and try again.'} (best shot: ${S.bestShot})` : 'Click. A lovely photograph of blue water. Wait for something to swim into the frame and try again.', n ? 'good' : 'info', 6000); return { list: r.list, over: r.over, score };
+}
+function photoOpen(sc) {
+  if (pm || !sc || !sc.aq || !sc.aq.swimmers) return false; const box = el('div'), cnt = el('div', { text: '' }), b = (t, fn, bg) => { const e = el('button', { text: t, onclick: fn }); Object.assign(e.style, { pointerEvents: 'auto', font: 'inherit', fontSize: '16px', padding: '8px 18px', margin: '0 6px', border: '2px solid #2a2733', background: bg, color: '#2a2733', boxShadow: '3px 3px 0 #0008', cursor: 'pointer' }); return e; };
+  Object.assign(box.style, { position: 'fixed', inset: 0, zIndex: 55, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '84px', boxShadow: 'inset 0 0 0 28px #0b1220cc, inset 0 0 0 31px #e8fbff' });
+  Object.assign(cnt.style, { color: '#e8fbff', textShadow: '2px 2px 0 #000', marginBottom: '10px', fontSize: '15px', textAlign: 'center', padding: '0 40px' }); const row = el('div', {}, b('SNAP', () => photoSnap(), '#f2c24a'), b('Lower the camera', () => photoClose(), '#eef3f2')); box.append(cnt, row); root().append(box);
+  pm = { sc, box, to: setTimeout(photoClose, 30000) }; const upd = () => { if (!pm) return; const r = inShot(sc); cnt.textContent = r.list.length ? `In frame: ${r.list.map(k => SHOT[k]).join(', ')}${r.over ? ' · OVERHEAD!' : ''}` : 'Nothing in frame yet. Wait for it...'; setTimeout(upd, 300); }; upd(); return true;
+}
 function photo(spotId, sc) {
-  if (G.busy) return false; const S = st(), p = G.player; let extra = '';
+  if (G.busy) return false; if (spotId === 'tunnel' && sc && sc.aq && sc.aq.swimmers) return photoOpen(sc); const S = st(), p = G.player; let extra = '';
   if (spotId === 'tunnel' && sc && sc.aq && sc.aq.swimmers) { const sh = ['sandtiger', 'ray', 'turtle', 'leopard'].map(k => near(sc.aq.swimmers, k, p.x, p.y, 4.5)).find(Boolean); extra = sh ? ` And right behind your shoulder, perfectly in frame: a ${sh.sp === 'ray' ? 'spotted eagle ray' : sh.sp === 'turtle' ? 'green sea turtle' : sh.sp === 'leopard' ? 'leopard shark' : 'sand tiger shark'}.` : ' The water behind you is empty this time: wait for something big to come round and try again.'; if (sh) need('fun', 4); }
   const T = { jaws: ['In the jaws', 'You, grinning between the jaws of a megalodon. Everybody takes this picture. Everybody is right to.'], tunnel: ['In the Ocean Tunnel', 'You in blue light, looking up.' + extra], penguin: ['With the penguins', 'You crouch by the glass. A penguin waddles over and stands beside you like it was its idea.'] }[spotId] || ['Aquarium photo', 'Click.'];
   bubble(p, 'Say "sea cucumber"!'); flash(); const fresh = !S.photos[spotId]; S.photos[spotId] = (S.photos[spotId] || 0) + 1; need('fun', fresh ? 6 : 2); G.emit('aquarium:photo', spotId); toast(`${T[0]}: ${T[1]}${fresh ? ` (${Object.keys(S.photos).length}/3 photo spots)` : ''}`, 'good', 5200); return true;
@@ -263,7 +315,7 @@ function wave(sc) {
   if (!sc.aq.big.diverOn()) { const nx = nextShow('dive'); toast(`The Big Blue: four metres of reef, and more yellow tangs than seems sensible. ${nx ? `A diver goes in at ${clock(nx)}.` : 'The diver goes in every day at 14:00.'}`, 'info', 4600); return false; }
   G.player.pose = 'wave'; setTimeout(() => { if (G.player.pose === 'wave') G.player.pose = null; }, 2200); sc.aq.big.wave(7); S.waves++; need('fun', 8); G.emit('aquarium:wave'); toast('You wave. The diver sees you, swims straight to the glass and waves back with both hands. Bubbles everywhere.', 'good', 4800); return true;
 }
-function talkKeeper(k, sc) { const nx = nextShow('otter'); bubble(k, sc && sc.aq && sc.aq.show.otter ? 'Grab a seat in the stand! I am just getting to the good part.' : nx ? `Feeding and talk at ${clock(nx)}. The otters will tell you when: they start shouting.` : 'That was the last feeding today. One o\'clock and half past four, every day.', 4200); }
+function talkKeeper(k, sc, kind) { if (kind === 'turtle') { const nt = nextShow('turtle'); bubble(k, sc && sc.aq && sc.aq.show.turtle ? 'The diver is in! Watch Moss: she always gets there first.' : nt ? `Turtle feeding and talk at ${clock(nt)}. Meanwhile there is lettuce at the end of the pier: hold a leaf out and wait.` : 'Feedings are at 10:45 and 15:00. There is lettuce at the end of the pier if you would like to try.', 4600); return; } const nx = nextShow('otter'); bubble(k, sc && sc.aq && sc.aq.show.otter ? 'Grab a seat in the stand! I am just getting to the good part.' : nx ? `Feeding and talk at ${clock(nx)}. The otters will tell you when: they start shouting.` : 'That was the last feeding today. One o\'clock and half past four, every day.', 4200); }
 function talkLine(n, sc) { /* hook for the room: a line of the keeper talk was spoken */ if (n === 1 && scene() === sc) need('fun', 1); }
 function scope() { const h = G.now().hf; need('fun', 2); toast(h < 7 || h > 19.5 ? 'Harbor lights, doubled in the water, and the lighthouse turning.' : pick(['Through the telescope: the cargo ship at anchor, a tug fussing round it, and gulls arguing on the Pier 7 roof.', 'You find the lighthouse, then the Bay Wheel, then a fisherman on the pier who has clearly caught nothing all day.', 'Out past the breakwater something dark rolls at the surface and is gone. A seal? You decide it was a whale.']), 'info', 4600); return true; }
 function highFive(m) { const S = st(); S.five++; need('fun', S.five < 4 ? 4 : 1); bubble(m, pick(['*high five!*', '*Finn does a little dance*', '*Finn mimes swimming and points at the Big Blue*']), 2600); return true; }
@@ -329,10 +381,10 @@ export function init() {
   G.aquarium = {
     isOpen, hours, lateNow, sleepoverNow, ticket: AQ_TICKET, pass: AQ_PASS, hasTicket, hasPass, buyTicket, buyPass, desk, arrived, travel, spot, logbook,
     species: () => Object.keys(SPECIES).map(id => ({ id, zone: SPECIES[id].zone, name: SPECIES[id].name, got: st().log[id] !== undefined })),
-    touch, touchRay, feedRays, penguins, feedPenguin, adopt, adopted, quiz, photo, sketch, lookBoard, sit, wave,
+    plaque, touch, touchGame, touchState: () => (tg ? { want: tg.seq[tg.i], i: tg.i, miss: tg.miss } : null), feedTurtle, talkDone, photoMode: { open: photoOpen, snap: photoSnap, close: photoClose, state: () => (pm ? inShot(pm.sc) : null) }, touchRay, feedRays, penguins, feedPenguin, adopt, adopted, quiz, photo, sketch, lookBoard, sit, wave,
     shows: { list: showList, next: nextShow, plan: planShow, start: (id, sec) => { const sc = scene(); return !!(sc && sc.aq && sc.aq.force && sc.aq.force(id, sec || 90)); }, state: () => { const sc = scene(); return sc && sc.aq && sc.aq.show ? Object.assign({}, sc.aq.show) : null; } },
     showsBoard, talkKeeper, talkLine, scope, highFive, sleepover, talkAquarist, chain: () => st().chain, care, lab, chart, readPlaque, release, releaseSpot: () => (relPoi ? { x: relPoi.x, y: relPoi.y, ready: !!relStuff } : null), door: () => door,
-    stats: () => { const S = st(); return { visits: S.visits, spotted: Object.keys(S.log).length, zones: Object.keys(S.zones).length, touch: Object.keys(S.touch).length, rays: S.rays, rayTouch: S.rayTouch, penguinFed: S.penguinFed, photos: Object.keys(S.photos).length, quiz: S.quiz.best, sketches: S.sketches, sits: S.sits, jelly: S.jelly, adopt: S.adopt && S.adopt.name, waves: S.waves, talks: S.talks, sleepovers: S.sleepovers, chain: S.chain.st, days: S.chain.days }; },
+    stats: () => { const S = st(); return { visits: S.visits, spotted: Object.keys(S.log).length, zones: Object.keys(S.zones).length, touch: Object.keys(S.touch).length, rays: S.rays, rayTouch: S.rayTouch, penguinFed: S.penguinFed, photos: Object.keys(S.photos).length, quiz: S.quiz.best, sketches: S.sketches, sits: S.sits, jelly: S.jelly, adopt: S.adopt && S.adopt.name, waves: S.waves, talks: S.talks, turtleFed: S.turtleFed || 0, bestShot: S.bestShot || 0, touchGame: S.touchGame || 0, sleepovers: S.sleepovers, chain: S.chain.st, days: S.chain.days }; },
   };
   G.on('room:build', sc => {
     if (!sc || !sc.def || sc.def.showpiece !== 'aquarium') return; if (!built) safe(() => ensure(getCity()));
@@ -340,5 +392,6 @@ export function init() {
   });
   G.on('scene', s => { if (!s || s.id !== 'city' || !s.world) return; if (!s._aquarium) { s._aquarium = true; try { ensure(s.world); } catch (e) { console.warn('aquarium', e); } setGoal(); } try { relSync(s); } catch (e) { console.warn('aquarium', e); } });
   G.on('guide:rebuilt', patchGuide);
-  G.on('minutes', () => { const sc = scene(); if (!sc || G.busy || G.modal || G.cutscene) return; const h = G.now().hf, hr = hours(); if (!sleepoverNow() && (h >= hr[1] + .33 || h < hr[0] - 1)) { if (sc._closing) return; sc._closing = true; toast('"We are closing now. The sharks say goodnight." A keeper walks you out to the boardwalk.', 'info', 4400); exitRoom({ poi: DOOR }).then(() => { sc._closing = false; }, () => { sc._closing = false; }); } });
+  G.on('scene', () => { photoClose(); tg = null; });
+  G.on('minutes', () => { const sc = scene(); if (!sc || G.busy || G.modal || G.cutscene) return; const h = G.now().hf, hr = hours(); if (!sleepoverNow() && (h >= hr[1] + .33 || h < hr[0] - 1)) { if (sc._closing) return; sc._closing = true; toast(h < 12 ? 'The night is over: a keeper with a cocoa urn walks the last sleepers out into the morning on the boardwalk.' : '"We are closing now. The sharks say goodnight." A keeper walks you out to the boardwalk.', 'info', 4400); exitRoom({ poi: DOOR }).then(() => { sc._closing = false; }, () => { sc._closing = false; }); } });
 }

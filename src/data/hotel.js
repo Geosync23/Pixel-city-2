@@ -45,7 +45,7 @@ export function ballEvent(n) { for (const e of BALL) if (e.id !== 'class' || !BA
 export function ballNext(n, days = 7) { const out = []; for (let d = n.day; d < n.day + days; d++) { const q = dayInfo(d); for (const e of BALL) if (e.on(q) && !(e.id === 'class' && BALL[2].on(q)) && (d > n.day || n.hf < e.hours[1])) out.push({ id: e.id, name: e.name, day: d, from: e.hours[0], to: e.hours[1], blurb: e.blurb }); } return out; }
 
 const HRS24 = [0, 1, 2, 3, 4, 5, 6].map(() => [0, 24]), hrs = r => [0, 1, 2, 3, 4, 5, 6].map(() => r);
-const venue = (id, name, type, offers, hours, blurb) => (VENUE_BY_ID[id] = VENUE_BY_ID[id] || { id, name, type, district: 'downtown', where: 'Harbor Street, downtown, under the red canopy', station: null, interior: true, hours, offers, priceMult: 1, jobId: null, delivers: false, blurb, showpiece: true });
+const venue = (id, name, type, offers, hours, blurb) => (VENUE_BY_ID[id] = VENUE_BY_ID[id] || { id, name, type, district: 'downtown', where: 'Harbor Boulevard, downtown, under the red canopy', station: null, interior: true, hours, offers, priceMult: 1, jobId: null, delivers: false, blurb, showpiece: true });
 venue(HV.place, NAME, 'leisure', { functions: ['seat'] }, HRS24, 'Marble, brass and a pianist in the lounge. A restaurant, a rooftop bar, a ballroom, a spa with a pool, and rooms for the night.');
 venue(HV.gifts, SHOP_NAME, 'shop', { shop: ['gift', 'misc', 'outfit'], functions: ['till'] }, hrs(HOURS.gifts), 'The hotel boutique: bathrobes, bath salts and a bear in a bellhop hat.');
 venue(HV.bar, BAR_NAME, 'food', { menu: true, functions: ['seat', 'till', 'bar_stool'] }, hrs(HOURS.bar), 'The rooftop bar of the Grand Maple. Cocktails, the skyline, and jazz from Thursday to Saturday.');

@@ -20,7 +20,7 @@ import { el, root, toast } from '../ui/kit.js';
 import { innerPlace } from '../ui/navarrow.js';
 import { openState, cityPos, place, homePlace, money } from '../ui/phone_util.js';
 
-const WALK = 1.15 / 3.6, BUS_V = 3.8, BUS_DWELL = 5, CAB_V = 9;   // BUS_V: measured door-to-door along the bus loop incl. lights (units per game minute, sim/transit.js ride pace); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
+const WALK = 1.15 / 3.6, BUS_V = 12, BUS_DWELL = 1, CAB_V = 9;   // BUS_V: measured along the bus loop incl. lights (units per game minute at the transit.js ride clock 0.35 + signal priority; QA round 3: 9.6-13.4 measured); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
 const mins = m => Math.max(1, Math.round(m)) + ' min';
@@ -91,7 +91,7 @@ function busOption(from, D, walk) {
       if (i === j) continue; const k = (j - i + n) % n; let ride = 0; const lp = safe(() => G.traffic.loops[r.id], null), ls = lp && lp.stops && lp.stops.length === n ? lp.stops : null;
       if (ls && lp.L) ride = ((ls[j].u - ls[i].u) % lp.L + lp.L) % lp.L; else for (let m = 0; m < k; m++) ride += man(S[(i + m) % n], S[(i + m + 1) % n]);   // the bus's own loop (one-way streets), not a straight line
       const wa = man(S[i], from) * WALK, wb = man(S[j], D) * WALK, nb = safe(() => G.transit.nextBuses(S[i].id).find(b => b.route === r.id), null), wait = nb ? nb.minutes : 20, rm = ride / BUS_V + (k - 1) * BUS_DWELL, total = wa + Math.max(wait - wa, 0) + rm + wb;
-      if (wa + wb > walk * .6) continue;
+      if (wa + wb > walk * WALK * .6) continue;   // (walk is in units here: QA round 3 fixed the minutes-vs-units comparison)
       if (!best || total < best.minutes) best = { mode: 'bus', label: 'Bus ' + r.name, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('bus'), 1.5), route: r.id, line: r.name, stops: k, wait, toward: S[j > i ? n - 1 : j].name, board: pt(S[i]), alight: pt(S[j]), walkA: wa, walkB: wb, ride: rm };
     }
   }

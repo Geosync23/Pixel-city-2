@@ -37,6 +37,7 @@ import { LOOKS } from './wardrobe.js';
 import { seatsOf, seatById, BOWL_ENTRY } from '../scenes/rooms/arena_bowl.js';
 import { COURT } from '../art/showpiece/_arena_lib.js';
 import '../art/showpiece/_arena_icons.js';
+import { charSprite } from '../scenes/rooms/arena2.js';
 
 export const order = 57.5;
 const NAME = 'Maple Bay Arena', DOOR = 'door:arena', DAY = 1440, O = 1, GOAL = 'arena_ball';
@@ -111,7 +112,7 @@ function buy(evk, tierId) {
   const old = ticketFor(ev); if (old) { toast('You already have a ticket for that: ' + (old.seat ? seatById(old.seat).label : 'standing floor') + '.', 'info', 3600); return old; }
   const T = tiers(ev).find(q => q.id === tierId); if (!T) return null; if (T.sold) { toast(`${T.name} is sold out for ${ev.title}.`, 'info', 3600); return null; }
   if (T.price > 0 && G.money && !G.money.pay(T.price, 'Arena ticket: ' + ev.title, { category: 'fun', venue: ARENA_VENUES.place })) return null;
-  let seat = null; if (tierId !== 'floor') { const L = seatsOf(tierId).filter(s => ev.kind === 'concert' ? s.st !== 'W' && s.tier !== 'court' : ev.kind === 'game' || s.tier !== 'court' || s.st < 'C2'), mid = L.filter(s => s.st[0] === 'C' || (s.a > 4 && s.a < 20)); const P = mid.length ? mid : L; seat = P[Math.floor(hash2(ev.day, S.tix.length + 3, 17) * P.length) % P.length].id; }
+  let seat = null; if (tierId !== 'floor') { const L = seatsOf(tierId).filter(s => !s.nt).filter(s => ev.kind === 'concert' ? s.st !== 'W' && s.tier !== 'court' : s.tier !== 'court' || s.st < 'C2'), mid = L.filter(s => s.st[0] === 'C' || (s.a > 4 && s.a < 20)); const P = mid.length ? mid : L; seat = P[Math.floor(hash2(ev.day, S.tix.length + 3, 17) * P.length) % P.length].id; }
   const tk = { key: ev.key, kind: ev.kind, tier: tierId, seat, T0: ev.T0, out: ev.out, title: ev.title }; S.tix.push(tk);
   safe(() => G.planner.add({ title: (ev.kind === 'game' ? 'Basketball: ' : ev.kind === 'concert' ? 'Concert: ' : 'Show: ') + ev.title, placeId: 'arena', t: ev.T0 - 30, dur: ev.len + 30, kind: 'personal' }));
   G.emit('arena:ticket', tk); toast(`${ev.title}, ${when(ev)}. ${seat ? seatById(seat).label : 'Standing floor'}${T.price ? ' · ' + fmt(T.price) : ' · with your season pass'}. Doors open an hour before; it is in your planner.`, 'good', 5600); return tk;
@@ -125,10 +126,11 @@ async function boxOffice(key) {
   return v ? buy(ev, v) : null;
 }
 const ordinal = n => n + (['th', 'st', 'nd', 'rd'][n % 10 > 3 || (n % 100 >= 11 && n % 100 <= 13) ? 0 : n % 10]);
-const gatesOpen = () => { const s = now(); return isOpen() && (s.ph === 'none' || !!ticketFor(s.ev)); };
+const gatesOpen = () => { const s = now(); return isOpen() && (s.ph === 'none' || !!ticketFor(s.ev) || hasPass()); };
 function enterBowl(gate) {
   if (!isOpen()) { toast('The arena is closed.', 'info'); return false; } const s = now(), S = st();
-  if (s.ph !== 'none') { const tk = ticketFor(s.ev); if (!tk) { toast(s.ph === 'exit' ? 'The show is over. Everybody is on their way out.' : `"Ticket, please!" ${s.ev.title} is on. The box office is by the main doors, on the left.`, 'info', 4200); return false; } }
+  if (s.ph !== 'none') { let tk = ticketFor(s.ev); if (!tk && hasPass() && s.ph !== 'exit') tk = buy(s.ev, 'lower') || { pass: 1 }; // an Honorary Otter is always let in
+    if (!tk) { toast(s.ph === 'exit' ? 'The show is over. Everybody is on their way out.' : `"Ticket, please!" ${s.ev.title} is on. The box office is by the main doors, on the left.`, 'info', 4200); return false; } }
   else if (!S.bowlSeen) toast('No event on right now. The house lights are up and the bowl is yours.', 'info', 4200);
   G.emit('arena:enterbowl'); G.go('int:arena:bowl', { x: O + BOWL_ENTRY.x + (gate ? .6 : -.6), y: O + BOWL_ENTRY.y, dir: 3 }); return true;
 }
@@ -233,9 +235,9 @@ function seatBar(on, B) {
   if (bar) { bar.remove(); bar = null; } if (!on || !B) return; const ev = B.ev, live = ev && B.ph !== 'none';
   bar = mkBar('64px'); bar.id = 'arena-bar';
   bar.append(btn(ev && ev.kind === 'concert' ? 'Cheer' : 'Cheer!', () => cheer()));
-  if (has('arena_foam_finger')) bar.append(btn('Wave the finger', () => cheer('foam')));
-  if (live) { const ff = btn('Fast-forward', b => { const v = B.ff(!B.ffOn); b.textContent = v ? 'Normal speed' : 'Fast-forward'; b.style.background = v ? '#f2c230' : '#f4ead0'; }); ff.id = 'arena-ff'; bar.append(ff); bar.append(btn('Hot dog! ($5)', () => vendor())); }
-  bar.append(btn('Leave seat', () => leaveSeat(), 'red'));
+  if (has('arena_foam_finger')) bar.append(btn('Foam finger', () => cheer('foam')));
+  if (live) { const ff = btn('>> Fast', b => { const v = B.ff(!B.ffOn); b.textContent = v ? '> Normal' : '>> Fast'; b.style.background = v ? '#f2c230' : '#f4ead0'; }); ff.id = 'arena-ff'; bar.append(ff); bar.append(btn('Hot dog $5', () => vendor())); }
+  bar.append(btn('Leave', () => leaveSeat(), 'red'));
 }
 function cheer(kind) { const B = bowl(); if (!B || !G.busy || !G.busy._arena) return false; B.react(kind === 'foam' ? 'wave' : 'cheer'); B.cheer(); if (G.time > coolT) { coolT = G.time + 6; need('fun', kind === 'foam' ? 2.5 : 1.5); need('social', 1); bubble(G.player, pick(B.mode === 'concert' ? ['WOOO!', 'ONE MORE!', 'YEAH!'] : ['LET\'S GO OTTERS!', 'DE-FENSE!', 'COME ON!', 'YES!'])); } return true; }
 function vendor() { const B = bowl(); if (!B || !G.busy || !G.busy._arena) return false; if (G.money && !G.money.pay(5, 'Hot dog from the vendor', { category: 'food', venue: ARENA_VENUES.grill })) return false; need('hunger', 28); need('fun', 3); G.player.pose = 'eat'; B._rt = G.time + 4; toast('"HOT DOGS! Get your hot dogs!" It comes down the row hand to hand, and your five dollars goes back the same way.', 'good', 4200); return true; }
@@ -292,7 +294,7 @@ function teeIncoming(e, B) {
 let camS = null;
 function wantCam(ev, ga) { const S = st(); if (S.camKey === ev.key || camS || con || teeS) return false; if (Math.random() > .45 && ga.q < 3) return false; S.camKey = ev.key; return true; }
 function fanCam(B, kiss) {
-  const S = st(), p = G.player, spr = safe(() => p.sprite()); closePop(); kiss = !!kiss && Math.random() < .6;
+  const S = st(), p = G.player, spr = safe(() => [0, 1, 2, 3].map(f => charSprite('me' + (p.spec._v || 0) + (p.spec.topColor || ''), p.spec, 'wave', f, 1, null))); closePop(); kiss = !!kiss && Math.random() < .6;
   B.jumbo({ mode: 'fancam', spr, kiss, label: kiss ? 'KISS CAM' : playerName().toUpperCase().slice(0, 14), bounce: 1 }, 7); caption('Big Stan', kiss ? 'KISS CAM! And it has landed on... oh, this fan is here on their own. Give us SOMETHING!' : 'FAN CAM! Look up, you are on the big screen!', 4200);
   const wrap = mkBar('34%'); pop = wrap; const done = kind => { if (!camS) return; camS = null; closePop(); S.cam++; G.emit('arena:cam', kind);
     if (kind === 'hide') { need('fun', 2); toast('You hide behind your programme. Eight thousand people go "awww".', 'info', 3600); return; }
@@ -305,7 +307,7 @@ function fanCam(B, kiss) {
 /* ---------- player cards ---------- */
 const cards = () => { const S = st(); return CARDS.map(c => ({ id: c.id, name: c.name, num: c.num, pos: c.pos, rare: c.rare, n: S.cards[c.id] || 0, signed: !!S.autos[c.id] })); };
 function openPack(n = 1) {
-  const S = st(), got = []; for (let k = 0; k < n; k++) { for (let i = 0; i < TUNE.PACK; i++) { const miss = CARDS.filter(c => !S.cards[c.id] && !got.includes(c.id)); let c; if (miss.length && Math.random() < .5) c = pick(miss); else { const wts = CARDS.map(q => [4, 2, 1][q.rare]), tot = wts.reduce((a, b) => a + b, 0); let v = Math.random() * tot; c = CARDS[0]; for (let j = 0; j < CARDS.length; j++) { v -= wts[j]; if (v <= 0) { c = CARDS[j]; break; } } } got.push(c.id); } S.packs++; }
+  const S = st(), got = []; for (let k = 0; k < n; k++) { for (let i = 0; i < TUNE.PACK; i++) { const miss = CARDS.filter(c => !S.cards[c.id] && !got.includes(c.id)); let c; if (miss.length && Math.random() < .3) c = pick(miss); else { const wts = CARDS.map(q => [4, 2, 1][q.rare]), tot = wts.reduce((a, b) => a + b, 0); let v = Math.random() * tot; c = CARDS[0]; for (let j = 0; j < CARDS.length; j++) { v -= wts[j]; if (v <= 0) { c = CARDS[j]; break; } } } got.push(c.id); } S.packs++; }
   const fresh = got.filter((id, i) => !S.cards[id] && got.indexOf(id) === i); for (const id of got) S.cards[id] = (S.cards[id] || 0) + 1; const have = CARDS.filter(c => S.cards[c.id]).length; G.emit('arena:cards', got);
   toast(`Card pack: ${got.map(id => { const c = CARDS.find(q => q.id === id); return c.name + (fresh.includes(id) ? ' (NEW' + (c.rare === 2 ? ', shiny!)' : ')') : ''); }).join(', ')}. Album: ${have}/${CARDS.length}.`, 'good', 5600);
   if (have >= CARDS.length && !S.gold) { S.gold = 1; safe(() => G.inv.add('arena_gold_card', 1)); stamp('x:arena_cards'); moodlet('inspired'); need('fun', 15); G.emit('arena:album'); toast('THE ALBUM IS COMPLETE. The Otter Den hands you a Gold Otter Card, one of one hundred, and takes your photograph for the wall.', 'good', 7000); }
@@ -472,6 +474,7 @@ export function init() {
   G.on('shop:buy', (id, qty) => { if (id !== 'arena_card_pack') return; const n = Math.max(1, qty || 1); safe(() => G.inv.remove('arena_card_pack', n)); setTimeout(() => openPack(n), 300); });
   G.on('day', () => { prune(); });
   G.addSystem({ name: 'arena', update(dt) { safe(() => updateCity(dt)); if (S && S.chain && (S.chain.st === 5 || mas)) suitTick(dt); } });
-  // closing time: after 23:00 everybody is walked to the doors
-  G.on('minutes', () => { const sc = G.scene; if (!inside() || G.modal || G.cutscene) return; const h = G.now().hf; if (h >= ARENA_HOURS[1] + .1 || h < ARENA_HOURS[0] - .02) { if (now().ph !== 'none') return; if (sc._closing) return; sc._closing = true; if (G.busy) G.endActivity(false); toast('"Closing up!" The house lights go to half and a steward walks you to the doors.', 'info', 4200); exitRoom({ poi: DOOR }).then(() => { sc._closing = false; }, () => { sc._closing = false; }); } });
+  // closing time: after 23:00 everybody is walked to the doors; nobody stays in the bowl through doors without a ticket
+  G.on('minutes', () => { const sc = G.scene; if (!inside() || G.modal || G.cutscene) return; const h = G.now().hf;
+    if (sc.roomId === 'arena:bowl' && !sc._evict) { const q = now(); if (q.ph !== 'none' && q.ph !== 'exit' && !ticketFor(q.ev) && st().chain.st !== 5 && !hasPass()) { sc._evict = true; if (G.busy) G.endActivity(false); toast(`"Doors are opening for ${q.ev.title}. Tickets only from here on!" A steward sees you out to the concourse.`, 'info', 4600); G.go('int:arena', { x: O + 8.5, y: O + 3.6, dir: 1 }).then(() => { sc._evict = false; }, () => { sc._evict = false; }); return; } } if (h >= ARENA_HOURS[1] + .1 || h < ARENA_HOURS[0] - .02) { if (now().ph !== 'none') return; if (sc._closing) return; sc._closing = true; if (G.busy) G.endActivity(false); toast('"Closing up!" The house lights go to half and a steward walks you to the doors.', 'info', 4200); exitRoom({ poi: DOOR }).then(() => { sc._closing = false; }, () => { sc._closing = false; }); } });
 }

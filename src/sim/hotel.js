@@ -13,7 +13,7 @@
 //   tea(scene) -> bool, dinner(scene, courses 3 | 5, picks?) -> bool, service() -> { phase, course, of } | null,
 //   bar(scene), barMenu(), mix(cocktailId, quality?) -> Promise<stars | null> (quality given = skip the mini-game), houseCocktail() -> name | null, heater(fx),
 //   steward(scene), dance(scene, quality?) -> Promise<bool>, cake(fx), auction(lot?), guestbook(), talkTeacher(c), ticket(kind) -> bool,
-//   spaDesk(), swim(scene), soak(scene), sauna(fx, scene), massage(fx, scene), lounger(fx, scene), locker(scene), wash(fx, kind),
+//   spaDesk(), swim(scene), soak(scene), sauna(fx, scene), massage(fx, scene), lounger(fx, scene), locker(scene) (swimwear on / off), wash(fx, kind), fruitWater(),
 //   roomDoor(no, fx, scene), bed(fx, scene), sleep(mode: 'morning' | 'rested' | 'nap', fx?) -> bool, phone(scene), order(itemId) -> bool, tray(fx, scene), closet(), robe(on?) , minibar(), view(tier),
 //   chain() -> { st: 0 none | 1 looking | 2 all found | 3 done, got }, cases() -> [{ i, name, x, y, got }], takeCase(i), talkChain(), friend() -> bool (Friend of the House),
 //   mini: { state(), act(), auto(quality) } (the open pour / beat mini-game), outfit() -> 'robe' | 'swim' | 'pajamas' | 'gym' | 'smart' | 'plain', arrived / arrivedIn / left (room hooks), stats() }
@@ -40,7 +40,7 @@ export const order = 57;
 Object.assign(LOOKS, HOTEL_LOOKS); for (const k in HOTEL_ICONS) if (!ICONS[k]) ICONS[k] = HOTEL_ICONS[k];
 const DOOR = 'door:hotel', DAY = 1440, LISTEN_MIN = 20, SWIM_MIN = 30, SAUNA_MIN = 15, MASSAGE_MIN = 45, DANCE_MIN = 25, ORDER_MIN = 12;
 CORE.hotel = ['sights', 'Grand hotel', 'tower', ['eat', 'shows', 'fitness']];
-CORE_BLURB.hotel = 'Marble, brass and a revolving door on Harbor Street. A pianist in the lobby, breakfast buffet, afternoon tea and a five-course dinner at The Gilded Maple, dancing in the Bay Ballroom, a pool and sauna on the second floor, The Weathervane bar on the roof, and rooms for the night with room service and a bathrobe.';
+CORE_BLURB.hotel = 'Marble, brass and a revolving door on Harbor Boulevard. A pianist in the lobby, breakfast buffet, afternoon tea and a five-course dinner at The Gilded Maple, dancing in the Bay Ballroom, a pool and sauna on the second floor, The Weathervane bar on the roof, and rooms for the night with room service and a bathrobe.';
 for (const x of [
   { id: 'x:hotel_visit', title: 'Through the Revolving Door', group: 'Big days out', glyph: 'tower', place: 'place:hotel', need: 'hotel', blurb: 'Walk into the Grand Maple and ring the bell at reception. Somebody always comes.' },
   { id: 'x:hotel_piano', title: 'The Lobby Pianist', group: 'Big days out', glyph: 'mask', place: 'place:hotel', need: 'hotel', blurb: 'Sit in the lounge of the Grand Maple while Mr. Okonkwo plays: noon, five o\'clock and half past eight.' },
@@ -71,7 +71,7 @@ const scn = id => (G.scene && G.scene.roomId === id ? G.scene : null);
 const friend = () => !!(G.state.flags && G.state.flags.hotel_friend);
 const stayNow = () => { const s = st().stay; return s && G.state.t < s.until ? s : null; };
 const stayInfo = () => { const s = stayNow(); if (!s) return null; const T = TIERS.find(t => t.id === s.tier) || TIERS[0]; return { tier: T.id, no: T.no, name: T.name, from: s.from, until: s.until, late: !!s.late }; };
-const freeSeat = (fx, sc) => { for (const s of fx.seats || []) if (!s.lie && !sc.ents.some(e => e !== G.player && !e.hidden && Math.hypot(e.x - s.x, e.y - s.y) < .4)) return s; return null; };
+const freeSeat = (fx, sc, rev) => { for (const s of (rev ? (fx.seats || []).slice().reverse() : fx.seats || [])) if (!s.lie && !sc.ents.some(e => e !== G.player && !e.hidden && Math.hypot(e.x - s.x, e.y - s.y) < .4)) return s; return null; };
 
 /* ---------- what you are wearing (dress-code flavour: nobody is ever turned away) ---------- */
 function outfit() { const t = G.state.wardrobe && G.state.wardrobe.temp; if (t === 'hotel_robe') return 'robe'; if (t === 'swim') return 'swim'; const id = String(safe(() => G.wardrobe.wearing()) || ''); if (/robe/.test(id)) return 'robe'; if (/pajama/.test(id)) return 'pajamas'; if (/gym|sport|swim|run/.test(id)) return 'gym'; const sy = safe(() => G.wardrobe.styles()) || []; return sy.includes('formal') || sy.includes('smart') ? 'smart' : 'plain'; }
@@ -91,7 +91,8 @@ function ensure(w) {
   CASES.forEach((c, i) => {
     let poi = w.pois.find(p => p.id === 'hcase:' + i);
     if (!poi) { const a = c.anchor ? w.pois.find(c.anchor) : far; if (!a) return; let sp = null;
-      for (const r of [2, 2.5, 3, 3.5, 1.5, 4.5]) { for (let k = 0; k < 10 && !sp; k++) { const an = k * .628 + i * 1.7 + 1, x = Math.round((a.x + Math.cos(an) * r) * 2) / 2, y = Math.round((a.y + Math.sin(an) * r) * 2) / 2; if (!w.isBlocked(x, y) && !w.isBlocked(x + .5, y + .5) && !w.isBlocked(x, y + 1) && !w.pois.some(q => Math.hypot(q.x - x, q.y - y) < 1.5)) sp = { x, y }; } if (sp) break; }
+      const walk = (x, y) => !Array.isArray(w.walkways) || w.walkways.some(q => x >= q.x0 + .4 && x <= q.x1 - .4 && y >= q.y0 + .4 && y <= q.y1 - .4), road = (x, y) => Array.isArray(w.roads) && w.roads.some(q => (q.axis === 'x' ? Math.abs(y - q.c) <= q.half + .3 && x >= q.a && x <= q.b : Math.abs(x - q.c) <= q.half + .3 && y >= q.a && y <= q.b));
+      for (const strict of [true, false]) { for (const r of [2, 2.5, 3, 3.5, 1.5, 4.5, 5.5, 6.5]) { for (let k = 0; k < 12 && !sp; k++) { const an = k * .5236 + i * 1.7 + 1, x = Math.round((a.x + Math.cos(an) * r) * 2) / 2, y = Math.round((a.y + Math.sin(an) * r) * 2) / 2; if (!w.isBlocked(x, y) && !w.isBlocked(x + .5, y + .5) && !w.isBlocked(x, y + 1) && !road(x, y) && !road(x, y + .8) && (!strict || walk(x, y)) && !w.pois.some(q => Math.hypot(q.x - x, q.y - y) < 1.5)) sp = { x, y }; } if (sp) break; } if (sp) break; }
       if (!sp) return; const ob = safe(() => w.place('prop.hotel.suitcase', sp.x - .26, sp.y - .14, { p: { tag: 1 }, solid: false }));
       poi = w.poi({ type: 'hotel', id: 'hcase:' + i, name: c.short, x: sp.x, y: sp.y + .8, px: sp.x, py: sp.y, glow: true, district: dOf(sp), ob }); }
     cases[i] = poi; if (poi.ob) poi.ob.hidden = !!st().chain.got[i];
@@ -268,7 +269,7 @@ function buffetTake(id, fx, sc) {
   S.plate.push(id); carry(true); bubble(G.player, '+ ' + b.name, 1600); G.emit('hotel:buffet', id, S.plate.length); return true;
 }
 function buffetEat(fx, sc) {
-  sc = sc || scn(HR.rest); if (!sc || G.busy) return false; const S = st(); if (!S.plate.length) return false; fx = fx || sc.hot.mine.fx; const s = freeSeat(fx, sc); if (!s) { toast('That table is taken.', 'info'); return false; }
+  sc = sc || scn(HR.rest); if (!sc || G.busy) return false; const S = st(); if (!S.plate.length) return false; fx = fx || sc.hot.mine.fx; const s = freeSeat(fx, sc, true); if (!s) { toast('That table is taken.', 'info'); return false; }
   const its = S.plate.map(id => BUFFET.find(b => b.id === id)).filter(Boolean), si = fx.seats.indexOf(s), sv = fx.seats.map((q, i) => (i === si ? '#f6d24a' : (fx.ob.p.serve || [])[i] || 0)), p = G.player; carry(false);
   fx.ob.p = Object.assign({}, fx.ob.p, { serve: sv }); fx.ob._key = null;
   const fin = part => { const k = part ? .5 : 1, e = { hunger: 0, fun: 0, energy: 0 }; for (const b of its) { e.hunger += b.hunger * k; e.fun += b.fun * k; e.energy += (b.energy || 0) * k; if (b.caffeine) e.caffeine = true; if (b.alcohol) e.alcohol = (e.alcohol || 0) + b.alcohol; } if (G.inv && G.inv.applyEffects) safe(() => G.inv.applyEffects(e)); else { add('hunger', e.hunger); add('fun', e.fun); add('energy', e.energy); } if (its.some(b => /juice|coffee|mimosa/.test(b.id))) add('bladder', -9);
@@ -281,8 +282,8 @@ function runService(sc, courses, o) {
   const apply = c => { const it = c.item ? ITEM_BY_ID[c.item] : null, e = it ? it.effects : c.fx; if (G.inv && G.inv.applyEffects) safe(() => G.inv.applyEffects(e)); else for (const k in e) add(k, e[k]); if (it) G.emit('inv:use', it.id); G.emit('hotel:course', c.name); };
   const next = () => { i++; me.i = i; if (i >= courses.length) { me.phase = 'end'; t0 = G.time; sc.hot.serveMe(null, () => { me.phase = 'done'; }); return; } me.phase = 'coming'; t0 = G.time; const c = courses[i]; sc.hot.serveMe(c.col, () => { if (svc !== me) return; me.phase = 'eat'; t = 0; p.pose = 'eat'; toast(c.name + (c.say ? '. ' + c.say : '.'), 'good', 3400); }); };
   const fin = ok => { if (svc === me) svc = null; p.poseOpts = null; sc.hot.myDone(); if (o.done) o.done(ok, Math.max(0, Math.min(courses.length, i + (me.phase === 'eat' ? 0 : 0)))); };
-  G.startActivity({ label: o.label, anim: 'sit', minutes: 600, rate: 2.2, at: { x: seat.x, y: seat.y, z: seat.z || .45, dir: seat.dir }, canCancel: true,
-    tick: gm => { if (me.phase === 'eat') { t += gm; if (t >= courses[i].min) { apply(courses[i]); p.pose = 'sit'; next(); } } else if (me.phase === 'done') G.endActivity(true); else if (G.time - t0 > 60) { if (me.phase === 'end') me.phase = 'done'; else { me.phase = 'eat'; t = 0; p.pose = 'eat'; } } },
+  G.startActivity({ label: o.label, anim: 'sit', minutes: courses.reduce((a, c) => a + c.min + 14, 16), rate: 2.2, at: { x: seat.x, y: seat.y, z: seat.z || .45, dir: seat.dir }, canCancel: true,
+    tick: gm => { if (G.busy && G.busy.left < 6 && me.phase !== 'done') G.busy.left += 6; if (me.phase === 'eat') { t += gm; if (t >= courses[i].min) { apply(courses[i]); p.pose = 'sit'; next(); } } else if (me.phase === 'done') G.endActivity(true); else if (G.time - t0 > 60) { if (me.phase === 'end') me.phase = 'done'; else { me.phase = 'eat'; t = 0; p.pose = 'eat'; } } },
     done: () => fin(true), cancel: () => fin(false) });
   p.poseOpts = { seated: true }; next(); return true;
 }
@@ -419,7 +420,7 @@ function tray(fx, sc) {
 function robe(on) { const S = st(); if (on === undefined) on = !S.robe; if (!!S.robe === !!on) return !!S.robe; S.robe = on ? 1 : 0; if (on) { S.swim = 0; safe(() => G.wardrobe.wearTemp('hotel_robe')); } else safe(() => G.wardrobe.restore()); return !!S.robe; }
 async function closet() { const S = st(), own = safe(() => G.wardrobe.owns('outfit_hotel_robe')); const v = await choose('Wardrobe', [{ label: S.robe ? 'Hang the bathrobe back up' : 'Put on the bathrobe', sub: S.robe ? 'Back into your own clothes' : 'White terry, a gold maple leaf on the pocket', value: 1 }, { label: 'Close the door', value: 0 }], { text: own ? 'Two robes, slippers in paper bands. You own one of these already, which makes this one feel like an old friend.' : `Two robes, slippers in paper bands, and a card: "Robes may be purchased at ${SHOP_NAME}."` }); if (!v) return; robe(); toast(S.robe ? 'It weighs about the same as a sleeping cat. You are never taking it off.' : 'Back in the wardrobe.', 'good', 3200); }
 async function minibar() { const v = await choose('Minibar', [{ label: 'Sparkling water · $4', value: ['water', 4, { energy: 3, fun: 1 }] }, { label: 'Dark chocolate · $5', value: ['chocolate', 5, { hunger: 6, fun: 7 }] }, { label: 'Salted cashews · $6', value: ['cashews', 6, { hunger: 12, fun: 2 }] }, { label: 'Close it', value: null }], { text: 'Tiny bottles, enormous prices. It was ever thus.' }); if (!v) return; if (!pay(v[1], 'Minibar', 'dish')) return; for (const k in v[2]) add(k, v[2][k]); bubble(G.player, pick(['*crack, fizz*', 'Mmm.', 'Worth it.']), 1600); }
-function view(tier) { const n = G.now(), bay = tier !== 'classic', nt = n.hf >= 20 || n.hf < 6; add('fun', 3); if (bay) moodlet('bay_view'); toast(bay ? (nt ? 'The bay at night: the lighthouse counting to three, the ferris wheel, a late ferry dragging its lights across the water.' : 'The whole bay, from the cranes to the lighthouse, and gulls turning below your window.') : nt ? 'Harbor Street from seven floors up: taxi roofs, the lit canopy, the last tram sliding by.' : 'Harbor Street, the viaduct, and a slice of bay between two towers.', 'good', 4800); }
+function view(tier) { const n = G.now(), bay = tier !== 'classic', nt = n.hf >= 20 || n.hf < 6; add('fun', 3); if (bay) moodlet('bay_view'); toast(bay ? (nt ? 'The bay at night: the lighthouse counting to three, the ferris wheel, a late ferry dragging its lights across the water.' : 'The whole bay, from the cranes to the lighthouse, and gulls turning below your window.') : nt ? 'Harbor Boulevard from seven floors up: taxi roofs, the lit canopy, the last tram sliding by.' : 'Harbor Boulevard, the viaduct, and a slice of bay between two towers.', 'good', 4800); }
 
 /* ---------- Odile's opportunity: the three burgundy suitcases ---------- */
 const GOAL = 'hotel_cases';
@@ -427,7 +428,7 @@ const goalText = () => { const c = st().chain, n = Object.keys(c.got).length; re
 function setGoal() { const c = st().chain; if (!G.goals) return; if (c.st === 1 || c.st === 2) { const g = G.goals.get(GOAL); if (g) { g.text = goalText(); G.emit('goals:change'); } else safe(() => G.goals.add({ id: GOAL, text: goalText(), group: 'opportunity', placeId: 'hotel', hint: 'Three identical burgundy suitcases left the Grand Maple with the wrong luggage: one went to Central Station, one out to the airport kerb, one to a taxi stand across town. Each has a brass hotel tag and glows softly. Tie a label on each, then tell Odile the concierge.' })); } else if (c.st === 3) safe(() => { if (G.goals.get(GOAL) && !G.goals.isDone(GOAL)) G.goals.complete(GOAL); }); }
 function takeCase(i) {
   const c = st().chain, d = CASES[i]; if (G.busy || !d || c.got[i]) return false;
-  if (c.st !== 1) { toast('A burgundy suitcase with a brass GRAND MAPLE tag, quite alone. Somebody at the hotel on Harbor Street must be frantic.', 'info', 4600); return false; }
+  if (c.st !== 1) { toast('A burgundy suitcase with a brass GRAND MAPLE tag, quite alone. Somebody at the hotel on Harbor Boulevard must be frantic.', 'info', 4600); return false; }
   G.startActivity({ label: 'Checking the suitcase', anim: 'work', minutes: 5, rate: 2, done: () => { c.got[i] = 1; const n = Object.keys(c.got).length; if (n >= 3) c.st = 2; if (cases[i] && cases[i].ob) cases[i].ob.hidden = true; setGoal(); G.emit('hotel:case', i, n); if (n >= 3) G.emit('hotel:chain', 2); say([{ who: d.short, text: d.found }]).then(() => toast(`Labelled for collection: the hotel van will fetch it (${n}/3).${n >= 3 ? ' That is all three. Back to Odile.' : ''}`, 'good', 4600)); } }); return true;
 }
 function talkChain() {

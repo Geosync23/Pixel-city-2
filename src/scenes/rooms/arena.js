@@ -122,7 +122,7 @@ defineRoom({ id: 'arena:backstage', name: 'Otters Locker Corridor', w: BW, d: BD
     const coach = mkc(Object.assign({}, P.staff[4], { top: 'suit', topColor: '#33303f', innerColor: '#f4f0e8', accent: TEAM.c, hat: null, hair: 'bob', hairColor: '#a9a9b4' }), 15.2, 2.4, 3, 'Coach Delacroix', c => AR() && AR().talkCoach(c)); coach.pose = 'read';
     const priya = mkc(Object.assign({}, P.adult[9], { top: 'hoodie', topColor: TEAM.c, hat: null }), 16.4, 5.3, 0, 'Priya (usually Ollie)', c => AR() && AR().talkPriya(c));
     const seats = [[2.5, 2.75], [4.5, 2.75], [9.5, 2.75], [11.5, 2.75]], players = [];
-    const pspec = p => { const A = AR(); return A ? A.playerSpec(p, true) : P.adult[0]; };
+    const pspec = p => { const A = AR(); return A ? A.playerSpec(p, TEAM) : P.adult[0]; };
     ROSTER.forEach((p, i) => { const s = i < 4 ? seats[i] : null, c = mkc(pspec(p), s ? s[0] : 5.6 + (i - 4) * 1.3, s ? s[1] : 4.6 + (i % 2) * .6, s ? 1 : i % 2 ? 3 : 1, '#' + p.num + ' ' + p.name, ch => AR() && AR().talkPlayer(p, ch, sc)); if (s) { c.z = .48; c.poseOpts = { seated: true }; c.pose = 'sit'; } c.pid = p.id; players.push(c); });
     let tick = 0;
     function sync() { const a = AR(), st = a ? a.now() : { ph: 'none' }, game = st.ev && st.ev.kind === 'game', onCourt = game && (st.ph === 'intro' || st.ph === 'live' || st.ph === 'final'), here = game && (st.ph === 'doors' || st.ph === 'exit');

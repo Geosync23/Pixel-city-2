@@ -18,6 +18,8 @@ import { crowd, walkers } from './_show_life.js';
 import { specs } from './_airport_life.js';
 import { registerInfo } from './unique_rooms.js';
 import { wallTank, bigTank, Critter } from './aquarium_life.js';
+import { caustics } from './aquarium_life2.js';
+import './aquarium_turtles.js';
 import { AQ_VENUES, AQ_HOURS, SHOWS, SPECIES, LATE, SLEEPOVER, PENGUINS } from '../../data/aquarium.js';
 import './aquarium_deep.js';
 
@@ -62,12 +64,12 @@ function build() {
   A('board', 14.3, 21.9, { kind: 'shows' }); A('quiz', 14.2, 8.2); A('photospot', 24, 21.7, { k: 'jaws' }, { spot: 'jaws' });
   A('bench', 19.2, 16.7, {}, { kind: 'dive' }); A('bench', 21.7, 16.7, {}, { kind: 'dive' });
   A('board', 15.6, 14.2, { kind: 'plaque' }, { plaque: 1 });
-  A('plant', 14, 23, { seed: 2 }); A('plant', 26.6, 23, { seed: 5 }); A('plant', 26.6, 7.6, { seed: 3 });
+  A('plant', 14, 23, { seed: 2 }); A('plant', 26.6, 23, { seed: 5 }); A('plant', 26.5, 10.2, { seed: 3 });
   S(17.3, 14.8, 0, { age: 'kid', label: 'Toddler', lines: LINES.toddler, p: .8 }); S(23.7, 12.4, 2, { age: 'kid', label: 'Toddler', lines: LINES.toddler, p: .6 }); S(17.6, 12, 0, { anim: 'phone', p: .5 }); S(23.6, 15, 2, { busy: 1 }); S(20.6, 18.4, 3, { busy: 1 }); S(18.4, 18.6, 3, { busy: 1, age: 'elder' });
   // ---- Local Waters
   A('touchpool', 3.5, 6, { w: 5, d: 3 }); S(9, 7.4, 2, { kind: 'staff', label: 'Touch pool guide', lines: LINES.touch });
   [['rockfish', 1.6], ['greenling', 4], ['perch', 6.6], ['garibaldi', 9], ['eel', 11.2]].forEach(([sp, x]) => A('plaque', x, 1, {}, { sp }));
-  A('plaque', .3, 10, { c: '#17666f' }, { flip: true, sp: 'seal' }); A('plaque', 8.7, 9.3, { c: '#17666f' }, { sp: 'sunstar' });
+  A('plaque', .3, 10, { c: '#17666f' }, { flip: true, sp: 'seal' }); A('plaque', 8.7, 9.3, { c: '#17666f' }, { sps: ['sunstar', 'urchin', 'anemone', 'crab'] });
   A('bench', 5, 3.5, { c: '#f0735a' }, { sketch: 1 }); A('bench', 2.2, 3.4, {}, { flip: true, kind: 'seal' }); A('board', 10.4, 12.6, { kind: 'sketch' }, { sketchboard: 1 });
   Wl('door', 'x', 11.3, { name: 'STAFF' }); A('plant', .4, 14.2, { seed: 4 }); A('plant', 12.2, .5, { seed: 1 });
   S(2.8, 2.1, 3, { age: 'kid', label: 'Toddler', lines: LINES.toddler, p: .7 }); S(7.6, 2.2, 3, { p: .6 }); S(1.3, 6.8, 2, { age: 'kid', label: 'Kid', lines: LINES.kid, p: .6 }); S(6, 9.6, 3, { age: 'kid', label: 'Kid', lines: LINES.kid, anim: 'work', p: .7 }); S(4.4, 9.6, 3, { busy: 1 }); S(8, 5.4, 1, { busy: 1, age: 'kid', lines: LINES.kid });
@@ -77,7 +79,9 @@ function build() {
   S(19.8, 5.2, 3, { age: 'kid', label: 'Toddler', lines: LINES.toddler, p: .8 }); S(23.6, 5.3, 3, { busy: 1 }); S(21, 5.2, 3, { busy: 1, age: 'kid', lines: LINES.kid });
   // ---- Tropical Reef
   A('lagoon', 29.5, 5, { w: 7, d: 4 }); A('feeder', 29.6, 9.3); S(37.3, 6.9, 2, { kind: 'staff', label: 'Ray Bay keeper', lines: LINES.rays });
-  [['tang', 29.6], ['ytang', 32.2], ['butterfly', 34.8], ['clown', 37.2]].forEach(([sp, x]) => A('plaque', x, 1, { c: '#b8503a' }, { sp }));
+  [[['tang', 'ytang', 'parrot'], 30], [['butterfly', 'clown'], 33.4], [['lionfish'], 36.8]].forEach(([sps, x]) => A('plaque', x, 1, { c: '#b8503a' }, { sps }));
+  A('plaque', 30.8, 12.9, { c: '#b8503a' }, { sps: ['puffer', 'moray', 'shrimp'] }); A('plaque', 39.2, 12.9, { c: '#b8503a' }, { sps: ['gardeneel', 'cuttle'] });
+  A('stairs', 25.4, 11.4, { name: 'TURTLES' }, { to: 'turtles' });
   A('coltank', 38.3, 3.6, { k: 0 }, { anim: 1 }); A('plaque', 37.6, 5.2, { c: '#b8503a' }, { sp: 'seahorse' }); A('plaque', 33, 9.15, { c: '#b8503a' }, { sp: 'ray' });
   A('stairs', 37.6, 9.7, { name: 'THE DEEP' }, { to: 'deep' }); A('tankwall', 31.5, 11.6, { w: 7.5, h: 2.5 });
   S(31, 2.2, 3, { age: 'kid', label: 'Toddler', lines: LINES.toddler, p: .7 }); S(35.8, 2.3, 3, { p: .6, anim: 'phone' }); S(31.4, 9.6, 3, { busy: 1, age: 'kid', lines: LINES.kid }); S(35, 9.7, 3, { busy: 1 });
@@ -87,20 +91,20 @@ function build() {
   A('stairs', 37.5, 21.6, { name: 'DECK', up: 1 }, { to: 'deck' }); A('plant', 39, 13.6, { seed: 6 });
   S(34.4, 13.7, 3, { age: 'kid', label: 'Toddler', lines: LINES.toddler, p: .6 });
   // ---- Tide & Trinket
-  A('shelf', 1, 15.6, { kind: 'plush', w: 3 }); A('shelf', 4.4, 15.6, { kind: 'mugs', w: 3 }); A('shelf', 7.8, 15.6, { kind: 'books', w: 3 }); A('plushbin', 7, 19.4); A('plushbin', 3.4, 18.4);
+  A('shelf', 1, 15.6, { kind: 'plush', w: 3 }); A('shelf', 4.4, 15.6, { kind: 'mugs', w: 3 }); A('shelf', 7.8, 15.6, { kind: 'books', w: 3 }); A('plushbin', 7, 19.4); A('plushbin', 10.4, 18);
   A('desk', 2, 21, { kind: 'shop', w: 3 }, { tags: ['aqua_shop'], venue: AQ_VENUES.shop, label: 'Tide & Trinket: browse' }); S(3.5, 20.55, 1, { kind: 'staff', label: 'Tide & Trinket', lines: LINES.shop });
   A('stairs', 10.6, 21.6, { name: 'THE DEEP' }, { to: 'deep2' }); S(8.6, 17, 3, { p: .5 }); S(5.6, 17, 3, { busy: 1, age: 'kid', lines: LINES.kid });
 }
 build();
 
-const N = { e0: [20.5, 23], e1: [20.5, 20.9], hw: [15.2, 18.2], hnw: [15.6, 9.6], hne: [25.6, 9.4], he: [25.4, 17.6], hs: [20.4, 18.6],
+const N = { e0: [20.5, 23], e1: [20.5, 20.9], hw: [15.2, 18.2], hnw: [15.6, 9.6], hne: [24.6, 9.4], he: [24.6, 17.6], hs: [20.4, 18.6],
   l0: [12.6, 11], l1: [10.6, 10.6], l2: [10.6, 2.5], l3: [8.2, 2.5], l4: [3.6, 2.5], l5: [1.5, 2.8], l6: [1.5, 7.4], l7: [2.6, 10.6], l8: [6.4, 10.6],
   c1: [15.6, 7], c2: [19.6, 7.4], c3: [23.6, 7.2], r0: [28.7, 7], r1: [28.8, 2.6], r2: [33.2, 2.6], r3: [37, 2.8], r4: [37, 4.3], r5: [33, 4.3], r6: [28.8, 10.4], r7: [34.4, 10.4],
-  k0: [26.2, 18], k1: [28.8, 18.2], k2: [30.6, 16.2], k3: [31.9, 13.8], k4: [34.6, 13.8], s0: [15, 19.4], s1: [12, 19.4], s2: [9.4, 17.1], s3: [3.2, 17], s4: [5.4, 22.2] };
+  k0: [26.2, 18], k1: [28.8, 18.2], k2: [30.6, 16.2], k3: [31.9, 13.8], k4: [34.6, 13.8], s0: [15, 19.4], s1: [12, 19.4], s2: [9.4, 17.1], s3: [3.2, 17], s4: [6.2, 22.3] };
 const ROUTES = [
   ['e0', 'e1', 'hs*', 'hw', 'hnw', 'l0', 'l1', 'l2*', 'l3*', 'l4*', 'l5', 'l6*', 'l7', 'l8*', 'l1', 'l0', 'hnw', 'c1*', 'c2*', 'c3*', 'hne', 'he', 'e1', 'e0'],
   ['e0', 'e1', 'he', 'hne', 'r0', 'r1*', 'r2*', 'r3*', 'r4', 'r5*', 'r1', 'r0', 'r6', 'r7*', 'r6', 'r0', 'hne', 'c3*', 'c2*', 'c1*', 'hnw', 'hw', 'e1', 'e0'],
-  ['e0', 'e1', 'hs*', 'he', 'k0', 'k1', 'k2*', 'k3', 'k4*', 'k3', 'k2', 'k1', 'k0', 'e1', 'e0'],
+  ['e0', 'e1', 'hs*', 'he', 'k0', 'k1', 'k2*', 'k3', 'k4*', 'k3', 'k2', 'k1', 'k0', 'he', 'hs', 'e1', 'e0'],
   ['e0', 'e1', 'hw', 's0', 's1', 's2*', 's3*', 's4*', 's1', 's0', 'e1', 'e0'],
   ['e0', 'e1', 'hw', 'hnw', 'c1*', 'c2*', 'hnw', 'l0', 'l1', 'l8*', 'l7', 'l6*', 'l5', 'l4*', 'l2*', 'l1', 'l0', 'hnw', 'hw', 'hs*', 'e1', 'e0'],
 ];
@@ -130,7 +134,9 @@ defineRoom({ id: 'aquarium', name: 'Maple Bay Aquarium', w: W, d: D, zoom: 0, mu
     for (let a = 0; a < 6.3; a += .2) { const x = O + BIG.x + Math.cos(a) * (BIG.r - .3), y = O + BIG.y + Math.sin(a) * (BIG.r - .3); Wd.block(x - .26, y - .26, x + .26, y + .26); } Wd.block(O + BIG.x - 1.6, O + BIG.y - 1.6, O + BIG.x + 1.6, O + BIG.y + 1.6);
     // ---- critters: penguins on the rock, rays in the lagoon, Finn
     const RX = O + 14.2, penguins = PENGUINS.map((name, i) => { const c = new Critter({ kind: 'penguin', x0: RX + .7, y0: O + 1.3, x1: RX + 12.3, y1: O + 4.3, z: .5, water: { x0: RX, y0: O + 3.25, x1: RX + 13, y1: O + 4.6, z: .36 } }); c.name = name; c.jx = (i - 2.5) * .5; c.jy = (i % 2) * .4; sc.ents.push(c); return c; });
-    const rays = [0, 1, 2, 3].map(i => { const c = new Critter({ kind: 'ray', x0: O + 30.2, y0: O + 5.7, x1: O + 35.8, y1: O + 8.3, z: .6 }); c.jx = (i - 1.5) * .5; c.jy = (i % 2) * .3 - .2; sc.ents.push(c); return c; });
+    const rays = [0, 1, 2, 3].map(i => { const c = new Critter({ kind: 'ray', x0: O + 30.2, y0: O + 5.7, x1: O + 35.8, y1: O + 8.3, z: .64 }); c.jx = (i - 1.5) * .5; c.jy = (i % 2) * .3 - .2; sc.ents.push(c); return c; });
+    const pup = new Critter({ kind: 'ray', x0: O + 4.2, y0: O + 6.7, x1: O + 7.8, y1: O + 8.3, z: .74, spd: .9 }); sc.ents.push(pup); const pupT = { x: 0, y: 0 };
+    const cst = [caustics({ x0: O + BIG.x - 4.5, y0: O + BIG.y - 4.5, x1: O + BIG.x + 4.5, y1: O + BIG.y + 4.5, ok: (x, y) => { const d = Math.hypot(x - O - BIG.x, y - O - BIG.y); return d > BIG.r + .1 && d < 4.4; }, col: '#ffffff90' }), caustics({ x0: O + 27.8, y0: O + .6, x1: O + 39.8, y1: O + 11.4, col: '#ffffff70' }), caustics({ x0: O + .6, y0: O + .6, x1: O + 12.8, y1: O + 5, col: '#bff8ff50' })]; for (const c of cst) sc.ents.push(c.ent);
     const mascot = new Critter({ kind: 'mascot', x0: O + 18.6, y0: O + 19.6, x1: O + 22.4, y1: O + 22, z: 0 }); sc.ents.push(mascot);
     sc.interactables.push({ ent: mascot, x: mascot.x, y: mascot.y, label: 'Finn the otter (high five!)', h: 1.4, hit: 9, range: 1.7, visible: () => !mascot.hidden, use: () => { mascot.wait = 4; mascot.tx = mascot.x; mascot.ty = mascot.y; mascot.waving = true; setTimeout(() => { mascot.waving = false; }, 2600); if (AS()) AS().highFive(mascot); } });
     // touch pool: four creatures around the rim
@@ -156,7 +162,7 @@ defineRoom({ id: 'aquarium', name: 'Maple Bay Aquarium', w: W, d: D, zoom: 0, mu
     // ---- shows: clock or forced
     const show = { penguin: false, rays: false, dive: false }, forced = {}, said = {}; let feedPoint = null, kt = 0, kx = 20.6, kdir = 1;
     const showOn = id => { if (forced[id] > 0) return true; const h = G.now().hf, sh = SHOWS.find(s => s.id === id); return !!sh && open && sh.at.some(t => h >= t && h < t + sh.dur); };
-    let view = null, open = null, tick = 0, ft = 0, fb = 0, lastT = 0, bz = null, stage = -1, lastFree = { x: O + 20.5, y: O + 22 }, nAd = -1, nSk = -1, hadPl = null, dim = false;
+    let view = null, open = null, tick = 0, ft = 0, fb = 0, lastT = 0, bz = null, stage = -1, lastFree = { x: O + 20.5, y: O + 22 }, night = null, nAd = -1, nSk = -1, hadPl = null, dim = false;
     const zoneAt = (x, y) => { for (const z of ZONES) if (x >= z.x0 && x < z.x1 && y >= z.y0 && y < z.y1) return z; return null; };
     const sync = () => {
       const n = G.now(), h = n.hf, isOpen = AS() ? AS().isOpen() : (h >= 9 && h < 18), late = AS() ? AS().lateNow() : false;
@@ -165,19 +171,20 @@ defineRoom({ id: 'aquarium', name: 'Maple Bay Aquarium', w: W, d: D, zoom: 0, mu
       const pl = !!(AS() && AS().chain().st >= 4); if (pl !== hadPl && plq) { hadPl = pl; plq.hidden = !pl; if (pl) Wd.block(plq.B[0], plq.B[1], plq.B[3], plq.B[4]); else Wd.free(plq.B[0], plq.B[1], plq.B[3], plq.B[4]); }
       const wkend = n.weekday >= 5, lvl = !isOpen ? 0 : late ? .55 : (h < 10 ? .3 : h < 12 ? .55 : h < 16 ? .72 : .45) + (wkend ? .22 : 0), busy = isOpen && (wkend ? h >= 10.5 : h >= 11 && h < 16) && !late;
       if (lvl !== sc.life.level || busy !== bz || isOpen !== open) { sc.life.level = lvl; bz = busy; open = isOpen; for (const c of cr.list) { const sp = c.spot, kid = sp.age === 'kid'; c.hidden = sp.kind === 'staff' ? !isOpen : !isOpen || (late && kid) || (sp.busy ? !busy || c.roll > lvl + .25 : c.roll > (sp.p !== undefined ? Math.min(sp.p, lvl + .15) + (lvl > .8 ? .2 : 0) : lvl)); } wk.setActive(!isOpen ? 0 : Math.round(4 + lvl * 15), !isOpen); aq.hidden = !isOpen; mascot.hidden = !isOpen || late || h > 17; }
-      dim = late || (AS() && AS().sleepoverNow());
+      dim = late || (AS() && AS().sleepoverNow()); const nt = h >= 19.5 || h < 6.5; if (nt !== night) { night = nt; for (const k in tanks) tanks[k].night(nt); big.night(nt); for (const pg of penguins) pg.spd = nt ? .15 : .7; }
       for (const id of ['penguin', 'rays', 'dive']) { const on = showOn(id); if (on !== show[id]) { show[id] = on; if (id === 'dive') { big.diver(on); if (on) { big.feed(40); if (Math.hypot(G.player.x - O - BIG.x, G.player.y - O - BIG.y) < 12) toast('A diver drops into the Big Blue in a column of bubbles. Wave from in front of the tank and see what happens.', 'good', 5200); } } if (id === 'penguin') { keeper.hidden = !on; kx = 20.6; if (on) bubble(keeper, 'Breakfast! Who is hungry? ...Everyone. As usual.', 4200); for (const pg of penguins) pg.target = on ? keeper : null; } if (id === 'rays') { tanks.reef.feed(20); if (on && zoneAt(G.player.x - O, G.player.y - O) && zoneAt(G.player.x - O, G.player.y - O).id === 'reef') toast('Ray Bay feeding time: the keeper has the bucket out. Take a cup from the dispenser, on the house.', 'good', 4800); } G.emit('aquarium:show', id, on); } }
       if (isOpen && !wkend && !late && !school.on && h >= 10 && h < 11.8 && school.day !== n.day) { school.day = n.day; startSchool(); }
       if (school.on && !school.leaving && (h >= 12.2 || !isOpen)) school.leaving = true;
       sc.life.open = isOpen;
     };
     sc.life = { crowd: cr, walkers: wk, count: () => cr.count() + wk.count() + (school.on ? 6 : 0), level: -1 };
-    sc.aq = { tanks, big, penguins, rays, keeper, aquarist: aq, mascot, show, school, startSchool, endSchool, sync, zoneAt: (x, y) => zoneAt(x, y), routes: ROUTES, nodes: N, force(id, sec = 60) { forced[id] = sec; sync(); return true; }, feedRays(x, y, sec) { feedPoint = { x, y }; for (const r of rays) r.target = feedPoint; setTimeout(() => { for (const r of rays) r.target = null; }, sec * 1000); }, feedPenguin(x) { const pg = penguins.reduce((a, b) => (Math.abs(a.x - x) < Math.abs(b.x - x) ? a : b)); const t = { x, y: O + 4.25 }; pg.target = t; pg.jx = 0; pg.jy = 0; setTimeout(() => { pg.target = show.penguin ? keeper : null; }, 7000); return pg; } };
+    sc.aq = { pup, tanks, big, penguins, rays, keeper, aquarist: aq, mascot, show, school, startSchool, endSchool, sync, zoneAt: (x, y) => zoneAt(x, y), routes: ROUTES, nodes: N, force(id, sec = 60) { forced[id] = sec; sync(); return true; }, feedRays(x, y, sec) { feedPoint = { x, y }; for (const r of rays) r.target = feedPoint; setTimeout(() => { for (const r of rays) r.target = null; }, sec * 1000); }, feedPenguin(x) { const pg = penguins.reduce((a, b) => (Math.abs(a.x - x) < Math.abs(b.x - x) ? a : b)); const t = { x, y: O + 4.25 }; pg.target = t; pg.jx = 0; pg.jy = 0; setTimeout(() => { pg.target = show.penguin ? keeper : null; }, 7000); return pg; } };
     sc.env = t => { const o = ambient(t, G.state.weather), a = o.amb === '#ffffff' ? o.amb : R.mix(o.amb, '#ffffff', .55); return dim ? { amb: R.mix(a, '#4a6ab0', .55), dark: .62, bg: Wd.bg, night: true } : { amb: a, dark: Math.min(.5, (o.dark || 0) * .5), bg: Wd.bg, night: o.night }; };
     sync();
     const u0 = sc.update; sc.update = (dt, gm) => {
       u0(dt, gm); cr.update(dt); wk.update(dt);
-      for (const k in tanks) tanks[k].update(dt); big.update(dt); for (let i = 0; i < penguins.length; i++) penguins[i].tick(dt); for (let i = 0; i < rays.length; i++) rays[i].tick(dt); if (!mascot.hidden) mascot.tick(dt);
+      const p0 = G.player; for (const k in tanks) tanks[k].tick(dt, p0); big.update(dt); for (const c of cst) c.update(dt);
+      { const near = p0.x > O + 2.4 && p0.x < O + 9.6 && p0.y > O + 4.9 && p0.y < O + 10.1; if (near) { pupT.x = p0.x; pupT.y = p0.y; pup.target = pupT; } else pup.target = null; pup.tick(dt); } for (let i = 0; i < penguins.length; i++) penguins[i].tick(dt); for (let i = 0; i < rays.length; i++) rays[i].tick(dt); if (!mascot.hidden) mascot.tick(dt);
       for (const k in forced) if (forced[k] > 0) forced[k] -= dt;
       if ((tick -= dt) <= 0) { tick = 1.2; sync(); }
       if ((ft += dt) > .4) { ft = 0; fb++; for (const o of anim) setP(o, { frame: fb % 2 }); }
@@ -213,15 +220,17 @@ registerInfo('Maple Bay Aquarium', {
 const only = fn => (fx, scene) => (scene.def && scene.def.showpiece === 'aquarium' ? fn(fx, scene) : null);
 const spName = sp => (SPECIES[sp] && SPECIES[sp].name) || 'the animal';
 export function init() {
-  registerFixture('aqua_plaque', only((fx, sc) => (fx.item.sp ? { label: 'Spot: ' + spName(fx.item.sp), hit: 10, h: 1, use: () => AS() && AS().spot(fx.item.sp, sc) } : null)));
-  registerFixture('aqua_bench', only((fx, sc) => (fx.item.sketch ? { label: 'Sit and sketch the kelp forest', hit: 12, use: () => AS() && AS().sketch(fx, sc) } : { label: { jelly: 'Sit and watch the jellies', dive: 'Sit and watch the Big Blue', penguin: 'Sit and watch the penguins', seal: 'Sit and watch the seals' }[fx.item.kind] || 'Sit a while', hit: 12, use: () => AS() && AS().sit(fx, sc, fx.item.kind) })));
+  registerFixture('aqua_plaque', only((fx, sc) => (fx.item.sps ? { label: 'Species plaque: ' + fx.item.sps.map(spName).join(', '), hit: 10, h: 1, use: () => AS() && AS().plaque(fx.item.sps, sc) } : fx.item.sp ? { label: 'Spot: ' + (fx.item.who ? fx.item.who + ', the ' + spName(fx.item.sp).toLowerCase() : spName(fx.item.sp)), hit: 10, h: 1, use: () => AS() && AS().spot(fx.item.sp, sc) } : null)));
+  registerFixture('aqua_lettuce', only((fx, sc) => ({ label: 'Hold out a lettuce leaf', hit: 12, h: .6, range: 1.3, use: () => AS() && AS().feedTurtle(sc) })));
+  registerFixture('aqua_touchpool', only((fx, sc) => ({ label: 'Tide-pool challenge', hit: 10, h: .9, range: 2.2, use: () => AS() && AS().touchGame(sc) })));
+  registerFixture('aqua_bench', only((fx, sc) => (fx.item.sketch ? { label: 'Sit and sketch the kelp forest', hit: 12, use: () => AS() && AS().sketch(fx, sc) } : { label: { turtle: 'Sit and watch the turtles', abyss: 'Sit in the dark', jelly: 'Sit and watch the jellies', dive: 'Sit and watch the Big Blue', penguin: 'Sit and watch the penguins', seal: 'Sit and watch the seals' }[fx.item.kind] || 'Sit a while', hit: 12, use: () => AS() && AS().sit(fx, sc, fx.item.kind) })));
   registerFixture('aqua_lagoon', only((fx, sc) => ({ label: 'Ray Bay: touch a ray', hit: 16, use: () => AS() && AS().touchRay(fx, sc) })));
   registerFixture('aqua_feeder', only((fx, sc) => ({ label: 'Feed the rays', hit: 12, use: () => AS() && AS().feedRays(fx, sc) })));
   registerFixture('aqua_penguins', only((fx, sc) => ({ label: 'Penguin Cove', hit: 20, h: 1.2, use: () => AS() && AS().penguins(sc) })));
   registerFixture('aqua_board', only((fx, sc) => { const k = fx.item.p.kind; return k === 'shows' ? { label: "Today's shows", hit: 14, use: () => AS() && AS().showsBoard() } : k === 'adopt' ? { label: 'Adopt a penguin', hit: 14, use: () => AS() && AS().adopt() } : k === 'sketch' ? { label: 'Visitor sketches', hit: 12, use: () => AS() && AS().lookBoard() } : k === 'chart' ? { label: 'Turtle chart', hit: 12, use: () => AS() && AS().chart() } : { label: 'Bronze plaque', hit: 10, visible: () => !fx.ob.hidden, use: () => AS() && AS().readPlaque() }; }));
   registerFixture('aqua_quiz', only(() => ({ label: 'Fish Detective quiz', hit: 12, use: () => AS() && AS().quiz() })));
   registerFixture('aqua_photo', only((fx, sc) => ({ label: 'Photo spot', hit: 12, h: fx.item.spot === 'jaws' ? 1.6 : .3, range: 1, use: () => AS() && AS().photo(fx.item.spot, sc) })));
-  registerFixture('aqua_stairs', only(fx => { const T = { deep: ['Stairs down to the Ocean Tunnel', 'int:aquarium:deep'], deep2: ['Stairs down to the Deep', 'int:aquarium:deep'], deck: ['Door to the Harbor Deck', 'int:aquarium:deck'], reef: ['Stairs up to the Tropical Reef', 'int:aquarium'], shop: ['Stairs up to the gift shop', 'int:aquarium'] }[fx.item.to]; return T ? { label: T[0], hit: 14, h: 1, range: 1.2, navTo: T[1], spot: { x: fx.x, y: fx.y + .1 }, use: () => AS() && AS().travel(fx.item.to) } : null; }));
+  registerFixture('aqua_stairs', only(fx => { const T = { deep: ['Stairs down to the Ocean Tunnel', 'int:aquarium:deep'], deep2: ['Stairs down to the Deep', 'int:aquarium:deep'], deck: ['Door to the Harbor Deck', 'int:aquarium:deck'], turtles: ['Stairs to the Turtle Lagoon', 'int:aquarium:turtles'], reef: ['Stairs up to the Tropical Reef', 'int:aquarium'], shop: ['Stairs up to the gift shop', 'int:aquarium'] }[fx.item.to]; return T ? { label: T[0], hit: 14, h: 1, range: 1.2, navTo: T[1], spot: { x: fx.x, y: fx.y + .1 }, use: () => AS() && AS().travel(fx.item.to) } : null; }));
   registerFixture('aqua_door', only(() => ({ label: 'Staff door: Behind the Scenes', hit: 12, navTo: 'int:aquarium:lab', use: () => AS() && AS().travel('lab') })));
   registerFixture('aqua_shop', only(fx => ({ label: fx.item.label, hit: 14, shop: fx.item.venue, use: () => G.shop && G.shop.open(fx.item.venue, { checkHours: true }) })));
   registerFixture('aqua_ticket', only(() => ({ label: 'Tickets, passes & shows', hit: 14, use: () => AS() && AS().desk() })));

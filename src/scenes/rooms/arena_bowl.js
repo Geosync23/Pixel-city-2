@@ -26,14 +26,15 @@ import { ARENA_VENUES, ARENA_HOURS, TEAM, ROSTER, TUNE, gameAt, LINES, CHANTS, A
 
 const O = 1, pick = a => a[Math.floor(Math.random() * a.length)], h2 = R.hash2, clamp = (v, a, b) => Math.max(a, Math.min(b, v)), ease = t => t * t * (3 - 2 * t), lerp = (a, b, t) => a + (b - a) * t;
 const AR = () => G.arena, safe = fn => { try { return fn(); } catch (e) { return undefined; } };
-const W = BOWL.W, D = BOWL.D, ROWN = 'ABCDEFGH';
+const W = BOWL.W, D = BOWL.D, ROWN = 'ABCDEFGHIJ';
 export const BOWL_ENTRY = { x: 15.6, y: 21.6 };
 
 /* ---------- seats (room coordinates) ---------- */
 export const SEATS = [];
 for (const st of STANDS) { const xs = seatXs(st.len, st.aisles); for (let k = 0; k < st.rows; k++) { const g = rowGeo(st, k), cr = st.face === 3 ? .3 : .27;
   xs.forEach((a, i) => { const x = st.axis === 'x' ? st.x0 + a : g.o + cr, y = st.axis === 'x' ? g.o + cr : st.y0 + a, tier = st.id[0] === 'S' ? 'lower' : k < 5 ? 'lower' : 'nose';
-    SEATS.push({ id: st.id + k + '_' + i, st: st.id, k, i, a, x, y, z: g.z + .2, dir: st.face, tier, label: `Section ${st.sec}${st.id === 'S2' ? 'B' : ''}, Row ${ROWN[k]}, Seat ${i + 1}`,
+    SEATS.push({ id: st.id + k + '_' + i, st: st.id, k, i, a, x, y, z: g.z + .2, dir: st.face, tier, nt: (st.id === 'S' && x < 7.3) || (st.id === 'S2' && x > 27.2), // nt: the walk-up spot is boxed in, never sold to the player
+      label: `Section ${st.sec}${st.id === 'S2' ? 'B' : ''}, Row ${ROWN[k]}, Seat ${i + 1}`,
       spot: st.id === 'N' ? { x, y: 7.25 } : st.id === 'W' ? { x: 7.25, y } : { x, y: 18.2 } }); }); } }
 const CHAIRS = [{ x: 9.5, y: 17, n: 9, rev: 1 }, { x: 17, y: 17, n: 9, rev: 1 }, { x: 25.5, y: 9, n: 6, rev: 1, flip: 1 }, { x: 25.5, y: 13, n: 6, rev: 1, flip: 1 }];
 CHAIRS.forEach((c, ci) => { for (let i = 0; i < c.n; i++) { const x = c.flip ? c.x + .25 : c.x + i * .6 + .3, y = c.flip ? c.y + i * .6 + .3 : c.y + .25; SEATS.push({ id: 'C' + ci + '_' + i, st: 'C' + ci, k: 0, i, x, y, z: .42, dir: c.flip ? 2 : 3, tier: 'court', label: `Courtside ${c.flip ? 'East' : 'South'}, Seat ${ci * 10 + i + 1}`, spot: c.flip ? { x: c.x - .35, y } : { x, y: c.y - .35 } }); } });
@@ -127,7 +128,7 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
       const x = r.ctx; x.clearRect(0, 0, r.cv.width, r.cv.height); let any = false; const axX = r.axis === 'x', N = r.fans.length;
       for (let n = 0; n < N; n++) { const f = r.fans[n], s = fanAt(f, w); if (s < 0) continue; any = true;
         let a = f.a, anim, dir = r.dir, seated = !r.floor, cr = r.cross + (f.cx || 0);
-        if (s < 2) { let e = r.entry[0]; for (const q of r.entry) if (Math.abs(q - f.a) < Math.abs(e - f.a)) e = q; if (r.floor) { e = f.a; cr = r.cross + (1 - s) * (9 - r.k * .5); } a = lerp(e, f.a, s); anim = 'walk'; seated = false; const fwd = (f.a > e) === (w < f.ta + WALK + .01); dir = r.floor ? (w < f.ta + WALK + .01 ? 2 : 0) : axX ? (fwd ? 0 : 2) : (fwd ? 1 : 3); }
+        if (s < 2) { let e = f.a; if (r.floor) cr = r.cross + (1 - s) * (9 - r.k * .5); else { e = r.entry[0]; for (const q of r.entry) if (Math.abs(q - f.a) < Math.abs(e - f.a)) e = q; } a = lerp(e, f.a, s); anim = 'walk'; seated = false; const fwd = (f.a > e) === (w < f.ta + WALK + .01); dir = r.floor ? (w < f.ta + WALK + .01 ? 2 : 0) : axX ? (fwd ? 0 : 2) : (fwd ? 1 : 3); }
         else { anim = fanAnim(f, tr, true, seated); if (anim === 'CHEER') { anim = 'cheer'; seated = false; } }
         const nf = A_.ANIMS[anim] || 1, fr = Math.floor(tr * (FPS[anim] || 4) + f.ph * 9) % nf, sp = charSprite(f.key, f.spec, anim, fr, dir, seated ? PO_SEAT : null);
         const sx = axX ? (a - cr) * 16 : (cr - a) * 16, sy = (a + cr) * 8 - (seated ? 3 : 0);
@@ -394,7 +395,7 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
       // camera: from your seat, look toward the action
       if (st_.mine) { const fx = ev && ev.kind === 'concert' ? O + 12 : ev && !ball.hidden ? ball.x : O + C.cx, fy = ev && !ball.hidden ? ball.y : O + C.cy, p = G.player, k = st_.mine.tier === 'nose' ? .52 : st_.mine.tier === 'court' ? .7 : .62, tx = lerp(p.x, fx, k), ty = lerp(p.y, fy, k), tz = lerp(p.z, 2.2, k); cam.x += (tx - cam.x) * Math.min(1, dt * 2.2); cam.y += (ty - cam.y) * Math.min(1, dt * 2.2); cam.z += (tz - cam.z) * Math.min(1, dt * 2.2); }
       // foam finger
-      const p = G.player, hasF = AR() && AR().hasFoam(); foam.hidden = !hasF || p.hidden || G.scene !== sc; if (!foam.hidden) { foam.x = p.x; foam.y = p.y; foam.z = p.z + (p.pose === 'sit' || p.pose === 'cheer' && p.poseOpts ? .55 : .8); foam.up = p.pose === 'cheer' || p.pose === 'wave' || p.pose === 'dance'; }
+      const p = G.player, hasF = AR() && AR().hasFoam(); foam.hidden = !hasF || p.hidden || G.scene !== sc; if (!foam.hidden) { foam.x = p.x; foam.y = p.y; foam.z = p.z + (p.poseOpts ? .35 : .6); foam.up = p.pose === 'cheer' || p.pose === 'wave' || p.pose === 'dance'; }
       // keep people off the floor during a show (the court is also taken out of the nav grid so paths go round it)
       { const blk = !!(ev && ph !== 'none' && ph !== 'exit' && ev.kind !== 'concert' && !st_.pass); if (blk !== courtBlk) { courtBlk = blk; if (blk) Wd.block(O + C.x0, O + C.y0, O + C.x1, O + C.y1); else Wd.free(O + C.x0, O + C.y0, O + C.x1, O + C.y1); } }
       const rx = p.x - O, ry = p.y - O, onFloor = rx > C.x0 - .2 && rx < C.x1 + .2 && ry > C.y0 - .2 && ry < C.y1 + .2, live = ev && ph !== 'none' && ph !== 'exit', may = !live || st_.pass || (ev.kind === 'concert' && AR() && AR().floorOk(ev) && rx > 13.2);

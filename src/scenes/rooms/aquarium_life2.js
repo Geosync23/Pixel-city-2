@@ -35,7 +35,7 @@ export class Turtle extends Swimmer {
   constructor(o) { super(o); Object.assign(this, { name: o.name, surf: o.surf || 3.3, rests: o.rests || [], w: o.w || { breathe: 40, rest: 70, visit: 50 }, glass: o.glass || null }); this.st = 'glide'; this.tb = rnd(.3, 1) * this.w.breathe; this.tr = rnd(.3, 1) * this.w.rest; this.tv = rnd(.3, 1) * this.w.visit; this.hold = 0; this.fr0 = this.fr; this.rip = 0; this.sleep = false; this.food = null; }
   tick(dt, player) {
     if (this.rip > 0) this.rip -= dt;
-    if (this.food) { this._tgt = this.food; this.st = 'food'; this.fr = this.fr0; super.tick(dt); return; } if (this.st === 'food') { this.st = 'glide'; this._tgt = null; }
+    if (this.food) { this._tgt = [this.food.x, this.food.y, this.food.z]; this.st = 'food'; this.fr = this.fr0; super.tick(dt); return; } if (this.st === 'food') { this.st = 'glide'; this._tgt = null; }
     if (this.sleep && this.st !== 'rest') { this.st = 'rest'; const r = this.rests[0] || [this.x, this.y]; this._tgt = [r[0], r[1], .14]; this.hold = 1e9; }
     if (!this.sleep && this.st === 'rest' && this.hold > 1e8) this.hold = 2;
     if (this.st === 'glide') { this.fr = this.fr0; this._tgt = null; this.tb -= dt; this.tr -= dt; this.tv -= dt;

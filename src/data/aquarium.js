@@ -27,11 +27,11 @@ mood('jelly_calm', { name: 'Jellyfish Calm', desc: 'You watched the jellies puls
 mood('shark_sleeper', { name: 'Slept with the Sharks', desc: 'A night in a sleeping bag under the tunnel. You dreamt in blue.', mood: 9, minutes: 600 });
 
 export const SHOWS = [
-  { id: 'penguin', name: 'Penguin Feeding', at: [11.5, 15.5], dur: .5, room: 'aquarium', where: 'Penguin Cove' },
+  { id: 'penguin', name: 'Penguin Feeding', at: [11.5, 15.5], dur: .6, room: 'aquarium', where: 'Penguin Cove' },
   { id: 'rays', name: 'Ray Bay Feeding', at: [12.25], dur: .5, room: 'aquarium', where: 'Ray Bay, Tropical Reef' },
-  { id: 'otter', name: 'Sea Otter Feeding & Keeper Talk', at: [13, 16.5], dur: .5, room: 'aquarium:deck', where: 'Harbor Deck' },
-  { id: 'dive', name: 'Dive Show in the Big Blue', at: [14], dur: .5, room: 'aquarium', where: 'the Big Blue tank, main hall' },  { id: 'turtle', name: 'Turtle Feeding & Keeper Talk', at: [10.75, 15], dur: .5, room: 'aquarium:turtles', where: 'Turtle Lagoon' },
-  { id: 'octo', name: 'Meet the Octopus', at: [12], dur: .4, room: 'aquarium:deep', where: 'the octopus den, the Abyss' },
+  { id: 'otter', name: 'Sea Otter Feeding & Keeper Talk', at: [13, 16.5], dur: .75, room: 'aquarium:deck', where: 'Harbor Deck' },
+  { id: 'dive', name: 'Dive Show in the Big Blue', at: [14], dur: .6, room: 'aquarium', where: 'the Big Blue tank, main hall' },  { id: 'turtle', name: 'Turtle Feeding & Keeper Talk', at: [10.75, 15], dur: .75, room: 'aquarium:turtles', where: 'Turtle Lagoon' },
+  { id: 'octo', name: 'Meet the Octopus', at: [12], dur: .6, room: 'aquarium:deep', where: 'the octopus den, the Abyss' },
 ];
 export const ZONES = { local: { name: 'Local Waters', need: 6 }, reef: { name: 'Tropical Reef', need: 8 }, turtles: { name: 'Turtle Lagoon', need: 4 }, tunnel: { name: 'Ocean Tunnel', need: 6 }, jelly: { name: 'Jellyfish Gallery', need: 4 }, abyss: { name: 'The Abyss', need: 5 }, coast: { name: 'Coast & Cove', need: 2 } };
 // the four residents of the Turtle Lagoon (sprite key = species id)

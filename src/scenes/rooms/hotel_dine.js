@@ -36,7 +36,7 @@ const DLINES = {
   H('bstation', 15.4, 2.6, { k: 'mimosa' }, { k: 'mimosa', station: 1 });
   let ti = 0; for (const y of [3.5, 7.5, 11.5]) for (const x of [1, 5, 9, 13]) { const mine = x === 9 && y === 7.5; H('dtable', x, y, { n: mine ? 2 : (ti % 3 === 1 ? 2 : 4), centre: 'candle' }, { table: 1, mine: mine ? 1 : 0, ti: ti++ }); }
   H('desk', 18.6, 11.6, { kind: 'host', w: 1.8 }, { host: 1 }); H('board', 19.4, 14.3, { w: 3, lines: ['THE GILDED', 'MAPLE'] }, { board: 1 });
-  H('chandelier', 5.8, 5, { r: .8 }, { z: 3 }); H('chandelier', 13, 9, { r: .8 }, { z: 3 }); H('palm', .6, 15, { seed: 2 }); H('palm', 22.8, .8, { seed: 7 }); H('palm', 17.2, 15, { seed: 3 });
+  H('chandelier', 5.8, 5, { r: .8 }, { z: 3.7 }); H('chandelier', 13, 9, { r: .8 }, { z: 3.7 }); H('palm', .6, 15, { seed: 2 }); H('palm', 22.8, .8, { seed: 7 }); H('palm', 17.2, 15, { seed: 3 });
   S(19.5, 11.15, 1, { kind: 'staff', label: 'Laurent, the maitre d\'', lines: DLINES.host });
   defineRoom({ id: HR.rest, name: REST_NAME, w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', floor: GT.f_darkwood, bg: '#181420', edge: '#4a3c34', wall: { color: '#e4d2b4', trim: '#6a4430', h: 4 },
     exits: [{ x: 22.6, y: 14.9, label: 'Back to the lobby', to: 'int:' + HR.lobby, use: () => G.go('int:' + HR.lobby, LOBBY_AT.rest) }], spawn: { x: 21.8, y: 13.6, dir: 2 }, items, npcSpots: spots,
@@ -68,13 +68,13 @@ const DLINES = {
       const paint = t => setP(t.ob, { serve: t.serve.slice(), centre: M === 'tea' && t.serve.length ? 'tea' : M === 'dinner' ? 'candle' : M === 'tea' ? 'none' : 'flowers' });
       sc.life = { crowd: cr, count: () => cr.count() + waiters.filter(w => !w.hidden).length };
       sc.hot = { sync, meal: () => M, tables, waiters, stations, mine,
-        mySeat() { const s = mine.fx.seats[0]; return { x: s.x, y: s.y, z: s.z, dir: s.dir }; },
+        mySeat() { const s = mine.fx.seats[1]; return { x: s.x, y: s.y, z: s.z, dir: s.dir }; },
         serveMe(col, cb) { myJob = { col, cb }; return true; }, myDone() { myJob = null; mine.serve = []; paint(mine); setP(mine.ob, { centre: M === 'dinner' ? 'candle' : 'flowers' }); } };
       sc.env = softEnv(Wd, .6, .5); sync();
       const u0 = sc.update; sc.update = (dt, gm) => {
         u0(dt, gm); cr.update(dt); if ((tick -= dt) <= 0) { tick = 1.5; sync(); }
         // the player's order jumps the queue
-        if (myJob && !myJob.sent) { const w = waiters.find(q => !q.task && !q.hidden) || waiters.find(q => !q.hidden && q.task && !q.task.mine); if (w) { if (w.task && w.task.t) w.task.t.busy = false; myJob.sent = true; const job = myJob; send(w, mine, () => { if (job.col === 'tea') { mine.serve = ['#f4e0b0']; setP(mine.ob, { serve: [], centre: 'tea' }); } else { mine.serve = job.col ? [job.col] : []; setP(mine.ob, { serve: mine.serve.slice(), centre: job.col === null && M !== 'dinner' ? 'none' : 'candle' }); } if (job.col) bubble(w, pick(['Enjoy.', 'Bon appetit.', 'Careful, the plate is warm.'])); if (myJob === job) myJob = null; if (job.cb) job.cb(); }); w.task.mine = true; } }
+        if (myJob && !myJob.sent) { const w = waiters.find(q => !q.task && !q.hidden) || waiters.find(q => !q.hidden && q.task && !q.task.mine); if (w) { if (w.task && w.task.t) w.task.t.busy = false; myJob.sent = true; const job = myJob; send(w, mine, () => { if (job.col === 'tea') { mine.serve = [0, '#f4e0b0']; setP(mine.ob, { serve: [], centre: 'tea' }); } else { mine.serve = job.col ? [0, job.col] : []; setP(mine.ob, { serve: mine.serve.slice(), centre: job.col === null && M !== 'dinner' ? 'none' : 'candle' }); } if (job.col) bubble(w, pick(['Enjoy.', 'Bon appetit.', 'Careful, the plate is warm.'])); if (myJob === job) myJob = null; if (job.cb) job.cb(); }); w.task.mine = true; } }
         for (const t of tables) { if (t.mine || t.busy || !M) continue; const act = t.chars.filter(c => !c.hidden); if (!act.length) continue; if ((t.t -= dt) > 0) continue;
           if (M === 'breakfast' || M === 'brunch') { if (!t.serve.length) { t.serve = t.chars.map(c => (c.hidden ? 0 : pick(FOOD.breakfast))); paint(t); for (const c of act) c.anims = ['eat', 'eat', 'drink', 'talk', 'sit']; } t.t = 20; continue; }
           const w = waiters.find(q => !q.task && !q.hidden); if (!w) { t.t = 2; continue; } t.busy = true;

@@ -1,7 +1,7 @@
 // Maple Bay Arena — canvas painters (no init): the jumbotron faces and the sprite helper used to paint whole rows of fans onto one canvas.
 //   JW x JH = one scoreboard face (96 x 48 px = 6 x 3 world units).  paintJumbo(ctx, s) draws it; s.mode:
 //     'idle' { l1, l2, clock }   'score' { home: {abbr, c, score}, away, q, clock (s), ball (0|1|-1), tick, to }   'intro' { num, name, pos }
-//     'replay' { pts, name, f, e (+1 east basket), from: [u, v] }   'fancam' { spr (char sprite), label, kiss }   'noise' { v 0..1 }
+//     'replay' { pts, name, f, e (+1 east basket), from: [u, v] }   'fancam' { spr (standing char sprite, or an array of frames), spr2, label, kiss }   'noise' { v 0..1 }
 //     'text' { lines: [..], c }   'concert' { act, song, c, c2, beat }   'show' { title, scene, kind }   'final' { home, away, won }   + s.t (real seconds) on all
 //   charSprite(key, spec, anim, frame, dir, opts) -> cached sprite { c, x, y, w, h }      ctxText(ctx, str, x, y, hex, scale, centre)
 import { pixSprite } from '../../engine/sprites.js';
@@ -42,7 +42,7 @@ export function paintJumbo(ctx, s) {
     R_(ctx, 0, 0, JW, JH, s.kiss ? '#3a1028' : '#101828'); const pulse = Math.floor(t * 4) % 2;
     if (s.kiss) for (const [hx, hy] of [[8, 8], [84, 10], [10, 34], [86, 32], [48, 4]]) { const c = pulse ? '#ff7aa8' : '#e84a88'; R_(ctx, hx, hy + 1, 5, 2, c); R_(ctx, hx + 1, hy, 1, 1, c); R_(ctx, hx + 3, hy, 1, 1, c); R_(ctx, hx + 1, hy + 3, 3, 1, c); R_(ctx, hx + 2, hy + 4, 1, 1, c); }
     R_(ctx, 26, 3, 44, 34, '#283858'); R_(ctx, 27, 4, 42, 32, s.kiss ? '#5a2848' : '#3a5078');
-    const draw = (sp, cx) => { if (sp && sp.c) ctx.drawImage(sp.c, 6, 4, 20, 22, cx - 20, 4 + (pulse && s.bounce ? -1 : 0), 40, 44 - 12); };
+    const fr = a => (Array.isArray(a) ? a[Math.floor(t * 5) % a.length] : a), draw = (sp, cx) => { sp = fr(sp); if (sp && sp.c) ctx.drawImage(sp.c, 7, 9, 20, 17, cx - 20, 4 + (pulse && s.bounce ? -2 : 0), 40, 34); };
     ctx.save(); ctx.beginPath(); ctx.rect(27, 4, 42, 32); ctx.clip(); if (s.spr2) { draw(s.spr, 39); draw(s.spr2, 57); } else draw(s.spr, 48); ctx.restore();
     R_(ctx, 0, 39, JW, 9, '#12141c'); ctxText(ctx, s.label || (s.kiss ? 'KISS CAM' : 'FAN CAM'), JW / 2, 41, s.kiss ? '#ff9ac0' : GOLD, 1, true); if (pulse) { R_(ctx, 3, 3, 3, 3, '#ff3a2a'); ctxText(ctx, 'LIVE', 8, 2, CREAM); }
   } else if (m === 'noise') {

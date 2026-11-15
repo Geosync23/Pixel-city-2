@@ -25,7 +25,7 @@ const POOL = { x0: 2, y0: 7, x1: 14.6, y1: 12.6 }, WH = { x: 3.3, y: 3.1, r: 1.7
   H('sauna', 6.6, .2, { part: 'back' }, { sauna: 1 }); H('sauna', 6.48, .2, { part: 'side' }); H('sauna', 6.6, 2.5, { part: 'front' }); H('sauna', 9.8, .2, { part: 'glass' });
   H('bathwall', 10.6, .1, { d: 3.2 }); H('bathwall', 13.45, .1, { d: 3.2 }); H('massage', 11.1, .5, {}, { massage: 1 });
   H('furn.generic.lockers', 14.2, .15, {}, { locker: 1 }); H('furn.generic.lockers', 16.3, .15, {}, { locker: 1 }); H('furn.home.bath.shower', 18.7, .2, { tier: 2 }, { wash: 'shower' }); H('furn.home.bath.shower', 19.8, .2, { tier: 2 }, { wash: 'shower' });
-  Wl('lift', 'y', 21.2, { at: .33 }, { lift: 1 });
+  Wl('lift', 'y', 21.2, { at: .33 }, { lift: 1 }); Wl('furn.lobby.restroom', 'x', 14.6, { c: '#3f8a8a', dc: '#2f6a6a' });
   [2.4, 4.4, 6.4, 8.4, 10.4, 12.4].forEach((x, i) => H('lounger', x, 13.5, { c: i % 2 ? '#e8a23a' : '#3f8a8a' }, { lounger: 1 }));
   H('carpet', 16.2, 10.2, { w: 6.2, d: 3.6, c: '#2f6a6a', c2: '#f4ecd8' }); H('furn.lobby.settee', 16.6, 10.5, { c: '#e8dcc4', a: '#3f8a8a' }); H('furn.lobby.settee', 19.4, 10.5, { c: '#e8dcc4', a: '#3f8a8a' }); H('furn.cafe.lowtable', 18.4, 12.2, {}); H('bstation', 20.2, 4.2, { k: 'juice' }, { water: 1 });
   H('desk', 17, 6.6, { kind: 'spa', w: 2.6 }, { spa: 1 }); H('poolrail', 14.7, 9.5, {}, { flip: true });
@@ -107,7 +107,7 @@ function roomDef(arg) {
   // sitting corner + the room-service table
   if (ti === 0) { H('furn.cafe.armchair', 7.6, 3, { c: '#7a2030' }); H('tray', 7.7, 4.6, { empty: 1 }, { tray: 1 }); H('luggage', 4.4, 5.6, {}); }
   else if (ti === 1) { H('furn.lobby.settee', 8, 3.2, { c: '#22304e', a: '#e8c06a' }); H('tray', 8.5, 4.9, { empty: 1 }, { tray: 1 }); H('furn.cafe.armchair', 10.6, 4.4, { c: '#2f5a4a' }, { flip: true }); H('luggage', 4.6, 6.6, {}); }
-  else { H('furn.lobby.settee', 8.2, 3.4, { c: '#b8862e', a: '#f4ecd8', w: 3 }); H('tray', 9.2, 5.2, { empty: 1 }, { tray: 1 }); H('furn.cafe.armchair', 12, 4.6, { c: '#7a2030' }, { flip: true }); H('chandelier', 8.6, 4, { r: .6 }, { z: 1.6 }); H('luggage', 6.4, 7.6, {}); H('palm', 14, 7.8, { seed: 2 }); }
+  else { H('furn.lobby.settee', 8.2, 3.4, { c: '#b8862e', a: '#f4ecd8', w: 3 }); H('tray', 9.2, 5.2, { empty: 1 }, { tray: 1 }); H('furn.cafe.armchair', 12, 4.6, { c: '#7a2030' }, { flip: true }); H('chandelier', 8.6, 4, { r: .6 }, { z: 2.5 }); H('luggage', 6.4, 7.6, {}); H('palm', 14, 7.8, { seed: 2 }); }
   return { name: T.name + ' ' + T.no, w: W, d: D, tier: T.id, tierIndex: ti, zoom: 1, music: 'quiet', noCrowd: true, showpiece: 'hotel', guestRoom: true, floor: GT.f_wood, floors: [{ x0: 0, y0: by, x1: nw, y1: D, floor: GT.f_tile }], bg: '#14121c', edge: '#3a3038',
     wall: { color: ['#e8dcc4', '#dfe4e8', '#ead8c0'][ti], trim: '#6a4430', h: 3, rail: 1 }, exits: [{ x: W / 2 + 1.4, y: D - .5, label: 'Leave the room', to: 'int:' + HR.floor, use: () => HS() && HS().leaveRoom() }], spawn: { x: W / 2 + 1.4, y: D - 1.5, dir: 3 }, items, npcSpots: [] };
 }
