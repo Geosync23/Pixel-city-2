@@ -25,6 +25,7 @@ import { VENUE_BY_ID, isOpen, POIS } from '../data/venues.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { NEEDS, SKILLS, MOODLETS } from '../data/needs.js';
 import { registerFixture } from '../scenes/interior.js';
+import { U } from '../engine/raster.js';
 import { choose, toast, bubble, modal, el } from '../ui/kit.js';
 import { iconEl, weatherIcon } from '../ui/_icons.js';
 
@@ -526,7 +527,9 @@ export function init() {
     if (seen.has(fx)) return null; const tags = tagsFor(fx, scene); if (!tags.length) return null;
     const special = tags.some(x => ['fridge', 'pantry', 'stove', 'microwave', 'bed'].includes(x)); if (!special && !forTags(tags, scene).length) return null;
     seen.add(fx); const acts = forTags(tags, scene);
-    return { label: !special && acts.length === 1 ? acts[0].name : LABEL[tags[0]] || 'Use', act: true, use: () => menu({ fx, tags }) };
+    /* QA9: a bed is long and flat: its tap target covers the whole mattress (a tap on its far end found nothing, near the head the clothes rail won) */
+    const bedHit = tags.includes('bed') && fx.ob && fx.ob.B ? Math.max(12, Math.round(Math.max(fx.ob.B[3] - fx.ob.B[0], fx.ob.B[4] - fx.ob.B[1]) / 2 * U * 1.05 + 1)) : undefined;
+    return Object.assign({ label: !special && acts.length === 1 ? acts[0].name : LABEL[tags[0]] || 'Use', act: true, use: () => menu({ fx, tags }) }, bedHit ? { hit: bedHit } : null);
   });
   G.on('scene', s => { if (s && s.id === 'city') buildCity(s); })
   G.on('scene', s => { try { addSeats(s); } catch (e) { console.warn('seats: ' + e.message); } });

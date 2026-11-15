@@ -657,7 +657,7 @@ export const ACHIEVEMENTS = [
   { id: 'wheels_down',     name: 'Wheels Down',            desc: 'Arrive in Maple Bay.',                               when: 'intro_complete' },
   { id: 'keys',            name: 'Two Keys',               desc: 'Get the keys to your first apartment.',              when: 'entered_home' },
   { id: 'unpacked',        name: 'Out of the Box',         desc: 'Unpack your last moving box.',                       when: 'boxes_unpacked:3' },
-  { id: 'ketchup',         name: 'The Ketchup Packet',     desc: 'Open your empty fridge for the first time.',         when: 'fridge_opened' },
+  { id: 'ketchup',         name: "What's in the Fridge", desc: 'Open your fridge for the first time.',         when: 'fridge_opened' },
   { id: 'first_groceries', name: 'Eggs on Top',            desc: 'Carry groceries home without incident.',             when: 'fridge_stocked' },
   { id: 'first_meal',      name: 'Food-Shaped',            desc: 'Cook your first meal at home.',                      when: 'cooked_meal' },
   { id: 'five_recipes',    name: 'Recipe Box',             desc: 'Learn 5 recipes.',                                   when: 'recipes:5' },

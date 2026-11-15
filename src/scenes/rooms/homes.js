@@ -125,7 +125,7 @@ export const SHELLS = {
       fixed: [F('bath.mat', 4, 1), F('bath.sink', .5, 0), F('bath.toilet', 2, 0), WY('bath.towelrack', 3), F('bath.washer', 0, 2, FL(1)),
         WX('build.window', 3.5, Object.assign(VW('sea', 1.2, 1.5, { nx: 2, ny: 3, frame: '#3a3440', sill: false }), { mount: 1 })), F('plant.snake', 0, 4.5)], slots: { shower: [4, 0] } },
     boxes: [[6, 4], [7, 4.5], [5.5, 5.5], [8, 5.5], [6.5, 6.5], [7.5, 7]] },
-  // 12 Sycamore Street, Maplewood — 17 x 12 family house: kitchen-diner, fireplace lounge, a walled main bedroom, the stairs up,
+  // 38 Sycamore Street, Maplewood — 17 x 12 family house: kitchen-diner, fireplace lounge, a walled main bedroom, the stairs up,
   // and a real back garden behind a picket fence with a vegetable bed.
   sycamore_house: { v: 2, w: 17, d: 12, floor: GT.f_wood, wall: { color: '#f3e3b0', trim: '#8a5a3a', rail: 1 },
     floors: [{ x0: 0, y0: 0, x1: 6, y1: 4, floor: GT.f_check }, { x0: 12, y0: 0, x1: 17, y1: 5, floor: GT.f_carpet }, { x0: 12, y0: 8, x1: 17, y1: 12, floor: GT.grass }],
@@ -230,7 +230,7 @@ export function bathReturn(sh) { const b = sh.bathDoor; if (!b) return {}; const
 /** enter / leave a home's bathroom. mainId = 'home:<id>' room id */
 export function enterBath(mainId) { const rid = mainId + ':bath', def = ROOMS.get(rid); if (!def) return Promise.resolve(null); return G.go('int:' + rid, { fresh: !!def.build }); }
 export function leaveBath(mainId) { const def = ROOMS.get(mainId), sh = SHELLS[mainId.slice(5)] || STORY_HOMES[mainId] || {}; return G.go('int:' + mainId, Object.assign({ fresh: !!(def && def.build) }, bathReturn(sh))); }
-// 12 Sycamore Street's vegetable bed (perk home_garden): the world's `garden` activity, at home
+// 38 Sycamore Street's vegetable bed (perk home_garden): the world's `garden` activity, at home
 registerFixture('homegarden', (fx, scene) => (scene.def && scene.def.home && G.activities ? { label: 'Tend the garden bed', act: true, use: () => G.activities.start('garden', { fx }) } : null));
 registerFixture('bathdoor', (fx, scene) => (ROOMS.has(scene.roomId + ':bath') ? { label: 'Bathroom', h: 1.5, hit: 16, bathdoor: true, use: () => enterBath(scene.roomId) } : null));
 

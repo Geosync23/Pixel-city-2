@@ -163,7 +163,7 @@ export const PROGRESSION = [
     canAfford: ['down payment on The Marlowe ($1,800) or Cannery Row Loft ($2,600)', 'two or three tier-2 pieces', 'cozy_home ambience'],
     feeling: 'End of year one. Owning (or about to own) a place. Level 3 title.' },
   { week: 16, cashOnHand: [9000, 16000], jobLevel: 4,
-    canAfford: ['12 Sycamore Street down payment ($4,000) with comfortable payments', 'mostly tier-2 home'],
+    canAfford: ['38 Sycamore Street down payment ($4,000) with comfortable payments', 'mostly tier-2 home'],
     feeling: 'Top of a career. A house full of friends.' },
   { week: 32, cashOnHand: [20000, 40000], jobLevel: 4,
     canAfford: ['Villa Belvedere or The Beacon Penthouse on a 48-week mortgage'],

@@ -159,6 +159,7 @@ function dressHome(scene) {
   const rid = String(scene.roomId || '');
   if (rid === 'home:' + hid + ':bath' || rid === 'home:' + hid) {
     for (const it of scene.interactables) { if (!it.fx || !it.fx.tags || !it.fx.tags.includes('sink') || it._sup || !/^Wash/.test(it.label || '')) continue; it._sup = 1; const orig = it.use; it.label = 'Sink';
+      if (/:bath$/.test(rid) && scene.fixtures.some(f => f.tags.includes('shower') && f.ob && f.ob.size[2] > 1.2)) { it.z = (it.z || 0) + .95; it.h = .5; }   /* QA9: the tap point on the basin + mirror, above the shower curtain that hangs in front of it (taps on the curtain gave the sink) */
       it.use = (g, me) => choose('At the sink', [{ label: 'Wash your hands', sub: '1 min', value: 'w' }, { label: 'Brush your teeth', sub: left('toothpaste') >= 1 ? '3 min' : '3 min · no toothpaste left', value: 'b' }]).then(v => { if (v === 'w') return orig(g, me); if (v === 'b') brush(me); }); }
   }
   if (rid !== 'home:' + hid || scene._care) return; scene._care = 1;

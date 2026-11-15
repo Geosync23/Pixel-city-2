@@ -40,6 +40,7 @@
 import { G } from '../core/game.js';
 import { toast, el } from '../ui/kit.js';
 import { ROOMS } from '../scenes/interior.js';
+import { VENUE_BY_ID } from '../data/venues.js';
 import { cur as workCur, city as workCity } from './_jobs_work.js';
 import { SHOWS as AQ_SHOWS } from '../data/aquarium.js';
 
@@ -61,6 +62,12 @@ const FAMILY = [[/^cityhall(_|$)|^lobby:4$/, 'cityhall'], [/^hotel(_|$)/, 'hotel
 export function rootOf(rid) {
   if (!rid) return null; rid = String(rid).replace(/^int:/, ''); for (const f of FAMILY) if (f[0].test(rid)) return f[1];
   const p = rid.split(':'); return /^(home|pub|lobby|goods)$/.test(p[0]) ? p.slice(0, 2).join(':') : p[0];
+}
+/* QA9: the other rooms of one building (University: the Commons behind the Great Hall), for "where can I fix this?" (navigator.js) and the need resolver */
+let subN = -1; const subC = new Map();
+export function subRooms(rid) {
+  if (!rid || /^home/.test(rid)) return []; if (subN !== ROOMS.size) { subN = ROOMS.size; subC.clear(); }
+  if (!subC.has(rid)) { const out = []; for (const k of ROOMS.keys()) if (k !== rid && rootOf(k) === rid) out.push(k); subC.set(rid, out); } return subC.get(rid);
 }
 export const doorOf = rid => { const r = rootOf(rid); return cityPoi('door:' + r) || place(r) || null; };
 const placeName = rid => { const r = rootOf(rid), p = place(r) || cityPoi('door:' + r); return (p && p.name) || safe(() => ROOMS.get(r).name, null) || 'the building'; };
@@ -424,14 +431,22 @@ define('wander', 'default', 20, ctx => {
 }, (ctx, s) => !!s.entry);
 
 /* -- needs: the need chooser picked a place -> the thing inside that fixes it (at home: the right room too) */
-const NEED = { hunger: { home: ['', /^(Cook|Open fridge)$/, 'Cook something: the kitchen'], venue: [/^(Order|Shop|.*: order|.*Cafe.*|Comet Cocoa|Dockside Dogs|Noodle bar|Bay Brew coffee bar)$/, 'Eat here: order'] },
-  energy: { home: ['', /^Bed$/, 'Your bed: sleep'], venue: [/^(Order|.*Cafe.*|Comet Cocoa|Bay Brew coffee bar|Meridian Espresso)$/, 'A coffee: order here'] },
+const NEED = { hunger: { home: ['', /^(Cook|Open fridge)$/, 'Cook something: the kitchen'], venue: [/^(Order|Order at .*|Shop|.*: order|.*Cafe.*|Comet Cocoa|Dockside Dogs|Noodle bar|Bay Brew coffee bar)$/, 'Eat here: order'] },
+  energy: { home: ['', /^Bed$/, 'Your bed: sleep'], venue: [/^(Order|Order at .*|.*Cafe.*|Comet Cocoa|Bay Brew coffee bar|Meridian Espresso)$/, 'A coffee: order here'] },
   bladder: { home: [':bath', /^Toilet$/, 'The toilet'], venue: [/^(Restroom|Toilet)$/, 'The restroom'] },
   hygiene: { home: [':bath', /^Shower$/, 'The shower'], venue: [/^(Use the Locker-Room Shower|Shower|Rain shower|Wash hands)$/, 'Freshen up here'] } };
+/* QA9: in a building of several rooms, the room that has it (University: the restrooms and the Quill & Kettle are in the Commons, not the Great Hall) */
+const menuOf = r => { const v = VENUE_BY_ID[safe(() => ROOMS.get(r).venue, null)]; return !!(v && v.offers && v.offers.menu); };
+function needRoom(root, need) {
+  const subs = subRooms(root); if (!subs.length) return root;
+  if (need === 'bladder') { if (safe(() => G.bladder.hasRestroom(root), null) === true) return root; return subs.find(r => safe(() => G.bladder.hasRestroom(r), null) === true) || root; }
+  if (need === 'hunger' || need === 'energy') { if (menuOf(root)) return root; return subs.find(menuOf) || root; }
+  return root;
+}
 define('need', 'default', 30, ctx => {
   const s = ctx.sel, N = s && s.need && NEED[s.need]; if (!N || !ctx.root || (ctx.pt.id && /^mall:/.test(ctx.pt.id))) return null; if (s.place && s.place !== 'pos' && ctx.pt.id && s.place !== ctx.pt.id) return null;
-  const home = /^home/.test(ctx.root), d = home ? N.home : N.venue, ht = { energy: 'bed', hunger: 'fridge', hygiene: 'shower', bladder: 'toilet' }[s.need], hr = home && ht ? safe(() => G.housing.roomWith(ht), null) : null, rid = hr && ROOMS.has(hr) && rootOf(hr) === ctx.root ? hr : home && ROOMS.has(ctx.root + d[0]) ? ctx.root + d[0] : ctx.root, re = home ? d[1] : d[0], label = home ? d[2] : d[1];
-  if (usedLately(re) || busyIs(/toilet|restroom|shower|sleep|eat|cook|nap/i)) return { done: true, quiet: 1 };
+  const home = /^home/.test(ctx.root), d = home ? N.home : N.venue, ht = { energy: 'bed', hunger: 'fridge', hygiene: 'shower', bladder: 'toilet' }[s.need], hr = home && ht ? safe(() => G.housing.roomWith(ht), null) : null, rid = hr && ROOMS.has(hr) && rootOf(hr) === ctx.root ? hr : home && ROOMS.has(ctx.root + d[0]) ? ctx.root + d[0] : home ? ctx.root : needRoom(ctx.root, s.need), re = home ? d[1] : d[0], label = home ? d[2] : d[1];
+  if ((usedLately(re) && lastUse.scene !== 'city') || busyIs(/toilet|restroom|shower|sleep|eat|cook|nap/i)) return { done: true, quiet: 1 };   /* QA9: not the street door ('Sunnyside Cafe' matched the '.*Cafe.*' of the counter and ended the goal at the door) */
   if (inRoom(rid) && !locate1(G.scene, { label: re })) return home ? { done: true } : null;   /* nothing of that kind here: fall back to the counter */
   return { room: rid, find: { label: re }, label, short: label.toLowerCase(), near: 1.3, name: ctx.pt.name || placeName(ctx.root) };
 }, (ctx, s) => !!s.need);
@@ -533,7 +548,7 @@ export function init() {
   G.on('waypoint', p => { lastEval = 0; if (p) muted = {}; else if (!trip()) SS().sel = null; });
   G.on('load', () => { cur = null; hand = null; muted = {}; pinFn = null; SS().pin = null; lastEval = 0; lastUse = null; for (const k in EV) delete EV[k]; });
   for (const name of EVENTS) G.on(name, a => { EV[name] = now(); if (typeof a === 'string' || typeof a === 'number') EV[name + ':' + a] = now(); lastEval = 0; });
-  G.on('use', it => { if (it && it.label) lastUse = { label: it.label, t: now() }; lastEval = 0;
+  G.on('use', it => { if (it && it.label) lastUse = { label: it.label, t: now(), scene: G.scene && G.scene.id }; lastEval = 0;
     /* a door that does not let you in (closed, members only): give the old arrival at the door instead of an arrow that asks for the impossible */
     const A = cur; if (A && it && G.scene && G.scene.id === 'city' && A.attached && A.step.room !== 'city' && !A.step.quiet) { const d = doorOf(A.step.room); if (d && isFinite(it.x) && Math.hypot(it.x - d.x, it.y - d.y) < 2.5) setTimeout(() => { if (cur && cur.id === A.id && cur.attached && G.scene.id === 'city' && !G.modal && !G.busy && !G.cutscene) { A.step = Object.assign({}, A.step, { quiet: 1 }); finish(A); cur = null; lastEval = 0; } }, 2600); } });
   G.on('jobs:hud', () => { lastEval = 0; }); G.on('activityEnd', () => { lastEval = 0; });

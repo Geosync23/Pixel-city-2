@@ -130,6 +130,7 @@ function leadCheck(a, t) {
 
 function tick() {
   const t = G.state.t;
+  if (G.chapters && G.chapters.active && G.chapters.active()) return;   /* Chapters part 2: no 'Starting now' / 'Leave now' banners over a Chapter scene; they catch up when it ends */
   for (const a of S.items.slice()) {
     leadCheck(a, t);
     if (a.s === 0 && a.remind > 0 && t >= a.t - a.remind && t < a.t) { a.s = 1; G.emit('appt:soon', a); const m = Math.max(1, Math.round(a.t - t)); note(a, say(a, '') + ` at ${clock(a.t)}.` + (atPlace(a) && a.placeId ? ' You are already there.' : ''), 'normal', `In ${m} min`); }

@@ -19,6 +19,9 @@ import { G } from '../core/game.js';
 import { el, root, toast } from '../ui/kit.js';
 import { innerPlace } from '../ui/navarrow.js';
 import { openState, cityPos, place, homePlace, money } from '../ui/phone_util.js';
+import { ROOMS } from '../scenes/interior.js';
+import { VENUE_BY_ID } from '../data/venues.js';
+import { subRooms } from './navgoals.js';
 
 const WALK = .215, BUS_V = 20, BUS_DWELL = .6, CAB_V = 9, BUS_HEADWAY = 10;   // WALK: game minutes per Manhattan unit, measured door to door on three real cross-district walks (QA round 3: .203-.233; was 1.15/3.6 = .32, 40-58% too slow)
 //   // BUS_V: measured along the bus loop incl. lights (units per game minute at the transit.js ride clock 0.2 + signal priority); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
@@ -41,9 +44,18 @@ const same = (a, b) => !!a && !!b && (a.id ? a.id === b.id : a.x === b.x && a.y 
 /* ---------- matching ---------- */
 let gi = null, giN = -1;
 function guideOf(id) { const all = safe(() => G.guide.all(), []); if (!gi || giN !== all.length) { gi = new Map(); giN = all.length; for (const e of all) if (e.placeId && !gi.has(e.placeId)) gi.set(e.placeId, e); } return gi.get(id); }
+/* QA9: the other rooms of the same building (the University's Commons cafe + restrooms behind the Great Hall): a place matches if one of them does */
+const subMenu = rid => subRooms(rid).some(r => { const v = VENUE_BY_ID[safe(() => ROOMS.get(r).venue, null)]; return !!(v && v.offers && v.offers.menu); });
+/* QA9: say where inside when the thing is in another room of the building ("The Quill & Kettle, in The Commons") */
+function subNote(p, kind) {
+  if (!p.roomId || !['bladder', 'hunger', 'food', 'energy', 'coffee'].includes(kind)) return {}; const own = p.venue && p.venue.offers || {};
+  if (kind === 'bladder') { if (safe(() => G.bladder.hasRestroom(p.roomId), null) === true) return {}; const r = subRooms(p.roomId).find(r => safe(() => G.bladder.hasRestroom(r), null) === true); return r ? { note: 'restrooms in ' + safe(() => ROOMS.get(r).name, 'the building') } : {}; }
+  if (own.menu) return {}; const r = subRooms(p.roomId).find(r => { const v = VENUE_BY_ID[safe(() => ROOMS.get(r).venue, null)]; return v && v.offers && v.offers.menu; });
+  if (!r) return {}; const v = VENUE_BY_ID[ROOMS.get(r).venue]; return { note: (v.name && v.name !== ROOMS.get(r).name ? v.name + ', in ' : 'in ') + ROOMS.get(r).name };
+}
 function info(p) {
   const v = p.venue || {}, o = v.offers || {}, g = guideOf(p.id) || {};
-  return { vt: v.type || '', menu: !!o.menu, shop: o.shop || [], svc: o.services || [], fns: (o.functions || []).concat(p.functions || []), type: String(g.type || '').toLowerCase(), ch: g.chapter || '', also: g.also || [], acts: g.acts || [], kind: p.kind, id: p.id, roomId: p.roomId };
+  return { vt: v.type || '', menu: !!o.menu || (p.kind === 'venue' && !!p.roomId && subMenu(p.roomId)), shop: o.shop || [], svc: o.services || [], fns: (o.functions || []).concat(p.functions || []), type: String(g.type || '').toLowerCase(), ch: g.chapter || '', also: g.also || [], acts: g.acts || [], kind: p.kind, id: p.id, roomId: p.roomId };
 }
 const T = {
   food: i => i.menu || i.vt === 'food' || (i.ch === 'eat' && i.kind !== 'spot'),
@@ -56,7 +68,7 @@ const T = {
   transit: i => i.kind === 'station' || i.kind === 'busstop' || i.kind === 'taxistand',
 };
 // bladder: any place with a restroom. G.bladder.hasRestroom(roomId) knows which rooms have a counter / toilet; park pavilions come from the SOURCES hook below.
-T.bladder = i => { if (i.fns.includes('restroom') || i.kind === 'airport') return true; if (i.kind !== 'venue' && !i.roomId) return false; const h = safe(() => G.bladder.hasRestroom(i.roomId || i.id), null); return h === true || (h == null && i.kind === 'venue' && (i.menu || i.svc.length > 0 || i.shop.length > 0)); };
+T.bladder = i => { if (i.fns.includes('restroom') || i.kind === 'airport') return true; if (i.kind !== 'venue' && !i.roomId) return false; const h = safe(() => G.bladder.hasRestroom(i.roomId || i.id), null); if (h !== true && i.roomId && subRooms(i.roomId).some(r => safe(() => G.bladder.hasRestroom(r), null) === true)) return true; return h === true || (h == null && i.kind === 'venue' && (i.menu || i.svc.length > 0 || i.shop.length > 0)); };
 const SOURCES = {};   // kind -> [fn(from) -> extra rows {id, name, x, y, d?, open?, note?}]  (G.nav.addSource)
 T.hunger = i => T.food(i) || T.groceries(i); T.energy = T.coffee;
 export const matches = (p, kind) => !!(p && T[kind] && T[kind](info(p)));
@@ -71,7 +83,7 @@ export function find(kind, n = 4, from = cityPos()) {
   const f = T[kind]; if (!f) return [];
   for (const p of safe(() => G.places.list().concat(G.places.inner ? G.places.inner() : []), [])) {   // + places inside buildings (Galleria shops)
     if (!p || !isFinite(p.x) || !isFinite(p.y) || p.kind === 'home' || seen.has(p.name)) continue; if (!['venue', 'stall', 'spot', 'station', 'busstop', 'taxistand', 'landmark', 'airport'].includes(p.kind)) continue;
-    if (!safe(() => f(info(p)), false)) continue; seen.add(p.name); out.push(row(p, from));
+    if (!safe(() => f(info(p)), false)) continue; seen.add(p.name); out.push(row(p, from, subNote(p, kind)));
   }
   out.sort((a, b) => (a.open === false) - (b.open === false) || a.d - b.d); out.length = Math.min(out.length, n);
   if (kind === 'social') for (const id of safe(() => G.social.known(), []).slice(0, 12)) { const w = safe(() => G.social.whereIs(id.id || id), null); if (!w || !isFinite(w.x) || (w.sceneId && w.sceneId !== 'city' && !w.placeId)) continue; const nm = safe(() => G.social.npc(id.id || id).name, null) || String(id.id || id); const pl = w.placeId && place(w.placeId);

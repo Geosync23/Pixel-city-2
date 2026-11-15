@@ -131,7 +131,7 @@ export const HOMES = [
     perk: { id: 'north_light', desc: 'Artists pay extra for light like this.', effect: { xpMultAtHome: { creativity: 1.1 }, ambienceBonus: 2 } },
     unlock: { day: 14 }, blurb: 'Brick, beams and a wall of glass.' },
   { id: 'sycamore_house', tiles: [17, 12],
-    layout: 'A real house: kitchen-diner, fireplace lounge, walled main bedroom, stairs, and a back garden behind a picket fence with a vegetable bed; family bathroom with tub and shower.', name: '12 Sycamore Street', kind: 'house', district: 'maplewood', station: 'st_maplewood',
+    layout: 'A real house: kitchen-diner, fireplace lounge, walled main bedroom, stairs, and a back garden behind a picket fence with a vegetable bed; family bathroom with tub and shower.', name: '38 Sycamore Street', kind: 'house', district: 'maplewood', station: 'st_maplewood',
     where: 'Maplewood, yellow two-storey house with a porch and a small back garden',
     sizeClass: 'large', rentPerWeek: 480, buyPrice: 20000, upkeepPerWeekOwned: 85,
     rooms: [

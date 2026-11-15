@@ -30,7 +30,7 @@ export function setMarker(m) {
   const w = cityWorld(); if (light && w) { const i = w.lights.indexOf(light); if (i >= 0) w.lights.splice(i, 1); } light = null;
   M = null; if (!m || !w) { G.emit('chapters:change'); return; }
   const p = m.room ? place(m.x, m.y) : freeNear(w, m.x, m.y);
-  M = { key, id: m.id, x: p.x, y: p.y, label: m.label, sub: m.sub };
+  M = { key, id: m.id, x: p.x, y: p.y, label: m.label, sub: m.sub, door: m.room && m.room !== safe(() => G.housing.current().roomId, null) ? { x: m.x, y: m.y } : null };      /* (never your own front door: that one must always let you in) */
   light = { x: p.x, y: p.y, z: .4, r: 3.4, c: '#ffd76a' }; w.lights.push(light);
   M.it = { scene: 'city', x: p.x, y: p.y, label: m.label, h: 2.2, hit: 20, range: 2.8, chapter: m.id, use: () => H && H.openCard(m.id) };
   mkOff = G.addInteractable(M.it);
@@ -117,9 +117,17 @@ export function init(hooks) {
     if (!M || !M.it || !onWorld || !G.scene || G.scene.id !== 'city' || G.modal || G.cutscene || G.busy) return;
     const r = G.cv.getBoundingClientRect(), z = safe(() => G.world.heightAt(M.x, M.y), 0), s = G.toScreen(M.x, M.y, z), k = G.cssScale || 1;
     const dx = e.clientX - (r.left + s.x), dy = e.clientY - (r.top + s.y);
-    if (Math.abs(dx) > 13 * k + 8 || dy < -36 * k - 8 || dy > 7 * k + 6) return;
+    /* the Chapter's own door is part of the marker: a new player follows the arrow and taps the DOOR (which may be shut at this hour, or lead into a quiet house) */
+    let onDoor = false;
+    if (M.door) { const hz = safe(() => G.world.heightAt(M.door.x, M.door.y), 0), a = G.toScreen(M.door.x, M.door.y, hz), b = G.toScreen(M.door.x, M.door.y, hz + 2.4), ex = e.clientX - r.left, ey = e.clientY - r.top; onDoor = Math.abs(ex - (a.x + b.x) / 2) < 12 * k && ey < a.y + 5 * k && ey > b.y - 3 * k; }
+    if (!onDoor && (Math.abs(dx) > 13 * k + 8 || dy < -36 * k - 8 || dy > 7 * k + 6)) return;
+    /* a tap that is on a door stays the door's (the marker stands beside doors: Nana's, your own): the door's own small target, measured on its lower half */
+    if (!onDoor) for (const d of safe(() => G.interactables(), [])) { if (d === M.it || !(d.door || d.exit || (d.poi && /door/.test(String(d.poi.type || d.poi.id || ''))) || /^door:/.test(String(d.id || '')))) continue;
+      const q = G.toScreen(d.x, d.y, safe(() => G.world.heightAt(d.x, d.y), 0) + .9), ddx = e.clientX - (r.left + q.x), ddy = e.clientY - (r.top + q.y); if (Math.abs(ddx) < 11 * k && Math.abs(ddy) < 16 * k && Math.hypot(ddx, ddy) < Math.hypot(dx, dy + 14 * k)) return; }
     e.stopPropagation(); e.preventDefault();
-    const p = G.player, it = M.it, fire = () => { G.pending = null; p.stop(); p.faceTo(it.x, it.y); it.use(G, it); };
+    /* tapped on the door: the card first; "Not now" (or a shut window) and the door then does what that door does */
+    const viaDoor = onDoor, dr = M.door, through = () => { const d = dr && safe(() => G.interactables().find(i => i.poi && i.poi.type === 'door' && Math.hypot(i.x - dr.x, i.y - dr.y) < .6), null); if (d && !G.modal && !G.busy && G.scene && G.scene.id === 'city') safe(() => G.useInteractable(d)); };
+    const p = G.player, it = M.it, fire = () => { G.pending = null; p.stop(); p.faceTo(it.x, it.y); const r2 = H && H.openCard(it.chapter); if (viaDoor && r2 && r2.then) r2.then(v => { if (!v) setTimeout(through, 60); }); };
     if (Math.hypot(it.x - p.x, it.y - p.y) <= it.range) return fire();
     if (p.goTo(G.world, it.x, it.y, { snap: 10, limit: 30000 })) { G.target = null; G.pending = { it, fire, range: it.range }; }
   }, true);

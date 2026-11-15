@@ -37,7 +37,7 @@ const DEBUG_URL = /[?&]scene=/.test(safe(() => location.search, ''));   /* tools
 const introDone = () => (DEBUG_URL || !!safe(() => G.state.flags.introDone, false)) && !safe(() => G.intro.active, false);
 const started = () => !!G.started || DEBUG_URL;
 const real = () => performance.now() / 1000;
-let M = null, lastClose = -999, lastBanner = -999, lastUI = -999, tickT = 0, rush = false;   /* rush: tests only (no gaps, no daily cap) */
+let M = null, lastClose = -999, lastBanner = -999, lastUI = -999, lastWalk = -999, tickT = 0, rush = false;   /* rush: tests only (no gaps, no daily cap) */
 
 /* ---------- when is it all right to put a window up ---------- */
 export function calm(now, t) {
@@ -57,7 +57,7 @@ export function calm(now, t) {
   if (!rush && real() - lastUI < UI_QUIET) return 'window';   /* QA8: not the instant a sheet closes (it swallowed the next tap) */
   if (G.busy) return 'busy';
   if (!rush && safe(() => G.planner.list(G.state.t - 30, G.state.t + 30).some(a => !a.flex && a.s < 3 && G.state.t > a.t - 20 && G.state.t < a.t + 20), false)) return 'due';   /* QA8: not while hurrying to a class, a shift or a show that starts (or just started) */
-  if (!rush && (G.pending || safe(() => G.player.path && G.player.path.length, 0))) return 'moving';   /* QA8: not while walking to a door / a thing (it dropped the walk) */
+  if (!rush && (G.pending || safe(() => G.player.path && G.player.path.length, 0) || real() - lastWalk < 5)) return 'moving';   /* QA8: not while walking to a door / a thing (it dropped the walk) */
   if (real() - lastBanner < BANNER_QUIET || document.querySelector('#ph-banners > *')) return 'banner';
   return '';
 }
@@ -195,6 +195,7 @@ export function init() {
   G.on('title:show', () => { if (M) M.done('ok'); });
   void tickT; setInterval(() => { if (!started() || G.onTitle) return;
     if (G.modal > 0 || safe(() => G.phone.isOpen, false) || safe(() => G.furnish.active, false) || document.querySelector('#ph-banners > *')) lastUI = real();   /* QA8: also a banner just swiped away */
+    if (G.pending || safe(() => G.player.path && G.player.path.length, 0)) lastWalk = real();   /* QA9: a walk just ended (at a door the arrow led to: the next tap is 'go in') */
     if (safe(() => G.furnish.active, false) && introDone()) { safe(() => G.shelf.touch('decor')); if (!S().seen.decorate && !S().off) offer('decorate', { now: true }); }
     tick(); }, 500);
 }

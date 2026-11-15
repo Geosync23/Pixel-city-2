@@ -86,7 +86,7 @@ function personView(id) {
     if (n.district) facts.append(el('div.ph-kv', null, el('span', { text: 'Usually around' }), el('b', { text: cap(({ oldtown: 'Old Town', harbor: 'Harborside', arts: 'Arts Quarter' })[n.district] || n.district) })));
     if (facts.children.length) b.append(facts);
     b.append(el('div.ph-btns', null, btn('Text', () => { composing = true; ctx.push(npcName(id), threadView(id), id); }, 'pri', 'ui.speech'), btn('Call', () => call(id, ctx), '', 'ui.phone')),
-      el('div.ph-btns', null, btn('Invite out', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), home && isKnown(home.id) ? btn('Home on map', () => ctx.open('map', { place: home.id }), '', 'ui.pin') : null));
+      el('div.ph-btns', null, id === 'dad' ? null : btn('Invite out', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), home && isKnown(home.id) ? btn('Home on map', () => ctx.open('map', { place: home.id }), '', 'ui.pin') : null));
   };
 }
 

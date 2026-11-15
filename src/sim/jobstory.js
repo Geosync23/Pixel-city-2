@@ -30,7 +30,7 @@
 // Events: 'jobstory:beat'(beatId)  'jobstory:beat:start'(beatId)  'jobstory:choice'(choiceId, optionId)  'jobstory:invite'(beatId)  'jobstory:play'(jobId, score)  'jobstory:keepsake'(itemId)
 // State (in the jobs slice, so old saves simply gain it): G.state.jobs.story = { v, jobs: { [jobId]: { shifts, day, done: { beatId: shiftNo }, last, wait, plays,
 //   best, mem } }, picks: { choiceId: optionId }, rel: { speakerId: n }, keeps: [itemId], q: [{ id, at }] (texts on their way), sent: { textId: day },
-//   textDay, cur: { id, job, pc } | null (the beat on screen: survives save / load on any line), bags: { jobId: [line indices left] }, off: { beatId: { n, t, pin } } }
+//   textDay, cur: { id, job, pc } | null (the beat on screen: survives save / load on any line), held: { beatId: pc } (beats put down half-way while another played), bags: { jobId: [line indices left] }, off: { beatId: { n, t, pin } } }
 //   Story flags are G.state.flags (also 'beat:<beatId>' when a beat ends), as the data files and the Opportunities expect.
 // Adding a job / beat / play: docs/reports/jobs_engine.md.
 import { G } from '../core/game.js';
@@ -57,7 +57,7 @@ const cl = (v, a, b) => Math.max(a, Math.min(b, v)), today = () => Math.floor(G.
 const fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 
 /* ---------- state ---------- */
-const fresh = () => ({ v: 1, jobs: {}, picks: {}, rel: {}, keeps: [], q: [], sent: {}, textDay: -1, cur: null, bags: {}, off: {} });
+const fresh = () => ({ v: 1, jobs: {}, picks: {}, rel: {}, keeps: [], q: [], sent: {}, textDay: -1, cur: null, held: {}, bags: {}, off: {} });
 function st() { const J = G.state.jobs || (G.state.jobs = {}); let s = J.story; if (!s || typeof s !== 'object') s = J.story = fresh(); const f = fresh(); for (const k in f) if (s[k] === undefined) s[k] = f[k]; return s; }
 function jr(id) { const s = st(); return s.jobs[id] || (s.jobs[id] = { shifts: 0, day: -1, done: {}, last: -9, wait: 0, plays: 0, best: 0, mem: {} }); }
 const flags = () => G.state.flags || (G.state.flags = {});
@@ -180,7 +180,8 @@ const lineOf = (o, jobId) => { const w = who(o.who), first = o.who !== 'narrator
 /** plays (or resumes) a beat. -> 'done' | 'out' (the player put it down: it keeps its place) | 'busy' | 'gone' (a load happened) */
 async function runBeat(b) {
   if (running || !b) return 'busy'; const s = st(), ops = compile(b), my = ++tok; running = true; met = {};
-  if (!s.cur || s.cur.id !== b.id) s.cur = { id: b.id, job: b.job, pc: 0 };
+  if (!s.cur || s.cur.id !== b.id) { if (s.cur && s.cur.pc > 0 && BEATS_BY_ID[s.cur.id]) s.held[s.cur.id] = s.cur.pc;      /* another beat was put down half-way (another job, an invitation): its place is kept */
+    s.cur = { id: b.id, job: b.job, pc: s.held[b.id] || 0 }; delete s.held[b.id]; }
   safe(() => { G.player.stop(); }); G.emit('jobstory:beat:start', b.id);
   try {
     while (s.cur && s.cur.id === b.id && s.cur.pc < ops.length) {
@@ -236,12 +237,14 @@ async function clockIn(job, sh, cb) {
   const t = T = { job: job.id, n: R.shifts, sh, room: G.scene, beat: null, mode: null, cb, midTried: false, play: 0, lineAt: performance.now() + TUNE.lineFirst * 1000, playAt: 0, midPlayed: false };
   keepIn(true); staffPass(job); await sleep(700); if (!alive(t)) return;
   for (let k = 0; k < 40 && (G.modal > 0 || running); k++) { await sleep(250); if (!alive(t)) return; }        /* a first-time window, a toast card: wait for it */
-  let b = null;
+  let b = null, resume = false;
   if (!chapterBusy()) {
-    if (s.cur && s.cur.job === job.id && BEATS_BY_ID[s.cur.id] && BEATS_BY_ID[s.cur.id].at !== 'off') b = BEATS_BY_ID[s.cur.id];      /* put down earlier: pick it up */
-    else { if (s.cur && s.cur.job !== job.id) s.cur = null; b = nextBeat(job.id, t.n); }
+    const mine = id => !!BEATS_BY_ID[id] && BEATS_BY_ID[id].job === job.id && BEATS_BY_ID[id].at !== 'off', hid = Object.keys(s.held).find(mine);
+    if (s.cur && mine(s.cur.id)) b = BEATS_BY_ID[s.cur.id];                                   /* put down earlier: pick it up */
+    else if (hid) { b = BEATS_BY_ID[hid]; resume = true; }
+    else b = nextBeat(job.id, t.n);
   }
-  if (b && (b.at === 'clockin' || (s.cur && s.cur.id === b.id))) { const r = await runBeat(b); if (!alive(t)) return; if (r === 'out') putDown(); b = null; await sleep(350); }
+  if (b && (b.at === 'clockin' || resume || (s.cur && s.cur.id === b.id))) { const r = await runBeat(b); if (!alive(t)) return; if (r === 'out') putDown(); b = null; await sleep(350); }
   t.beat = b;
   const cj = curJob() || {}, v = await card(job, { n: t.n, level: cj.level || 1, venueName: cj.venueName || job.name, mid: !!(b && b.at === 'mid'), moment: !!b && R.wait >= TUNE.waitButton, feel: b ? 'There is something in the air today.' : '', live: () => alive(t) });
   if (!alive(t)) return;
@@ -253,10 +256,10 @@ function setFigures(job) {
   const sc = G.scene; if (!sc || !sc.fixtures || job.id === 'courier') return;
   const tags = job.isNew ? job.workLoop.stations.map(x => 'js:' + job.id + ':' + x) : job.workLoop.stations, per = tags.map(tag => { const a = []; for (const fx of sc.byTag(tag).slice(0, 2)) { const p = fx.staff || fx.use || fx; a.push({ x: p.x + 1.2, y: p.y + .3 }, { x: p.x - 1.2, y: p.y + .6 }, { x: p.x + .4, y: p.y + 1.3 }); } return a; }).filter(a => a.length);
   const door = sc.spawn ? [{ x: sc.spawn.x + 1.5, y: sc.spawn.y - 2 }, { x: sc.spawn.x - 1.5, y: sc.spawn.y - 2.5 }] : [];
-  /* the cast lists coworkers before regulars: the first stands by the first stations (the working end of the room), later ones further down the list */
-  const spotsFor = k => { const out = []; for (let i = 0; i < per.length; i++) out.push(...per[(k * 2 + 1 + i) % per.length]); return out.concat(door); };
+  /* the cast lists coworkers before regulars: the first stands by the second station (the working end of the room), the others by the last stations (the public end: tables, the door) */
+  const spotsFor = k => { const n = per.length, first = n ? (k === 0 ? 1 % n : (n - k + n) % n) : 0, out = []; for (let i = 0; i < n; i++) out.push(...per[(first + i) % n]); return out.concat(door); };
   const lines = SHIFT_LINES[job.id] || [], talkers = [...new Set(lines.map(l => l.who))], cast = (CASTS[job.id] || { people: [] }).people.map(p => p.id).filter(id => talkers.includes(id));
-  figures.set(sc, cast, spotsFor, (id, c) => { const l = nextLine(job.id, id); if (l) bubble(c, fill(l.text), 2600 + l.text.length * 45); });
+  figures.set(sc, cast, spotsFor, (id, c) => { const l = nextLine(job.id, id, true); if (l) bubble(c, fill(l.text), 2600 + l.text.length * 45); });
 }
 function shiftEnd(sum, show, quiet) {
   const t = T; figures.clear(); if (t && t.room && JOB_BY_ID[t.job] && JOB_BY_ID[t.job].isNew) t.room._closing = false;
@@ -295,14 +298,14 @@ function offerPlay(t) {
 }
 
 /* ---------- ambient shift lines: a no-repeat bag per job; conditional lines are only drawn while their condition holds ---------- */
-function nextLine(jobId, only) {
+function nextLine(jobId, only, asked) {      /* only = a speaker id (somebody standing in the room); asked = the player tapped them: they may repeat themselves */
   const L = SHIFT_LINES[jobId]; if (!L || !L.length) return null; const s = st(); let bag = s.bags[jobId];
   const refill = () => { bag = s.bags[jobId] = L.map((_, i) => i); for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; } };
   if (!Array.isArray(bag) || !bag.length) refill();
   for (let pass = 0; pass < 2; pass++) {
     const k = bag.findIndex(i => L[i] && (!only || L[i].who === only) && (!L[i].cond || test(L[i].cond, jobId)));
     if (k >= 0) return L[bag.splice(k, 1)[0]];
-    if (only) { const any = L.filter(l => l.who === only && (!l.cond || test(l.cond, jobId))); return any.length ? any[Math.floor(Math.random() * any.length)] : null; }
+    if (only) { if (!asked) return null; const any = L.filter(l => l.who === only && (!l.cond || test(l.cond, jobId))); return any.length ? any[Math.floor(Math.random() * any.length)] : null; }
     refill();
   }
   return null;

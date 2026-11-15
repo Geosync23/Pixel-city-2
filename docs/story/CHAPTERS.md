@@ -88,7 +88,7 @@ Rules that hold for all: a gold marker on the map and a gold row in My Day; star
 |---|---|---|---|---|---|---|
 | 1 | Breakfast at Nana's | Nana Bea | 4 Thimble Street | Wash hands; cook her pancakes (flip game) | 07:00-19:30 | morning after the intro's first night |
 | 2 | The Long Way Round | Dez | Central Station / SkyDeck | Pick the SkyDeck on the Map, choose a mode, make the trip; a telescope | 08-18 | next morning |
-| 3 | Pip's Fun Survey | Pip, Milo (Nora, Theo) | Sycamore Lane, Central Park | Tick interests; hoops / chess / sketch (your pick) | after school, weekends | next morning |
+| 3 | Pip's Fun Survey | Pip, Milo (Nora, Theo) | Sycamore Lane, Maplewood Park (lead decision, part 2: the park by Nora's house; squirrels instead of ducks) | Tick interests; hoops / chess / sketch (your pick) | after school, weekends | next morning |
 | 4 | Theo Draws on a Napkin | Theo | Slice of Heaven | Open My Day, add an idea; apply for a job | 11:30-15:00 | next morning |
 | 5 | Echo | Nora (Dez) | The Gilded Attic, your flat | Buy one piece in person; place it in Decorate | 09-18 | after a first shift, or two mornings |
 | 6 | Nana's Attic | Nana Bea | her attic (new room) | Open three boxes (unpacking) | 09-18 | next morning |

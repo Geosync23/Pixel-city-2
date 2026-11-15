@@ -50,7 +50,7 @@ export function resolve(id) {
   if (!id) return null; id = ALIAS[id] || id;
   if (id === 'ride:cab') return { id, name: 'Cab 22', room: null, root: null, door: null, x: 0, y: 0, spot: false, ride: 'cab' };
   if (id === 'home:player') return homeDest();
-  if (id === 'spot:building_stoop') { const h = homeDest(); if (!h) return null; const f = freeNear(cityWorld(), h.x + 1.5, h.y + 1.5); return { id, name: 'your front stoop', room: null, root: null, door: null, x: f.x, y: f.y, spot: true }; }
+  if (id === 'spot:building_stoop') { const h = homeDest(); if (!h) return null; const w = cityWorld(); let f = null; /* to one side of your door, never in front of it (the marker must not sit on the door's tap target) */ for (const o of [[2.5, .5], [-2.5, .5], [3, 1], [-3, 1], [2.5, 1.5], [-2.5, 1.5]]) { const x = Math.round((h.x + o[0]) * 2) / 2, y = Math.round((h.y + o[1]) * 2) / 2; if (w && !safe(() => w.isBlocked(x, y), true)) { f = { x, y }; break; } } if (!f) f = freeNear(w, h.x + 2.5, h.y + 1.5); return { id, name: 'your front stoop', room: null, root: null, door: null, x: f.x, y: f.y, spot: true }; }
   if (SPOTS[id]) {
     const s = SPOTS[id], p = s[3] && safe(() => G.places.get(s[3]), null), f = freeNear(cityWorld(), p ? p.x : s[0], p ? p.y : s[1]);
     return { id, name: s[2], room: null, root: null, door: null, x: f.x, y: f.y, spot: true };

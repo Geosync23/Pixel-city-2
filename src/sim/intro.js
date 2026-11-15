@@ -63,7 +63,8 @@ const appBtn = re => () => (phoneOpen() ? [...document.querySelectorAll('.ph-app
 const callBtn = () => { if (!phoneOpen()) return document.querySelector('.hud-phone'); const h = home(), nm = h && h.home ? h.home.name : 'Home'; return document.querySelector('.ph-app-taxi .ph-btn.gold') || [...document.querySelectorAll('.ph-app-taxi button, .ph-app-taxi [role=button]')].find(b => b.textContent.includes(nm)) || null; };
 function sendWelcome() {
   const s = I(); if (s.welcomed) return; s.welcomed = 1; const T = SEQ.sibling_welcome.texts;
-  T.forEach((text, i) => safe(() => G.messages.send(Object.assign({ from: SEQ.sibling_welcome.from, text }, i === T.length - 1 ? { replies: [{ label: "Made it! Got my keys.", value: 'keys', then: 'YESSS. Okay: unpack, eat something, SLEEP. Dinner at ours soon. So glad you are here!' }, { label: 'On my way to the apartment now!', value: 'omw', then: 'Go go go! Tell Walt I said hi. He will pretend not to care.' }] } : {}))));
+  /* QA9: both replies are true whenever you answer (before or after Walt's keys) */
+  T.forEach((text, i) => safe(() => G.messages.send(Object.assign({ from: SEQ.sibling_welcome.from, text }, i === T.length - 1 ? { replies: [{ label: 'Made it! Landed safe.', value: 'keys', then: 'YESSS. Okay: unpack, eat something, SLEEP. Dinner at ours soon. So glad you are here!' }, { label: 'Here! Say hi to everyone.', value: 'omw', then: 'Done. Milo says hi back, very loudly. Tell Walt I said hi. He will pretend not to care.' }] } : {}))));
 }
 
 /* ---------- step: arrival_plane_cinematic (exterior landing shot) ---------- */

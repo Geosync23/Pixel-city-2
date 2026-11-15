@@ -5,6 +5,7 @@
 // Waypoint: setWaypoint(placeOrId | null) stores G.state.phone.waypoint = { id, name, x, y } and emits 'waypoint'(place | null);
 //           (+ `room` when the place is inside a building). The on-screen guide arrow, arrival and room-to-room guidance live in ui/navarrow.js (G.navArrow).
 import { G } from '../core/game.js';
+import { toast } from './kit.js';
 import { innerPlace } from './navarrow.js';
 import { renderMinimap } from '../world/minimap.js';
 import { FARES } from '../data/economy.js';
@@ -143,7 +144,8 @@ function routeCard() {
   const d = navDest, ctx = ctxRef, opts = safe(() => G.nav.routeTo(d), []), t = G.nav.trip && G.nav.trip();
   const c = el('div.ph-placecard.ph-route', null, el('div.t', null, el('div', null, el('b', { text: 'To ' + d.name }), el('br'), el('small', { text: 'How will you get there?' })), el('button.ph-link', { text: 'x', 'aria-label': 'Close directions', onclick: () => { navDest = null; showCard(); draw(); } })));
   if (t) c.append(el('small', null, 'Trip in progress to ' + t.dest.name + '. ', el('button.ph-link', { text: 'Cancel trip', onclick: () => { G.nav.cancel(); showCard(); draw(); } })));
-  for (const o of opts) c.append(el('button', { 'data-nav': o.mode, style: { display: 'block', width: '100%', textAlign: 'left', margin: '3px 0', padding: '4px 8px', minHeight: '40px' }, onclick: () => { G.nav.start(o); if (o.mode === 'cab') return; ctx.tip(o.mode === 'bus' || o.mode === 'train' ? 'Trip started: first walk to ' + o.board.name + '.' : 'Waypoint set. Follow the arrow.'); navDest = null; sel = null; showCard(); draw(); } },
+  for (const o of opts) c.append(el('button', { 'data-nav': o.mode, style: { display: 'block', width: '100%', textAlign: 'left', margin: '3px 0', padding: '4px 8px', minHeight: '40px' }, onclick: () => { G.nav.start(o); if (o.mode === 'cab') return; navDest = null; sel = null; showCard(); draw();
+      /* QA9 (lead decision): close the phone so the arrow shows at once */ safe(() => G.phone.close()); toast(o.mode === 'bus' || o.mode === 'train' ? 'Trip started: walk to ' + o.board.name + ' first. Follow the arrow.' : 'Follow the arrow.', 'info', 3200); } },
     el('b', { text: MODE_ICON[o.mode] + (o.line ? ' · ' + o.line : '') + ' · ' + o.minutes + ' min · ' + o.costText }), el('br'), el('small', { text: o.text + (o.next ? ' · ' + o.next : '') })));
   if (!opts.length) c.append(el('small', { text: 'No route found.' }));
   footEl.append(c);

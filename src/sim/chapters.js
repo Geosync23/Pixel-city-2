@@ -192,7 +192,10 @@ function refresh() {
   else if (!g || g.text !== row.text) { if (g) safe(() => G.goals.remove('chapter')); safe(() => G.goals.add({ id: 'chapter', text: row.text, hint: row.hint, group: 'goal', listTitle: 'The Maple Bay Year' })); }
 }
 function announce(ch) {
-  UI.toastGold(`${kicker(ch)} · ${ch.title}. ${ch.ready}`, 6500);
+  /* one notice, not two: in the morning My Day's own line already says the Chapter is there (sim/myday.js summary), so the gold toast is kept for the times
+     that line will not come (My Day's line already said today, or it is past noon) */
+  const hf = G.now().hf, mdSays = !!G.myDay && hf >= 5 && hf < 12 && safe(() => G.state.myday.sumDay, -1) !== Math.floor(G.state.t / DAY);
+  if (!mdSays) UI.toastGold(`${kicker(ch)} · ${ch.title}. ${ch.ready}`, 6500);
   safe(() => G.phone.notify({ app: 'map', title: `${kicker(ch)} · ${ch.title}`, text: ch.hook + ' ' + ch.ready, priority: 'low' }));
   G.emit('chapter:open', ch.id);
 }
@@ -200,6 +203,16 @@ function rowInfo() {
   const s = st(), ch = s.cur ? CHAPTERS_BY_ID[s.cur.id] : nextCh(); if (!ch) return null; const state = stateOf(ch); if (state === 'locked' || state === 'done') return null;
   const d = markerPlace(ch), u = unlockInfo(ch);
   return { id: ch.id, n: ch.n, title: ch.title, hook: ch.hook, ready: ch.ready, state, text: state === 'waiting' ? u.waiting : `${kicker(ch)} · ${ch.title}`, place: d ? { x: d.x, y: d.y, name: ch.marker.label } : null };
+}
+
+/* The marker stands beside a door, and a new player taps the DOOR: walking in through the door of an open Chapter's place offers the same start card
+   (once per time you come in; "Not now" leaves you in the room as on any visit). */
+function doorStart() {
+  const s = st(); if (running || G.modal || G.cutscene || G.busy || !G.scene || !/^int:/.test(G.scene.id)) return;
+  const ch = s.cur ? CHAPTERS_BY_ID[s.cur.id] : nextCh(); if (!ch) return; const state = stateOf(ch); if (state !== 'open' && state !== 'paused') return;
+  const d = markerPlace(ch); if (!d || !d.room || G.scene.id !== 'int:' + d.room) return;
+  const day = Math.floor(G.state.t / DAY); s.doorDay = s.doorDay || {}; if (s.doorDay[ch.id] === day && d.id === 'home:player') return; s.doorDay[ch.id] = day;      /* your own front door asks once a day, not every time you come home */
+  openCard(ch.id);
 }
 
 /* ================= the start card ================= */
@@ -644,7 +657,7 @@ export function init() {
   G.on('intro:done', () => { const s = st(); if (s.introT === null || s.introT === undefined) s.introT = Math.floor(G.state.t); });
   G.on('job:shift:end', () => { st().worked = (st().worked || 0) + 1; });
   G.on('ride:end', kind => { lastRide = kind === 'taxi' ? 'cab' : kind; });
-  G.on('scene', () => { if (linger) { linger = false; comp.clear(); comp.follow(true); } if (st().cur && !st().cur.paused) setTimeout(() => comp.rescene(), 0); setTimeout(refresh, 300); });
+  G.on('scene', () => { if (linger) { linger = false; comp.clear(); comp.follow(true); } if (st().cur && !st().cur.paused) setTimeout(() => comp.rescene(), 0); setTimeout(refresh, 300); setTimeout(() => safe(doorStart), 650); });
   G.on('minutes', () => {
     const s = st(); if (s.cur && !s.cur.paused && G.needs) for (const k of ['hunger', 'energy', 'hygiene', 'fun', 'social', 'bladder']) { const v = safe(() => G.needs.get(k), 100); if (v < NEED_FLOOR) safe(() => G.needs.set(k, NEED_FLOOR)); }
   });

@@ -104,13 +104,24 @@ export function caption(who, text, ms = 3600) {
 }
 export function skipButton(label, fn) { injectCss(); const b = el('button.tut-skipcut', { text: label, onclick: () => fn() }); root().append(b); return () => b.remove(); }
 
+/* QA9: a done line that must match what is really there (the first-evening fridge: the starter pantry, or truly empty) */
+function liveDone(id, g) {
+  try {
+    if (id === 'fridge' && (!g || !g.list || g.list === 'first_evening') && G.inv && G.inv.fridge) {
+      const a = G.inv.fridge.items(); if (!a.length) return 'Empty. One lonely ketchup packet. Not even yours.';
+      const nm = s => { const it = G.inv.item(s.id); return it ? it.name.toLowerCase() : s.id; };
+      return 'A starter cupboard: ' + a.slice(0, 3).map(nm).join(', ') + (a.length > 3 ? ' and more' : '') + '. Enough to cook tonight.';
+    }
+  } catch (e) { /* fall back to the written line */ }
+  return null;
+}
 export function init() {
   injectCss(); build();
   G.goalsUI = { hint, caption, skipButton, refresh, fmtWhen };
   for (const ev of ['goals:change', 'story:offer', 'story:beat', 'appt:add', 'appt:remove', 'appt:done', 'appt:missed', 'appt:start', 'day', 'load', 'game:start', 'ready', 'myday:change']) G.on(ev, refresh);
   G.on('goal:done', (id, g) => {
     render(); const r = W.querySelector(`[data-g="${id}"]`); if (r) r.classList.add('pop');
-    toast((g && g.doneText) || 'Done: ' + ((g && g.text) || id), 'good', 3600); try { G.audio && G.audio.sfx && G.audio.sfx('success'); } catch (e) { /* no audio */ }
+    toast(liveDone(id, g) || (g && g.doneText) || 'Done: ' + ((g && g.text) || id), 'good', 3600); try { G.audio && G.audio.sfx && G.audio.sfx('success'); } catch (e) { /* no audio */ }
   });
   G.on('frame', frame); G.on('game:start', () => { liveUI = true; }); G.on('ready', () => { if (!G.started) liveUI = true; });
   setInterval(() => {
