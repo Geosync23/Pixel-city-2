@@ -132,3 +132,5 @@
 @keyframes tt-rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
 @keyframes tt-pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
 @keyframes tt-bob{to{transform:translateY(-3px)}}
+/* QA10: landscape phone (844x390): the Settings button fell off the bottom under the credits line; buttons go in a row, the logo shrinks */
+@media (max-height:480px){ .tt-center{margin-top:0;gap:6px} .tt-word{font-size:clamp(40px,15vh,72px)} .tt-tag{margin:2px 0 6px;font-size:14px} .tt-btns{flex-direction:row;width:auto;gap:10px} .tt-btn{min-height:42px;min-width:150px;font-size:17px} .tt-credits{bottom:4px;font-size:11px} }
