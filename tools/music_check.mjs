@@ -83,10 +83,10 @@ function fft(re, im) { const n = re.length; for (let i = 1, j = 0; i < n; i++) {
 const NF = 4096, HANN = Float64Array.from({ length: NF }, (_, i) => .5 - .5 * Math.cos(2 * Math.PI * i / NF));
 /** mono samples -> { hf: share of energy above 6 kHz, flat: mean spectral flatness per 85 ms frame (60 Hz - 12 kHz), of the frames that are not silent } */
 function spectrum(x, a, b) {
-  let hi = 0, all = 0, fl = 0, nf = 0; const re = new Float64Array(NF), im = new Float64Array(NF), k0 = Math.round(60 * NF / SR), k6 = Math.round(6000 * NF / SR), k12 = Math.round(12000 * NF / SR);
+  let hi = 0, all = 0, fl = 0, nf = 0, mid = 0; const re = new Float64Array(NF), im = new Float64Array(NF), k0 = Math.round(60 * NF / SR), k6 = Math.round(6000 * NF / SR), k08 = Math.round(800 * NF / SR), k12 = Math.round(12000 * NF / SR);
   for (let o = a; o + NF <= b; o += NF) { let e = 0; for (let i = 0; i < NF; i++) { re[i] = x[o + i] * HANN[i]; im[i] = 0; e += x[o + i] * x[o + i]; } if (e / NF < 1e-7) continue; fft(re, im);
-    let ls = 0, s = 0; for (let k = k0; k < k12; k++) { const p = re[k] * re[k] + im[k] * im[k] + 1e-14; ls += Math.log(p); s += p; if (k >= k6) hi += p; } for (let k = k12; k < NF / 2; k++) { const p = re[k] * re[k] + im[k] * im[k]; hi += p; s += p; } all += s; fl += Math.exp(ls / (k12 - k0)) / ((s + 1e-14) / (k12 - k0)); nf++; }
-  return { hf: all ? hi / all : 0, flat: nf ? fl / nf : 0 };
+    let ls = 0, s = 0; for (let k = k0; k < k12; k++) { const p = re[k] * re[k] + im[k] * im[k] + 1e-14; ls += Math.log(p); s += p; if (k >= k6) hi += p; else if (k >= k08) mid += p; } for (let k = k12; k < NF / 2; k++) { const p = re[k] * re[k] + im[k] * im[k]; hi += p; s += p; } all += s; fl += Math.exp(ls / (k12 - k0)) / ((s + 1e-14) / (k12 - k0)); nf++; }
+  return { hf: all ? hi / all : 0, mid: all ? mid / all : 0, flat: nf ? fl / nf : 0 };
 }
 function measure(id, pcm) {
   const n = pcm.length / 4, x = new Float32Array(n); let pk = 0; for (let i = 0; i < n; i++) { const l = pcm.readInt16LE(i * 4) / 32768, r = pcm.readInt16LE(i * 4 + 2) / 32768; x[i] = (l + r) / 2; }
@@ -100,7 +100,7 @@ function measure(id, pcm) {
   const W = SR, hop = SR / 4; let best = 0, be = -1, acc = new Float64Array(Math.ceil(n / hop) + 1); for (let i = 0; i < n; i++) acc[(i / hop) | 0] += x[i] * x[i]; for (let k = 0; k + 4 <= acc.length; k++) { const e = acc[k] + acc[k + 1] + acc[k + 2] + acc[k + 3]; if (e > be) { be = e; best = k * hop; } }
   let last = n - 1; while (last > 0 && Math.abs(x[last]) < 1e-4) last--;
   const all = spectrum(x, 0, n), top = spectrum(x, best, Math.min(n, best + W));
-  return { lufs: num(/I:\s+(-?[\d.]+) LUFS/), phone, lra: num(/LRA:\s+(-?[\d.]+) LU/), peak: num(/Peak:\s+(-?[\d.]+) dBFS/), sounding: +(last / SR).toFixed(1), hf: +(all.hf * 100).toFixed(2), flat: +all.flat.toFixed(4), topAt: +(best / SR).toFixed(1), topHf: +(top.hf * 100).toFixed(2), topFlat: +top.flat.toFixed(4) };
+  return { lufs: num(/I:\s+(-?[\d.]+) LUFS/), phone, lra: num(/LRA:\s+(-?[\d.]+) LU/), peak: num(/Peak:\s+(-?[\d.]+) dBFS/), sounding: +(last / SR).toFixed(1), hf: +(all.hf * 100).toFixed(2), mid: +(all.mid * 100).toFixed(1), flat: +all.flat.toFixed(4), topAt: +(best / SR).toFixed(1), topHf: +(top.hf * 100).toFixed(2), topFlat: +top.flat.toFixed(4) };
 }
 async function render(br) {
   console.log('\nRENDER: every tune, offline, by the shipped code' + (WRITE ? ' (no trims: writing _music_levels.js)' : ' (with the trims)'));
@@ -112,7 +112,7 @@ async function render(br) {
       for (let o = 0; o < n; o += CH) { const m = Math.min(CH, n - o), u = new Int16Array(m * 2); for (let i = 0; i < m; i++) { u[2 * i] = Math.max(-1, Math.min(1, l[o + i])) * 32767; u[2 * i + 1] = Math.max(-1, Math.min(1, r[o + i])) * 32767; } let s = ''; const u8 = new Uint8Array(u.buffer); for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); await saveChunk(id, btoa(s)); }
       return { ms: Math.round(performance.now() - t0), dur: b.duration, trim: K.LEVELS[id] || 0 }; }, [S.id, WRITE, SR]);
     const m = measure(S.id, Buffer.concat(chunks[S.id])); delete chunks[S.id]; m.dur = +r.dur.toFixed(1); m.renderMs = r.ms; m.trim = WRITE ? 0 : r.trim; M[S.id] = m; Object.assign(report.tunes[S.id] || (report.tunes[S.id] = {}), { measured: m });
-    console.log(`     ${S.id.padEnd(17)} ${mmss(m.sounding).padStart(5)}  ${m.lufs.toFixed(1).padStart(6)} LUFS  peak ${m.peak.toFixed(1).padStart(6)}  phone ${m.phone.toFixed(1).padStart(6)}  LRA ${String(m.lra).padStart(4)}  >6k ${String(m.hf).padStart(5)}%  flat ${m.flat.toFixed(4)}  | loudest s @${String(m.topAt).padStart(5)}: >6k ${String(m.topHf).padStart(5)}%  flat ${m.topFlat.toFixed(4)}  (${(r.ms / 1000).toFixed(1)} s)`); } }));
+    console.log(`     ${S.id.padEnd(17)} ${mmss(m.sounding).padStart(5)}  ${m.lufs.toFixed(1).padStart(6)} LUFS  peak ${m.peak.toFixed(1).padStart(6)}  phone ${m.phone.toFixed(1).padStart(6)}  LRA ${String(m.lra).padStart(4)}  0.8-6k ${String(m.mid).padStart(4)}%  >6k ${String(m.hf).padStart(5)}%  flat ${m.flat.toFixed(4)}  | loudest s @${String(m.topAt).padStart(5)}: >6k ${String(m.topHf).padStart(5)}%  flat ${m.topFlat.toFixed(4)}  (${(r.ms / 1000).toFixed(1)} s)`); } }));
   const errs = pages.flatMap(g => g.errs); for (const g of pages) await g.ctx.close();
   const ids = Object.keys(M); console.log(`     ${ids.length} tunes rendered in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   check('rendering raised no page error', !errs.length, errs.slice(0, 3).join(' | '));

@@ -77,7 +77,7 @@ export class Synth {
   /** drum hit. k kick, s snare, r rim, b brush, h hat, m shaker, c clap, g ride "ting" (three sines, no noise), w woodblock, t / T low / high conga, o tom */
   drum(n, t, vel = 1) {
     const d = this.chan('kit');
-    if (n === 'k') { this.ping(t, 'sine', 118, 46, .2, .5 * vel, d); this.ping(t, 'triangle', 170, 70, .07, .16 * vel, d); }
+    if (n === 'k') { this.ping(t, 'sine', 118, 46, .2, .3 * vel, d); this.ping(t, 'triangle', 170, 70, .07, .13 * vel, d); }
     else if (n === 's') { this.ping(t, 'triangle', 196, 160, .09, .16 * vel, d); this.burst(t, 'bandpass', 1900, .8, .13, .1 * vel, d); }
     else if (n === 'r') { this.ping(t, 'sine', 1680, 0, .028, .09 * vel, d); this.ping(t, 'triangle', 520, 0, .03, .07 * vel, d); this.burst(t, 'bandpass', 3000, 3, .02, .035 * vel, d); }
     else if (n === 'b') this.burst(t, 'bandpass', 2300, .6, .09, .045 * vel, d);

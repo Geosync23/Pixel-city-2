@@ -46,7 +46,7 @@ export const STYLES = {
   calypso: { n: 16, c: '..x...x...x...x.', cl: 1.4, b: 'R.....5.3...5...', d: { k: 'x.....x.x.....x.', r: '....x.......x...', m: 'o.oxo.oxo.oxo.ox', T: '..x..x....x..x..' } },
   disco: { n: 16, c: '..x.x..x..x.x..x', cl: 1, b: 'R.O.R.O.R.O.R.O.', d: { k: 'x...x...x...x...', c: '....x.......x...', h: '..x...x...x...x.' }, f: { o: '..........x.x.xx' } },
   five: { bar: 5, n: 10, sw: .7, c: 'x..x..x.x.', cl: 1.4, b: 'R--5--R-5-', d: { g: 'x.xx.xx.x.', k: 'o.....o...', b: '...o....o.' } },
-  samba: { n: 16, c: 'x..x.x..x.x..x.x', cl: 1, b: 'R..5..R.R..5..R.', d: { k: 'x.......x.......', t: '....x..x....x..x', m: 'xoxoxoxoxoxoxoxo', w: 'x.x..x.x..x.x.x.' } },
+  samba: { n: 16, c: 'x..x.x..x.x..x.x', cl: 1, b: 'R..5..R.R..5..R.', d: { k: 'x.......x.......', t: '....x..x....x..x', m: 'x.o.x.o.x.o.x.o.', w: 'x.x..x.x..x.x.x.' } },
   doowop: { n: 12, c: 'xooxooxooxoo', cl: .9, b: 'R-----5----a', d: { k: 'x.....x.....', s: '...x.....x..', h: 'o.oo.oo.oo.o' } },
   shuffle: { n: 8, sw: .7, c: '..x...x.', cl: 1.2, b: 'R-..5-..', d: { b: 'xoxoxoxo', k: 'x...x...' } },
   habanera: { n: 8, c: '..x.x.x.', cl: .9, b: 'R--5R-5-', d: { r: 'x..xx.x.' } },
@@ -54,7 +54,7 @@ export const STYLES = {
   hymn: { n: 8, c: 'x---x---', b: 'R-------', d: {} },
   solo: { n: 8, c: '1.3.2.3.', cl: 3, b: 'R-------', bl: 40, d: {} },
 };
-const LG = { m: 1, h: .62, c: .55, b: .8, p: .5, d: .75 };
+const LG = { m: 1, h: .62, c: .55, b: .62, p: .5, d: .75 };
 
 function chord(name) {
   const m = /^([A-G])([#b]?)([^/]*)(?:\/([A-G])([#b]?))?$/.exec(name), iv = m && Q[m[3]]; if (!iv) throw new Error('chord? ' + name);

@@ -84,7 +84,7 @@ function treeLayer(world, cx, cy) {
  * is painted once more with a depth cut, engine/sprites.js frontSprite), so the piece's own sprite, the bake pipeline and the depth sort
  * are untouched.
  */
-const isSitter = e => e.seated || e.pose === 'sit' || (e.poseOpts && e.poseOpts.seated);
+const isSitter = e => e.seated || e.pose === 'sit' || (e.poseOpts ? !!e.poseOpts.seated : e.pose === 'type' && e.z > .2);   // ('type' is drawn seated unless poseOpts.seated is false)
 const SQ = [];
 /** the object a seated entity sits on (cached on the entity until it moves), or null */
 function seatObj(world, e) {

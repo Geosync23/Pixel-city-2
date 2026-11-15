@@ -241,8 +241,8 @@ export const GOAL_LISTS = {
       { id: 'cook', text: 'Cook your first meal at home', hint: 'Tap the stove. Pancakes are hard to mess up.',
         doneWhen: 'cooked_meal', doneText: 'You made that! It is even food-shaped.' },
       { id: 'ride_train', text: 'Ride the light rail', hint: 'Walk up to any station. Tap your phone at the gate.',
-        doneWhen: 'rode_train', doneText: 'All aboard. The loop takes 30 minutes and never gets old.' },
-      { id: 'library_job', text: 'Find a job on a library computer', hint: 'Public Library, Arts Quarter, upstairs.',
+        doneWhen: 'rode_train', doneText: 'All aboard. A train every few minutes, and the loop never gets old.' },
+      { id: 'library_job', text: 'Find a job (the Jobs app, or a library computer)', hint: 'Phone › Jobs › Board: entry jobs hire on the spot. Or the Public Library, Arts Quarter, upstairs.',   /* QA14: the whole board is on the phone; the library is the other way */
         doneWhen: 'job_accepted', doneText: 'Your first shift is on My Day.' },
       { id: 'say_hi', text: 'Introduce yourself to 3 people', hint: 'Walk up to someone and tap Talk at the bottom of the screen. Most people here like it.',
         doneWhen: 'met_npcs:3', doneText: 'Three names learned. Only a few thousand to go.' },
@@ -263,7 +263,7 @@ export const NUDGES = [
     text: "CUZ. Welcome!! Pro tip from a courier: the light rail loops the whole city, 8 stops, cheap. Ride it once just to look out the window. Trust me.",
     goal: { id: 'ride_train', list: 'settling_in' }, unless: 'rode_train' },
   { id: 'd2_jules_job', day: 1, at: '19:00', from: 'jules',   /* owner msg 142: the job-hunt push comes on day 2 (the day after you arrive), late in the day (was the third day at 13:00) */
-    text: "No pressure AT ALL but when you're ready to job hunt: the library in the Arts Quarter has free computers upstairs. You don't own one yet, right?",
+    text: "No pressure AT ALL but when you're ready to job hunt: open Jobs on your phone, the whole board's in there and the entry ones hire on the spot. Or the library in the Arts Quarter has free computers upstairs, if you like a big screen and a quiet room.",
     goal: { id: 'library_job', list: 'settling_in' }, unless: 'job' },
   { id: 'd2_walt', day: 2, at: '18:00', from: 'walt',
     text: 'Walt, your super. Radiator OK? Also: people here say hello. Say it back. It is not a trick.',

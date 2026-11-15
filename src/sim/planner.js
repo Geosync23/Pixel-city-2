@@ -122,6 +122,7 @@ export function travelTo(a) {
 function arrived(a) { if (!G.scene || G.scene.id !== 'city') return atPlace(a); const p = posOf(a) || (G.places && G.places.get ? G.places.get(a.placeId) : null); return !!p && Math.hypot(p.x - G.player.x, p.y - G.player.y) < (p.kind === 'venue' || p.kind === 'home' ? 0 : 7); }
 function leadCheck(a, t) {
   if (a.lv || a.s >= 2 || t >= a.t || a.t - t > LEAD.horizon) return; if (a.lc !== undefined && t - a.lc < LEAD.recheck && a.t - t > 20) return; a.lc = t;
+  { let tp = null; try { tp = G.nav && G.nav.trip && G.nav.trip(); } catch (e) { tp = null; } if (tp && tp.dest && a.placeId && tp.dest.id === a.placeId) { a.lv = 1; return; } }   /* QA14: already on a Map trip there (it said "Leave now ... 10 min on foot" to a player sitting on the train to work) */
   const tr = travelTo(a); if (!tr) return; const left = a.t - t;
   if (left > tr.walk + LEAD.buffer) return;   // still time to walk there
   a.lv = 1; const where = placeName(a.placeId) || 'there', late = left < tr.best;

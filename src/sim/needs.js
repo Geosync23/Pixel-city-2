@@ -109,6 +109,7 @@ async function passOut(k) {
     if (G.busy) G.endActivity(false);
     api.sleeping = false;
     if (G.fadeEl) { G.modal++; G.fadeEl.classList.add('on'); await new Promise(r => setTimeout(r, 320)); G.modal--; }
+    const atHome = z.wakeAt === 'home' && !!(G.scene && /^int:home:/.test(G.scene.id || ''));   /* QA14: passed out inside your own home: no cab ride, no $15 'kind cabbie' */
     G.advance(z.skipHours * 60);                                // decay is suspended while `passing`
     for (const n in z.setNeeds) S.v[n] = Math.max(S.v[n], z.setNeeds[n]);
     for (const n in S.v) lastBand[n] = bandFor(BY[n], S.v[n]).id;
@@ -119,6 +120,7 @@ async function passOut(k) {
       else if (z.wakeAt === 'home') { if (G.housing && G.housing.goHome) { await G.housing.goHome(); went = true; } else { const id = G.state.home && G.state.home.id, rid = ['home:' + id, 'home'].find(r => ROOMS.has(r)); if (id && rid) { await enterRoom(rid, poiFor('door:' + rid)); went = true; } } }
     } catch (e) { console.warn('pass-out travel failed', e); }
     if (!went && G.fadeEl) setTimeout(() => G.fadeEl.classList.remove('on'), 60);
+    if (atHome) { applySpeed(); G.emit('needs:change'); G.emit('passout', k); await say([{ text: 'You nodded off on the spot. You wake on your own floor six hours later, stiff, with the bed right there.' }]); return; }
     if (G.money) G.money.pay(z.bill, z.billLabel, { force: true, category: 'clinic' }); else G.state.player.money -= z.bill;
     applySpeed(); G.emit('needs:change'); G.emit('passout', k);
     await say([{ text: z.message }, { text: `${z.billLabel}: $${z.bill}.` }]);

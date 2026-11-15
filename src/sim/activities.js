@@ -546,6 +546,8 @@ export function init() {
     let best = null, bd = 3; for (const f of sc.fixtures) for (const s of f.seats || []) { if (s.stand || s.staff || s.lie || taken(s)) continue; const d = Math.hypot(s.x - a.at.x, s.y - a.at.y) + (Math.abs(f.x - a.at.x) < 1.6 && Math.abs(f.y - a.at.y) < 1.6 ? 0 : 1); if (d < bd) { bd = d; best = s; } }
     if (!best) return; a.at.x = p.x = best.x; a.at.y = p.y = best.y; a.at.z = p.zoff = best.z || 0; if (best.dir !== undefined) a.at.dir = p.dir = best.dir; if (best.z && p.pose !== 'sit' && !p.poseOpts) p.poseOpts = { seated: true };
   });
+  /* a save made while seated restores the player where they sat (only in the lobby of their own building; elsewhere the game resumes at a door): step off the furniture */
+  G.on('game:start', () => { const p = G.player, W = G.world; if (!p || !W || G.busy || !W.isBlocked(p.x, p.y)) return; const f = nearestFree(W, Math.floor(p.x * 2), Math.floor(p.y * 2), 6); if (f) { p.x = (f[0] + .5) / 2; p.y = (f[1] + .5) / 2; p.zoff = 0; p.z = W.heightAt(p.x, p.y); } });
   /* standing up: never left inside furniture (the spot the player sat down from can have been taken by a piece that moved, or the seat was reached from afar) */
   G.on('activityEnd', a => { const p = G.player, W = G.world; if (!a || !a.at || !p || !W || G.busy || !W.isBlocked(p.x, p.y)) return; const f = nearestFree(W, Math.floor(p.x * 2), Math.floor(p.y * 2), 6); if (f) { p.x = (f[0] + .5) / 2; p.y = (f[1] + .5) / 2; p.z = W.heightAt(p.x, p.y); } });
 }
