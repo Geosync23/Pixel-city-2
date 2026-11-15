@@ -72,8 +72,8 @@ regShape('top', 'peasant', { sleeve: 3,
 
 // Tie-front shirt: camp collar shirt cropped above the waist, knotted at the front; bare midriff.
 regShape('top', 'tiefront', { sleeve: 2,
-  body(c, x, j, g) { return j === g.T - 1 && !(g.front && (x === 0 || x === 1)) ? g.sk : null; },
-  front(g) { g.t(1, 0, g.sk); g.t(0, 0, g.lt(g.body, .35)); if (g.wide) g.t(2, 0, g.lt(g.body, .35)); for (let j = 1; j < g.T - 2; j++) g.t(1, j, j & 1 ? g.dk(g.body, .25) : g.lt(g.body, .3)); g.t(1, g.T - 2, g.dk(g.body, .2)); g.t(0, g.T - 1, g.dk(g.body, .25)); g.t(1, g.T - 1, g.lt(g.body, .15)); },
+  body(c, x, j, g) { return j === g.T - 1 || (j === g.T - 2 && !(g.front && (x === 0 || x === 1))) ? g.sk : null; },
+  front(g) { g.t(1, 0, g.sk); g.t(0, 0, g.lt(g.body, .35)); if (g.wide) g.t(2, 0, g.lt(g.body, .35)); for (let j = 1; j < g.T - 2; j++) g.t(1, j, j & 1 ? g.dk(g.body, .25) : g.lt(g.body, .3)); g.t(0, g.T - 2, g.dk(g.body, .22)); g.t(1, g.T - 2, g.lt(g.body, .12)); g.t(1, g.T - 1, g.dk(g.body, .2)); },
   back(g) { for (let x = -1; x <= 1; x++) g.t(x, 0, g.lt(g.body, .3)); },
 });
 
