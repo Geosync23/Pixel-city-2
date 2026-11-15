@@ -2,7 +2,7 @@
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
 ## Now (updated 2026-11-15 ~01:25 UTC) — FABLE LEAD SESSION; 4 WORKERS + 1 WRITER RUNNING
-- Branch `ccr-e622e92c-7t3ejy`. **Last published: STAGE 16 (version 1794702387-fb7d)** at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG = Stage 15 + lead fixes (door tap targets msg 76, kitchen storage msg 77,
+- Branch `ccr-e622e92c-7t3ejy`. **Last published: STAGE 16b (version: see docs/HISTORY.md tail; Stage 16 + Wander travel options msg 81; extra lead files for the clean build: ui/hud.js, ui/phone_store.js, ui/phone.js from the tree, and ui/phone_guide.js = 11bde73 version + the goThere patch, because the QA worker is editing that file)** at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG = Stage 15 + lead fixes (door tap targets msg 76, kitchen storage msg 77,
   tip pacing msg 78) + NAV ARROW EVERYWHERE (docs/reports/navarrow.md).
 - **HOW TO PUBLISH WHILE WORKERS ARE MID-WORK** (the tree holds their half-done files, and WIP commits are in HEAD): `git worktree add --detach <scratchpad>/clean 11bde73` (last fully clean commit), symlink node_modules,
   overlay ONLY finished files (lead files via `git show HEAD:<path>`: src/sim/inventory.js, housing.js, sim/activities.js, apps.js, ui/phone_tips.js; nav files from the tree: ui/navarrow.js, phone_map.js, phone_taxi.js,

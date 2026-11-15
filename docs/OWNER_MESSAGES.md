@@ -346,3 +346,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 80 — The lead plans the structure and categories of the lines; the writer writes them
 > You plan it stucture and categories of the lines and the writer writes them
+
+## 81 — Wander "Take me there" must offer the same options as the Map (foot, cab, bus, train)
+> The wonder app take me there needs to give you options like the map does. Foot cab bus train

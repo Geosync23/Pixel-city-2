@@ -18,7 +18,8 @@ export const walkText = m => (m === null || m === undefined ? '' : m >= 60 ? `${
 export function goTo(target, ctx, name) {
   let p = target; if (typeof target === 'string') p = place(target) || cityPois().find(q => q.id === target || q.id === 'door:' + target) || null;
   if (!p || typeof p.x !== 'number') { toast('Not sure where that is yet. Try Wander or the Map.'); return false; }
-  const nm = name || p.name || 'Waypoint'; G.phone.setWaypoint(p.id && place(p.id) ? p.id : { x: p.x, y: p.y, name: nm }); if (ctx) ctx.close(); toast(`Waypoint set: ${nm}. Follow the arrow.`, 'good', 3200); return true;
+  const nm = name || p.name || 'Waypoint'; if (G.phone.routeTo && G.phone.routeTo(p.id && place(p.id) ? p.id : { x: p.x, y: p.y, name: nm })) return true;   // route card with foot / bus / train / cab (owner msg 81)
+  G.phone.setWaypoint(p.id && place(p.id) ? p.id : { x: p.x, y: p.y, name: nm }); if (ctx) ctx.close(); toast(`Waypoint set: ${nm}. Follow the arrow.`, 'good', 3200); return true;
 }
 export function injectCss() { if (!document.querySelector('link[href="src/ui/style.css"]') || document.querySelector('link[href="src/ui/phone_apps.css"]')) return; document.head.append(el('link', { rel: 'stylesheet', href: 'src/ui/phone_apps.css' })); }
 

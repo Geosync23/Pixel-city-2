@@ -55,3 +55,4 @@
 40. (msg 78) Tip pacing: Nestly tips only after the airport; the Wander tip after Nora's first text. Done (Stage 15d); all new-app banners also wait until you leave the airport.
 41. (msg 79) A ton of lines for city folk: same frequency, many more lines, no repeats until the whole pool has fired; a big general pool + contextual pools (e.g. when you stink). An Opus writer does it, outside the 3+1 worker count.
 42. (msg 80) The LEAD plans the structure and categories of the city-folk lines; the writer only writes them. Plan: docs/reports/city_lines.md.
+43. (msg 81) Wander's 'Take me there' must offer the same travel options as the Map (foot, cab, bus, train). Done (Stage 16b) for Wander, Bay Basics tips and the need chooser via G.phone.routeTo.

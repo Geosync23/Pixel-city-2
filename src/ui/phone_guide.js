@@ -98,7 +98,9 @@ function planBtn(e, t, ctx, small) {
     const id = safe(() => G.planner.add({ title: e.title, placeId: e.placeId || undefined, t: t.t, dur: Math.min(t.dur || 60, 240), kind: 'event', data: { guide: e.id } }), null);
     ctx.tip(id ? `Added: ${e.title}, ${dayLabel(t.day)} ${t.clock}` : 'Could not add that to the planner.'); ctx.refresh(); }, small ? 'gold' : 'gold wide', 'ui.calendar');
 }
-function goThere(e, ctx) { const p = g().pos(e); if (!e.placeId && !p) return; G.phone.setWaypoint(e.placeId || { x: p.x, y: p.y, name: e.title }); ctx.close(); toast(`Waypoint set: ${e.title}. Follow the arrow.`, 'good', 3200); }
+function goThere(e, ctx) { const p = g().pos(e); if (!e.placeId && !p) return; const d = e.placeId || { x: p.x, y: p.y, name: e.title };
+  if (G.phone.routeTo && G.phone.routeTo(d)) return;   // the Map's route card: on foot / bus / train / cab (owner msg 81)
+  G.phone.setWaypoint(d); ctx.close(); toast(`Waypoint set: ${e.title}. Follow the arrow.`, 'good', 3200); }
 
 /* ---------- cover / home ---------- */
 function coverCanvas() {
@@ -137,7 +139,7 @@ function homePage(b, ctx) {
     return el('button.wg-ch', { style: '--c:' + (ch.color), onclick: () => ctx.push(ch.name, (bb, cc) => chapterPage(bb, cc, ch.id), 'ch:' + ch.id) }, cv, el('b', { text: ch.name }), el('small', { text: `${st.byChapter[ch.id]} entries` })); })));
   b.append(section('Browse by district'));
   b.append(el('div.wg-districts', null, G_.districts().map(d => el('button.wg-dist', { style: '--c:' + (d.color || '#888'), onclick: () => ctx.push(d.name, (bb, cc) => districtPage(bb, cc, d), 'd:' + d.id) }, el('b', { text: d.name }), el('small', { text: d.line || '' }), el('em', { text: `${G_.byDistrict(d.id).length} entries` })))));
-  b.append(el('p.wg-foot', { text: 'Wander lists every place in town, found or not. Tap "Take me there" on any page and follow the arrow.' }));
+  b.append(el('p.wg-foot', { text: 'Wander lists every place in town, found or not. Tap "Take me there" on any page, pick how to travel, and follow the arrow.' }));
   keepScroll(b, 'home'); watchThumbs(b);
 }
 

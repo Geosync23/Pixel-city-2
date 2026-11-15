@@ -14,6 +14,7 @@
 //        ctx = { arg, body, foot (fixed area under the scrolling body), push(title, fn(body, ctx), key?), back(), refresh(), open(appId, arg), close(), tip(text) }
 //   badge(appId?) -> number (all apps when omitted)      refresh()  re-render the current view      viewing(appId, key?) -> bool
 //   log() -> newest-first notification history [{ id, app, title, text, icon, t, read, data }]      clearLog()
+//   routeTo(placeOrId | {x,y,name}) -> bool   open the Map on the 'How will you get there?' card (foot / bus / train / cab); every 'Take me there' uses it
 //   setWaypoint(placeOrId | null) / waypoint()   the on-screen guide arrow (phone_map.js); emits 'waypoint'(place | null)
 // Events: 'phone:open'(appId | null), 'phone:close', 'phone:notify'(entry), 'phone:unlock'(appId), 'phone:app'(appId)
 // State slice G.state.phone = { unlocked: {id:1}, locked: {id:1}, log: [...], cool: { type: t }, seq, settings: { banners, text }, waypoint, cityPos, ride, orders, seen }
@@ -25,7 +26,7 @@ import { VENUE_BY_ID } from '../data/venues.js';
 import { iconEl, appIcon, portrait, money, balance, weatherNow, weatherIcon, isNight, when, safe, timeInfo, empty, row, section, cap } from './phone_util.js';
 import messagesApp from './phone_messages.js';
 import plannerApp from './phone_planner.js';
-import mapApp, { setWaypoint, getWaypoint } from './phone_map.js';
+import mapApp, { setWaypoint, getWaypoint, routeTo } from './phone_map.js';
 import taxiApp from './phone_taxi.js';
 import bankApp from './phone_bank.js';
 import jobsApp from './phone_jobs.js';
@@ -223,7 +224,7 @@ export function init() {
   G.phone = { open, close, toggle, notify, unlock, lock, isUnlocked, badge, refresh, viewing, tip,
     registerApp: a => { if (!a || !a.id || !a.render) return false; impl.set(a.id, a); if (a.setup) safe(() => a.setup(G.phone), 0); if (isOpen) refresh(); return true; },
     log: () => S.log.slice(), clearLog: () => { S.log = []; syncBadge(); }, apps: () => defs().map(a => ({ id: a.id, name: a.name, unlocked: isUnlocked(a.id), badge: isUnlocked(a.id) ? badge(a.id) : 0 })),
-    setWaypoint, waypoint: getWaypoint, get isOpen() { return isOpen; }, get settings() { return S.settings; } };
+    setWaypoint, waypoint: getWaypoint, routeTo, get isOpen() { return isOpen; }, get settings() { return S.settings; } };
   for (const a of impl.values()) if (a.setup) safe(() => a.setup(G.phone), 0);
   syncBadge();
 }

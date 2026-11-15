@@ -25,6 +25,14 @@ export function setWaypoint(p) {
   S().waypoint = p && typeof p.x === 'number' ? Object.assign({ id: p.id || null, name: p.name || 'Waypoint', x: p.x, y: p.y }, p.room ? { room: p.room } : null) : null;
   G.emit('waypoint', S().waypoint ? (place(S().waypoint.id) || S().waypoint) : null); return S().waypoint;
 }
+/** "Take me there" from anywhere (Wander, tips, the need chooser): opens the Map on the route card (foot / bus / train / cab) for that place instead of silently setting a waypoint (owner msg 81).
+ *  p: place id | place | { x, y, name }. Falls back to a plain waypoint when there is no navigator or the Map app is not available. Returns true when the route card was opened. */
+export function routeTo(p) {
+  if (typeof p === 'string') p = place(p); if (!p || typeof p.x !== 'number') return false;
+  const d = { id: p.id || null, name: p.name || 'Destination', x: p.x, y: p.y };
+  if (G.nav && G.phone && G.phone.isUnlocked && G.phone.isUnlocked('map') && safe(() => G.nav.routeTo(d), []).length) { needCenter = false; G.phone.open('map', { route: d }); return true; }
+  setWaypoint(p); return false;
+}
 export const getWaypoint = () => (G.state.phone ? G.state.phone.waypoint : null);
 
 /* ---------- drawing ---------- */
@@ -189,6 +197,7 @@ export default {
     const w = cityWorld(); if (!w) return b.append(empty('ui.pin', 'No map data yet', 'Step outside and the city map will load.'));
     ctxRef = ctx; footEl = ctx.foot; const a = ctx.arg;
     if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) { sel = p.id; view.cx = p.x; view.cy = p.y; view.z = Math.max(view.z, 3); needCenter = false; hidden[placeCat(p)] = false; } }
+    if (a && a.route && !a._used) { a._used = 1; const d = a.route; navDest = { id: d.id || null, name: d.name || 'Destination', x: d.x, y: d.y }; view.cx = d.x; view.cy = d.y; view.z = Math.max(view.z, 3); sel = null; navKind = null; streetsOpen = false; needCenter = false; }   // deep link: open on the 'How will you get there?' card
     if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; navKind = null; navDest = null; }
     if (G.nav) b.append(whereTo(ctx));
     const present = new Set(allPlaces().map(placeCat));

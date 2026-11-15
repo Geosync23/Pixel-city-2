@@ -132,4 +132,6 @@ export function build(c) {
   for (let x = 272; x < 380; x += 8) put('prop.rail.track', x, 338.4, { p: { len: 8, tracks: 2 }, z: 0 }); put('prop.rail.buffer', 272, 338.4, { p: {} });
   const yard = c.sub(92); for (let i = 0; i < 12; i++) pv(['prop.harbor.containers', 'prop.ind.pallets', 'prop.ind.pipes', 'prop.ind.spool', 'prop.ind.fence', 'prop.ind.barrier'][i % 6], 306 + yard() * 70, 331 + yard() * 5, yard, { free: true });
   if (c.has('bld.ind.tanks')) pv('bld.ind.tanks', 352, 331, yard, { free: true }); if (c.has('veh.train.car')) { put('veh.train.car', 300, 338.6, { p: c.vp('veh.train.car', yard, { dir: 1 }), z: .15 }); }
+  // Museum of Maple Bay (showpiece S2) closes the vista at the head of Maple Avenue. Placed late and WITHOUT reserving occupancy, so the wild-greenery random sequence is unchanged (trees that would land inside it fail their free-cell check).
+  if (c.has('bld.arts.museum2')) { put('bld.arts.museum2', 259, 41, { p: { seed: 1 }, z: 3 }); w.poi({ type: 'door', id: 'door:museum', room: 'museum', name: 'Museum of Maple Bay', x: 266, y: 53.75, dir: 3, district: 'arts' }); w.poi({ type: 'landmark', id: 'lm:museum', name: 'Museum of Maple Bay', x: 266, y: 47 }); }
 }
