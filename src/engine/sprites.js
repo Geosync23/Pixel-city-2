@@ -28,6 +28,7 @@ if (IN_WORKER) {
       if (m.t === 'obj') { const a = ASSETS.get(m.a); if (a && typeof a.draw === 'function') r = R.render(R.screenBox(m.vb), () => a.draw(m.p), null, 3, m.flip); }
       else if (m.t === 'char') { const A = MODULES['./chars/char.js']; if (A && A.drawChar) r = R.render(m.sb, () => A.drawChar(m.spec, m.pose), null, 1); }
     } catch (e) { r = null; var err = String(e && e.message); }
+    if (!r && !err) err = m.t === 'obj' ? (ASSETS.has(m.a) ? 'asset has no draw()' : 'no asset ' + m.a + ' (' + ASSETS.size + ' known)') : 'no character art';
     if (r) self.postMessage({ n: m.n, w: r.w, h: r.h, x: r.x, y: r.y, hasLight: r.hasLight, buf: r.buf.buffer, lb: r.hasLight ? r.lb.buffer : null }, r.hasLight ? [r.buf.buffer, r.lb.buffer] : [r.buf.buffer]);
     else self.postMessage({ n: m.n, fail: 1, err });
   };
