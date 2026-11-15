@@ -269,3 +269,7 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 27 (owner msg 145, 2026-11-15) — smarter traffic, same density
 - Traffic density stays exactly as it is (the owner loves it). The driving gets smarter so jams are rare and clear themselves: buses pull fully into stops / bays and do not block the lane while loading, gaps are kept at junctions (no entering a junction that cannot be cleared), sensible right-of-way and turn yielding, vehicles route around a blocked lane or re-plan, dwell times and bus bunching controlled, stuck detection that resolves a gridlock gracefully and invisibly (off screen first), the player's cab never stuck behind a jam. Measure jams before and after; no visible thinning of traffic.
+
+## Direction update 28 (owner msg 151, 2026-11-15) — real bathrooms; night light under the people
+- BATHROOMS are always real, drawn rooms. No "tap the Restroom door and you are relieved" anywhere (the SkyDeck was his example). Always: walk in, use a toilet, then wash hands at a sink. Bathrooms are unique per place (size, tiles, fixtures, mood matching the venue), not copies.
+- NIGHT LIGHT: the dithered streetlight pools are loved, but they must not be painted over the characters as a top layer. Direction shown to the owner as a before / after (docs/shots/light_compare_*.png; trial code in HISTORY): pools fall on the ground; each person / object is lit as a whole by the nearest light. IMPLEMENT ONLY AFTER HIS GO-AHEAD.
