@@ -5,7 +5,7 @@
 //   Every need is a number 0..100 (100 = fully satisfied). Decay values are points per GAME HOUR
 //   and are negative. A typical day (16 h awake, 8 h asleep) costs roughly:
 //     hunger 84 (three normal meals refill ~100), energy 88 (8 h on the starter mattress refills 88),
-//     hygiene 56 (one shower refills 60), fun 56, social 40, bladder ~310 (five short toilet visits).
+//     hygiene 56 (one shower refills 60), fun 56, social 40, bladder ~160 (two or three short toilet visits; tuned down for owner msg 96).
 //   Design intent: needs are a gentle rhythm, not a threat. A player who eats three times, sleeps
 //   once and showers once never sees a red bar.
 //
@@ -104,7 +104,7 @@ export const NEEDS = [
   },
   {
     id: 'bladder', name: 'Bladder', icon: 'toilet roll, white and blue',
-    start: 70, decayAwake: -17, decayAsleep: -5,
+    start: 85, decayAwake: -9, decayAsleep: -2,   // owner msg 96 (was 70 / -17 / -5: 'drains too fast'): full -> 'Need to go' in about 8 waking hours, 2-3 visits a day, a night's sleep costs ~16
     bands: [
       { id: 'full', min: 85, label: 'Comfortable', moodlet: null },
       { id: 'ok', min: 30, label: 'Fine', moodlet: null },
@@ -120,7 +120,7 @@ export const NEEDS = [
 
 // Bladder tuning (used by src/sim/bladder.js). `drink` = points taken off the bladder need by one drink, by kind.
 export const BLADDER = {
-  drink: { default: 10, water: 8, caffeine: 14, alcohol: 16, soup: 4 },
+  drink: { default: 6, water: 5, caffeine: 9, alcohol: 11, soup: 3 },   // was 10 / 8 / 14 / 16 / 4 (owner msg 96)
   toiletMinutes: 4,        // a home / fixture toilet visit (activity `use_toilet`: +100 over these minutes)
   restroomMinutes: 5,      // a public "Restroom" visit (fade out / fade in), hand-washing included
   restroomHygiene: 3,      // hygiene gained in a public restroom (you wash your hands there)

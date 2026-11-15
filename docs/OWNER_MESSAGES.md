@@ -392,3 +392,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 95 — Three phone apps: read a book, watch movies, play games; a little fun, not too much
 > Add an app to read a book, one towatch movies, and one to play games. All give to fun a bit but not too much
+
+## 96 — Bladder drains too fast
+> Bladder drains too fast

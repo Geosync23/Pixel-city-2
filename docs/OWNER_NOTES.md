@@ -68,3 +68,4 @@
 53. (msg 93) Garment DRAWING is split across 3 Opus agents instead of the 1 Fable clothes worker; the Fable worker comes back once the drawing is done (for the systems: shops, laundry, closet app, integration).
 54. (msg 94) Bug: pedestrians sometimes stop in the middle of the road and hold up traffic. Given to QA round 3 (it owns the crowd + traffic files right now).
 55. (msg 95) Three new phone apps: one to read a book, one to watch movies, one to play games. Each gives a bit of fun, not too much. Worker launched.
+56. (msg 96) Bladder drained too fast. Tuned (Stage 27b): about half the old rate — a full bladder lasts ~8 waking hours before 'Need to go' (was ~4), drinks cost less, a night's sleep costs ~16.

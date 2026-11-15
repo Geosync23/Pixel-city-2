@@ -1,4 +1,4 @@
-// Wardrobe catalogue check (dev tool; not imported by the game).   node src/data/clothes_validate.mjs [--min 1000] [--minhair 60] [--quiet]
+// Wardrobe catalogue check (dev tool; not imported by the game).   node src/data/clothes_validate.mjs [--min 1000] [--minhair 60] [--quiet] [--list  print every shape id per slot]
 // Fails (exit 1) when: the catalogue has fewer than --min pieces (default MIN_PIECES = 1000) or fewer than --minhair hairstyles; an id is duplicated or badly prefixed;
 // a piece names an unknown shape / brand / style / shop / pattern / colour; a piece draws nothing (its sprite equals the bare mannequin: no preview);
 // or two pieces of one slot look pixel-identical on the character (front view). Prints the counts by slot, brand and shop.
@@ -46,5 +46,6 @@ if (!a.includes('--quiet')) {
   console.log('by slot:  ' + count(p => p.slot === 'acc' ? 'acc/' + p.kind : p.slot)); console.log('by brand: ' + count(p => p.brand)); console.log('by shop:  ' + count(p => p.shops));
   console.log('shapes:   ' + Object.keys(shapesFor).map(k => k + ' ' + shapeIds(k).length).join(' · ') + ` · hair ${hairIds.length} · beard ${beardIds.length}`);
 }
+if (a.includes('--list')) for (const k of [...Object.keys(shapesFor), 'hair', 'beard']) console.log(`\n${k} shapes (${shapeIds(k).length}): ` + shapeIds(k).join(' '));
 if (errs.length) { console.error(`\n${errs.length} problem(s):\n` + errs.slice(0, 60).map(e => '  - ' + e).join('\n') + (errs.length > 60 ? `\n  ... and ${errs.length - 60} more` : '')); process.exit(1); }
 console.log('clothes OK');
