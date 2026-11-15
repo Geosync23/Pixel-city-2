@@ -17,6 +17,7 @@ FILES="src/ui/phone_taxi.js src/ui/phone_guide.js src/ui/phone.js src/ui/phone_p
  src/sim/_crowd_lines.js src/sim/_crowd_core.js src/sim/crowd.js src/sim/_crowd_rooms.js src/sim/transit.js src/sim/traffic.js src/sim/_traffic_veh.js src/sim/navigator.js src/sim/museum.js src/sim/observatory.js
  src/ui/shop.js src/ui/hud.js src/data/items.js src/data/venues_extra.js src/data/validate.mjs src/data/calendar.js src/scenes/rooms/museum.js src/scenes/rooms/observatory.js src/art/showpiece/museum.js
  src/sim/navgoals.js src/ui/navarrow.js
+ src/data/shipping.js src/sim/orders.js src/sim/homedesign.js src/ui/phone_home.js src/art/homedesign/*.js src/ui/furnish.js src/ui/furnish.css src/sim/activities.js
  src/sim/cityevents.js src/sim/_cityevents_stage.js src/sim/_cityevents_fx.js src/data/cityevents.js src/art/events/*.js
  src/art/civic/arts_street.js src/art/downtown/midrise.js src/art/downtown/towers.js src/art/examples/basics.js src/art/venue/restaurant.js
  src/data/goods.js src/art/goods/*.js src/art/icons/goods.js src/sim/goods.js src/sim/goods_sheet.js src/sim/goods_city.js src/scenes/rooms/goods_lib.js src/scenes/rooms/goods_stores.js src/scenes/rooms/goods_stores2.js
@@ -28,5 +29,5 @@ for n in hotel arena aquarium fishmarket lighthouse cityhall natatorium; do for 
 for p in _hotel_ _arena_ _aqua_ _fish_ _lh_ _ch_ _nat_; do for f in $(ls src/*/$p* src/*/*/$p* 2>/dev/null); do cp "$f" "$C/$f"; done; done
 git show $B25:src/world/_blocks.js > "$C/src/world/_blocks.js"
 # files a RUNNING worker is editing: pinned to the last published commit (remove a line when that worker is integrated)
-S35=$(git log --format=%h -1 --grep="^Stage 37"); for f in src/engine/render.js src/ui/title.js src/ui/creator.js src/sim/housing.js src/ui/furnish.js src/ui/furnish.css src/sim/goods.js src/sim/goods_sheet.js; do git show $S35:$f > "$C/$f"; done
+S35=$(git log --format=%h -1 --grep="^Stage 37"); for f in src/engine/render.js src/ui/title.js src/ui/creator.js; do git show $S35:$f > "$C/$f"; done
 cd "$C" && node src/data/validate.mjs | tail -1 && node tools/build.mjs | tail -1 && echo "$C"

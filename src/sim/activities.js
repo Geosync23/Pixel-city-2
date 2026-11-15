@@ -451,6 +451,7 @@ async function menu(ctx) {
   if (tags.includes('fridge') || tags.includes('pantry')) { add(tags.includes('fridge') ? 'Open the fridge' : 'Open the pantry', 'Store, take or eat food', () => G.inv.openFridge(fx)); if (tags.includes('fridge')) add('Make a no-cook dish...', 'Sandwiches, salads, smoothies', () => cookMenu(fx, 'none')); }
   if (tags.includes('stove')) { add('Cook...', 'Open your recipes', () => cookMenu(fx, 'stove')); add('Heat a ready meal', 'The slow way: 8 min', () => heatMenu(fx, 'heat_on_stove')); }
   if (tags.includes('microwave')) add('Heat a ready meal', 'Ding!', () => heatMenu(fx, 'microwave_meal'));
+  if (tags.includes('computer') && G.homeDesign && isHome(G.scene)) add('Shop for the home', 'Roomy: browse, order, track', () => G.homeDesign.shop());
   if (tags.includes('bed')) {
     const n = G.now(), wake = 7, toMorning = Math.round((((wake - n.hf) % 24) + 24) % 24 * 60) || 1440, e = G.needs ? G.needs.get('energy') : 50, why = e > 92 ? 'You are wide awake' : null;
     const good = goodOf(fx, 'bed'), rate = ACTIVITY_BY_ID.sleep.perHour.energy * ((good && good.bonus.mult) || 1), rested = Math.max(30, Math.round((100 - e) / rate * 60));
