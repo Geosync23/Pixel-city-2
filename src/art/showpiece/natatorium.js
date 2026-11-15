@@ -9,8 +9,8 @@ const { signY, textY, textW, PAT } = R;
 const wave = (c, a = 2, k = 5, base = 6) => (u, v) => (v > base + Math.sin(u / k) * a ? null : c);
 
 function desk(p) {
-  const w = p.w || 5; box(0, .15, 0, w, .75, 1, WHITE, { l: (u, v) => (v < 4 ? TEAL_D : v < 9 + Math.sin(u / 6) * 2.5 ? TEAL : '#f4f8f8'), t: '#fbfdfd' }); box(0, .15, 1, w, .2, .14, TEAL, { ol: false });
-  signY('RECEPTION', w / 2 - 1.5, w / 2 + 1.5, .91, .55, .9, NAVY, '#ffffff', { lit: true });
+  const w = p.w || 5; box(0, .15, 0, w, .75, 1, WHITE, { l: (u, v) => (v < 3 ? TEAL_D : v < 5 ? TEAL : '#f4f8f8'), t: '#fbfdfd' }); box(0, .15, 1, w, .2, .14, TEAL, { ol: false });
+  signY('RECEPTION', w / 2 - 1.5, w / 2 + 1.5, .91, .42, .9, NAVY, '#ffffff', { lit: true });
   for (const x of [w * .25, w * .72]) { box(x - .22, .42, 1, .44, .08, .34, INK, { ol: false }); lit(() => qy(x - .19, x + .19, .5, 1.04, 1.3, '#8fe0ea', '#bff0f6')); box(x - .08, .4, 1, .16, .14, .04, STEEL_D, { ol: false }); }
   box(w * .5 - .2, .6, 1, .4, .25, .12, YEL, { ol: false }); lw([w * .5 - .2, .86, 1.12], [w * .5 + .2, .86, 1.12], lt(YEL, .5)); box(w - .6, .5, 1, .3, .3, .22, '#f4f0e8', { ol: false }); dot(w - .45, .8, 1.26, RED, 2);
 }
@@ -38,20 +38,20 @@ function viewwin(p) { const w = p.w || 7; box(0, 0, 0, w, .12, .12, STEEL, { ol:
 function recordboard(p) {
   qy(0, 3.4, .06, 0, 2.2, NAVY); qy(.04, 3.36, .07, 1.78, 2.16, BLUE); textY('CLUB RECORDS', .22, .08, 2.12, '#ffffff'); lw([0, .07, 2.2], [3.4, .07, 2.2], YEL); lw([0, .07, 0], [3.4, .07, 0], YEL);
   for (let j = 0; j < 5; j++) for (let i = 0; i < 2; i++) { const x = .1 + i * 1.65, z = 1.52 - j * .2; qy(x, x + 1.55, .07, z, z + .15, '#e8c06a'); const s = S2(x + .06, .07, z + .11); for (let u = 0; u < 20; u++) if (hash2(u, j * 2 + i, 4) > .3) px(s[0] + u, s[1] + (u >> 1), C('#6a4a1c')); }
-  qy(.1, 3.3, .07, .08, .62, p.filled ? '#f2d27a' : '#b8a888'); textY('100 BACK 1974', .18, .08, .58, INK); textY(p.filled ? 'R.CASTELLANOS' : '. . . . . . .', .18, .08, .36, p.filled ? '#7a2a1c' : '#7a705c'); if (p.filled) { const s = S2(3.16, .08, .44); for (const [i, j] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) px(s[0] + i, s[1] + j, C('#fff8d0')); }
+  qy(.1, 3.3, .07, .04, .66, p.filled ? '#f2d27a' : '#b8a888'); textY('BACK 1974', .18, .08, .6, INK); textY(p.filled ? 'CASTELLANOS' : '. . . . . .', .18, .08, .32, p.filled ? '#7a2a1c' : '#7a705c'); if (p.filled) { const s = S2(3.16, .08, .44); for (const [i, j] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) px(s[0] + i, s[1] + j, C('#fff8d0')); }
 }
 function honours(p) {
-  qy(0, 2.1, .06, 0, 1.6, '#3a2a30'); qy(.06, 2.04, .07, .06, 1.54, '#22304e'); textY('FRIENDS', .2, .08, 1.48, YEL); textY('OF THE', .3, .08, 1.26, '#e8c06a'); textY('MARLINS', .2, .08, 1.04, YEL);
-  for (let j = 0; j < 3; j++) { const s = S2(.2, .08, .66 - j * .12); for (let u = 0; u < 26; u++) if (hash2(u, j, 9) > .35) px(s[0] + u, s[1] + (u >> 1), C('#b8a888')); }
-  if (p.name) { qy(.08, 2.02, .08, .1, .34, '#f2d27a'); textY(String(p.name).toUpperCase().replace(/[^A-Z0-9 ]/g, '').slice(0, 7), .16, .09, .3, '#7a2a1c'); }
+  qy(0, 2.1, .06, 0, 2.1, '#3a2a30'); qy(.06, 2.04, .07, .06, 2.04, '#22304e'); textY('FRIENDS', .22, .08, 2.0, YEL); textY('OF THE', .34, .08, 1.58, '#e8c06a'); textY('MARLINS', .22, .08, 1.16, YEL);
+  for (let j = 0; j < 2; j++) { const s = S2(.2, .08, .68 - j * .14); for (let u = 0; u < 26; u++) if (hash2(u, j, 9) > .35) px(s[0] + u, s[1] + (u >> 1), C('#b8a888')); }
+  if (p.name) { qy(.08, 2.02, .08, .06, .44, '#f2d27a'); textY(String(p.name).toUpperCase().replace(/[^A-Z0-9 ]/g, '').slice(0, 7), .16, .09, .4, '#7a2a1c'); }
 }
 function noticeboard() {
   qy(0, 1.9, .05, 0, 1.5, WOOD_D); qy(.06, 1.84, .06, .06, 1.44, '#c8a070'); qy(.14, .98, .07, .3, 1.36, '#fbfbf4'); textY('TIMETABLE', .18, .08, 1.32, NAVY);
   for (let j = 0; j < 7; j++) { const s = S2(.18, .08, 1.14 - j * .11); for (let u = 0; u < 11; u++) px(s[0] + u, s[1] + (u >> 1), C(j % 2 ? '#8fa8c0' : '#5a7a9a')); px(s[0] - 1, s[1], C([TEAL, YEL, RED, LIME, PINK, ORG, BLUE][j])); }
-  qy(1.06, 1.76, .07, .8, 1.34, YEL); textY('SWIM', 1.12, .08, 1.28, NAVY); textY('MEET', 1.12, .08, 1.1, RED); qy(1.06, 1.5, .07, .2, .7, PINK); qy(1.54, 1.78, .07, .3, .72, '#bfe8f0'); for (const [x, z] of [[.56, 1.38], [1.4, 1.36], [1.28, .72], [1.66, .74]]) dot(x, .08, z, RED);
+  qy(1.06, 1.76, .07, .8, 1.34, YEL); textY('MEET', 1.12, .08, 1.2, RED); qy(1.06, 1.5, .07, .2, .7, PINK); qy(1.54, 1.78, .07, .3, .72, '#bfe8f0'); for (const [x, z] of [[.56, 1.38], [1.4, 1.36], [1.28, .72], [1.66, .74]]) dot(x, .08, z, RED);
 }
 function mural(p) {
-  qy(0, 3.6, .05, 0, 2.3, STEEL_D); if (!p.on) { qy(.08, 3.52, .06, .08, 2.22, '#eef0ec'); textY('COMMUNITY', .9, .07, 1.5, '#a8b0b4'); textY('WALL', 1.4, .07, 1.2, '#a8b0b4'); for (let i = 0; i < 5; i++) dot(.5 + i * .65, .07, .5, FLOATS[i], 2); return; }
+  qy(0, 3.6, .05, 0, 2.3, STEEL_D); if (!p.on) { qy(.08, 3.52, .06, .08, 2.22, '#eef0ec'); textY('COMMUNITY', .9, .07, 1.7, '#a8b0b4'); textY('WALL', 1.4, .07, 1.2, '#a8b0b4'); for (let i = 0; i < 5; i++) dot(.5 + i * .65, .07, .5, FLOATS[i], 2); return; }
   qy(.08, 3.52, .06, .08, 2.22, (u, v) => (v > 24 ? (v > 30 ? '#f6b88a' : '#f8d0a0') : v > 20 ? '#f08a8a' : ((u + v * 2) % 9 < 2 ? '#8fe0ea' : v > 10 ? '#3fa8d0' : '#2f8fb8')));
   { const s = S2(2.8, .07, 1.72); R.ellipse(s[0], s[1], 5, 5, '#fff2a8'); }
   { const s = S2(1.2, .07, 1.0); for (let i = 0; i < 16; i++) { px(s[0] + i, s[1] + (i >> 1), C('#e8b890')); px(s[0] + i, s[1] + (i >> 1) + 1, C(i < 6 ? '#e8b890' : '#d8402e')); } for (let i = 0; i < 8; i++) px(s[0] + 14 + i, s[1] + 3 - i, C('#e8b890')); R.ellipse(s[0] + 17, s[1] + 9, 2.4, 2.4, '#e8b890'); px(s[0] + 18, s[1] + 7, C('#4a3022')); px(s[0] + 17, s[1] + 7, C('#4a3022')); for (const [i, j] of [[-3, 2], [-5, 4], [22, 14], [24, 12], [8, -1]]) px(s[0] + i, s[1] + j, C('#ffffff')); }
@@ -162,7 +162,7 @@ export default [
   F('vending', ['nat_vending'], [1, .8, 2], vending, { use: { x: .5, y: 1.3 }, light: { x: .5, y: 1.2, z: 0, r: 1.6, c: '#bfe8ff' }, variants: [{ k: 'drinks' }, { k: 'snacks' }] }),
   F('viewwin', ['nat_view'], p => [p.w || 7, .12, 2], viewwin, { solid: false, variants: [{ w: 7 }] }),
   F('recordboard', ['nat_records'], [3.4, .1, 2.2], recordboard, { solid: false, variants: [{}, { filled: 1 }] }),
-  F('honours', ['nat_honours'], [2.1, .1, 1.6], honours, { solid: false, variants: [{}, { name: 'ALEX' }] }),
+  F('honours', ['nat_honours'], [2.1, .1, 2.1], honours, { solid: false, variants: [{}, { name: 'ALEX' }] }),
   F('noticeboard', ['nat_notice'], [1.9, .1, 1.5], noticeboard, { solid: false }),
   F('mural', ['nat_mural'], [3.6, .1, 2.3], mural, { solid: false, variants: [{}, { on: 1 }] }),
   F('bench', ['nat_bench'], p => [p.w || 2, .5, .5], bench, { vb: p => [0, 0, 0, p.w || 2, .55, .9], seats: benchSeats, variants: [{ w: 2 }, { w: 3, kit: 1 }] }),

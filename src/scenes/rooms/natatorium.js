@@ -38,7 +38,7 @@ export const wireLife = (sc, parts) => { sc.life = { parts, count: () => parts.r
 /* ================= Entrance Hall ================= */
 {
   const W = 26, D = 13, { items, spots, H, Wl, S } = mkItems();
-  Wl('viewwin', 'y', 1, { w: 7.4 }, { view: 1 }); Wl('recordboard', 'y', 9.1, {}, { records: 1, mount: .7 }); Wl('honours', 'y', 12.8, {}, { honours: 1, mount: .9 }); Wl('noticeboard', 'y', 15.2, {}, { notice: 1, mount: .9 });
+  Wl('viewwin', 'y', 1, { w: 7.4 }, { view: 1, mount: .6 }); Wl('recordboard', 'y', 9.1, {}, { records: 1, mount: .7 }); Wl('honours', 'y', 12.8, {}, { honours: 1, mount: .7 }); Wl('noticeboard', 'y', 15.2, {}, { notice: 1, mount: .9 });
   Wl('doorway', 'y', 19.6, { t: 'STAND', w: 1.9, c: '#1f6fb8' }); Wl('doorway', 'y', 23.1, { t: 'CHANGING', w: 2.5, c: '#e8843a' });
   Wl('sign', 'x', 2.4, { t: 'SPLASH & DASH', w: 3.7, c: '#f2c230', fg: '#22304e', lit: 1 }, { mount: 2.45 }); Wl('mural', 'x', 9.1, {}, { mural: 1, mount: .9 });
   H('vending', 17.3, .15, { k: 'drinks' }, { vend: 1 }); H('vending', 18.4, .15, { k: 'snacks' }, { vend: 1 });
@@ -61,7 +61,7 @@ export const wireLife = (sc, parts) => { sc.life = { parts, count: () => parts.r
       // the live window onto the pool
       const V = board(sc, { axis: 'y', x: O + 1.1, y: O + .13, z: .74, w: 7.2, h: 24, lit: true }), sw = Array.from({ length: 7 }, (_, i) => ({ l: i % 5, s: 9 + i * 2.3, ph: i * 37 })); let vt = 0;
       const drawView = () => { const t = G.time, n = G.now().hf, open = n >= HOURS.open && n < HOURS.close, night = viewNow() === 'night'; V.clear(night ? '#2f7fa8' : '#46b4d8'); V.rect(0, 0, V.w, 3, night ? '#3a5a70' : '#d8ecee'); V.rect(0, 22, V.w, 2, night ? '#3a5a70' : '#d8ecee');
-        for (let u = 0; u < V.w; u++) { for (let l = 0; l < 4; l++) if ((u + l) % 2) V.rect(u, 6 + l * 4, 1, 1, (u >> 2) % 3 ? '#e8483a' : '#f4f8f8'); if ((u * 7 + Math.floor(t * 3)) % 11 === 0) V.rect(u, 4 + (u * 5) % 17, 2, 1, '#bff0f8'); }
+        for (let u = 0; u < V.w; u++) { for (let l = 0; l < 4; l++) if (u % 3 === 0) V.rect(u, 6 + l * 4, 1, 1, (u / 3 | 0) % 4 ? '#3b8fd8' : '#f4f8f8'); if ((u * 7 + Math.floor(t * 3)) % 11 === 0) V.rect(u, 4 + (u * 5) % 17, 2, 1, '#bff0f8'); }
         if (open) for (const s of sw) { const L = V.w - 8, q = (t * s.s + s.ph) % (2 * L), u = 3 + (q < L ? q : 2 * L - q), v = 4 + s.l * 4; V.rect(u, v, 3, 1, '#e8b890'); V.rect(u + (q < L ? -2 : 3), v, 2, 1, '#ffffff'); V.rect(u + (q < L ? 3 : -1), v, 1, 1, '#2a2733'); } };
       const cr = crowd(sc, sc.def.npcSpots, { seed: 91, fill: .6, lines: ['Forty lengths. Then chips. That is the deal I have with myself.', 'The wave machine goes on the hour and the half. You hear the siren from the car park.', 'My kid is in the Starfish class. He floats now. Mostly.', 'Bring a towel. Trust me on this.'] });
       dress(cr, s => (s.kind === 'staff' ? P.staff[s.shopk ? 2 : s.desk ? 0 : 1] : null));
@@ -87,7 +87,7 @@ registerInfo(NAME, { blurb: 'The public pool under the glass vault on Harbor Bou
 {
   const W = 20, D = 11, { items, spots, H, Wl, S } = mkItems();
   H('cubicles', .6, .1, { n: 6, seed: 4 }, { cubicle: 1 }); H('lockers', 7.9, .1, { w: 3, seed: 2 }, { locker: 1, no: 114 }); H('lockers', 11.1, .1, { w: 3, seed: 5 }, { locker: 1, no: 131 });
-  Wl('dryer', 'y', 14.7, { n: 2 }, { dryer: 1, mount: .6 }); Wl('furn.lobby.restroom', 'y', 17.9, { c: '#3f8a8a', dc: '#1f6a7a' }); Wl('showers', 'x', 1.6, { n: 4 }, { shower: 1 }); Wl('sign', 'y', 8.4, { t: 'LOCKERS', w: 2, c: '#22304e' }, { mount: 2.3 }); Wl('sign', 'x', 6.2, { t: 'PLEASE SHOWER BEFORE YOU SWIM', w: 4.6, c: '#1fa3b8' }, { mount: 1.9 });
+  Wl('dryer', 'y', 14.7, { n: 2 }, { dryer: 1, mount: .6 }); Wl('furn.lobby.restroom', 'y', 17.9, { c: '#3f8a8a', dc: '#1f6a7a' }); Wl('showers', 'x', 1.6, { n: 4 }, { shower: 1 }); Wl('sign', 'y', 8.4, { t: 'LOCKERS', w: 2, c: '#22304e' }, { mount: 2.3 }); Wl('sign', 'x', 6.2, { t: 'SHOWER FIRST PLEASE', w: 5, c: '#1fa3b8' }, { mount: 1.9 });
   H('bench', 5.4, 4.3, { w: 3, kit: 1 }); H('bench', 10.2, 4.3, { w: 3, kit: 2 }); H('bench', 7.8, 6.7, { w: 3 }); H('bench', .2, 6.4, { w: 2.4 }, { flip: true });
   H('towelcart', 16.4, 2.6, {}, { cart: 1 }); H('footbath', 2, 9, { w: 2.4 }); H('footbath', 9, 9, { w: 2.4 }); H('wetsign', 6, 8.6); H('plant', 18.9, .2, { h: 1.4, seed: 2 }); H('furn.generic.bin', 14.1, .3, {});
   S(17.6, 3.2, 2, { kind: 'staff', label: 'The changing-room attendant', lines: ['Towels are two dollars to hire, or bring your own next time.', 'Locker keys go round the wrist. I have fished forty out of the filter this year.', 'Rinse first, please. The showers are right there on the left.'] });

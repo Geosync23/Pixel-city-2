@@ -14,7 +14,7 @@ export default [
     light: { x: 3, y: 3, z: 0, r: 5.5 }, variants: [{ w: 6 }, { w: 4, c: '#c8b8a0' }, { w: 6, c: '#8a959e', tiers: 3 }],
     draw(p) {
       const W = p.w || 6, c = W / 2, k = W / 6, sc = p.c || '#b9b4a8', wt = water(), w = winter(), tiers = p.tiers || 2;
-      cyl(c, c, 0, 2.9 * k, .12, dk(sc, .12)); cyl(c, c, .12, 2.7 * k, .42, sc, { l: PAT.stone(dk(sc, .18)), r: PAT.stone(dk(sc, .36)) }); cyl(c, c, .5, 2.75 * k, .08, lt(sc, .12), { t: w ? SNOW : lt(sc, .12), ol: false });
+      cyl(c, c, 0, 2.9 * k, .12, dk(sc, .12)); cyl(c, c, .12, 2.7 * k, .42, sc, { l: dk(sc, .18), r: dk(sc, .36) }); /* cyl takes colours, not pattern functions (the patterns made every park fountain throw and vanish) */ cyl(c, c, .5, 2.75 * k, .08, lt(sc, .12), { t: w ? SNOW : lt(sc, .12), ol: false });
       cyl(c, c, .5, 2.45 * k, .04, wt[0], { t: wt[0], t2: wt[1], ol: false });
       // ripples + underwater lights
       const s0 = PW(c, c, .54); if (!w) for (const rr of [.9, 1.5, 2.1]) for (let a = 0; a < 40; a++) if ((a + Math.round(rr * 10)) % 5 < 3) px(Math.round(s0[0] + Math.cos(a / 40 * 6.283) * rr * k * U * 1.414), Math.round(s0[1] + Math.sin(a / 40 * 6.283) * rr * k * U * .707), C('#c8e8f4'));

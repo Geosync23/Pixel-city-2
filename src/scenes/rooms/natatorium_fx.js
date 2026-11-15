@@ -42,7 +42,7 @@ export function waterLayer(o) {
       const rx = x + Math.sin(y * 4.6 + ph) * .045, ry = y + Math.sin(x * 4.1 - ph) * .045, fl = o.floor && o.floor(rx, ry, d);
       const v = Math.sin(x * 2.1 + Math.sin(y * 1.6 + ph) * 1.3 + ph) + Math.sin(y * 2.7 - Math.sin(x * 1.4 - ph) * 1.2 - 2 * ph), av = v < 0 ? -v : v, odd = (i + j) & 1;
       if (wv) { const w = Math.sin(y * 1.25 + Math.sin(x * .7) * .35 - ph), w2 = Math.sin(y * 1.25 + Math.sin(x * .7) * .35 - ph - .5); if (w > .93 && d > .08) col = C.gl; else if (w > .78) col = C.hi; else if (w2 < -.75) col = C.lo; }
-      if (!col) { if (fl) col = u32(fl); else if (av < .13) col = C.hi; else if (v > 1.62) col = C.gl; else if (v < -1.45) col = C.lo; else col = d < .22 ? (d < .1 && odd ? C.hi : C.a) : d < .3 ? (odd ? C.a : C.b) : d < .58 ? C.b : d < .68 ? (odd ? C.b : C.c) : C.c; }
+      if (!col) { if (fl) col = u32(fl); else if (av < .085) col = C.hi; else if (v > 1.86) col = C.gl; else if (v < -1.8) col = C.lo; else col = d < .22 ? (d < .1 && odd ? C.hi : C.a) : d < .3 ? (odd ? C.a : C.b) : d < .58 ? C.b : d < .68 ? (odd ? C.b : C.c) : C.c; }
       D[k] = col; }
     g.putImageData(id, 0, 0); S[f] = c; return c;
   }
