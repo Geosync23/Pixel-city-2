@@ -160,7 +160,8 @@ function skipRide() {
   }, 280);
 }
 function cabHere(c) {
-  if (!pend || pend.cab !== c) return; c.parked = true; c.v = 0; pend.state = 'waiting'; pend.t = 0; sfx('honk');
+  if (!pend || pend.cab !== c) return; c.parked = true; c.v = 0; pend.state = 'waiting'; pend.t = 0; pend.reach = 0; sfx('honk');
+  if (pend.again) { G.emit('taxi:here', c); return; }   /* QA10: a cab that drove round to you again honks, no second banner */
   if (!pend.opts.silent) { let shown = null; try { shown = G.phone && G.phone.notify && G.phone.notify({ app: 'taxi', title: 'MapleCab', text: 'Your MapleCab is here.' }); } catch (e) { } if (!shown || (G.state.phone && G.state.phone.settings && G.state.phone.settings.banners === false)) toast('Your MapleCab is here.'); }   /* QA9: the banner, or a toast if there is no phone: not both */
   G.emit('taxi:here', c);
 }
@@ -169,6 +170,17 @@ function lateCab(pd, c) {
   pd.near = true; const g = roadGraph(), e = pd.pick.e, s0 = g.span(e)[0], room = (pd.pick.s - s0) * e.d, back = Math.max(0, Math.min(14, room - 1)); if (back < 4) return;
   const sp = g.lanePos(e, pd.pick.off, pd.pick.s - e.d * back), rt = g.route(sp, pd.pick); if (!rt) return;
   c.halt = false; TX().place(c, e, pd.pick.off, pd.pick.s - e.d * back); TX().setPlan(c, rt); c.stop = { e: pd.pick.e, s: pd.pick.s }; c.onStop = cabHere; c.v = 6;
+}
+/* owner (QA10): the cab comes to YOU. A called cab that has not reached the player within ~20 real seconds (stuck, parked out of sight, or the player
+   walked off / sat in a window) is moved just off screen on the road nearest the player and drives in: the wait stays short. Its pick-up quote was already
+   kept (the cab was there by `due`), so no game time is invented; the 80 s patience is unchanged and counts from the FIRST arrival (pd.wt). */
+const CAB_REACH = 20, CAB_RESPAWNS = 3;
+function respawnNear(pd, c) {
+  const g = roadGraph(), p = G.player, pick = Object.assign({}, g.nearestLane(p.x, p.y)); if (!pick || !pick.e) return false;
+  let sp = TX().offscreenLane(pick, 16, 34), rt = sp && g.route(sp, pick);
+  if (!rt || rt.len > 90) { const e = pick.e, s0 = g.span(e)[0], back = Math.max(0, Math.min(14, (pick.s - s0) * e.d - 1)); if (back < 4) return false; sp = g.lanePos(e, pick.off, pick.s - e.d * back); rt = g.route(sp, pick); if (!rt) return false; }
+  c.parked = false; c.halt = false; TX().place(c, sp.e, sp.off, sp.s); TX().setPlan(c, rt); c.stop = { e: pick.e, s: pick.s }; c.onStop = cabHere; c.v = 6; c.vmax = 9.5;
+  pd.pick = pick; pd.state = 'coming'; pd.t = 0; pd.due = 0; pd.hold = 0; pd.near = true; pd.again = (pd.again || 0) + 1; pd.reach = 0; return true;
 }
 function dropPend(msg) { const pd = pend; if (!pd) return; pend = null; freeCab(pd.cab); if (msg) toast(msg); G.emit('taxi:cancel'); pd.resolve(false); }
 function pickDestination() {
@@ -273,11 +285,14 @@ function update(dt) {
   if (pd.state === 'hail') {
     if (!c.halt) { const e = c.e, g = roadGraph(); if (!c.cornerOn && !c.inNode && (e.s1 - c.s) * e.d > g.ext(e.to, e.axis) + 3.2 && (c.s - e.s0) * e.d > g.ext(e.from, e.axis) + 2.2) c.halt = true; else if (pd.t > 12) c.halt = true; }
     else if (c.v < .05) { c.parked = true; pd.state = 'waiting'; pd.t = 0; sfx('honk'); G.emit('taxi:here', c); walkTo(c); }
-  } else if (pd.state === 'coming') { if (pd.hold > 0 && (pd.hold -= dt) <= 0) c.halt = false; if (!pd.near && pd.t > (pd.due || 6) - 2 && Math.hypot(c.x - pd.pick.x, c.y - pd.pick.y) > 12) lateCab(pd, c); if (pd.t > (pd.due || 6) + CAB_LATE) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); } }
+  } else if (pd.state === 'coming') { if (pd.hold > 0 && (pd.hold -= dt) <= 0) c.halt = false; if (!pd.near && pd.t > (pd.due || 6) - 2 && Math.hypot(c.x - pd.pick.x, c.y - pd.pick.y) > 12) lateCab(pd, c);
+    if (pd.again && pd.t > 8) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); return; }   /* a re-approach is never slow */
+    if (pd.t > (pd.due || 6) + CAB_LATE) { c.halt = false; TX().setPlan(c, null); c.stop = null; c.onStop = null; TX().place(c, pd.pick.e, pd.pick.off, pd.pick.s); cabHere(c); } }
   else if (pd.state === 'waiting') {
     if (pd.opts.auto !== false && !G.busy && !G.modal && Math.hypot(p.x - c.x, p.y - c.y) < (pd.hailed ? 4.6 : 3.3)) boardCab();
+    else if (!pd.hailed && (pd.again || 0) < CAB_RESPAWNS && Math.hypot(p.x - c.x, p.y - c.y) > 6 && (pd.reach = (pd.reach || 0) + (G.modal > 0 ? 0 : dt)) > CAB_REACH && !G.busy && respawnNear(pd, c)) { /* driving round to you */ }
     else if (pd.hailed && !p.path && !G.busy && (pd.w = (pd.w || 0) + dt) > 1.5) { pd.w = 0; walkTo(c); }
-    else if (pd.t > 80) dropPend(c.stand && pd.hailed ? null : 'Your cab gave up waiting. Call another in MapleCab.');   /* QA9: a cab you called never leaves without a word (it did from a stand kerb) */
+    else if ((pd.wt = (pd.wt || 0) + (G.modal > 0 || (G.firstTime && G.firstTime.isOpen) ? 0 : dt)) > 80) dropPend(c.stand && pd.hailed ? null : 'Your cab gave up waiting. Call another in MapleCab.');   /* QA9: a cab you called never leaves without a word (it did from a stand kerb) */
   }
 }
 
