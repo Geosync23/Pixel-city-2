@@ -577,3 +577,6 @@ Fox this newspaper dispenser bank its in the road.
 ## 151 (2026-11-15) — real bathrooms everywhere; streetlight shading vs the character
 Bathrooms should always be drawn. Like at the sky tower you click the door and are relived. No you need to click a toilet and then wash hands always. Have uniqie  Bathrooms too
 The pixel shading used for streetlights at night is great but it sticks as the top payer and doesnt allow for occlusion on the character. Show me the difference  first and then we will implement
+
+## 152 (2026-11-15)
+Dont worry abou iphone13 for now.

@@ -129,3 +129,4 @@
 109. (msg 149) iPhone 13 mini (Safari): the game opens but stays on the "Building Maple Bay" loading screen (stuck or extremely slow). He has never seen that screen linger on his own phone.
 110. (msg 150) BUG: a bank of newspaper dispensers stands IN THE ROAD (screenshot: downtown by the Central station sign). Fix it (and any others).
 111. (msg 151) (a) BATHROOMS must always be real, drawn rooms: no "tap the door and you are relieved" (e.g. the SkyDeck / sky tower). Always: use a toilet, then wash hands. Unique bathrooms, not copies. (b) NIGHT LIGHT: the pixel (dither) shading of streetlights is great, but it is drawn as the TOP layer, over the character, with no occlusion. SHOW HIM THE DIFFERENCE FIRST (a before / after picture), then implement on his go-ahead.
+112. (msg 152) iPhone 13 mini: do not worry about it for now (no further iPhone work or questions; the no-lookbehind / start-up-error safeguards stay).
