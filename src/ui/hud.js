@@ -89,7 +89,7 @@ function fixNeed(n) {
   const L = fixPlaces(n.id), m = modal({ title: n.name + ': where can I fix this?', cls: 'need-fix' });
   if (!L.length) m.body.append(el('div', { text: 'Nothing suitable on the map yet - explore a little.' }));
   for (const q of L) m.body.append(el('button', { style: 'display:flex;gap:8px;align-items:center;width:100%;margin:4px 0;text-align:left', 'data-fix': typeof q.id === 'string' ? q.id : 'pos', onclick: () => { m.close(); togglePanel(false); try { if (!(G.phone.routeTo && G.phone.routeTo(q.id))) { G.phone.setWaypoint(q.id); toast('Waypoint set: ' + q.name + '.', 'good', 2600); } } catch (e) { toast('No route there yet.'); } } },
-    el('span', { style: 'flex:1', text: q.name }), el('small', { text: Math.max(1, Math.round(q.d / 10)) * 10 + ' m' }), q.open == null ? null : el('small', { style: 'padding:0 4px;border:2px solid #2a2733;background:' + (q.open ? '#bfe3a1' : '#f0b0a0'), text: q.open ? 'OPEN' : 'CLOSED' })));
+    el('span', { style: 'flex:1', text: q.name }), el('small', { text: G.nav && G.nav.fmtDist ? G.nav.fmtDist(q.d) : Math.max(1, Math.round(q.d / 10)) * 10 + ' m' }), q.open == null ? null : el('small', { style: 'padding:0 4px;border:2px solid #2a2733;background:' + (q.open ? '#bfe3a1' : '#f0b0a0'), text: q.open ? 'OPEN' : 'CLOSED' })));
   return m;
 }
 function togglePanel(on) { panelOpen = on === undefined ? !panelOpen : !!on; H.panel.classList.toggle('on', panelOpen); H.needs.classList.toggle('on', panelOpen); if (panelOpen) renderPanel(); }

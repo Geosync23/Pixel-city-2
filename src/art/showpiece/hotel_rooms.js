@@ -114,12 +114,12 @@ function massage() {
   box(1.15, .2, 0, .5, .5, .7, WALNUT_L); qy(1.2, 1.36, .72, .7, .9, '#a8642e'); qy(1.42, 1.54, .72, .7, .86, '#2f5a4a'); candle(1.4, .4, .7, .12); for (let i = 0; i < 3; i++) box(1.18, .28, .08 + i * .12, .44, .34, .1, i % 2 ? '#8fd0d0' : LINEN, { ol: false });
 }
 function swimmer(p) {
-  const f = p.frame || 0, sk = p.skin || '#ecba90', h = p.hair || '#4a3022';
+  const f = p.frame || 0, sk = p.skin || '#ecba90', h = p.hair || '#4a3022', X = v => (p.rev ? 1.2 - v : v), d = p.rev ? -1 : 1;
   if (p.soak) { fq(arcY(.4, .3, .02, .34, 0, 6.283, 12, .1), '#b8ecf0'); box(.24, .22, 0, .32, .16, .14, sk, { ol: false }); ball(.4, .3, .28, .15, sk, { ol: false }); ball(.4, .26, .36, .14, h, { ol: false, squash: .6 }); dot(.35, .38, .28, INK); dot(.46, .38, .28, INK); return; }
   const s = [0, 1, 0, -1][f % 4]; qz(.05, 1.15, .1, .5, .01, (x, y) => ((Math.floor(x * 16) + Math.floor(y * 16) + f) % 3 === 0 ? '#e8fbfc' : null));
-  box(.3, .2, 0, .5, .2, .08, p.suit || '#2f3f72', { ol: false }); ball(.85, .3, .12, .14, sk, { ol: false }); ball(.8, .28, .2, .13, h, { ol: false, squash: .6 });
-  lw([.75, .3, .08], [.75 + .32 * (s >= 0 ? 1 : -.6), .3 + .2 * s, .08 + Math.abs(s) * .22], sk); lw([.75, .31, .1], [.75 + .32 * (s >= 0 ? 1 : -.6), .31 + .2 * s, .1 + Math.abs(s) * .22], sk);
-  for (const [dx, dy] of [[-.05, .12], [-.12, .3], [0, .42]]) lit(() => dot(.2 + dx + (f % 2) * .04, dy, .04, '#ffffff'));
+  box(Math.min(X(.3), X(.8)), .2, 0, .5, .2, .08, p.suit || '#2f3f72', { ol: false }); ball(X(.85), .3, .12, .14, sk, { ol: false }); ball(X(.8), .28, .2, .13, h, { ol: false, squash: .6 });
+  lw([X(.75), .3, .08], [X(.75) + d * .32 * (s >= 0 ? 1 : -.6), .3 + .2 * s, .08 + Math.abs(s) * .22], sk); lw([X(.75), .31, .1], [X(.75) + d * .32 * (s >= 0 ? 1 : -.6), .31 + .2 * s, .1 + Math.abs(s) * .22], sk);
+  for (const [dx, dy] of [[-.05, .12], [-.12, .3], [0, .42]]) lit(() => dot(X(.2 + dx + (f % 2) * .04), dy, .04, '#ffffff'));
 }
 function roomdoor(p) {
   const y = .1, no = String(p.no || '701'), c = p.c || '#5a2a30';
