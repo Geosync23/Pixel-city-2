@@ -333,7 +333,17 @@ async function coffee(L, fx) {
   const pick = await choose(fx.item.label || 'Coffee kiosk', menu.map((m, i) => ({ label: m[0], sub: fmt(m[1]), value: i, disabled: !!(G.money && G.money.canAfford && !G.money.canAfford(m[1])) })).concat([{ label: 'Never mind', value: -1 }]), { text: 'A little kiosk in the corner of the lobby. It smells better than the whole rest of the building.' });
   const m = pick !== null && pick >= 0 && menu[pick]; if (!m) return; if (G.money && G.money.pay && !G.money.pay(m[1], m[0] + ' — ' + L.name, { category: 'food' })) return;
   G.emit('lobby:coffee', L.id, m[0]);
-  G.startActivity({ label: 'Having a ' + m[0].toLowerCase(), anim: 'stand', minutes: 6, done: () => { if (m[2]) need('energy', m[2]); need('fun', m[3]); if (m[4]) need('hunger', m[4]); toast(m[0] + ': gone. Worth every cent.', 'good', 2400); } });
+  const done = () => { if (m[2]) need('energy', m[2]); need('fun', m[3]); if (m[4]) need('hunger', m[4]);
+    try { const pts = G.bladder && G.bladder.drinkAmount ? G.bladder.drinkAmount(m[4] ? { id: 'bun', name: m[0] } : { id: 'lobby_drink', name: m[0], category: 'drink' }) : 0; if (pts) { need('bladder', -pts); G.emit('bladder:drink', 'lobby_' + m[0], pts); } } catch (e) { }
+    toast(m[0] + ': gone. Worth every cent.', 'good', 2400); };
+  // the real activity `lobby_coffee` (data/activities.js) so it shows in the guide and stamps; plain timer if the activity system is missing
+  if (!(G.activities && G.activities.start && G.activities.start('lobby_coffee', { fx, label: 'Having a ' + m[0].toLowerCase(), quiet: true, noSummary: true, onDone: done })))
+    G.startActivity({ label: 'Having a ' + m[0].toLowerCase(), anim: 'stand', minutes: 6, done });
+}
+async function readBoard(L, sc, fx) {
+  const day = (G.now && G.now().day) || 0, pool = L.kind === 'res' ? NOTICES_RES : NOTICES_OFF, three = pickN(pool, 3, L.n * 31 + day); const key = 'nb' + day; if (!sc[key]) { sc[key] = 1; need('fun', 4); }
+  G.emit('lobby:notices', L.id); await say(three.map(t => ({ who: 'Notice board', text: t })));
+  if (G.activities && G.activities.start) G.activities.start('read_noticeboard', { fx, noSummary: true });   // a short real activity (guide stamp "Read the Notice Board")
 }
 export function init() {
   registerFixture('lobby_lift', only((fx, sc, L) => fx.item.gated ? null : { label: L.kind === 'res' ? 'Lift' : 'Lifts', use: () => {
@@ -348,7 +358,7 @@ export function init() {
     const k = (fx.item.p && fx.item.p.kind) || 'cork';
     if (k === 'felt' || k === 'digital') return { label: L.style === 'civic' ? 'Departments' : L.kind === 'res' ? 'Residents' : 'Directory', use: () => { const t = L.style === 'civic' ? ['Mayor\'s Office', 'Planning & Permits', 'Parks & Ponds', 'Registry of Births, Boats & Bicycles', 'Lost Property (lost, currently)'] : tenants(L); say([{ who: L.name + ' — Directory', text: t.map((n, i) => 'Floor ' + (2 + i * (1 + L.n % 3)) + ': ' + n).join('\n') }]); G.emit('lobby:directory', L.id); } };
     if (k === 'safety') return { label: fx.item.p.title === 'TIDES' ? 'Tide tables' : 'Safety board', use: () => toast(fx.item.p.title === 'TIDES' ? 'High water 06:10 and 18:32. Small craft warning: none. Gull warning: permanent.' : '412 days without a lost-time incident. Somebody has drawn a tiny party hat on the 4.', 'info', 3400) };
-    return { label: 'Notice board', use: () => { const day = (G.now && G.now().day) || 0, pool = L.kind === 'res' ? NOTICES_RES : NOTICES_OFF, three = pickN(pool, 3, L.n * 31 + day); const key = 'nb' + day; if (!sc[key]) { sc[key] = 1; need('fun', 4); } G.emit('lobby:notices', L.id); say(three.map(t => ({ who: 'Notice board', text: t }))); } };
+    return { label: 'Notice board', use: () => readBoard(L, sc, fx) };
   }));
   registerFixture('lobby_desk', only((fx, sc, L) => { const label = fx.item.label || 'Front desk'; return { label, use: () => { const lines = DESK_LINES[label] || DESK_LINES.Reception; say([{ who: label, text: lines[Math.floor(Math.random() * lines.length)] }]); } }; }));
   registerFixture('lobby_packages', only((fx, sc, L) => ({ label: 'Parcels', use: () => toast(livesHere(L) ? 'Nothing for you today.' : 'Parcels for ' + residents(L)[1] + ', ' + residents(L)[3] + ' and one addressed only to "The Cat".', 'info', 3000) })));

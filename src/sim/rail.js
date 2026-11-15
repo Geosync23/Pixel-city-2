@@ -168,7 +168,9 @@ function diagram(cur, sel, onPick, via) {
 const mins = m => m < .5 ? 'now' : Math.round(m) + ' min';
 function openStation(stationId) {
   const N = net(), id = norm(stationId), here = N && N.byId[id]; if (!here) return null;
-  const m = modal({ title: here.name + ' Station', cls: 'rail-win' }), free = hasPass(), price = FARES.train.single; let sel = null;
+  const m = modal({ title: here.name + ' Station', cls: 'rail-win' }), free = hasPass(), price = FARES.train.single;
+  // nav hook: an active navigator trip boarding here pre-selects its destination station
+  const navTo = (() => { try { const t = G.nav && G.nav.trip && G.nav.trip(); return t && t.mode === 'train' && t.stage === 0 && norm(t.from) === id && N.byId[norm(t.to)] ? norm(t.to) : null; } catch (e) { return null; } })(); let sel = navTo;
   const draw = () => {
     m.body.textContent = ''; const pl = sel ? plan(id, sel) : null;
     m.body.append(diagram(id, sel, s => { sel = s; sfx('click'); draw(); }, pl ? pl.via : null));
@@ -176,7 +178,7 @@ function openStation(stationId) {
     for (const di of [0, 1]) { const a = nt.filter(q => q.dir === di).slice(0, 2); if (!a.length) continue; rows.append(el('div.rail-row', null, el('b', { text: di ? 'B' : 'A', style: { background: LINE[di].color } }), el('span', { text: 'toward ' + a[0].toward }), el('i', { text: (a[0].boarding ? 'boarding' : mins(a[0].minutes)) + (a[1] ? ', ' + mins(a[1].minutes) : '') }))); }
     const tk = tickets(), ok = free || tk > 0;
     m.body.append(rows, el('div.rail-note', { text: free ? 'Pass valid: your rides are free.' : tk ? 'You have ' + tk + (tk === 1 ? ' ticket' : ' tickets') + '. One ticket = one ride, any distance.' : 'You need a ticket to board: ' + fmt(price) + ' flat, any distance. Free with a transit pass.' }));
-    m.body.append(el('div.rail-sel', { text: pl ? 'To ' + N.byId[sel].name + ': ' + pl.line + ', ' + pl.stops + (pl.stops === 1 ? ' stop' : ' stops') + ', about ' + Math.round(pl.minutes) + ' min. ' + (pl.boarding ? 'Boarding now.' : 'Train in ' + mins(pl.wait) + '.') : 'Tap a station on the map to choose where to go.' }));
+    m.body.append(el('div.rail-sel', { text: pl ? (sel === navTo ? 'Your trip - to ' : 'To ') + N.byId[sel].name + ': ' + pl.line + ', ' + pl.stops + (pl.stops === 1 ? ' stop' : ' stops') + ', about ' + Math.round(pl.minutes) + ' min. ' + (pl.boarding ? 'Boarding now.' : 'Train in ' + mins(pl.wait) + '.') : 'Tap a station on the map to choose where to go.' }));
     const go = el('button' + (ok ? '.primary' : ''), { text: !ok ? 'Wait on platform (ticket needed)' : free ? 'Wait on platform (pass valid)' : 'Wait on platform (uses 1 ticket)', 'data-act': 'board', disabled: !pl || !ok, onclick: () => { m.close(); ride(id, sel); } });
     const buy = !free && el('button' + (ok ? '' : '.primary'), { text: 'Buy ticket ' + fmt(price), 'data-act': 'ticket', onclick: () => { if (buyTicket()) draw(); } });
     m.body.append(el('div.rail-btns', null, buy, go, !free && el('button', { text: 'Tickets & passes', onclick: () => { m.close(); openTickets(() => openStation(id)); } })));

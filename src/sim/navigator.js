@@ -6,20 +6,27 @@
 //   matches(place, kind)      -> bool (data-driven: venue.offers {menu, shop[], services[], functions[]}, venue.type, guide entry type/chapter/acts, place kind)
 //   routeTo(place | id | {x,y,name}, from?) -> options [{ mode: walk|bike|bus|train|cab, label, minutes, cost, text, dest, board?, alight?, stops?, line?, toward?, wait? }]
 //   start(option)             walk/bike: waypoint to the destination. bus/train: MULTI-LEG trip (waypoint to the boarding stop first; after 'ride:end' it switches
-//                             to the destination; cleared on arrival / cancel). cab: opens MapleCab.
+//                             to the destination; cleared on arrival / cancel). cab: opens MapleCab; once the ride is requested ('taxi:request') it becomes a
+//                             cab trip (meet the cab at the kerb -> ride -> walk to the door). Requested indoors, the cab is called when you step outside.
 //   trip() -> G.state.nav.trip | null      cancel()      offer(place) -> shows the "How will you get there?" sheet in the banner
+//   replan(why?)              new guidance from where the player is now (got off at the wrong stop / missed it / the ride was lost on load): walk, or the same mode again
 // }
-// State: G.state.nav = { trip: null | { mode, dest, board, alight, stops, line, toward, stage: 0 walk to stop | 1 riding | 2 walk to destination, at: bool } }.
-// The trip banner is a DOM strip under the HUD (#nav-trip). Events: nav:start(trip), nav:stage(trip), nav:end(reason).
+// State: G.state.nav = { trip: null | { mode walk-less: bus|train|cab, dest, board, alight, stops, line, toward, route, from, to, stage: 0 walk to stop (cab: meet the cab) | 1 riding |
+//        2 walk to destination, at: bool (standing at the boarding stop), call?: bool (cab still to be called), rerouted? }, edges: {} (ui/navarrow.js scene graph) }.
+// The on-screen guide arrow for every leg (and the "This is your stop" banner) is ui/navarrow.js; it reads trip() + the waypoint every frame.
+// The trip banner is a DOM strip under the HUD (#nav-trip). Events: nav:start(trip), nav:stage(trip), nav:end(reason: arrived|cancel|replaced), nav:reroute(trip | null, why).
 import { G } from '../core/game.js';
-import { el, root } from '../ui/kit.js';
+import { el, root, toast } from '../ui/kit.js';
+import { innerPlace } from '../ui/navarrow.js';
 import { openState, cityPos, place, homePlace, money } from '../ui/phone_util.js';
 
 const WALK = 1.15 / 3.6, BUS_V = 7, CAB_V = 9;   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
 const mins = m => Math.max(1, Math.round(m)) + ' min';
-const pt = p => p ? { id: typeof p.id === 'string' ? p.id : null, name: p.name || 'Waypoint', x: p.x, y: p.y } : null;
+const pt = p => p ? Object.assign({ id: typeof p.id === 'string' ? p.id : null, name: p.name || 'Waypoint', x: p.x, y: p.y }, p.room ? { room: p.room } : null) : null;
+const KIND = { cab: 'taxi', bus: 'bus', train: 'train' }, inCity = () => !!G.scene && G.scene.id === 'city', normSt = id => String(id || '').replace(/^station:|^st_/, '');
+const same = (a, b) => !!a && !!b && (a.id ? a.id === b.id : a.x === b.x && a.y === b.y);
 
 /* ---------- matching ---------- */
 let gi = null, giN = -1;
@@ -101,7 +108,7 @@ export function describe(o) {
   return `walk to ${o.board.name} (${mins(o.walkA)}) -> ${veh}, ${stopsTxt(o.stops)} -> get off at ${o.alight.name} -> walk ${mins(o.walkB)}`;
 }
 export function routeTo(dest, from = cityPos()) {
-  if (typeof dest === 'string') dest = place(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
+  if (typeof dest === 'string') dest = place(dest) || innerPlace(dest); if (!dest || !isFinite(dest.x) || !isFinite(dest.y)) return [];
   const D = pt(dest), dist = man(D, from), walk = dist * WALK, out = [{ mode: 'walk', label: 'Walk', minutes: walk, cost: 0, dist }];
   if (hasBike()) out.push({ mode: 'bike', label: 'Bike', minutes: walk / 2.2, cost: 0, dist });
   for (const o of [busOption(from, D, dist), trainOption(from, D, dist)]) if (o && ((o.minutes < walk * .9 && o.minutes < walk - 2) || (dist > 170 && o.minutes < walk * 1.1))) out.push(o);
@@ -115,18 +122,53 @@ let St = null, mine = false, bar = null, offerFor = null;
 const trip = () => (St && St.trip) || null;
 function setWP(p) { mine = true; try { G.phone.setWaypoint(p); } catch (e) { } mine = false; }
 function end(reason) { if (!trip()) return; St.trip = null; G.emit('nav:end', reason); render(); }
-export function cancel() { const t = trip(); if (!t) { offerFor = null; return render(); } const wp = safe(() => G.state.phone.waypoint, null); if (wp && (wp.id === t.board.id || (wp.x === t.board.x && wp.y === t.board.y) || wp.id === t.dest.id)) setWP(null); end('cancel'); }
+export function cancel() {
+  const t = trip(); if (!t) { offerFor = null; return render(); } const wp = safe(() => G.state.phone.waypoint, null);
+  if (t.mode === 'cab' && t.stage === 0) { safe(() => G.transit.cancel()); safe(() => { G.state.phone.ride = null; }); }
+  if (same(wp, t.board) || same(wp, t.dest)) setWP(null); end('cancel');
+}
+/* cab trips: stage 0 = meet the cab (called now, or as soon as the player is outside when t.call), 1 = riding, 2 = walk to the door */
+function cabTrip(dest, call) { if (safe(() => G.state.phone.waypoint, null)) setWP(null); St.trip = { mode: 'cab', dest: pt(dest), board: null, alight: null, stops: 0, line: 'MapleCab', toward: '', stage: 0, at: false, call: !!call }; G.emit('nav:start', St.trip); render(); return St.trip; }
+function callCab() {
+  const t = trip(); if (!t || t.mode !== 'cab' || t.stage !== 0 || !t.call || !inCity() || G.cutscene || safe(() => G.transit.pending, null)) return; t.call = false;
+  const pr = safe(() => G.transit.callTaxi(t.dest.id && place(t.dest.id) ? t.dest.id : { x: t.dest.x, y: t.dest.y, name: t.dest.name }), null);
+  if (pr && pr.then) pr.then(ok => { if (!ok && trip() === t && t.stage < 2) { safe(() => { G.state.phone.ride = null; }); end('cancel'); } }); else end('cancel');
+}
 export function start(o) {
   if (!o || !o.dest) return null; offerFor = null;
-  if (o.mode === 'cab') { St.trip = null; render(); const id = o.dest.id; safe(() => id ? G.phone.open('taxi', { place: id }) : G.transit.callTaxi({ x: o.dest.x, y: o.dest.y, name: o.dest.name })); return null; }
+  if (o.mode === 'cab') { St.trip = null; render(); const id = o.dest.id && place(o.dest.id) ? o.dest.id : null; if (id) safe(() => G.phone.open('taxi', { place: id })); else { cabTrip(o.dest, true); callCab(); } return trip(); }
   if (o.mode === 'walk' || o.mode === 'bike') { St.trip = null; setWP(o.dest.id || o.dest); render(); return null; }
   St.trip = { mode: o.mode, dest: o.dest, board: o.board, alight: o.alight, stops: o.stops, line: o.line, toward: o.toward, route: o.route || null, from: o.from || null, to: o.to || null, walkA: Math.round(o.walkA), walkB: Math.max(1, Math.round(o.walkB)), stage: 0, at: false };
   setWP(o.board); G.emit('nav:start', St.trip); render(); return St.trip;
 }
-function onRideEnd(kind) { const t = trip(); if (!t || t.stage >= 2 || (kind && kind !== t.mode && kind !== 'train' && kind !== 'bus')) return; t.stage = 2; t.at = false; const c = safe(() => cityPos(), null); if (c && man(c, t.dest) < 5) { setWP(null); return end('arrived'); } setWP(t.dest.id || t.dest); G.emit('nav:stage', t); render(); }
+function toDest(t) {
+  t.stage = 2; t.at = false; const c = safe(() => cityPos(), null);
+  if (c && !t.dest.room && man(c, t.dest) < 5) { setWP(null); toast(`You have arrived: ${t.dest.name}`, 'good'); return end('arrived'); }
+  setWP(t.dest.id || t.dest); G.emit('nav:stage', t); render();
+}
+function onRideEnd(kind, where) {
+  const t = trip(); if (!t || t.stage >= 2) return;
+  if (t.mode === 'cab') { if (kind === 'taxi') toDest(t); return; }
+  if (kind !== 'train' && kind !== 'bus') return;
+  const ok = kind === t.mode && (kind === 'train' ? normSt(where) === normSt(t.to) : !!t.alight && where === t.alight.id);
+  if (ok) toDest(t); else replan(kind === t.mode ? 'missed' : 'other');
+}
+/** new guidance from where the player is now (wrong / missed stop, or a ride that was lost): walk if it is close, else the same mode again */
+export function replan(why) {
+  const t = trip(); if (!t) return null; const D = t.dest, from = safe(() => cityPos(), null); if (!from) return null; const opts = routeTo(D, from), walk = opts[0];
+  if (!walk || man(from, D) < 5) { toDest(t); return trip(); }
+  const alt = t.mode === 'cab' ? null : opts.find(o => o.mode === t.mode && o.board), pick = alt && walk.minutes > 10 && alt.minutes < walk.minutes - 4 ? alt : walk;
+  if (pick === walk) { t.walkB = walk.minutes; t.rerouted = true; toDest(t); toast(`New route: walk ${mins(walk.minutes)} to ${D.name}. Follow the arrow.`, 'info', 4600); }
+  else { start(pick); const n = trip(); if (n) n.rerouted = true; toast(`New route: ${pick.label} from ${pick.board.name} to ${D.name}. Follow the arrow.`, 'info', 4600); }
+  G.emit('nav:reroute', trip(), why || ''); return trip();
+}
 function tripText(t) {
-  const veh = t.mode === 'bus' ? `${t.line} bus toward ${t.toward}` : `${t.line} toward ${t.toward}`, parts = [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${stopsTxt(t.stops)})`], [2, `walk ${mins(t.walkB)}`]];
-  const box = el('span'); parts.forEach(([s, txt], i) => { if (i) box.append(' -> '); box.append(el(s === t.stage ? 'b' : 'span', { style: s < t.stage ? 'opacity:.5;text-decoration:line-through' : '', text: txt })); }); return box;
+  const veh = t.mode === 'bus' ? `${t.line} bus toward ${t.toward}` : `${t.line} toward ${t.toward}`;
+  const parts = t.mode === 'cab' ? [[0, t.call ? 'head outside to meet your cab' : 'meet your MapleCab at the kerb'], [1, 'ride'], [2, 'walk to the door']]
+    : [[0, t.at ? `at ${t.board.name}: board the ${veh}` : `walk to ${t.board.name}`], [1, `${veh} to ${t.alight.name.replace(/ Station$/, '')} (${stopsTxt(t.stops)}) - get off yourself`], [2, `walk ${mins(t.walkB)}`]];
+  // compact: the current step in bold + what comes next (the on-screen arrow does the guiding; the full itinerary is in the route card)
+  const box = el('span'), cur = parts.find(q => q[0] === t.stage) || parts[parts.length - 1], nx = parts.find(q => q[0] === t.stage + 1);
+  box.append(el('b', { text: cur[1] })); if (nx) box.append(el('span', { style: 'opacity:.65', text: ' · then ' + nx[1] })); return box;
 }
 function render() {
   if (typeof document === 'undefined') return; const t = trip();
@@ -145,16 +187,30 @@ export function init() {
   const boot = () => { St = G.state.nav && typeof G.state.nav === 'object' ? G.state.nav : G.defineState('nav', () => ({ trip: null })); if (!('trip' in St)) St.trip = null; };
   G.defineState('nav', () => ({ trip: null })); boot();
   G.on('load', () => { boot(); offerFor = null; render(); }); G.on('scene', () => render());
-  G.on('ride:start', kind => { const t = trip(); if (t && t.stage === 0 && (kind === t.mode)) { t.stage = 1; render(); } });
+  G.on('ride:start', kind => {
+    const t = trip(); if (!t || t.stage !== 0 || kind !== KIND[t.mode]) return; t.stage = 1; t.at = false;
+    if (kind === 'train') safe(() => { const c = G.state.rail.cur, pl = G.rail.plan(c.from, t.to || c.to); t.line = G.rail.lines[c.dir].name; if (pl && pl.dir === c.dir) { t.toward = pl.toward; t.stops = pl.stops; } });
+    G.emit('nav:stage', t); render();
+  });
+  G.on('taxi:request', id => { const p = place(id); if (p) { cabTrip(p, !inCity()); if (!inCity()) toast('Head outside: your cab will be called when you reach the street. Follow the arrow.', 'info', 4200); } });
+  G.on('taxi:cancel', () => { const t = trip(); if (t && t.mode === 'cab' && t.stage === 0 && !t.call) end('cancel'); });
+  G.on('scene', s => { if (s && s.id === 'city') setTimeout(callCab, 700); });
+  // watchdog: a trip that says "riding" while nothing is being ridden (ride lost on load, vehicle despawned) gets new guidance; a cab that vanished is called again
+  let lost = 0; G.addSystem({ name: 'navigator', update(dt) {
+    const t = trip(); if (!t || G.busy || G.cutscene) { lost = 0; return; } const riding = !!safe(() => G.transit.ride, null) || (G.scene && (G.scene.id === 'train' || G.scene.id === 'airtram'));
+    if (t.stage === 1 && !riding) { if ((lost += dt) > 2.5) { lost = 0; replan('lost'); } }
+    else if (t.mode === 'cab' && t.stage === 0 && !t.call && !riding && inCity() && !safe(() => G.transit.pending, null)) { if ((lost += dt) > 3) { lost = 0; t.call = true; callCab(); } }
+    else lost = 0;
+  } });
   G.on('ride:end', onRideEnd);
   G.on('waypoint:arrived', wp => { const t = trip(); if (!t) return; if (t.stage >= 2 || (wp && (wp.id ? wp.id === t.dest.id : wp.x === t.dest.x && wp.y === t.dest.y))) return end('arrived'); if (t.stage === 0) { t.at = true; render(); } });
   G.on('waypoint', p => {
     if (mine) return; const t = trip();
-    if (p && t && !(p.id && (p.id === t.board.id || p.id === t.dest.id))) end('replaced');
+    if (p && t && !(p.id && (p.id === (t.board && t.board.id) || p.id === t.dest.id))) end('replaced');
     // a waypoint set from inside the phone (Wander's "Take me there", ...): offer the ways to get there
     if (p && safe(() => G.phone.isOpen, false) && !trip()) { const o = routeTo(p); if (o.length > 1) { offerFor = pt(p); render(); } } else if (!p && offerFor) { offerFor = null; render(); }
   });
   G.on('phone:close', () => { offerFor = null; render(); }); G.on('phone:open', () => setTimeout(render, 0));
-  G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer, addSource: (kind, fn) => { (SOURCES[kind] || (SOURCES[kind] = [])).push(fn); } };
+  G.nav = { find, matches, routeTo, describe, start, trip, cancel, offer, replan, addSource: (kind, fn) => { (SOURCES[kind] || (SOURCES[kind] = [])).push(fn); } };
   render();
 }

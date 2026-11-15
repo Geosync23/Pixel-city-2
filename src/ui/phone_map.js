@@ -3,16 +3,16 @@
 // Street names (G.address.streets()) are drawn along the roads: arterials at every zoom, streets from zoom 2, small streets from zoom 3; label layout is cached per zoom.
 // District names are large faint labels (zoomed out). Place cards show the street address. The "Streets" chip opens a searchable street list (tap -> centre on it).
 // Waypoint: setWaypoint(placeOrId | null) stores G.state.phone.waypoint = { id, name, x, y } and emits 'waypoint'(place | null);
-//           a DOM arrow (#ph-way) at the screen edge points to it with the distance while the player is in the city; arriving clears it.
+//           (+ `room` when the place is inside a building). The on-screen guide arrow, arrival and room-to-room guidance live in ui/navarrow.js (G.navArrow).
 import { G } from '../core/game.js';
-import { root, toast } from './kit.js';
+import { innerPlace } from './navarrow.js';
 import { renderMinimap } from '../world/minimap.js';
 import { FARES } from '../data/economy.js';
 import { TRANSIT_SERVICE } from '../data/venues.js';
 import { el, iconCanvas, empty, btn, chip, allPlaces, isKnown, place, placeCat, CATS, CAT_BY_ID, openState, cityPos, distTo, homePlace, money, safe, timeInfo } from './phone_util.js';
 
 const INK = '#2a2733', CREAM = '#fff4dc';
-let base = null, baseWorld = null, view = { cx: 192, cy: 192, z: 2 }, sel = null, needCenter = true, hidden = {}, pins = [], cv = null, footEl = null, ctxRef = null, wayEl = null, selStreet = null, streetsOpen = false, navKind = null, navDest = null;
+let base = null, baseWorld = null, view = { cx: 192, cy: 192, z: 2 }, sel = null, needCenter = true, hidden = {}, pins = [], cv = null, footEl = null, ctxRef = null, selStreet = null, streetsOpen = false, navKind = null, navDest = null;
 const FONT = '"Pixelify Sans", system-ui, sans-serif', lbl = { key: '', w: null, list: [] }, dist = { w: null, list: [] };
 const streets = () => (G.address && G.address.streets ? G.address.streets() || [] : []);
 const addrOf = p => (p && p.poi && p.poi.address) || (G.address && p ? (G.address.of(p) || {}).text : '') || '';
@@ -21,23 +21,11 @@ const S = () => G.state.phone;
 
 /* ---------- waypoint ---------- */
 export function setWaypoint(p) {
-  if (typeof p === 'string') p = place(p);
-  S().waypoint = p && typeof p.x === 'number' ? { id: p.id || null, name: p.name || 'Waypoint', x: p.x, y: p.y } : null;
+  if (typeof p === 'string') p = place(p) || innerPlace(p);   // innerPlace: a shop inside a building (mall) -> waypoint at the building door with `room`
+  S().waypoint = p && typeof p.x === 'number' ? Object.assign({ id: p.id || null, name: p.name || 'Waypoint', x: p.x, y: p.y }, p.room ? { room: p.room } : null) : null;
   G.emit('waypoint', S().waypoint ? (place(S().waypoint.id) || S().waypoint) : null); return S().waypoint;
 }
 export const getWaypoint = () => (G.state.phone ? G.state.phone.waypoint : null);
-function wayFrame() {
-  const wp = getWaypoint(), on = wp && G.scene && G.scene.id === 'city' && !G.onTitle && G.player && G.cv;
-  if (!on) { if (wayEl.classList.contains('on')) wayEl.classList.remove('on'); return; }
-  const pl = G.player, d = Math.hypot(wp.x - pl.x, wp.y - pl.y);
-  if (d < 4 && !G.cutscene) { S().waypoint = null; G.emit('waypoint', null); G.emit('waypoint:arrived', wp); toast(`You have arrived: ${wp.name}`, 'good'); return; }
-  const w = G.cv.parentElement, W = w.clientWidth, H = w.clientHeight, p = G.toScreen(wp.x, wp.y, G.world.heightAt(wp.x, wp.y)), a = wayEl.firstChild, l = wayEl.lastChild;
-  const inside = p.x > 50 && p.x < W - 50 && p.y > 90 && p.y < H - 100; let x, y;
-  if (inside) { x = p.x; y = p.y - 44; a.style.transform = ''; l.textContent = wp.name; }
-  else { const cx = W / 2, cy = H / 2, dx = p.x - cx, dy = p.y - cy, k = Math.min((W / 2 - Math.min(96, W * .24)) / Math.abs(dx || 1e-6), (H / 2 - 100) / Math.abs(dy || 1e-6)); x = cx + dx * k; y = cy + dy * k + 10;
-    a.style.transform = `rotate(${Math.round(Math.atan2(dy, dx) * 180 / Math.PI + 90)}deg)`; l.textContent = `${wp.name} · ${Math.round(d)} m`; }
-  wayEl.style.left = Math.round(x) + 'px'; wayEl.style.top = Math.round(y) + 'px'; wayEl.classList.toggle('near', inside); wayEl.classList.add('on');
-}
 
 /* ---------- drawing ---------- */
 function ensureBase(w) {
@@ -195,8 +183,7 @@ function attach(box, ctx) {
 export default {
   id: 'map',
   setup() {
-    wayEl = el('div', { id: 'ph-way', 'aria-hidden': 'true' }, el('span.a'), el('span.l')); root().append(wayEl);
-    G.on('frame', wayFrame); G.on('phone:app', id => { if (id === 'map') needCenter = true; });
+    G.on('phone:app', id => { if (id === 'map') needCenter = true; });
   },
   render(b, ctx) {
     const w = cityWorld(); if (!w) return b.append(empty('ui.pin', 'No map data yet', 'Step outside and the city map will load.'));

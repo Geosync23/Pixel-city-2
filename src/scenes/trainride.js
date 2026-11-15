@@ -3,7 +3,9 @@
 // Enter with G.go('train', { ride: { dir, train, from, to } }) (done by G.rail.ride / G.transit.rideTrain). The scene follows the REAL timetable
 // train (G.rail.trainState(dir, train) at G.state.t), so stops, dwell and arrival times match the city. The player walks around freely,
 // can sit (tap a seat; small energy/fun perk), read the route map, talk to passengers (G.social.talkToCitizen), and gets off through an open door
-// ("Get off here" in the HUD or tap a door) - automatically at the chosen destination. "Skip ahead" fast-forwards time to the destination.
+// ("Get off here" in the HUD or tap a door). The player gets off THEMSELVES (owner msg 72): ui/navarrow.js shows the red arrow on the door and the
+// "This is your stop" banner; while the train is moving the HUD button arms "Get off at next stop". Miss the stop and the ride simply goes on
+// (get off anywhere; the navigator re-routes). "Skip ahead" fast-forwards time to the destination.
 // Leaving calls G.rail.alight(stationId) -> city entrance poi (or Central's hall) and G.transit.endRide -> 'ride:end'('train', stationId).
 // G.trainRide = { state(), getOff(), skip(), sit(i), stand(), passengers() } for tests/other systems.
 // Tuning: car LEN x DEP, DOORS; passengers 6-14 by hour (paxCount); scenery in _trainbg.js.
@@ -54,7 +56,7 @@ function makeScene() {
   sc.interactables.push({ x: OX + 8.2, y: OY + .3, z: 1.6, label: 'Route map', h: .8, hit: 12, range: 2.6, use: () => openMap() });
   const getOff = () => {
     const ts = st.ts, p = G.player; if (!ts || st.leaving || st.done) return false; if (!ts.dwell || st.door < .5) { toast('Wait until the train stops and the doors open.'); return false; }
-    stand(); const d = doors.reduce((a, b) => Math.abs(b.cx - p.x) < Math.abs(a.cx - p.x) ? b : a); st.leaving = { t: 0, at: ts.at, x: d.cx, y: OY + .75 }; p.goTo(W, d.cx, OY + .75, { snap: 4 }); return true;
+    st.armed = false; stand(); const d = doors.reduce((a, b) => Math.abs(b.cx - p.x) < Math.abs(a.cx - p.x) ? b : a); st.leaving = { t: 0, at: ts.at, x: d.cx, y: OY + .75 }; p.goTo(W, d.cx, OY + .75, { snap: 4 }); return true;
   };
   for (const d of doors) sc.interactables.push({ x: d.cx, y: OY + .3, z: .6, label: 'Get off here', h: 1.2, hit: 14, range: 1.5, visible: () => st.door > .9 && !st.leaving, use: getOff });
 
@@ -94,7 +96,7 @@ function makeScene() {
   };
   const mkHud = () => {
     if (hud) hud.root.remove(); const R = G.rail, r = st.ride, L = R.lines[r.dir];
-    const t = el('span'), eta = el('i'), cap = el('div.rh-cap'), fill = el('i'), off = el('button.go', { text: 'Get off here', onclick: getOff }), mp = el('button', { text: 'Route map', onclick: openMap }), sk = el('button', { text: 'Skip ahead', onclick: skip });
+    const t = el('span'), eta = el('i'), cap = el('div.rh-cap'), fill = el('i'), off = el('button.go', { text: 'Get off here', onclick: () => { const q = st.ts; if (q && q.dwell && st.door >= .5) getOff(); else if (!st.leaving && !st.done) { st.armed = !st.armed; st.hudT = 0; } } }), mp = el('button', { text: 'Route map', onclick: openMap }), sk = el('button', { text: 'Skip ahead', onclick: skip });
     hud = { root: el('div.rail-hud', null, el('div.rh-top', null, el('b', { text: r.dir ? 'B' : 'A', style: { background: L.color } }), t, eta), cap, el('div.rh-bar', null, fill), el('div.rh-btns', null, off, mp, sk)), t, eta, cap, fill, off, sk }; root().append(hud.root);
   };
   const setText = t => { const p = Object.assign({}, endOb.p, { text: t }); endOb.p = p; endOb._key = null; };
@@ -107,7 +109,7 @@ function makeScene() {
     if (key !== st.lastAt) {
       const first = st.lastAt === undefined;
       if (key) { const nm = R.station(key).name; setText(nm.toUpperCase()); if (!first) { G.audio && G.audio.sfx && G.audio.sfx('train_chime'); say('This is ' + nm + (key === r.to ? '. This is your stop!' : '.')); st.swap = true; } else say('Boarding at ' + nm + ' - ' + R.lines[r.dir].name + '.'); if (st.peopleFor !== key) genPeople(key); }
-      else { const nx = ts.next; setText(nx.st.name.toUpperCase()); say('Next stop: ' + nx.st.name + (nx.id === r.to ? '. Your stop is next - get ready.' : '.')); if (nx.id === r.to) toast('Next stop is yours: ' + nx.st.name); genPeople(nx.id); st.stay = false; }
+      else { const nx = ts.next; setText(nx.st.name.toUpperCase()); say('Next stop: ' + nx.st.name + (nx.id === r.to ? '. Your stop is next - get ready.' : '.')); if (nx.id === r.to && !G.navArrow) toast('Next stop is yours: ' + nx.st.name); genPeople(nx.id); st.stay = false; }
       st.lastAt = key;
     }
     // doors
@@ -121,7 +123,8 @@ function makeScene() {
     const th = THEME_OF[district()] || 'suburb'; if (!st.B && th !== st.A) { st.B = th; st.k = 0; } if (st.B) { st.k += dt / 1.6; if (st.k >= 1) { st.A = st.B; st.B = null; st.k = 0; } }
     // player: seat / leaving / auto-alight
     if (st.seat) { if (p.path || p.moving) stand(); else { st.sit += gm; if (st.sit >= 4) { st.sit -= 4; G.needs && G.needs.add && (G.needs.add('energy', 1), G.needs.add('fun', .6)); } } }
-    if (ts.dwell && ts.at === r.to && st.door > .9 && !st.leaving && !st.done && !st.stay && !G.modal) { toast('This is your stop: ' + ts.stop.st.name); if (!getOff()) st.stay = true; }
+    // nav hook: no automatic alighting. At your stop the banner + red arrow (ui/navarrow.js) say so; the player taps "Get off here" / a door, or armed it beforehand.
+    if (ts.dwell && st.door > .9 && !st.leaving && !st.done && !G.modal) { if (st.armed) getOff(); else if (ts.at === r.to && !st.stay) { st.stay = true; if (!G.navArrow) toast('This is your stop: ' + ts.stop.st.name); } }
     if (st.leaving) { const l = st.leaving; l.t += dt; if (Math.hypot(p.x - l.x, p.y - l.y) < .6 || l.t > 2.4 || !ts.dwell) { st.leaving = null; if (ts.dwell) { st.done = true; R.alight(l.at); } } }
     // passengers
     for (let i = st.pax.length - 1; i >= 0; i--) {
@@ -137,7 +140,7 @@ function makeScene() {
     if (hud && (st.hudT -= dt) <= 0) {
       st.hudT = .2; const left = R.timeTo(r.dir, r.train, r.to), at = ts.dwell && ts.at === r.to;
       hud.t.textContent = ts.dwell ? 'At ' + ts.stop.st.name : 'Next: ' + ts.next.st.name; hud.eta.textContent = at ? 'your stop' : R.station(r.to).name + ' in ' + Math.max(1, Math.round(left)) + ' min';
-      hud.fill.style.width = Math.round(100 * (at ? 1 : Math.max(0, Math.min(1, 1 - left / st.eta0)))) + '%'; hud.off.disabled = !(ts.dwell && st.door > .5) || !!st.leaving; hud.off.textContent = st.seat && !ts.dwell ? 'Seated' : 'Get off here'; hud.sk.disabled = at || !!st.leaving;
+      hud.fill.style.width = Math.round(100 * (at ? 1 : Math.max(0, Math.min(1, 1 - left / st.eta0)))) + '%'; hud.off.disabled = !!st.leaving || !!st.done; hud.off.textContent = ts.dwell && st.door > .5 ? 'Get off here' : st.armed ? 'Getting off next stop ✓' : 'Get off at next stop'; hud.sk.disabled = at || !!st.leaving;
     }
   };
   sc.env = t => { const o = ambient(t, G.state.weather); return { amb: mix('#ffffff', '#d6cde8', o.dark * .55), dark: .2 + o.dark * .7, bg: o.bg, night: o.night }; };
@@ -145,7 +148,7 @@ function makeScene() {
   sc.onEnter = opts => {
     const R = G.rail; st.ride = (opts && opts.ride) || (G.state.rail && G.state.rail.cur) || { dir: 0, train: 0, from: 'central', to: 'oldtown' }; const r = st.ride;
     for (const px of st.pax.slice()) dropPax(px); for (const s of seats) s.by = null;
-    Object.assign(st, { lastAt: undefined, door: 0, want: 0, seat: null, leaving: null, done: false, swap: false, B: null, k: 0, stay: false, skipping: false, people: [], peopleFor: '', hudT: 0 });
+    Object.assign(st, { lastAt: undefined, door: 0, want: 0, seat: null, leaving: null, done: false, swap: false, B: null, k: 0, stay: false, armed: false, skipping: false, people: [], peopleFor: '', hudT: 0 });
     if (!R) return; const ts = st.ts = R.trainState(r.dir, r.train); st.lastD = ts.d; if (ts.dwell) { st.door = 1; st.want = 1; } st.eta0 = Math.max(1, R.timeTo(r.dir, r.train, r.to)); st.A = THEME_OF[district()] || 'suburb';
     const rr = R0(), n = paxCount(); for (let i = 0; i < n; i++) addPax(rng(Math.floor(rr() * 1e6) + 1), null);
     if (!ts.dwell) genPeople(ts.next.id);

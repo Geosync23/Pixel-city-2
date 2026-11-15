@@ -40,6 +40,8 @@ const TX = () => G.traffic, W = () => G.sceneCache.get('city').world, inCity = (
 const fmt = n => G.money && G.money.fmt ? G.money.fmt(n) : '$' + n;
 const hasPass = () => !!(G.inv && G.inv.hasAccess && G.inv.hasAccess('transit'));
 const sfx = n => { try { G.audio && G.audio.sfx && G.audio.sfx(n); } catch (e) { } };
+// nav hooks (sim/navigator.js trips; the guide arrow + "This is your stop" banner are ui/navarrow.js): the active bus trip, if any. NAV_HOLD = extra real seconds the bus waits at your stop.
+const NAV_HOLD = 9, navTrip = () => { try { const t = G.nav && G.nav.trip && G.nav.trip(); return t && t.mode === 'bus' && t.alight ? t : null; } catch (e) { return null; } };
 
 function placeOf(id) {
   if (!id) return null; if (typeof id === 'object') return id; let p = G.places && G.places.get && G.places.get(id); if (p) return p;
@@ -80,19 +82,22 @@ function begin(r) {
 }
 function finish(sp, ok = true) {
   const r = ride, p = G.player; if (!r) return; ride = null; p.x = sp.x; p.y = sp.y; p.z = W().heightAt(sp.x, sp.y); p.hidden = false; p.path = null;
-  if (r.vehicle) r.vehicle.ghost = false; G.camTarget = null; G.cutscene = null; hideHud(); if (S && S.rides) S.rides[r.kind] = (S.rides[r.kind] || 0) + 1;
+  if (r.bus) r.bus.hold = false; if (r.vehicle) r.vehicle.ghost = false; G.camTarget = null; G.cutscene = null; hideHud(); if (S && S.rides) S.rides[r.kind] = (S.rides[r.kind] || 0) + 1;
   G.emit('ride:end', r.kind, r.destination); for (const f of arriveFns.slice()) { try { f(r); } catch (e) { console.error(e); } } if (r.resolve) r.resolve(ok);
 }
 function rideTick(dt) {
   const r = ride; if (!r) { G.cutscene = null; return; } const v = r.vehicle, p = G.player; p.x = v.x; p.y = v.y; p.z = v.z; r.t += dt;
   const extra = 1.5 - G.state.speed; if (extra > 0) G.advance(dt * extra); // rides pass at 1.5 game-min per second
   if (!v.active) return finish(curbSpot(p.x, p.y, p.x, p.y), false);
+  if (r.holdT > 0 && (r.holdT -= dt) <= 0 && r.bus) r.bus.hold = false;
   if (r.kind === 'taxi') { r.done += v.v * dt; r.progress = Math.min(1, r.done / r.total); if (r.t > r.total / 4 + 90 && !r.skipping) skipRide(); }
   if ((tD -= dt) <= 0) {
     tD = .35; const k = W().districtAt(v.x, v.y); if (k && k !== r.district) { r.district = k; G.emit('ride:district', k); }
     if (hud) {
       hud.fill.style.width = Math.round(r.progress * 100) + '%';
-      if (r.kind === 'bus') { const b = r.bus, ns = b.loop.stops[b.nsi], d = r.destination && TX().busStopName(r.destination); hud.s.textContent = (b.atStop ? 'At: ' : 'Next stop: ') + ns.poi.name + (r.offNext ? ' - getting off here' : d ? ' - getting off at ' + d : ''); }
+      if (r.kind === 'bus') { const b = r.bus, ns = b.loop.stops[b.nsi], d = r.destination && TX().busStopName(r.destination); const nt = navTrip(), mine = !d && nt && nt.stage === 1 ? nt.alight.name : '';
+        hud.s.textContent = (b.atStop ? 'At: ' : 'Next stop: ') + ns.poi.name + (r.offNext ? ' - getting off here' : d ? ' - getting off at ' + d : mine ? ' - your stop: ' + mine : '');
+        if (r.offBtn) r.offBtn.textContent = b.atStop && b.atStop !== r.from ? 'Get off here' : r.offNext ? 'Getting off next stop ✓' : 'Get off at next stop'; }
       else hud.s.textContent = (DN[r.district] || 'Maple Bay') + (r.free ? ' - pre-paid' : ' - fare ' + fmt(r.fare));
     }
   }
@@ -183,7 +188,7 @@ function boardNow(b, stop, dest, resolve) {
   b.hold = false; begin({ kind: 'bus', vehicle: b.veh, bus: b, destination: dest || null, from: stop.id, progress: 0, offNext: false, n0: dest ? cnt(dest) : 1, left: dest ? cnt(dest) : 1, cnt, resolve });
   const r = ride, setDest = id => { r.destination = id; r.offNext = false; const cur = l.stops[b.nsi].id, i = l.stops.findIndex(s => s.id === id), j = l.stops.findIndex(s => s.id === cur); r.left = r.n0 = ((i - j + n) % n) + 1; r.progress = 0; };
   showHud('Bus ' + l.num + ' - ' + l.route.name.replace(/^\s*\w+\s*/, ''), '', [
-    el('button', { text: 'Get off at next stop', onclick: () => { r.offNext = true; if (b.atStop && b.atStop !== r.from) alight(b.atStop); } }),
+    r.offBtn = el('button', { text: 'Get off at next stop', onclick: () => { r.offNext = true; if (b.atStop && b.atStop !== r.from) alight(b.atStop); } }),
     el('button', { text: 'Choose stop', onclick: () => { const cur = b.nsi, opts = []; for (let k = b.atStop ? 1 : 0; k < n; k++) { const s = l.stops[(cur + k) % n]; opts.push({ label: s.poi.name, sub: k + 1 - (b.atStop ? 1 : 0) + (k ? ' stops' : ' stop - next'), value: s.id }); } choose('Get off at...', opts).then(id => { if (id && ride === r) setDest(id); }); } })]);
   toast(hasPass() ? 'Transit pass accepted.' : 'Bus fare ' + fmt(FARES.bus.single) + ' paid.'); return true;
 }
@@ -198,14 +203,17 @@ function waitBus(stop, rid, dest, resolve) {
 }
 function onBusArrive(b, stopId) {
   if (wait && stopId === wait.stop.id && (!wait.rid || b.route === wait.rid) && b.veh) { const w = wait; w.boarding = true; b.hold = true; G.endActivity(false); boardNow(b, w.stop, w.dest, w.resolve); return; }
-  const r = ride; if (r && r.kind === 'bus' && r.bus === b) { if (r.left > 0) r.left--; r.progress = r.destination ? 1 - r.left / r.n0 : 0; if (r.offNext || r.destination === stopId) alight(stopId); }
+  const r = ride; if (r && r.kind === 'bus' && r.bus === b) { if (r.left > 0) r.left--; r.progress = r.destination ? 1 - r.left / r.n0 : 0; if (r.offNext || r.destination === stopId) alight(stopId);
+    else { const nt = navTrip(); if (nt && nt.stage === 1 && nt.alight.id === stopId) { b.hold = true; r.holdT = NAV_HOLD; } } }   // nav: wait a little at the player's stop (they get off themselves)
 }
 function openStop(p) {
   if (typeof p === 'string') p = stopPoi(p); if (!p || !TX()) return; const m = modal({ title: p.name }), nb = TX().nextBuses(p.id), free = hasPass();
   m.body.append(el('div.tr-fare', { text: free ? 'Transit pass - rides are free.' : 'Fare ' + fmt(FARES.bus.single) + ' per ride (7-day pass ' + fmt(FARES.transitPass.price) + ').' }));
   for (const a of nb.slice(0, 5)) { const n = el('b.tr-num', { text: a.num }); n.style.background = a.color || '#555'; m.body.append(el('div.tr-row', null, n, el('span', { text: a.name.replace(/^\s*\w+\s*/, '') }), el('span.tr-eta', { text: a.minutes <= 0 ? 'here now' : a.minutes + ' min' }))); }
   if (!nb.length) m.body.append(el('div.tr-row', { text: 'No service at this stop.' }));
-  const box = el('div.tr-btns'); for (const rid of p.routes || []) if (TX().loops[rid]) box.append(el('button', { text: 'Wait for bus ' + routeNum(rid), onclick: () => { m.close(); waitBus(p, rid); } })); m.body.append(box);
+  const nt = navTrip(), mine = nt && nt.stage === 0 && nt.board && nt.board.id === p.id ? nt.route : null;   // nav: the trip's bus is marked; the player gets off themselves (no auto-alight)
+  if (mine) m.body.append(el('div.tr-fare', { text: 'Your trip: bus ' + routeNum(mine) + ' to ' + nt.alight.name + '.' }));
+  const box = el('div.tr-btns'); for (const rid of p.routes || []) if (TX().loops[rid]) box.append(el('button' + (rid === mine ? '.primary' : ''), { text: 'Wait for bus ' + routeNum(rid) + (rid === mine ? ' (your trip)' : ''), 'data-route': rid, onclick: () => { m.close(); waitBus(p, rid); } })); m.body.append(box);
 }
 function boardBus(routeId, stopId, destStopId) {
   if (!inCity() || !TX() || !TX().ensure()) return Promise.resolve(false); const p = G.player; let stop = stopId && stopPoi(stopId);

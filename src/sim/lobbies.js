@@ -73,8 +73,12 @@ function ensure(w) {
     const id = 'lobby:' + n, kind = spec.kind === 'office' ? 'office' : 'res';
     const poi = w.poi({ type: 'door', id: 'door:' + id, room: id, name, x: sp.x, y: sp.y, dir: sp.dir === undefined ? 1 : sp.dir, district, lobby: kind, blurb: spec.blurb });
     const L = { id, n, kind, key, style: spec.style, name, x: sp.x, y: sp.y, district, poi, ob, spec, hours: kind === 'office' ? (spec.hours || [7, 20]) : null, get address() { return poi.address || (G.address && G.address.of(poi) || {}).text || ''; } };
-    if (!has(id)) defineRoom(lobbyRoom(Object.assign({}, spec, { id, n, name, kind, district, c: Object.assign({}, spec.c) })));
-    registerInfo(name, { blurb: spec.blurb, signature: spec.sig, tryThis: spec.tryThis || [], activities: ['seat'], kind: kind === 'res' ? 'apartment' : 'office', hours: L.hours });
+    const def = has(id) ? Map.prototype.get.call(ROOMS, id) : defineRoom(lobbyRoom(Object.assign({}, spec, { id, n, name, kind, district, c: Object.assign({}, spec.c) })));
+    // guide: the real activities this lobby offers (a cork notice board, a coffee kiosk)
+    const its = (def && def.items) || [], acts = ['seat'];
+    if (its.some(i => i.id === 'furn.lobby.board' && !['felt', 'digital', 'safety'].includes((i.p || {}).kind))) acts.push('read_noticeboard');
+    if (its.some(i => i.id === 'furn.lobby.coffeebar')) acts.push('lobby_coffee');
+    registerInfo(name, { blurb: spec.blurb, signature: spec.sig, tryThis: spec.tryThis || [], activities: acts, kind: kind === 'res' ? 'apartment' : 'office', hours: L.hours });
     PL.push(L); BY.set(id, L);
   }
 }

@@ -56,7 +56,7 @@ export const FUNCTION_TAGS = {
   homeFixed: ['moving_box', 'delivery_box', 'front_door', 'wardrobe', 'toilet', 'sink'], // props placed by the game, not sold
   venue: ['till', 'shelf', 'seat', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'fitting_room', 'book_browse',
     'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'study_desk', 'reading_nook', 'public_computer',
-    'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen', 'record_bin', 'listening_station', 'pet_pen', 'fish_tank', 'toy_demo', 'flower_display', 'tasting_board', 'artwork', 'pen_tester', 'flash_wall', 'browse'],
+    'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen', 'record_bin', 'listening_station', 'pet_pen', 'fish_tank', 'toy_demo', 'flower_display', 'tasting_board', 'artwork', 'pen_tester', 'flash_wall', 'browse', 'noticeboard', 'coffee_kiosk'],
   world: ['bench', 'duck_pond', 'fishing_spot', 'ferris_wheel', 'jog_path', 'viewpoint', 'garden_plot', 'swing',
     'picnic_spot', 'busker', 'street_cat'],
   none: ['self'], // activities started from the backpack or phone
@@ -283,6 +283,15 @@ export const ACTIVITIES = [
     perHour: { fun: 24 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'A swallow? An anchor? A tiny cactus?' },
   { id: 'browse_wares', name: 'Browse', tag: 'browse', where: 'venue', venues: ['*'], minutes: { min: 5, default: 10, max: 30 },
     perHour: { fun: 18 }, requires: { venueOpen: true }, anim: 'stand', flavour: 'Just looking. Mostly.' },
+
+  // ============================================================ LOBBIES (QA wave A; the 46 lobbies in src/scenes/rooms/lobbies.js run these from their own fixture
+  // handlers: lobby cork boards (art tag lobby_board) and office-lobby coffee kiosks (art tag lobby_coffee). Any other fixture tagged noticeboard / coffee_kiosk works too.)
+  { id: 'read_noticeboard', name: 'Read the Notice Board', tag: 'noticeboard', where: 'venue', venues: ['*'], minutes: { min: 2, default: 3, max: 10 },
+    perHour: { fun: 20 }, anim: 'stand', note: 'Lobby boards show three rotating notices a day first (+4 fun once a day per building, lobbies.js).',
+    flavour: 'Somebody has lost a tortoise. Somebody else has found one. Nobody has connected the dots.' },
+  { id: 'lobby_coffee', name: 'Coffee at the Kiosk', tag: 'coffee_kiosk', where: 'venue', venues: ['*'], minutes: { min: 6, default: 6, max: 6 }, fixed: true,
+    perHour: { fun: 10 }, anim: 'stand', note: 'The kiosk menu (espresso, flat white, hot chocolate, cinnamon bun) is priced and paid in lobbies.js, which adds the drink\'s energy / fun / hunger and the bladder cost when it is finished.',
+    flavour: 'A paper cup, a cardboard sleeve and five minutes of not being at a desk.' },
 
   // ============================================================ CAFES & SEATS
   { id: 'linger', name: 'Linger a While', tag: 'seat', where: 'venue', venues: ['cafe', 'bakery', 'diner', 'ramen', 'pizza', 'restaurant', 'bar'],

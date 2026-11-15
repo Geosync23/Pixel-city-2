@@ -176,6 +176,9 @@ function entryPage(b, ctx, e) {
   const hero = thumb(e, 192, 120, 'wg-hero'); if (hero._lazy) setTimeout(() => safe(() => drawThumb(hero, e), 0), 30);
   const fav = el('button.wg-fav' + (G_.isFav(e.id) ? '.on' : ''), { 'aria-label': 'Bookmark', 'aria-pressed': String(G_.isFav(e.id)), onclick: () => { const on = G_.fav(e.id); fav.classList.toggle('on', on); fav.setAttribute('aria-pressed', String(on)); ctx.tip(on ? 'Bookmarked. It is on the Wander cover page.' : 'Bookmark removed.'); } });
   b.append(el('div.wg-herobox', null, hero, fav), el('div.wg-title', { style: '--c:' + (ch.color || '#b8862c') }, el('em', { text: [ch.name, e.type].filter(Boolean).join(' · ') }), el('h2', { text: e.title }), el('span.wg-badges', null, badges(e))), el('p.wg-prose', { text: e.blurb }));
+  // hand-made rooms: the signature piece + "try this" list (src/sim/guide.js fills them from placeInfo)
+  if (e.signature) b.append(el('p.wg-hint', null, el('b', { text: 'Don\'t miss: ' }), e.signature));
+  if (e.tryThis && e.tryThis.length) b.append(section('Try this'), el('ul.wg-try', { style: 'margin:2px 0 6px;padding-left:20px;font-size:14px;line-height:1.45;color:#3a3026' }, e.tryThis.map(t => el('li', { text: t }))));
   // active links
   const acts = el('div.wg-actions');
   if (e.placeId || pos) acts.append(btn('Take me there', () => goThere(e, ctx), 'pri wide big', 'ui.pin'));

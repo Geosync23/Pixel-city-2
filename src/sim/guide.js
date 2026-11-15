@@ -3,7 +3,10 @@
 // so it stays current as content is added. Rebuilt lazily after 'scene' / 'places:built' and on demand.
 // Entry: { id, kind: 'place'|'activity'|'event'|'show'|'transit', title, type (label), chapter, also[] (extra chapters), tags[], district, address, blurb,
 //          hours? (7 x [open, close]|null), price? ('Free'|'$'|'$$'|'$$$'|text), placeId? (waypoint / taxi target), x?, y?, poi?, room?, venueId?, when? (text),
-//          glyph (vignette key), icon, thumb ('bld'|'glyph'), acts? [entry ids you can do there], where? [entry ids where you can do it], parent? }
+//          glyph (vignette key), icon, thumb ('bld'|'glyph'), acts? [entry ids you can do there], where? [entry ids where you can do it], parent?,
+//          signature? (text), tryThis? [text] }   signature / tryThis / blurb of hand-made rooms come from placeInfo(name) (src/scenes/rooms/unique_rooms.js:
+//          the 53 converted public places, the 46 lobbies, the conservatory). Venue activities with venues ['*'] are linked to the places whose info lists
+//          the activity id or its fixture tag.
 // API G.guide: all(), get(id), byChapter(ch), byDistrict(key), near(x, y, n), search(text), whatsOn(day?), times(entry, days=7), thingsToTry(), stats(), rebuild(),
 //   openNow(entry) -> { open: bool|null, text }, pos(entry) -> {x, y}|null, nearestTransit(entry) -> { station, stop }, stamp(id) (debug/manual),
 //   fav(id, on?) / isFav(id) / favs(), chapters(), districts().
@@ -13,6 +16,7 @@ import { VENUE_BY_ID, DISTRICTS, isOpen as venueOpen } from '../data/venues.js';
 import { ACTIVITIES } from '../data/activities.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { CHAPTERS, DISTRICT_INFO, TYPE_INFO, KIND_LABEL, CORE, CORE_BLURB, SPOT, LANDMARK_BLURB, ACT_ALSO, ACT_SKIP, ACT_BLURB, EXPERIENCES, STAMP_GROUPS, pick, hash } from './_guide_data.js';
+import { placeInfo } from '../scenes/rooms/unique_rooms.js';
 export const order = 96;
 const DAY = 1440, safe = (fn, fb) => { try { const v = fn(); return v === undefined || v === null ? fb : v; } catch (e) { return fb; } };
 const DNAME = Object.fromEntries(DISTRICTS.map(d => [d.id, d.name]));
@@ -50,8 +54,31 @@ function placeEntry(p, pub) {
     placeId: p.id, x: p.x, y: p.y, poi: p.poi, room: p.roomId || (p.poi && p.poi.room), venueId: v && v.id, glyph, icon: 'ui.pin', thumb: 'bld' };
   if (p.id === 'library') { e.price = 'Free'; e.tags.push('jobs', 'computers'); e.blurb += ' The public computers upstairs carry the full city job board.'; }
   if (p.id === 'skydeck_lobby') e.price = safe(() => G.money.fmt(8), '$8') + ' day ticket';
+  const inf = placeInfo(p.name), lob = p.lobby || (p.poi && p.poi.lobby);
+  if (lob) { const off = lob === 'office'; e.type = off ? 'Office lobby' : 'Apartment lobby'; e.chapter = 'sights'; e.also = off ? ['services'] : []; e.glyph = 'tower'; e.price = 'Free'; e.tags.push('lobby', off ? 'office' : 'apartment');
+    const hr = (inf && inf.hours) || (off ? [7, 20] : null); e.hours = Array(7).fill(hr || [0, 24]); }
+  if (inf) { if (inf.blurb) e.blurb = inf.blurb; if (inf.signature) e.signature = inf.signature; if (inf.tryThis && inf.tryThis.length) e.tryThis = inf.tryThis.slice(); e._inf = inf; if (pub) e._tpl = pub.tpl; }
   if (!e.blurb) e.blurb = fillT(pick(LANDMARK_BLURB, e.id), e);
   return add(e);
+}
+// converted public places behave like the classic venue they were built as (same table as src/sim/activities.js PUB_ALIAS)
+const PUB_ALIAS = { cafe: 'cafe', bakery: 'bakery', diner: 'diner', eatery: 'restaurant', restaurant: 'restaurant', bar: 'bar', books: 'bookstore', boutique: 'clothing' };
+const infoHas = (e, a) => !!(e._inf && (e._inf.activities || []).some(x => x === a.id || x === a.tag));
+// extra Things To Try for the Botanical Conservatory (stamped from its own events in wire()); the three it registers itself stay as they are
+const CONS_X = [
+  { id: 'x:cons_sketch', title: 'Sketch the Orchids', glyph: 'leaf', blurb: 'Settle at the sketching spot in the orchid grotto. Your drawing gets pinned to the board for everyone to see.' },
+  { id: 'x:cons_tour', title: 'Join the Glasshouse Tour', glyph: 'leaf', blurb: 'Wendell the docent leads a walk through every zone at 10:00, 13:00 and 16:00. Tap him to tag along.' },
+  { id: 'x:cons_plaques', title: 'Read All Twelve Plaques', glyph: 'book', blurb: 'Every bed in the Conservatory has a little brass plaque. Collect all twelve facts.' },
+  { id: 'x:cons_breathe', title: 'Sit and Breathe', glyph: 'leaf', blurb: 'Find a bench under the palms, close your eyes and listen to the misters hiss.' },
+  { id: 'x:cons_seedling', title: 'Take a Seedling Home', glyph: 'leaf', blurb: 'Garden Gifts sells little house plants that grew up in the glasshouse. They come to your door.' },
+  { id: 'x:cons_wish', title: 'Make a Wish at the Lily Pool', glyph: 'stamp', blurb: 'Toss a coin into the Victoria lily pool. Once a day; the koi pretend not to notice.' },
+  { id: 'x:cons_cuttings', title: 'Help Hattie the Gardener', glyph: 'leaf', blurb: 'The head gardener is looking for three curious plants growing wild around the city. Ask her in the glasshouse.' },
+];
+const CONS_GROUP = 'The Glasshouse';
+function consStamps() {
+  for (const x of CONS_X) if (!EXPERIENCES.some(e => e.id === x.id)) EXPERIENCES.push(Object.assign({ group: CONS_GROUP, place: 'place:conservatory', need: 'conservatory' }, x));
+  for (const x of EXPERIENCES) if (/^x:cons_/.test(x.id)) x.group = CONS_GROUP;   // the conservatory's own three join the same stamp page
+  if (!STAMP_GROUPS.includes(CONS_GROUP)) STAMP_GROUPS.splice(Math.max(0, STAMP_GROUPS.indexOf('Big days out') + 1), 0, CONS_GROUP);
 }
 function build() {
   list = []; byId = new Map(); dirty = false;
@@ -108,8 +135,10 @@ function build() {
     add({ id: 'event:' + ev.id, kind: 'event', title: ev.name, type: ev.kind === 'weekly' ? 'Every week' : 'Seasonal event', chapter: 'shows', also: p && p.kind !== 'venue' ? ['outdoors'] : [], tags: ['event', ev.kind || ''], district: (p && p.district) || pl.district, blurb: ev.blurb || 'A date for the diary.', placeId: p ? p.id : null, x: p ? p.x : undefined, y: p ? p.y : undefined,
       when: wd !== undefined ? `Every ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][wd]}, ${hh(ev.hours[0])} - ${hh(ev.hours[1])}` : `${ev.when.season === 'any' ? 'Every season' : cap(ev.when.season)}, day ${ev.when.days.join(' & ')}, ${ev.hours[0] === 0 && ev.hours[1] >= 24 ? 'all day' : hh(ev.hours[0]) + ' - ' + hh(ev.hours[1])}`, ev, price: 'Free entry', glyph: 'mask', thumb: 'glyph' }); }
   // --- activities
+  consStamps(); const infoPlaces = list.filter(e => e._inf);
   for (const a of ACTIVITIES) { if (ACT_SKIP.has(a.id)) continue;
-    const where = a.where === 'venue' ? (a.venues || []).map(v => 'place:' + v).filter(id => byId.has(id)) : a.where === 'world' ? list.filter(e => e._fn && (e._fn.includes(a.tag) && (a.id !== 'watch_planes' || e.tags[0] === 'planespotting') && (a.tag !== 'bench' || a.id === 'watch_planes' || e.type !== 'Viewpoint' || e.tags[0] !== 'planespotting'))).map(e => e.id) : [];
+    const where = a.where === 'venue' ? (a.venues || []).map(v => 'place:' + v).filter(id => byId.has(id))
+      .concat(infoPlaces.filter(e => infoHas(e, a) && ((a.venues || []).includes('*') || (a.venues || []).includes(PUB_ALIAS[e._tpl]))).map(e => e.id)).filter((id, i, l) => l.indexOf(id) === i) : a.where === 'world' ? list.filter(e => e._fn && (e._fn.includes(a.tag) && (a.id !== 'watch_planes' || e.tags[0] === 'planespotting') && (a.tag !== 'bench' || a.id === 'watch_planes' || e.type !== 'Viewpoint' || e.tags[0] !== 'planespotting'))).map(e => e.id) : [];
     if (a.where === 'venue' && !where.length) continue;
     const first = where.length ? byId.get(where[0]) : null, also = ACT_ALSO[a.id] ? [ACT_ALSO[a.id]] : []; if (a.where === 'world' && !also.includes('outdoors')) also.push('outdoors');
     add({ id: 'act:' + a.id, kind: 'activity', title: a.name.replace(/\.\.\.$/, ''), type: { home: 'At home', venue: 'Around town', world: 'Out & about', anywhere: 'Anywhere' }[a.where], chapter: 'try', also, tags: [a.where, a.tag], blurb: a.flavour || a.note || pick(ACT_BLURB[a.where] || ACT_BLURB.world, a.id), price: a.cost ? '$' : 'Free', where, act: a.id,
@@ -154,6 +183,10 @@ function wire() {
   on('job:shift:end', () => stamp('x:shift')); on('job:hired', () => stamp('x:hired'));
   on('social:hangout', () => stamp('x:hangout')); on('npc:met', () => stamp('x:met')); on('social:gift', () => stamp('x:gift')); on('friend:up', () => stamp('x:hangout'));
   on('cooked', () => stamp('x:cooked')); on('home:furnish', () => stamp('x:furnish')); on('photo', v => { if (v) stamp('x:photo'); });
+  // Botanical Conservatory (src/sim/conservatory.js events)
+  on('conservatory:sketch', () => stamp('x:cons_sketch')); on('conservatory:tour', n => { if ((n || 0) >= 5) stamp('x:cons_tour'); }); on('conservatory:sit', () => stamp('x:cons_breathe'));
+  on('conservatory:seedling', () => stamp('x:cons_seedling')); on('conservatory:wish', () => stamp('x:cons_wish')); on('conservatory:chain', st => { if (st >= 3) stamp('x:cons_cuttings'); });
+  on('conservatory:fact', () => { if (safe(() => G.conservatory.stats().facts, 0) >= 12) stamp('x:cons_plaques'); });
   on('use', it => { const s = [it && it.id, it && it.tag, it && it.label, it && it.fn].join(' ').toLowerCase(); if (/piano/.test(s)) stamp('x:piano'); });
   on('scene', s => { dirty = dirty || !list.length; const id = String((s && s.id) || '').replace(/^int:/, ''); if (ROOM_STAMP[id]) stamp(ROOM_STAMP[id]); if (id === 'library') S.seen.library = 1; });
   on('places:built', () => { dirty = true; });
@@ -177,7 +210,7 @@ const api = {
   pos: e => (e && e.x !== undefined && e.y !== undefined ? { x: e.x, y: e.y } : null),
   near(x, y, n = 6, filter) { return ensure().filter(e => e.x !== undefined && e.kind === 'place' && !e.parent && (!filter || filter(e))).map(e => [Math.abs(e.x - x) + Math.abs(e.y - y), e]).sort((a, b) => a[0] - b[0]).slice(0, n).map(a => a[1]); },
   search(text) { const q = String(text || '').trim().toLowerCase(); if (!q) return []; const out = [];
-    for (const e of ensure()) { const t = e.title.toLowerCase(); let s = t.startsWith(q) ? 5 : t.includes(q) ? 4 : (e.type || '').toLowerCase().includes(q) ? 3 : e.tags.some(x => String(x).toLowerCase().includes(q)) ? 2 : (DNAME[e.district] || '').toLowerCase().includes(q) ? 1.5 : e.blurb.toLowerCase().includes(q) ? 1 : 0; if (s) out.push([s, e]); }
+    for (const e of ensure()) { const t = e.title.toLowerCase(); let s = t.startsWith(q) ? 5 : t.includes(q) ? 4 : (e.type || '').toLowerCase().includes(q) ? 3 : e.tags.some(x => String(x).toLowerCase().includes(q)) ? 2 : (DNAME[e.district] || '').toLowerCase().includes(q) ? 1.5 : (e.blurb + ' ' + (e.signature || '') + ' ' + (e.tryThis || []).join(' ')).toLowerCase().includes(q) ? 1 : 0; if (s) out.push([s, e]); }
     return out.sort((a, b) => b[0] - a[0] || a[1].title.localeCompare(b[1].title)).map(a => a[1]); },
   times,
   whatsOn(day) { const d0 = day === undefined ? Math.floor(G.state.t / DAY) : day, out = [];

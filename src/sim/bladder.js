@@ -112,7 +112,10 @@ function addRestroom(scene) {
   const sp = typeof scene.spawn === 'function' ? null : scene.spawn, seen = new Set(), key = (x, y) => Math.round(x * 2) + ',' + Math.round(y * 2);
   if (sp) { const q = [[Math.round(sp.x * 2) / 2, Math.round(sp.y * 2) / 2]]; seen.add(key(q[0][0], q[0][1])); while (q.length) { const [x, y] = q.pop(); for (const [dx, dy] of [[.5, 0], [-.5, 0], [0, .5], [0, -.5]]) { const nx = x + dx, ny = y + dy, k = key(nx, ny); if (seen.has(k) || nx < O || ny < O || nx > O + w || ny > O + d || W.isBlocked(nx, ny)) continue; seen.add(k); q.push([nx, ny]); } } }
   const staff = scene.fixtures.map(f => f.staff).filter(Boolean), counters = scene.fixtures.filter(f => f.tags.some(t => COUNTER_TAGS.includes(t)));
-  const okSpot = (x, y) => (!sp || seen.has(key(x, y)) || seen.has(key(x, y + .5)) || seen.has(key(x + .5, y))) && !W.isBlocked(x, y) && !nearExit(x, y) && !staff.some(q => Math.hypot(q.x - x, q.y - y) < 1.7);
+  // QA fix: the staff aisle between a counter and the wall its staff stand against (customers walked round the counter end to reach the door)
+  const behind = (x, y) => counters.some(f => { const B = f.ob.B, q = f.staff; if (!q) return false; const m = .75;
+    if (q.y < B[1]) return y < B[1] && x > B[0] - m && x < B[3] + m; if (q.x < B[0]) return x < B[0] && y > B[1] - m && y < B[4] + m; return false; });
+  const okSpot = (x, y) => (!sp || seen.has(key(x, y)) || seen.has(key(x, y + .5)) || seen.has(key(x + .5, y))) && !W.isBlocked(x, y) && !nearExit(x, y) && !staff.some(q => Math.hypot(q.x - x, q.y - y) < 1.7) && !behind(x, y);
   let spot = null;
   const tryWall = wall => {
     const L = wall === 'y' ? w : d;
@@ -165,7 +168,9 @@ export function init() {
 
   G.on('inv:use', id => { const n = drinkAmount(ITEM_BY_ID[id]); if (n && G.needs) { G.needs.add('bladder', -n); G.emit('bladder:drink', id, n); } });
 
-  registerFixture('toilet', fx => ({ label: 'Toilet', toilet: true, guestOk: true, use: () => useToilet(fx) }));   // guestOk: story homes let visitors use these
+  registerFixture('toilet', (fx, sc) => fx.tags.includes('lobby_restroom') || fx.tags.includes('restroom') && !fx.seats   // a restroom DOOR (office lobbies): the fade-out visit, not a seat at the wall
+    ? { label: 'Restroom', restroom: true, guestOk: true, use: () => useRestroom({ where: sc && sc.roomId }) }
+    : { label: 'Toilet', toilet: true, guestOk: true, use: () => useToilet(fx) });   // guestOk: story homes let visitors use these
   registerFixture('sink', fx => ({ label: 'Wash hands', guestOk: true, use: () => washHands(fx) }));
   G.on('room:build', scene => { try { addRestroom(scene); } catch (e) { console.warn('restroom: ' + e.message); } });
   G.on('scene', wireCity); wireCity(G.sceneCache && G.sceneCache.get('city'));

@@ -42,4 +42,8 @@ export function init() {
   });
 }
 // which doors can be entered right now (room exists; homes: yours, or story homes you may visit)
-function refresh() { for (const sp of spots) { const p = sp.poi; if (!p) continue; if (p.type === 'station' || p.glow) { sp.ok = true; continue; } let ok = ROOMS.has(p.room); if (ok && String(p.room).startsWith('home:') && G.housing) { const cur = G.housing.current && G.housing.current(); ok = !!(cur && cur.roomId === p.room) || (/sibling|grandma|friend/.test(p.room) && (!G.housing.canEnter || G.housing.canEnter(p.room))); } sp.ok = ok; } }
+function refresh() { for (const sp of spots) { const p = sp.poi; if (!p) continue; if (p.type === 'station' || p.glow) { sp.ok = true; continue; } let ok = ROOMS.has(p.room); if (ok && String(p.room).startsWith('home:') && G.housing) { const cur = G.housing.current && G.housing.current(); ok = !!(cur && cur.roomId === p.room) || (/sibling|grandma|friend/.test(p.room) && (!G.housing.canEnter || G.housing.canEnter(p.room))); }
+    // places with real opening hours that turn you away at the door: office lobbies (07-20) and the conservatory (09-19) — no welcome glow while closed
+    if (ok && p.lobby && G.lobbies && G.lobbies.isOpen) ok = G.lobbies.isOpen(p.room);
+    else if (ok && p.room === 'conservatory' && G.conservatory && G.conservatory.isOpen) ok = !!G.conservatory.isOpen();
+    sp.ok = ok; } }

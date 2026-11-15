@@ -15,7 +15,9 @@ function hereName() { const c = cityPos(); let best = null, bd = 1e9; for (const
 const freeRide = () => !!(G.state.flags && G.state.flags.firstCabFree);
 function request(p, fare, ctx) {
   if (!canCall()) return ctx.push('No cars available', b => b.append(empty('transport.taxi', 'No cars available', 'All MapleCab drivers are off the road right now. Please try again a little later. The light rail and buses are running!', btn('Back to destinations', () => ctx.open('taxi'), 'wide'))));
-  let r; try { r = G.transit.callTaxi(p.id); } catch (e) { console.error(e); r = false; } if (r === false) return ctx.tip("A cab can't reach you here. Step outside to the street and try again.");
+  // nav hook: requested indoors -> the navigator (G.nav, on 'taxi:request') guides the player to the street and calls the cab there
+  const later = !!G.nav && !(G.scene && G.scene.id === 'city');
+  let r; try { r = later ? true : G.transit.callTaxi(p.id); } catch (e) { console.error(e); r = false; } if (r === false) return ctx.tip("A cab can't reach you here. Step outside to the street and try again.");
   S().ride = { placeId: p.id, name: p.name, fare, t: G.state.t, status: 'requested' }; const rec = S().seen.taxi = (S().seen.taxi || []).filter(id => id !== p.id); rec.unshift(p.id); rec.length = Math.min(rec.length, 3);
   G.emit('taxi:request', p.id, fare); safe(() => G.audio.sfx('confirm'), 0); ctx.open('taxi');
 }
