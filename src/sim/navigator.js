@@ -132,7 +132,7 @@ function cabTrip(dest, call) { if (safe(() => G.state.phone.waypoint, null)) set
 function callCab() {
   const t = trip(); if (!t || t.mode !== 'cab' || t.stage !== 0 || !t.call || !inCity() || G.cutscene || safe(() => G.transit.pending, null)) return; t.call = false;
   const pr = safe(() => G.transit.callTaxi(t.dest.id && place(t.dest.id) ? t.dest.id : { x: t.dest.x, y: t.dest.y, name: t.dest.name }), null);
-  if (pr && pr.then) pr.then(ok => { if (!ok && trip() === t && t.stage < 2) { safe(() => { G.state.phone.ride = null; }); end('cancel'); } }); else end('cancel');
+  if (pr && pr.then) pr.then(ok => { if (!ok && trip() === t && t.stage < 2) { safe(() => { G.state.phone.ride = null; }); end('cancel'); } }); else end('cancel'); render();
 }
 export function start(o) {
   if (!o || !o.dest) return null; offerFor = null;
@@ -188,7 +188,7 @@ export function init() {
   G.defineState('nav', () => ({ trip: null })); boot();
   G.on('load', () => { boot(); offerFor = null; render(); }); G.on('scene', () => render());
   G.on('ride:start', kind => {
-    const t = trip(); if (!t || t.stage !== 0 || kind !== KIND[t.mode]) return; t.stage = 1; t.at = false;
+    const t = trip(); if (!t || t.stage !== 0 || kind !== KIND[t.mode]) return; t.stage = 1; t.at = false; if (same(safe(() => G.state.phone.waypoint, null), t.board)) setWP(null);
     if (kind === 'train') safe(() => { const c = G.state.rail.cur, pl = G.rail.plan(c.from, t.to || c.to); t.line = G.rail.lines[c.dir].name; if (pl && pl.dir === c.dir) { t.toward = pl.toward; t.stops = pl.stops; } });
     G.emit('nav:stage', t); render();
   });

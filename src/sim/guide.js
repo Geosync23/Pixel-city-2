@@ -179,7 +179,7 @@ function wire() {
   on('shop:buy', (id, qty, venueId) => { stamp('x:first_buy'); const v = String(venueId || ''); if (/^(mall|skydeck):/.test(v)) stamp('x:mall_shop'); if (v === 'market_stalls') stamp('x:market'); const ve = VENUE_BY_ID[v]; if (/^(stand_|pubw:)/.test(v) || v === 'market_stalls' || (ve && ve.type === 'stall')) stamp('x:street_food'); });
   on('skydeck:visit', () => stamp('x:skydeck')); on('skydeck:ledge', () => stamp('x:ledge')); on('skydeck:scope', () => stamp('x:telescope')); on('skydeck:photo', () => stamp('x:skyphoto'));
   on('mall:arcade', () => stamp('x:arcade')); on('mall:visit', () => stamp('x:mall'));
-  on('service', id => stamp(/hair|barber|salon/.test(String(id)) ? 'x:haircut' : 'x:service'));
+  on('service', (id, venueId) => { const pp = safe(() => G.publicPlaces.get(venueId), null); stamp(/hair|barber|salon|cut|trim|shave|fade/i.test(String(id)) || (pp && /barber|salon/.test(pp.kind || '')) ? 'x:haircut' : 'x:service'); });
   on('job:shift:end', () => stamp('x:shift')); on('job:hired', () => stamp('x:hired'));
   on('social:hangout', () => stamp('x:hangout')); on('npc:met', () => stamp('x:met')); on('social:gift', () => stamp('x:gift')); on('friend:up', () => stamp('x:hangout'));
   on('cooked', () => stamp('x:cooked')); on('home:furnish', () => stamp('x:furnish')); on('photo', v => { if (v) stamp('x:photo'); });
