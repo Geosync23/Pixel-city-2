@@ -6,7 +6,7 @@ DONE too: showpieces A — mall (Maple Bay Galleria) + SkyDeck (docs/reports/sho
 DONE too: showpieces B — performance venues (docs/reports/shows.md). NOTE: the museum building was converted into Symphony Hall, so item 2c's museum needs a different building or an expansion lot.
 RUNNING: (see docs/HANDOFF.md). DONE too: the Wander guidebook app (docs/reports/guide.md). 2f DONE except item icons (docs/reports/fixpack1.md, fixpack2.md; trip planner 2e done as G.nav). DONE too: item icons (docs/reports/icons.md) and 2h apps (docs/reports/apps.md). ORDER NOW (see docs/HANDOFF.md): 2g unique interiors -> 2g -> 2h -> 2i -> 2j -> 2c -> 3 -> 4b -> 4c -> 4 -> 5 -> 6.
 
-WAVE ORDER (owner msg 91): B = 2i, 2j (without the university), post offices | C = 4c goods + stores, home design, 4 needs + Opportunities, 5 art | D = 2k events, 3 jobs, 4b relationships, university | E = 6 QA. The numbered list below is the item catalogue, not the order.
+WAVE B COMPLETE (Stage 34, 2026-11-15). WAVE ORDER (owner msg 91): B = 2i, 2j (without the university), post offices | C = 4c goods + stores, home design, 4 needs + Opportunities, 5 art | D = 2k events, 3 jobs, 4b relationships, university | E = 6 QA. The numbered list below is the item catalogue, not the order.
 
 NEXT (in order):
 0. [DONE Stage 16, docs/reports/navarrow.md] NAV ARROW EVERYWHERE: edge-clamped arrow in every scene, room-to-room guidance, every trip leg end to end, red arrow + "This is your stop" on trains/buses (BIBLE update 15).

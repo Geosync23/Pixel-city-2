@@ -1,0 +1,16 @@
+# Post offices + the mail system (Wave B, last item) — DONE, live since Stage 34 (worker report condensed by the lead)
+
+- Files (all new): src/sim/post.js (G.post, full API in the header), src/data/post.js (offices, hours, TUNE/PRICE/BOXES/SPEEDS, 51 stamps, 31 items, 6 moodlets, venues, 6 calendar events), src/story/letters.js (45 letters, reply writers, 14 junk mailings),
+  src/scenes/rooms/post.js + post_branches.js + post_views.js, src/art/showpiece/post.js + post_ext.js + _post_lib.js + _post_icons.js, src/ui/phone_post.js. One add-only row in src/sim/apps.js (`post`, "Maple Post", installs on the first post or day 2).
+- Five offices in EXISTING buildings (no world file touched; only 5 door pois added): General Post Office `door:post_main` (118.5,229) Old Town; Maplewood sub-office (286,227); Hillcrest Post & Telegraph (87,90); Harbor Mail Boat Office (74.5,339);
+  Downtown Postcard Counter (186,251). Rooms post_main (26x18: 180 P.O. boxes, 4 windows with take-a-number queue, philately counter, sorting floor behind glass), post_sort, post_maplewood, post_hillcrest, post_harbor, post_downtown.
+  Closed outside hours (GPO Mon-Fri 08-18, Thu to 20, Sat 09-14; branches shorter; Sundays/holidays closed). 110 street mailboxes take letters; a mail basket by the home door; lobby mailbox walls.
+- Mail model: letters/postcards (write at a desk or at home with Writing Paper; one stamp; in town next morning, home town two mornings; replies 1-2 days later + 2 days), parcels (pack items -> box S/M/L -> tape mini-game -> counter scale;
+  Standard/Express/Overnight), recipients = six home-town people, friends in town (relationship + thank-you text), yourself. Incoming round 09:30 Mon-Sat; big parcels need you in or a Collection Slip; junk with real coupons; P.O. box $20 / 4 weeks; telegrams $3; bottle post.
+- Chain "The Letter That Waited" (goal post_deadletter, 6 steps, reward $120 + Friends wall photo + commemorative stamp + flag post_friend); second thread post_home_parcel.
+- State G.state.post; events post:visit/number/served/stamp/wrote/posted/packed/sent/delivered/mail/collected/read/parcel/box/telegram/bottle/chain/comm. TUNE in data/post.js.
+- Worker verified by running: build/validate, world dump identical, all 105 interactables reachable, save/load in six rooms, queue + branch line, a 12-day mail simulation, slips, telegram, bottle, P.O. box, stamp fair, whole chain; 46 screenshots.
+- Lead verified: clean build; General Post Office exterior + hall entrance; harbor branch entered in opening hours (clean build, 60 fps); closing time walks you out with a line from the postmaster.
+- NOT verified: real finger taps on the pack-items picker and the writing desk past the preview; closed-door toast; coupon refund on a real purchase; holiday closure; all 45 letters proofread (3 samples + automated scan only).
+- CANON the letters commit to (owner to confirm; easy to rename in letters.js): Mom has died; Mom grew up in Maple Bay and Nana Bea is her mother; Aunt June is Mom's sister; the home town is "Pinehollow", 14 Quarry Road.
+- Known gaps: door glow stays lit when closed; pillar box stands beside the facade's baked mailbox; slips never expire; no van in the city; no post-office job; wrap-game tape drawn by quality, not finger position.
