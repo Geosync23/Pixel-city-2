@@ -47,3 +47,4 @@ STILL MISSING (public domain / CC0, 60 s or more, with the link): RAIN (steady r
 
 OWNER APPROVAL (msg 123, 2026-11-15): all 16 recordings on the audition page (the 13 Internet Archive files + street, gulls, beach from Wikimedia) are approved by ear.
 OWNER (msg 125): indoor sounds (room tones, murmur, hvac) were OK as they are: KEEP indoors. The no-noise rule applies to the outdoor city ambience.
+OWNER (msg 126): keep all 19 stretches.

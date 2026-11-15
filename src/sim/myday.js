@@ -90,7 +90,7 @@ function gather(day, at, extra) {
   here = cityPos();
   const push = i => { if (have.has(i.id)) return; if (have.has('cat:' + i.cat)) i.again = 1; if (i.placeId && have.has('at:' + i.placeId) && !i.fixed) return; i.day = day; i.walk = i.walk !== undefined ? i.walk : walkTo(i.pos || place(i.placeId)); i.key = i.key || i.id; out.push(i); };
   /* 1. pinned suggestions from other systems */
-  if (isToday) for (const p of safe(() => G.planner.pins(), [])) push({ id: 'pin:' + p.id, kind: 'pin', cat: 'pin', title: p.title, why0: 'They are expecting you', icon: 'ui.heart', placeId: p.placeId, t: p.t > t0 ? p.t : null, dur: p.dur, fixed: p.t > t0, pinId: p.id, ahead: Math.max(0, Math.floor(p.t / DAY) - d0) });   /* QA12 (lead decision a): an invitation for a later day is shown the day its text arrives; the row says when */
+  if (isToday) for (const p of safe(() => G.planner.pins(), [])) push({ id: 'pin:' + p.id, kind: 'pin', cat: 'pin', title: p.title, why0: p.data && p.data.relRepair ? (p.data.blurb || 'A text will do') : 'They are expecting you', icon: 'ui.heart', placeId: p.placeId, t: p.t > t0 ? p.t : null, dur: p.dur, fixed: p.t > t0, pinId: p.id, ahead: Math.max(0, Math.floor(p.t / DAY) - d0) });   /* QA12 (lead decision a): an invitation for a later day is shown the day its text arrives; the row says when */
   /* 2. what's on: shows, films, concerts, games + calendar events (the six city events among them) */
   const perVenue = {};
   for (const w of whatsOn(d0)) {
@@ -177,7 +177,7 @@ function rank(i, T, isToday) {
     else { if (m <= 240) sc += 6; bits.push((Math.floor((i.t % DAY) / 60) >= 17 ? 'Tonight at ' : 'Today at ') + hh(i.t)); }
     if (i.fixed && i.walk > m + 10) sc -= 25; }
   if (i.fixed && i.t && safe(() => G.planner.conflicts(i.t, Math.min(i.dur || 60, 90)), []).length) { sc -= 22; i.clash = 1; }   /* you are busy then */
-  else if (i.ahead) { const at = i.kind === 'pin' ? 'from' : 'at'; bits.push(i.ahead === 1 ? `Tomorrow ${at} ${hh(i.t)}` : `${WDL[Math.floor(i.t / DAY) % 7]} ${at} ${hh(i.t)}`); }
+  if (i.ahead) { const at = i.kind === 'pin' ? 'from' : 'at';   /* QA12: said even when that time clashes with something (it was hidden: the row then gave no day at all) */ bits.push(i.ahead === 1 ? `Tomorrow ${at} ${hh(i.t)}` : `${WDL[Math.floor(i.t / DAY) % 7]} ${at} ${hh(i.t)}`); }
   else if (i.t && !isToday) bits.push(`${hh(i.t)}${i.window ? ' to ' + hh(i.end) : ''}`);
   if (i.kind === 'opp') { if (i.end && isToday) { const left = i.end - T; if (left < 180) sc += 8; bits.push(i.t && i.t > T ? `From ${hh(i.t)}` : `Until ${hh(i.end)}${Math.floor(i.end / DAY) > Math.floor(T / DAY) ? ' tomorrow' : ''}`); } if (i.reward) bits.push(i.reward); }
   if (i.why0) bits.unshift(i.why0);
@@ -221,7 +221,7 @@ function build(day, at, until, extra) {
 function varied(L, n) {
   const out = [], cats = {}, kinds = {}, places = {};
   for (const pass of [0, 1]) for (const i of L) { if (out.length >= n) break; if (out.includes(i)) continue; const pk = i.placeId || i.id;
-    if (!pass && (cats[i.cat] || places[pk] || (kinds[i.kind] || 0) >= 2)) continue; if (pass && (places[pk] || 0) >= 2) continue;
+    if (!pass && ((cats[i.cat] && i.kind !== 'pin') || places[pk] || (kinds[i.kind] || 0) >= 2)) continue;   /* QA12: a second pinned Idea (somebody's invitation) was hidden behind the first ("Make it up to Felix") */ if (pass && (places[pk] || 0) >= 2) continue;
     out.push(i); cats[i.cat] = 1; kinds[i.kind] = (kinds[i.kind] || 0) + 1; places[pk] = (places[pk] || 0) + 1; }
   return out.sort((a, b) => b.score - a.score);
 }
@@ -277,7 +277,7 @@ export function schedule() {
 }
 
 /* ---------- the morning line + one gentle idea later in the day ---------- */
-const span = a => { const h = t => { const m = Math.round(t) % DAY, k = Math.floor(m / 60) % 12 || 12; return m % 60 ? k + ':' + String(m % 60).padStart(2, '0') : String(k); }; return `${h(a.t)} to ${h(a.t + a.dur)}`; };
+const span = a => `${hh(a.t)} to ${hh(a.t + a.dur)}`;   /* QA12: the 12-hour "work 9 to 1" read as a morning for a 21:00-01:00 radio shift; the rest of the line is 24-hour ("at 14:45") */
 const count = n => (['no', 'one', 'two', 'three', 'four', 'five'][n] || n) + (n === 1 ? ' idea' : ' ideas');
 export function summary() {
   const sc = schedule(), d0 = today() * DAY, parts = sc.today.slice(0, 3).map(a => (a.kind === 'work' ? 'work ' + span(a) : `${a.title} at ${hh(a.t)}`));

@@ -147,7 +147,7 @@ function tick() {
         else { a.s = 4; G.emit('appt:missed', a);
           if (a.flex || (a.data && a.data.idea && !a.withNpc)) { /* your own idea, not taken up: it just lapses, no notice */ }
           else if (a.withNpc && a.kind !== 'work' && !(G.social && G.social.onMissed) && G.messages) { const L = (TEXTS.INVITE_REPLIES && TEXTS.INVITE_REPLIES.npcStoodUp) || ['Missed you today! Rain check?']; G.messages.send({ from: a.withNpc, text: L[a.t % L.length], delay: 5 }); }
-          else if (a.kind !== 'work') note(a, `You missed: ${a.title}. No harm done.`, 'low'); }
+          else if (a.kind !== 'work' && !(a.data && a.data.relDate)) note(a, `You missed: ${a.title}. No harm done.`, 'low'); }   /* QA12: a missed date is not "no harm done" (warmth -4, their own text, a "Make it up" Idea) */
       }
     }
   }

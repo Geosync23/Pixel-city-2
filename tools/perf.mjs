@@ -34,15 +34,19 @@ const OUT = path.join(ROOT, 'out/perf'); fs.mkdirSync(OUT, { recursive: true });
 const name = o.out || `perf_${o.rate}x_dsf${o.dsf}${o.soak ? '_soak' : o.verify ? '_verify' : ''}`;
 
 /* ---------- the page under test ---------- */
+/* the same steps as tools/build.mjs (kept in step with it by hand: if the build gains a step, add it here), without writing dist/ */
+let audioPack = null; try { audioPack = await import('./audio_pack.mjs'); } catch (e) { }
 async function bundle(minify) {
-  genModules();
+  genModules(); if (audioPack && audioPack.genManifestModule) audioPack.genManifestModule();
   const r = await build({ entryPoints: [path.join(ROOT, 'src/main.js')], bundle: true, format: 'iife', minify, write: false, target: 'es2020', legalComments: 'none' });
   const js = r.outputFiles[0].text.replace(/<\/script/g, '<\\/script');
   let css = fs.readFileSync(path.join(ROOT, 'src/ui/style.css'), 'utf8');
   for (const f of fs.readdirSync(path.join(ROOT, 'src/ui'))) if (f.endsWith('.css') && f !== 'style.css') css += '\n' + fs.readFileSync(path.join(ROOT, 'src/ui', f), 'utf8');
   let font = ''; const fp = path.join(ROOT, 'assets/font.woff2'); if (fs.existsSync(fp)) font = `@font-face{font-family:"Pixelify Sans";font-weight:400 700;src:url(data:font/woff2;base64,${fs.readFileSync(fp).toString('base64')}) format("woff2")}`;
   let html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  return html.replace(/<style>@font-face.*?<\/style>/, '').replace('<link rel="stylesheet" href="src/ui/style.css">', () => `<style>${font}${css}</style>`).replace('<script type="module" src="src/main.js"></script>', () => `<script>${js}</script>`);
+  html = html.replace(/<style>@font-face.*?<\/style>/, '').replace('<link rel="stylesheet" href="src/ui/style.css">', () => `<style>${font}${css}</style>`).replace('<script type="module" src="src/main.js"></script>', () => `<script>${js}</script>`);
+  if (audioPack && audioPack.audioBlocks) { const amb = audioPack.audioBlocks(); if (amb && amb.html) html = html.replace('</body>', () => amb.html + '</body>'); }
+  return html;
 }
 /* --html a.html,b.html compares builds: the runs are interleaved (a, b, a, b, ...) so that both see the same machine load */
 const BUILDS = o.html ? o.html.split(',').map(f => { const [file, q] = f.split('?'); return { name: path.basename(file).replace(/\.html$/, '') + (q ? '?' + q : ''), q: q || '', html: fs.readFileSync(path.resolve(file), 'utf8') }; }) : [{ name: 'tree', q: '', html: await bundle(!o.profile) }];   // file.html?nobakeworker = the same build opened with that query string
