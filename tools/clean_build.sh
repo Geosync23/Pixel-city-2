@@ -14,6 +14,8 @@ FILES="src/ui/phone_taxi.js src/ui/phone_guide.js src/ui/phone.js src/ui/phone_p
  src/sim/media.js src/sim/_media_films.js src/sim/_shows_films.js src/sim/apps.js src/sim/post.js
  src/data/needs.js src/data/hair_styles.js src/data/traits.js src/data/skills_extra.js src/data/media.js src/data/post.js src/data/clothes*
  src/story/shortreads.js src/story/letters.js src/art/icons/clothes.js src/art/icons/skills_extra.js src/art/icons/media.js
+ src/sim/_crowd_lines.js src/sim/_crowd_core.js src/sim/crowd.js src/sim/_crowd_rooms.js src/sim/transit.js src/sim/traffic.js src/sim/_traffic_veh.js src/sim/navigator.js src/sim/museum.js src/sim/observatory.js
+ src/ui/shop.js src/ui/hud.js src/data/items.js src/data/venues_extra.js src/data/validate.mjs src/data/calendar.js src/scenes/rooms/museum.js src/scenes/rooms/observatory.js src/art/showpiece/museum.js
  src/scenes/rooms/post*.js src/art/showpiece/post*.js src/art/showpiece/_post_*.js $*"
 for f in $FILES; do mkdir -p "$C/$(dirname $f)"; cp "$f" "$C/$f"; done
 cp -r src/art/chars/. "$C/src/art/chars/"

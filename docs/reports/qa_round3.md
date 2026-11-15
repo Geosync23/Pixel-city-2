@@ -55,6 +55,7 @@ The shared build stopped loading three times because another worker's file was m
 | D27 | The phone's "New app: Nestly" banner sits over the cook menu's top tabs right after a new game. | src/ui/phone.js (not mine) | low | **Needs the owner of phone.js:** `placeBanners()` should avoid an open `.win` header, or delay banners while a modal is open. |
 | D28 | Cars stop for the player standing on the kerb corner, because vehicles test peds within 0.98 of the lane line. 10 such stops in 20 min at Central. | _traffic_veh.js | low | Not changed (the brief says to keep yielding to the player). If wanted: ignore the player when they are on a non-asphalt tile. |
 | D29 | Venue pools are not time-aware: "Wait your turn. It's the moon" was heard in the observatory gallery at 14:30. | src/story/ambient_lines.js (data) | cosmetic | Not changed. I deleted no lines: none was plainly wrong for its pool. |
+| D30 | Counters that are sub-venues of a bigger room (Cafe Ammonite = `museum:cafe`, Comet Cocoa = `observatory:cocoa`) offered "Eat", not "Eat here", although eatIn finds a seat. | src/ui/shop.js | low | **Fixed**, and the cafe was re-run: "Eat here" → Fossil Shortbread. |
 
 ## Played for real: results
 ### A. Museum (portrait; scenarios mus3, mus5, mus6)
@@ -63,11 +64,19 @@ The shared build stopped loading three times because another worker's file was m
 - **Ten exhibits** looked at by walking up and tapping. The text panels (Marge, minerals, fossils, Pteranodon, cannery, timeline, whale) open a dialog. "Rain on Maple Avenue" and "Cat on a Windowsill" open the picture viewer ("Step back"). The city model has its own menu. Logbook: Natural 3/6, Art 2/10, City 3/6.
 - **Dig pit** with a real mouse drag: about 36 sweeps across the canvas cleared the sand and found a "Raptor Claw".
 - **Sketch** from an Art Wing bench: 46 game min, 1 sketch pinned, "Logged: Maple No. 7".
-- **Scavenger hunt:** all 8 clues found by walking to the right exhibits (8/8, "take your card back to the info desk"). For the badge claim, see MUSEUM_HUNT.
+- **Scavenger hunt:** all 8 clues found by walking to the right exhibits (8/8, "take your card back to the info desk"). In a second run all 8 were found again and the prize was claimed at the desk: "Eight out of eight! … Junior Curator." The `mus_badge` is in the bag.
 - **Membership** ($40) bought at the desk. The audio guide is then free; all 10 stops were walked ("Audio trail complete").
 - **Scheduled 14:00 tour:** joined by tapping Ines, then followed on foot to the end. "Tour complete (6 of 6 stops)" after 140 game min.
 - **Closing walk-out:** at 18:31 "We are closing, I am afraid." A guard walked me past Marge; I was in the city at 18:36.
-- MUSEUM_REST
+- **Cafe Ammonite:** "Eat here" → Fossil Shortbread, $3, "Eating Fossil Shortbread", effects applied. The button first read "Eat" and the dish was eaten standing up, because the counter is a sub-venue of the museum room. Fixed in shop.js; the cafe was re-run after the fix. Whether the player sat down was not confirmed.
+- **Museum Shop:** "Print: Harbour at Dawn" / "Print: Night Tram" bought: "delivered to your home tomorrow at 09:00".
+  - Next morning (day skipped via API) the "Delivery box" stood at home. Unpack → "Unpacked: Print: Night Tram. Tap Decorate to place it."
+  - The HUD Decorate chip opened Decorate, and the tray showed the print, which I selected.
+  - **Placing it on the wall did not succeed in my run.** My mouse sweep along the back wall was blind (in portrait most of the points were off screen), and the print was not hung. Not completed; not a confirmed defect.
+- **Curator chain:**
+  - Dr. Okafor → "I will keep an eye out" → the waypoint went at once to "Old box: Airmail pilot's goggles?" (D22).
+  - Walked to it and opened the box, then the lantern (waypoint set automatically), then the whistle: 13:06, 13:52, 14:14. The waypoint then switched back to the museum.
+  - Talked to Okafor → chain st 3 → "**Member for life (your membership fee is refunded), $60, and a desk-size Marge…**". Money +$100 (60 + the $40 refund), measured.
 
 ### B. Observatory (portrait; obs1, obs3, obs4)
 - **Entry and ticket:** walked in from the street; day ticket $6 at the desk.
@@ -186,7 +195,7 @@ Portrait, 1x, the player standing still. Counts are for 180 s unless noted. "Rat
 - **Portrait framing:** standing on a room's door mat, the camera shows only the lower part of most rooms. In the diner the only visible person was a cook cut off under the HUD, so no bubble shows there (correctly). Once you walk in, bubbles come.
 
 ## Not tested / limits
-- MUSEUM_NOT
+- Museum: hanging the print in Decorate (see above); the photo spots, donation box, cloakroom and benches (the museum worker ran them by eval); the Friday free evening; the special exhibition wing beyond 1 logged exhibit.
 - Touch input (mouse only); sound; real phones.
 - Observatory: the comet sweep nights 2-3, the chain reward, and a clear star party's guest telescopes were not played; "Tonight's Sky" ran mid-show only.
 - A Friday (payday lines) and a winter (first snow) were not simulated. Bench sitting (`sitting_bench`) was not seen live.

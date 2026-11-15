@@ -584,7 +584,7 @@
   "checks": [
    {
     "go": "city",
-    "label": "Go in: FreshWay Market"
+    "label": "Go in: FreshWay Market$"
    },
    {
     "go": "int:grocery",

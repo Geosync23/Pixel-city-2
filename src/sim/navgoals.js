@@ -475,7 +475,8 @@ function target(A) {
   if (id === 'city') {
     const door = doorOf(st.room) || (A.ctx.pt && A.ctx.root === rootOf(st.room) ? A.ctx.pt : null); if (!door) return chip(st.far || st.label);
     const d = Math.hypot(door.x - pl.x, door.y - pl.y), name = placeName(st.room);
-    return point(door.x, door.y, d < 14 ? `Go in: ${name} → ${st.short || st.label}` : st.far || (st.title ? `${st.title} (${name})` : name), { dist: d < 14 ? null : d, z: safe(() => G.world.heightAt(door.x, door.y), 0), h: 2.6 });
+    const sh = st.short || st.label;
+    return point(door.x, door.y, d < 14 ? (norm(sh) === norm(name) ? `Go in: ${name}` : `Go in: ${name} → ${sh}`) : st.far || (st.title ? `${st.title} (${name})` : name), { dist: d < 14 ? null : d, z: safe(() => G.world.heightAt(door.x, door.y), 0), h: 2.6 });
   }
   const hop = safe(() => G.navArrow.route(want), null);
   if (!hop) return chip(`Leave the building → ${st.short || st.label}`);

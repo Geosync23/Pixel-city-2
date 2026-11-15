@@ -46,7 +46,7 @@ for (const id of ids) {
     if (!(it.exit || it.navTo || e.length || CAND.test(it.label || ''))) continue; if (it.ent || /^(Sit|Talk|Restroom|Look|Read|Watch|Spot|Species)/.test(it.label || '')) { if (!e.length) continue; }
     let cap = null; G.go = to => { if (!cap) cap = to; return Promise.resolve(null); }; G.startActivity = act => { try { act && act.done && act.done(); } catch (x) { } };
     const sc = G.scene; try { const r = it.use(G, it); if (r && r.then) await Promise.race([r, sleep(200)]); } catch (x) { } await sleep(20);
-    await dismiss(); if (G.cutscene) { const t0 = performance.now(); while (G.cutscene && performance.now() - t0 < 15000) await sleep(100); if (G.cutscene) G.cutscene = null; await sleep(150); }   /* lifts: a short ride, then the go() */
+    await dismiss(); if (G.cutscene) { const t0 = performance.now(); while (G.cutscene && performance.now() - t0 < 15000) await sleep(100); if (G.cutscene) G.cutscene = null; await sleep(900); }   /* lifts: a short ride, then the go() */
     G.camTarget = null; const p = G.player; p.hidden = false; p.pose = null; p.zoff = 0; if (G.busy) G.endActivity(false);
     const tos = e.map(q => q.to); rec.doors++;
     if (cap && !(tos.includes(cap) || (ALIAS[cap] || []).some(x => tos.includes(x)))) rec.bad.push('"' + it.label + '" really leads to ' + cap + ' but the arrow thinks ' + (tos.length ? tos.join('/') : 'it is no door'));
