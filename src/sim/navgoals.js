@@ -347,6 +347,7 @@ define('lh_lamp', 'commit', 70, ctx => {
   if (ctx.root !== 'lighthouse' || !G.lighthouse) return null; const L = G.lighthouse, d = hf() - L.lampTime(), st = safe(() => L.chain().st, 0);
   if (d < -1 || d > .5) return null; if (!want(ctx) && st !== 5) return null;
   if ((G.state.lighthouse || {}).litDay === G.now().day || since('lighthouse:lamp', 20)) return { done: true, name: 'the lantern room' };
+  if (safe(() => L.lampOn(), false)) return inRoom('lighthouse_lantern') ? { done: true, name: 'the lantern room' } : { room: 'lighthouse_lantern', find: null, label: 'The lamp is lit: the lantern room', short: 'the lantern room' };   /* Silas has lit it already */
   return desk('lighthouse_lantern', /^The great lens$/, d < -.5 ? `Lamp-lighting at ${clock(L.lampTime() * 60 - 30)}: up to the lantern` : 'Light the lamp: the great lens', 'the lantern room');
 });
 chain('lh_chain', ['lighthouse', 'fishmarket'], 'lh_lamp', 'lighthouse:chain', ctx => { const L = G.lighthouse, st = safe(() => L.chain().st, 0);
