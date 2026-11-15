@@ -224,11 +224,11 @@ export const EVENTS = [
     special: { closures: ['office', 'bank', 'library', 'courier', 'warehouse'], paidDayOff: true, crowdMult: 1.6, moodlet: 'holiday_cheer',
       highlight: 'Parade along the Downtown avenue 12:00-13:00; free slice of cake at the plaza (hunger +15, fun +10).' }, notify: 24 },
   { id: 'gratitude_supper', name: 'Gratitude Supper', kind: 'holiday', when: { season: 'autumn', days: [11] }, hours: [0, 24],
-    place: { district: 'maplewood' }, blurb: 'The day everyone cooks too much and eats it with people they love.',
+    place: { district: 'maplewood' }, blurb: 'A holiday: Maplewood talks of nothing but the supper it is cooking tonight. Shops, offices and shifts keep their usual hours.',   /* QA12: the closures, the day off and the family supper below are not built yet */
     special: { closures: ['office', 'bank', 'library', 'courier', 'warehouse', 'clothing', 'homegoods'], paidDayOff: true, moodlet: 'holiday_cheer',
       story: 'Dinner at your sibling\'s at 18:00 with grandma: bring any home-cooked dish for a big relationship boost and `family_time`.' }, notify: 24 },
   { id: 'midwinter_day', name: 'Midwinter Day', kind: 'holiday', when: { season: 'winter', days: [11] }, hours: [0, 24],
-    place: { district: 'oldtown' }, blurb: 'Gifts, candles and grandma\'s kitchen.',
+    place: { district: 'oldtown' }, blurb: 'The shortest day of the year. Old Town talks of candles and gifts; shops, offices and shifts keep their usual hours.',   /* QA12: the closures, the day off and the gift exchange at Nana\'s are not built yet */
     special: { closures: ['office', 'bank', 'library', 'courier', 'warehouse', 'clothing', 'homegoods', 'gym'], paidDayOff: true, moodlet: 'holiday_cheer',
       giftRelationshipMult: 1.5,
       story: 'Gift exchange at grandma\'s at 16:00; every contact with friendship level "friend" or higher sends a small gift by message.' }, notify: 24 },

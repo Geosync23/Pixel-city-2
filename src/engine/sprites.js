@@ -33,6 +33,10 @@ if (IN_WORKER) {
     else self.postMessage({ n: m.n, fail: 1, err });
   };
   self.postMessage({ ready: 1 });
+  /* Stop loading here. By now the art library is registered (src/main.js imports it first) and nothing after this module is needed for baking: the
+   * simulation, the UI and the story data would only cost memory in this copy (measured: docs/reports/performance.md). The error is this worker's
+   * own and is marked handled, so nothing is reported to the page. If the art is not there yet (an import order change), the rest loads as before. */
+  if (ASSETS.size > 200 && MODULES['./chars/char.js']) { self.onerror = () => true; throw new Error('Maple Bay bake worker: art loaded; the rest of the game is skipped in this copy on purpose'); }
 }
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 /** raster.render() result -> sprite {c: colour canvas, l: light canvas|null, x, y, w, h} (x,y = offset from the anchor in px) */
@@ -85,7 +89,8 @@ export function pixSprite(key, sb, draw) { return cached(key, () => toSpritePool
 // more sprites that are never seen (memory, and main-thread time to make their canvases); a narrower one leaves more to be finished on the spot.
 // urgent: jobs nearer to the screen than this many px always get the full msMax.
 // worker: use the bake worker when it can start. flying: sprites handed to the worker at a time. patience: ms without an answer before the worker is given up (and twice that for it to start).
-export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 20, look: 80, lookMax: 240, entRing: 36, chunkLook: 150, chunkLookMax: 420, urgent: 56, worker: true, flying: 4, patience: 15000 };
+// minMemGB: the worker (a second copy of the script: memory) is not started on devices that report less RAM than this (navigator.deviceMemory; browsers that do not report it get the worker).
+export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 20, look: 80, lookMax: 240, entRing: 36, chunkLook: 150, chunkLookMax: 420, urgent: 56, worker: true, flying: 4, patience: 15000, minMemGB: 4 };
 const jobs = new Map(), queue = [];   // key -> job; queue = the same jobs, most urgent first (the renderer re-sorts by distance to the screen)
 /**
  * Queue a sprite for baking ahead of need. start() -> a raster.renderJob, or null for "nothing to draw" (called when the job first runs).
@@ -169,7 +174,7 @@ function workerStart() {
 }
 /* hand queued jobs to the worker (at most BAKE.flying at a time, most urgent first) and turn finished ones into canvases (inside the frame's allowance) */
 function workerPump(t0, allow) {
-  if (wstate === 0) { if (BAKE.worker && typeof Worker === 'function' && typeof Blob === 'function' && typeof document !== 'undefined') workerStart(); else wstate = -1; }
+  if (wstate === 0) { const mem = typeof navigator !== 'undefined' && navigator.deviceMemory; if (mem && mem < BAKE.minMemGB) { wstate = -1; STATS.worker = 'off: device reports ' + mem + ' GB of memory'; } else if (BAKE.worker && typeof Worker === 'function' && typeof Blob === 'function' && typeof document !== 'undefined') workerStart(); else wstate = -1; }
   if (wstate === 1 && performance.now() - wlast > BAKE.patience * 2) workerOff('did not start');
   if (wstate !== 2) return;
   if (!BAKE.worker) return workerOff('switched off');

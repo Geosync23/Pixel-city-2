@@ -1,8 +1,10 @@
 // Private: the OLD procedural ambience (noise beds) + the random one-shot events, for src/sim/audio.js.
 // LAYERS are continuous noise/osc beds (created on demand, crossfaded, stopped when silent);
 // PROFILES mix layers + random one-shot events (sfx names with a mean interval in seconds and a volume).
-// Since owner msgs 111-118 ("no white noise layer anywhere", "just do recordings") every noise layer here is OFF and the city bed is the
-// recorded one in _audio_bed.js. What this file still plays: the engine tone in vehicles, and the one-shot events (see AMBIENT_EVENTS).
+// OUTDOORS (owner msgs 111-118: "just do recordings") the noise bed here is OFF (CITY_BED) and the city ambience is the recorded one in
+// _audio_bed.js; of the random outdoor one-shots only the clean bells remain (AMBIENT_EVENTS).
+// INDOORS, in the train and in vehicles nothing is changed (owner msg 125: "Indoor sounds were ok"): room tone, hvac, murmur, the muffled rain,
+// the train rumble, the engine and every indoor one-shot play exactly as before.
 import { A, gain, filt, loopNoise, lfo } from './_audio_lib.js';
 
 // build(out) -> array of sources to stop later. Each layer gets its own gain node in front of `out`.
@@ -18,15 +20,13 @@ const LAYERS = {
   rain: o => [loopNoise(filt(filt(gain(o, .35), 'lowpass', 7500), 'highpass', 900), 'white'), loopNoise(filt(gain(o, .45), 'lowpass', 1400), 'pink')],
   rumble: o => { const g = gain(filt(o, 'lowpass', 95), 1); return [loopNoise(g, 'brown'), lfo(g.gain, .3, .2)]; },
   hush: o => [loopNoise(filt(gain(o, .5), 'lowpass', 380), 'pink', .7)],
-  engine: o => { const e = A.ctx.createOscillator(); e.type = 'triangle'; e.frequency.value = 52; e.connect(filt(gain(o, .08), 'lowpass', 200)); e.start(); return [e, lfo(e.frequency, .2, 4)].concat(NOISE_TONES ? [loopNoise(filt(gain(o, .6), 'lowpass', 150), 'brown')] : []); },
+  engine: o => { const e = A.ctx.createOscillator(); e.type = 'triangle'; e.frequency.value = 52; e.connect(filt(gain(o, .08), 'lowpass', 200)); e.start(); return [e, lfo(e.frequency, .2, 4), loopNoise(filt(gain(o, .6), 'lowpass', 150), 'brown')]; },
 };
 export const CITY_BED = false;      // the old outdoor NOISE bed (traffic / air / leaves / waves / jet): cut by owner msg 111, replaced by recordings
-export const NOISE_TONES = false;   // every other continuous noise layer: room tone, hvac, murmur, rain hiss, train rumble, snow hush, the engine's road noise. Owner msg 116: "No white noise layer anywhere"
 /* random one-shot events OUTDOORS: 'all' = as before; 'tonal' = only the clean bells (bike bell, harbor buoy), because the recordings now carry the birds, crickets, gulls,
-   horns, planes and passing cars and the owner rejected generated city sounds (msgs 116-118); 'none'. Indoor events (cups, pages, typing...) are not affected. */
+   horns, planes and passing cars and the owner rejected generated city sounds (msgs 116-118); 'none'. Indoor, train and vehicle events are not affected. */
 export const AMBIENT_EVENTS = 'tonal';
-const HISSY = { sizzle: 1, applause: 1, whoosh: 1 };   // one-shots that are seconds of filtered noise: never fired as random ambience (they stay available as effects: cooking, shows)
-const TONAL = { bike_bell: 1, buoy: 1 }, TONE_LAYERS = { engine: 1 }, OUTDOOR = /^(city|suburb|industrial|park|harbor|airport)/;
+const TONAL = { bike_bell: 1, buoy: 1 }, OUTDOOR = /^(city|suburb|industrial|park|harbor|airport)/;
 export const LAYER_NAMES = Object.keys(LAYERS);
 const WEATHER_LAYERS = { rain: 1, rumble: 1, hush: 1 };
 
@@ -83,15 +83,13 @@ export class Ambience {
     if (W) for (const k in W.layers) targets[k] = Math.max(targets[k] || 0, W.layers[k] * (indoor ? .45 : 1));
     /* owner msg 111: the outdoor city bed (filtered-noise traffic / air / leaves / waves / jet and the rain hiss) read as a white-noise machine: CUT until the ambience is redesigned. One-shot events, music, indoor tones and vehicles stay. Flip CITY_BED to bring it back. */
     if (!CITY_BED && !indoor && OUTDOOR.test(profile)) for (const k in targets) targets[k] = 0;
-    if (!NOISE_TONES) for (const k in targets) if (!TONE_LAYERS[k]) targets[k] = 0;
     this.muffle.frequency.setTargetAtTime(indoor ? 550 : 18000, now, .5);
     for (const k of new Set(Object.keys(targets).concat(Object.keys(this.layers)))) {
       const v = targets[k] || 0; if (!v && !this.layers[k]) continue;
-      const L = this.layer(k, !!WEATHER_LAYERS[k] && !!W && !!W.layers[k] && !P.layers[k]); L.target = v; L.g.gain.setTargetAtTime(v, now, 1.6); L.stopAt = v ? 0 : now + 10;
+      const L = this.layer(k, !!WEATHER_LAYERS[k] && !!W && !!W.layers[k] && !P.layers[k]); L.target = v; L.g.gain.setTargetAtTime(v, now, 1.6); L.stopAt = v ? 0 : L.stopAt || now + 10;   /* (a silent layer keeps its first stop time: it used to be pushed back at every profile change and never let go) */
     }
     const out = !indoor && OUTDOOR.test(profile), evs = !out || AMBIENT_EVENTS === 'all' ? P.ev : AMBIENT_EVENTS === 'tonal' ? P.ev.filter(e => TONAL[e[0]]) : [];
-    const quiet = NOISE_TONES ? evs : evs.filter(e => !HISSY[e[0]]);
-    this.events = quiet.map(e => [e[0], e[1], e[2] * (indoor ? 1 : hush), e[3]]).concat(W && !indoor ? W.ev : W && weather === 'storm' ? [['thunder', 30, .3]] : []);
+    this.events = evs.map(e => [e[0], e[1], e[2] * (indoor ? 1 : hush), e[3]]).concat(W && !indoor ? W.ev : W && weather === 'storm' ? [['thunder', 30, .3]] : []);
     this.next = this.events.map(e => now + (e[3] ? e[1] : e[1] * (.3 + Math.random())));
   }
   tick(now) {

@@ -31,11 +31,23 @@ function ctxOk(c, id) {
     default: return c.startsWith('mem:') ? remembers(id, c.slice(4)) : false;
   }
 }
+/* QA12: lines that name a time of day or a weekday are only said when that is true ("it's tuesday" came on a Wednesday; "coming Sunday" on the Sunday; "tonight" at breakfast) */
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+function timeOk(text) {
+  const t = String(text || '').toLowerCase(), n = G.now(), wd = n.weekday, h = n.hf; let m;
+  if (/\btonight\b/.test(t) && h < 15) return false;
+  if (/\bthis morning\b/.test(t) && h >= 14) return false;
+  if ((m = /\bit is (\w+day) tomorrow\b/.exec(t)) && DAYS.indexOf(m[1]) !== (wd + 1) % 7) return false;
+  if ((m = /\b(\w+day) is in three days\b/.exec(t)) && DAYS.indexOf(m[1]) !== (wd + 3) % 7) return false;
+  if ((m = /\b(?:coming|this|next|free|see you|on) (\w+day)\b/.exec(t)) && DAYS.indexOf(m[1]) === wd) return false;
+  if ((m = /\bit'?s (\w+day)\b/.exec(t)) && DAYS.includes(m[1]) && DAYS.indexOf(m[1]) !== wd) return false;
+  return true;
+}
 /** the best unused bit of a kind for this person now, or null. Marks it used. */
 function draw(id, kind, peek) {
   const pool = (SMALL[id] && SMALL[id][kind]) || (fr(id) >= 40 ? SMALL_ANY[kind] : null); if (!pool || !pool.length) return null;
   const s = st().small, key = id + ':' + kind, used = s.bag[key] || (s.bag[key] = []), fsi = FRIEND_STAGES.indexOf(friendStage(id)), rs = stage(id);
-  const score = (b, i) => { if (!ctxOk(b.ctx, id)) return -1; let v = 0; const fi = FRIEND_STAGES.indexOf(b.stage);
+  const score = (b, i) => { if (!ctxOk(b.ctx, id) || !timeOk(b.text)) return -1; let v = 0; const fi = FRIEND_STAGES.indexOf(b.stage);
     if (fi >= 0) { if (fi > fsi) return -1; v = fi; if (rs !== 'none' && isRom(id)) v -= 3; } else { if (b.stage !== rs) return -1; v = 10; }
     if (b.ctx !== 'any') v += b.ctx === 'gap' || b.ctx === 'birthday' ? 9 : 5; return v + ((i * 7 + today()) % 5) / 10; };
   /* QA11: a line said to the player is not said again for REPEAT_DAYS, even after the bag empties (Theo's "I've made a thing" came twice in three days) */

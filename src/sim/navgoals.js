@@ -495,8 +495,10 @@ function evaluate(o) {
 /** the objective is complete: clear the waypoint / trip that led here, with the same feedback as a normal arrival */
 function finish(A) {
   const wp = waypoint(), t = trip(), dest = (t && t.dest) || wp, st = A.step; muted[A.id] = 1;
+  /* QA12: an explicit pin to somewhere else (your mailbox, while the Chapter's waypoint led to Nana's) must not wipe the waypoint you were following */
+  const pinRoom = A.r === PIN && SS().pin && SS().pin.room, other = !!pinRoom && !!A.attached && safe(() => rootOf(pinRoom) !== A.root, false);
   if (A.r === PIN) { SS().pin = null; pinFn = null; }
-  if (A.attached) { if (wp) { G.state.phone.waypoint = null; G.emit('waypoint', null); } if (dest) G.emit('waypoint:arrived', dest); }
+  if (A.attached && !other) { if (wp) { G.state.phone.waypoint = null; G.emit('waypoint', null); } if (dest) G.emit('waypoint:arrived', dest); }
   SS().sel = null;
   if (!st.quiet) { toast(`You have arrived: ${st.name || (dest && dest.name) || st.label}`, 'good'); safe(() => G.audio.sfx('success')); }
   G.emit('navgoal:done', A.id, st);

@@ -14,7 +14,7 @@ const price = (i, v) => Math.round(i.price * (v.priceMult || 1) * 4) / 4;
 function arrive() {
   const t = G.state.t, due = (S().orders || []).filter(o => o.at <= t); if (!due.length) return; S().orders = S().orders.filter(o => o.at > t);
   for (const o of due) { let ok = true; for (const it of o.items) { let r; try { r = G.inv.add(it.id, it.qty); } catch (e) { r = false; } if (r === false) ok = false; }
-    G.emit('delivery:arrived', o); G.phone.notify({ type: 'delivery_update', app: 'delivery', title: 'ZipEats', text: ok ? `Ding-dong! Your order from ${VENUE_BY_ID[o.venue].name} is here.` : 'Your order arrived, but your backpack was full. Some of it went back.', icon: 'ui.bag' }); }
+    G.emit('delivery:arrived', o); G.phone.notify({ type: 'delivery_update', app: 'delivery', title: 'ZipEats', text: ok ? (safe(() => G.housing.isHome(), false) ? `Ding-dong! Your order from ${VENUE_BY_ID[o.venue].name} is here.` : `Your courier found you: the order from ${VENUE_BY_ID[o.venue].name} is in your backpack.`) /* QA12: a doorbell only at home (it came in the lobby, the street, a park) */ : 'Your order arrived, but your backpack was full. Some of it went back.', icon: 'ui.bag' }); }
 }
 function venueView(v) {
   return (b, ctx) => {

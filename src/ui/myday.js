@@ -44,6 +44,9 @@ export function travelText(a) {
 }
 function go(dest) {
   close(); if (!dest) return;
+  /* QA12: already inside that building (your lobby, on the way up to your flat): no city trip chooser ("WALK · 1 min · 80 m"), just the arrow (stairs / lift) */
+  const inside = safe(() => { if (!G.scene || G.scene.id === 'city' || !G.navGoals) return false; const door = G.navGoals.doorOf(G.navGoals.rootOf(G.scene.id.replace(/^int:/, ''))); const p = typeof dest === 'string' ? G.places.get(dest) : dest; return !!(door && p && typeof p.x === 'number' && Math.hypot(door.x - p.x, door.y - p.y) < 4); }, false);
+  if (inside) { try { G.phone.setWaypoint(dest); toast('Follow the arrow.', 'good', 2400); } catch (e) { } return; }
   try { if (!(G.phone.routeTo && G.phone.routeTo(dest))) { G.phone.setWaypoint(dest); toast('Follow the arrow.', 'good', 2400); } } catch (e) { toast('No route there yet.', 'info'); }
 }
 

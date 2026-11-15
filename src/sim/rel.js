@@ -211,8 +211,8 @@ function pin(id) {
   o.sent = true; o.pinDay = today(); o.pin = safe(() => G.planner.suggest({ title: titleOf(sc, d), placeId: d.placeId || null, t: Math.max(w.from, Math.min(Math.ceil(G.state.t / 30) * 30, w.to - 40)), dur: 60, kind: 'friend', data: Object.assign({ rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) }), null);
   safe(() => G.emit('myday:change')); safe(() => G.firstTime.offer('rel_invite')); return o.pin;
 }
-/* the Idea is pinned on the day the scene can be played (My Day shows pins for today); dismissed or missed, it comes back after three days, with no second notification */
-function pinDue(id) { const sc = SC[id], o = st().off[id]; if (!o || !o.sent || o.done || pinOf(o) || apptOf(o)) return; const w = nextWindow(sc.window); if (!w || Math.floor(w.from / DAY) !== today()) return; if (o.pinDay !== undefined && today() - o.pinDay < 3) return; pin(id); }
+/* the Idea is pinned when the invitation text arrives (for the first day the scene can be played); dismissed or missed, it comes back after three days, with no second notification */
+function pinDue(id) { const sc = SC[id], o = st().off[id]; if (!o || !o.sent || o.done || pinOf(o) || apptOf(o)) return; const w = nextWindow(sc.window); if (!w) return; /* QA12 (lead decision a): pinned the day the text arrives, for its first day (My Day's row says which day) */ if (o.pinDay !== undefined && today() - o.pinDay < 3) return; pin(id); }
 HOOK.inviteArrived = id => { const o = st().off[id]; if (o) { o.sent = true; pinDue(id); } };
 /** an Idea that was added to the day: the appointment gets the person, the tag ("With a friend" / "Family") and the spot */
 function onAdd(x) {

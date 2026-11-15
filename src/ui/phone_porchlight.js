@@ -94,7 +94,8 @@ function cardView(id) {
     else b.append(el('button.pl-hello', { 'data-pl': 'hello', onclick: () => helloSheet(id, ctx) }, 'Say hello'), el('button.pl-quiet', { 'data-pl': 'hide', onclick: () => { S().hidden.push(id); ctx.back(); ctx.tip(`Hidden. Undo it in Me.`); } }, 'Not for me'));
   };
 }
-function meetSheet(id, ctx) {
+/* QA12 (lead decision b): also opened from a contact card in Messages for somebody you are dating (o.card: no Porchlight chat lines; o.alt: a second way out, the old hang-out planner) */
+function meetSheet(id, ctx, o = {}) {
   const types = safe(() => G.rel.date.types(id), []); let type = types.length === 1 ? types[0] : null, venue = type && type.venues[0] ? type.venues[0].key : null, t = null;
   const sh = el('div.pl-sheet.meet'); const draw = () => {
     const times = type ? safe(() => G.rel.date.times(id, type.id, venue), []) : [], days = [...new Set(times.map(x => Math.floor(x.t / DAY)))], d0 = today(), day = t ? Math.floor(t / DAY) : days[0];
@@ -103,8 +104,10 @@ function meetSheet(id, ctx) {
       type ? el('div.pl-days', null, ...[0, 1, 2, 3, 4, 5].map(k => { const d = d0 + k, ok = days.includes(d); return el('button.pl-day' + (ok ? '' : '.off') + (day === d && ok ? '.on' : ''), { disabled: !ok || undefined, 'data-pl': 'day:' + k, onclick: () => { t = times.find(x => Math.floor(x.t / DAY) === d).t; draw(); } }, el('small', { text: k === 0 ? 'Today' : WD[d % 7] }), el('b', { text: ok ? '•' : '' })); })) : null,
       type && !times.length ? el('p', { text: `${first(id)} has no free time for that this week. Try another idea.` }) : null,
       type && day !== undefined ? el('div.pl-chips', null, ...times.filter(x => Math.floor(x.t / DAY) === day).map(x => chip(x.label.split(', ')[1], t === x.t ? 'on' : '', () => { t = x.t; draw(); }))) : null,
-      el('button.pl-hello', { 'data-pl': 'askdate', disabled: !(type && t) || undefined, onclick: () => { const ok = safe(() => G.rel.date.book({ id, type: type.id, venue, t }), null); sh.remove(); if (ok) { say(id, 'Would you like to meet? ' + type.name.replace(/^A first date: /, '') + ', ' + times.find(x => x.t === t).label + '.', true); say(id, PEOPLE[id].chat.yes); S().chats[id].unread = 0; ctx.refresh(); ctx.tip("It's on your day."); } else ctx.tip('That day is taken. Pick another.'); } }, 'Ask'),
+      el('button.pl-hello', { 'data-pl': 'askdate', disabled: !(type && t) || undefined, onclick: () => { const ok = safe(() => G.rel.date.book({ id, type: type.id, venue, t }), null); sh.remove(); if (ok) { if (!o.card) { say(id, 'Would you like to meet? ' + type.name.replace(/^A first date: /, '') + ', ' + times.find(x => x.t === t).label + '.', true); say(id, PEOPLE[id].chat.yes); S().chats[id].unread = 0; } ctx.refresh(); ctx.tip(o.card ? `${first(id)} said yes. It's on your day.` : "It's on your day."); } else ctx.tip('That day is taken. Pick another.'); } }, 'Ask'),
+      o.alt ? el('button.pl-quiet', { text: o.alt.label, onclick: () => { sh.remove(); o.alt.fn(); } }) : null,
       el('button.pl-quiet', { text: 'Not now', onclick: () => sh.remove() })].filter(Boolean));
+    if (o.card) requestAnimationFrame(() => safe(() => sh.scrollIntoView({ block: 'end' })));   /* QA12: on the contact card the Ask button fell below the fold */
   };
   draw(); ctx.body.append(sh); sh.scrollIntoView({ block: 'end' });
 }
@@ -156,5 +159,5 @@ export function init() {
   injectCss(); if (!G.phone || !G.phone.registerApp) return;
   G.phone.registerApp({ id: 'porchlight', name: 'Porchlight', question: 'Who else is out there?', iconId: 'app.porchlight', color: '#2e3a5c', render, badge: () => safe(() => Object.values(S().chats).reduce((n, c) => n + (c.unread ? 1 : 0), 0), 0) });
   G.on('minutes', pump);
-  G.porchlight = { deck, hello, ask, pump, state: S, replyNow: id => { const c = S().chats[id]; if (c && c.due) { c.due.at = 0; pump(); return true; } return false; } };
+  G.porchlight = { deck, hello, ask, pump, meet: (id, ctx, o) => meetSheet(id, ctx, o || {}), state: S, replyNow: id => { const c = S().chats[id]; if (c && c.due) { c.due.at = 0; pump(); return true; } return false; } };
 }

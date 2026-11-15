@@ -18,8 +18,11 @@
 //     crossfade in / out over 2.5 s with equal power, so two full beds are never stacked and nothing is cut.
 // Timing uses the AudioContext clock only (no setTimeout), so the same code renders in an OfflineAudioContext.
 export const BED_ON = true;          // the single switch: false = no recorded bed at all
+export const BED_INDOORS = false;     // owner msg 125 ("Indoor sounds were ok"): indoors, in the train and in vehicles the game keeps its old room tones and the recorded bed is silent. true = the INDOOR table below (street through the wall, real crowd murmur)
 export const BED_GAIN = 1;           // overall trim of the bed bus (the stretches are matched at -23 LUFS)
 const SCENE_FADE = 2.5, KEEP_SPARE = 1, WRAP = .12, WRAP_X = .08, RATE_JITTER = .03;   // each entry plays 0-3 % slower or faster (tape varispeed): the same stretch never comes back sample for sample
+/* a gain that starts at 0 with no automation event (so nothing can overlap a later fade and a read-back never shows a false 1) */
+function zeroGain(c) { try { return new GainNode(c, { gain: 0 }); } catch (e) { const g = c.createGain(); try { g.gain.setValueAtTime(0, 0); } catch (e2) { g.gain.value = 0; } return g; } }
 const dB = x => Math.pow(10, x / 20), mod = (x, L) => ((x % L) + L) % L;
 
 /* pools of stretches (names from src/data/ambience_audio.js). rain / storm are EMPTY SLOTS: add docs/audio/game/rain_*.mp3 (and storm_*)
@@ -90,7 +93,7 @@ export const OUTDOOR = {
     night: [T('airport', -7, 3500), T('crickets', -11)],
   },
 };
-/* indoors. wall = the street outside, muffled (dB added to every steady outdoor track, low-pass in Hz); crowd = the real market crowd as room murmur.
+/* indoors: ONLY used when BED_INDOORS is true (it is not: see the switch above). wall = the street outside, muffled (dB added to every steady outdoor track, low-pass in Hz); crowd = the real market crowd as room murmur.
    Nothing at all: gym, office, library (thick walls; they keep their one-shot sounds). train / vehicle: the far-traffic rumble recording, low. */
 export const INDOOR = {
   room: { wall: -15, lp: 420 }, store: { wall: -16, lp: 480 }, cafe: { wall: -18, lp: 420, crowd: -13, clp: 3000 }, restaurant: { crowd: -10, clp: 3200 },
@@ -103,7 +106,8 @@ export const PLACES = Object.keys(OUTDOOR), PHASES = ['dawn', 'day', 'evening', 
 export function sceneFor(q) {
   const place = OUTDOOR[q.place] ? q.place : 'city', phase = PHASES.includes(q.phase) ? q.phase : 'day', wx = WEATHER[q.weather] ? q.weather : null;
   const out = OUTDOOR[place][phase]; let tracks, master = wx ? WEATHER[wx] : 1;
-  if (q.indoor) {
+  if (q.indoor && !BED_INDOORS) { tracks = []; master = 1; }
+  else if (q.indoor) {
     const I = INDOOR[q.indoor] || INDOOR.room; tracks = [];
     if (I.wall !== undefined) for (const t of out) if (!t.on) tracks.push({ id: t.id, pool: t.pool, db: +(t.db + I.wall + 20 * Math.log10(master)).toFixed(1), lp: Math.min(t.lp || 1e5, I.lp) });   // bad weather lowers the street outside, not the room
     if (I.crowd !== undefined) tracks.push(T('crowd', I.crowd, I.clp));
@@ -111,7 +115,7 @@ export function sceneFor(q) {
     master = 1;
   } else tracks = out.slice();
   const wp = wx === 'storm' && POOLS.storm.length ? 'storm' : (wx === 'rain' || wx === 'storm') && POOLS.rain.length ? 'rain' : null;
-  if (wp && (!q.indoor || (INDOOR[q.indoor] || INDOOR.room).wall !== undefined)) tracks.push({ id: 'rain', pool: wp, db: q.indoor ? -14 : 0, lp: q.indoor ? 600 : 0, raw: 1 });
+  if (wp && (!q.indoor || (BED_INDOORS && (INDOOR[q.indoor] || INDOOR.room).wall !== undefined))) tracks.push({ id: 'rain', pool: wp, db: q.indoor ? -14 : 0, lp: q.indoor ? 600 : 0, raw: 1 });
   return { key: (q.indoor ? 'in:' + q.indoor + '@' : '') + place + '_' + phase + (wx ? '+' + wx : ''), master, tracks };
 }
 
@@ -131,7 +135,7 @@ export class BedMixer {
     this.ctx = ctx; this.load = load; this.S = stretches || {}; this.rnd = opts.rand || Math.random;
     this.master = ctx.createGain(); this.master.gain.value = 1; this.master.connect(out);
     this.tracks = []; this.dying = []; this.leaving = []; this.leaveBy = 0; this.key = null; this.scene = null; this.wanted = null; this.forced = null;
-    this.cache = new Map(); this.cursor = {}; this.played = {}; this.stats = { decodes: 0, failed: [], freed: 0, xfades: 0, started: 0, decodeMs: [], decodeLog: [], log: [] };   // log: every voice { id, name, t0, t1, pos, rate } (the last 300), for the checks
+    this.cache = new Map(); this.cursor = {}; this.rates = {}; this.played = {}; this.stats = { decodes: 0, failed: [], freed: 0, xfades: 0, started: 0, decodeMs: [], decodeLog: [], log: [] };   // log: every voice { id, name, t0, t1, pos, rate } (the last 300), for the checks
   }
   r(a, b) { return a + this.rnd() * (b - a); }
   pool(p) { return (typeof p === 'string' ? POOLS[p] || [p] : p).filter(n => this.S[n] && !this.stats.failed.includes(n)); }
@@ -187,15 +191,21 @@ export class BedMixer {
   begin(tr, now, fade) { const name = this.choose(tr); if (!name) return; tr.want = name; tr.wantFade = fade; this.need(name); }
   voice(tr, name, buf, when, fade) {
     const c = this.ctx, m = this.S[name], L = Math.max(1, Math.min(m.b, buf.duration - .02) - m.a); let pos = this.cursor[name];
-    if (pos === undefined) pos = this.rnd() * L; else if (tr.cur && tr.cur.name === name) pos = mod(tr.cur.pos0 + (when - tr.cur.t0) * tr.cur.rate + L * this.r(.35, .65), L); else pos = (pos + this.r(0, 6)) % L;
-    const src = c.createBufferSource(), gi = c.createGain(), go = c.createGain(); const rate = 1 + this.r(-RATE_JITTER, RATE_JITTER); src.buffer = buf; src.playbackRate.value = rate; src.loop = true; src.loopStart = m.a; src.loopEnd = m.a + L;
-    when = Math.max(when, c.currentTime) + .005; gi.gain.setValueAtTime(0, 0); src.connect(gi); gi.connect(go); go.connect(tr.lp); curve(gi.gain, CIN, when, fade, 1); src.start(when, m.a + pos);
-    /* how long before moving on: 40-90 s but never past its own entry point (the stretches are 29-60 s long). A pool of ONE stretch plays at least one full pass first (jumping sooner would only bring the same seconds back earlier), then jumps to another point of itself */
-    const dwell = tr.names.length < 2 ? this.r(1.3, 2.2) * L / rate : Math.max(12, Math.min(this.r(40, 90), L / rate - 9));
+    if (pos === undefined) pos = this.rnd() * L; else if (tr.cur && tr.cur.name === name) pos = mod(tr.cur.pos0 + (when - tr.cur.t0) * tr.cur.rate + L * this.r(.2, .45), L); else pos = (pos + this.r(0, 6)) % L;
+    const src = c.createBufferSource(), gi = zeroGain(c), go = c.createGain(); const used = this.rates[name] || (this.rates[name] = []); let rate = 1; for (let i = 0; i < 12; i++) { rate = 1 + this.r(-RATE_JITTER, RATE_JITTER); if (!used.some(u => Math.abs(u - rate) < .004)) break; } used.push(rate); if (used.length > 5) used.shift();   /* never the speed of its last five plays */
+    src.buffer = buf; src.playbackRate.value = rate; src.loop = true; src.loopStart = m.a; src.loopEnd = m.a + L;
+    when = Math.max(when, c.currentTime) + .005; src.connect(gi); gi.connect(go); go.connect(tr.lp); curve(gi.gain, CIN, when, fade, 1); src.start(when, m.a + pos);
+    /* how long before moving on: 40-90 s but never past its own entry point (the stretches are 29-60 s long). A pool of ONE stretch cannot change recording:
+       it plays 55-90 % of a pass, then crossfades to itself a fifth to a half of the cycle further on, at a new speed, so its order never settles into a fixed loop */
+    const dwell = tr.names.length < 2 ? Math.max(12, this.r(.55, .9) * L / rate) : Math.max(12, Math.min(this.r(40, 90), L / rate - 9));
     const v = { name, src, gi, go, buf, t0: when, pos0: pos, L, rate, fade, end: 0 }; tr.voices.push(v); this.stats.log.push(v.rec = { id: tr.id, name, t0: +when.toFixed(2), t1: null, pos: +pos.toFixed(2), rate: +rate.toFixed(4), L: +L.toFixed(2) }); if (this.stats.log.length > 300) this.stats.log.shift(); tr.cur = v; tr.last = name; tr.switchAt = when + dwell; tr.next = null; this.played[name] = when; this.stats.started++;
     return v;
   }
   out(v, now, fade) {
+    if (v.wrapFrom && !v.end && v.t0 > now + .02) {   // a loop hand-over that has not happened yet: call it off and fade the voice that is actually sounding
+      const o = v.wrapFrom; try { o.go.gain.cancelScheduledValues(0); o.go.gain.setValueAtTime(1, 0); v.src.stop(0); } catch (e) { /* too late: let both run */ }
+      v.end = now; if (v.rec) v.rec.t1 = v.rec.t0; o.end = 0; if (o.rec) o.rec.t1 = null; return this.out(o, now, fade);
+    }
     if (v.end) return; const t = Math.max(now, this.ctx.currentTime, v.t0) + .005; curve(v.go.gain, COUT, t, fade, 0); v.end = t + fade + .05; if (v.rec) v.rec.t1 = +(t + fade).toFixed(2); try { v.src.stop(v.end); } catch (e) { /* already stopped */ }
     this.cursor[v.name] = mod(v.pos0 + (t + fade * .5 - v.t0) * v.rate, v.L);
   }
@@ -203,10 +213,10 @@ export class BedMixer {
   wrap(tr, now) {
     for (const v of tr.voices) {
       if (v.end || v.t0 > now) continue; const tw = v.t0 + (v.L - WRAP - v.pos0) / v.rate; if (tw - now > 1.1 || tw - now < .03) continue;
-      const c = this.ctx, m = this.S[v.name], src = c.createBufferSource(), gi = c.createGain(), go = c.createGain(); src.buffer = v.buf; src.playbackRate.value = v.rate; src.loop = true; src.loopStart = m.a; src.loopEnd = m.a + v.L;
-      try { gi.gain.setValueAtTime(0, 0); gi.gain.setValueAtTime(0, tw); gi.gain.linearRampToValueAtTime(1, tw + WRAP_X); v.go.gain.setValueAtTime(1, tw); v.go.gain.linearRampToValueAtTime(0, tw + WRAP_X); src.connect(gi); gi.connect(go); go.connect(tr.lp); src.start(tw, Math.max(0, m.a - WRAP)); v.src.stop(tw + WRAP_X + .02); } catch (e) { continue; }
+      const c = this.ctx, m = this.S[v.name], src = c.createBufferSource(), gi = zeroGain(c), go = c.createGain(); src.buffer = v.buf; src.playbackRate.value = v.rate; src.loop = true; src.loopStart = m.a; src.loopEnd = m.a + v.L;
+      try { gi.gain.setValueAtTime(0, tw); gi.gain.linearRampToValueAtTime(1, tw + WRAP_X); v.go.gain.setValueAtTime(1, tw); v.go.gain.linearRampToValueAtTime(0, tw + WRAP_X); src.connect(gi); gi.connect(go); go.connect(tr.lp); src.start(tw, Math.max(0, m.a - WRAP)); v.src.stop(tw + WRAP_X + .02); } catch (e) { continue; }
       v.end = tw + WRAP_X + .02; if (v.rec) v.rec.t1 = +tw.toFixed(2);
-      const nv = { name: v.name, src, gi, go, buf: v.buf, t0: tw, pos0: -WRAP, L: v.L, rate: v.rate, fade: 0, end: 0 }; tr.voices.push(nv); if (tr.cur === v) tr.cur = nv; this.stats.wraps = (this.stats.wraps || 0) + 1;
+      const nv = { name: v.name, src, gi, go, buf: v.buf, t0: tw, pos0: -WRAP, L: v.L, rate: v.rate, fade: 0, end: 0, wrapFrom: v }; tr.voices.push(nv); if (tr.cur === v) tr.cur = nv; this.stats.wraps = (this.stats.wraps || 0) + 1;
       this.stats.log.push(nv.rec = { id: tr.id, name: v.name, t0: +tw.toFixed(2), t1: null, pos: -WRAP, rate: +v.rate.toFixed(4), L: +v.L.toFixed(2) }); return;
     }
   }

@@ -90,7 +90,7 @@ function gather(day, at, extra) {
   here = cityPos();
   const push = i => { if (have.has(i.id)) return; if (have.has('cat:' + i.cat)) i.again = 1; if (i.placeId && have.has('at:' + i.placeId) && !i.fixed) return; i.day = day; i.walk = i.walk !== undefined ? i.walk : walkTo(i.pos || place(i.placeId)); i.key = i.key || i.id; out.push(i); };
   /* 1. pinned suggestions from other systems */
-  if (isToday) for (const p of safe(() => G.planner.pins(), [])) push({ id: 'pin:' + p.id, kind: 'pin', cat: 'pin', title: p.title, why0: 'They are expecting you', icon: 'ui.heart', placeId: p.placeId, t: p.t > t0 ? p.t : null, dur: p.dur, fixed: p.t > t0, pinId: p.id });
+  if (isToday) for (const p of safe(() => G.planner.pins(), [])) push({ id: 'pin:' + p.id, kind: 'pin', cat: 'pin', title: p.title, why0: 'They are expecting you', icon: 'ui.heart', placeId: p.placeId, t: p.t > t0 ? p.t : null, dur: p.dur, fixed: p.t > t0, pinId: p.id, ahead: Math.max(0, Math.floor(p.t / DAY) - d0) });   /* QA12 (lead decision a): an invitation for a later day is shown the day its text arrives; the row says when */
   /* 2. what's on: shows, films, concerts, games + calendar events (the six city events among them) */
   const perVenue = {};
   for (const w of whatsOn(d0)) {
@@ -177,7 +177,7 @@ function rank(i, T, isToday) {
     else { if (m <= 240) sc += 6; bits.push((Math.floor((i.t % DAY) / 60) >= 17 ? 'Tonight at ' : 'Today at ') + hh(i.t)); }
     if (i.fixed && i.walk > m + 10) sc -= 25; }
   if (i.fixed && i.t && safe(() => G.planner.conflicts(i.t, Math.min(i.dur || 60, 90)), []).length) { sc -= 22; i.clash = 1; }   /* you are busy then */
-  else if (i.ahead) bits.push(i.ahead === 1 ? `Tomorrow at ${hh(i.t)}` : `${WDL[Math.floor(i.t / DAY) % 7]} at ${hh(i.t)}`);
+  else if (i.ahead) { const at = i.kind === 'pin' ? 'from' : 'at'; bits.push(i.ahead === 1 ? `Tomorrow ${at} ${hh(i.t)}` : `${WDL[Math.floor(i.t / DAY) % 7]} ${at} ${hh(i.t)}`); }
   else if (i.t && !isToday) bits.push(`${hh(i.t)}${i.window ? ' to ' + hh(i.end) : ''}`);
   if (i.kind === 'opp') { if (i.end && isToday) { const left = i.end - T; if (left < 180) sc += 8; bits.push(i.t && i.t > T ? `From ${hh(i.t)}` : `Until ${hh(i.end)}${Math.floor(i.end / DAY) > Math.floor(T / DAY) ? ' tomorrow' : ''}`); } if (i.reward) bits.push(i.reward); }
   if (i.why0) bits.unshift(i.why0);

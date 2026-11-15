@@ -207,7 +207,7 @@ export const SMALL = {
   dez: S([
     ['friend', 'any', 'CUZ! Can\'t stop! I\'ll loop back! I won\'t loop back!'], ['friend', 'rain', 'Wet roads! Love it! Everything\'s a slide!'], ['close', 'any', 'There\'s my favourite cousin. Don\'t tell the others. There aren\'t any others.'], ['confidant', 'any', 'Hey. Got a minute? Like, an actual one. Sit on the kerb with me.'],
   ], [
-    ['friend', 'any', 'new taco place by the depot. i\'ve been four times. it\'s tuesday. come. my shout, if you beat me there. you won\'t'], ['friend', 'gap', 'cuz. where you been. i\'ve had to tell my jokes to rhonda. she doesn\'t laugh. she just says "copy"'],
+    ['friend', 'any', 'new taco place by the depot. i\'ve been four times since it opened. come. my shout, if you beat me there. you won\'t'], ['friend', 'gap', 'cuz. where you been. i\'ve had to tell my jokes to rhonda. she doesn\'t laugh. she just says "copy"'],
     ['friend', 'worked', 'you worked today? respect. i did forty drops and met a dog called kevin. we\'re both heroes'], ['friend', 'festival', 'FESTIVAL. i\'m doing a bike escort for the parade. nobody asked me to. meet me by the tram shed'],
     ['friend', 'moved', 'new place!! which floor. please say ground. i\'m the one who carries your sofa. i\'m always the one'], ['close', 'lowmood', 'nora says you\'re down. i\'m outside. i\'ve got two bikes and no plan. that\'s the best kind'],
     ['close', 'chapter', 'been thinking about yesterday. i\'m not gonna say anything clever. it was good. that\'s all. it was good'], ['close', 'cooked', 'heard you cooked. real food. teach me another one. the soup\'s getting lonely'],

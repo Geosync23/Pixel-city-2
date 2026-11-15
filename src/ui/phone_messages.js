@@ -87,7 +87,7 @@ function personView(id) {
     if (facts.children.length) b.append(facts);
     if (G.rel && G.rel.personCard) try { G.rel.personCard(id, b, ctx); } catch (e) { /* REL (add-only): both meters, keepsakes, their page */ }
     b.append(el('div.ph-btns', null, btn('Text', () => { composing = true; ctx.push(npcName(id), threadView(id), id); }, 'pri', 'ui.speech'), btn('Call', () => call(id, ctx), '', 'ui.phone')),
-      el('div.ph-btns', null, id === 'dad' ? null : btn('Invite out', () => ctx.open('planner', { add: true, withNpc: id }), '', 'ui.calendar'), home && isKnown(home.id) ? btn('Home on map', () => ctx.open('map', { place: home.id }), '', 'ui.pin') : null));
+      el('div.ph-btns', null, id === 'dad' ? null : btn('Invite out', () => { /* QA12 (lead decision b): somebody you are dating is asked on a date (the old hang-out stays one tap away) */ const hang = () => ctx.open('planner', { add: true, withNpc: id }); if (safe(() => ['dating', 'exclusive', 'partner', 'engaged', 'married'].includes(G.rel.stage(id)) && G.rel.date.types(id).length > 0, false) && G.porchlight && G.porchlight.meet) G.porchlight.meet(id, ctx, { card: 1, alt: { label: 'Just hang out instead', fn: hang } }); else hang(); }, '', 'ui.calendar'), home && isKnown(home.id) ? btn('Home on map', () => ctx.open('map', { place: home.id }), '', 'ui.pin') : null));
   };
 }
 
