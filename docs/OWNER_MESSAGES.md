@@ -539,3 +539,7 @@ When does the game first nudge you to get a job? Don't code anything just asking
 
 ## 140 (2026-11-15) — sitting looks wrong everywhere (sent with a screenshot of the aquarium benches)
 Sitting animations are weird all over. Sometimes the are under it  sometimes over it woth no occlusion. See this screenshot
+
+## 141 (2026-11-15)
+When does the game first nudge you to get a job? Don't code anything just asking
+The sea turtle is way too big
