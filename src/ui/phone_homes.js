@@ -144,10 +144,16 @@ function sheet(b, ctx, id, mode) {
     el('p.as-desc', { text: furn ? `The designer's ${l.pieces} pieces stand in the rooms when you arrive. You pay for them once and they are yours: they move with you, and you can sell them.` : 'Empty rooms, your own style. The kitchen and bathroom are fitted, a camp mattress waits if you have no bed, and a welcome box has a few meals. The furniture shops and the Roomy app do the rest.' }));
   if (mode === 'rent') { total = l.rent + fee + pkg; first.append(kv("First week's rent", money(l.rent))); week.append(kv('Rent', money(l.rent))); }
   else {
+    /* owner (QA10): "Pay in full" beside the mortgage terms; only when the money is there (no overdraft), no mortgage afterwards */
+    const fullTotal = l.price + fee + pkg - eq, canFull = bal - fullTotal >= 0; if (term === 'full' && !canFull) term = 1;
+    b.append(section('How will you pay?'), el('div.nl-filters.nl-wrap', null, MORTGAGE.terms.map((tt, i) => chip(`Mortgage · ${tt.weeks} wks`, term === i ? 'on' : '', () => { term = i; ctx.refresh(); })),
+      chip(`Pay in full · ${money(Math.max(0, fullTotal))}`, [term === 'full' ? 'on' : '', canFull ? '' : 'nl-off'].filter(Boolean).join('.'), () => { if (!canFull) { toast(`Paying in full needs ${money(fullTotal - bal)} more in the bank.`); return; } term = 'full'; ctx.refresh(); })));
+    if (term === 'full') { total = fullTotal; first.append(kv('Price, paid in full', money(l.price))); week.append(kv('Mortgage', 'none'), kv('Upkeep', money(h.upkeepPerWeekOwned || 0))); week.append(el('small.nl-dim', { text: 'Paid outright: no mortgage, nothing to repay. Only upkeep and utilities each Monday.' })); }
+    else {
     const t = MORTGAGE.terms[term] || MORTGAGE.terms[0], w = mortWeekly(l, term); total = l.down + fee + pkg - eq;
-    b.append(section('Mortgage term'), el('div.nl-filters', null, MORTGAGE.terms.map((tt, i) => chip(`${tt.weeks} weeks`, term === i ? 'on' : '', () => { term = i; ctx.refresh(); }))));
     first.append(kv('Down payment (20%)', money(l.down))); week.append(kv(`Mortgage, ${t.weeks} weeks`, money(w)), kv('Upkeep', money(h.upkeepPerWeekOwned || 0)));
-    week.append(el('small.nl-dim', { text: `You repay ${money(Math.round((l.price - l.down) * (1 + t.fee)))} in all${t.fee ? ` (${Math.round(t.fee * 100)}% fee)` : ' (no fee)'}. Miss a week and the term just gets a week longer. Pay it off early any time at the bank app.` }));
+    week.append(el('small.nl-dim', { text: `You repay ${money(Math.round((l.price - l.down) * (1 + t.fee)))} in all${t.fee ? ` (${Math.round(t.fee * 100)}% fee)` : ' (no fee)'}. Miss a week and the term just gets a week longer. Pay it off early any time at the bank app.${canFull ? '' : ` Paying in full: ${money(Math.max(0, fullTotal))}.`}` }));
+    }
   }
   if (pkg) first.append(kv(`Furniture package (${l.pieces} pieces)`, money(pkg)));
   if (fee) first.append(kv('Moving van', money(fee))); if (eq) first.append(kv(mode === 'rent' ? 'Sale of your old home (paid to you)' : 'Sale of your old home', '+' + money(eq)));
@@ -158,7 +164,7 @@ function sheet(b, ctx, id, mode) {
   const can = bal - total >= lim;
   if (!can) b.append(el('p.nl-lock.big', null, iconEl('ui.coin', 1), `You need ${money(total - bal + lim)} more for this.`));
   ctx.foot.append(el('div.nl-acts', null, btn('Not now', () => ctx.back()), btn(mode === 'rent' ? `Sign the lease · ${money(total)}` : `Buy it · ${money(Math.max(0, total))}`, () => {
-    const ok = safe(() => (mode === 'rent' ? H().rent(id, { furnished: fz }) : H().buy(id, term, { furnished: fz })), false);
+    const ok = safe(() => (mode === 'rent' ? H().rent(id, { furnished: fz }) : H().buy(id, term === 'full' ? 1 : term, { furnished: fz, full: term === 'full' })), false);
     if (ok) { dcache.clear(); safe(() => G.phone.notify({ app: 'homes', title: 'Nestly', text: fz ? `Keys to ${h.name} are yours. It is furnished and ready.` : `Keys to ${h.name} are yours. Your boxes are waiting inside.`, priority: 'low' }), 0); ctx.home(); G.phone.open('homes'); }
     else toast(can ? 'That did not go through.' : 'Not enough money for that yet.');
   }, mode === 'rent' ? 'pri' : 'gold')));

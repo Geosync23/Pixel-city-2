@@ -85,6 +85,8 @@ function withUs(ids, look, force) {      /* the people of a scene who are not st
   comp.set(comp.ids().concat(need)); mine = true; if (look) for (const id of need) { const c = comp.char(id), w = who(id, look); if (c && w.spec) c.spec = w.spec; }
 }
 const sendHome = () => { if (mine) { comp.clear(); mine = false; } };
+let camPrev = null, camMine = null;
+const uncam = () => { if (camMine && G.camTarget === camMine) G.camTarget = camPrev || null; camMine = camPrev = null; };
 /** play a compiled program. key = where the program counter is kept (scene id, or a transient id for small scripts). -> 'done' | 'out' | 'busy' | 'gone' */
 async function runOps(key, ops, x) {
   if (running) return 'busy'; const s = st(), my = ++tok; running = true; met = {};
@@ -115,10 +117,14 @@ async function runOps(key, ops, x) {
 async function start(id, o = {}) {
   const sc = SC[id]; if (!sc) return null; if (running) return 'busy'; const s = st(), d = dest(sc.place, sc.person);
   G.emit('rel:scene:start', id);
-  const look = lookFor(sc, o); if (!(d && d.phone)) withUs(sc.speakers, look);
+  const look = lookFor(sc, o), P = G.player;
+  if (!(d && d.phone)) {      /* everybody in the scene stands with you: somebody across the room (behind a counter, at a far table) comes over */
+    const far = sc.speakers.filter(p => { const c = safe(() => G.social.char(p), null); return c && Math.hypot(c.x - P.x, c.y - P.y) > 3.6; }); if (far.length) withUs(far, look, true); withUs(sc.speakers, look);
+    const ch = safe(() => comp.char(lead(sc)) || G.social.char(lead(sc)), null); if (ch && Math.hypot(ch.x - P.x, ch.y - P.y) < 6) { camPrev = G.camTarget; camMine = G.camTarget = { x: (P.x + ch.x) / 2 + 1.1, y: (P.y + ch.y) / 2 + 1.1, z: P.z }; safe(() => P.faceTo(ch.x, ch.y)); }
+  }
   const r = await runOps(id, compile(sc), { person: sc.person === 'kids' ? 'kids' : sc.person, look, phone: !!(d && d.phone), sub: '' });
   if (r === 'done') finish(sc); else if (r === 'out') { toast('It will keep. They will pick it up where you left off.', 'info', 3600); const of = s.off[id]; if (of) of.snooze = G.state.t + 30; }
-  if (r !== 'busy') sendHome();
+  if (r !== 'busy') { sendHome(); uncam(); }
   return r;
 }
 function finish(sc) {
@@ -188,15 +194,17 @@ function offer(id, o = {}) {
   const sc = SC[id], s = st(); if (!sc || seen(id) || (s.off[id] && !s.off[id].done)) return false; const d = dest(sc.place, sc.person); if (!d) return false;
   s.off[id] = { day: today(), t: G.state.t, sent: !sc.invite, pin: null }; const A = s.arcs[sc.arc] || (s.arcs[sc.arc] = {}); A.lastInvite = today();
   if (!o.quiet) { s.lastOffer = today(); s.gap = PACING.sceneEvery[0] + (Math.abs((today() * 7919 + id.length * 31) % (PACING.sceneEvery[1] - PACING.sceneEvery[0] + 1))); }
-  if (sc.invite) queueText({ from: lead(sc), text: sc.invite, inv: id, force: true }); else pin(id);
+  if (sc.invite) queueText({ from: lead(sc), text: sc.invite, inv: id, force: true }); else pinDue(id);
   G.emit('rel:offer', id); return true;
 }
 function pin(id) {
   const sc = SC[id], s = st(), o = s.off[id]; if (!sc || !o || o.done || pinOf(o) || apptOf(o)) return null; const d = dest(sc.place, sc.person), w = nextWindow(sc.window); if (!d || !w) return null;
-  o.sent = true; o.pin = safe(() => G.planner.suggest({ title: titleOf(sc, d), placeId: d.placeId || null, t: Math.max(w.from, Math.ceil(G.state.t / 30) * 30), dur: 60, kind: 'friend', data: Object.assign({ rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) }), null);
+  o.sent = true; o.pinDay = today(); o.pin = safe(() => G.planner.suggest({ title: titleOf(sc, d), placeId: d.placeId || null, t: Math.max(w.from, Math.ceil(G.state.t / 30) * 30), dur: 60, kind: 'friend', data: Object.assign({ rel: id, blurb: sc.title }, d.pos ? { pos: d.pos } : null) }), null);
   safe(() => G.emit('myday:change')); return o.pin;
 }
-HOOK.inviteArrived = id => pin(id);
+/* the Idea is pinned on the day the scene can be played (My Day shows pins for today); dismissed or missed, it comes back after three days, with no second notification */
+function pinDue(id) { const sc = SC[id], o = st().off[id]; if (!o || !o.sent || o.done || pinOf(o) || apptOf(o)) return; const w = nextWindow(sc.window); if (!w || Math.floor(w.from / DAY) !== today()) return; if (o.pinDay !== undefined && today() - o.pinDay < 3) return; pin(id); }
+HOOK.inviteArrived = id => { const o = st().off[id]; if (o) { o.sent = true; pinDue(id); } };
 /** an Idea that was added to the day: the appointment gets the person, the tag ("With a friend" / "Family") and the spot */
 function onAdd(x) {
   const pinId = x && x.idea && x.idea.pinId, apptId = x && x.apptId; if (!pinId || !apptId || apptId === true) return; const s = st();
@@ -209,7 +217,7 @@ function stageOffers() {
   const s = st();
   for (const id of openOffers()) {
     const sc = SC[id], o = s.off[id]; if (!o.sent) continue;
-    if (!pinOf(o) && !apptOf(o)) { if (o.aside === undefined) o.aside = today(); else if (today() - o.aside >= 3) { delete o.aside; pin(id); } continue; }      /* dismissed or missed: it comes back as an Idea after three days, quietly */
+    pinDue(id);
     const w = nextWindow(sc.window), d = dest(sc.place, sc.person); if (!w || !d || d.phone || d.any || G.state.t < w.from) continue;
     const a = apptOf(o); if (d.home && !(a && G.state.t >= a.t - 20)) continue;
     if (o.staged === w.from) continue; o.staged = w.from;
@@ -229,20 +237,24 @@ function hereNow(person) {
   }
   return null;
 }
+/* the Chapters' card in rose: these are people, not the gold story */
+const rose = () => { const c = [...document.querySelectorAll('.chc.start')].pop(); if (c) c.classList.add('rel'); };
+HOOK.rose = rose;
 let carding = false;
 async function card(sc) {
   if (carding || running) return 'busy'; carding = true;
   try {
     const s = st(), o = s.off[sc.id], a = arcOf(sc.arc), d = dest(sc.place, sc.person), resume = !!((s.cur && s.cur.id === sc.id) || s.held[sc.id]);
-    const v = await UI.card({ kicker: d.phone ? `${short(lead(sc))} is on the telephone` : sc.track === 'romance' ? short(lead(sc)) : `${sc.speakers.map(short).join(' and ')} · ${a.title}`, title: sc.title, hook: sc.n <= 1 && a.premise ? a.premise : 'They are expecting you. It will take a little while, and it keeps your place.',
+    const pr = UI.card({ kicker: d.phone ? `${short(lead(sc))} is on the telephone` : sc.track === 'romance' ? short(lead(sc)) : `${sc.speakers.map(short).join(' and ')} · ${a.title}`, title: sc.title, hook: sc.n <= 1 && a.premise ? a.premise : 'They are expecting you. It will take a little while, and it keeps your place.',
       who: sc.speakers.map(p => who(p)).filter(w => w.spec).map(w => ({ name: w.short, spec: w.spec })), meta: 'About ten minutes · the clock stands still while you talk', ready: 'No rush. Nothing here runs out.', canBegin: true, resume });
+    rose(); const v = await pr;
     if (v !== 'begin') { if (o) o.snooze = G.state.t + 120; return 'later'; }
     return await start(sc.id);
   } finally { carding = false; }
 }
 function tryStart() { if (busy() || carding) return; const sc = hereNow(); if (!sc) return; const d = dest(sc.place, sc.person);
   /* in a room or at home: at once. At a spot in the city: when you are close to them */
-  if (d.spot && !d.any && !d.phone) { const c = safe(() => G.social.char(lead(sc)), null); if (c && Math.hypot(c.x - G.player.x, c.y - G.player.y) > 4.2) return; }
+  if (d.spot && !d.any && !d.phone) { const c = safe(() => G.social.char(lead(sc)), null); if (c && Math.hypot(c.x - G.player.x, c.y - G.player.y) > 2.7) return; }
   card(sc); }
 /** add-only hook in sim/social.js talk(): a tap on a person who is expecting you begins their scene instead of small talk */
 function intercept(id) {
@@ -262,7 +274,7 @@ function govern(force) {
   const s = st(), n = G.now(); if (!force) {
     if (today() < 5 || n.hf < 8 || n.hf > 19.5) return null;
     if (safe(() => G.chapters.current(), null) || s.chDay === today() || s.jobInvDay === today()) return null;
-    if (openOffers().filter(id => s.off[id].aside === undefined).length >= PACING.scenesOfferedAtOnce) return null;
+    if (openOffers().length >= PACING.scenesOfferedAtOnce) return null;
     if (today() - s.lastOffer < s.gap || s.lastScene === today()) return null;
     if (Object.values(s.dates || {}).some(d => Math.floor(d.t / DAY) === today() && !d.done)) return null;        /* a date you booked is that day's deep scene */
   }
@@ -307,8 +319,8 @@ const debug = {
   fire(id) { const s = st(); delete s.seen[id]; delete s.held[id]; if (s.cur && s.cur.id === id) s.cur = null; return start(id, { force: true }); },
   offer(id) { const s = st(); delete s.seen[id]; delete s.off[id]; return offer(id, { quiet: true }); },
   /** offer it and deliver the invitation now; `go` also takes you to the place inside its window */
-  async invite(id, go) { const sc = SC[id]; if (!sc) return null; debug.offer(id); pumpTexts(true); pin(id); if (go) { const w = nextWindow(sc.window); if (w && G.state.t < w.from) G.advance(w.from + 5 - G.state.t); stageOffers(); await debug.goto(sc.place, sc.person); } return st().off[id]; },
-  async goto(place, person) { const d = dest(place, person); if (!d || d.any || d.phone) return false; if (d.flat) { await G.go('int:' + d.flat); return true; } if (d.room) { await G.go('int:' + d.room); return true; } await G.go('city', { x: d.x - 2.5, y: d.y + 2.5 }); return true; },
+  async invite(id, go) { const sc = SC[id]; if (!sc) return null; debug.offer(id); pumpTexts(true); st().off[id].sent = true; if (go) { const w = nextWindow(sc.window); if (w && G.state.t < w.from) G.advance(w.from + 5 - G.state.t); pin(id); stageOffers(); await debug.goto(sc.place, sc.person); } return st().off[id]; },
+  async goto(place, person) { const d = dest(place, person); if (!d || d.any || d.phone) return false; if (d.flat) { await G.go('int:' + d.flat); return true; } if (d.room) { await G.go('int:' + d.room); return true; } await G.go('city', { x: d.x - .5, y: d.y + 2 }); return true; },
   setFriend(id, n) { safe(() => { if (!(G.social.known() || []).includes(id)) G.social.meet(id); G.social.setRel(id, n); }); return fr(id); },
   setStage(id, sg, pts) { const r = ror(id); if (sg === 'none') { r.stage = 'none'; r.pts = 0; return r; } setStage(id, sg, true); const i = ROMANCE_STAGES.indexOf(sg); if (i >= 2 && !r.dates) { r.dates = 1; r.firstDateDay = today() - 1; st().seen['fd.' + id] = today() - 1; } if (i >= 3) r.hearts[0] = 1; if (i >= 4) { r.hearts[1] = 1; r.partnerDay = today(); } r.pts = pts !== undefined ? pts : Math.max(r.pts, [0, 2, 12, 35, 55, 85, 85][i]); return r; },
   setWarmth(id, n) { const r = ror(id); r.pts = B.cl(n, 0, 100); return r.pts; },

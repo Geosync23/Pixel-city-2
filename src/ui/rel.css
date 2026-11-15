@@ -50,3 +50,7 @@
 .rel-ask{font-style:italic}
 .rel-keep{border-top:2px dashed rgba(0,0,0,.15);padding-top:6px;display:flex;flex-direction:column;gap:2px}
 .rel-keep b{font-size:14px}.rel-keep small{font-size:12.5px;line-height:1.3;opacity:.85}
+/* the start card of a relationship scene: the Chapters' card, in rose (gold is the main story's colour) */
+.chc.start.rel{border-top-color:#e8587a;box-shadow:0 5px 0 var(--edge,#2b2233),inset 0 6px 0 #e8587a}
+.chc.start.rel .chc-kick{background:#ffc2d1}
+.chc.start.rel .chc-go{background:#e8587a;color:#fff}

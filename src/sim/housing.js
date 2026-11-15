@@ -32,7 +32,7 @@
 // G.housing
 //   current() -> { id, home (data), owned, state, roomId, door (city poi id) } | null       isHome(sceneId = current scene) -> bool
 //   homes() -> [{ id, home, available, current, owned, rent, price, down, canRent, canBuy, unlockDay }]
-//   rent(homeId) -> bool        buy(homeId, termIx = 1) -> bool (20% down + weekly mortgage bill)      payOff() -> bool      mortgage()
+//   rent(homeId) -> bool        buy(homeId, termIx = 1, { furnished, full }) -> bool (20% down + weekly mortgage bill; full: the whole price today, no mortgage)      payOff() -> bool      mortgage()
 //   start(homeId)               new-game move-in (starter kit, 3 moving boxes, first week's rent). Runs on 'game:new'({ homeId }).
 //   goHome() -> Promise         teleport inside your home          refresh() rebuild the home room in place (when standing in it)
 //   canEnter(roomId) -> bool    whyNot(roomId) -> string | null    invite(roomId, hours = 3)   (story homes: home:sibling / grandma / friend)
@@ -414,13 +414,13 @@ const welcome = (h, furn) => (furn ? `Welcome to ${h.name}! It is furnished and 
 function buy(id, termIx = 1, o = {}) {
   const h = HOME_BY_ID[id], furn = !!o.furnished && S.id !== id && setOf(id).length > 0; if (!h || !SHELLS[id] || !h.buyPrice) return false; if (S.id === id && S.owned) { toast('You already own it.'); return false; }
   if (!unlocked(h)) { toast('That listing is not on the market yet.'); return false; }
-  const term = MORTGAGE.terms[termIx] || MORTGAGE.terms[0], down = Math.round(h.buyPrice * MORTGAGE.downPayment), same = S.id === id, eq = same ? 0 : equity(), net = down + (S.id && !same ? MOVING.moveFee : 0) + (furn ? pkgPrice(id) : 0) - eq;
-  if (net > 0 && G.money && !G.money.pay(net, 'Down payment — ' + h.name)) return false;
+  const full = !!o.full, term = MORTGAGE.terms[termIx] || MORTGAGE.terms[0], down = full ? h.buyPrice : Math.round(h.buyPrice * MORTGAGE.downPayment), same = S.id === id, eq = same ? 0 : equity(), net = down + (S.id && !same ? MOVING.moveFee : 0) + (furn ? pkgPrice(id) : 0) - eq;
+  if (net > 0 && G.money && !G.money.pay(net, (full ? 'Bought outright — ' : 'Down payment — ') + h.name)) return false;
   if (net < 0 && G.money) G.money.add(-net, 'Home sale balance');
   const total = Math.round((h.buyPrice - down) * (1 + term.fee));
-  S.mortgage = { home: id, left: total, weekly: Math.ceil(total / term.weeks), weeks: term.weeks };
+  S.mortgage = full ? null : { home: id, left: total, weekly: Math.ceil(total / term.weeks), weeks: term.weeks };   /* owner: "Pay in full" = no mortgage at all */
   const inside = isHome() || !!viewingNow(); if (same) S.owned = true; else moveIn(id, true, { furnished: furn });
-  toast(`${h.name} is yours. Mortgage: ${fmt(S.mortgage.weekly)} a week for ${term.weeks} weeks.`, 'good', 4500); G.emit('home:bought', id); if (!same) afterMove(id, inside); return true;
+  toast(full ? `${h.name} is yours, paid in full. No mortgage to pay.` : `${h.name} is yours. Mortgage: ${fmt(S.mortgage.weekly)} a week for ${term.weeks} weeks.`, 'good', 4500); G.emit('home:bought', id); if (!same) afterMove(id, inside); return true;
 }
 function payOff() { const m = S.mortgage; if (!m) return false; if (G.money && !G.money.pay(m.left, 'Mortgage paid off')) return false; S.mortgage = null; toast('Mortgage paid off. The place is all yours!', 'good'); return true; }
 

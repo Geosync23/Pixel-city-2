@@ -49,7 +49,8 @@ export const frr = id => { const s = st(); return s.fr[id] || (s.fr[id] = {}); }
 const xspec = {};
 const PRON = { 'she/her': 'w', 'he/him': 'm', 'they/them': 'n' };
 export const castOf = id => CAST_BY_ID[id] || null;
-export const short = id => { const c = castOf(id); return c ? c.short || c.name : (SPEAKERS_EXTRA[id] || {}).short || id; };
+/* on first-name terms once there is Something There (cast.js shorts are "Chef Haru", "Coach Tasha", "Mr. Quill") */
+export const short = id => { const c = castOf(id); if (c && isRom(id) && G.state.rel && G.state.rel.ro[id] && G.state.rel.ro[id].stage !== 'none') return c.name.split(' ')[0]; return c ? c.short || c.name : (SPEAKERS_EXTRA[id] || {}).short || id; };
 export const full = id => { const c = castOf(id); return c ? c.name : (SPEAKERS_EXTRA[id] || {}).name || id; };
 export function who(id, look) {
   const w = chWho(id);
@@ -58,6 +59,7 @@ export function who(id, look) {
     const fig = safe(() => G.scene.ents.find(e => e && e.spec && !e.isPlayer && new RegExp(id === 'clerk_bell' ? 'clerk|bell' : id, 'i').test(String(e.label || e.name || e.who || ''))), null);
     w.spec = (fig && fig.spec) || xspec[id] || (xspec[id] = safe(() => buildSpecs({ id: 'rel_' + id, age: 60, look: id === 'wendell' ? 'grey hair, green apron, glasses' : 'grey hair, dark suit, glasses', spec: id === 'wendell' ? { hair: 'short', hairColor: '#b8b8b8', top: 'cardigan', topColor: '#4f772d', bottom: 'slacks', glasses: 'round', age: 'elder' } : { hair: 'balding', hairColor: '#c9c9c9', top: 'suit', topColor: '#2b2d42', bottom: 'slacks', bottomColor: '#2b2d42', glasses: 'round', age: 'elder' } }).base, null));
   }
+  if (isRom(id)) w.short = short(id);
   const P = PEOPLE[id]; if (look && P && P.looks && P.looks[look] && w.spec) { const k = id + ':' + look; w.spec = xspec[k] || (xspec[k] = Object.assign({}, w.spec, P.looks[look])); }
   return w;
 }
@@ -166,7 +168,8 @@ export function apply(e, person, src) {
 
 /* ---------- places ---------- */
 const ROOM_ALIAS = { 'museum:cafe': ['museum_cafe', 'museum'], 'conservatory:cafe': ['conservatory_cafe', 'conservatory'], 'university:cafe': ['university_cafe', 'uni_cafe', 'university'], post_main: ['post_main', 'post'], hotel_ballroom: ['hotel_ballroom', 'hotel'], hotel_restaurant: ['hotel_restaurant', 'hotel'], stand_coffee: ['stand_coffee'], airport: ['airport'], event: [] };
-const SPOT_ALIAS = { poi_pier: 'pier', poi_ferris_wheel: 'poi_ferris_wheel', '@Bandstand': 'park' };
+const SPOT_ALIAS = { poi_pier: 'pier', poi_ferris_wheel: 'poi_ferris_wheel', '@Bandstand': 'park', stand_coffee: 'spot:central_plaza' };
+const SPOT_NAME = { stand_coffee: 'the Little Drip coffee cart, Central Station plaza', '@Bandstand': 'the bandstand in Central Park' };
 export const homeRoomOf = id => { const c = castOf(id); return c && HOME_ROOM[c.home] && ROOMS.has(HOME_ROOM[c.home]) ? HOME_ROOM[c.home] : null; };
 function spotDest(key, x, y, name, placeId) { const f = freeNear(cityWorld(), x, y); return { key, name, room: null, x: f.x, y: f.y, spot: true, placeId: placeId || null, pos: { x: f.x, y: f.y, name } }; }
 function fromResolved(key, d) { if (!d) return null; const pid = d.room ? (safe(() => G.places.get(d.root || d.room), null) || {}).id || null : (safe(() => G.places.get(key), null) || {}).id || null; return { key, name: d.name, room: d.room || null, root: d.root || null, x: d.x, y: d.y, spot: !!d.spot, placeId: pid, pos: d.spot && !pid ? { x: d.x, y: d.y, name: d.name } : null }; }
@@ -182,7 +185,7 @@ export function dest(key, person) {
   }
   let d = fromResolved(key, safe(() => resolve(key), null)); if (d) return d;
   for (const r of ROOM_ALIAS[key] || []) { d = fromResolved(key, safe(() => resolve(r), null)); if (d) return d; }
-  const o = OUTDOOR[key] || OUTDOOR[SPOT_ALIAS[key]] || OUTDOOR[String(key).replace(/^spot:/, '')]; if (o) return spotDest(key, o.x, o.y, o.name, null);
+  const o = OUTDOOR[key] || OUTDOOR[SPOT_ALIAS[key]] || OUTDOOR[String(key).replace(/^spot:/, '')]; if (o) return spotDest(key, o.x, o.y, SPOT_NAME[key] || o.name, null);
   const p = safe(() => G.places.get(key), null) || safe(() => G.places.list().find(q => q.id === key || (q.poi && q.poi.id === key)), null); if (p) return spotDest(key, p.x, p.y, p.name, p.id);
   const poi = safe(() => cityWorld().pois.find(q => q.id === key || q.id === 'door:' + key || q.type === String(key).replace(/^poi_/, '')), null); if (poi) return spotDest(key, poi.x, poi.y + 1.5, (poi.name || String(key).replace(/^poi_|^spot:/, '').replace(/_/g, ' ')), null);
   return null;

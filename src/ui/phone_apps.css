@@ -32,6 +32,7 @@
 .nl-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.nl-t small{font-size:12.5px}
 .nl-price{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.nl-price b{font-size:17px;color:var(--accent)}.nl-price i{font-style:normal;font-size:13px;font-weight:700}
 .nl-dim{opacity:.7;font-size:12.5px}.nl-lock{display:flex;gap:4px;align-items:center;font-weight:700;color:#8a5a2a;font-size:12.5px;margin:0}.nl-lock.big{font-size:14px;background:#f6e6c2;border:2px dashed #c79a2a;padding:6px 8px}
+.ph-chip.nl-off{opacity:.45;border-style:dashed}.nl-filters.nl-wrap{flex-wrap:wrap;overflow:visible}   /* QA10: "Pay in full" when the money is not there */
 .nl-hero{display:flex;justify-content:center}.nl-hero .nl-thumb{width:100%;height:auto;aspect-ratio:176/104}
 .nl-name{font-size:20px}
 .nl-acts{display:flex;gap:6px;flex-wrap:wrap}.nl-acts .ph-btn{flex:1;min-height:44px}

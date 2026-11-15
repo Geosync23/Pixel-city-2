@@ -71,11 +71,35 @@ export function render(sb, draw, off, pad = 3, flip = false) {
   const x0 = Math.floor(sb[0] + o[0]) - pad, y0 = Math.floor(sb[1] + o[1]) - pad;
   const w = Math.max(1, Math.ceil(sb[2] + o[0]) - x0 + pad), h = Math.max(1, Math.ceil(sb[3] + o[1]) - y0 + pad);
   const prev = [T, MODE, OFX, OFY, OFZ, FL];
-  T = { buf: new Uint32Array(w * h), lb: new Uint32Array(w * h), w, h, ox: x0, oy: y0, hasLight: false };
+  T = { buf: new Uint32Array(w * h), lb: new Uint32Array(w * h), w, h, ox: x0, oy: y0, hasLight: false, cy0: 0, cy1: h };
   MODE = 0; OFX = off[0]; OFY = off[1]; OFZ = off[2] || 0; FL = !!flip;
   try { draw(); } finally { var out = T;[T, MODE, OFX, OFY, OFZ, FL] = prev; }
   return { w, h, x: x0, y: y0, buf: out.buf, lb: out.lb, hasLight: out.hasLight };
 }
+/*
+ * Sliced rendering (perf: engine/sprites.js bakes sprites ahead of the camera a few milliseconds per frame instead of all at once).
+ * renderJob() takes the same arguments as render(); every renderStep(job, rows) runs draw() once more, clipped to the next band of `rows`
+ * target rows, and returns true when the last row is done; renderResult(job) is then exactly what render() would have returned.
+ * Why it is the same picture: every pixel write goes through px() or fill() -> put(), and nothing ever reads the target back, so a pass
+ * clipped to rows [cy0, cy1) writes exactly the pixels render() writes in those rows, in the same order. draw() must give the same
+ * drawing each time it is called (art is deterministic; the callers drop a job when the season or the world changes).
+ */
+export function renderJob(sb, draw, off, pad = 3, flip = false) {
+  off = off || [0, 0, 0];
+  const o = WS(off[0], off[1], off[2] || 0);
+  const x0 = Math.floor(sb[0] + o[0]) - pad, y0 = Math.floor(sb[1] + o[1]) - pad;
+  const w = Math.max(1, Math.ceil(sb[2] + o[0]) - x0 + pad), h = Math.max(1, Math.ceil(sb[3] + o[1]) - y0 + pad);
+  return { T: { buf: new Uint32Array(w * h), lb: new Uint32Array(w * h), w, h, ox: x0, oy: y0, hasLight: false, cy0: 0, cy1: 0 }, draw, off, flip: !!flip, w, h, row: 0 };
+}
+export function renderStep(job, rows) {
+  const t = job.T; if (job.row >= t.h) return true;
+  const prev = [T, MODE, OFX, OFY, OFZ, FL];
+  T = t; t.cy0 = job.row; t.cy1 = Math.min(t.h, job.row + Math.max(1, rows | 0));
+  MODE = 0; OFX = job.off[0]; OFY = job.off[1]; OFZ = job.off[2] || 0; FL = job.flip;
+  try { job.draw(); } finally { [T, MODE, OFX, OFY, OFZ, FL] = prev; }
+  job.row = t.cy1; return job.row >= t.h;
+}
+export function renderResult(job) { const t = job.T; return { w: t.w, h: t.h, x: t.ox, y: t.oy, buf: t.buf, lb: t.lb, hasLight: t.hasLight }; }
 /** temporarily shift the drawing origin: at(x,y,z, ()=>{ ...draw in local coords... }) */
 export function at(x, y, z, fn) { if (FL) { const t = x; x = y; y = t; } OFX += x; OFY += y; OFZ += z; try { fn(); } finally { OFX -= x; OFY -= y; OFZ -= z; } }
 
@@ -91,7 +115,7 @@ function put(i, c) {
   else { T.buf[i] = c; T.lb[i] = c; T.hasLight = true; }
 }
 /** plot one pixel (target pixel coords) with a packed colour from C() */
-export function px(x, y, c) { x = Math.floor(x); y = Math.floor(y); if (x < 0 || y < 0 || x >= T.w || y >= T.h) return; put(y * T.w + x, c); }
+export function px(x, y, c) { x = Math.floor(x); y = Math.floor(y); if (x < 0 || y < T.cy0 || x >= T.w || y >= T.cy1) return; put(y * T.w + x, c); }   // cy0..cy1 = the row band being drawn (the whole target in render(); see renderStep)
 /** plot one pixel with a hex colour */
 export function pxh(x, y, h) { px(x, y, C(h)); }
 /** plot pixel offset (dx,dy) in screen pixels from a world anchor */
@@ -107,7 +131,7 @@ export function fill(p, h, h2) {
   const fn = typeof h === 'function' ? h : null;
   const c = fn ? 0 : C(h), gl = h2 === 'glass', c2 = h2 && !gl ? C(h2) : 0;
   let y0 = 1e9, y1 = -1e9; for (const q of p) { if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; }
-  y0 = Math.max(0, Math.ceil(y0 - .5)); y1 = Math.min(T.h - 1, Math.floor(y1 - .5)); const n = p.length, W = T.w;
+  y0 = Math.max(T.cy0, Math.ceil(y0 - .5)); y1 = Math.min(T.cy1 - 1, Math.floor(y1 - .5)); const n = p.length, W = T.w;
   for (let y = y0; y <= y1; y++) {
     const s = y + .5; let l = 1e9, r = -1e9;
     for (let i = 0; i < n; i++) { const a = p[i], b = p[(i + 1) % n]; if ((a[1] <= s) !== (b[1] <= s)) { const x = a[0] + (s - a[1]) / (b[1] - a[1]) * (b[0] - a[0]); if (x < l) l = x; if (x > r) r = x; } }

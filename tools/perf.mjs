@@ -112,15 +112,16 @@ function topFns(profile) {
   const byId = new Map(profile.nodes.map(n => [n.id, n])), parent = new Map(); for (const n of profile.nodes) for (const c of n.children || []) parent.set(c, n.id);
   const fnOf = id => byId.get(id).callFrame.functionName.replace(/\d+$/, '');
   const inRaf = new Map(), isRaf = id => { if (inRaf.has(id)) return inRaf.get(id); let x = id, r = false; while (x !== undefined) { if (byId.get(x).callFrame.functionName === '__perfRaf') { r = true; break; } x = parent.get(x); } inRaf.set(id, r); return r; };
-  const catC = new Map(), catOf = id => { if (catC.has(id)) return catC.get(id); let x = id, r = null, top = null; while (x !== undefined) { const f = fnOf(x); if (!r) for (const [fn, c] of CATS) if (f === fn) { r = c; break; } if (f === '__perfRaf') break; top = f; x = parent.get(x); } r = r || 'other'; catC.set(id, r); return r; };
+  /* cause of a sample = the OUTERMOST frame on its stack that is one of CATS (objSprite > cached > render ...); else the function called directly by the game's frame() */
+  const catC = new Map(), catOf = id => { if (catC.has(id)) return catC.get(id); let x = id, r = null; const st = []; while (x !== undefined) { const f = fnOf(x); if (f === '__perfRaf') break; st.push(f); for (const [fn, c] of CATS) if (f === fn) { r = c; break; } x = parent.get(x); } if (!r) { const top = st.length >= 2 ? st[st.length - 2] : st[0]; r = 'other: ' + (top || '?'); } catC.set(id, r); return r; };
   const key = n => { const cf = n.callFrame; return (cf.functionName || '(anon)') + (cf.url ? ':' + (cf.lineNumber + 1) : ''); };
-  const all = new Map(), hit = new Map(), cats = new Map(), frames = []; let tot = 0, hitTot = 0, run = [], runT = 0;
+  const all = new Map(), hit = new Map(), cats = new Map(), frames = []; let tot = 0, hitTot = 0, run = [], runT = 0, gap = 0;   // a run = one frame's JS: it ends at an idle sample or after >= 2 ms of (program) (the browser's own work between frames)
   const flush = () => { if (runT > 40000) { const fc = {}; for (const [k, v, c] of run) { hit.set(k, (hit.get(k) || 0) + v); hitTot += v; cats.set(c, (cats.get(c) || 0) + v); fc[c] = (fc[c] || 0) + v; } frames.push([runT, fc]); } run = []; runT = 0; };
-  for (let i = 0; i < profile.samples.length; i++) { const id = profile.samples[i], n = byId.get(id), dt = profile.timeDeltas[i] || 0, k = key(n); if (/^\((idle)\)/.test(k)) { flush(); continue; } all.set(k, (all.get(k) || 0) + dt); tot += dt; if (k.startsWith('(garbage')) { run.push([k, dt, 'GC']); runT += dt; } else if (isRaf(id)) { run.push([k, dt, catOf(id)]); runT += dt; } else if (!k.startsWith('(program')) flush(); }
+  for (let i = 0; i < profile.samples.length; i++) { const id = profile.samples[i], n = byId.get(id), dt = profile.timeDeltas[i] || 0, k = key(n); if (/^\((idle)\)/.test(k)) { flush(); continue; } all.set(k, (all.get(k) || 0) + dt); tot += dt; if (k.startsWith('(garbage')) { run.push([k, dt, 'GC']); runT += dt; } else if (isRaf(id)) { gap = 0; run.push([k, dt, catOf(id)]); runT += dt; } else if (k.startsWith('(program')) { gap += dt; if (gap >= 2000) flush(); } else flush(); }
   flush();
   const top = (m, t, n) => [...m.entries()].sort((x, y) => y[1] - x[1]).slice(0, n).map(([k, v]) => `${k} ${(100 * v / t).toFixed(1)}%`);
   frames.sort((x, y) => y[0] - x[0]);
-  return { busyMs: Math.round(tot / 1000), top: top(all, tot, 25), hitchMs: Math.round(hitTot / 1000), hitchFrames: frames.length, hitchTop: top(hit, hitTot || 1, 18), hitchCats: top(cats, hitTot || 1, 12),
+  return { busyMs: Math.round(tot / 1000), top: top(all, tot, 25), hitchMs: Math.round(hitTot / 1000), hitchFrames: frames.length, hitchTop: top(hit, hitTot || 1, 18), hitchCats: top(cats, hitTot || 1, 16),
     worstFrames: frames.slice(0, 8).map(([t, fc]) => Math.round(t / 1000) + ' ms: ' + Object.entries(fc).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([c, v]) => c + ' ' + Math.round(v / 1000)).join(', ')) };
 }
 async function runScene(br, id) {
