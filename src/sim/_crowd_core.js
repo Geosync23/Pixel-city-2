@@ -6,6 +6,7 @@ import { U } from '../engine/raster.js';
 import { GT } from '../engine/world.js';
 import { stepToward } from '../engine/nav.js';
 import { AMBIENT } from '../story/dialogue.js';
+import { cityLine, roomVenueKey } from './_crowd_lines.js';
 import { bubble } from '../ui/kit.js';
 
 export const rnd = Math.random, ri = n => (rnd() * n) | 0, pick = a => a[(rnd() * a.length) | 0], rr = (a, b) => a + rnd() * (b - a);
@@ -68,6 +69,11 @@ export const dayPart = () => X.hour < 5 ? 'night' : X.hour < 11 ? 'morning' : X.
 function weatherKey() { const w = G.weather && G.weather.current ? G.weather.current() : null, k = w ? w.kind : 'clear'; return k === 'rain' || k === 'storm' ? 'rain' : k === 'snow' ? 'snow' : k === 'fog' ? 'fog' : k === 'cloudy' ? 'cloudy' : w && w.tempC > 28 ? 'heat' : 'sunny'; }
 /** a line an anonymous citizen might say right now. ctx: { venue: AMBIENT.venue key, event: AMBIENT.events key, reaction: AMBIENT.reactions key } */
 export function ambientLine(c, ctx) {
+  // the big written pools with no repeats (src/sim/_crowd_lines.js); the old picker below stays as the fallback
+  try { const pl = G.player, near = !!pl && !pl.hidden && !G.cutscene && Math.hypot(c.x - pl.x, c.y - pl.y) < 5, indoor = !!(G.scene && G.scene.indoor), A0 = AMBIENT;
+    const leg = ctx && ctx.reaction ? ['reaction.' + ctx.reaction, A0.reactions[ctx.reaction]] : ctx && ctx.event ? ['event.' + ctx.event, A0.events[ctx.event]] : ctx && ctx.venue && !indoor ? ['venue.' + ctx.venue, A0.venue[ctx.venue]] : null;
+    const t = cityLine(c, { near, state: ctx && ctx.state, kind: (ctx && ctx.kind) || c.kind, eventId: ctx && ctx.eventId, venue: indoor ? (ctx && ctx.venue === 'queue' && Math.random() < .5 ? 'restroom_queue' : roomVenueKey(G.scene.roomId)) : null, legacy: leg && leg[1], legacyKey: leg && leg[0] });
+    if (t) return t; } catch (e) { console.warn('cityLine', e); }
   const A = AMBIENT, r = rnd(); let s = null;
   if (ctx && ctx.reaction) s = fromPool(A.reactions[ctx.reaction], c);
   if (!s && ctx && ctx.event && r < .6) s = fromPool(A.events[ctx.event], c);

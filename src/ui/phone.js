@@ -86,7 +86,7 @@ function pump() {
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
     el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
-  showing = b; bannerBox.append(b); placeBanners(); requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
+  showing = b; bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));
   if (!sticky) setTimeout(done, queue.length > 2 || isOpen ? 2600 : 5200);
 }
 
@@ -231,7 +231,7 @@ export function init() {
   G.phone = { open, close, toggle, notify, unlock, lock, isUnlocked, badge, refresh, viewing, tip,
     registerApp: a => { if (!a || !a.id || !a.render) return false; impl.set(a.id, a); if (a.setup) safe(() => a.setup(G.phone), 0); if (isOpen) refresh(); return true; },
     log: () => S.log.slice(), clearLog: () => { S.log = []; syncBadge(); }, apps: () => defs().map(a => ({ id: a.id, name: a.name, unlocked: isUnlocked(a.id), badge: isUnlocked(a.id) ? badge(a.id) : 0 })),
-    setWaypoint, waypoint: getWaypoint, routeTo, get isOpen() { return isOpen; }, get settings() { return S.settings; } };
+    setWaypoint, waypoint: getWaypoint, routeTo, placeBanners, get isOpen() { return isOpen; }, get settings() { return S.settings; } };
   for (const a of impl.values()) if (a.setup) safe(() => a.setup(G.phone), 0);
   syncBadge();
 }

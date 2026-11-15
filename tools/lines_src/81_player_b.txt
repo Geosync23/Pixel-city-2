@@ -1,0 +1,492 @@
+@ player.soaked
+Oh, you're drenched! Come under my umbrella!
+No umbrella? In this weather? Brave. Very wet, but brave.
+You look like you've been swimming. With your clothes on.
+Here, have a tissue. Have ten. Have the whole packet.
+You're dripping on my shoes. It's fine. It's raining anyway.
+Get inside somewhere, love! You'll catch your death!
+Did you jump in the harbor? You look like you jumped in the harbor.
+Somebody forgot their umbrella! Classic Maple Bay mistake.
+You're soaked to the bone. Go home and get dry!
+The ducks would be proud of you.
+There's an umbrella shop on Market St. Too late now, though.
+You look like a drowned cat. A very lovely drowned cat.
+Water's pouring off your hat like a little waterfall.
+The bus shelter's got room! Come on, squeeze in!
+You're wetter than the fountain's ever been.
+I've got a spare umbrella! Here. Keep it. I've got six at home.
+Your shoes are squelching. I can hear them from here.
+Rain's not going to stop, friend. Duck into a café.
+You look like you've been through a car wash.
+Here, stand in this doorway. Wait for it to pass.
+Soaked through, aren't you? Hot bath, hot tea, straight away.
+Ooh, you're dripping. Like a sponge.
+No umbrella and no raincoat? Living dangerously.
+The rain's really got you, hasn't it?
+You look like you've walked through the river.
+Somebody's going to need a towel. A big towel.
+Rain's coming down sideways. And all of it's on you.
+I've never seen anyone so wet who wasn't a fish.
+Run! Run to the café! The cocoa's warm!
+Your hair's plastered flat. It's a look.
+Let me guess: the forecast said sunny.
+You could wring out your jacket and fill a bath.
+Don't worry, you'll dry. Eventually. By Tuesday.
+The gulls are laughing at you. I'm not. I'm sympathizing.
+Rain this hard, you're better off swimming home.
+Have you been in the sea? Did you go to the beach? It's just rain?
+Tip: buy a cheap umbrella at Lucky Corner. Mr. Oh keeps a bucket of them.
+You look like a sad puppy in the rain. A cute sad puppy.
+Water's running down your nose. Let me get you a tissue.
+You're the wettest person I've seen today. Congratulations.
+@ player.snowy
+You've got snow all over you! You look like a snowman!
+Brush yourself off, friend! You're turning into a snowdrift!
+You've got snow in your hair. It's very pretty. Very cold.
+Somebody's been playing in the snow!
+You look like a frosted cake.
+There's a snowflake on your eyelash. Make a wish!
+You're white from head to toe!
+Have you been making snow angels? You look like one.
+Come inside! There's cocoa at Mug & Mitten!
+Your hat's got a little snow hat on it.
+Snow on your shoulders like epaulettes. Very military.
+You look like you walked through a blizzard. You did.
+Shake it off! Like a dog! Go on!
+Your nose is so red. Like a little cherry.
+You've got snow in your collar, haven't you? I can see you shivering.
+You look like a winter postcard.
+Somebody's been out in the snow too long. Go get warm!
+Your gloves are soaked through. Here, take my spare pair.
+You look like a polar bear. A small, cold polar bear.
+Stamp your feet! Get the snow off!
+Snow suits you. Literally. You're wearing a snow suit.
+Look at you, all frosty and sparkly!
+You've brought the whole snowstorm with you!
+The snow's sticking to you like you're a lamp post.
+I'd hug you, but I'd get snowed on.
+You look like you've been dusted with icing sugar.
+Get yourself a hot chocolate. Doctor's orders.
+Your cheeks are pink. Your coat's white. Very festive.
+Somebody's been out sledding! Fun, isn't it?
+Brrr! You look freezing! Come in from the cold!
+You've got a little snowdrift on your bag.
+Did you fall over? There's snow on your back. A lot of snow.
+You look like you could build a snowman out of yourself.
+The snow loves you! It's all over you!
+Wrap up warmer, friend! Scarf! Hat! Two hats!
+You look like you've been in a snowball fight. And lost.
+Your eyebrows are frosty. Very distinguished.
+Snowy you is a good look. Cold, but good.
+You've got snow in your pockets, haven't you?
+Shake out your hood! There's a snowball in it!
+@ player.sweaty
+Phew! You look like you're melting!
+Somebody's feeling the heat! Get in the shade!
+You're dripping like an popsicle.
+Drink some water, love! It's boiling out here!
+You look like you've run a marathon. In this heat.
+The library's got air conditioning. Just saying.
+You're shining like a glazed donut. A sweaty one.
+Here, take my fan. I've got a spare. Everyone needs a spare.
+You look hotter than the sidewalk.
+Find a fountain! Oh wait. Find another fountain.
+Ice cream. You need ice cream. Immediately.
+You're so sweaty the gulls are avoiding you.
+Get yourself a cold drink. Cold Storage does slushies.
+It's too hot for a jacket, friend. Take it off!
+You look like you've been in a sauna.
+Shade! Over here! Under the tree!
+Your shirt's sticking to you. The heat's no joke today.
+You're glistening. Very healthy-looking. Very damp.
+Somebody needs a dip in the harbor.
+The Galleria's got air conditioning. A whole building of it.
+Sweaty? Me too. We're all melting together.
+You look like you've been jogging. Have you been jogging? In this?
+Go home and have a cold shower. Trust me.
+That's a lot of sweat. Are you okay? Water! Now!
+Somebody's turned the sun up too high today.
+You're as red as a lobster. Sunscreen, friend!
+The FreshWay freezer aisle is very nice this time of day.
+Your forehead's shining like the harbor.
+Even your hair's sweating.
+Mop your brow, love. Here's a napkin.
+You look like a dripping tap.
+Somebody's walking in the sun. Silly sausage. Walk in the shade!
+Popsicle from the van? On me? You need it.
+You've got a sweat mustache. It's okay. We all do.
+Stay cool! Or at least stay less hot!
+The river path's got a breeze. Go there.
+You look like you've just come out of a hot pot restaurant.
+Wipe your face, friend. You're sparkling.
+Sun hat. Water. Shade. In that order.
+Even the pigeons are sweating today. You're in good company.
+@ player.umbrella
+Smart thinking, bringing an umbrella!
+Look at you, prepared for the rain!
+Nice umbrella! Can I share? Just kidding. Mostly.
+Somebody checked the forecast!
+That's a lovely umbrella. Very cheerful.
+You're the only dry person on this street.
+Ah, a person of wisdom. And an umbrella.
+That umbrella's seen some weather, hasn't it?
+Clever you! I left mine at home. Like always.
+Good umbrella! Hold on to it in the wind!
+Look at you, nice and dry. I'm jealous.
+You're doing Maple Bay right. Always carry an umbrella.
+Lovely umbrella! Is it new?
+I like your umbrella. Very stylish.
+That's a big umbrella. Room for two? Three?
+Dry as a bone under there, aren't you?
+You remembered your umbrella! My mom would be proud of you.
+That umbrella's like a little house over your head.
+Somebody's a local. Only locals bring umbrellas.
+Hold it tight! The wind loves stealing umbrellas!
+You're the smartest person in the rain today.
+Nice and cozy under there.
+That umbrella's the color of sunshine. Lovely on a gray day.
+Somebody's prepared for anything!
+You're so dry and I'm so wet. Life's unfair.
+The rain's bouncing off your umbrella like music.
+Ooh, a polka dot umbrella. Very cheerful.
+Great umbrella. Is it windproof? Is anything windproof here?
+That's a sensible umbrella. I respect a sensible umbrella.
+Mind you don't poke anyone! Umbrella etiquette!
+Look at you, staying dry like a pro.
+I'd ask to borrow it, but you'd never get it back. I lose umbrellas.
+That's a proper umbrella. Not one of those flimsy ones.
+You look like you're in a film. Walking in the rain. With an umbrella.
+Umbrella buddies! I've got mine too!
+You and your umbrella. A perfect partnership.
+Keep it up! The umbrella, I mean. Keep it up.
+A lovely umbrella for a lovely person.
+You're the driest person in Old Town.
+Rain? What rain? Not for you, with that umbrella.
+@ player.underdressed_cold
+Aren't you cold? You're not wearing a coat!
+Where's your jacket? It's freezing!
+You look frozen! Here, have my scarf!
+Brrr! Just looking at you makes me cold.
+Somebody forgot it was winter.
+Get a coat, love! You'll catch your death!
+Your teeth are chattering. I can hear them from here.
+T-shirt? In this weather? Are you from somewhere colder?
+Thread & Co. has coats on sale. Go! Now!
+You're shivering like a leaf.
+Wrap up, friend! It's not summer anymore!
+I've got a spare hat. Take it. I insist.
+You look like an icicle.
+Your arms are all goosebumps. Get inside!
+Brave, going out like that. Very brave. Very cold.
+Somebody's going to need a hot drink.
+Your lips are turning blue! Coat! Now!
+I'm wearing three layers and you're wearing one. Something's wrong.
+You look like you've wandered out of a summer vacation.
+Cocoa! Fire! Blanket! Go!
+Did someone steal your coat? Report it to the police!
+Your nose is so red it could guide a sleigh.
+Ooh, chilly! You poor thing.
+There's a hat stall at the market. Very warm hats.
+Rub your hands together! Get the blood moving!
+You're braver than me. I'd be dead in that outfit.
+The wind's going straight through you, isn't it?
+Put your hands in your pockets! Do you have pockets?
+You're dressed for the beach. We're not at the beach.
+Let me guess: you thought it'd be warmer. It's never warmer.
+Go back home and get a sweater. Two sweaters.
+Are you a polar bear? Is that why you're not cold?
+Ooh, you must be freezing. Come stand by the café heater.
+I'm cold just looking at you.
+Arms crossed, shoulders up. The classic 'forgot my coat' pose.
+That's a summer outfit in a winter world.
+The Galleria's warm. Pop in and buy a coat!
+Shivering's your body asking for a coat. Listen to it.
+Even the gulls are wearing more than you.
+Somebody give this person a jacket!
+@ player.pajamas
+Are those pajamas? Outside? In public? Iconic.
+Love the pajamas! Very bold fashion choice.
+Popping out for milk in your PJs? Respect.
+You look so comfy! I'm jealous!
+Did you forget to get dressed? It happens to the best of us.
+Pyjama day! Is it pyjama day? Nobody told me!
+Those are very nice pajamas. Stripy.
+You look like you've just rolled out of bed. Because you have.
+Somebody's living their best life.
+Slippers too? Full commitment!
+I wish I had the courage to wear pajamas to the shops.
+Very cozy look. Very… unbothered.
+Are you sleepwalking? Should I wake you?
+Oh, that's a bold choice for the bakery line.
+Is there a pyjama party I wasn't invited to?
+Those pajamas have little ducks on them! Adorable!
+Looks like a lazy morning. Good for you.
+Bedtime outfit, daytime adventure.
+I've done that! Popped out in my PJs and met my boss.
+Nice bathrobe! Very regal.
+You're wearing your bed clothes in the street. A rebel.
+Was there a fire alarm? You look like there was a fire alarm.
+Pyjamas in public. The ultimate freedom.
+Comfy and confident. I love it.
+Did you lock yourself out? You've got the 'locked out' look.
+Are those slippers waterproof? It's raining.
+You look like you're on your way to a sleepover.
+Matching pyjama set! Very coordinated.
+It's not a look, it's a lifestyle.
+The pigeons don't care what you wear. Neither do I.
+Somebody's taken 'work from home' very literally.
+Very relaxed vibe. Very 'Sunday morning'.
+I'd ask where you're going, but I think it's back to bed.
+Is that a nightcap? An actual nightcap? Wonderful.
+Pyjamas and a coffee. Living the dream.
+Nobody judges here. Well, a bit. Lovingly.
+You look like a cozy cloud.
+Bold to wear pajamas downtown. Very bold.
+That's a very soft outfit for a hard city.
+I think it's brilliant. Pyjamas should be allowed everywhere.
+@ player.dressed_up
+Ooh, look at you! Very smart!
+Going somewhere special? You look fantastic!
+Somebody's dressed to impress!
+That's a lovely outfit. Very elegant.
+Off to the Symphony Hall? You look the part!
+Date night? You look wonderful.
+Very sharp! Very dapper!
+You look like a film star!
+Somebody's scrubbed up nicely!
+That's a 'Heron's Table' outfit if I ever saw one.
+Wedding? Party? Job interview? You look ready for anything.
+You're the best-dressed person on this street.
+Such a lovely outfit. Where's it from?
+You look like you've stepped out of a magazine.
+Very classy. Very Maple Bay.
+I love seeing people dressed up. It makes the whole city fancier.
+Somebody's going to have a lovely evening.
+Your shoes are so shiny! I can see my face in them!
+Bow tie! I love a bow tie!
+You look a million dollars. Two million.
+Hot date? You'll knock them dead.
+Off to the theater? Break a leg! Not literally.
+That's a very elegant walk to go with that outfit.
+You've made an effort and it shows!
+That color really suits you.
+You look so smart I feel scruffy.
+Whatever the occasion, you'll be the star.
+Somebody's going to the Gilded Gull. Watch out for the gull.
+You look like royalty. Very well-dressed royalty.
+Gorgeous outfit! Have a wonderful time!
+That's a 'proposing tonight' outfit. Is it? Is it?
+Love a sharp suit. Very sophisticated.
+That dress is stunning!
+Very dashing! Very debonair!
+You look like you're about to accept an award.
+Somebody's got a big night ahead!
+Dressed up and looking good! Go get them!
+That's the kind of outfit that deserves a fancy dinner.
+You look so elegant the pigeons are bowing.
+Ooh, fancy! Enjoy whatever it is!
+@ player.travel_outfit
+Just arrived? You've still got the airport look!
+Long flight? You look like you've been traveling for days.
+Welcome to Maple Bay! You look like you've come a long way.
+Comfy travel clothes! Very sensible.
+You've got that 'just off the plane' look.
+Jet lag? You look like you could sleep for a week.
+Still in your plane clothes? Get settled in first!
+That's a proper traveling outfit. Stretchy and cozy.
+You look like you've been on the Loop from the airport.
+Welcome! Get yourself a coffee and a shower!
+Somebody's just landed! Welcome to the city!
+Travel-worn and ready to explore. I like it.
+You look like you've just stepped off a long journey.
+New in town? Your outfit says 'airport'.
+Comfy shoes, comfy sweater. A seasoned traveler.
+Get yourself home and change! Then come and explore!
+You've still got your neck pillow look. Lovely.
+Long trip? The bakery's good for jet lag.
+I can tell you've been traveling. You've got that glazed look.
+Welcome to Maple Bay! First stop: a nap.
+That outfit's seen some airports.
+Somebody's been on the road. Or in the sky.
+You look like you've brought the whole plane with you.
+Your clothes look like they've been folded in a suitcase. Because they have.
+First day in the city? Lovely! Get some rest first.
+Hoodie, joggers, sneakers. Classic travel gear.
+You've got the 'I've been awake for twenty hours' face.
+Welcome to your new home! Unpack, then explore!
+Travel clothes and wide eyes. Welcome!
+You look like you could use a hot meal and a bed.
+Still dressed for the plane? The city will wait. Go change!
+You've got airport written all over you.
+You look like a traveler who's finally arrived.
+That's the outfit of someone who's moved here, isn't it?
+New city, same clothes from yesterday. I've been there.
+You look like you've crossed oceans. Did you?
+Freshly arrived and slightly rumpled. Welcome!
+I can smell the plane on you. Welcome!
+Long journey? Lovely to have you here.
+Welcome! The city's better than it looks from the plane window.
+@ player.sporty
+Off to the gym? Looking very athletic!
+Nice sneakers! You look ready to run!
+Very sporty! Going for a jog?
+Somebody's dressed for action!
+That's a proper workout outfit. Very professional.
+Iron Maple Gym? You look like a regular.
+Are you training for something? You look serious!
+Very fit look. I'm inspired. I'm not going to the gym, but I'm inspired.
+Running shoes, water bottle, determination. Love it.
+Going for a run along the river? Lovely day for it.
+You look like Coach Tasha's best student.
+That's a very sporty look. Very energetic.
+Very athletic! I'm exhausted just looking at you.
+Off to play soccer? Basketball? Tennis? Everything?
+You look like you could run up the Hillcrest stairs twice.
+Somebody's taking their fitness seriously!
+Matching sports set! Very coordinated!
+Good on you for getting active!
+You look ready for anything. Even the stairs.
+Yoga? Pilates? Spin? Something sweaty?
+Sweatbands! Very retro! I love it!
+You look like an Olympian. A very casual Olympian.
+I used to dress like that. Then I discovered sofas.
+Going for a swim? The harbor's cold today!
+That's a very determined outfit.
+You look like you've just come from a workout. Or are going to one.
+Very sleek. Very fast-looking.
+Somebody's ready for the harbor fun run!
+Are you a personal trainer? You look like one.
+Spandex! Bold! Brilliant!
+You look like you could win a race. Any race.
+I love a person who's dressed for sport. Very motivating.
+Fit and fabulous!
+You look like you'd beat me up a hill. You definitely would.
+That's a very serious headband.
+Somebody's going to have a good workout today!
+Off to the park? The outdoor gym's lovely.
+You look like the sporty friend everyone needs.
+That's a lot of neon. Very visible. Very safe.
+Ready, set, go! You look ready, anyway.
+@ player.artist_outfit
+Ooh, very artsy! Paint on your sleeves!
+You look like you've just come from the Arts Quarter.
+Love the beret! Very artistic!
+Is that paint on your shoes? A true artist!
+Very creative look. I love it.
+You look like you'd have an exhibition at Tidewater Gallery.
+Somebody's an artist! I can tell by the smudges.
+Dungarees and paint splatters. Classic artist.
+Off to Studio 11? You look like a regular.
+Very bohemian! Very Easel Lane!
+You've got charcoal on your nose. It suits you.
+That's the outfit of someone with a sketchbook in their bag.
+Very interesting outfit. I mean that as a compliment.
+You look like a poet. Are you a poet?
+Paint-stained and proud! Love it!
+Somebody's been creating today!
+You look like you belong at the Heron's open mic.
+That scarf! Those colors! Very expressive!
+You look like you've just painted a masterpiece.
+Very arty. Very cool.
+Is that a smock? A real painter's smock?
+You've got the look of someone who sees the world differently.
+I love an artist's outfit. So colorful!
+Pencil behind your ear! Very professional.
+You look like you'd make a great mural.
+Very Arts Quarter. I approve.
+Mismatched and marvellous!
+Off to sketch the harbor? Lovely light today.
+You look like you'd know all the best galleries.
+That's the coat of someone who's painted in it.
+I bet your apartment's full of canvases.
+Very creative energy you've got!
+Are you a sculptor? You've got clay on your hands.
+You look like you're about to start a band.
+Love the turtleneck. Very thoughtful.
+Somebody's going to make something beautiful today.
+You've got the look of a starving artist. A well-dressed one.
+Very unique style! I love it!
+You could be on the cover of an art magazine.
+Charming outfit. Very creative.
+@ player.raincoat
+Love the raincoat! Very sensible!
+That's a proper raincoat. Very Maple Bay.
+Yellow raincoat! Like a fisherman!
+Somebody's prepared for the weather!
+You look like a lighthouse keeper in that raincoat.
+Very practical! Very dry!
+Nice and waterproof! Clever you!
+That raincoat's a lovely color on a gray day.
+You look like you're ready for a storm.
+Rain boots too? Full rain gear! Excellent!
+That's a smart coat for a wet day.
+You look like you've just come off a fishing boat.
+Very cozy under there, I bet.
+The rain doesn't stand a chance against you.
+Somebody's a local! Raincoat at the ready!
+That's a classic raincoat. Never goes out of style.
+You look like a ray of sunshine in that raincoat.
+Puddle-proof! Love it!
+You could walk through a monsoon in that coat.
+Hood up, head down, dry as a bone. Very wise.
+That's a coat that's seen some weather.
+You look like an explorer. A rainy explorer.
+I should get a raincoat like that. Mine leaks.
+Very stylish and very dry. The dream.
+You look prepared for anything the bay throws at you.
+Love a good raincoat. Very underrated fashion.
+The rain's just rolling off you. Brilliant.
+You look like a happy duckling in that coat.
+Rain gear on point!
+Nobody's going to rain on your parade.
+You look like you're off on an adventure.
+That raincoat's bright enough to see in the fog.
+Waterproof and wonderful!
+You're dressed for Maple Bay weather. All of it.
+You look like a sailor. A very dry sailor.
+That's the most sensible outfit I've seen all day.
+Rain, rain, go away. Or stay. You're ready.
+You look like you're about to go puddle-jumping.
+Fancy raincoat! Is it new?
+You're a walking forecast. Rain expected.
+@ player.same_outfit_days
+Didn't you wear that yesterday? It's a good outfit, though.
+Same jacket as last week? It's a great jacket.
+I like a person who finds a look and sticks with it.
+Is that your favorite shirt? I've seen it a few times now.
+You're very consistent. I respect that.
+Signature look! Very iconic!
+Same outfit, same smile. Reliable.
+That's a 'laundry day is coming' outfit, isn't it?
+I recognize that sweater! It's an old friend now.
+You're like a cartoon character. Same clothes every day. Very recognisable.
+The laundromat's open, just so you know.
+Is the washing machine broken? I'm only asking.
+That shirt's having a long week, isn't it?
+Same clothes, new day! Living simply!
+I've seen that hat every day this week. I love that hat.
+You're the person in the green coat! Always the green coat!
+Capsule wardrobe? Very minimalist!
+You must really love that outfit.
+Wear what you love, I say. Even if you love it every day.
+That jacket's practically part of you now.
+Suds & Bubbles does a cheap wash. Just mentioning it.
+I could pick you out of a crowd. Same outfit every time!
+Very low maintenance. Very efficient.
+Some people wear a uniform. You've made your own.
+Is that the same scarf? Must be your lucky scarf.
+You've got a trademark look! Like a superhero!
+That's a well-loved outfit. Lots of miles on it.
+I remember that shirt from Monday. And Tuesday.
+Clothes are clothes, right? Don't let anyone tell you otherwise.
+That's the outfit of someone who knows what works.
+You've worn it so much it's gone soft. Very cozy.
+I do the same thing. Find a good sweater, wear it forever.
+Your outfit's becoming a local landmark.
+Friend, it might be time for a wash. Just a thought.
+Same coat, same walk, same nod. Good to see you again!
+You're the best-known outfit on the street.
+That sweater's going to need a vacation soon.
+Very loyal to that jacket, aren't you?
+It's a classic! Why change a classic?
+Your outfit and I are on first-name terms now.

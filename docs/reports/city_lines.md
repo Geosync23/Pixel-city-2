@@ -48,7 +48,17 @@ What you are doing: `running` · `night_owl` (1-4 am) · `early_bird` (5-6:30 am
 `bumped` (you walked into them) · `staring` (you stood right next to them) · `blocking` (you are standing in a doorway / on a crosswalk) · `sitting_bench` (sharing a bench with them) · `petting_animal` ·
 `taking_photo` · `lost` (map out, turning in circles).
 
-## Engine status (lead)
-- Written: `src/sim/_crowd_lines.js` — `cityLine(c, ctx)`, `playerStates()`, `roomVenueKey(roomId)`, `lineStats()`; shuffle bags; merges the old AMBIENT pools into the same bags. Not wired until the writer's file exists.
-- To do when the file lands: flatten `general` themes; `near` (landmark proximity); `events` by calendar id; `duets` (A then B); the extra `player` states the game can already detect; triggers for bumped / staring / blocking;
-  wire into `_crowd_core.js ambientLine`, `crowd.js chatter`, `_crowd_rooms.js`. States the game cannot detect yet stay written and dormant until their system exists (clothes-days, bike, photo...).
+## Status: DONE (Stage 21)
+- Writer delivered src/story/ambient_lines.js: 7,459 strings (7,039 single lines + 420 duet pairs); every key of the plan present; its node check found 0 lines over 90 chars, 0 duplicates (also against AMBIENT), 0 stray tokens.
+  Engine count incl. the merged old AMBIENT pools: general 1,197 · district 501 · near 374 · venue 921 · timeOfDay 323 · weekday 116 · season 208 · weather 313 · events 357 · kind 540 · player 1,962 · duets 255 + 165 themed.
+  The writer's plain-text sources + generator are kept in tools/lines_src/ (gen.py rebuilds the JS, verify.mjs checks the rules). The "14 bus" running gag is flavour (real routes are 1-3). Invented: Wick the lighthouse cat, a loop train called Agnes.
+- Engine src/sim/_crowd_lines.js: cityLine(c, ctx), duet(c, ctx), playerStates(), roomVenueKey(roomId), lineStats(); shuffle bags per pool in G.state.lines ({s: seed, i: index, n: size}); `general` themes flattened into ONE bag.
+  Wired: _crowd_core.js ambientLine() calls cityLine first (old picker = fallback); crowd.js chatter: reactions from the citizen nearest the player (bumped: within 0.7 while the player moves; staring: within 1.4 after standing 6 s; a visible player state
+  with 50% chance when someone is within 5 units; at most one such reaction per 18 s), duets for chatting pairs (A, then the mate 1.9 s later), calendar event pools by event id, `near` landmark pools (40% when within ~10 units of a matching poi).
+  Bubble timers unchanged (city 5-10 s, rooms 7-15 s).
+- Player states detected today: stinky, filthy, exhausted, starving, bursting, lonely, gloomy, glowing, fresh, soaked, umbrella, raincoat, snowy, sweaty, underdressed_cold, new_in_town, settling_in, regular, broke, flush, pajamas, dressed_up, travel_outfit,
+  sporty, artist_outfit, night_owl, early_bird, loaded_bag, carrying_gift, carrying_food, unemployed, on_way_to_work, after_work, homeowner, birthday, bumped, staring.
+  WRITTEN BUT DORMANT (no detection yet): full, caffeinated, same_outfit_days, promoted, running, on_bike, with_friend, blocking, sitting_bench, petting_animal, taking_photo, lost; weather first_snow / rainbow; events rent_day, payday, new_year, star_party, flower_show;
+  near construction / crosswalk; kinds vendor, worker, commuter, smoker_break, photographer, student, late_runner, dogwalker, cyclist, phone, couple (crowd.js has no such citizen kinds yet).
+- Lead tested: 1,100 consecutive draws from the general bag = 1,100 different lines (0 early repeats); stinky player -> contextual lines; forced bumped line; a duet; venue + room keys; 40 s on a downtown street in the clean build: 5 bubbles
+  (general, tourist, weekday, and two smelly-player reactions), 60 fps, no page errors. In the cafe 30 s produced no bubble at all (room bubble rate looks low or broken — pre-existing? QA lane to check).

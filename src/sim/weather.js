@@ -95,7 +95,7 @@ export function setWeather(kind, hours = 0, smooth = false) {
 const outdoors = () => !!(G.scene && !G.scene.indoor);
 const precip = () => S && (S.kind === 'rain' || S.kind === 'storm') ? S.int : 0;
 /** raining (or storming) and the player is outdoors */
-export function isWet() { return outdoors() && precip() > .3; }
+export function isWet() { return outdoors() && precip() > .3 && (S.int > .6 || /rain|storm/.test(targetAt(G.state.t))); }   // fading out toward a dry sky (setWeather('clear', 0, true), a passing shower): dry once the rain has thinned
 export function isSnowing() { return !!S && S.kind === 'snow' && S.int > .3; }
 /** blend a per-kind number by intensity toward the neutral 'cloudy' value */
 const blend = (key, dflt) => { if (!S) return dflt; const a = TYPE(S.kind)[key], b = TYPE('cloudy')[key]; const va = a === undefined ? dflt : a, vb = b === undefined ? dflt : b; return vb + (va - vb) * S.int; };

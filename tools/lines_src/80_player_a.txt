@@ -1,0 +1,452 @@
+@ player.stinky
+Phew. Somebody's been working hard. Or not showering hard.
+(sniff) Is that… the fish market? We're nowhere near the fish market.
+I'll just… step a little to the left. No reason.
+Long day, friend? Smells like a long day.
+There's a lovely shower at the gym, you know. Just saying. Generally.
+Is it hot today, or is it… just you?
+My dog just sneezed at you. He's very honest, my dog.
+No offence, but have you met soap? It's lovely. Very friendly.
+Oof. Somebody needs a bath and a hug. In that order.
+(holds breath) Nice… (gasp) …day!
+The laundromat's got a great soap machine. And a shower round the corner.
+I think a gull just changed direction because of you.
+(waves hand in front of nose) Must be the trash cans. Probably the trash cans.
+Somebody's been on an adventure. A long, sweaty adventure.
+I'm not saying anything. My face is saying something.
+You know, a nice hot bath fixes most things.
+Ah, the smell of hard work. And maybe a skipped shower.
+I'm just going to cross the road. Fancy a different sidewalk.
+My nose just filed a complaint. Nothing personal.
+Friend, I say this with love: shower.
+That's a bold fragrance. What's it called? 'Tuesday'?
+Even the pigeons are giving you space today.
+Everything all right? You smell like you've had a week.
+I'd offer you a mint, but I think the problem's further down.
+Mom always said, 'a quick wash and you'll feel a new person'.
+The wind just turned and now I know a lot about your day.
+Gym bag in the sun? No? Oh. Okay.
+I've got a sample of shower gel in my bag. Would you… like it? As a gift?
+Is that the sea air? It's not the sea air.
+Somebody's been jogging in their clothes. In July.
+I'm going to hold my coffee closer to my face for a bit.
+Don't worry, we've all been there. Some of us showered after, mind you.
+You know Suds & Bubbles does washes? And there's a shower at Iron Maple?
+The bus is going to be very roomy for you today.
+Ooh. Well. That's… a presence.
+A little whiff of honest work. A big whiff, actually.
+I love that you don't care what anyone thinks. I care a bit, though.
+I'll stand upwind, if that's all right.
+A shower and a fresh shirt, friend. You'll feel brand new.
+Is that cheese? Did someone buy strong cheese? No? Oh.
+My eyes are watering. It's the wind. It's mostly the wind.
+That's a very… natural scent you're wearing.
+@ player.filthy
+Oh my. Oh my word. Okay. Breathing through my mouth.
+Friend, I'm going to say this kindly. Please go home and shower.
+The pigeons have left. The pigeons. They never leave.
+I can see the smell. I didn't know you could see a smell.
+I think the paint on that lamp post just peeled.
+Sir or madam, there's a public shower at the gym. Please. For all of us.
+Bless you, love. Bath. Today. Please.
+(gagging quietly) Sorry. Sorry. Allergies.
+That's not a smell, that's an event.
+I've worked on the docks thirty years. I've never smelled anything like it.
+Even the gulls have their beaks pinched.
+My grandma would chase you round the house with a washcloth.
+Has something died? Has something died near you? On you?
+Here, take my lavender sachet. Keep it. Keep it forever.
+The whole bus stop just moved down the road.
+I'm going to walk very quickly in the other direction. Nothing personal.
+Friend, are you all right? You look like you need a hot bath and a long sleep.
+That smell could strip wallpaper.
+I'd hold my breath, but you're quite a long way down the street.
+The flowers on that window box are wilting as you pass.
+Go home, run a bath, put on clean clothes. Trust me. You'll feel human again.
+Oh! Oh dear. Oh dear, dear, dear.
+I think my eyebrows just singed.
+Even my dog's backing away, and he rolls in fox poo.
+I'd give you a hug, but I'd need a hazmat suit first.
+That's a smell with a personality. A loud one.
+The laundromat's open till ten. Just so you know. For everything.
+I've smelled harbor mud at low tide. This is worse. Respectfully.
+Somebody fetch a hose. A gentle hose. A kind hose.
+I'm not saying you smell. I'm saying the cat on that wall just fainted.
+Please don't take the Loop like this. Think of the other passengers.
+A shower would sort you right out, love. Trust an old nurse.
+Wow. That's commitment. To what, I don't know.
+Your shadow smells. I didn't know shadows could smell.
+I'll be thinking of you. And of my nose. Mostly my nose.
+Wash. Please. For the city. For Maple Bay.
+I'd say 'fresh as a daisy', but daisies would sue.
+You're scaring the tourists. They think it's the sewers.
+I've got a bar of soap in my handbag. Take it. It's yours. Please.
+@ player.exhausted
+Whoa there. You look like you're about to fall asleep standing up.
+Rough night? You've got bags under your eyes you could pack for a trip.
+Go home and sleep, love. The city will still be here tomorrow.
+(yawns) Oh, now you've got me doing it.
+You look like a phone at one percent.
+Careful! You nearly walked into that lamp post. Twice.
+Is that a yawn or are you trying to swallow the whole street?
+Somebody needs a nap. A very long nap.
+You're swaying like a boat in the harbor. Sit down, friend.
+Bean & Gone does a triple shot. Just saying.
+You look like you've run up the Hillcrest stairs. Four times.
+There's a bench right there. Mercy's not the only bench that cares.
+Sleep is free, my friend. Best thing in the city that's free.
+(whispering) Shh, everyone, they're sleepwalking.
+Your eyes are doing that slow blink. Like a cat. A tired cat.
+I've seen livelier pigeons. And they're asleep.
+You look like I feel on a Monday.
+Go home. Bed. Duvet. Now. That's an order. From a stranger.
+You're yawning so wide I can see your lunch.
+Have you slept this week? At all? Even a bit?
+Careful, you're about to nap on the bus stop.
+Coffee won't save you now. Only a pillow can.
+I'd offer you a seat, but you might never get up.
+You walk like the 14 drives. Slowly, with long pauses.
+Tired? Me too. Let's both just lie down on the grass.
+Your head's nodding. Are you agreeing with me or falling asleep?
+That's a nine-hours-of-sleep face if ever I saw one. The lack of.
+Somebody's burning the candle at both ends. And the middle.
+You'd fall asleep on a cloud right now, wouldn't you?
+Get some rest, dear. Even the lighthouse sleeps in the day.
+You're dragging your feet like you're in a dream.
+Long shift? Long week? Long life? Sit down.
+Have a nap in the park. The ducks won't tell.
+You look like you've been awake since the Great Fog.
+Hey! Wake up! You're about to walk into the river. Phew.
+Bed. Bath. Bed again. That's the prescription.
+I nearly mistook you for a ghost. A very sleepy ghost.
+Your eyelids are losing the battle. I'm rooting for them.
+Sleep's the best medicine. That and soup. Mostly sleep.
+Go home and sleep till noon. You've earned it, by the look of you.
+@ player.starving
+Was that your stomach? It sounded like the freight train.
+(stomach growls nearby) Was that thunder? That was you!
+Somebody's hungry! Go get a sandwich. Two sandwiches.
+Your stomach just said hello to me. Very loudly.
+Dot's Diner is open. Just saying. Big portions.
+The Lantern does a bowl of noodles that'll fix that rumble.
+I can hear your tummy from across the street!
+Have a pretzel! Have three! Your stomach's begging.
+Did you skip lunch? And breakfast? And dinner?
+You're looking at that bakery like it's a long-lost friend.
+That growl! I thought a dog had got loose!
+You need food, my friend. Real food. Not a cookie.
+Here, have a mint. It won't help, but it's something.
+Eat something before you faint! There's a taco truck right there!
+Your stomach's singing louder than the busker.
+The hot dog cart's on the corner. Go. Run. Eat.
+You're staring at my sandwich. I see you staring. It's mine.
+Hungry? Rise & Shine's got cinnamon buns the size of your head.
+Feed yourself, love. You're no good to anyone hungry.
+Is that your stomach or is the ferry docking?
+I've got a granola bar. Want half? Want all of it?
+You look like you'd eat a whole pie. Dot's got a whole pie.
+That rumble shook the windows.
+Even the gulls are worried about you. They're bringing chips.
+Go home and make something. Or go to the diner. Mostly the diner.
+Pancakes. That's the cure. Pancakes.
+You've got that 'haven't eaten since yesterday' look.
+Your stomach's growling like a bear in a cave.
+The farmers' market's got samples. Free food! Go!
+Here, take this apple. I insist. You need it more than me.
+I can hear you're hungry. My stomach's growling in sympathy.
+The smell of the bakery's making you sway, isn't it?
+Get some soup, friend. Soup fixes everything.
+You need a sandwich and a sit-down.
+Hunger makes you grumpy. Get some lunch before you bite somebody.
+You'd eat the menu if they let you, wouldn't you?
+That growl had an echo.
+Food first, everything else after. That's the rule.
+There's a free sample stall at FreshWay. Just saying.
+Somebody feed this person! Please!
+@ player.bursting
+You all right? You're walking like you've got somewhere urgent to be.
+The library's restrooms are the cleanest in town. Second floor. Go.
+Somebody needs the restroom! Quick, the café on the corner!
+I know that walk. I've done that walk. Hurry, friend.
+You're doing a little dance. I don't think it's a happy dance.
+Cross your legs and think of deserts. And run.
+There's a public toilet by the station. Two minutes. Can you make it?
+Oh dear. Oh dear. Go, go, go!
+I recognize that shuffle. It's the 'too much coffee' shuffle.
+Bean & Gone's toilets are free if you buy a muffin. Buy a muffin.
+Hurry, love! The Galleria's got loads of restrooms!
+Don't sneeze. Whatever you do, don't sneeze.
+You've got the face of someone who's had three teas.
+Fast walk, tight lips, crossed fingers. I know that feeling.
+The museum's got a great bathroom. And free entry.
+I won't keep you. Clearly. Go!
+That's the walk of someone who should've gone before they left.
+The diner always lets you use the restroom. Dot's very understanding.
+You're hopping. You're actually hopping.
+Shall I hold your bag while you run? Run!
+Somebody's in a hurry. A very specific kind of hurry.
+The pub on the corner! Go! Buy a lemonade after!
+I won't make you laugh. I won't. Don't laugh.
+You're walking like the sidewalk's on fire.
+Quick, the clinic's got toilets. And they won't ask questions.
+Don't stop to chat! I'll still be here! Go!
+Ooh, you're going to make it. You're going to make it. Probably.
+Like a racehorse in the final furlong.
+I've been there. Go. No shame. Go!
+That's a very determined little jog.
+Every café on this street will let you in. Just ask nicely.
+You're holding your breath. Is that helping? It's not helping.
+Should've gone at home, my mom always said.
+Hurry, hurry! You've got this!
+That posture says 'emergency'.
+The Conservatory has toilets by the gift shop. Long way, though.
+Don't look at the fountain. It'll make it worse. Not that it works.
+You look like you're counting the steps. Every step.
+I'll clear the way! Make way, everyone! Emergency!
+I've never seen anyone walk so fast so carefully.
+@ player.gloomy
+Hey. You okay? You don't have to say. Just checking.
+Bad day? It'll pass. They always do. Even the bad ones.
+Here, have a lemon drop. They're sour, but they help.
+I don't know you, but I hope tomorrow's kinder to you.
+You look like you need a hug. Can I? No? That's fine. Virtual hug.
+Chin up, love. The sun'll come out again.
+Want to sit with me for a bit? I've got a spare bit of bench.
+Whatever it is, you're not alone. This city's got your back.
+Sometimes a walk by the river helps. Sometimes it's just a walk. That's okay too.
+The ducks always cheer me up. They're just over there.
+Rough day? Roz's cinnamon buns won't fix it, but they won't hurt.
+You know, I had a bad week once. A bad year. Got better. You will too.
+Smile? No, don't. You don't have to. Just breathe.
+Somebody's having a hard time. Here, take my umbrella. For the sun.
+If you need someone to talk to, the library's warm and quiet.
+It's okay to be sad. Even the gulls look sad sometimes.
+Come on, have a pastry on me. I insist.
+You look like you need a good cry and a cup of tea. In either order.
+There's a cat on that wall that loves a cuddle. Very good listener.
+I don't know what's wrong, but I'm sorry it's wrong.
+Hey, friend. It's a lovely sunset tonight. Look up later.
+Tough day? The Heron's got music tonight. Music helps.
+You've got a friend in Maple Bay. I'm one. We just met.
+Hold on. Things get brighter. Even the fog elevators eventually.
+I'm going to give you a compliment. Your coat is great. There. Better?
+Whatever happened, you'll get through it. You're tougher than you think.
+The Conservatory's lovely when you're blue. All that green.
+Sometimes I just sit on a bench and let it all go. Want to try?
+Take care of yourself today, okay? Small things. Tea. Bed. Sky.
+You're doing your best. That's enough.
+Here, a dandelion. Make a wish. Blow it. There.
+It's all right not to be all right.
+The world's a bit heavy today, isn't it? Let's carry it slower.
+Even the lighthouse has foggy days. It still shines.
+Hey. You matter. Just wanted to say that.
+Got a minute? Neither have I. Let's waste one together.
+Things look better after a good sleep and a good breakfast.
+Somebody once told me 'this too shall pass'. They were right. Annoyingly.
+If it helps, the 14 is late for everyone. You're not alone in suffering.
+Sending you good vibes. From one stranger to another.
+@ player.glowing
+Look at you! Somebody's having a great day!
+That smile could light up the harbor.
+Whatever you're having, I'll have two.
+You're glowing! Did you win the lottery? Fall in love? Find a twenty?
+Now that's a spring in your step.
+Your happiness is catching. I'm smiling now. Thanks.
+Somebody's walking on sunshine.
+That's the face of someone who just had a perfect pastry.
+You look like the best version of yourself today.
+Good news? You look like good news.
+I love seeing someone this happy. Makes my day.
+You're practically skipping!
+Look at that grin. Like you've got a secret.
+Somebody's in a good mood! Lovely to see!
+That's the smile of someone who knows the bakery's open.
+You look so happy the pigeons are dancing.
+Whatever you're doing, keep doing it.
+That glow! You look like you just came back from vacation.
+You're lighting up the whole street.
+I've had a garbage day, but your smile's fixed it.
+Happiness looks good on you!
+You walk like the city belongs to you. Maybe it does.
+You're beaming! Has the fountain been fixed? No? Then what is it?
+Nice to see someone smiling on a Monday. Or any day!
+You look like you've had the best sleep of your life.
+Bottle that feeling. Sell it at the market. Make a fortune.
+You're humming! Out loud! In public! Brilliant!
+Somebody's on top of the world today.
+That's the walk of someone who's got everything sorted.
+You've got that Friday feeling. On a Wednesday.
+Your good mood's made the gulls nicer. Almost.
+I don't know you, but I'm glad you're happy.
+Joy looks good on you, friend.
+You look like you could fly. Don't. But you could.
+Somebody's got a good heart and a good day.
+Happy, healthy, sunny. That's you right now.
+Keep smiling. The city needs more smiles like that.
+That's a face that's just heard great news.
+You're so cheerful it's almost suspicious. In a good way.
+You look like a sunny Saturday morning.
+@ player.lonely
+Hi there! Lovely day, isn't it? Fancy a chat?
+Haven't seen you around much. New friend? Hello!
+Mind if I walk with you a bit? I'm going this way anyway.
+You look like you could use a chat. I'm a great chatter.
+Have you tried the book club at Paper Lantern? Lovely people.
+Hello, neighbor! How are you, really?
+The Heron's open mic is a great place to meet people. Just saying.
+There's a choir on Tuesdays. Everyone's welcome. Bad singers too.
+Fancy a game of chess? Mr. Sethi's busy, but I'm terrible. Perfect match.
+Hi! I'm talking to you! Yes, you! Lovely to meet you!
+Do you know the way to the river? No? Let's find it together.
+The ducks are great company. Want to come and meet them?
+Hey! Haven't we met? No? We have now!
+The bakery's a great place to make friends. Everybody's happy there.
+Nice coat. Where'd you get it? Tell me everything.
+You looked like you needed a hello. So: hello!
+Want to share a bench? Plenty of room.
+I've just moved here too. Want to explore together?
+The dog park's full of friendly people. And friendly dogs.
+How's your day going? Mine's okay. Better now I've said hi to someone.
+There's a pottery class on Thursdays. I go. Come with!
+You can always talk to the Captain. He's got a hundred stories.
+Hi, stranger! Strangers are just friends we haven't bored yet.
+Do you like crosswords? I'm stuck on seven down. Help?
+Everyone's friendly here. You just have to say hi first. Hi!
+The farmers' market's great for chatting. Samples and small talk.
+Fancy getting a coffee sometime? With me? A stranger? Why not!
+I sit here every day. If you're passing, say hello.
+The laundromat on Sundays is very social. Weirdly.
+Hello! Sorry, you just looked like someone I'd like to know.
+Have you been to the Heron? Friday night's like a big family.
+Fancy a walk? My dog needs one and I need company.
+You look like you've got a story. I'd love to hear it.
+The community garden's always looking for help. And friends.
+Hey! Say hi to my dog! He loves everyone. Me too.
+There's a running club. Very slow. Lots of chatting.
+Can I tell you about my sourdough starter? Her name's Brenda.
+You don't have to be alone in this city. Come say hi anytime.
+Here's a tip: say hello to the bus driver. Friends for life.
+Hi! You've got a kind face. Want to walk with me?
+@ player.fresh
+Ooh, someone smells nice! What is that? Lavender?
+Fresh as a daisy! Lovely!
+Somebody's just had a shower. I can tell. Very sparkly.
+You smell like a spring morning.
+Mmm, clean laundry smell. My favorite.
+You look like you've just stepped out of an advert.
+Is that new soap? It's lovely. Where's it from?
+Squeaky clean! Love it.
+You smell like the Conservatory. All flowers.
+Freshly washed hair, a clean shirt, a smile. You're ready for anything.
+Somebody smells like a bakery and a meadow. Odd combination. Works.
+Fresh and fabulous!
+You smell better than the bakery. That's saying something.
+Did you just come from the salon? You look so fresh.
+Clean clothes, clean face, clean slate. Good day ahead.
+I'd ask what perfume, but I think that's just clean.
+That fresh-out-the-shower glow. Lovely.
+Smells like you've got your life together.
+You've got that minty-fresh vibe.
+Ooh, lemon. Very zingy.
+You smell like a clean towel. That's a compliment.
+Such a fresh face! Have a lovely day!
+You look like you've been dipped in morning dew.
+You smell nicer than my whole apartment.
+Somebody's shiny and new today.
+Fresh shirt, fresh start!
+Even the gulls look impressed.
+You smell like the sea breeze. The nice kind. Not the fishy kind.
+Look at you, all scrubbed and lovely.
+That's a crisp, clean look. Very smart.
+You're positively glowing. Is it the soap?
+Clean as a whistle!
+Smells like you've just done your laundry. Best smell ever.
+You look ready for a job interview. Or a date. Or both.
+Freshly showered and ready to go! Good on you.
+You smell like rosemary and good decisions.
+Love that clean, crisp look. Very Maple Bay.
+You look so fresh you could be on a postcard.
+Someone's scrubbed up nicely!
+You smell like spring. In any season.
+@ player.full
+Somebody's had a big lunch! You're strolling like a happy cat.
+That's the walk of someone who ate dessert. Twice.
+Food coma? I know the feeling. Find a bench.
+Was it the Silver Spoon's big breakfast? You've got that look.
+You look content. Full and content. Like a cat.
+A good meal does wonders, doesn't it?
+Somebody's been to Dot's! I can tell by the smile.
+Did you eat the whole pizza? You look like you ate the whole pizza.
+That satisfied sigh. I know it well.
+You're walking slower. Digestion speed. Very wise.
+Full belly, happy heart. That's the saying, right?
+Had a good feed? You look like you could nap for a week.
+That's a 'just had pancakes' face.
+Somebody's had a lovely dinner. It's written all over you.
+You look like you've had a three-course meal. And a fourth.
+Undo a button. Nobody's looking.
+I can see you've been to the Lantern. Noodle-happy.
+Well-fed and happy. Best way to be.
+You're glowing like you've had a good roast.
+Don't go swimming for an hour! That's what my mom said.
+Full? Me too. Let's walk it off. Slowly.
+You've got crumbs on your chin. Evidence.
+That's a 'just had the best meal of my life' walk.
+Lovely to see someone so well looked after.
+You look like you've had a feast. Was there pie?
+Food's the best medicine. You're cured.
+I can smell the garlic from here. Good meal?
+That was a big lunch, wasn't it? I can tell by the contented sigh.
+Happy tummy, happy you.
+You look like a well-fed seagull. Satisfied and slightly smug.
+Somebody's had the special. And the dessert.
+Nothing better than a full stomach on a sunny day.
+You look like you've just come from a family dinner. Full and slightly overwhelmed.
+Take it easy, friend. Let that meal settle.
+Looks like someone treated themselves. Good for you.
+You've got the mail-lunch sleepies, haven't you?
+A good meal makes the whole city look nicer.
+That was a lot of noodles, wasn't it?
+You look like you'll never need to eat again. You will. Tomorrow.
+Full and fabulous!
+@ player.caffeinated
+Whoa! Somebody's had a coffee! Or five!
+You're vibrating. Like, actually vibrating.
+That's a triple-shot walk if I ever saw one.
+Slow down, friend! The coffee will still be in you later!
+You're talking to the pigeons very quickly.
+Somebody's been to Bean & Gone. Twice. Before nine.
+Your eyes are as big as saucers. Coffee saucers.
+I can hear your heart from here. It's going very fast.
+Easy on the espresso, love. Have some water.
+You've got so much energy you could power the lighthouse.
+Zoom! There goes the caffeine!
+You could vacuum the whole of Old Town with that energy.
+That's a very jittery wave.
+Somebody's buzzing like the neon at the diner.
+I love your enthusiasm. Maybe decaf next time?
+You've walked past me three times in five minutes.
+Coffee's kicked in, I see. Productive day ahead!
+Are you tapping your foot to music or to coffee?
+You look ready to take on the world. Or at least the 14 bus.
+That much coffee should come with a warning label.
+You could fix the fountain with that energy.
+Your hands are shaking. Is it nerves or the latte?
+Steady on! You'll take off!
+I've never seen someone walk so fast without running.
+You've got the energy of a puppy at the dog park.
+Somebody's had a cold brew. Or three.
+You're blinking very fast.
+Coffee's great. So is breathing. Try both.
+You're like a hummingbird. Very fast, very busy.
+That's a lot of pep for one person.
+Wow. Somebody's awake.
+You could do a crossword in thirty seconds right now.
+Easy, tiger. Save some energy for later.
+Does your coffee have coffee in it? Extra coffee?
+You've got that espresso glow.
+Are you racing someone? Is it the coffee?
+I bet you've cleaned your whole apartment this morning.
+You're talking so fast I've only caught every third word.
+Somebody's ready for a meeting. Any meeting. All the meetings.
+The barista's going to name a drink after you.

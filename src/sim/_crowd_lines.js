@@ -21,9 +21,10 @@ const merged = new Map();
 /** the lines of a pool: LINES first, then the matching legacy AMBIENT pool, de-duplicated */
 function poolOf(group, key) {
   const k = group + (key ? '.' + key : ''); let a = merged.get(k); if (a) return a;
-  const pick = (root, g, kk) => { const p = root && root[g]; return kk ? (p && p[kk]) || [] : Array.isArray(p) ? p : []; };
+  const flat = p => Array.isArray(p) ? p : p && typeof p === 'object' ? [].concat(...Object.values(p).map(flat)) : [];   // `general` is an object of themes: one bag
+  const pick = (root, g, kk) => { const p = root && root[g]; return kk ? flat(p && p[kk]) : flat(p); };
   const seen = new Set(); a = [];
-  for (const s of [...pick(LINES, group, key), ...pick(AMBIENT, group, key)]) { if (!usable(s)) continue; const n = s.toLowerCase(); if (!seen.has(n)) { seen.add(n); a.push(s); } }
+  for (const s of [...pick(LINES, group, key), ...(group === 'events' || group === 'kind' || group === 'near' || group === 'player' ? [] : pick(AMBIENT, group, key))]) { if (!usable(s)) continue; const n = s.toLowerCase(); if (!seen.has(n)) { seen.add(n); a.push(s); } }
   merged.set(k, a); return a;
 }
 /* ---------- shuffle bags ---------- */
@@ -47,9 +48,9 @@ const DNAME = { downtown: 'Downtown', oldtown: 'Old Town', harbor: 'Harborside',
 const fill = (s, c) => s.replace(/\{name\}/g, (G.state.player && G.state.player.name) || 'friend').replace(/\{district\}/g, DNAME[c && c.district] || 'Maple Bay');
 
 /* ---------- what is true right now ---------- */
-function weatherKey() { const w = safe(() => G.weather.current(), null), k = w ? w.kind : 'clear'; return k === 'rain' || k === 'storm' ? 'rain' : k === 'snow' ? 'snow' : k === 'fog' ? 'fog' : k === 'cloudy' ? 'cloudy' : w && w.tempC > 28 ? 'heat' : 'sunny'; }
-const dayPart = h => h < 5 ? 'night' : h < 11 ? 'morning' : h < 17 ? 'midday' : h < 21 ? 'evening' : 'night';
-function weekdayKey(now) { const wd = now.weekday, nm = String(now.weekdayName || '').toLowerCase(); if (/^sat|^sun/.test(nm) || (nm === '' && (wd === 5 || wd === 6))) return 'weekend'; if (/^mon/.test(nm) || (nm === '' && wd === 0)) return 'monday'; if (/^fri/.test(nm) || (nm === '' && wd === 4)) return 'friday'; return null; }
+function weatherKey(fine) { const w = safe(() => G.weather.current(), null), k = w ? w.kind : 'clear'; if (fine && (k === 'storm' || k === 'wind' || k === 'windy')) return k === 'storm' ? 'storm' : 'wind'; return k === 'rain' || k === 'storm' ? 'rain' : k === 'snow' ? 'snow' : k === 'fog' ? 'fog' : k === 'cloudy' ? 'cloudy' : w && w.tempC > 28 ? 'heat' : 'sunny'; }
+const dayPart = h => h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 18 ? 'afternoon' : h < 21 ? 'evening' : 'late';
+const weekdayKey = now => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][now.weekday] || null;
 /** LINES.player pools that apply to the player right now */
 export function playerStates() {
   const out = [], N = G.needs, band = k => safe(() => N.band(k).id, 'ok'), now = G.now(), h = now.hf !== undefined ? now.hf : now.hour, wk = weatherKey(), indoor = !!(G.scene && G.scene.indoor);
@@ -57,6 +58,12 @@ export function playerStates() {
   if (band('energy') === 'critical') out.push('exhausted'); if (band('hunger') === 'critical') out.push('starving'); if (band('bladder') === 'critical') out.push('bursting', 'bursting');
   const so = band('social'); if (so === 'critical' || so === 'low') out.push('lonely');
   const mood = safe(() => N.mood(), 50); if (mood < 25) out.push('gloomy'); else if (mood > 85) out.push('glowing');
+  const day0 = Math.floor((G.state.t || 0) / 1440) - safe(() => G.state.intro.day0, 0), fit0 = safe(() => G.wardrobe.wearing(), '');
+  if (safe(() => G.state.t - G.state.acts.last.shower, 999) < 45 || safe(() => G.state.t - G.state.acts.last.bath, 999) < 45) out.push('fresh');
+  if (day0 >= 3 && day0 < 21) out.push('settling_in'); if (fit0 === 'outfit_sport') out.push('sporty'); if (fit0 === 'outfit_artist') out.push('artist_outfit');
+  if (!indoor && wk === 'rain' && (fit0 === 'outfit_raincoat')) out.push('raincoat'); if (!indoor && wk === 'rain' && safe(() => G.inv.has('umbrella'), false)) out.push('umbrella');
+  if (!indoor && (wk === 'snow' || G.now().season === 3) && (fit0 === 'outfit_summer' || fit0 === 'outfit_tee_jeans' || fit0 === 'outfit_pajamas')) out.push('underdressed_cold');
+  if (safe(() => G.inv.items().some(st => (G.inv.item(st.id) || {}).category === 'gift'), false)) out.push('carrying_gift'); if (safe(() => G.inv.items().some(st => st.exp), false)) out.push('carrying_food');
   if (!indoor) { if (wk === 'rain' && !safe(() => G.inv.has('umbrella'), false) && safe(() => G.wardrobe.wearing(), '') !== 'outfit_raincoat') out.push('soaked', 'soaked'); if (wk === 'snow') out.push('snowy'); if (wk === 'heat') out.push('sweaty'); }
   const day = Math.floor((G.state.t || 0) / 1440) - safe(() => G.state.intro.day0, 0); if (day < 3) out.push('new_in_town'); else if (day >= 21) out.push('regular');
   const bal = safe(() => G.money.balance(), null); if (bal !== null && isFinite(bal)) { if (bal < 20) out.push('broke'); else if (bal > 5000) out.push('flush'); }
@@ -81,20 +88,41 @@ export function roomVenueKey(rid) {
   const base = rid.split(':')[0]; return poolOf('venue', base).length ? base : null;
 }
 
+/* ---------- landmarks (LINES.near) ---------- */
+const NEAR_RE = [['fountain', /city_plaza|fountain/i], ['pier', /pier/i], ['lighthouse', /lighthouse/i], ['ferris_wheel', /ferris/i], ['duck_pond', /duck_pond|pond/i], ['river_walk', /riverside|river.?walk/i], ['market_square', /market.?sq/i],
+  ['central_station', /central/i], ['bandstand', /bandstand/i], ['lookout', /lookout|viewpoint/i], ['campus', /campus/i], ['stadium', /arena|stadium/i], ['symphony_hall', /symphony|concerthall/i], ['galleria', /galleria|deptstore/i],
+  ['skydeck_tower', /skydeck/i], ['conservatory', /conservatory/i], ['museum', /museum/i], ['observatory', /observatory/i], ['taxi_stand', /taxi/i]];
+let nearPts = null, nearWorld = null;
+function nearKey(c) {
+  const w = G.world; if (!w || !w.pois || (G.scene && G.scene.indoor)) return null;
+  if (nearWorld !== w) { nearWorld = w; nearPts = []; for (const p of w.pois) { const t = (p.id || '') + ' ' + (p.name || '') + ' ' + (p.type || ''); if (p.type === 'busstop') { nearPts.push({ k: 'bus_stop', x: p.x, y: p.y, r: 4 }); continue; } for (const [k, re] of NEAR_RE) if (re.test(t)) { nearPts.push({ k, x: p.x, y: p.y, r: k === 'taxi_stand' ? 4 : 10 }); break; } } }
+  let best = null, bd = 1e9; for (const q of nearPts) { const d = Math.hypot(q.x - c.x, q.y - c.y); if (d < q.r && d < bd && poolOf('near', q.k).length) { bd = d; best = q.k; } } return best;
+}
+const KIND_ALIAS = { parent: 'parent_with_stroller', chess: 'bench', listener: null, window: null, event: null };
+const kindKey = k => { if (!k) return null; const a = k in KIND_ALIAS ? KIND_ALIAS[k] : k; return a && poolOf('kind', a).length ? a : null; };
+/** a two-line exchange for two people standing together: [lineA, lineB] | null   (ctx.venue / ctx.kind pick the themed sets some of the time) */
+export function duet(c, ctx = {}) {
+  const by = LINES.duets_by || {}, r = Math.random(); let key = 'duets', arr = LINES.duets || [];
+  const kk = ctx.kind === 'kid' || ctx.kind === 'parent' ? 'kid' : ctx.kind === 'couple' ? 'couple' : null;
+  if (kk && by.kind && by.kind[kk] && r < .6) { key = 'duets.kind.' + kk; arr = by.kind[kk]; } else if (ctx.venue && by.venue && by.venue[ctx.venue] && r < .6) { key = 'duets.venue.' + ctx.venue; arr = by.venue[ctx.venue]; }
+  const d = draw(key, arr); return Array.isArray(d) && d.length === 2 ? [fill(d[0], c), fill(d[1], c)] : null;
+}
 /** what an anonymous citizen says right now (already filled); null when no pool has anything */
 export function cityLine(c, ctx = {}) {
   const now = G.now(), h = now.hf !== undefined ? now.hf : now.hour, r = Math.random(); let s = null;
   if (ctx.state) s = draw('player.' + ctx.state, poolOf('player', ctx.state));                                         // forced (bumped / staring)
   if (!s && ctx.near && Math.random() < PLAYER_CHANCE) { const st = playerStates(); if (st.length) { const k = st[Math.floor(Math.random() * st.length)]; s = draw('player.' + k, poolOf('player', k)); } }
   if (!s && ctx.legacy && ctx.legacy.length && r < .6) s = draw('legacy.' + (ctx.legacyKey || 'x'), ctx.legacy.filter(usable));
-  if (!s && ctx.kind && r < .55) s = draw('kind.' + ctx.kind, poolOf('kind', ctx.kind));
+  if (!s && ctx.eventId && r < .6) s = draw('events.' + ctx.eventId, poolOf('events', ctx.eventId));
+  const kd = kindKey(ctx.kind); if (!s && kd && r < .55) s = draw('kind.' + kd, poolOf('kind', kd));
+  if (!s && !ctx.venue && Math.random() < .4) { const nk = nearKey(c); if (nk) s = draw('near.' + nk, poolOf('near', nk)); }
   if (!s && ctx.venue && r < .7) s = draw('venue.' + ctx.venue, poolOf('venue', ctx.venue));
   if (!s) {
     let x = Math.random(), g = 'general'; for (const [k, w] of MIX) { if ((x -= w) < 0) { g = k; break; } }
-    const key = g === 'district' ? c && c.district : g === 'timeOfDay' ? dayPart(h) : g === 'weather' ? weatherKey() : g === 'season' ? ['spring', 'summer', 'autumn', 'winter'][now.season] : g === 'weekday' ? weekdayKey(now) : null;
+    const key = g === 'district' ? c && c.district : g === 'timeOfDay' ? dayPart(h) : g === 'weather' ? (poolOf('weather', weatherKey(true)).length ? weatherKey(true) : weatherKey()) : g === 'season' ? ['spring', 'summer', 'autumn', 'winter'][now.season] : g === 'weekday' ? weekdayKey(now) : null;
     if (g !== 'general' && key) s = draw(g + '.' + key, poolOf(g, key));
     if (!s) s = draw('general', poolOf('general'));
   }
   return s ? fill(s, c) : null;
 }
-export const lineStats = () => { let n = 0; const o = {}; for (const g of Object.keys(LINES)) { if (Array.isArray(LINES[g])) { o[g] = poolOf(g).length; n += o[g]; } else for (const k of Object.keys(LINES[g])) { const l = poolOf(g, k).length; o[g + '.' + k] = l; n += l; } } o.total = n; return o; };
+export const lineStats = () => { let n = 0; const o = {}; for (const g of Object.keys(LINES)) { if (g === 'duets') { o.duets = LINES.duets.length; n += o.duets; } else if (g === 'duets_by') { let d = 0; for (const a of Object.values(LINES.duets_by)) for (const b of Object.values(a)) d += b.length; o.duets_by = d; n += d; } else if (g === 'general') { o.general = poolOf('general').length; n += o.general; } else { let t = 0; for (const k of Object.keys(LINES[g])) t += poolOf(g, k).length; o[g] = t; n += t; } } o.total = n; return o; };

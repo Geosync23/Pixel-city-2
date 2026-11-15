@@ -1,0 +1,256 @@
+@ duets
+They say the fountain's getting fixed in spring. || Which spring, though? They never say.
+I've named my sourdough starter. || Not Brenda. Everyone's starter is called Brenda now.
+Is the Conservatory open today? || Nine to seven. The koi are expecting you.
+I got a parking ticket. On my bike. || Were you parked on Gerald's corner? He reports people.
+Has the 14 been? || It's been and gone. Or it never came. Nobody knows.
+My landlord fixed the tap. || Write it down. Date it. Nobody will believe you.
+I'm going to the Galleria. || Just to look? You've never just looked in your life.
+I heard Finch is a cat. || I heard Finch is three children in a coat.
+That's the Captain's boat. || He's talked about the whale again, hasn't he?
+I've booked the Heron's Table. || Fancy! Is it our anniversary? Did I forget?
+My knee says rain. || Your knee was right last time. Get the umbrella.
+The gulls stole my sandwich. || The whole thing? They're getting bolder every summer.
+Shall we watch the sunset from the lookout? || If you carry me up the stairs.
+I've been offered a job at the Galleria. || Free pretzels? Take it.
+Let's get noodles. || The Lantern? Haru nodded at me last time. I'm going back.
+Do you know the way to the Symphony Hall? || Follow the people in their best coats.
+Did you see the fireworks? || From Mercy. Best seat in the city.
+I've lost my glove. || Check the railings. Someone's put it on a post by now.
+It's freezing. || Cocoa? Mug & Mitten's still open.
+Where did you get those flowers? || Petal Pushers. She gave me an extra stem for smiling.
+Is it true there's a cat on the lighthouse? || Wick. She's the real keeper. Everybody knows.
+I've started a podcast about benches. || Do an episode on Mercy. She deserves it.
+Why is everyone so cheerful today? || Payday. Look at all the cake boxes.
+Do you want to go to the star party? || Will there be cocoa? Then I'll look at any star.
+I'm thinking of moving to Hillcrest. || Have you seen the stairs? Have you met your knees?
+I've got a cold. || Soup. The Lantern. Go now. Doctor's orders.
+Who keeps knitting hats for the bollards? || I don't know, but I hope they never stop.
+I can hear the foghorn. || Fog tonight, then. Bring your big coat.
+Can you believe it's already December? || I've only just found my summer sandals.
+Did you finish the jigsaw? || The last piece is sky. They're all sky. I've given up.
+The bakery's out of plum tarts. || At nine in the morning? Who's eating tarts at nine?
+I tripped on that cobble again. || The one by the well? It's out to get you.
+Did you hear Dot's new pie won a ribbon? || Of course it did. Dot doesn't lose.
+I'm going to the dentist. || Floss on the bus. Every little helps.
+I've been on hold with the council for an hour. || About the fountain? They'll say 'soon'.
+The SkyDeck has a glass floor. || I'm not going up. I'm not going up. Okay, I'm going up.
+Did you see the heron on the river? || Standing still for an hour. Very zen bird.
+My son wants to be a lighthouse keeper. || Better than a fountain repairman. Nobody hires those.
+I'm making pancakes tomorrow. || Can I come? I'll bring syrup. Real syrup.
+Why do you have three umbrellas? || Weather's moody. I'm prepared.
+Have you tried the boba at Cold Storage? || The maple one? Strange. I've had four.
+I just saw a cat on the 1 Ring. || The ginger one? He gets off at Market. Every day.
+Is the Ferris wheel safe? || Very. It just likes to stop at the top and think.
+Fancy a pint at the Taproom? || Is it quiz night? We'll lose. Let's go.
+I've bought a ukulele. || Oh no. I mean, oh, wonderful.
+I miss summer. || Summer misses you. Look, the ice cream shop's still open.
+The new crossing beeps now. || It sounds like a robot saying thank you.
+I'm going to read in the park. || You're going to nap in the park. With a book on your face.
+Where's the best view in the city? || Mercy. Halfway up. Everyone knows.
+I can't decide between the red and the blue. || Get both. Wear one. Love the other.
+I've been invited to the Symphony Hall. || Wear your good socks. Don't clap between movements.
+Did you eat lunch? || Does a croissant count? It was a big croissant.
+I'm learning Italian. || To order pizza at Slice of Heaven? Nico would love that.
+I saw a seal in the harbor. || Or was it a log? The Captain's seal is usually a log.
+My phone says I walked fifteen thousand steps. || Most of them in the Galleria, I bet.
+Let's sit on Mercy for a minute. || A minute? We'll be here an hour. I know us.
+Is the market on today? || Saturday morning? The Honey Man would never miss it.
+I've got a date at the Conservatory. || Romantic. If it goes badly, there's always the koi.
+My grandmother just beat me up the stairs. || Again? Have some dignity. Train harder.
+The bus driver let me on with no change. || Lovely people, bus drivers. Except the 14's. He's never here.
+There's a duck in the bank lobby. || Probably opening a savings account.
+Did you see the cat in the bookshop window? || Asleep on the poetry again? Classic.
+I'm going to the gym after work. || That's three times you've said that this week.
+The river's high. || All that rain. Hear it under the bridge?
+You've got glitter on your face. || Kids' party at the library. I'm covered.
+How's your mom? || Rearranging my cupboards. Third time this visit.
+Look how long that line is. || Must be the taco truck. Worth it.
+I've just been to the Orpheum. || Captain Pigeon again? You're forty.
+Is it going to rain? || The pigeons are under the bridge. So yes.
+I'll walk you home. || It's two streets away. Walk me slowly, then.
+We should get a picnic blanket. || We should get a picnic first.
+They're doing a musical about ferries at the Playhouse. || With singing ferries? I'm there.
+I just found a twenty in the laundromat. || Spend it on something silly. That's the rule.
+Do you think we'll ever leave this city? || And miss the pastries? Never.
+The diner's out of pancakes. || Out of pancakes? That's not a diner. That's a crisis.
+I saw a man walk a cat on a lead. || The cat was walking him, though. I saw them too.
+I'm so tired. || Sit. Mercy's right there. That's what she's for.
+Why's the tower lit up green? || Garden club's birthday. Or something. It's lovely, anyway.
+I've joined the choir. || Is that why you've been singing scales in the shower?
+Pass me the map. || We're in Old Town. Maps don't work here.
+Somebody fixed the swing in the park. || Finally! I've been waiting since I was nine.
+I'm off to the farmers' market. || Bring me back a crepe. Or two. Or the stall.
+@ duets_by.venue.cafe
+Oat, almond or regular? || Whichever comes with the biggest muffin.
+Is that seat by the window free? || It was. I'm in it now. Sorry. Share?
+How long have you been here? || Three hours and one email.
+Marlow drew a gull in my foam. || He drew a heart in mine. I'm reading into it.
+Do you want a pastry? || I want all the pastries. I'll have one.
+What's the Wi-Fi password? || 'drinkmorecoffee'. All one word. No capitals.
+I'm on my fourth refill. || They're going to start charging you rent.
+Is it too early for a second coffee? || It's never too early. It's sometimes too late.
+I've written my novel's first line today. || That's the hardest line. Have a muffin.
+Can I get it extra hot? || You'll be waiting for it to cool for an hour.
+They've changed the chairs. || I know. I've been grieving all morning.
+Do you come here often? || Every morning. I've seen you. You're the oat milk one.
+I'll pay. || You paid last time. Put that wallet away.
+That smells incredible. What is it? || Cinnamon swirl. Fresh out. Get one now.
+This table wobbles. || Fold a sugar packet. Engineering!
+Shall we get a slice of cake to share? || Two slices. I don't share cake.
+I came here to work. || I came here to watch you work. It's restful.
+They play the same playlist every day. || I know when my coffee's ready by the song.
+The barista knows my order. || That's how you know you're a local.
+Is it decaf? || Does it matter? You've had five.
+Should we sit outside? || In the sun? Yes. Bring the cake.
+@ duets_by.venue.bar
+Same again? || Same again. And a bowl of the salty peanuts.
+Who's on tonight? || Kit's band. Get near the front.
+Is it quiz night? || Every Tuesday. We lose every Tuesday.
+Shall I ask the band for a song? || Not the Maple Bay song. Please. Anything else.
+Your round. || It's always my round. How is it always my round?
+Do you want to dance? || After one more drink. Two more. Okay, now.
+What are you drinking? || Something with a cherry in it. Very fancy.
+Lou's playing the piano. || Shh. Lou never plays the piano. Listen.
+Who won the darts? || Nobody. Someone hit the clock again.
+Last orders! || Already? We've only just got here. Four hours ago.
+The bartender's giving us the look. || That's his 'I like you' look. I think.
+Did you see who just walked in? || Don't look. Don't look. You looked.
+Shall we do karaoke? || Only if we do the duet. The terrible one.
+This beer's brewed out the back. || You can tell. It tastes like the back.
+I'm on lemonade tonight. || You're on lemonade every night. Our hero.
+Is the band any good? || The drummer is. The rest are very enthusiastic.
+I've lost my coat. || It's on your chair. You're sitting on it.
+To Friday! || It's Wednesday. Fine. To Wednesday!
+The open mic list is full. || Put your name on the back. Lou always reads the back.
+Shall we get chips? || We should've got chips an hour ago.
+@ duets_by.venue.diner
+Coffee? || Just leave the pot. I'm planning to be here a while.
+What's the special? || Nobody knows. That's what makes it special.
+Pancakes or waffles here? || Pancakes. Waffles are just pancakes with anxiety.
+Can I have extra hash browns? || You can have all the hash browns. It's Dot's.
+Ketchup on eggs? || Always. Don't look at me like that.
+That booth's taken. || Since 1987. Same gentleman. Every morning.
+Do you want pie? || It's eight a.m. Cherry, please.
+The jukebox only plays three songs. || And we know every word to all three.
+How do you like your eggs? || Cooked. By someone else.
+Another refill? || She refilled it before I'd finished asking.
+Is the milkshake thick? || The straw's standing up by itself.
+I'll have the short stack. || Nothing at Dot's is short.
+What's the soup today? || Same as yesterday. It's always perfect.
+The cook just rang the bell. || That's mine! I can feel it!
+Can I get toast with that? || Cut in triangles. Dot knows.
+Shall we get the big breakfast? || One each. Sharing is for lunch.
+I'm so full I'm sliding off the booth. || Room for pie? There's always room for pie.
+This place never changes. || Thank goodness. Nothing else stays the same.
+Gravy on the fries? || Gravy on everything. House rule.
+The neon's buzzing. || Like a happy wasp. It's buzzed since I was a kid.
+@ duets_by.venue.restaurant
+Do we share appetizers? || We share everything except dessert.
+What's a reduction? || It's sauce. Very small, very expensive sauce.
+The waiter said 'excellent choice'. || He says that to everyone. You're still special.
+Shall we get wine? || Whatever the waiter says. He looks wise.
+I can't pronounce anything on this menu. || Point at it. Very cosmopolitan.
+That table's having a birthday. || Hide. They're bringing out the singing waiters.
+The chef's come out. || Act casual. Very casual. Sit up straight.
+Is that a bread roll? || Steal one. Put it in your bag. For later.
+Dumplings! Wave the cart over! || I'm waving! I'm waving! It's not stopping!
+Spicy broth or mild? || Both. Split pot. Marriage of broths.
+They've brought us something 'from the chef'. || It's a tiny spoon of foam. I'm honored.
+This tastes like a vacation. || Close your eyes. We're in the sun.
+Let's split the bill. || You had the lobster. I had a salad.
+I've been saving up for this dinner. || Order the dessert, then. All of it.
+The fish tank's watching us eat. || The fish look nervous.
+Is this the anniversary table? || Every table's the anniversary table on a Friday.
+Can we see the dessert menu first? || Life's short. Dessert first.
+I'm too full to move. || Coffee and a walk by the harbor. That's the cure.
+The grill's sizzling. || I've never felt so involved in a dinner.
+Thank you for a lovely evening. || Same time next year? Same table?
+@ duets_by.venue.laundromat
+Is number six free? || Nobody uses six. It eats socks.
+Did you bring change? || Two quarters and a button.
+How long's your dryer got? || Twelve minutes of warm hope.
+Someone's left their wash in. || Give it five more minutes. Then we move it. Gently.
+I've lost a sock. || It's in the sock dimension. They all go there.
+Do you want to share the folding table? || Your side, my side. Very civilised.
+Red sock in the whites again? || Everything's pink. I'm pink. It's my look now.
+The cat's asleep on the dryer. || That's her dryer. We just use it.
+Is the soap machine working? || Kick it gently on the left. That's the secret.
+Brought a book? || Always. A forty-minute wash is a forty-minute chapter.
+This place smells so clean. || I'd live here. Warm, bright, smells like sheets.
+Have you seen the noticeboard? || Someone's giving away a sofa. And guitar lessons.
+How do you fold a fitted sheet? || Nobody knows. We roll it. We roll it and pray.
+I found a twenty in my jeans! || Spend it on cake. That's the law.
+The spin cycle's shaking the floor. || Feels like a tiny earthquake.
+Do you come here every Sunday? || Every Sunday. It's my church.
+My whole duvet's in there. || Ambitious. Good luck getting it out.
+I fell asleep on the chairs. || Your dryer finished an hour ago. I didn't want to wake you.
+Shall we get coffee while it spins? || Thirty-two minutes. Just enough.
+The owner knows everyone's laundry day. || She greeted me with 'Tuesday!' I felt so known.
+@ duets_by.venue.library
+(whispering) Is this seat free? || (whispering) It is. Mind the creak.
+(whispering) What are you reading? || (whispering) Roman plumbing. It's riveting.
+(whispering) I got shushed. || (whispering) Ms. Castillo can shush with a single blink.
+(whispering) Late fees? || (whispering) Amnesty week. Bring everything back.
+(whispering) Can I borrow your pen? || (whispering) Return it. I know where you sit.
+(whispering) Do you want a mint? || (whispering) Unwrap it slowly. Slower. Slower.
+(whispering) I've been here all day. || (whispering) Me too. I've read the same page forty times.
+(whispering) Is the Wi-Fi good? || (whispering) Better than mine at home. That's why I live here.
+(whispering) The cat's on the dictionary. || (whispering) Then nobody's looking up words today.
+(whispering) Story time's starting. || (whispering) Twenty toddlers. We should move.
+(whispering) Have you seen the jobs board? || (whispering) Someone wants a lighthouse painter.
+(whispering) What's that noise? || (whispering) Somebody's chips. Brave person.
+(whispering) Do you know where the maps are? || (whispering) Second floor. Bring a sweater. It's cold.
+(whispering) I fell asleep. || (whispering) You snored. Gently. Like a kitten.
+(whispering) Can you photocopy this? || (whispering) Ten pages free. Choose wisely.
+(whispering) I love the glass roof. || (whispering) When it rains it sounds like applause.
+(whispering) Found it! || (whispering) Shh! Found what? Show me!
+(whispering) I want to read everything. || (whispering) One shelf at a time. That's how.
+(whispering) Is that the local history room? || (whispering) My grandad's bakery is in a photo in there.
+(whispering) Time to go. || (whispering) Five more minutes. Five more chapters.
+@ duets_by.kind.couple
+Shall we go home? || One more lap of the river. Then home.
+You've got something on your face. || Leave it. It's character.
+Hold my hand. || Your hands are freezing. Here. In my pocket.
+I love you, you know. || Even when I steal the duvet? Even then?
+Let's get a dog. || Let's get a cat. Let's get both and let them sort it out.
+Where do you want to eat? || I don't mind. Somewhere with chips.
+Remember our first date? || The Orpheum. You cried at the trailers.
+Have I told you you're lovely today? || Twice. Tell me again.
+Shall we dance? || Here? On the sidewalk? Oh, go on then.
+We're out of milk. || We're out of everything. Let's eat out.
+Look at the sunset. || I'm looking at you. Okay, now the sunset.
+Should we move to Hillcrest? || For the view? We'd never leave the house. The stairs.
+Let's never leave this city. || Never. Not even for a weekend. Well, a weekend.
+Ice cream? || Two scoops. Each. Don't argue.
+You walk on the outside. || Habit. Also, puddles.
+Do you remember where we left the bikes? || By a lamp post. One of the thousand lamp posts.
+It's our anniversary next week. || I know. I've booked something. It's a surprise.
+I bought you flowers. || What did you do? Never mind. They're lovely.
+You look beautiful. || I'm in a raincoat and rain boots. You need glasses.
+Let's walk the long way. || There's no long way. We'll invent one.
+Can we have pancakes for dinner? || We're adults. We can have pancakes for anything.
+I'm cold. || Take my jacket. I'll be cold, but brave.
+@ duets_by.kind.kid
+Can I have an ice cream? || After lunch. Lunch first. Then ice cream.
+Look, a dog! Can I pet him? || Gently, sweetheart. Ask the lady first.
+Why is the sky blue? || Something about light. We'll look it up at the library.
+Are we there yet? || Nearly. Two more lamp posts.
+I'm tired. Carry me. My legs are asleep. || Up you come, then. Just to the corner.
+Can we get a puppy? The goldfish needs a friend. || The goldfish is very happy alone, love.
+I want to go on the Ferris wheel! || It stops at the top, you know. Still want to?
+I'm not tired. || Then why are you yawning? Bed after the park.
+Can I jump in that puddle? || Not in your new shoes, sweetheart.
+Why do pigeons walk like that? || They're always in a hurry. Like Daddy.
+I found a magic stick! || Lovely. Keep it pointed at the ground, please.
+I want to be a pilot. And a vet. For birds. || A pilot vet for birds. Perfect. Very specific.
+Can I have a cookie? || Just one. A small one. Okay, a medium one.
+Mommy, that lady's got a funny hat. || Shh! It's a lovely hat. Say lovely.
+Can we feed the ducks? || With peas, not bread. Ducks love peas.
+I need the restroom. Urgently. || We literally just went. Okay. The library. Run.
+Can we stay at the park? Ten more minutes? || Five. Okay, seven. Final offer.
+Is the lighthouse a giant's flashlight? || Maybe. Giants do lose their keys a lot.
+Why is the fountain broken? || Nobody knows, love. Maybe you'll fix it when you're big.
+Look! I can hop on one foot! || Just like Gerald! He's a very famous pigeon.
+Can I press the crossing button? || Once. Gently. That was seven times.
+Why are you holding my hand, Daddy? || Because we're crossing the road. And because I like to.

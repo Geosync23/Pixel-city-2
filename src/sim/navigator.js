@@ -20,7 +20,7 @@ import { el, root, toast } from '../ui/kit.js';
 import { innerPlace } from '../ui/navarrow.js';
 import { openState, cityPos, place, homePlace, money } from '../ui/phone_util.js';
 
-const WALK = 1.15 / 3.6, BUS_V = 7, CAB_V = 9;   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
+const WALK = 1.15 / 3.6, BUS_V = 3.8, BUS_DWELL = 5, CAB_V = 9;   // BUS_V: measured door-to-door along the bus loop incl. lights (units per game minute, sim/transit.js ride pace); BUS_DWELL game minutes per stop on the way   // game minutes per city unit on foot (player speed 3.6 u/s, 1 game min per real second, + corners)
 const man = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 const cityW = () => { const s = G.sceneCache && G.sceneCache.get('city'); return s ? s.world : G.scene && G.scene.id === 'city' ? G.scene.world : null; };
 const mins = m => Math.max(1, Math.round(m)) + ' min';
@@ -88,8 +88,9 @@ function busOption(from, D, walk) {
     const S = r.stops.map(id => place(id) || (w.pois || []).find(p => p.id === id)).filter(Boolean), n = S.length; if (n < 2) continue;
     const near = q => S.map((s, i) => [man(s, q), i]).sort((a, b) => a[0] - b[0]).slice(0, 2).map(a => a[1]);
     for (const i of near(from)) for (const j of near(D)) {
-      if (i === j) continue; const k = (j - i + n) % n; let ride = 0; for (let m = 0; m < k; m++) ride += man(S[(i + m) % n], S[(i + m + 1) % n]);
-      const wa = man(S[i], from) * WALK, wb = man(S[j], D) * WALK, nb = safe(() => G.transit.nextBuses(S[i].id).find(b => b.route === r.id), null), wait = nb ? nb.minutes : 20, rm = ride / BUS_V + k * .5, total = wa + Math.max(wait - wa, 0) + rm + wb;
+      if (i === j) continue; const k = (j - i + n) % n; let ride = 0; const lp = safe(() => G.traffic.loops[r.id], null), ls = lp && lp.stops && lp.stops.length === n ? lp.stops : null;
+      if (ls && lp.L) ride = ((ls[j].u - ls[i].u) % lp.L + lp.L) % lp.L; else for (let m = 0; m < k; m++) ride += man(S[(i + m) % n], S[(i + m + 1) % n]);   // the bus's own loop (one-way streets), not a straight line
+      const wa = man(S[i], from) * WALK, wb = man(S[j], D) * WALK, nb = safe(() => G.transit.nextBuses(S[i].id).find(b => b.route === r.id), null), wait = nb ? nb.minutes : 20, rm = ride / BUS_V + (k - 1) * BUS_DWELL, total = wa + Math.max(wait - wa, 0) + rm + wb;
       if (wa + wb > walk * .6) continue;
       if (!best || total < best.minutes) best = { mode: 'bus', label: 'Bus ' + r.name, minutes: total, cost: safe(() => G.transit.hasPass() ? 0 : G.transit.fare('bus'), 1.5), route: r.id, line: r.name, stops: k, wait, toward: S[j > i ? n - 1 : j].name, board: pt(S[i]), alight: pt(S[j]), walkA: wa, walkB: wb, ride: rm };
     }
@@ -194,9 +195,12 @@ function render() {
 /* the strip sits just under the HUD's top cluster (clock + needs bar, money + speed), never on top of it; the goals widget moves down under the strip */
 function placeBar() {
   if (!bar) return; const gw = document.getElementById('goalsw');
-  if (bar.style.display === 'none') { if (gw && gw._navPush) { gw.style.top = ''; gw._navPush = false; } return; }
+  const ts = document.getElementById('toasts');
+  if (bar.style.display === 'none') { for (const e of [gw, ts]) if (e && e._navPush) { e.style.top = ''; e._navPush = false; } safe(() => G.phone.placeBanners()); return; }
   bar.style.top = '58px'; const r = bar.getBoundingClientRect(), top = Math.max(58, Math.round(clearTop(r.left, r.right, bar) + 6)); bar.style.top = top + 'px';
   if (gw) { const g = gw.getBoundingClientRect(), b = top + r.height + 8, uiTop = (gw.offsetParent || document.body).getBoundingClientRect().top; if (g.width && g.right > r.left && g.left < r.right && (gw._navPush || g.top < b)) { gw.style.top = Math.round(b - uiTop) + 'px'; gw._navPush = true; } }
+  if (ts) { if (ts._navPush) { ts.style.top = ''; ts._navPush = false; } const q = ts.getBoundingClientRect(), up = (ts.offsetParent || document.body).getBoundingClientRect().top; if (q.top < top + r.height + 4) { ts.style.top = Math.round(top + r.height + 8 - up) + 'px'; ts._navPush = true; } }   // toasts too
+  safe(() => G.phone.placeBanners());
 }
 export function offer(p) { p = typeof p === 'string' ? place(p) : p; if (!p || !isFinite(p.x)) return []; const o = routeTo(p); if (o.length < 2) return o; offerFor = pt(p); render(); return o; }
 
@@ -204,7 +208,7 @@ export const order = 130;
 export function init() {
   const boot = () => { St = G.state.nav && typeof G.state.nav === 'object' ? G.state.nav : G.defineState('nav', () => ({ trip: null })); if (!('trip' in St)) St.trip = null; };
   G.defineState('nav', () => ({ trip: null })); boot();
-  G.on('load', () => { boot(); offerFor = null; render(); }); G.on('scene', () => render());
+  G.on('load', () => { boot(); offerFor = null; render(); }); G.on('scene', () => render()); G.on('game:start', () => render());   // (Continue from the title: the strip comes back with the trip)
   G.on('ride:start', kind => {
     const t = trip(); if (!t || t.stage !== 0 || kind !== KIND[t.mode]) return; t.stage = 1; t.at = false; if (same(safe(() => G.state.phone.waypoint, null), t.board)) setWP(null);
     if (kind === 'train') safe(() => { const c = G.state.rail.cur, pl = G.rail.plan(c.from, t.to || c.to); t.line = G.rail.lines[c.dir].name; if (pl && pl.dir === c.dir) { t.toward = pl.toward; t.stops = pl.stops; } });

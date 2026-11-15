@@ -101,8 +101,8 @@ function gallery(p) {
   box(0, 0, 0, w, .9, .16, MARBLE, { l: marble(MARBLE_D, 7), r: MARBLE_D }); lw([0, .9, 0], [w, .9, 0], dk(MARBLE, .4)); for (let x = .6; x < w; x += 1.25) { box(x - .1, .5, -.22, .2, .4, .22, MARBLE_D, { ol: false }); }
   railX(0, w, .86, .16, .7, BRASS, Math.round(w / .3) + 1); for (let x = 0; x <= w + .01; x += 2.5) { box(Math.min(w - .16, x), .78, .16, .16, .12, .86, MARBLE, { ol: false }); lit(() => dot(Math.min(w - .08, x + .08), .84, 1.12, '#fff0b0', 2)); }
 }
-function grandstair() {
-  const W = 3, n = 10, sd = .42, sh = .25, D = n * sd;
+function grandstair(p) {
+  const W = 3, n = p.n || 10, sd = n > 10 ? .38 : .42, sh = .25, D = n * sd;
   for (let i = n - 1; i >= 0; i--) { const y = D - (i + 1) * sd, h = (i + 1) * sh; box(0, y, 0, W, sd, h, MARBLE, { l: i % 2 ? MARBLE_D : dk(MARBLE, .16), r: marble(MARBLE_D, 4), ol: false }); qz(.5, W - .5, y, y + sd, h + .005, RED, i % 2 ? '#8a2a2e' : undefined); qy(.5, W - .5, y + sd, h - sh, h, '#8a2a2e'); lw([.5, y + sd, h], [W - .5, y + sd, h], BRASS); lw([0, y + sd, h], [W, y + sd, h], dk(MARBLE, .35)); }
   for (const x of [.08, W - .08]) { lw([x, D, 1], [x, 0, n * sh + 1], BRASS); lw([x, D, 1.06], [x, 0, n * sh + 1.06], BRASS_L); for (let i = 0; i <= n; i += 1) { const y = D - i * sd; lw([x, y, i * sh], [x, y, i * sh + 1], BRASS_D); } }
   for (const x of [-.02, W - .28]) { box(x, D - .1, 0, .3, .3, 1.15, MARBLE); lw([x + .15, D + .05, 1.15], [x + .15, D + .05, 1.5], BRASS); lit(() => ball(x + .15, D + .05, 1.62, .13, '#fff0b0', { ol: false })); glow(() => ball(x + .15, D + .05, 1.62, .2, '#ffe2a0', { ol: false })); }
@@ -171,7 +171,7 @@ export default [
   A('flowers', ['hotel_flowers'], [1.8, 1.8, .8], flowers, { vb: [-.6, -.6, 0, 2.4, 2.4, 2.8], use: { x: .9, y: 2.3 }, variants: [{}, { c: ['#f08a7a', '#f6b4a4', '#f8dcd0'], seed: 2 }, { c: ['#7a55c8', '#b07ad8', '#f6d24a'], seed: 3 }, { c: ['#f2c230', '#e89a2a', '#7a4a2a'], seed: 4 }] }),
   A('staffwall', ['hotel_staffwall'], [3.6, .12, 1.9], staffwall, Object.assign({ use: { x: 1.8, y: .7 }, variants: [{}, { you: { skin: '#ecba90', hair: '#4a3022', top: '#5ab0e0' } }] }, WALL, { mount: .7 })),
   A('gallery', ['decor'], p => [p.w || 8, .9, 2], gallery, Object.assign({ vb: p => [0, 0, -.3, p.w || 8, 1, 2.1], variants: [{ w: 8 }] }, WALL, { mount: 2.6 })),
-  A('grandstair', ['hotel_stairs'], [3, 4.2, 2.5], grandstair, { vb: [-.2, -.1, 0, 3.2, 4.6, 3.7], use: { x: 1.5, y: 4.7 } }),
+  A('grandstair', ['hotel_stairs'], p => [3, (p.n || 10) * ((p.n || 10) > 10 ? .38 : .42), (p.n || 10) * .25], grandstair, { vb: p => [-.2, -.1, 0, 3.2, (p.n || 10) * .42 + .5, (p.n || 10) * .25 + 1.3], use: p => ({ x: 1.5, y: (p.n || 10) * ((p.n || 10) > 10 ? .38 : .42) + .6 }), variants: [{}, { n: 13 }] }),
   A('easel', ['hotel_easel'], [1.6, .3, 1.6], easel, { solid: false, use: { x: .8, y: .8 }, variants: [{}, { on: 1 }] }),
   A('shopcase', ['shelf_unit'], p => [p.w || 3, .5, 2.4], shopcase, { variants: [{ w: 3 }] }),
   A('doorway', ['hotel_door'], p => [p.w || 3, .25, 3.5], doorway, Object.assign({ use: p => ({ x: (p.w || 3) / 2, y: .8 }), variants: [{ name: 'THE GILDED MAPLE', w: 4.4 }, { name: 'BAY BALLROOM', c: '#22304e', shut: 1, w: 3.4 }, { name: 'SPA', c: '#2f6a6a' }] }, WALL)),

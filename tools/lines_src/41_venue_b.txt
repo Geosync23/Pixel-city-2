@@ -1,0 +1,465 @@
+@ venue.airport
+Gate changed! Everyone run! Calmly! Run calmly!
+I've got a three-hour layover. I've seen every shop twice.
+Is that my bag? No. Is that my bag? No. They're all black bags.
+The security line moves like a sleepy caterpillar.
+Shoes off, belt off, dignity off. Welcome to the airport.
+Final call for… was that my name? That was my name. Bye!
+I bought a neck pillow at the airport. Twenty dollars. I'm wearing it with pride.
+The moving walkway's my favorite thing. I'm walking AND moving. Double speed.
+The duty-free lady sprayed me with perfume. I smell like a rich forest.
+Everyone at the gate is pretending not to watch the boarding group numbers.
+Somebody's sleeping across four seats with a suitcase for a pillow. Respect.
+I've got my passport, my ticket, my snack. Where's my phone? In my hand. Okay.
+Arrivals is so loud with hugs.
+Is it boarding? It's boarding. No, it's pre-boarding. What's pre-boarding?
+I'm here three hours early because my dad drove me. He insists.
+The airport sandwich cost eleven dollars and tasted like a cardboard dream.
+Somebody's proposing at the arrivals gate. With a sign and everything.
+The window by gate six is the best for watching planes. Kids lined up.
+My flight's delayed. I've found a corner, a charger and a cookie. I'm set.
+The water fountain here works. Better than some fountains I could name.
+Is this the tram to the main terminal? The tram with the little bell?
+The baggage carousel's going round with one lonely suitcase. Somebody loves it.
+I'm flying home for the holidays. I've packed presents and anxiety.
+Weighing my suitcase in the line. Four pounds over. Wearing three sweaters now.
+Somebody's playing the terminal piano. Everyone's slowed down to listen.
+I always buy a book at the airport. Always the same kind. Murder on a boat.
+The flight board's all green. Everyone's on time. A miracle.
+This is my first flight! I'm so excited I've been here since six.
+Welcome to Maple Bay! Here's a map. Here's another map. Here's a coffee.
+My suitcase came out with a little maple leaf sticker on it. Nice touch.
+@ venue.plane
+Excuse me, I think you're in my seat. 14C. Oh, it's 14D. Never mind.
+The pilot just said 'a little bumpy'. I'm holding my drink like a baby.
+Chicken or pasta? I've never known. I'm getting the pasta. No. The chicken.
+Window seat! I'm going to look out for the whole flight. Clouds!
+Somebody's kicked my seat four times. Probably a child. Probably a footballer.
+The overhead bin's full. My coat's on my lap. We're very close now.
+I always clap when the plane lands. Somebody has to.
+There's the bay! Look! You can see the lighthouse from up here!
+My ears are popping. I'm chewing gum like my life depends on it.
+The flight attendant's so calm. I want to be her when I grow up.
+I've watched three films and we've only been flying an hour.
+The seatbelt sign's on. I'm desperate for the restroom. Classic timing.
+The tiny pretzels are my favorite part. Seven pretzels. Perfectly rationed.
+I tried to recline and the man behind me sighed so loudly.
+Someone's snoring in row nine. Like a gentle motorboat.
+The clouds look like a giant duvet. I want to lie on them.
+Little bottle of water, little packet of nuts, little window. Everything's tiny.
+The baby in front is waving at me through the seats. Hello, baby.
+I fell asleep with my mouth open. Somebody tell me I didn't.
+We're descending. Everybody's suddenly very awake and very quiet.
+The lady next to me has told me her whole life story. Lovely life.
+Turbulence! I'm fine. I'm absolutely fine. I'm holding the armrest for fun.
+The landing gear's down. Hear that thump? Almost home.
+I love flying at night. The cities below look like spilled glitter.
+I've got the middle seat. I've claimed both armrests. Small victories.
+The safety card says 'remain calm'. I'm trying. I've read it six times.
+The plane smells like coffee and other people's sleep.
+I can see the Ferris wheel from up here. And it's stopped at the top. Of course.
+My knees are touching the seat in front. We've become one.
+Welcome to Maple Bay, says the pilot. It's raining, says the window.
+@ venue.mall
+Meet me by the fountain. The mall fountain. The one that works.
+I've walked ten thousand steps in the Galleria. All shopping.
+The food court's got everything. I've tried everything. Now I'm back to pretzels.
+Toy Galaxy's having a sale. The parents are running.
+I came in for one thing and now I'm in Bloom Beauty getting my eyebrows done.
+Kicks has a new sneaker. It lights up. I'm forty. I want them.
+Mall walkers at nine a.m. Fastest grandmas in the state.
+The escalator's my favorite ride. Up, down, up again.
+Pixel Hut's demo console has a line of children and one dad.
+Paper Moon does the best notebooks. I've got forty. I've written in none.
+The Galleria's so big I've lost my partner. He's in Nest & Wire. Obviously.
+Somebody's pushing a cart full of shopping bags. Like a shopping champion.
+Boba from the food court and a sit by the fountain. Perfect afternoon.
+Fern & Frond's plants are so pretty I've adopted three. Again.
+The mall's got a piano player on Saturdays. Very fancy shopping.
+Thread & Co. Outlet's got a sale. Racks everywhere. Elbows out.
+Kids on the mall's coin-op horse. It's been there since I was a kid.
+The mall smells like cinnamon, perfume and new shoes.
+Wheel House has a bike in the window that I visit like a museum piece.
+I've been in the changing room for twenty minutes. Nothing fits. Everything fits wrong.
+The food court K-BBQ smells so good I've given up my diet. Again.
+Toy Galaxy's arcade cabinets are beeping and flashing. I'm a child again.
+Bags in both hands, bags on my arm, bag on my head. Shopping victory.
+Somebody's having their birthday party in the food court. Balloons everywhere.
+The mall elevator has glass walls. I'm going up just to look down.
+Taco stand in the food court does a breakfast taco. At three p.m. I support it.
+The pretzel kiosk woman knows my order. Large. Extra salt. Shame.
+Mall security on a scooter. Very serious. Very slow.
+Nest & Wire's got a lamp shaped like a cloud. I'm getting it. I need it.
+Everyone's sitting on the benches with bags, looking tired and happy.
+@ venue.cinema
+Popcorn, large. Salted and sweet. Mixed. I'm a complicated person.
+The trailers are the best part. Don't tell the film.
+Phones off, everyone. Unless you're the person next to me. Then double off.
+Somebody's eating chips in the quiet bit. Crunch. Crunch. During the kiss.
+I'm going to cry. I always cry. Pass the tissues. And the popcorn.
+The seats here are red velvet. Like sitting in a cake.
+Back row or front row? Middle. Middle-middle. The perfect seat.
+I've seen this film four times. I still gasp at the twist.
+The projector's whirring. That's how you know it's a real cinema.
+Two-for-Tuesday. I brought myself twice. I had two popcorns.
+The usher's got a little flashlight. Very important flashlight.
+Captain Pigeon! My son's favorite. Third time this week. Kill me.
+Somebody's laughing at the wrong bits. It's infectious, though.
+The Last Ferry's back on. The whole town cries at the ending. Every year.
+Credits rolling. Nobody's moving. Is there a bit after the credits?
+The film started and the whole room went 'shh' to nobody.
+I snuck in my own snacks. In my coat. Like a spy. A snack spy.
+Is that a seat? Is anyone sitting there? It's dark. I'm whispering at a coat.
+The Orpheum's ceiling has painted stars. Better than half the films.
+Somebody's on a first date in row G. They've both reached for the popcorn. Cute.
+The sound's so loud my ribs are vibrating. Good film.
+Interval! Run to the restroom! Run to the snacks! Run!
+I always stay for the credits. To see who did the catering.
+Maple & Moon's the romantic one. Couples everywhere. Holding hands. Sticky hands.
+The floor's sticky. It's been sticky since 1972. Heritage stickiness.
+Signal 9's the scary one. I watched it through my fingers.
+The popcorn machine's been popping since the lobby opened. The smell. The smell!
+Old films on Sundays. Black and white. People in hats. Very romantic.
+The ticket lady tore my ticket in perfect half. Precise.
+I love the moment the lights go down and everyone's quiet together.
+@ venue.concert
+The oboe's playing the tuning note. Everyone's following. Like ducks.
+Don't clap between movements. I clapped. Everyone looked. I'm a rebel.
+The conductor's hair is magnificent. Like a cloud with opinions.
+Programme says forty minutes. I've brought mints for forty minutes.
+The cellos are my favorite. They sound like a warm bath.
+Somebody's asleep in row M. Snoring in time with the bassoon.
+The timpani made me jump. I've spilled my mint.
+Snow on Maple Street makes me cry every winter. It's about home.
+The violins are moving like a field of wheat in the wind.
+I've got goosebumps. Look at my arm. That's the strings.
+The interval champagne is very small and very expensive. Worth it.
+I'm not a music person, but this is making me feel very… person.
+The pianist just did something with both hands that shouldn't be possible.
+The harpist is so calm. Like she's in a different, softer world.
+Standing ovation! Everyone's standing! I'm standing! My knees aren't!
+The triangle player waited forty minutes for one ding. Perfect ding.
+Overture to a Bright Morning. I felt like I'd had a coffee.
+Who coughs during the quiet bit? Someone always coughs in the quiet bit.
+The chandelier's sparkling with the music. Or I'm crying. Both.
+I love watching the conductor's face. Like he's tasting the music.
+My mom brought me here when I was six. Now I bring her.
+The brass section's having a great night. The whole hall's buzzing.
+Encore! Encore! They're coming back! I knew they'd come back!
+The first violin's bow broke a hair. She's still going. Hero.
+Harbour Lights Waltz. Everyone in the hall's swaying a little. Like boats.
+The flute solo was so quiet the whole hall held its breath.
+I don't know when to clap, so I watch the lady with the pearls.
+Velvet seats, gold boxes, and a man in the balcony conducting along.
+The music's still in my ears. I'm going to hum all the way home.
+The orchestra bowed and I felt like I should bow back.
+@ venue.theatre
+The curtain's moving. Somebody's peeking out. The actors are nervous too.
+I've got a seat behind a pillar. I'm watching the pillar. Very good pillar.
+The Understudy! It's about an understudy. The understudy's on tonight. Very meta.
+Programme, please. Thank you. I'll read it in the dark like a mystery.
+The lead actor's voice could reach Hillcrest without a microphone.
+Interval ice creams! Little tubs with little spoons! Best part!
+Somebody's mouthing along to every line. Superfan in row F.
+Platform Six made me cry. A play about waiting for a train. In this city!
+The set's beautiful. They've built a whole street. With a broken fountain. Ha!
+Maple Bay My Bay. The audience sings the last song. Everyone knows it.
+Shh, it's starting. Unwrap your candy now. Not during. Now.
+The actor forgot his line. Somebody whispered it from the wings. We all heard.
+Curtain call! Bow! Bow again! They keep bowing! We keep clapping!
+The theatre smells like velvet and old dust. My favorite smell.
+I'm here for my niece. She's the third tree from the left. She's wonderful.
+The balcony's so steep I'm holding the rail like it's a ship's.
+Someone's phone went off. The actor paused. Looked. Carried on. Legend.
+The stage manager's in black, running like a ninja with a lamp.
+The play's in two acts. My bladder's in one.
+The dancing in the second act made the whole front row gasp.
+The villain's so good I booed. Out loud. He bowed at me.
+Lights dimming. That magic moment. Everybody's breath catches.
+The orchestra pit's tiny. Four musicians and a lot of heart.
+The costume on the lead's got a thousand sequins. I can see them from here.
+I've seen it three times. I still laugh at the gull joke.
+My date's crying at the sad bit. I'm crying at my date crying.
+The playhouse's red curtains look like a giant theatre cake.
+Somebody's sneaking out early to beat the crowd. Coward. Smart coward.
+I love when the actors come out into the audience. I hide. They find me.
+The applause is so loud the chandelier's shaking.
+@ venue.museum
+Do not touch the dinosaur. I touched the sign. Does that count?
+This painting's of a bowl of fruit. I'm hungry now. Thanks, art.
+The audio guide's voice is so soothing. I'd follow it into the sea.
+Look at the brushstrokes! Look at them! I can't paint a fence.
+Somebody's sketching the statue. The statue's very still. Perfect model.
+This vase is three thousand years old. My vase is three days old and already chipped.
+The kids' trail has a stamp at every room. I've got eight. I'm thirty-five.
+I don't understand modern art. I love it, though. It's all feelings.
+The museum's so quiet. Only footsteps and whispers and the odd 'wow'.
+The whale skeleton's my favorite. Floating, like it's still swimming.
+The harbor history room has the old ferry bell. You can ring it. Once.
+I've been in one room for an hour. It's a room of clocks. They all tick.
+The guard's been here so long he knows which paintings are moody on Tuesdays.
+Is this art or a fire extinguisher? It's a fire extinguisher. Good, though.
+The gift shop sells the painting as a tea towel. I'm buying the tea towel.
+The museum café does a scone the size of a fist. Culture and carbs.
+Somebody's leaning very close to a painting. The alarm's about to sing.
+A school trip's doing a scavenger hunt. They've found the mommy. Screaming.
+There's a room of old maps. The bay was a different shape. Same lighthouse.
+The sculpture garden's got a bench that's also a sculpture. I'm sitting in art.
+The fossils are older than anything. Older than the fountain's repair sign.
+I love the bit with the old streetcar ticket machine. Clunk-clunk. History.
+My kid asked if the knights were real. I said yes. He's now a knight.
+The portrait's eyes follow you. I've moved three times. Still following.
+The audio guide skipped ahead and now I'm in the wrong century.
+The museum's free on Thursdays. Thursdays I'm very cultured.
+There's a painting of the Great Fog. It's just gray. It's very accurate.
+I've touched nothing. My hands are in my pockets. For safety.
+Somebody's crying in front of a landscape. Happy crying. Art does that.
+The donations box is a glass whale. You drop your coin in its mouth.
+@ venue.conservatory
+It's so warm in here my glasses fogged up. Hello, tropics.
+The butterflies are everywhere! One's on my hat! Don't move! Don't breathe!
+The koi are following my shadow. They think I've got food. I have, actually.
+The waterfall room's so loud and so green. I've forgotten about my emails.
+Look at the size of that lily pad! A duck could have a party on it.
+The orchids smell like vanilla and fancy hotels.
+The cactus room's dry and quiet. Like a desert library.
+I'm on the guided tour. Wendell knows the Latin name for everything.
+Somebody's sketching an orchid with incredible patience.
+The misters just went off. I'm damp. I'm happy. I'm a fern now.
+The flower show's chrysanthemums this season. Like fireworks made of petals.
+I'm sitting on the bench by the koi pond. I'm never leaving. Mail me here.
+Fed the koi. They all came at once like a golden wave.
+The palms touch the glass roof. They want out. I want in. We're opposites.
+I made my wish at the lily pool. Twenty-five cents. I wished for a greenhouse.
+The grotto's got ferns so soft you want to stroke them. You're not allowed.
+The head gardener's watering in a sun hat. Indoors. Commitment to the look.
+The butterfly room's got a sign: 'check yourself for hitchhikers'. I've got two!
+I bought a seedling in the gift shop. It's tiny. I'll love it forever.
+This place smells like rain on soil. My favorite smell.
+The glasshouse café scone was so good I'm going back for another.
+The plaques have facts. Did you know that plant eats flies? I'm keeping my distance.
+I come here every winter to remember what summer feels like.
+My grandmother's naming every plant. She's right about all of them.
+The kids are counting koi. They've got to forty. There are fourteen.
+The air's so thick and green you can almost drink it.
+Somebody's photographing a butterfly. Thirty photos. One's perfect.
+The stream runs through the whole palm house. Little bridges. Little fish.
+I've walked round twice. Something new both times.
+The glass roof makes the rain sound like the world's softest drum.
+@ venue.observatory
+The dome's opening! Hear that rumble? We're opening the sky!
+Let me look! Let me look! Oh, it's a cloud. A lovely cloud.
+That's Saturn. With the rings. It looks fake. It's so real it looks fake.
+The astronomer talks about stars like they're old neighbors.
+The telescope's colder than my hands. And my hands are very cold.
+The red lights in here make everyone look like they're in a submarine.
+I looked at the moon and saw a crater. And then my own eyelash. Again.
+The kids are asking if there are aliens. The astronomer says 'probably'. Uproar.
+Somebody's brought cocoa to share. The universe is kind tonight.
+The star charts on the wall are older than the city. Same stars, though.
+Wait your turn. It's the moon. It's not going anywhere. It goes round, actually.
+I saw a shooting star through the slit in the dome. Wished really fast.
+The telescope's so big it has its own staircase.
+The planetarium show made me feel tiny and somehow fine about it.
+Jupiter's got moons! Four little dots! I've got goosebumps.
+I've never been this quiet in a room full of people. Everyone's in awe.
+The gift shop sells glow-in-the-dark stars. I'm making my ceiling a galaxy.
+The dome's turning. It sounds like a ship's anchor going up.
+The guide said some of these stars might not exist anymore. I need a minute.
+My son wants to be an astronaut. My daughter wants to be a star. Literally.
+It's freezing up here. Worth it. The sky's worth it.
+I asked which star is ours. The guide pointed at the sun. Fair.
+The old brass telescope's in a glass case. It looks like it's dreaming.
+A comet comes back every seventy-six years. I'll be a hundred. I'll be here.
+The astronomer's sweater has a planet on it. Of course it does.
+Everyone gasped at the same time. That's the Orion Nebula. Pink clouds in space.
+The observatory cat is called Comet. She sleeps on the warm projector.
+The sky's so clear tonight you can see the Milky Way. Even from the city.
+Somebody's naming every constellation. Some are made up. 'That's the Big Spoon.'
+I look up and feel very small. Then I have a cookie and feel normal.
+@ venue.skydeck
+The whole city looks like a toy set. Look, a tiny bus! Probably the 14!
+I'm standing on the glass floor. I'm fine. I'm not fine. I'm fine.
+You can see the lighthouse, the airport and my mom's house from here.
+My ears haven't popped back. Everything sounds like it's underwater.
+The telescopes cost nothing up here! The city's best secret!
+Cloud Nine bar does a cocktail with a sparkler. Very high-altitude fancy.
+Someone's proposing by the window with the whole bay behind them. Unfair to everyone.
+The clouds are below us. Below us! We're above the weather!
+The wind's whistling against the glass like it wants to come in.
+I can see the Ferris wheel. It's stopped at the top. From up here, that's a dot.
+Everyone's pressed against the glass like kids at an aquarium.
+The sunset from up here takes forever. Nobody's complaining.
+I've found my apartment! There! With the green door! No, that's a tree.
+The gift nook sells a snow globe of the SkyDeck. With fog instead of snow.
+My knees are shaking. I'm standing very still. Admiring. Not panicking.
+The plaques tell you what you're looking at. There's the fountain. Still dry.
+At night the city's all lights. Like the stars fell down and stayed.
+The photo spot's got a line. Everyone's doing the same pose. Arms out.
+Look how small the boats are! And the cranes! Like toothpicks!
+Somebody's asleep on the bench. Highest nap in the city.
+From up here the trains look like a necklace somebody dropped round the city.
+My daughter's counting planes. She's at nine. We'll be here all day.
+I came up for the view and stayed for the snacks.
+The fog's rolled in and we're above it. Like being on a cloud island.
+I can't see my house, but I can feel it. Somewhere down there.
+The elevator down's as fast as the elevator up. My stomach's still upstairs.
+The tower sways a tiny bit. They say it's normal. I've chosen to believe.
+Everyone up here is whispering. Like the city might hear.
+From here you can see how the river cuts the city in two. Like a ribbon.
+I've been to the top of every tower in the world. This one's got the best gulls.
+@ venue.clinic
+(whispering) The waiting room magazines are from three summers ago.
+Number seventeen? I'm nineteen. So close. Yet so far.
+The nurse gave me a lollipop. I'm forty-six. I'll treasure it.
+The receptionist's so kind I want to tell her my life story.
+Somebody's coughing in a very dramatic way. Oscar-winning cough.
+The fish tank in the waiting room's very calming. One fish is having a day.
+Doctor's running late. I've read every poster. I know all about knees now.
+I'm here for my check-up. I've been flossing all week. They'll know.
+The chairs are all joined together. Like we're in this together.
+I filled in the form. 'Reason for visit': my mom made me.
+The children's corner has a toy that beeps. It's been beeping for an hour.
+Nurse Samira knows everyone by name. Even the hypochondriacs. Especially them.
+The waiting room plant's thriving. Healthiest thing in here.
+Blood test. I'm looking away. I'm looking at the ceiling. Nice ceiling.
+The doctor said 'nothing to worry about'. I've been worrying for a week.
+The clinic smells like hand gel and patience.
+A kid just got a sticker for being brave. I'd like a sticker too.
+Somebody's sneezed seven times in a row. We're all counting.
+I've been told to drink more water and walk more. Again.
+Flu jab. Didn't feel it. Felt very brave afterwards. Hero arm.
+The radio in the waiting room's playing soft rock. Soothing. Mostly.
+There's a sign that says 'Please be patient'. Very fitting for patients.
+The doctor's handwriting is a secret code. The pharmacist can read it. Magic.
+I've brought a book. I'm going to finish the book before I'm called.
+A toddler's waving at everyone in the waiting room. We're all waving back.
+The nurse's shoes squeak. You always know she's coming.
+The clinic's got a jar of lollipops at the desk. For all ages, the sign says.
+My appointment's at three. It's three-forty. I've learned to breathe.
+Somebody's knitting in the waiting room. A whole sleeve so far.
+The receptionist says 'bless you' before you've finished sneezing.
+@ venue.bank
+I'd like to deposit a check. Yes, a check. Yes, they still exist.
+The bank pen's on a chain. Like it might escape. It wanted to escape.
+The line rope makes me feel like I'm at a theme park. A boring theme park.
+I've come to ask about a loan. I've practiced my 'responsible adult' face.
+The bank's so quiet. Everyone whispering about money like it's a secret.
+I've filled in the form wrong. Three times. They've got more forms.
+The marble floor's so polished I can see my bank balance in it.
+The man in front's counting coins. One by one. A whole jar.
+I've got a meeting with my 'personal banker'. I didn't know I had one. Lovely man.
+The bank clock's gold. Even the clock's got money.
+Somebody's opening an account for their kid's first savings. The kid's very serious.
+The cashier calls everyone 'sir' or 'madam'. I feel very grand.
+The interest rate's gone up. Or down. One of those. I nodded.
+I'm here to change my address. It's the bank's favorite thing. Forms forever.
+The bank's got a free candy jar. I'm saving money. And sugar.
+The security guard's been here thirty years. He knows every pen thief.
+I just want to talk to a human. Not the machine. A human. Hello, human.
+The waiting area's got leather chairs. Very serious chairs.
+Bay Bank's app is fine, but I like the lady at window three.
+My bank card's been eaten by the machine. It was hungry, apparently.
+Mortgage advice. I've got a lot of questions and very few answers.
+The bank smells like old paper, new carpet and other people's anxiety.
+I'm depositing my coin jar. I'll be here a while. Make yourselves comfortable.
+The bank's got a big window that looks onto the street. Nice view while you're broke.
+There's a fish tank in the manager's office. The fish look richer than me.
+The bank's stone columns make me stand up straighter.
+I asked the teller what the best savings plan was. She said 'don't buy coffee'. No.
+Somebody's arguing about a fee. Politely. Very politely. Bank arguing.
+Line numbers! I'm forty-two! It's like a deli for money!
+The teller said 'have a nice day'. I will now. She meant it.
+@ venue.laundromat
+Washer number six eats socks. Everybody knows. Nobody uses six.
+I'm folding my clothes very neatly. Somebody's watching. Pressure.
+The dryers sound like a big warm heartbeat.
+Somebody left their wash in the machine. It's been an hour. Do I move it?
+The soap machine took my coins and gave me nothing. Laundry heartbreak.
+I come here to read. The laundry's an excuse. The hum's lovely.
+Somebody's doing a whole week of baby clothes. Tiny socks everywhere.
+I put a red sock in with the whites. Everything's pink now. I'm pink now.
+The folding table's got a dent where everyone leans.
+The laundromat's warm, bright and smells like clean. Best place in winter.
+Washer seven's door sticks. Kick it, gently, on the left. There.
+I've been watching my socks spin for ten minutes. It's very hypnotic.
+Somebody's got their whole duvet in a machine. Ambitious.
+The laundromat's got a noticeboard. Guitar lessons, lost cat, a free sofa.
+I've lost one sock. Every time. Where do they go? A sock dimension?
+Two people folding shirts side by side. Not speaking. A beautiful silence.
+The dryer's ten minutes for a quarter. Ten minutes of pure warmth.
+The owner knows everyone's laundry day. 'Tuesday! Your usual?'
+Somebody's playing music from their phone. Folding to the beat.
+I fell asleep on the chairs. My dryer finished an hour ago. Warm nap.
+The vending machine sells soap, chips and fabric softener. Everything you need.
+I love the smell of a dryer sheet. I've put one in my pocket.
+Someone just found a twenty in their jeans after the wash. Celebrations.
+I'm doing my roommate's laundry. Don't tell him. He'll expect it.
+The washers are all numbered. I always pick lucky number three.
+There's a cat that sleeps on top of the warm dryers. The laundromat cat.
+A man's ironing his shirt on the folding table. Very determined.
+The spin cycle's shaking the whole floor. Feels like a tiny earthquake.
+I'm here every Sunday. The laundromat crowd's my church.
+Somebody's poetry reading at the laundromat. In between spin cycles. Very modern.
+@ venue.salon
+Just a trim, please. Just a little. Just the ends. Not too much. Okay, go.
+I said 'surprise me'. I'm surprised. I'm very surprised.
+The hairdresser knows all my secrets. She's very discreet. Mostly.
+The hair dryer's so loud I'm agreeing to everything. Highlights? Yes!
+I've been under the dryer so long I've read every magazine.
+Somebody's getting a bob. Bold. Brave. I support them.
+The barber's talking about baseball. I'm nodding. I know nothing about baseball.
+I'm getting my nails done. Maple red. For the season.
+The scissors are snipping so fast. Like a tiny crab.
+Does it look shorter? It feels shorter. It looks… shorter.
+The salon smells like shampoo and possibility.
+I've brought a photo of what I want. The hairdresser's laughing. Kindly.
+The barber did a hot towel. I'm a new man. A steamed new man.
+Somebody's had their hair dyed blue. It's fantastic. I'm next.
+The head massage at the sink is the best part. I'd pay just for that.
+I've been coming here twenty years. Same chair. Same chat. Same haircut.
+The nail polish wall's got a hundred colors. I've chosen clear. Again.
+The hairdresser asked me if I'm going anywhere nice. I'm going home. Nicely.
+My bangs is very short. I'll grow it. It'll grow. Right? It'll grow.
+The barber's pole outside spins all day. I find it very calming.
+Somebody's getting their beard trimmed into a shape. A very precise shape.
+I asked for a 'tidy up'. I've come out with a whole new personality.
+The salon gossip is better than the Gazette.
+I love the mirror after a blowdry. I look like a shampoo advert.
+The pedicure chair's got a massage setting. I'm never getting up.
+The stylist's assistant swept my hair into a pile. That's my old life.
+The magazines are all about celebrity weddings. I'm reading every one.
+Fresh cut, fresh me. Watch out, city.
+I'm getting my eyebrows done. I've been told I look 'permanently surprised'.
+The barber's radio is playing old songs. Everybody's humming.
+@ venue.restroom_queue
+How long can one person take? Oh. That long. Okay.
+The line for the ladies goes round the corner. The gents? Empty. As always.
+I'm doing a little dance. It's not a dance. It's urgency.
+Somebody's been in there so long. Are they okay? Are they reading?
+I've been holding it since the interval. I'm a hero.
+The hand dryer sounds like a jet engine. Very dramatic drying.
+Out of toilet paper. Again. Somebody tell the management. Somebody tell the world.
+I should've gone before I left the house. My mom was right.
+The sign says 'Out of order'. Both cubicles. It's a crisis.
+There's a line for the line. I'm in the pre-line.
+The lock's broken. I'm holding the door with my foot. Athletic.
+The tap's one of those motion ones. I'm waving at it. It's ignoring me.
+I've had three coffees. I'm regretting all three.
+Somebody's doing their makeup at the only mirror. Very thorough. Very slow.
+The soap smells like lemons and promises.
+The baby-changing table's down. Somebody's changing a diaper at speed.
+The hand towel's a roll that only goes one way. Down. Forever.
+Excuse me, are you in the line? Or just standing? Very important difference.
+I'm counting the tiles to distract myself. Fourteen, fifteen… hurry up…
+The ladies' room has a sofa. Why? Who's lounging in here?
+The interval's ten minutes. The line is twenty. The math doesn't work.
+Somebody's singing in the cubicle. Quite good, actually.
+The automatic flush went off while I was still sitting. Rude.
+Is there a key? There's a key. It's on a giant spoon. Of course it is.
+I'm next! I'm next! I've never been so excited to be next.
+The poster on the back of the door is about hand-washing. I'm learning.
+Somebody's mom's guarding the door for a toddler. Very fierce mom.
+The line's moving. Slowly. Like the 14.
+Ladies, there's a free one at the end! Everyone run!
+I'm just going to cross my legs and think about deserts.

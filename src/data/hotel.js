@@ -19,7 +19,7 @@ export const NAME = 'The Grand Maple Hotel', REST_NAME = 'The Gilded Maple', BAR
 export const TIERS = [
   { id: 'classic', name: 'Classic Room', price: 120, no: '704', sleep: 13, blurb: 'A proper bed, a deep armchair and a window over the avenue.' },
   { id: 'bay', name: 'Bay View Deluxe', price: 190, no: '709', sleep: 14.5, blurb: 'A corner room: king bed, a sofa and the whole bay in the window.' },
-  { id: 'suite', name: 'The Maple Suite', price: 320, no: '801', sleep: 16, blurb: 'Sitting room, four-poster, claw-foot tub. The one the film stars ask for.' },
+  { id: 'suite', name: 'The Maple Suite', price: 320, no: '710', sleep: 16, blurb: 'Sitting room, four-poster, claw-foot tub. The one the film stars ask for.' },
 ];
 export const PRICE = { spa: 25, massage: 45, buffet: 14, brunch: 24, tea: 18, dinner3: 38, dinner5: 62, mix: 9, klass: 10, gala: 40, request: 2, late: 30 };
 export const HOURS = { bar: [16, 25], spa: [7, 21], gifts: [8, 22], breakfast: [6.5, 10.5], brunch: [10.5, 14], tea: [14, 17], dinner: [18, 22.5] };

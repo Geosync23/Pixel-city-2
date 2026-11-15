@@ -24,6 +24,7 @@ import { GT } from '../engine/world.js';
 import { VENUE_BY_ID, isOpen } from '../data/venues.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { X, Cit, rnd, ri, pick, rr, onScreen, okCell, dirOf, walkTo, getSpec, clearSpecs, registerTalk, ambientLine, speak } from './_crowd_core.js';
+import { playerStates, duet } from './_crowd_lines.js';
 import { buildNet } from './_crowd_net.js';
 import { initAnimals, updateAnimals, leash, animalCount, clearAnimals } from './_crowd_animals.js';
 import { initRooms, updateRooms, reserve, release, roomCount, roomCits, roomInfo } from './_crowd_rooms.js';
@@ -300,11 +301,20 @@ function env() {
   X.dk = world.districtAt(X.fx, X.fy) || 'maplewood'; X.dens = density(X.dk);
   target = Math.min(CAP, Math.round(X.dens * (G.W + 2 * M_SPAWN) * (G.H + 2 * M_SPAWN) / 60000));
 }
+let stillT = 0, lastState = -99;
 function chatter() {
-  if (G.cutscene || G.player.hidden) return; const n = pool.length, s0 = ri(n); let best = null;
-  for (let k = 0; k < n; k++) { const c = pool[(s0 + k) % n]; if (!c.active || c.alpha < 1 || c.hold > 0 || !onScreen(c.x, c.y, -24)) continue; if (c.chat || (c.st === STATIC && c.kind !== 'bench' && c.kind !== 'busker')) { best = c; break; } if (!best && (c.st === STATIC || c.st === XWAIT || c.kind === 'jogger' || c.kind === 'carrier')) best = c; }
+  if (G.cutscene || G.player.hidden) return; const n = pool.length, s0 = ri(n), p = G.player; let best = null, nearC = null, nd = 1e9;
+  for (let k = 0; k < n; k++) { const c = pool[(s0 + k) % n]; if (!c.active || c.alpha < 1 || c.hold > 0 || !onScreen(c.x, c.y, -24)) continue; const d = Math.hypot(c.x - p.x, c.y - p.y); if (d < nd) { nd = d; nearC = c; }
+    if (best && (best.chat || best.st === STATIC)) continue; if (c.chat || (c.st === STATIC && c.kind !== 'bench' && c.kind !== 'busker')) best = c; else if (!best && (c.st === STATIC || c.st === XWAIT || c.kind === 'jogger' || c.kind === 'carrier')) best = c; }
+  // someone right next to the player may react to the player (owner msg 79): bumped into, stared at, or a visible state (smelly, soaked, in pajamas...). Same bubble slot, no extra bubbles.
+  if (nearC && G.time - lastState > 18) {
+    const st = nd < .7 && X.pmove ? 'bumped' : nd < 1.4 && stillT > 6 ? 'staring' : null;
+    if (st) { lastState = G.time; return void speak(nearC, ambientLine(nearC, { state: st })); }
+    if (nd < 5 && rnd() < .5 && playerStates().length) { lastState = G.time; return void speak(nearC, ambientLine(nearC, null)); }
+  }
   if (!best) return; const c = best, a = c.anchor, ev = a && a.t === 'event' ? a.ev : evs.length && rnd() < .4 ? evs[0] : null;
-  speak(c, ambientLine(c, ev ? { event: EV_LINES[ev.id] } : c.kind === 'queue' ? { venue: 'queue' } : c.kind === 'bus' ? { venue: 'transit' } : c.kind === 'jogger' && rnd() < .6 ? { reaction: 'running' } : c.kind === 'carrier' && rnd() < .6 ? { reaction: 'carrying' } : null));
+  if (c.chat && c.mate && c.mate.active && !ev && rnd() < .55) { const d = duet(c, { kind: c.kind }); if (d && speak(c, d[0])) { const m = c.mate; setTimeout(() => { if (m.active && G.scene === X.city) speak(m, d[1], true); }, 1900); return; } }
+  speak(c, ambientLine(c, ev ? { event: EV_LINES[ev.id], eventId: ev.id } : c.kind === 'queue' ? { venue: 'queue' } : c.kind === 'bus' ? { venue: 'transit' } : c.kind === 'jogger' && rnd() < .6 ? { reaction: 'running' } : c.kind === 'carrier' && rnd() < .6 ? { reaction: 'carrying' } : c.st === XWAIT ? { kind: 'crosswalk_wait' } : null));
 }
 
 /* ---------- setup / update ---------- */
@@ -333,6 +343,7 @@ function update(dt) {
   if ((manageT -= dt) <= 0) { manageT = .22; manage(); }
   for (let i = 0; i < pool.length; i++) { const c = pool[i]; if (c.active) step(c, dt); }
   updateAnimals(dt);
+  stillT = X.pmove ? 0 : stillT + dt;
   if ((bubT -= dt) <= 0) { bubT = rr(5, 10); chatter(); }
 }
 

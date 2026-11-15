@@ -1,0 +1,279 @@
+@ general.phone_calls
+No, Mom, I'm eating vegetables. Define vegetables. Okay, I'm eating a muffin.
+Yes. Yes. No. Yes. Okay, love you, bye. Bye. Bye-bye. Bye.
+Can you hear me now? How about now? I'm standing on a bench. Now?
+Hi, it's me. I'm outside. No, the other outside.
+Tell Grandma I said hi. No, louder. She's not wearing the ear thing.
+Did you feed Brenda? You have to feed Brenda. She gets moody.
+I'm on the 14. Well, I'm at the stop for the 14. Spiritually on it.
+No, I didn't say I hated it. I said it was 'a lot'. That's different.
+I'll be there in five. Ten. Fifteen tops. Start without me.
+Wait, you're at the Heron? Which Heron? There's only one Heron. I'm coming.
+Uh-huh. Uh-huh. And then what did she say? No! She did not!
+Sorry, you're breaking up. I'm going under a bridge. No, I'm not. Bye!
+Babe, did we want the big pumpkin or the sensible pumpkin?
+I'm not crying, I'm at the onion stall at the market. Different thing.
+He said what? About the fountain? He doesn't know anything about the fountain.
+Can I call you back? A gull is looking at my sandwich.
+No, I'm fine. I'm fine! Is anyone ever fine? I'm fine-ish.
+Hold on, I'm getting another call. It's you. You're calling me twice.
+Dad, the phone is upside down. Turn it round. No, the other round.
+Yes, I watered the plants. Most of them. The fern is between us now.
+You're on speaker. Say hello to the whole street.
+I'm telling you, it was the Gilded Gull's gull. He had a whole lobster.
+What do you mean the meeting's been moved? To when? To now? I'm in a park!
+Mm-hm. Mm-hm. I hear you. I do. I'm also buying a pretzel.
+I can't talk long, I'm about to walk into a tunnel of emotions.
+Okay but what did the vet actually say? 'He's dramatic'? I knew it.
+Listen, listen. I've found the perfect apartment. Fifth floor. No elevator.
+Did you get my voice note? The six-minute one? Listen to the end, it's important.
+Mom, it's a city, there are lots of people, I'm not going to 'meet' all of them.
+We're out of milk, bread, eggs and hope. Pick up whichever's on offer.
+No, I'm not avoiding you. I'm avoiding the phone. You're just on it.
+Yes, it's raining here too. It's the same sky, Grandma. We share it.
+Oh my gosh, you got the job? At the Galleria? Free pretzels for life?
+Can you put the dog on? Hi, Biscuit! Who's a good boy? Is he wagging?
+I don't know what I want for dinner. That's why I called you.
+I'm outside the Orpheum. They're showing the one with the ferry. Come now.
+Wait. Wait. Say that again slower. Somebody fixed what?
+She said she'd text me. It's been eight minutes. Should I be worried?
+No, I can't come to the barbecue, I've got a thing. The thing is my sofa.
+Hey, it's me again. Sorry. Forgot what I called about. It'll come to me. Bye.
+Tell your brother if he borrows my jacket again I'm taking his bike.
+Grandpa, you don't need to shout, the phone does the distance part.
+Of course I remembered your birthday! I'm on my way to get… the surprise.
+Did you lock the door? Okay. Did you lock the other door? We have two doors.
+I'm in line at Rise & Shine. Do you want one thing or the usual three things?
+Hold the cab! No, I'm talking to you, Manny, hold the cab!
+Yes, we can video call. No, I'm not fixing my hair first.
+You're really moving to Hillcrest? Good luck with the stairs. Bring snacks.
+Hi! Wrong number? Oh. Well. Have a lovely day anyway.
+I can't hear you over the accordion. No, there's a man. Never mind.
+Love you. Yes. More. Okay, the most. You win. Bye.
+@ general.complaints
+They've changed the bread at the corner shop and I am not ready.
+Why are there forty kinds of milk and none of them is the one I want?
+My umbrella turned inside out and took my dignity with it.
+Who designs a pedestrian light that lasts four seconds? An athlete, that's who.
+The shop's moved the jam aisle. I've lost a whole minute of my life.
+My neighbor's wind chime has opinions at three in the morning.
+Every pair of jeans I own has decided to shrink. Together. A conspiracy.
+I asked for 'a little foam'. I've got a cloud. A whole weather system.
+The elevator in my building plays music. It's always the same eleven seconds.
+Self-checkout said 'unexpected item'. It was my hand.
+My phone charger works only if I hold it like a newborn.
+Who puts raisins in a cookie and calls it a treat? Who hurt them?
+There's a cobble on Market St with my name on it. It trips me daily.
+I get the one shopping cart with the wonky wheel. Every time. It finds me.
+My toaster has two settings: bread and charcoal.
+They've put the price of a croissant up again. I'll pay it. I'm angry, but I'll pay it.
+I opened a new sponge and it's already given up.
+My radiator is either off or the surface of the sun.
+The ice cream truck drove right past me. Didn't even slow down. Personal.
+Whoever invented fitted sheets owes me an apology and an afternoon.
+The weather app said 'pleasant'. It lied. I'm moist.
+My building's front door sticks. I have to hip-check it. Every day.
+Somebody keeps stealing the good pen at the bank. I know it's the same person.
+I bought a 'family size' bag of chips. I live alone. It's gone.
+The vending machine took my dollar and gave me a long silence.
+They keep calling it 'light drizzle'. It's water. Lots of it. Sideways.
+My favorite café changed its chairs. They wobble now. My whole life wobbles.
+The recycling rules changed again. I need a degree for yoghurt pots.
+My shoelaces come undone every block. I've tied them in a sailor's knot. Still.
+Why is there always one sock left in the washer? It's a hostage situation.
+I asked for no ice. I got ice. I got so much ice. I got a glacier.
+My neighbor parks his bike in the exact center of the hallway. Like a sculpture.
+Every fitting room mirror is from a different universe. None of them like me.
+I waited twenty minutes for a table and they put me by the door. The drafty door.
+My key works on every lock except my own.
+There's a crack in my phone screen right where the clock is. I live in mystery.
+The leaves blew back onto my path. I'd just swept. They waited for me to finish.
+Someone keeps taking my parking spot for my bike. It's a lamp post. It's my lamp post.
+I've got a stone in my shoe and I'm too stubborn to stop.
+Somebody on my street has a car alarm that sings. Badly. At dawn.
+I put my coffee down for one second and now it's cold. One second!
+The bakery ran out of plum tarts at nine. Nine! Who's eating tarts at nine?
+My upstairs neighbor tap-dances. I've asked. He says he's 'walking'.
+My sweater's itchy, my tea's weak and the 14 is late. Normal Tuesday.
+Why does the coin slot on the laundry machine only like new coins?
+My downstairs neighbor microwaves fish. I've written a poem about it. It's angry.
+The sticker on this apple wouldn't come off. I've eaten the sticker.
+The pigeons have discovered my balcony. They've invited friends.
+My headphones are tangled in a way that defies physics.
+The 'quick five-minute walk' on the map was up a cliff.
+My pen exploded in my pocket. I'm a modern artwork now.
+I ordered small. It's enormous. What is small here? A bucket?
+@ general.gossip
+Did you hear the Taproom's brewing a beer with maple and coffee? Bold.
+Apparently Marigold & Main is getting a chandelier. Another one.
+The woman who runs the Laundromat knows everyone's business. By their socks.
+They say the Paper Crane cook can slice a radish so thin you can read through it.
+Word is Nine Dragons is adding a third dim sum cart. The carts are multiplying.
+Mama Opal's had a line round the block. Somebody said the cornbread changed their life.
+I heard the Halo Donuts neon says HOT NOW even when it isn't. Scandal.
+The barber at Otis & Sons gave my uncle a haircut and a life lesson. Free.
+Somebody's been leaving anonymous poems in the Paper Lantern Books returns slot.
+Rumour is the Symphony Hall conductor practices on the bus. Air baton.
+My cousin says the Lantern Playhouse is doing a musical about ferries. With dancing.
+They say the Rind & The Wheel has a cheese older than me. In a good way.
+Heard the Cold Storage boba place is doing a maple flavor. I'll believe it when I sip it.
+Elm House Bakery's pink cake has a waiting list. For a cake!
+Somebody at the Tea Garden got engaged under the jam wall. Very jammy proposal.
+Did you hear about the parrot at Paws & Whiskers? It says 'sale' when nobody's buying.
+Word on the street is the Spin City DJ is a retired dentist.
+The Smokehouse fired up both smokers at once. You could smell it in Hillcrest.
+I heard the man at Salt & Co. can tie forty knots. Blindfolded. On a bet.
+Someone at the Taqueria said the trompo has a name. They wouldn't tell me it.
+Apparently the Heron's Table has a fish tank that's 'not for eating'. Good to know.
+The lady who runs Bloom & Paper talks to the tulips. They look great, so.
+Black Cat Ink has an actual black cat. It's called Ink. Obviously.
+Somebody saw Mr. Quill from the Gazette at Halo Donuts. Taking notes. On a donut.
+There's a rumour the Lucky Corner lottery ticket that won was bought by a dog walker.
+They say the Conservatory's head gardener knows every plant's birthday.
+The Kettle & Crumb armchairs are so comfy people have been asked to leave. Gently.
+I heard Wax & Wane Records has a record that only plays backwards. Spooky.
+@ general.money
+Rent's due Friday. My wallet has gone into hiding.
+Two-for-one at FreshWay. I now own eight jars of pickles.
+I check my bank app like it's going to surprise me. It never does.
+I'm on a budget. The budget is 'no'. The budget says no to everything.
+I found a coin on the ground and felt like a pirate.
+A dollar for a lemonade? Otis is going to own this city one day.
+I put five dollars in my jacket for future me. Future me says thanks.
+Bought a fancy candle. Now I can't afford to light it. It's decor now.
+Payday is the best day. It's also the shortest day, financially.
+The good coffee costs six dollars. The okay coffee costs five. I'm getting the good one.
+I sold my old bike and bought a better old bike. Basically free.
+My savings account is more of a savings idea.
+I asked the bank for a loan. They asked me what a budget was. Fair.
+My sister owes me twenty dollars from 2017. I'm still counting the interest.
+The farmers' market is cheaper if you go at the end. The tomatoes get desperate.
+I've got a jar for coins. It's mostly buttons and hope.
+Apartment hunting is a contact sport in this city.
+They've added a 'service fee' to the bakery. The service is them being nice. Worth it.
+I priced up an apartment in Hillcrest. I'm going to need a second life.
+My dad gives me money for 'emergencies'. Croissants are emergencies.
+The Galleria sale is on. My willpower is not.
+I'm saving up for a sofa. Right now I own a beanbag with ambition.
+Second-hand stores are the best. Someone else's 'old' is my 'new'.
+I put my change in the busker's hat. He played my song. Best two dollars.
+My landlord's raising the rent. I'm raising my eyebrows.
+Fifty cents in the laundromat drier gets you twelve minutes of hope.
+I bought the cheap umbrella. It lasted one gust. You get what you pay for.
+I check prices like a hawk and then buy the cake anyway.
+My piggy bank is a cat. Ceramic, but judgemental.
+Spent eighteen dollars on cheese at the Rind & The Wheel. No regrets.
+The secret to saving money is not walking past Rise & Shine. Impossible.
+I had a coupon. It expired yesterday. Story of my life.
+Coach Tasha does a free class on Sundays. Free! I'll be watching from the bench.
+I'm so broke I'm borrowing my own clothes back from my sister.
+My bank sends me a cheerful email every month. 'You spent a lot on bakeries.'
+The bus pass is the best money I spend. Even with the 14 being the 14.
+I lent a neighbor a cup of sugar. She brought back a cake. Excellent return.
+I'm treating myself. Small treat. A pastry. Two. Fine, a box.
+I've started a side hustle selling my sourdough. Brenda gets a cut.
+A man gave me exact change at the shop. Exact! I want to marry his wallet.
+Someone left a twenty-dollar tip for a two-dollar coffee. Saw it. Felt it.
+@ general.work
+I got the promotion! Now I have a slightly bigger desk and a much bigger headache.
+My shift ends at six. My soul clocked off at four.
+The new intern brought donuts. The new intern is my favorite person.
+Someone in accounts keeps a plant on every desk. We're a jungle now.
+I'm on a lunch break. I'm going to make it last a lifetime.
+Our team meeting has a meeting before it. To plan the meeting.
+I closed the shop and found a customer still in the changing room. Napping.
+I've told my boss I'm 'circling back'. I don't know where. In circles, probably.
+My job is mostly finding things other people have lost. Mostly staplers.
+New uniform. It's orange. I look like a very helpful pumpkin.
+Delivered forty parcels today. Thirty-nine were for one person. Online shopping.
+Working nights again. I'm basically a friendly owl.
+My boss said 'great job' and I've been smiling for an hour.
+Everyone in the office is wearing a lanyard. We look like a conference forever.
+I've been at this desk so long it knows my moods.
+Customer asked me if the bread was fresh. I said 'fresher than me'. Nailed it.
+I've got a job interview. I've practiced my handshake on a lamp post.
+The coffee machine at work broke. Productivity is down. Tension is up.
+I'm the person who refills the paper tray. Unsung hero.
+Today's my last day before vacation. My out-of-office is a poem.
+Someone in my office bakes bread at lunch. In a little oven. We're all in love.
+If you ever want to feel important, work the till on a Saturday.
+My coworker's been 'on a call' for three hours. I think he's sleeping.
+@ general.love
+First date tonight. I've changed my shirt four times. All blue.
+We met at the laundromat. We have the same socks. Fate.
+My partner and I have been together nine years. We still argue about the map.
+I'm going to ask her out. At the Orpheum. During the ferry film. Romantic, right?
+He brought me a single croissant on our third date. I knew then.
+Our first kiss was under the bandstand in the rain. Very wet. Very good.
+My wife still writes me notes in my lunchbox. Some are threats about the dishes.
+I've got a crush on the guy at the record shop. I've bought nine records.
+I'm going on a date to the Conservatory. If it goes badly, at least there's koi.
+My ex is getting married at the Gilded Gull. I hope the gull steals the cake.
+We've been married forty years. She still laughs at my jokes. Mostly the bad ones.
+I'm writing a love letter. It's mostly about pastry, but she'll get it.
+He proposed at the top of the Ferris wheel. It stopped there. It always stops there.
+Our anniversary is at the Heron's Table. I've been saving since summer.
+We met on the 14 bus. We had a lot of time to talk.
+I said 'I love you' first. She said 'I know'. Very rude. Very cute.
+She taught me to dance in the kitchen. I still step on her feet. She lets me.
+Is it too soon to give him a key? It's been two weeks. It's a spare key.
+My girlfriend wants to adopt a dog. I want to adopt a dog. The landlord wants silence.
+We do Two-for-Tuesday at the Orpheum every week. It's cheap romance. The best kind.
+I'm meeting his parents tonight. I've baked a pie. I've baked three pies, to be safe.
+They've been sitting on that bench holding hands since I walked past an hour ago.
+Got stood up. Ate both desserts. Honestly, a good evening.
+My husband made me breakfast in bed. I'm finding crumbs a week later. Worth it.
+We were childhood sweethearts. Then we weren't. Then we were again. Patience wins.
+I saw a couple dancing at the bus stop. No music. Just them.
+Every Sunday we walk the river path and rate the dogs. Eleven out of ten, always.
+She keeps my hand in her coat pocket when it's cold. That's love, right?
+We broke up but we still share custody of the sourdough.
+Wedding season. I've been to five. I own one suit. It's tired.
+I wrote her name in the frost on the bus window. Very cold. Very romantic.
+He laughs with his whole face. I'd follow that laugh anywhere.
+Our wedding's at the lighthouse. Guests have to climb. It's a test of love.
+I left a note on his windscreen. It said 'you're cute'. Then I panicked and left.
+My grandparents still hold hands on the bus. Goals.
+I asked her to pass the salt and accidentally said 'marry me'. She said 'later'.
+We met at the farmers' market fighting over the last tomato. I let her have it.
+Love is sharing your umbrella and getting wet on purpose.
+@ general.family
+My kid asked if I was alive when the dinosaurs were. I said 'barely'.
+Mom's visiting. She's already rearranged my cupboards. Twice.
+My sister borrowed my car in 2015. I don't drive. I don't know where she got it.
+Family dinner on Sunday. Twelve people, one table, nine opinions.
+My dad tells the same joke every winter. We laugh every time. It's tradition.
+My brother and I aren't speaking. We're texting. In capitals.
+Grandma knits for the whole family. I have seven scarves. All maroon.
+My twins swap names to confuse the teacher. It works on me too.
+My mother calls every Sunday at nine. If I don't answer, she calls the bakery.
+I'm the middle child. I'm used to being in the middle. Of the bus, mostly.
+My daughter's learning to read. She reads every sign. Every single sign.
+Grandpa still calls me 'kiddo'. I'm fifty-three.
+My son's teacher says he's 'a natural leader'. He bosses the cat.
+My aunt sends me newspaper clippings in the mail. About things I could catch.
+Family reunion this weekend. Name tags required. Too many Johns.
+@ general.pets
+My dog's on a diet. He's furious. He looks at me like I invented vegetables.
+The vet says my cat is 'robust'. I'll tell him. He won't care.
+My hamster escaped. I found him in my shoe. He looked very comfortable.
+I'm fostering kittens. I've failed fostering. I'm keeping all four.
+My budgie only sings when I'm on the phone. It's a strategy.
+My rabbit has a better social life than me. He has a playdate Tuesday.
+My dog thinks the mail carrier is his best friend and his worst enemy.
+I've been walking the dog for an hour. He's been walking me, really.
+My cat brought me a leaf. As a present. I'm keeping it forever.
+My tortoise is forty-five. He's older than my marriage. More reliable, too.
+Dog park this afternoon. My dog has a crush on a poodle called Margot.
+The neighbor's dog howls along with the foghorn. It's a duet now.
+My parrot learned to copy the microwave beep. Dinner is never ready.
+I got a goldfish for my son. Now I'm emotionally invested in a goldfish.
+My cat sleeps on my keyboard. My emails are mostly the letter J now.
+Bought my dog a raincoat. He refuses to wear it. He prefers being dramatic.
+There's a three-legged dog on our street called Tripod. Fastest dog in town.
+My cat sat on the windowsill and watched pigeons for six hours. Living her best life.
+My dog knows the word 'walk'. And 'w-a-l-k'. And 'stroll'. We say 'expedition' now.
+Our hamster is called Professor. He's very wise. He eats his bedding.
+My cat knocked my coffee off the table, looked at me, and did it again.
+The pet shop parrot told me I had lovely hair. Bought a bag of seed out of guilt.
+My dog's birthday party has more guests than mine did.

@@ -211,7 +211,7 @@ export default {
   render(b, ctx) {
     const w = cityWorld(); if (!w) return b.append(empty('ui.pin', 'No map data yet', 'Step outside and the city map will load.'));
     ctxRef = ctx; footEl = ctx.foot; const a = ctx.arg;
-    if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) { sel = p.id; view.cx = p.x; view.cy = p.y; view.z = Math.max(view.z, 3); needCenter = false; hidden[placeCat(p)] = false; } }
+    if (a && a.place && !a._used) { a._used = 1; const p = place(a.place); if (p) { sel = p.id; navDest = null; navKind = null; view.cx = p.x; view.cy = p.y; view.z = Math.max(view.z, 3); needCenter = false; hidden[placeCat(p)] = false; } }
     if (a && a.route && !a._used) { a._used = 1; const d = a.route; navDest = { id: d.id || null, name: d.name || 'Destination', x: d.x, y: d.y }; view.cx = d.x; view.cy = d.y; view.z = Math.max(view.z, 3); sel = null; navKind = null; streetsOpen = false; needCenter = false; }   // deep link: open on the 'How will you get there?' card
     if (needCenter) { const c = cityPos(); view.cx = c.x; view.cy = c.y; view.z = 3; needCenter = false; sel = null; selStreet = null; streetsOpen = false; navKind = null; navDest = null;
       const gd = guidePts(); if (gd) { const q = gd.pts[0], dx = Math.abs(q.x - c.x), dy = Math.abs(q.y - c.y); view.cx = (q.x + c.x) / 2; view.cy = (q.y + c.y) / 2; view.z = Math.max(1, Math.min(4, Math.min(300 / (dx + 8), 330 / (dy + 8)))); } }   // an active arrow: frame you and the next target

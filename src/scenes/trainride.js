@@ -99,6 +99,8 @@ function makeScene() {
     const t = el('span'), eta = el('i'), cap = el('div.rh-cap'), fill = el('i'), off = el('button.go', { text: 'Get off here', onclick: () => { const q = st.ts; if (q && q.dwell && st.door >= .5) getOff(); else if (!st.leaving && !st.done) { st.armed = !st.armed; st.hudT = 0; } } }), mp = el('button', { text: 'Route map', onclick: openMap }), sk = el('button', { text: 'Skip ahead', onclick: skip });
     hud = { root: el('div.rail-hud', null, el('div.rh-top', null, el('b', { text: r.dir ? 'B' : 'A', style: { background: L.color } }), t, eta), cap, el('div.rh-bar', null, fill), el('div.rh-btns', null, off, mp, sk)), t, eta, cap, fill, off, sk }; root().append(hud.root);
   };
+  // a save made on the train continues at the station the train last stopped at (title.js 'Continue' puts you at G.state.flags.lastDoor); the navigator then re-routes
+  const saveDoor = id => { try { const f = G.state.flags || (G.state.flags = {}); f.lastDoor = id === 'central' ? 'door:central_station' : 'station:' + id; } catch (e) { } };
   const setText = t => { const p = Object.assign({}, endOb.p, { text: t }); endOb.p = p; endOb._key = null; };
 
   /* ---- frame ---- */
@@ -108,7 +110,7 @@ function makeScene() {
     const key = ts.dwell ? ts.at : null;
     if (key !== st.lastAt) {
       const first = st.lastAt === undefined;
-      if (key) { const nm = R.station(key).name; setText(nm.toUpperCase()); if (!first) { G.audio && G.audio.sfx && G.audio.sfx('train_chime'); say('This is ' + nm + (key === r.to ? '. This is your stop!' : '.')); st.swap = true; } else say('Boarding at ' + nm + ' - ' + R.lines[r.dir].name + '.'); if (st.peopleFor !== key) genPeople(key); }
+      if (key) { saveDoor(key); const nm = R.station(key).name; setText(nm.toUpperCase()); if (!first) { G.audio && G.audio.sfx && G.audio.sfx('train_chime'); say('This is ' + nm + (key === r.to ? '. This is your stop!' : '.')); st.swap = true; } else say('Boarding at ' + nm + ' - ' + R.lines[r.dir].name + '.'); if (st.peopleFor !== key) genPeople(key); }
       else { const nx = ts.next; setText(nx.st.name.toUpperCase()); say('Next stop: ' + nx.st.name + (nx.id === r.to ? '. Your stop is next - get ready.' : '.')); if (nx.id === r.to && !G.navArrow) toast('Next stop is yours: ' + nx.st.name); genPeople(nx.id); st.stay = false; }
       st.lastAt = key;
     }
@@ -152,7 +154,7 @@ function makeScene() {
     if (!R) return; const ts = st.ts = R.trainState(r.dir, r.train); st.lastD = ts.d; if (ts.dwell) { st.door = 1; st.want = 1; } st.eta0 = Math.max(1, R.timeTo(r.dir, r.train, r.to)); st.A = THEME_OF[district()] || 'suburb';
     const rr = R0(), n = paxCount(); for (let i = 0; i < n; i++) addPax(rng(Math.floor(rr() * 1e6) + 1), null);
     if (!ts.dwell) genPeople(ts.next.id);
-    if (G.state.rail) G.state.rail.cur = { dir: r.dir, train: r.train, from: r.from, to: r.to };
+    if (G.state.rail) G.state.rail.cur = { dir: r.dir, train: r.train, from: r.from, to: r.to }; saveDoor(r.from);
     if (G.transit && !G.transit.ride && G.transit.beginRide) G.transit.beginRide({ kind: 'train', destination: r.to, from: r.from });
     mkHud(); camT.x = G.player.x; camT.y = G.player.y; camT.z = 0; G.camTarget = camT; G.snapCam && G.snapCam();
   };

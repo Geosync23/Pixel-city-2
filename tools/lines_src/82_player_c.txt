@@ -1,0 +1,1068 @@
+@ player.new_in_town
+New in town? Welcome to Maple Bay! You'll love it here.
+I can tell you're new. You're looking up. Locals never look up.
+Welcome! Have you tried the bakery yet? Rise & Shine. Trust me.
+Just arrived? The Loop goes everywhere. Except where the 14 doesn't.
+First week? Don't worry, everyone gets lost in Old Town.
+You've got that 'new city' sparkle in your eyes.
+Welcome to the neighborhood! Need directions?
+New face! Hello! I'm the friendly neighbor type.
+You look new. That's a compliment. Fresh eyes!
+Welcome! Tip one: always carry an umbrella. Tip two: avoid the gulls.
+First time in the Bay? Go to the lookout at sunset. You'll never leave.
+Are you the new person? Everyone's been talking. Nicely!
+You look like you're still figuring out the buses. We all are.
+Welcome! The fountain doesn't work. Don't ask. Nobody knows.
+Just moved here? Lucky you. Best city in the state.
+New in town? The library's a great place to start.
+I remember my first week here. Lost every day. Loved every minute.
+You look a bit overwhelmed. That's normal! It passes!
+Fresh off the plane? Welcome, welcome!
+New here? You'll know everyone by the end of the month. It's that kind of city.
+Welcome to Maple Bay! The 14's always late. Everything else is lovely.
+Is that a map? A paper map? You're definitely new. Welcome!
+Ooh, a new neighbor! Bring you a pie later? I bake.
+Welcome! If you see a one-footed pigeon, that's Gerald. Say hi.
+You've picked a great time to move here. Every time's a great time.
+New in town and already smiling. You'll fit right in.
+Hello, stranger! Not a stranger for long here.
+Welcome! Ask anyone for help. We love giving directions. Too much.
+Your first week? Make sure you see the harbor at dusk.
+You've got that 'where am I' look. You're in the best place.
+New faces always welcome on this street.
+Settling in okay? It takes a minute. Then it feels like home.
+Hello! You must be new. I know everyone else's face.
+The first thing you should do is find your bakery. Everyone has a bakery.
+Just moved in? Don't forget to try the noodles at the Lantern.
+Welcome to the Bay! Don't let the hills scare you.
+First time on this street? Wave at the lady in the window. She waves back.
+Welcome! The ducks in the park are expecting you.
+You look like you just got here. Lovely to meet you!
+New in Maple Bay? Get a bus pass and a good pair of shoes.
+@ player.settling_in
+Hello again! You're becoming a regular face around here.
+Settling in? You don't look lost anymore. Well done!
+I've seen you around! You're finding your way, aren't you?
+You've stopped looking at your map. Progress!
+How are you finding the city? Starting to feel like home?
+Oh, it's you again! Nice to see a familiar face.
+You're getting the hang of the hills, I see.
+Found your favorite café yet? Everyone needs one.
+You're starting to walk like a local. Fast and confident.
+Still exploring? There's always something new round the corner.
+You've been here a couple of weeks now, haven't you?
+Look at you, knowing which bus to get on!
+Morning! We keep bumping into each other. It's a small city.
+You're not new anymore. You're just… here. In a good way.
+Made any friends yet? You look like you have.
+Starting to recognize the pigeons? That's when you know you're settled.
+You've got the rhythm of the city now, haven't you?
+Hello, neighbor! Getting comfortable?
+I see you at the bakery every morning. Good choice.
+Still finding your way? We're all still finding our way.
+You've learned the shortcuts! Very impressive.
+You're blending in nicely. Soon you'll be complaining about the 14 like the rest of us.
+Have you been up to the lookout yet? Do it this week.
+You're settling in nicely, I can tell.
+You're like a local who's not quite local yet. A local in training.
+It gets easier, doesn't it? Each week a bit more familiar.
+Found a good bench yet? That's important.
+You're one of us now. Almost.
+I've seen you in the market. You've got good taste in cheese.
+How's the new place? All unpacked? Or still living out of boxes?
+You're starting to look like you belong here.
+The city's growing on you, isn't it? It does that.
+Nice to see you again! You're on my morning route now.
+I bet you've already got a favorite street.
+You've been to the Heron, haven't you? You've got that look.
+Still discovering things? The best bits take a while.
+You're making this city your own. Good for you.
+You've stopped jumping at the foghorn. That's two weeks in, at least.
+Hello! You remembered my dog's name last time. That's settled behavior.
+I'd say you're halfway to being a local.
+@ player.regular
+Morning, {name}! The usual?
+Oh, hello, {name}! Lovely to see you!
+There's {name}! Our favorite neighbor!
+You're a proper local now. Complaining about the 14 and everything.
+Hello, you! I've been wondering where you were!
+Everybody knows you round here now.
+The usual spot? The usual coffee? The usual smile?
+Hiya, {name}! How's things?
+You've been here long enough to have opinions about the fountain.
+I've seen you every day for weeks. You're part of the street now.
+Morning! The bakery saved you a cinnamon bun. They know you now.
+You're a true Maple Bayer now. Or Maple Bayite. We still haven't decided.
+Hello, friend! It's always nice to see a regular.
+You know all the shortcuts now, don't you?
+The pigeons recognize you. That's the highest honor.
+There's my favorite face on the street!
+You're part of the furniture now. In a good way.
+Everyone in Old Town knows your name now.
+How's your week going, {name}? Busy?
+Oh, it's you! I was just thinking about you!
+You've lived here long enough to call it home.
+You're the one who always waves! Hello!
+Glad to see you, as always.
+You fit right in now. Like you've always been here.
+Mr. Oh asked about you yesterday. You're a celebrity now.
+Same time, same place. You're as reliable as the lighthouse.
+Hey, {name}! Coming to the Heron on Friday?
+You know the city better than I do now!
+The gulls have stopped stealing from you. That's respect.
+You've been here a while now. It suits you.
+Hello, neighbor! Lovely day, isn't it?
+I tell everyone about you. 'That nice person from the corner'.
+You've become a local legend. A small one. A lovely one.
+I saved you a seat on the bench. Kidding. Sit down, though.
+You're the reason I say hello to strangers now.
+Good to see you, {name}! Don't be a stranger!
+You've got that 'I live here' walk now. Very confident.
+Look who it is! Our favorite regular!
+Morning! I'd know that walk anywhere.
+The city's glad you're here. So am I.
+@ player.homeowner
+Hello, homeowner! How's the new place?
+Congratulations on the house! Big step!
+Got your own keys now? Lucky you!
+I heard you bought a place! Welcome to the neighborhood properly.
+How's the house? Any leaks yet? There's always a leak.
+A homeowner! Very grown-up!
+Painting the walls yet? Everyone paints the walls first.
+You've got that 'I own a front door' glow.
+Proud homeowner! Lovely to see.
+How's the garden coming along? Planted anything yet?
+Mortgage and all! Very responsible!
+You own a piece of Maple Bay now. That's special.
+Got a toolbox yet? You'll need a toolbox.
+Housewarming party soon? I'll bring a plant.
+Welcome to the club! The 'fixing things myself' club.
+Your own place! No more landlords!
+Hello, neighbor! Permanent neighbor now!
+Owning a home suits you.
+Any squeaky floorboards? I can recommend a carpenter.
+Have you met the neighbors yet? Bring them cookies.
+How does it feel to own your own place? Amazing, I bet.
+You're putting down roots! Lovely!
+Proper homeowner now. Trash cans out on a Tuesday and everything.
+The hardware store's going to love you.
+Your own home in the Bay. You've made it!
+I bet you've rearranged the furniture five times already.
+You've got that homeowner look. Slightly tired, very proud.
+Got your name on the mailbox yet?
+A house is a home when you've broken the first mug in it.
+Remember to check the gutters in autumn! Homeowner tip!
+I'm so happy for you! A place of your own!
+How's the commute from the new place?
+Built any flat-pack furniture yet? Lost any screws?
+Your own little corner of the city. Lovely.
+Enjoy the first year. Every room's a project.
+You've got a home now. A real home. In the best city.
+Bet you sleep better knowing it's yours.
+Congrats on the keys, neighbor!
+Homeowner hands! Paint under the fingernails!
+Does the front door stick? Every front door here sticks.
+@ player.unemployed
+Looking for work? The library's got a jobs board. Second floor.
+Between jobs? Happens to everyone. Something will turn up.
+The courier depot's always hiring. Rhonda's lovely.
+Job hunting? Good luck! You'll find something.
+Have you tried the Jobs app? There's a few new ones.
+Dot's Diner needs a cook sometimes. Just a thought.
+You'll find the right job. This city's full of them.
+Hang in there! Job hunting's tough, but you've got this.
+Have you asked at FreshWay? They're always hiring.
+I was out of work once. Best year of my life. Then I got a job.
+The library's jobs board changes every week. Keep checking.
+Don't worry, something good is coming your way.
+The docks are hiring, I heard. Gus is looking for strong arms.
+Free time's a gift. Enjoy it while you find the right thing.
+You look like someone who'd be great at any job.
+Bean & Gone needs a barista. Marlow's very patient.
+Keep your chin up. The right job will find you.
+The clinic needs help sometimes. Nurse Samira's wonderful.
+Job interviews are scary. You'll be brilliant.
+I heard the gym's looking for sneakers. Coach Tasha's tough but fair.
+Every job I've had I found by chatting to strangers. Keep chatting!
+Between things? That's just the start of the next thing.
+The Heron's always looking for bar staff. Lou's a gem.
+Unemployed? No, you're 'exploring opportunities'.
+You've got time to see the whole city now. Silver lining!
+Something's out there for you. I can feel it.
+The bulletin board at the laundromat has job ads too.
+Have you tried Hartwell & Finch? They're always hiring analysts.
+A job will come along. Like the 14. Eventually.
+Don't be too hard on yourself. It takes time.
+Looking for work? Ask around. Everybody here knows somebody.
+You've got a great face for customer service!
+The library's free and warm. Good for job hunting.
+I'm sure you'll land on your feet. You look like a lander.
+Volunteer while you look. The Conservatory loves helpers.
+New city, new job. It'll come together.
+Keep your CV handy. Opportunities pop up everywhere here.
+Rest up and look around. The right thing will click.
+Job hunting's a job itself. You're working hard!
+Good luck out there! The city's rooting for you.
+@ player.on_way_to_work
+Off to work? Have a good shift!
+You look like you're heading to work. Good luck!
+Off to the grind? Coffee first!
+Have a great day at work!
+You've got that 'off to work' walk. Brisk and determined.
+Don't be late! Well, you've got time. Probably.
+Work clothes, work face, work bag. Have a good one!
+Big day ahead? You look ready.
+Going to work? Grab a pastry for the road.
+Have a productive day!
+Morning commute? The Loop's running smoothly today.
+Off you go! Don't let the boss get you down.
+You look so professional! Have a good day!
+Another day, another dollar! Go get it!
+Heading to work? Take the river path. It's lovely this time of day.
+Good luck today! Hope it's a quiet one.
+Off to earn your bread. Literally, if you work at a bakery.
+Shift starting soon? Go on, you'll make it!
+You look like you've got a busy day ahead.
+Have a good day at the office! Or the shop! Or the dock!
+You're always on time, aren't you? I can tell.
+Work, work, work. Have a lovely time!
+I'm off to work too! Solidarity!
+Grab a coffee on the way! Bean & Gone's quick.
+Don't forget your lunch! Did you forget your lunch?
+Have a smooth day! No surprises!
+You look ready to conquer the day.
+Off to work in style. Good on you.
+Hope your boss is in a good mood today!
+Go on, the city needs you!
+You've got your work face on. Very serious.
+Big meeting? You'll nail it.
+Have a great shift! See you on the way back!
+Heading in early? Keen! I like it.
+Don't work too hard! Well, work a bit hard.
+You'll be home before you know it.
+Got your keys? Got your badge? Got your coffee?
+Another day at the office. You've got this.
+Commuter buddies! Off we go!
+Have a good one, friend! Make it a good day!
+@ player.after_work
+Long day? You look like you've earned a rest.
+Done for the day? Lovely! Off home?
+You've got that 'just finished work' relief on your face.
+Shift over? Time for a drink! Or a nap! Or both!
+Finished work? The Heron's open. Just saying.
+You look tired but happy. Good day at work?
+Home time! The best time!
+Off home? Put your feet up!
+Hard day? A walk by the river helps.
+You've earned that sofa tonight.
+Done and dusted! Well done!
+Clocked off? Now the fun begins.
+You look like you need a cup of tea and a long bath.
+Another day done! Nicely done!
+Work's over! Freedom!
+Heading home? I'm jealous. I've got another four hours.
+That's the walk of someone who's finished for the day.
+Finished? Treat yourself to something nice.
+You've got that end-of-shift glow.
+Long shift? I can see it in your shoulders.
+Kick off those work shoes! You've earned it!
+Off home? Grab a takeout. You deserve it.
+Done for the day? The sunset's gorgeous tonight.
+You look like you've been on your feet all day.
+Survived another day! Well done!
+Workday over, evening begins! Enjoy it!
+Let me guess: you're going home to do absolutely nothing.
+Off home? Mind the rush hour crowds.
+You've done your bit for today. Rest now.
+Finished work early? Lucky you!
+Good day at the office? Or just a day?
+Evening, worker! Home time!
+You look like you need dinner and a sit-down.
+Free at last! Enjoy your evening!
+Hard work deserves a good meal. Off you go.
+Shift's done? The city's yours for the evening.
+Leaving work feels so good, doesn't it?
+You look relieved. Must've been a long one.
+Time to switch off. Phone down, feet up.
+Done! Go home, eat, sleep, repeat.
+@ player.promoted
+I heard you got a promotion! Congratulations!
+Look at you! Moving up in the world!
+Promoted? Brilliant! Drinks on you!
+Congrats on the new job title! Very fancy!
+You've got that 'just got promoted' swagger.
+Well done! Hard work pays off!
+A promotion! The whole street's proud of you!
+Congrats! Your boss clearly has good taste.
+New role? New you? Same lovely person!
+Moving on up! Good for you!
+I knew you'd do well! Congratulations!
+Bigger desk? Bigger paycheck? Bigger smile!
+Promoted! Time for a celebration!
+You deserve it! Every bit of it!
+Congratulations! The city's lucky to have you!
+Going places, you are! Literally and figuratively!
+Promotion! Treat yourself to something nice!
+I saw the news! Well done, you!
+That's fantastic news! Your mom must be proud!
+Up the ladder you go! Mind the top rung!
+Congrats! Did they give you a bigger chair?
+You've earned it. Everyone knows how hard you've worked.
+A promotion! I'm so happy for you!
+Look at you, a big shot now!
+Congrats! Don't forget us little people!
+Higher pay means more pastries. Celebrate!
+Well done! Now don't let it go to your head.
+That's a well-deserved promotion if I ever saw one.
+Promoted! You're on fire!
+Brilliant news! Have a lovely celebration tonight.
+Climbing the ladder! Proud of you!
+Congrats! The Heron's Table for dinner?
+You walk like someone who's just been promoted.
+Moving up! What's next? Mayor?
+Your hard work's been noticed! Brilliant!
+Congratulations! Bake yourself a cake. Or buy one.
+I heard the good news! You're a star!
+Promoted! Bet your boss is glad they did.
+Fantastic! Keep up the great work!
+New title, same great person. Congrats!
+@ player.broke
+Bit short this week? Happens to everyone. Even the gulls.
+Tight budget? The library's free. And the park. And the views.
+Broke? I know the feeling. Payday will come.
+Counting coins? The farmers' market gets cheaper near closing.
+Money's tight? The free samples at FreshWay are lovely.
+Don't worry, friend. Better days ahead.
+Broke? Me too. Let's be broke together.
+The best things in the city are free. Sunsets, ducks, chatting.
+Here, have a pastry. My treat. Don't argue.
+Tough week? Soup's cheap and filling. The Lantern does a small bowl.
+Running on empty? Payday's just around the corner.
+The museum's free on Thursdays. Culture on a budget!
+Short on cash? Lucky Corner sells day-old bread for a quarter.
+Money comes and goes. Mostly goes. It'll come back.
+Bit low on funds? The library has free Wi-Fi and warm chairs.
+I've been there. Instant noodles and optimism. You'll be fine.
+Pockets empty? Your heart's full. That counts.
+Broke but brave! I like it.
+Don't spend what you haven't got. Walk instead of taxi.
+Need a job? The jobs board at the library's always got something.
+The park's the best free entertainment in town.
+A walk by the river costs nothing and fixes a lot.
+Short of money? Short of nothing else, by the look of you.
+Here, take this coupon. It's for half-price coffee. I've got loads.
+The bakery gives out the broken cookies for free at closing.
+Saving pennies? So am I. Let's go window shopping.
+Money's just paper. Friendship's free.
+Tight times? The community garden gives out vegetables.
+Everybody's broke sometimes. It doesn't define you.
+Your wallet's thin but your smile's rich.
+Count your blessings instead. Cheaper.
+Things will turn around. They always do.
+I'll buy you a coffee. Pay it forward later.
+Broke? Pack a lunch and eat it in the park. Best restaurant in town.
+The bus is cheaper than a cab. And slower. But cheaper.
+Rent day blues? We've all got them.
+Money troubles? Talk to the bank. They're nicer than you'd think.
+Payday's coming. Hold on.
+Down to your last few dollars? Spend one on a lemonade from Otis. Good for the soul.
+You don't need money to enjoy this city. Just good shoes.
+@ player.flush
+Somebody's doing well for themselves!
+Look at you! Splashing out!
+New shoes? New coat? New everything? Business is good, eh?
+You look like you've won the lottery!
+Somebody's flush! Treat yourself!
+The Heron's Table is expecting you. Fancy dinner tonight?
+You've got that 'money in the bank' swagger.
+Rich and generous? Buy the whole street a coffee!
+You could buy an apartment in Hillcrest! Or two!
+Doing well, I see. Good for you!
+Somebody's got a healthy bank balance.
+You look like you could afford the SkyDeck bar every night.
+The Galleria's going to love you today.
+Fancy! You're living the high life!
+Spend some at the market! Support local!
+You look prosperous! Very prosperous!
+Money's good, life's good, eh?
+Treat yourself! You've clearly earned it!
+You've got that comfortable look. Very relaxed.
+Big spender! The bakery will be thrilled.
+I hope you're putting some away. For a rainy day. It rains a lot here.
+Doing well? Remember the little people! Like me!
+Look at that watch! Is it real gold?
+You could buy the fountain and fix it yourself!
+Rich enough to take a cab every day! Manny'll love you!
+You must be the best tipper in town.
+Money suits you!
+Comfortable, are we? Good. You deserve it.
+Splash out on something fun! Life's short!
+You look like you could buy the whole Galleria.
+Fancy a vacation? You could afford a nice one!
+Rich and lovely. The best combination.
+The Gilded Gull's open! Go on, treat yourself!
+I hope you're generous with your friends!
+Buy a round at the Taproom! Everyone will love you!
+You look like you've had a very good year.
+Doing well? Spread the wealth! Buy a pastry for a stranger!
+The art gallery's got some lovely pieces for sale. Just saying.
+Money's flowing! Lucky you!
+Wealth and good taste! A rare combination!
+@ player.birthday
+Happy birthday, {name}! Have a wonderful day!
+It's your birthday? Happy birthday! Cake for you today!
+Happy birthday! Are you doing anything special?
+Birthday today? The bakery should give you a free bun!
+Many happy returns, {name}!
+Happy birthday! Another year, another adventure!
+It's your special day! Enjoy every minute!
+Happy birthday! You don't look a day older!
+Birthday wishes from your favorite stranger!
+Happy birthday! Make a wish! Make several!
+Hip hip hooray! Happy birthday!
+It's your birthday! The whole city's celebrating! Well, I am.
+Happy birthday, friend! Have some cake for me!
+Birthday! Have you had cake yet? You need cake!
+Happy birthday, {name}! I hope it's your best one yet!
+A birthday! Get yourself something nice!
+Happy birthday! The lighthouse should blink for you!
+Birthday cake for breakfast, lunch and dinner. It's the law.
+Happy birthday! Have a lovely day!
+Is it your birthday? I can tell! You're glowing!
+Birthday greetings from Maple Bay!
+Happy birthday! May all your buses be on time!
+Celebrate! It's your day!
+Birthday! Party! Cake! Presents! Go!
+Happy birthday! Another trip round the sun!
+Wishing you a very happy birthday!
+Happy birthday! The pigeons say hello!
+Birthday? Get yourself to the Heron tonight!
+Happy birthday! You're the best present to this city!
+Have a magical birthday!
+Happy birthday! Make it a good one!
+Birthday wishes! Lots of them!
+Happy birthday! I'll sing! No? Okay, I won't sing.
+It's your birthday! Dot's Diner does a free slice of pie!
+Happy birthday! May the fountain work just for you!
+Birthday hugs from a stranger! Well, virtual hugs.
+Happy birthday to you! Happy birthday to you!
+Celebrate in style! It's your birthday!
+Happy birthday! Have the best day ever!
+A very happy birthday, {name}!
+@ player.running
+Whoa! Where's the fire?
+Slow down! You'll trip on the cobbles!
+In a hurry? Go on, then!
+Running late? Run faster!
+Careful! Mind the pigeons!
+Zoom! There they go!
+Is something chasing you? Should I run too?
+Run like the 14's actually on time!
+You'll make it! Go, go, go!
+Slow down, speedy!
+Late for a date? Run, run, run!
+Look at that sprint! Very impressive!
+Running for the train? It's just left. Sorry.
+You've got a great stride! Very athletic!
+Somebody's in a rush!
+Watch out! Runner coming through!
+Is it a race? Who's winning?
+Mind the dog! Mind the dog! Phew.
+Fast as the wind!
+Did you forget something? The oven? The iron?
+You're running like the rent's due!
+Hold your horses! Where are you off to?
+That's the fastest I've seen anyone move in this city!
+Go! Go! Go! I'm cheering for you!
+You're faster than the Loop!
+Running in this weather? Dedicated!
+Steady on! You'll knock someone over!
+Oof, nearly hit that lamp post!
+In a hurry, love? Everything okay?
+Somebody's got somewhere important to be!
+You run like a gazelle. A very urban gazelle.
+Faster! Faster! You can do it!
+Where are you rushing off to?
+Running's good for you! Keep going!
+The 14 isn't coming. You don't need to run.
+You'll get a stitch! Slow down a bit!
+Ha! I love a good sprint.
+Mind the puddles! Too late. Never mind.
+Off like a rocket!
+That's a very determined run.
+@ player.night_owl
+Up late, aren't you? Can't sleep either?
+Out at this hour? You're braver than me.
+Night owl! Welcome to the club!
+It's three in the morning! Go to bed!
+The city's quiet at this hour. Lovely, isn't it?
+Burning the midnight oil?
+Insomnia? Or just enjoying the night?
+Night shift? Or night adventure?
+You're up late! Everything all right?
+The cats and the night owls own the city now.
+Can't sleep? A walk sometimes helps.
+It's so quiet you can hear the river. Isn't it lovely?
+Midnight wanderer! Mind how you go.
+Out late, out alone. Stay safe, friend.
+The moon's lovely tonight. Is that why you're out?
+Late night snack run? I know the feeling.
+You and me and the night bus. Late-night crew.
+Shouldn't you be in bed? Shouldn't I?
+Night owls are the best people. Quiet and thoughtful.
+The lighthouse is keeping you company, isn't it?
+The bakers are up already. You're up still.
+Out at this hour? Get home safe!
+It's the witching hour! Spooky!
+Lovely night for a walk. Strange time for it.
+Can't sleep? Count the stars. There are four.
+Moonlit stroll? Very romantic.
+Late night? Lucky Corner's still open for a cocoa.
+You've got the night all to yourself!
+Up with the owls? Me too.
+The night's peaceful, isn't it? No crowds, no noise.
+Get some sleep soon, friend. Tomorrow's coming.
+Out late? Watch out for the foxes. They're cheeky.
+It's very late. Or very early. Depends how you look at it.
+Night owl or early bird? At this hour, who knows?
+Quiet streets, bright moon. Lovely night.
+Night walks clear the mind, don't they?
+You and the cats. Sharing the city.
+Long night? Need anything? The corner shop's open.
+It's past three! The city's asleep! Except us.
+Sleep well when you get there. Soon, hopefully.
+@ player.early_bird
+Up early! The early bird gets the croissant!
+Morning! You're up before the sun!
+Early riser! I like it!
+Good morning! It's so quiet at this hour, isn't it?
+You're up before the bakery! Well, almost.
+Early bird! Catching the sunrise?
+Morning! You and me and the milkman.
+Up with the larks! Good on you!
+It's barely light! Couldn't sleep?
+Early start? Big day ahead?
+Morning! The city's still waking up.
+You're keen! Up this early!
+The sunrise is beautiful from the harbor. Go see it!
+Morning jog? Morning walk? Morning wander?
+You're up early! Bean & Gone opens in ten minutes.
+Morning! Only the bakers and the gulls are up.
+Early bird! The bakery's got the first batch out!
+Ooh, early! The streets are all yours!
+Rise and shine! Well, you've risen. Now shine!
+Morning! The light's so pretty at this hour.
+You're up before the 14! Not hard, mind you.
+Good morning, early riser!
+Dawn patrol! I see you!
+Early bird gets the best bench!
+Morning! The dew's still on the grass.
+You've got the whole city to yourself!
+Up early? Me too! Solidarity!
+The early morning's the best part of the day. You know it.
+Morning! The fishing boats are heading out.
+It's still dark! Well, nearly light. Early!
+Morning! Coffee's on at Dot's. She opens at five.
+You're up with the sun! Very wholesome!
+Early start! You'll have done a day's work by noon.
+Good morning! You look awake. How?
+Sunrise walk? Lovely idea.
+Morning! The first train's just gone.
+Up and about early! Very impressive!
+The world's so peaceful at this hour.
+Early bird! The worms don't stand a chance!
+Morning! The gulls are just waking up.
+@ player.loaded_bag
+That's a heavy bag! Moving house?
+Need a hand with that? It looks heavy!
+What's in there? Bricks?
+Somebody's carrying their whole life on their back!
+That backpack's bigger than you!
+Off on an expedition?
+Heavy load! Take a rest on the bench!
+Your bag's bursting at the seams!
+Camping? Hiking? Moving to Hillcrest?
+That's a lot of stuff! Very prepared!
+Is that everything you own?
+Your shoulders must be killing you!
+That bag's going to tip you over!
+Packed for every eventuality, I see.
+Running away from home? Taking the whole home with you?
+That's a mountaineer's backpack!
+Strong back! Very impressive!
+I bet there's a kitchen sink in there.
+That bag's so full it's rattling!
+Mind you don't knock anyone over with that!
+Need a cart? That bag needs a cart.
+What are you carrying? Rocks? Treasure?
+Heavy bag, light heart?
+You look like you're carrying the weight of the world. Literally.
+Off traveling? That's a traveler's bag!
+Your bag's full of shopping, isn't it?
+That's the most packed backpack I've ever seen.
+I'd offer to help, but I'd fall over.
+Slow down! That bag's swinging!
+It's like you're carrying a small child in there.
+Did you buy the whole market?
+Library books? That's a lot of library books.
+You'll have great shoulders after carrying that.
+That bag needs its own bus seat.
+Heavy load! Take it slow!
+Is that a backpack or a suitcase?
+You're like a snail with your house on your back.
+Off on an adventure? You've packed for one!
+Mind the zip! It looks like it's going to burst!
+Strong person, big bag, good day!
+@ player.carrying_gift
+Ooh, a present! Who's the lucky person?
+Is that a gift? How lovely!
+Somebody's getting a nice surprise!
+That's beautifully wrapped! Did you do that?
+A present! Birthday? Anniversary? Just because?
+Lovely bow! Very fancy!
+Is it for me? Just kidding! Who's it for?
+That looks like a thoughtful gift.
+Somebody's going to be very happy!
+Ooh, I love a present! What's inside?
+A gift! How kind of you!
+That's a big present! Lucky person!
+I hope they love it! I'm sure they will!
+Presents make everyone smile.
+That's a very carefully held present.
+Off to a party? Or a surprise?
+Gift-giving's the best feeling.
+That wrapping paper's gorgeous!
+A gift for a friend? Lovely!
+Somebody's thinking of someone special.
+Small present, big love!
+That box looks like it's from the Galleria!
+Careful with that! Don't drop it!
+I bet it's something wonderful.
+A surprise in a box! Exciting!
+Who's the present for? Don't tell me. It's a secret.
+That's so sweet! A gift!
+I love seeing people carrying presents.
+Shake it! No, don't shake it! Could be fragile!
+Ooh, flowers and a present! Somebody's lucky!
+That's a well-chosen gift, I can tell.
+The ribbon's lovely! Very elegant!
+Is it a birthday present? Happy birthday to them!
+Gifts are love you can hold.
+Somebody's in for a treat!
+That's the walk of someone with a great present.
+A little something for someone special?
+You've got good taste in wrapping paper!
+They're going to love it!
+Present delivery in progress!
+@ player.carrying_food
+Ooh, something smells delicious! What is it?
+Is that from the Lantern? I can smell the noodles!
+Takeout! Dinner sorted!
+That smells amazing! Where's it from?
+Somebody's having a feast tonight!
+Is that pizza? Slice of Heaven? I'm so hungry now.
+The smell's following you down the street!
+Fish and chips? From Rope Works? I can tell!
+That's a lot of food! Having a party?
+Mmm, garlic! Somebody's eating well!
+You're making the whole street hungry!
+Is that dim sum? From Nine Dragons? Lucky you!
+Takeout night! The best night!
+That smells like heaven in a bag.
+The gulls have spotted you. Run!
+Where did you get that? I need to go there now!
+Hot food on a cold day. Perfect.
+Is that curry? Tacos? Both? Everything?
+You're carrying my dream dinner.
+The pigeons are following you. It's the food.
+Lunch to go? Very efficient!
+Somebody's not cooking tonight!
+That bag's leaking delicious smells.
+Fried chicken? I can smell it from here!
+Is that from Mama Opal's? I'd know that cornbread anywhere!
+You've got the best smelling bag on the street!
+Watch out for the Maître G! He loves takeout!
+That smells so good I might follow you home.
+Burgers? Fries? Milkshake? Heaven?
+Picnic supplies? Lovely!
+That's a lot of noodles for one person. No judgement.
+Hot pastries! I can smell the butter!
+Dinner for two? Or one very hungry person?
+The whole bus is going to smell that.
+Eat it while it's hot!
+That smells better than anything I've cooked this year.
+Oh, that's a good smell. That's a very good smell.
+Bagels from Baker House? I'd know that smell anywhere.
+Somebody's eating well tonight!
+Can I have a chip? Just one? Kidding. Mostly.
+@ player.on_bike
+Nice bike! Very smooth!
+Ding ding! Coming through!
+Look at you, cycling like a pro!
+Lovely bike! Where'd you get it?
+Mind the cobbles! They're murder on the tires!
+Cycling's the best way to see the city!
+Nice ride! Very stylish!
+Watch out for the tram rails!
+You're faster than the 14 on that thing!
+Look at that basket! Very charming!
+On your left! Very polite cyclist!
+Off for a ride along the river?
+Helmet on! Very sensible!
+Lovely day for a cycle!
+That bike's got character!
+Uphill's tough, isn't it? Keep pedalling!
+You look so free on that bike!
+Bike lanes are the best thing the council's done.
+Nice bell! Ring it again!
+Going for a spin? Have fun!
+Cycling to work? Very green!
+That's a classic bike. Very vintage!
+Wheee! Downhill's the best!
+Mind the pedestrians! And the pigeons!
+You're like the wind on that thing!
+Pedal power! Love it!
+Your bike's so shiny!
+Look at you, weaving through traffic!
+Bike in the city? Brave! Clever!
+Lock it up well! Bike thieves are cheeky.
+That's a lovely color bike!
+Sunny day, bike ride, perfect combination!
+You've got great balance!
+Off to the park? Lovely ride there.
+Cycling's great exercise. Very healthy!
+Ring ring! There goes a happy cyclist!
+Your tires look a bit flat. Pump them up!
+The river path's beautiful on a bike.
+That's a courier-level bike! Very fast!
+Enjoy the ride, friend!
+@ player.with_friend
+Aw, lovely to see friends out together!
+Out with a pal? Have fun!
+Best friends? You look like best friends!
+Two's company! Enjoy your walk!
+Lovely to see people enjoying each other's company.
+Friends on an adventure! Where are you off to?
+You two look like you're having fun!
+Out for lunch together? Lovely!
+Good friends are worth more than gold.
+Walking and talking! The best kind of afternoon.
+You two are inseparable, aren't you?
+Friend date? Lovely idea!
+Look at you two, laughing away!
+Always nice to have a walking buddy.
+Partners in crime?
+Two friends and a city. Perfect day.
+Off to the Heron together? Have a great night!
+You two look like trouble. The good kind.
+Lovely to see people looking out for each other.
+Friendship goals!
+Matching outfits? Did you plan that?
+Two peas in a pod!
+Out exploring together? Lovely!
+Good company makes everything better.
+Off to the market together? Get the crepes!
+Sharing secrets? I won't tell!
+Laughing together is the best thing in the world.
+Strolling with a friend. Nothing better.
+You two are glowing! Good chat?
+The best way to see the city is with a friend.
+Nice to see some friendly faces!
+Arm in arm! How sweet!
+Off for a coffee? Bean & Gone's got a window table.
+Friends make the hills easier.
+Two's better than one! Especially on the stairs.
+Friendship's the best thing this city has.
+Keep each other out of trouble!
+You look like you've known each other forever.
+Off to see a show? Enjoy!
+Lovely pair! Have a wonderful day!
+@ player.bumped
+Ow! Watch where you're going!
+Oops! Sorry! My fault! Or yours! Somebody's fault!
+Whoa! Careful there, friend!
+Ooh! Mind out! I nearly dropped my coffee!
+Excuse me! Bit of a crash there!
+Oof! Steady on!
+Hey! Sidewalk's big enough for both of us!
+Sorry! Were you looking at your phone? Was I?
+Careful! I've got eggs in this bag!
+Ouch! My toe! My poor toe!
+Whoopsie! No harm done!
+Look where you're walking, love!
+Bit of a collision there! All good?
+Oh! Hello! Sorry! Didn't see you there!
+Mind my bag! It's got my lunch in it!
+Watch out! You nearly knocked me over!
+Excuse you! Excuse me! Excuse both of us!
+Gosh, sorry! I was miles away.
+Easy there! Where's the fire?
+Bump! We bumped! Sorry!
+Oh, hello! That's one way to say hi.
+Careful! These sidewalks are crowded!
+Oops! Pardon me!
+Slow down a bit, friend!
+Ouch! My elbow! That's my funny bone!
+Hey, mind the dog!
+Bumper cars! Ha! No harm done!
+Sorry! I was looking at the pigeons!
+Woah! Personal space, please!
+Nearly lost my hat! Careful!
+That's my foot you're on! Thank you for moving it.
+Gosh! You've got a strong shoulder!
+No worries! Happens to everyone!
+Oh! I didn't see you coming!
+Sorry, sorry! Busy street!
+Careful! I've got flowers here!
+Oops-a-daisy! Everybody okay?
+Please watch your step!
+Ouch! I'll survive. Probably.
+Oh, it's you! We keep bumping into each other! Literally!
+@ player.staring
+Can I help you?
+Um… hello? Is there something on my face?
+You've been standing there a while. Everything okay?
+Do I know you? You look like you know me.
+Staring contest? I'll win. I always win.
+Hello? Earth to friend?
+Is this your spot? Am I in your spot?
+You're very close. Personal space, friend.
+Are you waiting for someone? Am I that someone?
+Lost? Need directions?
+I feel like I'm being watched. Because I am.
+You're making me nervous. In a friendly way.
+Is my hat on backwards? Tell me the truth.
+Do you want to chat? You can just say hi!
+Er… nice weather we're having?
+Hello! You look like you want to say something.
+Are you a statue? You've been standing so still.
+Can I help you with something?
+I've got nothing to give you. Except a smile.
+Have I got food in my teeth? I've got food in my teeth, haven't I?
+You're breathing a bit close to my ear.
+Are you admiring my coat? It's from the market.
+Okay, this is getting a bit awkward.
+You're very quiet. Shy? That's okay.
+Looking for someone? It's not me, I promise.
+Hello there! Fancy seeing you… here… right next to me.
+Is this a social experiment?
+You can stand a bit further away, if you like.
+Am I in a film? Is there a camera?
+I'll just… shuffle over here.
+Are you listening to my phone call? It's very boring.
+Hello? Can I do something for you?
+Waiting for the bus? Me too. Very close waiting, though.
+I'm going to need a bit more room.
+You've got a very intense gaze. Very impressive.
+Do I owe you money? I don't think I owe you money.
+Friend, I'm going to move now.
+Is there a line here? Are we in a line?
+It's rude to stare, my grandma said. She also stared.
+I'm starting to think you like me.
+@ player.blocking
+Excuse me! You're blocking the doorway!
+Could you shuffle over, please? I need to get past!
+Mind out! People are trying to get through!
+You're in the way, love! Just a smidge!
+Sorry, can I squeeze past?
+Excuse me! The crosswalk's for crossing, not standing!
+You're blocking the door! Coming or going?
+Shift over a bit, would you? Thanks!
+Pardon me! Coming through!
+Can I just… get by… thank you!
+Move along, please! Big line behind you!
+You're in the middle of the sidewalk!
+Could you step aside? I've got a stroller!
+Hey! Move! Politely! Please!
+You're standing right in front of the bakery door!
+Excuse me, friend! You're in the bike lane!
+Coming through! Mind your back!
+Sorry! I need to get in there!
+Little bit to the left, please! There we go!
+Traffic jam! Human traffic jam!
+In or out? Decide!
+You're blocking the light. And the door. And everything.
+Mind the gap! You're the gap!
+Excuse me, I'm trying to get on the bus!
+Could you move? Thank you so much!
+You're in the doorway. Draughty for everyone.
+People are waiting! Step aside, please!
+Sorry, you're in my way. Very nicely in my way.
+Stop! You're blocking the green man!
+Can I get past? I'm in a hurry!
+The crossing light's changed! Move along!
+You're in the way of the line!
+Excuse me! Big bag coming through!
+Could you budge up a bit?
+You've parked yourself right in the middle!
+Out of the way, friend! Nicely! But out of the way!
+I'm trying to get through! Thanks!
+Little shuffle, please! Lovely!
+Is this the line or are you just standing?
+You're blocking the view! Of the door! Move!
+@ player.sitting_bench
+Lovely day to sit, isn't it?
+Mind if I share? Thanks!
+Nice bench, this. Best in the park.
+Sitting and watching the world? Me too.
+Comfy? This bench is my favorite.
+Lovely view from here, isn't it?
+You've found the sunny bench. Smart.
+Want some of my chips? Go on, take some.
+Ahh. Sitting down's the best, isn't it?
+Do you come here often? To this bench, I mean.
+The ducks will come over in a minute. Wait for it.
+Bench buddies! Hello!
+I sit here every day. You're welcome to join.
+Resting your legs? Wise.
+This bench has a plaque. Read it. Lovely story.
+Isn't it peaceful here?
+I'll just sit at this end. You take that end.
+Nice spot for people-watching, eh?
+Shall we watch the pigeons together?
+My knees are thanking this bench.
+You look like you needed a sit.
+Bench time is the best time.
+Can I tell you something? I love this bench.
+It's nice to share a bench with someone.
+Lovely weather for sitting.
+I've been here an hour. Doing nothing. Brilliant.
+Watching the river go by?
+The bench is warm from the sun.
+Shall we just sit quietly? Lovely.
+Want a mint? I've got mints.
+This is the best bench in the city. Don't tell anyone.
+Ooh, you've sat in the shady bit. Clever.
+Benches are for sharing. Welcome.
+It's nice just to sit, isn't it? No rushing.
+I'll keep your seat if you need to pop off.
+I've watched three dogs, a busker and a pigeon fight. Good morning.
+Hello, bench neighbor!
+Good spot to read. Or nap. Or both.
+Feet up? Go on. Nobody's looking.
+This bench has seen a lot. Now it's seen us.
+@ player.petting_animal
+Aww, he likes you!
+Look at that tail wagging!
+She's very friendly, isn't she?
+He's a good boy! The best boy!
+You've made a friend!
+Careful, she'll want belly rubs now!
+He doesn't usually like strangers! You're special!
+That cat never lets anyone stroke her! Wow!
+Aww, look at his little face!
+You're a natural with animals!
+She's purring! She loves you!
+He's going to follow you home now.
+Scratch behind the ears! That's his favorite!
+Look, he's rolled over! Total trust!
+Animals know good people.
+She's licking your hand! That's a kiss!
+Isn't he soft? Like a cloud!
+You've got the magic touch!
+He's very fluffy, isn't he?
+Careful, he'll knock you over with love!
+She's a rescue. She loves everyone now.
+Aww! Look at you two!
+You'll never get rid of him now.
+He's leaning into you! He's chosen you!
+That's the happiest dog in the city right now.
+She's got a soft spot for you!
+Good kitty! Good, good kitty!
+Look at him smiling! Dogs smile, you know!
+He's going to remember you. He remembers everyone nice.
+That's a lucky dog! Getting all those pats!
+Ooh, she's never purred that loud!
+Gentle, gentle! Lovely!
+You've made his whole day!
+He's going to be sad when you leave.
+Isn't she gorgeous?
+Animals are the best therapy.
+Watch out, he's a licker!
+You've got cat hair all over you now! Worth it!
+He'd follow you anywhere now.
+That's the face of a very happy pup!
+@ player.taking_photo
+Ooh, getting a picture? Great spot!
+Want me to take one of you? I'm very good!
+Say cheese!
+That's a lovely view! Good choice!
+Hold still! Got it?
+Get the lighthouse in! Get the gull in!
+Taking a selfie? Very stylish!
+Photographing the fountain? Waiting for it to work?
+Sorry! Am I in your shot? I'll move!
+The light's perfect right now!
+Lovely photo spot, isn't it?
+Do you want a better angle? Stand on the bench!
+Is that for your social media? Tag the city!
+Smile! You look great!
+That's going to be a beautiful picture!
+Photographing the pigeons? Get Gerald! He loves the camera!
+Ooh, a tourist! Or a local who loves the view!
+Want to be in the picture? I'll take it!
+Get the Ferris wheel! It's stopped at the top! Perfect!
+Taking a picture of your lunch? Very important.
+The sunset's gorgeous! Snap it!
+You've got an eye for a good shot!
+Postcard material, that!
+Get closer! Get the details!
+Is that for your mom? She'll love it!
+Wait! A gull's about to fly past! Now! Got it?
+Lovely! Make it your phone background!
+Try it in black and white! Very moody!
+Pose! Strike a pose!
+Taking photos of the architecture? Old Town's beautiful.
+Want a photo of you and the view? I'll do it!
+Did you get the rainbow? Quick!
+That's a good angle. You've done this before.
+I'll duck out of the way!
+Photo of the bay? Never gets old.
+Ooh, photographing the cat? She's very photogenic.
+You should enter that in the Gazette's photo contest!
+Make sure you get the sky. The sky's lovely today.
+Take a few! You'll want options!
+Lovely shot! Very artistic!
+@ player.lost
+Lost? Need a hand?
+Looking for somewhere? I know this city like the back of my hand.
+You look a bit lost. Can I help?
+Where are you trying to get to?
+Turned around? Happens to everyone in Old Town.
+Map upside down? Let me help you turn it.
+You've walked past me three times. Lost?
+The river's that way. Everything's relative to the river.
+Looking for the station? Down there, left at the bakery.
+Can't find it? Ask me! I love giving directions!
+Spinning in circles? Let me point you the right way.
+You look like you're searching for something. Or someone.
+Lost? Follow the gulls. They know where the harbor is.
+Which way are you going? I'll walk you there!
+The streets here all look the same, don't they?
+Your phone's not working? Paper map's better anyway.
+Need the bus stop? It's just round the corner. Probably.
+I got lost here for a whole week when I moved. You'll get the hang of it.
+Use the lighthouse as a compass! It's always south-west.
+Need directions? Everyone loves giving directions here!
+Is it the Conservatory you're after? Through the park!
+Lost? Look for the SkyDeck tower. That's downtown.
+You're in Old Town. Nothing goes in a straight line here.
+Let me guess: the map said 'five minutes'. It's never five minutes.
+Can I help you find your way?
+Where are you headed? The Heron? The bakery? Home?
+Lost in the city? Best way to explore it!
+Don't worry! We've all been lost here.
+You look a bit confused. Hillcrest's up the stairs.
+Need a landmark? The broken fountain's in the plaza. Can't miss it.
+If you're lost, ask a dog walker. They know every street.
+Going round in circles? So is the Loop. It's fine.
+Oh, you're looking for Market St? You're on it!
+The library's just there if you need a map!
+Lost? Take a deep breath. Look for the river. Start again.
+Lost, but in a lovely place to be lost.
+Which way's north? Up. Up is north. Sometimes.
+You've got that 'where am I' look. You're in Maple Bay! It's great!
+Let me walk you to the corner. Then you'll see it.
+Don't trust the shortcut. It's never a shortcut.
+@ player.filthy
+Friend, the gulls have stopped following you. That's how I know it's serious.
