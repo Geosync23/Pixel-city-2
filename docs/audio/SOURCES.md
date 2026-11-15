@@ -61,3 +61,4 @@ The owner has NOT heard these yet. Cut into game stretches on 2026-11-15 (ambien
 | rain_c | in/R23_35_Rain_with_Wind.mp3 (Red Library, CC0) | 4-42 | 34 s |
 | storm_a | in/G46_04_Distant_Storm.mp3 (GOLD_TAPE 46, CC0) | 10-48 | 34 s |
 Not used: R10_04_Heavy_Rain_and_Wind (bangs and something voice-like: crest up to 24, speech-proxy up to 1.3), and G46_01 / G46_02 / G46_08 / G46_09 (their thunder is close and loud, +9 to +15 dB over the rain: it would double the game's own thunder clap).
+OWNER (msg 130): crickets at night are way too prominent and loud: turn them well down.

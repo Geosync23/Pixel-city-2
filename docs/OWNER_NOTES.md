@@ -107,3 +107,4 @@
 87. (msg 127) SOUND: yes, look for rain recordings.
 88. (msg 128) Asked whether the 17 added jobs would push the game over the page size limit. Lead answered: no by estimate (about 15 MB of 16), but little room after.
 89. (msg 129) Jobs (J4) stay ON HOLD. Tell him when the rain sound is in the game.
+90. (msg 130) SOUND: the crickets at night are way too prominent and loud. Turn them well down / make them occasional.
