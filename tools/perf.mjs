@@ -12,8 +12,13 @@
 //   --profile  also take a CPU profile per scene (uses an un-minified bundle so the functions have names; slower than without). Prints the top
 //              self-time functions for the whole scene and for the long frames only (JS > 40 ms in one frame = "hitch profile").
 //   --html     measure this single-file build instead of bundling the current tree; --html before.html,after.html compares builds with
-//              interleaved runs (keep a copy of dist/index.html before a change to have a "before").
+//              interleaved runs (keep a copy of dist/index.html before a change to have a "before"); a query string can follow a file name
+//              (after.html?nobakeworker, after.html?nobake: the engine's test switches).
 //   --soak N   instead of the scenes: wander the city and rooms for N minutes, forcing a GC and reading the JS heap every 30 s (leak check).
+//   --verify   instead of the scenes: the "same pixels" checks of the engine's test hooks, run in the page (takes ~2 minutes):
+//              every object of the city and of six rooms, and every ground chunk, painted in one go vs. in bands (the bake queue) and vs.
+//              by the bake worker; citizens' sprites worker vs. main thread; the draw order of 600 frames (city walk + parade) vs. the old
+//              depth sort; a winter sample. Prints one line per check and exits with code 1 if anything differs.
 //   --out      name of the result files: out/perf/<name>.json (everything) and out/perf/<name>.md (the table). Default: perf_<rate>x_dsf<dsf>.
 //
 // What is measured, per scene: rAF-to-rAF frame times (fps = frames / time, "1% low" = fps over the slowest 1% of frames, worst frame,
@@ -24,9 +29,9 @@ import http from 'node:http'; import fs from 'node:fs'; import path from 'node:p
 import { ROOT } from './artfiles.mjs'; import { genModules } from './modules.mjs';
 const require = createRequire(import.meta.url); const { chromium } = require('playwright');
 const a = process.argv.slice(2), o = { scenes: 'all', rate: 4, dsf: 2, runs: 3, out: '', profile: false, html: '', soak: 0, save: path.join(ROOT, 'tools/perf_save.json'), label: '' };
-for (let i = 0; i < a.length; i++) { const k = a[i].slice(2); if (k === 'profile') o.profile = true; else o[k] = ['scenes', 'out', 'html', 'save', 'label'].includes(k) ? a[++i] : +a[++i]; }
+for (let i = 0; i < a.length; i++) { const k = a[i].slice(2); if (k === 'profile') o.profile = true; else if (k === 'verify') o.verify = true; else o[k] = ['scenes', 'out', 'html', 'save', 'label'].includes(k) ? a[++i] : +a[++i]; }
 const OUT = path.join(ROOT, 'out/perf'); fs.mkdirSync(OUT, { recursive: true });
-const name = o.out || `perf_${o.rate}x_dsf${o.dsf}${o.soak ? '_soak' : ''}`;
+const name = o.out || `perf_${o.rate}x_dsf${o.dsf}${o.soak ? '_soak' : o.verify ? '_verify' : ''}`;
 
 /* ---------- the page under test ---------- */
 async function bundle(minify) {
@@ -40,7 +45,7 @@ async function bundle(minify) {
   return html.replace(/<style>@font-face.*?<\/style>/, '').replace('<link rel="stylesheet" href="src/ui/style.css">', () => `<style>${font}${css}</style>`).replace('<script type="module" src="src/main.js"></script>', () => `<script>${js}</script>`);
 }
 /* --html a.html,b.html compares builds: the runs are interleaved (a, b, a, b, ...) so that both see the same machine load */
-const BUILDS = o.html ? o.html.split(',').map(f => ({ name: path.basename(f).replace(/\.html$/, ''), html: fs.readFileSync(path.resolve(f), 'utf8') })) : [{ name: 'tree', html: await bundle(!o.profile) }];
+const BUILDS = o.html ? o.html.split(',').map(f => { const [file, q] = f.split('?'); return { name: path.basename(file).replace(/\.html$/, '') + (q ? '?' + q : ''), q: q || '', html: fs.readFileSync(path.resolve(file), 'utf8') }; }) : [{ name: 'tree', q: '', html: await bundle(!o.profile) }];   // file.html?nobakeworker = the same build opened with that query string
 const HTML = BUILDS[0].html;
 if (o.profile && !o.html) fs.writeFileSync(path.join(OUT, 'bundle_dev.html'), HTML);   // the profile's line numbers (fn:line) are lines of this file
 const srv = http.createServer((req, res) => { const i = +(req.url.split('?')[0].slice(1) || 0); res.writeHead(200, { 'content-type': 'text/html' }); res.end((BUILDS[i] || BUILDS[0]).html); });
@@ -91,7 +96,7 @@ const SCENES = {
 
 /* ---------- one fresh page ---------- */
 async function openGame(br, bi = 0) {
-  const URL0 = URLB + bi;
+  const URL0 = URLB + bi + (BUILDS[bi] && BUILDS[bi].q ? '?' + BUILDS[bi].q : '');
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: o.dsf, hasTouch: true }); const pg = await ctx.newPage();
   const errs = []; pg.on('pageerror', e => errs.push(e.message.slice(0, 300)));
   await pg.addInitScript(INIT);
@@ -157,9 +162,35 @@ async function soak(br) {
   await g.pg.evaluate(() => { window.__soakStop = true; }); const errors = g.errs.slice(0, 10); await g.ctx.close(); return { points: pts, errors };
 }
 
+/* ---------- verify: same pixels (engine test hooks) ---------- */
+async function verify(br) {
+  const g = await openGame(br); let ok = true; const line = (name, good, text) => { if (!good) ok = false; console.log((good ? 'ok   ' : 'FAIL ') + name.padEnd(34) + text); };
+  const r = await g.pg.evaluate(async () => {
+    const out = {}, R = G.renderer; await toCity(100, 231, 12); const w = G.world, N = w.objs.length;
+    { let tested = 0, bad = []; for (let i = 0; i < N; i += 400) { const r = R.sliceCheck(w, i, 400); tested += r.tested; bad = bad.concat(r.bad); await sleep(0); } out.cityBands = { tested, bad }; }
+    { let tested = 0, skipped = 0, bad = [], fell = []; for (let i = 0; i < N; i += 300) { const r = await R.workerCheck(w, i, 300); tested += r.tested; skipped += r.skipped; bad = bad.concat(r.bad); fell = fell.concat(r.fell); } out.cityWorker = { tested, skipped, bad, fell, worker: R.perf().worker }; }
+    out.chunks = R.chunkCheck(w, -2, -2, 25, 25);
+    out.chars = await R.charCheck(G.scene.ents);
+    { let frames = 0, bad = 0, items = 0; const off = G.on('frame', () => { const c = R.sortCheck(); frames++; items += c.items; if (!c.same) bad++; }); await walkRoute(ROUTE, 6000); await toCity(189, 150, 12); try { await G.cityEvents.debug.start('blossom_parade'); await sleep(1200); G.cityEvents.debug.parade(); } catch (e) { } await closeUi(); await sleep(4000); off(); try { G.cityEvents.debug.stop(); } catch (e) { } out.sort = { frames, bad, avgItems: Math.round(items / Math.max(1, frames)) }; }
+    out.rooms = {}; for (const id of ['cafe', 'deptstore', 'central_station', 'goods:fjord', 'museum', 'grocery']) { try { await G.go('int:' + id, { fade: false }); await sleep(300); const a = R.sliceCheck(G.world), c = R.chunkCheck(G.world, -1, -1, 6, 6), k = await R.workerCheck(G.world); out.rooms[id] = { tested: a.tested + c.tested + k.tested, bad: a.bad.concat(c.bad, k.bad) }; } catch (e) { out.rooms[id] = { tested: 0, bad: ['ERR ' + e.message] }; } }
+    await G.go('city', { x: 100, y: 231, fade: false }); G.setSeason(3); await sleep(300); { const a = R.sliceCheck(G.world, 0, 1500), c = R.chunkCheck(G.world, 2, 10, 10, 18), k = await R.workerCheck(G.world, 0, 1500); out.winter = { tested: a.tested + c.tested + k.tested, bad: a.bad.concat(c.bad, k.bad) }; }
+    return out; });
+  line('city objects, bands vs whole', !r.cityBands.bad.length, `${r.cityBands.tested} sprites, ${r.cityBands.bad.length} differ ${r.cityBands.bad.slice(0, 3).join('; ')}`);
+  line('city objects, worker vs main', !r.cityWorker.bad.length && r.cityWorker.worker === 'on', `${r.cityWorker.tested} sprites, ${r.cityWorker.bad.length} differ ${r.cityWorker.bad.slice(0, 3).join('; ')} (worker ${r.cityWorker.worker}; ${r.cityWorker.skipped} custom drawables stay on the main thread; ${r.cityWorker.fell.length} whose art throws fall back: ${r.cityWorker.fell.map(x => x.split('|')[0]).join(', ')})`);
+  line('ground chunks, bands vs whole', !r.chunks.bad.length, `${r.chunks.tested} chunks, ${r.chunks.bad.length} differ`);
+  line('citizen sprites, worker vs main', !r.chars.bad.length, `${r.chars.tested} sprites, ${r.chars.bad.length} differ`);
+  line('draw order vs the old depth sort', !r.sort.bad, `${r.sort.frames} frames (about ${r.sort.avgItems} items each), ${r.sort.bad} differ`);
+  for (const id in r.rooms) line('room ' + id, !r.rooms[id].bad.length, `${r.rooms[id].tested} checks, ${r.rooms[id].bad.length} differ ${r.rooms[id].bad.slice(0, 2).join('; ')}`);
+  line('winter sample', !r.winter.bad.length, `${r.winter.tested} checks, ${r.winter.bad.length} differ`);
+  line('page errors', !g.errs.length, String(g.errs.length) + ' ' + g.errs.slice(0, 3).join(' | '));
+  await g.ctx.close(); return { ok, detail: r };
+}
+
 /* ---------- main ---------- */
 const br = await chromium.launch(); const result = { when: new Date().toISOString(), rate: o.rate, dsf: o.dsf, runs: o.runs, label: o.label, html: o.html || '(current tree)', profile: o.profile, scenes: {} };
-if (o.soak) {
+if (o.verify) {
+  const v = await verify(br); result.verify = v; console.log(v.ok ? 'VERIFY OK: same pixels' : 'VERIFY FAILED'); if (!v.ok) process.exitCode = 1;
+} else if (o.soak) {
   result.soak = await soak(br); const p = result.soak.points; console.log(`soak ${o.soak} min: heap ${p.map(x => x.heapMB).join(' ')} MB; page errors ${result.soak.errors.length}`, result.soak.errors);
 } else {
   const ids = o.scenes === 'all' ? Object.keys(SCENES) : o.scenes.split(','); for (const id of ids) if (!SCENES[id]) { console.log('unknown scene ' + id + ' (have: ' + Object.keys(SCENES).join(', ') + ')'); process.exit(1); }

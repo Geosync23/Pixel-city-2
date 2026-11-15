@@ -167,7 +167,8 @@ export const FIRST_DATES = {
   ], { ro: { imani: 4 }, fr: { imani: 3 }, mood: 'inspired' }),
 
   felix: F('felix', 'It Looks Fake', 'observatory', { from: 19.5, to: 23 }, [
-    '*|The Observatory, a clear night. Felix is by the door. He has clearly been round the block at least twice.',
+    '*|The Observatory after dark. Felix is by the door. He has clearly been round the block at least twice.',
+    iff('!weather:clear', ['*|Cloud over the dome. Felix has the forecast on his phone: a gap coming in off the bay in twenty minutes. He is right to the minute.']),   /* QA11: it was "a clear night" in the rain */
     'felix|Hi. I wasn\'t early. I was a normal amount of early. I walked round to make it normal.',
     'felix|I brought a flask. And a spare flask in case the first flask broke. That\'s not... I see how that sounds.',
     play('minigame', 'trace', 'Find Saturn with him'),

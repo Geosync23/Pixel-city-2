@@ -95,6 +95,9 @@ const toOf = (g, sid) => { let t = typeof g[2] === 'function' ? g[2](sid) : g[2]
 export function fixEdges(sid, out, live) {
   const hx = OFF ? null : safe(() => G.housing.navEdges(sid), null);   /* more homes: stairs, room doors and "back" mats of multi-room homes (sim/housing.js) */
   if (hx) for (const e of hx) { const h0 = out.find(o => Math.abs(o.x - e.x) < .8 && Math.abs(o.y - e.y) < .8); if (h0) { h0.to = e.to; h0._g = 1; } else out.push({ x: e.x, y: e.y, spot: e.spot, label: e.label, to: e.to, exit: false, out: false, _g: 1 }); }
+  /* QA11: a home's inner room (a bathroom, an attic) read from its definition got a phantom "Exit" to the city at (0, 0); with the flat's two doors the
+     same length, the cab arrow said "Bathroom → meet your cab outside". Inner rooms of a home only lead back into the home. */
+  if (/^int:home:[^:]+:/.test(sid)) for (let i = out.length - 1; i >= 0; i--) { const o = out[i]; if (o.to === 'city' && !o._g && (!live || (o.x === 0 && o.y === 0))) out.splice(i, 1); }
   const mx = OFF ? null : safe(() => G.mailboxes.navEdges(sid), null);   /* mailboxes: the stairs / lift of YOUR lobby lead up to your flat */
   if (mx) for (const e of mx) if (!out.some(o => o.to === e.to)) out.push({ x: e.x, y: e.y, label: e.label, to: e.to, exit: false, out: false, _g: 1 });
   const gs = OFF ? [] : graphFor(sid); if (!gs.length) return out;

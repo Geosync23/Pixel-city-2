@@ -45,8 +45,9 @@ export function toSprite(r) {
 /** toSprite for a result this module rendered itself with pooled buffers: the buffers go back to the raster pool */
 export function toSpritePooled(r) { if (!r) return null; const s = toSprite(r); R.recycle(r); return s; }
 const cache = new Map(); let total = 0; export const BUDGET = { px: 36e6 };
+/* counters (Renderer.perf()): bakes = baked on demand (bakeMs) / pre = finished by the main-thread queue (preMs) / rushed = queued or sent to the worker but needed before they were ready / wk = drawn by the worker (wkMs = main-thread time to make their canvases) */
 const STATS = { bakes: 0, bakeMs: 0, pre: 0, preMs: 0, slices: 0, rushed: 0, wk: 0, wkMs: 0, worker: '-', slow: [] };
-const slow = (key, ms, how) => { if (ms > 6) { STATS.slow.push(how + ' ' + ms.toFixed(0) + 'ms ' + String(key).slice(0, 70)); if (STATS.slow.length > 40) STATS.slow.shift(); } };   // the last main-thread bakes over 6 ms (for tools/perf.mjs)   // on-demand bakes / pre-bakes finished by the main-thread queue / queued bakes that had to be finished on the spot / sprites drawn by the worker (wkMs = main-thread time to make their canvases)
+const slow = (key, ms, how) => { if (ms > 6) { STATS.slow.push(how + ' ' + ms.toFixed(0) + 'ms ' + String(key).slice(0, 70)); if (STATS.slow.length > 40) STATS.slow.shift(); } };   // the last main-thread bakes over 6 ms (for tools/perf.mjs)
 let tick = 0;   // advanced by bakeTick about once a second
 function store(key, s) { cache.set(key, s); if (s) { total += s.w * s.h; s._t = tick; } if (total > BUDGET.px) for (const [k, v] of cache) { if (total <= BUDGET.px * .8 || k === key) break; cache.delete(k); if (v) total -= v.w * v.h; } }
 /** LRU cache. key: string; make: () => sprite */
@@ -110,8 +111,8 @@ export function workerObj(ob) {
   return null;
 }
 /** queue an asset sprite (same sprite and key as assetSprite(a, p, flip) for a registry asset: vehicles) */
-export function prebakeAsset(a, p, flip, pri) {
-  const key = a.id + '|' + JSON.stringify(p) + (flip ? '|F' : ''); if (cache.has(key)) return false;
+export function prebakeAsset(a, p, flip, pri, key) {
+  key = key || (a.id + '|' + JSON.stringify(p) + (flip ? '|F' : '')); if (cache.has(key)) return false;   // key: the same optional own key as assetSprite's 4th argument
   let vb = a.vb ? (typeof a.vb === 'function' ? a.vb(p) : a.vb) : null; if (!vb) { const s = typeof a.size === 'function' ? a.size(p) : a.size; vb = [-.3, -.3, 0, s[0] + .3, s[1] + .3, s[2] + .3]; } if (flip) vb = sw(vb);
   return prebake(key, () => R.renderJob(R.screenBox(vb), () => a.draw(p), null, 3, flip), pri, null, null, false, ASSETS.get(a.id) === a ? { t: 'obj', a: a.id, p, flip: !!flip, vb } : null);
 }

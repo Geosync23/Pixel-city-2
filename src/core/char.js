@@ -1,5 +1,5 @@
 // Character entity (player and NPCs): position, facing, animation, path following, sprite.
-import { pixSprite } from '../engine/sprites.js';
+import { pixSprite, prebakeChar } from '../engine/sprites.js';
 import { MODULES } from '../art/registry.js';
 import * as R from '../engine/raster.js';
 import { followPath, stepToward, findPath } from '../engine/nav.js';
@@ -42,5 +42,11 @@ export class Char {
     const f = Math.floor(this.t * (FPS[a] || 4)) % n, dir = this.dir;
     const po = this.poseOpts; // extra pose fields: { seated, item, itemColor, blanket, seatH, mood }
     return pixSprite('ch' + specId(this.spec) + a + f + dir + (this.spec._v || 0) + (po ? JSON.stringify(po) : ''), A.CHAR_SB, () => A.drawChar(this.spec, po ? Object.assign({ anim: a, frame: f, dir }, po) : { anim: a, frame: f, dir }));
+  }
+  /** perf (docs/reports/performance.md): the renderer calls this while the character is just off screen; the frame it shows now and the next one are baked ahead (same key and drawing as sprite()). Subclasses with their own sprite() override it. */
+  prebake(pri) {
+    if (!this.spec) return; const A = charArt(), anim = this.pose || (this.moving ? (this.carry ? 'carry' : 'walk') : 'stand'), n = (A.ANIMS && A.ANIMS[anim]) || 1, a = A.ANIMS && A.ANIMS[anim] ? anim : 'stand';
+    const f0 = Math.floor(this.t * (FPS[a] || 4)) % n, dir = this.dir, po = this.poseOpts, id = specId(this.spec), v = this.spec._v || 0, tail = po ? JSON.stringify(po) : '';
+    for (let q = 0; q < (n > 1 ? 2 : 1); q++) { const f = (f0 + q) % n; prebakeChar('ch' + id + a + f + dir + v + tail, A.CHAR_SB, this.spec, po ? Object.assign({ anim: a, frame: f, dir }, po) : { anim: a, frame: f, dir }, pri); }
   }
 }

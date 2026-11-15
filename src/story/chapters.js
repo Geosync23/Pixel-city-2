@@ -571,7 +571,7 @@ const ch04 = {
   play: 'Open My Day and add one idea to your day; then look at the job listings and apply for a job.',
   teaches: ['My Day: what is ON your day versus ideas you could add', 'Work puts itself on your day; everything else you add',
     'Finding and applying for a job (Jobs app, or the library computers)', 'Shifts: turn up, and you may work them or coast', 'Bills every Monday'],
-  takeaway: [{ type: 'ability', id: 'myday', text: 'My Day: the button in the top corner.' }, { type: 'flag', id: 'has_first_job', text: 'A job, and a first shift on your day.' },
+  takeaway: [{ type: 'ability', id: 'myday', text: 'My Day: the button in the top corner.' }, { type: 'flag', id: 'has_first_job', text: 'A job, and its shifts on your day.' },
     { type: 'place', id: 'pizza' }, { type: 'rel', id: 'theo', n: 6 }],
   scenes: [
     sc('slice', 'pizza', 'A table for two', [
@@ -613,13 +613,14 @@ const ch04 = {
         o('quiet', 'Somewhere quiet.', [
           s('theo', "The library. Or an office. Hartwell & Finch takes analysts. It's quiet the way a dentist's is quiet.")], R('theo'))),
       s('theo', 'Jobs, on your phone. Or the computers upstairs at the library, if you like a bigger screen.'),
-      s('theo', "Have a look. Apply for one. Any one; you can change your mind later, people do. Go on. I'll eat your crust."),
+      iff('has:job', [s('theo', "Oh, wait. You've got one already: {job}. Look at you, a step ahead of my napkin. Keep an eye on the listings anyway; people change their minds.")],
+        [s('theo', "Have a look. Apply for one. Any one; you can change your mind later, people do. Go on. I'll eat your crust.")]),
       play('ui', 'jobs_apply', { label: 'Look at the listings and apply for a job', hint: 'Any job. It does not have to be forever.' }),
       wait('job:hired', { label: 'Hear back about the job' }),
-      s('theo', 'Hired! Just like that. In my day you had to iron something.'),
+      iff('flag:c04_hadjob', [s('theo', 'Already hired, before I had my pen out. In my day you had to iron something.')], [s('theo', 'Hired! Just like that. In my day you had to iron something.')]),
       s('theo', 'Now look at My Day again.'),
       play('ui', 'myday_open', { label: 'Open My Day again' }),
-      s('theo', "See? Your first shift has put itself there. That's a \"has to.\" You didn't add it. It added you."),
+      iff('flag:c04_hadjob', [s('theo', "See? Your next shift has put itself there. That's a \"has to.\" You didn't add it. It added you.")], [s('theo', "See? Your first shift has put itself there. That's a \"has to.\" You didn't add it. It added you.")]),
       s('theo', "Everything else on there, you put there. That's the system. That's the whole system. I could've saved the napkin."),
       s('theo', 'Turn up on time and they keep you. Some days you\'ll work it properly, some days you\'ll coast. Either way you were there, and that\'s what they pay for.'),
       s('theo', "Don't turn up at all, and you get a look from me at Sunday dinner. That's the real penalty."),

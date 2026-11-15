@@ -93,6 +93,9 @@ export function find(kind, n = 4, from = cityPos()) {
     out.push({ id: pl ? pl.id : { x: w.x, y: w.y, name: nm }, name: nm + (w.name ? ' is at ' + w.name : ''), x: w.x, y: w.y, d: man(w, from), open: null, note: 'friend', friend: true }); if (out.filter(o => o.friend).length >= 2) break; }
   for (const fn of SOURCES[kind] || []) for (const q of safe(() => fn(from), []) || []) if (q && isFinite(q.x) && isFinite(q.y)) out.push(Object.assign({ d: man(q, from), open: null, note: '' }, q));
   if (home && kind in HOME_NOTE && (kind !== 'hunger' && kind !== 'food' || fridgeFood())) out.push(row(home, from, { name: 'Home', note: HOME_NOTE[kind], home: true, open: null }));
+  /* QA11: inside a room that has its own restroom, that room comes first (round 10: inside the Blue Heron on a Monday, its own restroom sign was listed last as "closed", under the Orpheum 500 m away) */
+  if (kind === 'bladder') { const rid = safe(() => /^int:/.test(G.scene.id) ? G.scene.id.slice(4) : null, null), mine = rid && safe(() => G.interactables().some(i => i.restroom && (!i.visible || i.visible())), false);
+    if (mine) { let r = out.find(q => q.id === rid); if (!r) { const p = place(rid); if (p) out.push(r = row(p, from)); } if (r) Object.assign(r, { d: 0, open: null, note: 'right here: the Restroom sign', here: true }); } }
   return out.sort((a, b) => (a.open === false) - (b.open === false) || a.d - b.d);
 }
 

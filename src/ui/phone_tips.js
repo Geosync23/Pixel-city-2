@@ -89,6 +89,7 @@ function go(t, ctx) {
     if (!G.phone.isUnlocked(g.app)) { toast('That app is not on your phone yet.'); return false; }
     return G.phone.open(g.app, g.arg);
   }
+  if (g.myday) { safe(() => { if (G.phone && G.phone.isOpen && G.phone.close) G.phone.close(); }); return safe(() => (G.myDay.open(), true), false); }   /* QA11: the "Somebody is expecting you" window's Open My Day did nothing */
   if (g.sys) return safe(() => G.shelf.jump(g.sys, ctx), false);
   if (g.place) return goTo(g.place, ctx);
   if (g.find) { const r = safe(() => G.nav.find(g.find, 1), [])[0] || safe(() => G.guide.search(g.find)[0], null), p = r && (typeof r.x === 'number' ? r : safe(() => G.guide.pos(r), null)); if (p) return goTo({ x: p.x, y: p.y, name: r.name || r.title, id: r.placeId }, ctx, r.name || r.title); toast('Could not find one nearby. Try the Map.'); }

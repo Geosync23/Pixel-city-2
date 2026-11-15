@@ -182,7 +182,7 @@ function wire() {
   on('mall:arcade', () => stamp('x:arcade')); on('mall:visit', () => stamp('x:mall'));
   on('service', (id, venueId) => { const pp = safe(() => G.publicPlaces.get(venueId), null); stamp(/hair|barber|salon|cut|trim|shave|fade/i.test(String(id)) || (pp && /barber|salon/.test(pp.kind || '')) ? 'x:haircut' : 'x:service'); });
   on('job:shift:end', () => stamp('x:shift')); on('job:hired', () => stamp('x:hired'));
-  on('social:hangout', () => stamp('x:hangout')); on('npc:met', () => stamp('x:met')); on('social:gift', () => stamp('x:gift')); on('friend:up', () => stamp('x:hangout'));
+  on('social:hangout', () => stamp('x:hangout')); on('npc:met', () => stamp('x:met')); on('social:gift', () => stamp('x:gift')); on('friend:up', (id, tier) => { if (!tier || /^(friend|close)$/.test(tier)) stamp('x:hangout'); });   /* QA11: an acquaintance (a Porchlight hello) is not a hang-out */
   on('cooked', () => stamp('x:cooked')); on('home:furnish', () => { if (safe(() => G.furnish.active, false)) stamp('x:furnish'); });   /* QA9: only when you decorate yourself (unpacking the moving boxes gave it) */ on('photo', v => { if (v) stamp('x:photo'); });
   // Botanical Conservatory (src/sim/conservatory.js events)
   on('conservatory:sketch', () => stamp('x:cons_sketch')); on('conservatory:tour', n => { if ((n || 0) >= 5) stamp('x:cons_tour'); }); on('conservatory:sit', () => stamp('x:cons_breathe'));

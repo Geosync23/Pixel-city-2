@@ -115,7 +115,7 @@ const A = {
   async 'ui:myday_open'(st, c) { const r = await c.doAt(null, st.label, { go: 'Open it', hint: st.hint }); if (r !== 'done') return r; await MYDAY.open(c); return 'good'; },
   async 'ui:myday_add'(st, c) { const r = await c.doAt(null, st.label, { go: 'Add one', hint: st.hint }); if (r !== 'done') return r; const ok = await MYDAY.add(c); return ok ? 'good' : 'ok'; },
   async 'ui:jobs_apply'(st, c) {
-    if (safe(() => G.jobs.current(), null)) return 'good';
+    if (safe(() => G.jobs.current(), null)) { safe(() => { (G.state.flags || (G.state.flags = {})).c04_hadjob = 1; }); return 'good'; }   /* QA11: Theo does not say "Hired!" to somebody who already had a job */
     for (;;) {
       const r = await c.doAt(null, st.label, { go: 'See the listings', hint: st.hint }); if (r !== 'done') return r;
       safe(() => G.jobs.openBoard({ source: 'phone' })); await c.sleep(500);

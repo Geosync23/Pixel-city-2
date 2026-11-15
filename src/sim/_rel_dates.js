@@ -71,7 +71,7 @@ let on = null;
 function talkFor(id) { const r = ror(id), L = DATE_TALK[id] || []; return L.find(t => !r.talks.includes(t.id) && test(t.when, id)) || null; }
 async function runDate(d) {
   if (on || HOOK.isRunning()) return 'busy'; const id = d.id, s = st();
-  if (d.type === 'first') { on = d; try { safe(() => G.social.place(id)); HOOK.withUs([id], 'date', true); const r = await HOOK.start('fd.' + id, { look: 'date' }); if (r === 'done') { d.done = 1; safe(() => G.planner.done(d.appt)); } return r; } finally { on = null; } }
+  if (d.type === 'first') { on = d; try { safe(() => G.social.place(id)); HOOK.withUs([id], 'date', true); const r = await HOOK.start('fd.' + id, { look: 'date' }); if (r === 'done') { d.done = 1; safe(() => (G.planner.finish || G.planner.done)(d.appt)); } return r; } finally { on = null; } }
   const T = DATE_TYPES[d.type], P = PEOPLE[id], r = ror(id), late = G.state.t - d.t, lines = (DATE_LINES[id] || {})[d.type] || [], nth = (r.types[d.type] || 0) + 1, wet = ['rain', 'storm', 'snow'].includes(B.wx());
   const tk = talkFor(id), after = DATE_TALK_AFTER[id] || [], res = { play: 'ok', mem: false, late };
   const steps = [say('narrator', T.arrive[(nth - 1) % T.arrive.length])];
@@ -100,7 +100,7 @@ function finishDate(d, T, res) {
   if ((T.bonus && B.eventOn(T.bonus)) || isBirthday(id) || ((st().small.ev || {}).gift || {})[id] && st().small.ev.gift[id][1] === today()) pts++;
   const out = pts >= 5 ? 'books' : pts >= 3 ? 'lovely' : 'fine';
   d.done = 1; d.out = out; r.dates++; r.lastDate = today(); r.types[d.type] = (r.types[d.type] || 0) + 1; r.lastSeen = today();
-  addWarmth(id, OUTCOMES.warmth[out] + (res.late > 30 ? -1 : 0), 'date'); mood(OUTCOMES.mood[out]); safe(() => G.planner.done(d.appt)); safe(() => N.add('social', 30)); B.addFr(id, 2);
+  addWarmth(id, OUTCOMES.warmth[out] + (res.late > 30 ? -1 : 0), 'date'); mood(OUTCOMES.mood[out]); safe(() => (G.planner.finish || G.planner.done)(d.appt)); safe(() => N.add('social', 30)); B.addFr(id, 2);
   queueText({ from: id, text: GOODNIGHT[id][out], after: 1.5, force: true });
   G.emit('rel:date', id, d.type, out);
   /* MILESTONES.steady: if the warmth is there and you have not asked, THEY raise it at the end of a date */

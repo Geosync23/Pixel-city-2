@@ -152,7 +152,7 @@ function wire() {
   on('scene', sc => { if (!sc || !introDone()) return; const home = safe(() => G.housing.isHome(sc.id), false);
     if (home) { const h = G.now().hf; if (h >= 16.5 && h < 22 && safe(() => G.inv.fridge.items().length, 0)) soon('cooking'); }
     else if (/^int:/.test(sc.id || '') && !/^int:airport/.test(sc.id)) soon('talk'); });
-  on('friend:up', () => soon('gifts'));
+  on('friend:up', (id, tier) => { if (!tier || /^(friend|close)$/.test(tier)) soon('gifts'); });   /* QA11: not when a Porchlight hello makes a stranger an acquaintance */
   on('msg:appt', (th, ok) => { if (ok) soon('invites'); });
   on('post:mail', () => soon('mail')); on('post:visit', () => now('postoffice', 1500));
   on('chapter:done', () => soon('chapter_after'));

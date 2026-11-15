@@ -109,6 +109,7 @@ export const WEATHER_RULES = {
 //                story              hook for the story team
 //   notify     hours before start that the phone reminds you (Planner auto-adds all events).
 // ---------------------------------------------------------------------------------------------
+/* QA11: the blurbs of the small festivals now promise only what is there (sim/calevents.js adds an arrival line, the moodlet and small sky effects) */
 export const EVENTS = [
   // ------------------------------------------------------------ weekly
   { id: 'cheap_tuesday', name: 'Two-for-Tuesday at The Orpheum', kind: 'weekly', when: { weekday: 1 }, hours: [12, 24],
@@ -121,7 +122,7 @@ export const EVENTS = [
     place: { venue: 'bar' }, blurb: 'A different band every Friday. Gets busy by nine.',
     special: { activities: ['watch_live_music', 'dance'], funMult: 1.2, crowdMult: 1.8, moodlet: 'great_night_out', bartenderTipsMult: 2 }, notify: 4 },
   { id: 'farmers_market', name: 'Saturday Farmers\' Market', kind: 'weekly', when: { weekday: 5 }, hours: [8, 14],
-    place: { venue: 'market_stalls' }, blurb: 'Old Town market street doubles in size. Come early for berries.',
+    place: { venue: 'market_stalls' }, blurb: 'The busiest morning on the Old Town market street: fruit and veg 15% off on top of the usual market prices. Come early.',
     special: { crowdMult: 1.8,
       discounts: [{ venue: 'market_stalls', mult: 0.85, categories: ['ingredient'] }], // on top of the market's usual x0.8
       stalls: [
@@ -134,12 +135,12 @@ export const EVENTS = [
       sellYourOwn: 'paintings, caught fish and garden produce sell here for +20%',
       story: 'Grandma shops here every Saturday around 9:00.' }, notify: 12 },
   { id: 'sunday_jazz_brunch', name: 'Sunday Jazz Brunch', kind: 'weekly', when: { weekday: 6 }, hours: [12, 15],
-    place: { venue: 'restaurant' }, blurb: 'The Gilded Gull loosens its tie: brunch prices and a trio on the terrace.',
+    place: { venue: 'restaurant' }, blurb: 'The Gilded Gull loosens its tie: brunch prices, a quarter off the whole menu from twelve till three.',
     special: { discounts: [{ venue: 'restaurant', mult: 0.75 }], funMult: 1.15, dressCodeRelaxed: true }, notify: 3 },
 
   // ------------------------------------------------------------ seasonal
   { id: 'blossom_festival', name: 'Spring Blossom Festival', kind: 'seasonal', when: { season: 'spring', days: [6, 7] }, hours: [10, 20],
-    place: { district: 'park', poi: 'poi_duck_pond' }, blurb: 'Pink petals over Central Park, lanterns on the pond at dusk.',
+    place: { district: 'park', poi: 'poi_duck_pond' }, blurb: 'Petals on the wind by the Duck Pond, fine weather promised, half the town out on the grass, and paper lanterns on the pond at seven.',
     special: { crowdMult: 2, guaranteedWeather: 'clear', moodlet: 'festival_spirit', funMult: 1.25,
       stalls: [
         { id: 'stall_blossom_tea', name: 'Blossom Tea Tent', sells: ['cafe_tea', 'bakery_fruit_tart'] },
@@ -150,7 +151,7 @@ export const EVENTS = [
       highlight: 'Paper-lantern launch on the pond at 19:00 (10 min, +10 fun).',
       story: 'Family picnic invitation from your sibling.' }, notify: 24 },
   { id: 'summer_fireworks', name: 'Summer Fireworks', kind: 'seasonal', when: { season: 'summer', days: [10] }, hours: [17, 23],
-    place: { district: 'harbor', poi: 'poi_ferris_wheel' }, blurb: 'Boardwalk fair all evening; fireworks over the bay at ten.',
+    place: { district: 'harbor', poi: 'poi_ferris_wheel' }, blurb: 'A busy evening on the boardwalk by the Bay Wheel, fine weather promised, and fireworks over the water at ten.',
     special: { crowdMult: 2.2, guaranteedWeather: 'clear', moodlet: 'festival_spirit',
       fireworks: { atHour: 22, minutes: 15, visibleFrom: ['harbor', 'hillcrest', 'downtown'], moodlet: 'fireworks_awe' },
       stalls: [
@@ -161,13 +162,13 @@ export const EVENTS = [
       highlight: 'Riding the Bay Wheel during the fireworks doubles the fireworks_awe duration.',
       transit: 'trains run until 02:00' }, notify: 24 },
   { id: 'boardwalk_days', name: 'Boardwalk Days', kind: 'seasonal', when: { season: 'summer', days: [3, 4] }, hours: [11, 21],
-    place: { district: 'harbor', poi: 'poi_pier' }, blurb: 'Fishing derby, sandcastle contest, half-price scoops.',
+    place: { district: 'harbor', poi: 'poi_pier' }, blurb: 'Two busy days on the pier: half-price scoops at the ice-cream stand, and the rail full of people fishing.',
     special: { crowdMult: 1.6, moodlet: 'festival_spirit',
       discounts: [{ venue: 'stand_icecream', mult: 0.5 }],
       activities: ['fish_pier'],
       highlight: 'Fishing derby: each fish caught today can be weighed in for a $6 prize (instead of $3 sale).' }, notify: 24 },
   { id: 'harvest_fair', name: 'Autumn Harvest Fair', kind: 'seasonal', when: { season: 'autumn', days: [2, 3] }, hours: [9, 19],
-    place: { venue: 'market_stalls', district: 'oldtown' }, blurb: 'Pumpkins, cider, pie contest. Old Town smells of cinnamon.',
+    place: { venue: 'market_stalls', district: 'oldtown' }, blurb: 'Market produce a quarter off, the bakery a fifth off, autumn leaves on the wind, and Old Town smells of cinnamon.',
     special: { crowdMult: 2, moodlet: 'festival_spirit',
       discounts: [{ venue: 'market_stalls', mult: 0.75, categories: ['ingredient'] }, { venue: 'bakery', mult: 0.8 }],
       stalls: [
@@ -178,13 +179,13 @@ export const EVENTS = [
       highlight: 'Bake-off at 15:00 on day 7: enter any home-cooked meal; prize $20-$80 by recipe skill requirement, and a ribbon decor item.',
       story: 'Grandma enters the pie contest and wants a taster.' }, notify: 24 },
   { id: 'lantern_night', name: 'Lantern Night', kind: 'seasonal', when: { season: 'autumn', days: [10] }, hours: [18, 24],
-    place: { venue: 'ramen', district: 'oldtown' }, blurb: 'Lantern Row hangs a thousand paper lanterns; food stalls spill into the street.',
+    place: { venue: 'ramen', district: 'oldtown' }, blurb: 'After dark the paper lanterns drift up over Lantern Row, and the ramen bar is a fifth off.',
     special: { crowdMult: 1.8, moodlet: 'festival_spirit', funMult: 1.2,
       discounts: [{ venue: 'ramen', mult: 0.8 }],
       stalls: [{ id: 'stall_lantern_food', name: 'Night Market Grills', sells: ['market_dumplings', 'ramen_gyoza', 'stand_taco_single', 'hot_cider'] }],
       highlight: 'Write a wish on a lantern (5 min, +8 fun, +5 social).' }, notify: 12 },
   { id: 'winter_lights', name: 'Winter Lights Market', kind: 'seasonal', when: { season: 'winter', days: [7, 9, 10, 12, 13] }, hours: [15, 22],
-    place: { district: 'downtown', poi: 'poi_city_plaza' }, blurb: 'Wooden huts, fairy lights and a giant tree on City Hall Plaza.',
+    place: { district: 'downtown', poi: 'poi_city_plaza' }, blurb: 'City Hall Plaza busy under the lights after four, and winter coats and knits a fifth off at Thread & Co.',
     special: { crowdMult: 1.8, moodlet: 'festival_spirit', funMult: 1.2,
       discounts: [{ venue: 'clothing', mult: 0.8, items: ['outfit_winter', 'outfit_knit'] }],
       stalls: [
@@ -219,7 +220,7 @@ export const EVENTS = [
 
   // ------------------------------------------------------------ holidays
   { id: 'founders_day', name: "Founders' Day", kind: 'holiday', when: { season: 'summer', days: [1] }, hours: [0, 24],
-    place: { district: 'downtown', poi: 'poi_city_plaza' }, blurb: 'Maple Bay turns another year older. Parade at noon, free cake on the plaza.',
+    place: { district: 'downtown', poi: 'poi_city_plaza' }, blurb: 'Maple Bay turns another year older. Free cake on the plaza, all day.',
     special: { closures: ['office', 'bank', 'library', 'courier', 'warehouse'], paidDayOff: true, crowdMult: 1.6, moodlet: 'holiday_cheer',
       highlight: 'Parade along the Downtown avenue 12:00-13:00; free slice of cake at the plaza (hunger +15, fun +10).' }, notify: 24 },
   { id: 'gratitude_supper', name: 'Gratitude Supper', kind: 'holiday', when: { season: 'autumn', days: [11] }, hours: [0, 24],
@@ -232,7 +233,7 @@ export const EVENTS = [
       giftRelationshipMult: 1.5,
       story: 'Gift exchange at grandma\'s at 16:00; every contact with friendship level "friend" or higher sends a small gift by message.' }, notify: 24 },
   { id: 'new_years_eve', name: "New Year's Eve", kind: 'holiday', when: { season: 'winter', days: [14] }, hours: [20, 25],
-    place: { district: 'harbor', poi: 'poi_lighthouse' }, blurb: 'Countdown on the boardwalk, fireworks at midnight, then it is Spring again.',
+    place: { district: 'harbor', poi: 'poi_lighthouse' }, blurb: 'Countdown by the lighthouse, fireworks at midnight, then it is Spring again.',
     special: { crowdMult: 2, moodlet: 'festival_spirit', guaranteedWeather: 'clear',
       fireworks: { atHour: 24, minutes: 15, visibleFrom: ['harbor', 'hillcrest', 'downtown', 'arts'], moodlet: 'fireworks_awe' },
       transit: 'trains run all night', highlight: 'The year-in-review card appears on your phone at 00:15.' }, notify: 24 },

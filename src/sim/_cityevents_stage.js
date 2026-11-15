@@ -10,7 +10,7 @@ import { Char, charArt } from '../core/char.js';
 import * as RA from '../engine/raster.js';
 import { U, rng } from '../engine/raster.js';
 import { GT } from '../engine/world.js';
-import { assetSprite, pixSprite } from '../engine/sprites.js';
+import { assetSprite, pixSprite, prebakeAsset, prebakePix } from '../engine/sprites.js';
 import { ASSETS, assetSize } from '../art/registry.js';
 import { Cit, getSpec, speak, ambientLine } from './_crowd_core.js';
 import { TUNE } from '../data/cityevents.js';
@@ -87,6 +87,11 @@ class Mar extends Char {   /* marcher / rider */
     if (k === this._k && this._s) return this._s; this._k = k; const spec = this.spec, it = this.item, c1 = this.c1, c2 = this.c2, seated = this.seated;
     return this._s = pixSprite('cev' + this.look + this.vi + (it || '') + c1 + a + f + dir + (seated ? 's' : ''), SB, () => { A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : { anim: a, frame: f, dir }); if (it) drawItem(it, f, dir, c1, c2); });
   }
+  /* perf (performance worker, docs/reports/performance.md): the renderer calls this while the marcher is just off screen; its current and next frame are baked ahead by the engine's queue (same key and drawing as sprite()) */
+  prebake(pri) {
+    if (!this.spec) return; const A = charArt(), a = A.ANIMS[this.an] ? this.an : 'stand', n = A.ANIMS[a] || 1, f0 = Math.floor(this.t * (FPS[a] || 4)) % n, dir = this.dir, spec = this.spec, it = this.item, c1 = this.c1, c2 = this.c2, seated = this.seated;
+    for (let q = 0; q < (n > 1 ? 2 : 1); q++) { const f = (f0 + q) % n; prebakePix('cev' + this.look + this.vi + (it || '') + c1 + a + f + dir + (seated ? 's' : ''), SB, () => { A.drawChar(spec, seated ? { anim: a, frame: f, dir, seated: true } : { anim: a, frame: f, dir }); if (it) drawItem(it, f, dir, c1, c2); }, pri); }
+  }
 }
 class Flt {   /* float / boat / dragon part: an asset sprite that lies along its direction of travel */
   constructor() { this.x = 0; this.y = 0; this.z = 0; this.hidden = true; this.alpha = 1; this.isEventActor = true; this.isFloat = true; this.asset = null; this.p = {}; this.ax = 'x'; this.d = 1; this.len = 4; this.wid = 2; this.h = 3; this.bb = [0, 0, 0, 0, 1]; this.spr = {}; this.hop = -1; }
@@ -98,6 +103,11 @@ class Flt {   /* float / boat / dragon part: an asset sprite that lies along its
     try { r = assetSprite(this.asset, p, flip); } catch (e) { r = null; } if (!r) return this.spr[k] = null;
     const hx = (flip ? this.wid : this.len) / 2, hy = (flip ? this.len : this.wid) / 2;
     return this.spr[k] = { c: r.c, l: r.l, x: r.x - Math.round((hx - hy) * U), y: r.y - Math.round((hx + hy) * U / 2), w: r.w, h: r.h };
+  }
+  /* perf: the float's sprite is baked ahead (by the bake worker) while it is still off screen: same asset, params and flip as sprite() */
+  prebake(pri) {
+    if (!this.asset) return; const k = this.ax + this.d + (this.hop >= 0 ? this.hop : ''); if (this.spr[k] !== undefined) return;
+    const p = Object.assign({}, this.p, { dir: this.d }); if (this.hop >= 0) p.hop = this.hop; try { prebakeAsset(this.asset, p, this.ax === 'y', pri); } catch (e) { }
   }
 }
 

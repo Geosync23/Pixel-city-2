@@ -138,7 +138,9 @@ function finish(sc) {
   const s = st(), id = sc.id; s.seen[id] = today(); s.lastScene = today(); const A = s.arcs[sc.arc] || (s.arcs[sc.arc] = {}); A.lastDay = today();
   apply(sc.fx, sc.person, 'scene');
   if (sc.ask) for (const p of sc.speakers.slice(0, 1)) s.threads[p] = id;
-  const o = s.off[id]; if (o) { const a = apptOf(o); if (a) safe(() => G.planner.done(a.id)); if (pinOf(o)) safe(() => G.planner.remove(o.pin)); o.pin = null; o.done = 1; for (const p of sc.speakers) safe(() => G.social.place(p)); }
+  /* QA11: the arrow kept leading back to the scene's place after the scene (Dez: "Central Station · 840 m"): a waypoint set for it is cleared */
+  safe(() => { const d = dest(sc.place, sc.person), w = G.state.phone.waypoint; if (d && w && isFinite(w.x) && Math.hypot(w.x - d.x, w.y - d.y) < 15) G.phone.setWaypoint(null); });
+  const o = s.off[id]; if (o) { const a = apptOf(o); if (a) safe(() => (G.planner.finish || G.planner.done)(a.id)); if (pinOf(o)) safe(() => G.planner.remove(o.pin)); o.pin = null; o.done = 1; for (const p of sc.speakers) safe(() => G.social.place(p)); }
   for (const p of sc.speakers) safe(() => { const r = G.state.social.npcs[p]; if (r) r.lastTalkDay = today(); });
   if (sc.track === 'romance') safe(() => LIFE.milestone(sc));
   G.emit('rel:scene', id); safe(() => G.save && G.started && !(G.query && G.query.has('scene')) && G.save());

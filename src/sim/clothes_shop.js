@@ -155,7 +155,7 @@ export function init() {
   registerFixture('clothing', (fx, scene) => { const r = rackInfo(fx, scene); if (!r || /thrift|jewel/.test(fx.asset.id)) return null; return { label: r.slot === 'shoes' ? 'Shoe wall' : r.slot === 'hat' || r.slot === 'acc' ? 'Hats and accessories' : 'Browse the ' + SLOT_WORD[r.slot].split(' ')[0], hit: 14, shopRack: r.shop, use: () => useRack(fx, scene) }; });
   G.on('room:build', onRoom); G.on('scene', leaveShop); G.on('hour', deliveries); G.on('load', deliveries);
   G.on('wardrobe:open', () => { if (safe(() => G.wardrobe.looks().length, 0)) stamp('x:look_saved'); });
-  G.on('friend:up', id => { if (hash('fg' + id + G.state.t) % 3) return; const pid = gift(); if (!pid) return; safe(() => G.messages.send({ from: id, text: `Saw this and thought of you: ${PIECE_BY_ID[pid].name}. It is in your dresser already, I am quick like that.` })); });
+  G.on('friend:up', (id, tier) => { if (tier && !/^(friend|close)$/.test(tier)) return; /* QA11: not from somebody who has only just become an acquaintance (a Porchlight hello sent a gift into the dresser) */ if (hash('fg' + id + G.state.t) % 3) return; const pid = gift(); if (!pid) return; safe(() => G.messages.send({ from: id, text: `Saw this and thought of you: ${PIECE_BY_ID[pid].name}. It is in your dresser already, I am quick like that.` })); });
   // the till / counter / stall of a clothes-selling venue: clothes first, the classic window one tap away
   if (G.shop && G.shop.open && !G.shop._clothes) {
     const orig = G.shop.open; G.shop._clothes = true;

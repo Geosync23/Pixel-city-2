@@ -137,7 +137,7 @@ function tick() {
   for (const a of S.items.slice()) {
     leadCheck(a, t);
     if (a.s === 0 && a.remind > 0 && t >= a.t - a.remind && t < a.t) { a.s = 1; G.emit('appt:soon', a); const m = Math.max(1, Math.round(a.t - t)); note(a, say(a, '') + ` at ${clock(a.t)}.` + (atPlace(a) && a.placeId ? ' You are already there.' : ''), 'normal', `In ${m} min`); }
-    if (a.s < 2 && t >= a.t) { a.s = 2; a.here = a.here || (atPlace(a) && (a.placeId || posOf(a)) && !a.flex ? 1 : 0); G.emit('appt:start', a); if (!a.flex && t < a.t + a.dur && !(a.here && a.placeId)) { note(a, say(a, '') + ' has started.', 'high', 'Starting now'); try { if (G.navArrow && G.navArrow.banner) G.navArrow.banner('Starting now', say(a, ''), { ms: 7000 }); } catch (e) { /* no banner layer */ } } }
+    if (a.s < 2 && t >= a.t) { a.s = 2; a.here = a.here || (atPlace(a) && (a.placeId || posOf(a)) && !a.flex ? 1 : 0); G.emit('appt:start', a); if (!a.flex && t < a.t + a.dur && !(a.here && (a.placeId || posOf(a)))) {   /* QA11: also not for an entry at a spot you are standing on (Dez at the plaza) */ note(a, say(a, '') + ' has started.', 'high', 'Starting now'); try { if (G.navArrow && G.navArrow.banner) G.navArrow.banner('Starting now', say(a, ''), { ms: 7000 }); } catch (e) { /* no banner layer */ } } }
     if (a.s === 2) {
       if (!a.here && atPlace(a) && (a.placeId || posOf(a) || !a.flex)) a.here = 1;
       /* something the player picked from the Ideas is done the moment they get there (no need to wait the hour out) */
