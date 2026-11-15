@@ -28,7 +28,7 @@ const TOP_ROWS = `
 tee_grey        | tee | Everyday Tee, Heather Grey | casual | 1 | #b8bcc4
 tee_navy        | tee | Everyday Tee, Faded Navy | casual | 1 | #4a5a80
 tee_black       | tee | Everyday Tee, Washed Black | casual,street | 1 | #3a3842
-tee_red         | tee | Everyday Tee, Washed Red | casual | 1 | #c85a50
+tee_pink        | tee | Everyday Tee, Faded Pink | casual | 1 | #e8a8a8
 tee_sage        | tee | Everyday Tee, Sage | casual | 1 | #a8b890
 tee_dustyblue   | tee | Everyday Tee, Dusty Blue | casual | 1 | #8aa8c8
 tee_butter      | tee | Everyday Tee, Butter | casual,summer | 1 | #f0dca0
@@ -43,7 +43,7 @@ vneck_rose      | vneck | Soft V-Neck, Faded Rose | casual | 1 | #d89a9a
 henley_stone    | henley | Plain Henley, Stone | casual | 2 | #c8c0b0
 henley_slate    | henley | Plain Henley, Slate Blue | casual | 2 | #5a6a8a
 sweater_grey    | sweater | Crew Jumper, Grey | casual,cozy | 3 | #9aa0a8
-sweater_navy    | sweater | Crew Jumper, Navy | casual,cozy | 3 | #3a4a72
+sweater_plum    | sweater | Crew Jumper, Faded Plum | casual,cozy | 3 | #8a6a80
 hoodie_grey     | hoodie | Pullover Hoodie, Grey | casual,cozy | 2 | #a0a4ac
 hoodie_black    | hoodie | Pullover Hoodie, Black | casual,street | 2 | #33303f
 crop_white      | crop | Basic Crop Tee, White | casual,summer | 0 | #f4f0e8
@@ -63,7 +63,7 @@ stripe_navy     | stripe | Sailing Stripe Tee, Navy | casual | 1 | #2f3f72
 stripe_green    | stripe | Sailing Stripe Tee, Green | casual | 1 | #3f7a58
 shirt_white     | shirt | Weekday Oxford, White | smart,work | 2 | #f8f8f4
 shirt_pink      | shirt | Weekday Oxford, Pink | smart,work | 2 | #f2c4c4
-shirt_mint      | shirt | Weekday Oxford, Mint | smart,work | 2 | #c8e8d0
+shirt_mint      | shirt | Weekday Oxford, Mint | smart,work | 2 | #b8e0c0
 shirt_gingblue  | shirt | Picnic Gingham Shirt, Blue | smart,casual | 2 | #f4f0e8 | #3b6fd0 | | check
 shirt_gingred   | shirt | Picnic Gingham Shirt, Red | casual,smart | 2 | #f4f0e8 | #d9483b | | check
 shirt_bengal    | shirt | Bengal Stripe Shirt | smart,work | 2 | #f4f0e8 | #5a7ab8 | | vstripes
@@ -100,7 +100,7 @@ blouse_jade     | blouse | Charmeuse Blouse, Jade | formal,party | 1 | #3f8a6a
 cami_gold       | cami | Satin Cami, Gold | party,formal | 0 | #d8b048
 cami_ivory      | cami | Satin Cami, Ivory | formal,party | 0 | #f6ead0
 turtle_camel    | turtleneck | Cashmere Roll-Neck, Camel | smart,cozy | 3 | #c8a070
-turtle_ivory    | turtleneck | Cashmere Roll-Neck, Ivory | smart,cozy | 3 | #f6ead0
+turtle_plum     | turtleneck | Cashmere Roll-Neck, Plum | smart,cozy | 3 | #6a3a5a
 mand_jade       | mandarin | Jade Mandarin Blouse | formal,smart | 1 | #2f7a5a | #d8b048
 mand_ivory      | mandarin | Ivory Mandarin Blouse | formal,smart | 1 | #f6ead0 | #8a2f3a
 onesh_emerald   | oneshoulder | Riviera One-Shoulder, Emerald | party,formal | 0 | #2f7a5a
@@ -109,10 +109,10 @@ waist_cream     | waistcoat | Gilded Waistcoat, Cream | formal,smart | 2 | #f0e0
 offsh_ivory     | offshoulder | Bardot Top, Ivory | party,summer | 0 | #f6ead0
 
 @hollowell
-shirt_lavender  | shirt | Poplin Dress Shirt, Lavender | smart,formal | 2 | #c8c0e0
+shirt_lavender  | shirt | Poplin Dress Shirt, Lavender | smart,formal | 2 | #c0b0e0
 shirt_pinnavy   | shirt | Poplin Dress Shirt, Navy Pinstripe | formal,work | 2 | #2f3f72 | | | pinstripe
 shirt_charcoal  | shirt | Poplin Dress Shirt, Charcoal | formal,smart | 2 | #4a4a58
-shirt_butter    | shirt | Poplin Dress Shirt, Butter | smart,work | 2 | #f0e4b0
+shirt_butter    | shirt | Poplin Dress Shirt, Butter | smart,work | 2 | #f0dc90
 waist_charcoal  | waistcoat | Three-Piece Waistcoat, Charcoal | formal,work | 2 | #4a4a58 | | | | in=#f8f8f4
 waist_pinnavy   | waistcoat | Three-Piece Waistcoat, Navy Pinstripe | formal,work | 2 | #2f3f72 | | | pinstripe | in=#9ac8e8
 waist_camel     | waistcoat | Waistcoat, Camel | smart,formal | 2 | #c8a070 | #6a4428 | | | in=#f8f8f4
@@ -120,11 +120,11 @@ waist_tweed     | waistcoat | Tweed Waistcoat | smart,vintage | 2 | #8a6a48 | #c
 svest_charcoal  | sweatervest | Lambswool Slipover, Charcoal | smart,work | 2 | #4a4a58
 svest_camel     | sweatervest | Lambswool Slipover, Camel | smart,work | 2 | #c8a070
 turtle_navy     | turtleneck | Merino Roll-Neck, Navy | smart,formal | 3 | #2f3f72
-turtle_charcoal | turtleneck | Merino Roll-Neck, Charcoal | smart,formal | 3 | #4a4a58
+turtle_greymarl | turtleneck | Merino Roll-Neck, Grey Marl | smart,formal | 3 | #9aa0a8
 polo_camel      | polo | Clubhouse Knit Polo, Camel | smart | 2 | #c8a070
 mand_charcoal   | mandarin | Grandad-Collar Shirt, Charcoal | smart,formal | 2 | #4a4a58 | #2a2833
 qzip_charcoal   | quarterzip | Merino Quarter-Zip, Charcoal | smart,work | 3 | #4a4a58 | #9aa0a8
-shirt_cream     | shirt | Evening Dress Shirt, Cream | formal | 2 | #f0e8d4
+shirt_burgundy  | shirt | Poplin Dress Shirt, Burgundy | formal,party | 2 | #7a2838
 
 @nightjar
 halter_black    | halter | Last Dance Halter, Black Sparkle | party | 0 | #2a2833 | | | sparkle
@@ -163,7 +163,7 @@ ringer_otters   | ringer | Otters Ringer Tee | casual,sporty | 1 | #f4f0e8 | #d2
 coll_red        | collegiate | Otters Crewneck, Red | sporty,casual | 2 | #d2392f | #f4f0e8
 coll_cream      | collegiate | Otters Crewneck, Cream | sporty,casual | 2 | #f4f0e8 | #d2392f
 hoodie_otters   | hoodie | Otters Pullover Hoodie | sporty,casual | 2 | #d2392f
-hoodie_charcoal | hoodie | Training Hoodie, Charcoal | sporty | 2 | #4a4a58
+hoodie_cobalt   | hoodie | Training Hoodie, Cobalt | sporty | 2 | #3b6fd0
 zhood_otters    | ziphoodie | Otters Zip Hoodie, Cream | sporty,casual | 2 | #f4f0e8
 qzip_bench      | quarterzip | Bench Quarter-Zip, Black & Red | sporty | 3 | #2a2833 | #d2392f
 tee_volt        | tee | Dri-Pace Tee, Volt | sporty | 1 | #c8e04a
@@ -176,7 +176,7 @@ rugby_otters    | rugby | Otters Rugby Shirt | sporty,casual | 2 | #d2392f | #f4
 @kicks_lab
 star_sole       | startee | Sole Club Star Tee | street,sporty | 1 | #f4f0e8 | | #e84a3a
 retro_lab       | retroband | Lab Stripe Tee, Black & Cyan | street | 1 | #2a2833 | #f4f0e8 | #3fd0e0
-coll_lab        | collegiate | Lab Crewneck, Bone | street,casual | 2 | #e8e2d4 | #e84a3a
+coll_lab        | collegiate | Lab Crewneck, Black & Volt | street,casual | 2 | #2a2833 | #c8e04a
 hoodie_sail     | hoodie | Drop Hoodie, Sail | street | 2 | #e8e2d4
 graphic_volt    | graphic | Box Logo Tee, Volt | street | 1 | #c8e04a | | #2a2833
 ringer_court    | ringer | Court Ringer Tee, Green | street,sporty | 1 | #f4f0e8 | #2f9a5a
@@ -214,7 +214,7 @@ tube_cblock     | tubetop | Colour-Pop Tube Top | street,summer | 0 | #3fd0e0 | 
 
 @second_wind
 flannel_red     | flannel | Lumberyard Flannel, Red | vintage,casual | 2 | #b83a3a | | | | s2
-flannel_green   | flannel | Thrifted Flannel, Green | vintage,casual | 2 | #3f6a48
+flannel_green   | flannel | Thrifted Flannel, Green | vintage,casual | 2 | #3f6a48 | | | | s2
 flannel_brown   | flannel | Old Mill Flannel, Brown | vintage,casual | 2 | #7a5238
 bowl_teal       | bowling | Strike Bowling Shirt, Teal & Cream | vintage,party | 1 | #2f9a94 | #f4f0e8 | #e8b83a
 bowl_black      | bowling | Lanes Bowling Shirt, Black & Red | vintage,street | 1 | #2a2833 | #c83a3a | #f4f0e8
@@ -230,7 +230,7 @@ svest_argyle    | sweatervest | Thrift Store Argyle Vest | vintage,smart | 2 | #
 blouse_garden   | blouse | Grandma's Garden Blouse | vintage,artsy | 1 | #e8d8b8 | #c86a6a | #6a8a58 | floral
 sshirt_oddbloom | shortshirt | Odd Bloom Camp Shirt | vintage,summer | 1 | #6a5a8a | #e8c8a0 | #d8784a | floral
 sweater_moss    | sweater | Moth-Eaten Jumper, Moss | vintage,cozy | 3 | #6a7a4a
-turtle_rust     | turtleneck | Vintage Ribbed Roll-Neck, Rust | vintage,cozy | 2 | #b8582e
+turtle_mustard  | turtleneck | Vintage Ribbed Roll-Neck, Mustard | vintage,cozy | 2 | #c8a040
 shirt_cord      | shirt | Corduroy Shirt, Tobacco | vintage,casual | 2 | #8a6038
 graphic_souv    | graphic | Souvenir Tee, Maple Bay | vintage,casual | 1 | #e8d0a0 | | #3f6a48
 coll_88         | collegiate | Maple Bay College '88 Crew | vintage,casual | 2 | #3a5a3a | #e8d8a0
@@ -244,18 +244,18 @@ cable_rust      | cableknit | Lighthouse Cable Knit, Rust | cozy,winter | 3 | #b
 cable_forest    | cableknit | Lighthouse Cable Knit, Forest | cozy,winter | 3 | #3f6a48
 fair_navy       | fairisle | Snowfield Fair Isle, Navy | cozy,winter | 4 | #2f3f72 | #f4f0e8 | #d9483b | | s3
 fair_oat        | fairisle | Hearthside Fair Isle, Oat | cozy,winter | 4 | #ead9b8 | #7a5238 | #b8582e
-fair_forest     | fairisle | Pine Fair Isle, Forest | cozy,winter | 4 | #3f6a48 | #f4f0e8 | #e0b040
-argyle_rust     | sweater | Argyle Crew, Rust | cozy,smart | 3 | #b8582e | #ead9b8 | | argyle
+fair_forest     | fairisle | Pine Fair Isle, Forest | cozy,winter | 4 | #3f6a48 | #f4f0e8 | #e0b040 | | s3
+argyle_rust     | sweater | Argyle Crew, Rust | cozy,smart | 3 | #b8582e | #ead9b8 | | argyle | s2
 argyle_forest   | sweater | Argyle Crew, Forest | cozy,smart | 3 | #3f6a48 | #c8a070 | | argyle
 svest_oat       | sweatervest | Argyle Slipover, Oat & Rust | cozy,smart | 2 | #ead9b8 | #b8582e | | argyle
 turtle_jrust    | turtleneck | Fireside Roll-Neck, Rust | cozy,smart | 3 | #a85030
 turtle_forest   | turtleneck | Fireside Roll-Neck, Forest | cozy,smart | 3 | #3f6a48
-cardi_jr_oat    | cardigan | Chunky Rib Cardigan, Oatmeal | cozy | 3 | #e0d0b0
+cardi_jr_rust   | cardigan | Chunky Rib Cardigan, Rust | cozy | 3 | #b8582e
 cardi_forest    | cardigan | Chunky Rib Cardigan, Forest | cozy | 3 | #2f5a3a
-henley_waffle   | henley | Waffle Henley, Oatmeal | cozy,casual | 2 | #e0d0b0
+henley_waffle   | henley | Waffle Henley, Cream | cozy,casual | 2 | #f4eedf
 henley_wrust    | henley | Waffle Henley, Rust | cozy,casual | 2 | #b8582e
 qzip_shetland   | quarterzip | Shetland Quarter-Zip, Heather | cozy,smart | 3 | #a8a090 | #7a5238
-sweater_mustard | sweater | Chunky Rib Crew, Mustard | cozy | 3 | #d8a840
+sweater_cranb   | sweater | Chunky Rib Crew, Cranberry | cozy | 3 | #9a2a3a
 long_cottage    | long | Cottage Stripe Long Sleeve | cozy,casual | 2 | #ead9b8 | #b8582e | | stripes
 cardi_argyle    | cardigan | Argyle Cardigan, Forest | cozy,vintage | 3 | #3f6a48 | #ead9b8 | | argyle
 cable_cream     | cableknit | Aran Cable Knit, Cream | cozy,winter | 3 | #f4eedf | | | | s23
@@ -271,7 +271,7 @@ shirt_chambray  | shirt | Chambray Work Shirt | work,casual | 2 | #7a98c0
 shirt_canvas    | shirt | Canvas Work Shirt, Tan | work | 2 | #c8b088
 qzip_harbour    | quarterzip | Harbour Quarter-Zip, Yellow | work,outdoor | 3 | #e8b83a | #2f3f72
 buff_trawler    | buffalo | Trawler Check Shirt, Yellow & Black | work,outdoor | 2 | #e8b83a | #2a2833
-tee_slate       | tee | Dockside Tee, Slate | work,casual | 1 | #5a6a7a
+tee_teal        | tee | Dockside Tee, Harbour Teal | work,casual | 1 | #2f8a8a
 raglan_crew     | raglan | Crew Raglan, White & Navy | casual | 1 | #f4f0e8 | #2f3f72
 turtle_fog      | turtleneck | Lighthouse Roll-Neck, Fog | work,cozy | 3 | #b8c0c8
 stripe_rope     | stripe | Rope Stripe Tee, Red | casual,summer | 1 | #d9483b
@@ -306,13 +306,13 @@ peas_rosehip    | peasant | Rosehip Peasant Blouse | artsy | 1 | #c84a4a | #f4e8
 peas_linen      | peasant | Linen Smock, Natural | artsy,casual | 1 | #e8dcc4 | #b8582e | #2f3f72
 tunic_indigo    | tunic | Block-Print Tunic, Indigo | artsy | 1 | #2f3f72 | #ead9b8 | #e8a030 | floral
 tunic_saffron   | tunic | Saffron Tunic | artsy,summer | 1 | #e8a030 | | #2f3f72
-blouse_wild     | blouse | Wildflower Blouse | artsy,vintage | 1 | #f0e8d8 | #6a8ac8 | #e8a030 | floral
+blouse_wild     | blouse | Wildflower Blouse | artsy,vintage | 1 | #f0e8d8 | #6a8ac8 | #e8a030 | floral | s0
 mand_indigo     | mandarin | Indigo Mandarin Shirt | artsy,smart | 2 | #2f3f72 | #e8a030
 sshirt_garden   | shortshirt | Garden Party Shirt | artsy,summer | 1 | #3f6a48 | #f0d890 | #e86a6a | floral
 tee_splash      | tee | Studio Paint-Splash Tee | artsy | 1 | #f4f0e8 | #2f3f72 | #e8a030 | floral
 star_stamp      | startee | Hand-Stamped Star Tee | artsy,casual | 1 | #ead9b8 | | #2f3f72
 long_polka      | long | Polka Long Sleeve, Indigo | artsy,vintage | 2 | #2f3f72 | #f4f0e8 | | dots
-sweater_hand    | sweater | Hand-Knit Jumper, Marigold | artsy,cozy | 3 | #e8a030
+sweater_hand    | sweater | Hand-Knit Jumper, Indigo Speckle | artsy,cozy | 3 | #2f3f72 | #e8a030 | | dots
 cardi_embroid   | cardigan | Embroidered Cardigan | artsy,cozy | 2 | #3a4a7a | #f0d890 | #e86a6a | floral
 crop_daisy      | crop | Daisy Crop | artsy,summer | 0 | #f0d890 | #f4f0e8 | #e86a6a | floral
 halter_batik    | halter | Batik Halter | artsy,summer | 0 | #2f3f72 | #6a8ac8 | #f0d890 | tiedye | s1
@@ -333,7 +333,7 @@ tief_coral      | tiefront | Tie-Front Shirt, Coral | summer | 0 | #f07a5a | | |
 tief_aqua       | tiefront | Tie-Front Shirt, Aqua Gingham | summer | 0 | #f4f0e8 | #3fb8a8 | | check | s1
 halter_coral    | halter | Sunset Halter, Coral | summer,party | 0 | #f07a5a
 halter_hibiscus | halter | Hibiscus Halter | summer,party | 0 | #d9483b | #f4f0e8 | #e8c83a | floral | s1
-offsh_sand      | offshoulder | Breezy Off-Shoulder, Sand | summer | 0 | #e8d8b0
+offsh_seafoam   | offshoulder | Breezy Off-Shoulder, Seafoam | summer | 0 | #a8e0d0
 offsh_stripe    | offshoulder | Boardwalk Stripe Off-Shoulder | summer | 0 | #f4f0e8 | #2f6ab0 | | stripes
 tube_aqua       | tubetop | Bandeau, Aqua | summer | 0 | #3fb8a8 | | | | s1
 tube_coral      | tubetop | Bandeau, Coral Stripe | summer | 0 | #f07a5a | #f4f0e8 | | stripes | s1
@@ -347,7 +347,7 @@ sailor_pier     | sailor | Pier Sailor Top, Aqua | summer,casual | 1 | #f4f0e8 |
 tdye_seafoam    | tee | Seafoam Tie-Dye Tee | summer,artsy | 1 | #5ac8c8 | #f4f0e8 | #f08ab0 | tiedye | s1
 
 @lacquer
-cami_pearl      | cami | Pearl Satin Cami | formal,party | 0 | #f0ece0
+cami_ruby       | cami | Jewel Satin Cami, Ruby | party,formal | 0 | #a02848
 cami_sapphire   | cami | Jewel Satin Cami, Sapphire | party,formal | 0 | #2f4fa0
 bust_gilt       | bustier | Gilt Bustier | party,formal | 0 | #2a2833 | #d8b048 | #d8b048
 bowb_lacquer    | bowblouse | Lacquer Bow Blouse, Black & Gold | formal,smart | 1 | #2a2833 | | #d8b048
@@ -388,7 +388,7 @@ harr_navy       | jacket | Harrington Jacket, Navy | casual,smart | 2 | #2f3f72
 trench_stone    | trench | City Trench, Stone | smart,rain | 3 | #d8c8a8
 coach_navy      | coach | Weekend Coach Jacket, Navy | casual,street | 1 | #2f3f72 | #f4f0e8 | #f4f0e8
 wind_cblock     | windbreaker | Colour-Block Windbreaker, Navy & Red | casual,sporty | 1 | #2f3f72 | #d9483b
-coat_grey       | coat | Wool-Blend Coat, Grey | smart,winter | 3 | #8a8a92
+coat_red        | coat | Wool-Blend Coat, Red | smart,winter | 3 | #b03a3a
 pea_camel       | peacoat | Mariner Pea Coat, Camel | smart,winter | 3 | #c8a070 | #6a4428
 flannel_slate   | flannel | Check Overshirt, Slate | casual | 2 | #6a7a9a
 chore_indigo    | chore | Chore Jacket, Indigo | casual,work | 2 | #34507f | #7a5238
@@ -414,7 +414,7 @@ lpuff_gold      | longpuffer | Gilded Long Puffer | winter,party | 4 | #d8b048 |
 
 @hollowell
 coat_charcoal   | coat | Town Overcoat, Charcoal | formal,work | 3 | #4a4a58
-coat_navy       | coat | Town Overcoat, Navy | formal,work | 3 | #2a3458
+coat_navy       | coat | Town Overcoat, Navy | formal,work | 3 | #26346a
 pea_naval       | peacoat | Naval Pea Coat, Charcoal | smart,winter | 3 | #3a3a46 | #c8ccd4
 blazer_pin      | blazer | Pinstripe Blazer, Navy | formal,work | 2 | #2f3f72 | | | pinstripe
 blazer_tweed    | blazer | Tweed Hacking Jacket | smart,vintage | 2 | #8a6a48 | #c8a070 | | plaid
@@ -426,7 +426,7 @@ tux_midnight    | tuxedo | Midnight Dinner Jacket | formal,party | 2 | #2a3458 |
 duster_fawn     | duster | Covert Duster, Fawn | smart,formal | 3 | #b89a70
 wrap_charcoal   | wrapcoat | Wrap Overcoat, Charcoal | formal,winter | 3 | #4a4a58 | #2a2833
 trench_navy     | trench | Quayside Trench, Navy | formal,rain | 3 | #2f3f72
-coat_chester    | coat | Chesterfield, Fawn | formal,winter | 3 | #a88a60
+coat_chester    | coat | Chesterfield, Oxblood | formal,winter | 3 | #6a2a2a
 rain_mac        | raincoat | Gentleman's Mac, Olive | smart,rain | 2 | #6f7a58
 shear_aviator   | shearling | Shearling Aviator, Brown | smart,winter | 4 | #5a3a28 | #e8dcc0
 
@@ -454,7 +454,7 @@ coach_otters    | coach | Otters Coach Jacket | sporty,street | 1 | #2a2833 | #f
 coach_red       | coach | Otters Coach Jacket, Team Red | sporty,street | 1 | #d2392f | #f4f0e8 | #f4f0e8
 wind_otters     | windbreaker | Otters Windbreaker | sporty,rain | 1 | #d2392f | #f4f0e8
 zhood_red       | ziphoodie | Otters Zip Hoodie, Red | sporty,casual | 2 | #d2392f
-hoodie_warmup   | hoodie | Warm-Up Hoodie, Charcoal | sporty | 2 | #4a4a58
+hoodie_warmup   | hoodie | Warm-Up Hoodie, Otters Red | sporty | 2 | #d2392f
 puffer_otters   | puffer | Otters Sideline Puffer | sporty,winter | 4 | #d2392f
 anorak_otters   | anorak | Otters Rain Anorak | sporty,rain | 2 | #d2392f | #2a2833
 fleece_otters   | fleece | Otters Sideline Fleece | sporty,cozy | 3 | #f4f0e8 | #d2392f
@@ -469,7 +469,7 @@ coach_lab       | coach | Kicks Lab Coach Jacket | street | 1 | #2a2833 | #f4f0e
 bomber_sail     | bomber | Lab Bomber, Sail & Red | street | 2 | #e8e2d4 | #e84a3a
 wind_court      | windbreaker | Court Windbreaker | street,sporty | 1 | #f4f0e8 | #2f9a5a
 track_volt      | trackjacket | Lab Track Top, Volt | street,sporty | 1 | #c8e04a | #2a2833
-puffer_sail     | puffer | Drop Puffer, Sail | street,winter | 4 | #e8e2d4
+puffer_teal     | puffer | Drop Puffer, Teal | street,winter | 4 | #2f9a94
 varsity_teal    | varsity | Lab Varsity, Teal | street | 2 | #2f9a94
 anorak_lab      | anorak | Lab Anorak, Black & Volt | street,rain | 2 | #2a2833 | #c8e04a | | | on
 
@@ -478,7 +478,7 @@ coach_cyan      | coach | Pixel Coach Jacket, Black & Cyan | street | 1 | #2a283
 coach_pink      | coach | Pixel Coach Jacket, Hot Pink | street | 1 | #e84aa8 | #f4f0e8 | #2a2833
 bomber_cyan     | bomber | Pop Bomber, Cyan | street | 2 | #3fd0e0 | #2a2833
 wind_crash      | windbreaker | Colour Crash Windbreaker | street | 1 | #7a55c8 | #f2c230
-puffer_lilac    | puffer | Bubble Puffer, Lilac | street,winter | 4 | #b8a8e0
+puffer_grape    | puffer | Bubble Puffer, Grape | street,winter | 4 | #7a55c8
 puffer_lime     | puffer | Bubble Puffer, Lime | street,winter | 4 | #9ac84a
 varsity_purple  | varsity | Pixelpop Varsity, Purple | street | 2 | #7a55c8
 track_neon      | trackjacket | Neon Track Jacket | street,party | 1 | #e84aa8 | #2a2833
@@ -505,19 +505,19 @@ coat_hound      | coat | Charity-Shop Coat, Houndstooth | vintage,smart | 3 | #e
 wind_shell      | windbreaker | Shell Suit Jacket | vintage,sporty | 1 | #2f9a94 | #7a55c8
 poncho_granny   | poncho | Granny-Square Poncho | vintage,artsy | 2 | #e8b83a | #b8582e | #3f6a48 | floral
 kimono_vintage  | kimono | Vintage Floral Kimono | vintage,artsy | 1 | #2a2833 | #e8a0a0 | #e8c070 | floral
-tux_burgundy    | tuxedo | Thrifted Tuxedo, Burgundy | vintage,party | 2 | #6a2838 | #2a2833
-field_army      | fieldjacket | Old Army Field Jacket | vintage,outdoor | 2 | #5a6440
+tux_powder      | tuxedo | Thrifted Prom Tuxedo, Powder Blue | vintage,party | 2 | #9ab8d8 | #2f3f72
+field_army      | fieldjacket | Old Army Field Jacket, Brown | vintage,outdoor | 2 | #6a5038
 
 @juniper_rye
-cardi_shawloat  | cardigan | Shawl Cardigan, Oat | cozy | 3 | #e0d0b0
+cardi_shawlmust | cardigan | Shawl Cardigan, Mustard | cozy | 3 | #d8a840
 cardi_shawlrust | cardigan | Shawl Cardigan, Rust | cozy | 3 | #b8582e
 cardi_shawlfor  | cardigan | Shawl Cardigan, Forest | cozy | 3 | #3f6a48
 cardi_long      | cardigan | Argyle Long Cardigan | cozy,vintage | 3 | #b8582e | #ead9b8 | | argyle
 duffle_oat      | duffle | Campus Duffle, Oat | cozy,winter | 3 | #e0d0b0 | #7a5238
 duffle_forest   | duffle | Campus Duffle, Forest | cozy,winter | 3 | #3f6a48 | #ead9b8
-duffle_rust     | duffle | Campus Duffle, Rust | cozy,winter | 3 | #b8582e | #ead9b8
+duffle_rust     | duffle | Campus Duffle, Rust | cozy,winter | 3 | #b8582e | #ead9b8 | | | s2
 wrap_blanket    | wrapcoat | Blanket Wrap Coat, Oat | cozy,winter | 3 | #e0d0b0 | #b8582e
-shear_rust      | shearling | Teddy Collar Jacket, Rust | cozy,winter | 4 | #b8582e | #f0e6d0
+shear_forest    | shearling | Teddy Collar Jacket, Forest | cozy,winter | 4 | #3f6a48 | #f0e6d0
 gilet_knit      | gilet | Knitted Gilet, Forest | cozy | 2 | #3f6a48
 poncho_wool     | poncho | Wool Poncho, Oat | cozy,artsy | 3 | #e0d0b0 | #b8582e
 shear_oat       | shearling | Fireside Shearling, Oat | cozy,winter | 4 | #ead9b8 | #7a5238 | | | s23
@@ -525,8 +525,8 @@ bolero_knit     | bolero | Knit Shrug, Rust | cozy,smart | 1 | #b8582e
 
 @saltline
 rain_navy       | raincoat | Harbour Slicker, Navy | rain,work | 2 | #2f3f72
-rain_red        | raincoat | Harbour Slicker, Red | rain,work | 2 | #d9483b
-rain_seagreen   | raincoat | Harbour Slicker, Sea Green | rain,work | 2 | #3f8a6a
+rain_orange     | raincoat | Harbour Slicker, Orange | rain,work | 2 | #f0782a
+rain_seagreen   | raincoat | Harbour Slicker, Sea Green | rain,work | 2 | #3f8a6a | | | | s0
 anorak_squall   | anorak | Squall Anorak, Navy & Yellow | rain,outdoor | 2 | #2f3f72 | #e8b83a
 chore_canvas    | chore | Dock Chore Coat, Canvas | work | 2 | #c8b088 | #6a4428
 chore_navy      | chore | Dock Chore Coat, Navy | work | 2 | #2f3f72 | #c8b088
@@ -539,7 +539,7 @@ duffle_light    | duffle | Lighthouse Duffle, Navy | work,winter | 3 | #2f3f72 |
 wind_spray      | windbreaker | Spray Jacket, Yellow & Navy | rain,work | 1 | #e8b83a | #2f3f72
 jacket_canvas   | jacket | Canvas Work Jacket, Brown | work | 2 | #8a6038
 duster_oilskin  | duster | Oilskin Duster, Olive | rain,work | 3 | #4a4a38
-lpuff_wharf     | longpuffer | Wharf Long Puffer, Navy | work,winter | 4 | #2a3458
+lpuff_wharf     | longpuffer | Wharf Long Puffer, Slate | work,winter | 4 | #5a6a7a
 
 @fern_field
 gilet_orange    | gilet | Ridgeline Gilet, Burnt Orange | outdoor | 3 | #c86a2e
@@ -558,13 +558,13 @@ lpuff_glacier   | longpuffer | Glacier Long Puffer, Khaki | outdoor,winter | 4 |
 ski_powder      | skijacket | Powder Ski Jacket, Orange | outdoor,winter | 3 | #e0783a | #f4f0e8 | #3f6a48 | | s3
 ski_forest      | skijacket | Powder Ski Jacket, Forest | outdoor,winter | 3 | #3f6a48 | #e8c070 | #c86a2e | | s3
 wind_trail      | windbreaker | Trail Shell, Olive & Orange | outdoor,rain | 1 | #6f7a48 | #e0783a
-gilet_khaki     | gilet | Quilted Gilet, Khaki | outdoor,smart | 3 | #b8a878
+gilet_navy      | gilet | Quilted Gilet, Navy | outdoor,smart | 3 | #2f3f72
 duffle_bivouac  | duffle | Bivouac Duffle, Olive | outdoor,winter | 3 | #6f7a48 | #e0d8c0 | | | on
 parka_orange    | parka | Expedition Parka, Blaze Orange | outdoor,winter | 4 | #d8682a | | | | on
 
 @little_lantern
 kimono_marigold | kimono | Marigold Kimono Jacket | artsy,summer | 1 | #e8a030 | #2f3f72 | #f4f0e8
-kimono_rose     | kimono | Floral Kimono Jacket, Rose | artsy,summer | 1 | #f0d8d0 | #c84a4a | #3f6a48 | floral
+kimono_rose     | kimono | Floral Kimono Jacket, Rose | artsy,summer | 1 | #f0d8d0 | #c84a4a | #3f6a48 | floral | s0
 poncho_indigo   | poncho | Woven Poncho, Indigo | artsy | 2 | #2f3f72 | #e8a030 | | stripes
 poncho_terra    | poncho | Woven Poncho, Terracotta | artsy | 2 | #b8582e | #f4e8d0 | | stripes
 robe_block      | robe | Block-Print House Robe | artsy,cozy | 2 | #2f3f72 | #ead9b8 | #e8a030 | floral
@@ -578,8 +578,8 @@ wrap_indigo     | wrapcoat | Indigo Wrap Coat | artsy,smart | 3 | #2f3f72 | #e8a
 @tidepool
 kimono_beach    | kimono | Beach Kimono, Aqua | summer | 0 | #5ac8c8 | #f4f0e8 | #f07a5a | | s1
 wind_board      | windbreaker | Boardwalk Windbreaker | summer,sporty | 1 | #3fb8a8 | #f07a5a
-cardi_linen     | cardigan | Linen Cardigan, Sand | summer,casual | 1 | #e8d8b0
-denim_sun       | denim | Sun-Bleached Denim Jacket | summer,casual | 1 | #a8c0e0
+cardi_linen     | cardigan | Linen Cardigan, Seafoam | summer,casual | 1 | #a8e0d0
+denim_white     | denim | Sun-Bleached Denim Jacket, White | summer,casual | 1 | #e8eef4
 poncho_towel    | poncho | Towel Poncho, Stripe | summer | 1 | #f07a5a | #f4f0e8 | | stripes | s1
 bolero_coral    | bolero | Shrug, Coral | summer,party | 0 | #f07a5a
 anorak_aqua     | anorak | Pack-Away Anorak, Aqua | summer,rain | 1 | #5ac8c8 | #f07a5a
