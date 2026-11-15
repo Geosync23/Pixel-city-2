@@ -12,7 +12,7 @@ export function getCity(seed) {
   if (!city) city = generateCity(seed === undefined ? 20261 : seed, {
     terrain: [install, rail.terrain, places.terrain],
     ground: [airport.ground, places.ground, blocks.ground],
-    build: [c => c.flushBuildings(), rail.build, airport.build, places.build, blocks.build, furnish.build, dress.build],
+    build: [c => c.flushBuildings(), rail.build, airport.build, places.build, blocks.build, furnish.build, dress.build, furnish.offRoad],
   });
   return city;
 }

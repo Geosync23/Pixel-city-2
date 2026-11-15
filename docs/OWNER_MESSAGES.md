@@ -570,3 +570,6 @@ Do you think this game could run on an iphone13mini
 
 ## 149 (2026-11-15) — iPhone 13 mini: stuck on the loading screen
 Yea just tried it and it opens but gets stuck on a "building maple bay" screen. Or maybe its not stuck and working for a very long time i dont kmow. But I've never been this screen
+
+## 150 (2026-11-15) — with a screenshot of newspaper boxes standing on the asphalt near Central
+Fox this newspaper dispenser bank its in the road.

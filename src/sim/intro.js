@@ -221,7 +221,9 @@ function resume() {
 /* QA6: has the player already done what a nudge asks? 'job' = has a job; anything else is an achievement counter ('cooked_meal', 'rode_train', 'met_npcs:3') */
 function already(w) { if (w === 'job') return !!safe(() => G.jobs.current(), null); if (w.startsWith('tip:')) return !!safe(() => G.tips.seen(w.slice(4)), false); const c = safe(() => G.state.ach.c, {}) || {}, m = /^(.+):(\d+)$/.exec(w); return m ? (c[m[1]] || 0) >= +m[2] : !!c[w]; }
 function nudges() {
-  const s = I(); if (!G.state.flags.introDone || s.day0 === undefined || G.modal) return; const T = G.state.t, d = Math.floor(T / 1440) - s.day0, tod = T % 1440;
+  const s = I(); if (!G.state.flags.introDone || s.day0 === undefined || G.modal) return;
+  if (safe(() => (G.chapters && G.chapters.active && G.chapters.active()) || (G.rel && G.rel.active && G.rel.active()), false)) return;   /* QA14: a nudge text waits until a Chapter / relationship scene is over (between its lines the clock runs and the modal is down) */
+  const T = G.state.t, d = Math.floor(T / 1440) - s.day0, tod = T % 1440;
   for (const n of NUDGES) {
     if (s.nudges[n.id] || d < n.day || (d === n.day && tod < hm(n.at))) continue; s.nudges[n.id] = 1;
     const g = n.goal; if (g && safe(() => G.goals.isDone(g.id), false)) continue;

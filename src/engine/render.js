@@ -84,6 +84,8 @@ function treeLayer(world, cx, cy) {
  * is painted once more with a depth cut, engine/sprites.js frontSprite), so the piece's own sprite, the bake pipeline and the depth sort
  * are untouched.
  */
+/* test switch (tools/perf.mjs --html build.html,build.html?noseat): ?noseat draws sitters the old way, as separately sorted items */
+const SEATING = !(typeof location !== 'undefined' && /[?&]noseat\b/.test(location.search || ''));
 const isSitter = e => e.seated || e.pose === 'sit' || (e.poseOpts ? !!e.poseOpts.seated : e.pose === 'type' && e.z > .2);   // ('type' is drawn seated unless poseOpts.seated is false)
 const SQ = [];
 /** the object a seated entity sits on (cached on the entity until it moves), or null */
@@ -112,7 +114,7 @@ function seatOverlay(ob, base, e) {
   e._ob = ob; e._od = e.dir; e._obs = base; e._ox = e.x; e._oy = e.y;
   const lx = e.x - ob.x, ly = e.y - ob.y, d = e.dir, fl = ob.flip, a = ob.a; let ax = d & 1, v = (d & 1 ? ly : lx) + (d >= 2 ? .15 : .5);
   if (a && a.seatCut) { let c; try { c = a.seatCut(ob.p || {}, fl ? { x: ly, y: lx, z: e.z - ob.z, dir: [1, 0, 3, 2][d] } : { x: lx, y: ly, z: e.z - ob.z, dir: d }); } catch (err) { c = undefined; } if (c === null) return e._ov = null; if (c) { ax = fl ? 1 - c.ax : c.ax; v = c.v; } }
-  if (v >= (ax ? ob.vbl[4] : ob.vbl[3])) return e._ov = null;
+  if (v >= (ax ? ob.vbl[4] : ob.vbl[3]) || base.w * base.h > 160000) return e._ov = null;   // (nothing of the piece is in front; or a piece too big to paint twice for one sitter)
   return e._ov = frontSprite(ob, ax, Math.round(v * 32) / 32);
 }
 
@@ -247,7 +249,7 @@ export class Renderer {
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U), ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
       const rx0 = spr.x + ax, ry0 = spr.y + ay, rx1 = rx0 + spr.w, ry1 = ry0 + spr.h; if (rx1 < vx0 || rx0 > vx1 || ry1 < vy0 || ry0 > vy1) continue;
-      if (isSitter(e)) { const so = seatObj(world, e); if (so && so._fr === fr) { const h = so._it, q = SP[nsp] || (SP[nsp] = { e: null, spr: null, ax: 0, ay: 0, d: 0, ov: null, next: null }); nsp++; q.e = e; q.spr = spr; q.ax = ax; q.ay = ay; q.d = e.x + e.y; q.ov = seatOverlay(so, h.spr, e);
+      if (SEATING && isSitter(e)) { const so = seatObj(world, e); if (so && so._fr === fr) { const h = so._it, q = SP[nsp] || (SP[nsp] = { e: null, spr: null, ax: 0, ay: 0, d: 0, ov: null, next: null }); nsp++; q.e = e; q.spr = spr; q.ax = ax; q.ay = ay; q.d = e.x + e.y; q.ov = seatOverlay(so, h.spr, e);
         /* the piece's sitters as a list, far to near */ if (!h.ns || q.d < h.sit.d) { q.next = h.ns ? h.sit : null; h.sit = q; } else { let p = h.sit; while (p.next && p.next.d <= q.d) p = p.next; q.next = p.next; p.next = q; } h.ns++; if (e.ghost && !gh) gh = q, q.host = h; continue; } }
       const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.ns = 0;
       const b = e.bb || BB, B = it._B, r = it._r; B[0] = e.x + b[0]; B[1] = e.y + b[1]; B[2] = e.z; B[3] = e.x + b[2]; B[4] = e.y + b[3]; B[5] = e.z + b[4]; r[0] = rx0; r[1] = ry0; r[2] = rx1; r[3] = ry1;
@@ -268,7 +270,7 @@ export class Renderer {
       if (it.ob && it.ob._a !== undefined) { ctx.globalAlpha = it.ob._a; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else if (it.e && it.e.alpha !== undefined) { ctx.globalAlpha = it.e.alpha; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y);
       /* seating: the piece's sitters (far to near), each followed by the parts of the piece in front of it */
       if (it.ns) for (let q = it.sit; q; q = q.next) { const qs = q.spr, ea = q.e.alpha; if (ea !== undefined) ctx.globalAlpha = ea; if (q.e.dir < 2) ctx.drawImage(qs.c, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y); else { const r0 = Math.min(qs.h, 1 - qs.y); ctx.drawImage(qs.c, 0, 0, qs.w, r0, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y, qs.w, r0); } if (ea !== undefined) ctx.globalAlpha = 1; const ov = q.ov; if (ov && it.ob._a === undefined) ctx.drawImage(ov.c, ov.x + it.ax - cam.x, ov.y + it.ay - cam.y);   /* (not while the piece is see-through: its front would be drawn twice) */ } }
-    for (const it of S) if (it.e && it.e.ghost && !isSitter(it.e)) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
+    for (const it of S) if (it.e && it.e.ghost && !(SEATING && isSitter(it.e))) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.fillStyle = env.amb; m.fillRect(0, 0, W, H);

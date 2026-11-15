@@ -159,7 +159,9 @@ export function compile(S) {
 /** One playing tune. schedule(until) is called often (the game: every frame) and creates the notes that start before `until` (context time). */
 export class Player {
   constructor(ctx, song, dest, send, opts = {}) {
-    this.ctx = ctx; this.song = song; this.id = song.id; this.c = compile(song); this.out = ctx.createGain(); this.out.gain.value = Math.pow(10, ((opts.db || 0)) / 20); this.out.connect(dest);
+    this.ctx = ctx; this.song = song; this.id = song.id; this.c = compile(song); this.out = ctx.createGain(); this.out.gain.value = Math.pow(10, ((opts.db || 0)) / 20);
+    /* a peak limiter per tune: the trim (opts.db, from _music_levels.js) brings every tune to the same loudness INTO it, so it only catches the tops of drum and chord attacks */
+    let lim = null; try { lim = ctx.createDynamicsCompressor(); lim.threshold.value = -9; lim.knee.value = 6; lim.ratio.value = 6; lim.attack.value = .003; lim.release.value = .15; this.out.connect(lim); lim.connect(dest); } catch (e) { lim = null; this.out.connect(dest); } this.lim = lim;
     this.syn = new Synth(ctx, this.out, send); this.t0 = (opts.at !== undefined ? opts.at : ctx.currentTime + .15); this.i = 0; this.done = false; this.cut = Infinity; this.next = this.t0 + this.c.dur; this.started = this.t0;
   }
   schedule(until) {
@@ -173,7 +175,7 @@ export class Player {
   wind(fade = 1.6) { const now = this.ctx.currentTime, el = now - this.t0, bs = this.c.barS; let tb = this.t0 + Math.ceil((el + .05) / bs) * bs; if (tb - now > 2.5 || el < 0) tb = now + .1; return this.stop(fade, tb); }
   stop(fade = 1.5, at) { const ctx = this.ctx, g = this.out.gain, t = Math.max(ctx.currentTime, at || 0); if (this.cut !== Infinity) return this.next; this.cut = t + fade; this.next = t + fade;
     try { g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(.0001, t + fade); } catch (e) { /* closed context */ }
-    const out = this.out; if (typeof setTimeout !== 'undefined') setTimeout(() => { try { out.disconnect(); } catch (e) { /* gone */ } }, (t - ctx.currentTime + fade + 4) * 1000); return this.next; }
+    const out = this.out, lim = this.lim; if (typeof setTimeout !== 'undefined') setTimeout(() => { try { out.disconnect(); if (lim) lim.disconnect(); } catch (e) { /* gone */ } }, (t - ctx.currentTime + fade + 4) * 1000); return this.next; }
 }
 /** render a whole tune offline -> Promise<AudioBuffer> (stereo). OAC: the OfflineAudioContext constructor.
  *  The notes are created two seconds at a time (the context is paused at each step), as in the game: creating them all at once makes the render many times slower. */

@@ -5,8 +5,8 @@
 //   RENDER  every tune rendered offline by the SHIPPED code (dist/index.html, G.audio.debug.musicKit().renderSong, OfflineAudioContext in headless Chromium)
 //           -> out/music/<id>.wav (deleted afterwards unless --keep), measured: duration, integrated loudness and true peak (EBU R128, ffmpeg), share of
 //           energy above 6 kHz and spectral flatness for the whole tune and for its loudest second (0 = pure tones, ~0.56 = white noise in this measure).
-//           --write: render without trims and write src/sim/_music_levels.js (the trim per tune that brings them all to TARGET LUFS). Without it: render
-//           WITH the trims and assert every tune within +-1.5 LU of the target and no true peak above -1 dBTP.
+//           --write: correct src/sim/_music_levels.js (the trim per tune that brings them all to TARGET LUFS behind the per-tune limiter; run it,
+//           build, run it again until the trims stop moving). Without it: render WITH the trims and assert every tune within +-1.5 LU of the target and no true peak above -1 dBTP.
 //   LIVE    the game by touch: no AudioContext before the first touch; 20+ contexts -> the right pool plays; 200 picks without an immediate repeat and
 //           with fair turns inside each pool; music stays off while a show / the TV is on; no frame over 100 ms when a tune starts; zero page errors.
 // Results: printed, and out/music/report.json. Exit code 1 if an assertion fails.
@@ -103,24 +103,24 @@ function measure(id, pcm) {
   return { lufs: num(/I:\s+(-?[\d.]+) LUFS/), phone, lra: num(/LRA:\s+(-?[\d.]+) LU/), peak: num(/Peak:\s+(-?[\d.]+) dBFS/), sounding: +(last / SR).toFixed(1), hf: +(all.hf * 100).toFixed(2), mid: +(all.mid * 100).toFixed(1), flat: +all.flat.toFixed(4), topAt: +(best / SR).toFixed(1), topHf: +(top.hf * 100).toFixed(2), topFlat: +top.flat.toFixed(4) };
 }
 async function render(br) {
-  console.log('\nRENDER: every tune, offline, by the shipped code' + (WRITE ? ' (no trims: writing _music_levels.js)' : ' (with the trims)'));
+  console.log('\nRENDER: every tune, offline, by the shipped code, with its trim' + (WRITE ? ' (--write: correcting the trims in _music_levels.js)' : ''));
   const list = SONGS.filter(s => !TUNES || TUNES.includes(s.id)), N = 3, pages = []; const t0 = Date.now(); const chunks = {};
   for (let i = 0; i < N; i++) { const g = await openGame(br); await g.pg.exposeFunction('saveChunk', (id, b64) => { (chunks[id] = chunks[id] || []).push(Buffer.from(b64, 'base64')); }); pages.push(g); }
   let next = 0; const M = {};
   await Promise.all(pages.map(async g => { while (next < list.length) { const S = list[next++];
     const r = await g.pg.evaluate(async ([id, raw, sr]) => { const K = G.audio.debug.musicKit(), t0 = performance.now(), b = await K.renderSong(K.SONG[id], sr, raw ? 0 : (K.LEVELS[id] || 0)), l = b.getChannelData(0), r = b.getChannelData(1), n = l.length, CH = 1 << 20;
       for (let o = 0; o < n; o += CH) { const m = Math.min(CH, n - o), u = new Int16Array(m * 2); for (let i = 0; i < m; i++) { u[2 * i] = Math.max(-1, Math.min(1, l[o + i])) * 32767; u[2 * i + 1] = Math.max(-1, Math.min(1, r[o + i])) * 32767; } let s = ''; const u8 = new Uint8Array(u.buffer); for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); await saveChunk(id, btoa(s)); }
-      return { ms: Math.round(performance.now() - t0), dur: b.duration, trim: K.LEVELS[id] || 0 }; }, [S.id, WRITE, SR]);
-    const m = measure(S.id, Buffer.concat(chunks[S.id])); delete chunks[S.id]; m.dur = +r.dur.toFixed(1); m.renderMs = r.ms; m.trim = WRITE ? 0 : r.trim; M[S.id] = m; Object.assign(report.tunes[S.id] || (report.tunes[S.id] = {}), { measured: m });
+      return { ms: Math.round(performance.now() - t0), dur: b.duration, trim: K.LEVELS[id] || 0 }; }, [S.id, false, SR]);
+    const m = measure(S.id, Buffer.concat(chunks[S.id])); delete chunks[S.id]; m.dur = +r.dur.toFixed(1); m.renderMs = r.ms; m.trim = r.trim; M[S.id] = m; Object.assign(report.tunes[S.id] || (report.tunes[S.id] = {}), { measured: m });
     console.log(`     ${S.id.padEnd(17)} ${mmss(m.sounding).padStart(5)}  ${m.lufs.toFixed(1).padStart(6)} LUFS  peak ${m.peak.toFixed(1).padStart(6)}  phone ${m.phone.toFixed(1).padStart(6)}  LRA ${String(m.lra).padStart(4)}  0.8-6k ${String(m.mid).padStart(4)}%  >6k ${String(m.hf).padStart(5)}%  flat ${m.flat.toFixed(4)}  | loudest s @${String(m.topAt).padStart(5)}: >6k ${String(m.topHf).padStart(5)}%  flat ${m.topFlat.toFixed(4)}  (${(r.ms / 1000).toFixed(1)} s)`); } }));
   const errs = pages.flatMap(g => g.errs); for (const g of pages) await g.ctx.close();
   const ids = Object.keys(M); console.log(`     ${ids.length} tunes rendered in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   check('rendering raised no page error', !errs.length, errs.slice(0, 3).join(' | '));
   if (WRITE) {
-    const L = {}; for (const id of ids) { let t = TARGET - M[id].lufs; if (M[id].peak + t > -2) t = -2 - M[id].peak; L[id] = +t.toFixed(1); }
-    const old = TUNES ? (await import(path.join(ROOT, 'src/sim/_music_levels.js'))).LEVELS : {}, all = Object.assign({}, old, L);
+    const L = {}; for (const id of ids) L[id] = +Math.max(-12, Math.min(24, M[id].trim + (TARGET - M[id].lufs) * 1.15)).toFixed(1);   /* the limiter gives back a little less than it is given: step a bit further */
+    const old = (await import(path.join(ROOT, 'src/sim/_music_levels.js'))).LEVELS, all = {}; for (const s of SONGS) { const v = L[s.id] !== undefined ? L[s.id] : old[s.id]; if (v !== undefined) all[s.id] = v; }
     fs.writeFileSync(path.join(ROOT, 'src/sim/_music_levels.js'), '// GENERATED by tools/music_check.mjs --write: the trim (dB) that brings each tune to the same integrated loudness (' + TARGET + ' LUFS at the music bus, before the Music slider). Do not edit by hand.\nexport const LEVELS = ' + JSON.stringify(all).replace(/,/g, ', ') + ';\n');
-    console.log('     wrote src/sim/_music_levels.js: trims ' + Math.min(...Object.values(L)) + ' .. ' + Math.max(...Object.values(L)) + ' dB. Build and run again without --write.'); return;
+    console.log('     wrote src/sim/_music_levels.js: trims ' + Math.min(...Object.values(L)) + ' .. ' + Math.max(...Object.values(L)) + ' dB; loudness was ' + Math.min(...ids.map(id => M[id].lufs)) + ' .. ' + Math.max(...ids.map(id => M[id].lufs)) + ' LUFS. Build and run again.'); return;
   }
   const lu = ids.map(id => M[id].lufs), off = ids.filter(id => Math.abs(M[id].lufs - TARGET) > 1.5), hot = ids.filter(id => M[id].peak > -1);
   check(`integrated loudness of every tune within +-1.5 LU of ${TARGET} LUFS`, !off.length, off.map(id => id + ' ' + M[id].lufs).join(', ') || `${Math.min(...lu)} .. ${Math.max(...lu)} LUFS`);

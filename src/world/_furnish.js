@@ -82,3 +82,21 @@ export function build(c) {
   w.poi({ type: 'spot', kind: 'skate', name: 'Campus Skate Spot', x: 196, y: 96 }); w.poi({ type: 'spot', kind: 'cats', name: 'Cat Alley', x: 60, y: 240 }); w.poi({ type: 'spot', kind: 'planespotting', name: 'Runway Viewpoint', x: 270, y: 60 });
   w.poi({ type: 'landmark', name: 'Maple Falls', x: 156, y: 121 }); w.poi({ type: 'spot', kind: 'lookout', name: 'Maple Falls', x: 147, y: 124.5 });
 }
+
+/* owner msg 150 ("this newspaper dispenser bank is in the road"): street furniture placed at a half tile can be wider than the strip of pavement it stands on, so
+   ten pieces city-wide hung half a tile over the asphalt. Last world step: every small street piece whose footprint touches asphalt is slid, by the smallest
+   step that works, back onto pavement where nothing else stands. Nothing is removed. */
+const OFFROAD = /^prop\.street\.(newsbox|bin|hydrant|mailbox|planter|recycling|bollard|atm|vending|utilitybox|postercolumn|aframe|bikeshare|bench)|^prop\.road\.(meter|bikerack)/;
+export function offRoad(c) {
+  const w = c.world, ASPHALT = 3, onRoad = (x0, y0, x1, y1) => { for (let x = x0 + .1; x < x1; x += .2) for (let y = y0 + .1; y < y1; y += .2) { const t = w.tileType(x, y); if (t === ASPHALT || t === 0 || t === 6) return true; } return false; };
+  const hits = (ob, x0, y0, x1, y1) => w.objs.some(o => o !== ob && o.solid && o.B[0] < x1 - .01 && o.B[3] > x0 + .01 && o.B[1] < y1 - .01 && o.B[4] > y0 + .01);
+  let moved = 0;
+  for (const ob of w.objs.slice()) {
+    if (!OFFROAD.test(ob.id) || !onRoad(ob.B[0], ob.B[1], ob.B[3], ob.B[4])) continue;
+    const sx = ob.size[0], sy = ob.size[1]; let best = null;
+    for (let d = .5; d <= 6 && !best; d += .5) for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d], [-d, -d], [d, d], [-d, d], [d, -d]]) { const x = ob.x + dx, y = ob.y + dy; if (!onRoad(x, y, x + sx, y + sy) && !hits(ob, x, y, x + sx, y + sy)) { best = [x, y]; break; } }
+    if (!best) continue;
+    const o = { p: ob.p, flip: ob.flip, data: ob.data, solid: ob.solid }; w.remove(ob); w.place(ob.a, best[0], best[1], o); moved++;
+  }
+  return moved;
+}
