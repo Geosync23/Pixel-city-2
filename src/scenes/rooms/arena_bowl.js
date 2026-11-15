@@ -58,7 +58,7 @@ const M = mk();
   // concert kit (hidden until a concert)
   A('stage', C.x0, C.cy - 4, {}, { concert: 1, stage: 1 }); A('stageprop', 9, 12, { kind: 'drums' }, { z: 1, concert: 1, solid: false }); A('stageprop', 10, 9.5, { kind: 'keys' }, { z: 1, concert: 1, solid: false, flip: true }); A('stageprop', 9, 15, { kind: 'amp' }, { z: 1, concert: 1, solid: false, flip: true }); A('stageprop', 12, 12.5, { kind: 'mic' }, { z: 1, concert: 1, solid: false });
   // monster-truck kit
-  A('ramp', 12.5, 11.5, {}, { trucks: 1 }); A('scrapcar', 15, 12, { c: '#5a8ac8' }, { trucks: 1 }); A('scrapcar', 17, 12, { c: '#c86a4a', flat: 1 }, { trucks: 1 }); A('scrapcar', 19, 12, { c: '#6aa85a', flat: 1 }, { trucks: 1 });
+  A('ramp', 12.5, 11.5, {}, { trucks: 1, solid: false }); A('scrapcar', 15, 12, { c: '#5a8ac8' }, { trucks: 1, solid: false }); A('scrapcar', 17, 12, { c: '#c86a4a', flat: 1 }, { trucks: 1, solid: false }); A('scrapcar', 19, 12, { c: '#6aa85a', flat: 1 }, { trucks: 1, solid: false });
 })();
 
 const PO_SEAT = { seated: true }, FPS = { walk: 7, run: 10, stand: 1.2, talk: 4, dance: 6, eat: 3, drink: 2, wave: 5, cheer: 5, phone: .8, sit: .5, work: 4 };
@@ -352,7 +352,7 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
     }
 
     /* ---------- sync: which event, which phase ---------- */
-    let tick = 0, rowI = 0, okPos = null, lastWarn = 0;
+    let tick = 0, rowI = 0, okPos = null, lastWarn = 0, courtBlk = false;
     function applyMode(mode, ev) {
       st_.mode = mode; evI = -1; homeRun = 0; lastGph = ''; st_._q = -1; introI = -1; camDone = {}; songI = -2; scI = -1; htStage = ''; st_._ct = -1; stopMusic();
       hideAll(homeP.concat(awayP, refs, dancers, band, skaters, contestants, [mc], coaches)); for (const e of trucks.concat(tees, conf)) e.hidden = true; ollie.hidden = true; ball.hidden = true;
@@ -395,7 +395,8 @@ defineRoom({ id: 'arena:bowl', name: 'Maple Bay Arena: the Bowl', w: W, d: D, zo
       if (st_.mine) { const fx = ev && ev.kind === 'concert' ? O + 12 : ev && !ball.hidden ? ball.x : O + C.cx, fy = ev && !ball.hidden ? ball.y : O + C.cy, p = G.player, k = st_.mine.tier === 'nose' ? .52 : st_.mine.tier === 'court' ? .7 : .62, tx = lerp(p.x, fx, k), ty = lerp(p.y, fy, k), tz = lerp(p.z, 2.2, k); cam.x += (tx - cam.x) * Math.min(1, dt * 2.2); cam.y += (ty - cam.y) * Math.min(1, dt * 2.2); cam.z += (tz - cam.z) * Math.min(1, dt * 2.2); }
       // foam finger
       const p = G.player, hasF = AR() && AR().hasFoam(); foam.hidden = !hasF || p.hidden || G.scene !== sc; if (!foam.hidden) { foam.x = p.x; foam.y = p.y; foam.z = p.z + (p.pose === 'sit' || p.pose === 'cheer' && p.poseOpts ? .55 : .8); foam.up = p.pose === 'cheer' || p.pose === 'wave' || p.pose === 'dance'; }
-      // keep people off the floor during a show
+      // keep people off the floor during a show (the court is also taken out of the nav grid so paths go round it)
+      { const blk = !!(ev && ph !== 'none' && ph !== 'exit' && ev.kind !== 'concert' && !st_.pass); if (blk !== courtBlk) { courtBlk = blk; if (blk) Wd.block(O + C.x0, O + C.y0, O + C.x1, O + C.y1); else Wd.free(O + C.x0, O + C.y0, O + C.x1, O + C.y1); } }
       const rx = p.x - O, ry = p.y - O, onFloor = rx > C.x0 - .2 && rx < C.x1 + .2 && ry > C.y0 - .2 && ry < C.y1 + .2, live = ev && ph !== 'none' && ph !== 'exit', may = !live || st_.pass || (ev.kind === 'concert' && AR() && AR().floorOk(ev) && rx > 13.2);
       if (onFloor && !may && !G.busy && !G.cutscene) { if (okPos) { p.x = okPos.x; p.y = okPos.y; } else { p.x = O + BOWL_ENTRY.x; p.y = O + BOWL_ENTRY.y; } p.stop(); G.target = null; G.pending = null; if (t - lastWarn > 3) { lastWarn = t; toast(ev.kind === 'concert' ? 'The floor is for standing tickets. An usher points you back to the seats.' : 'An usher steps in front of you. "Not on the floor during the show, please!"', 'info', 3200); } }
       else if (!onFloor) { if (!okPos) okPos = { x: p.x, y: p.y }; else { okPos.x = p.x; okPos.y = p.y; } }
