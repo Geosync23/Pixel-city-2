@@ -502,3 +502,6 @@ Yes look for rain sounds
 
 ## 128 (2026-11-15)
 Will the added jobs update put us over the page limit?
+
+## 129 (2026-11-15)
+Let's wait for the jobs for now, let me know when rain is in

@@ -197,7 +197,7 @@ function showNote() {
 function introHint(s) {
   if (!G.intro || G.intro.at !== 'apartment_arrival') return; const id = curId(); if (!id) return;
   if (s.id === 'city') { const d = cityPoi('door:home:' + id); if (d && G.state.intro && G.state.intro.keys) G.intro.hint('Tap your door to go inside.', { x: d.x, y: d.y, h: 3.2 }); }
-  else if (livesIn(s)) { const sp = upSpot(lobbyOf(id), APARTMENTS[id].up); if (sp) G.intro.hint(`Your flat is upstairs. Tap the ${APARTMENTS[id].up === 'lift' && s.fixtures.some(f => f.tags.includes('lobby_lift') && !f.item.gated) ? 'lift' : 'stairs'}.`, { x: sp.x, y: sp.y - .5, h: 1.4 }); } /* QA12: h 2.6 put the arrow up in the HUD in portrait (Juniper); 1.4 sits on the stairs */
+  else if (livesIn(s)) { const sp = upSpot(lobbyOf(id), APARTMENTS[id].up); if (sp) G.intro.hint(`Your flat is upstairs. Tap the ${APARTMENTS[id].up === 'lift' && s.fixtures.some(f => f.tags.includes('lobby_lift') && !f.item.gated) ? 'lift' : 'stairs'}.`, { x: sp.x - (sp.dir === 0 ? .5 : 0), y: sp.y - (sp.dir === 1 ? .5 : 0), h: 1.4 }); } /* QA12: h 2.6 put the arrow up in the HUD in portrait (Juniper); 1.4 sits on the stairs; stairs on the side wall (Birch) are pulled back into that wall, not along it to the mailboxes */
 }
 
 export function init() {
