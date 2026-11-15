@@ -6,6 +6,15 @@
 .hud-chip{background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);display:flex;align-items:center;gap:6px;padding:3px 8px;font-weight:700}
 .hud-tl{left:var(--hl);top:8px;display:flex;flex-direction:column;gap:7px;align-items:flex-start}
 .hud-time{padding:3px 10px 3px 5px;pointer-events:none}
+/* top-left row: the My Day button (first, in the corner) + the clock chip */
+.hud-tlrow{display:flex;gap:6px;align-items:stretch}
+.hud-myday{position:relative;padding:3px 9px 3px 5px;gap:5px;cursor:pointer;background:#d2efe2;font-size:13px;line-height:1.02;text-align:left}
+.hud-myday b{font-weight:700;letter-spacing:.2px}
+.hud-myday:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.hud-myday.soon{animation:hudday 1s infinite alternate}
+.hud-myday .hud-badge{right:-6px;top:-7px;min-width:18px;height:18px;line-height:14px;font-size:11px}
+@keyframes hudday{from{background:#d2efe2}to{background:#ffd9a0}}
+#hud.cut .hud-myday{display:none}
 .hud-wx{display:flex;width:32px;height:32px}
 .hud-tcol{display:flex;flex-direction:column;line-height:1.05}
 .hud-clock{font-size:19px;letter-spacing:.5px;font-variant-numeric:tabular-nums}
@@ -155,4 +164,4 @@
 .wake-row{display:flex;align-items:center;gap:9px;font-weight:600}.wake-row span{flex:1}
 .wake-note{margin:2px 0;font-style:italic;opacity:.8}
 @media (max-width:480px){.hud-clock{font-size:17px}.hud-phone{width:58px;height:58px}.hp-skills{grid-template-columns:1fr 1fr}.shop-buy{gap:4px}.shop-buy button{padding:4px 7px}.shop-qty button{width:24px}.shop-qty b{min-width:18px}.shop-price{min-width:38px}.shop-list{padding:2px 8px 8px}.shop-row{gap:7px}}
-@media (prefers-reduced-motion:reduce){.hud-need.critical,.hud-prompt.on,.hud-panel.on{animation:none}}
+@media (prefers-reduced-motion:reduce){.hud-need.critical,.hud-prompt.on,.hud-panel.on,.hud-myday.soon{animation:none}}

@@ -7,6 +7,7 @@
 //   addIndicator({ id, icon, text?, title?, onclick?, cls? }) -> { set({ icon?, text?, cls?, hidden? }), remove() }
 //                              a small chip in the status row under the money (pass, job timer, "raining" ...). Same id replaces.
 //   setBadge('phone' | 'bag', n | '')    force a button badge (the phone badge follows G.messages.unread() by itself)
+//   setMyDay({ soon?: bool, badge?: n | '' })   the My Day button (top-left, first in the row; opens G.myDay.open()): pulse it / show a count. Driven by ui/myday.js.
 //   togglePanel(open?)         the wellness panel         pause(on?)          saved()  flash the save indicator
 // Autosave (only in a started game, never on dev ?scene= launches): after sleeping, on every scene change, every 2 game hours.
 // Keys: P pause, 1/2/3 speed, I/B backpack (inventory.js), Tab/N wellness panel, M/Q phone.
@@ -14,6 +15,7 @@ import { G } from '../core/game.js';
 import { el, root, toast, modal } from './kit.js';
 import { iconEl, weatherIcon } from './_icons.js';
 import { NEEDS, FITNESS, SKILLS, SKILL_MAX_LEVEL } from '../data/needs.js';
+import '../art/icons/myday.js';
 
 export const order = 90;
 let H = null, shown = false, dirty = true, acc = 0, lastHours = 0, pauseOn = false, panelOpen = false, lastPrompt = null, lastSaveT = -1e9;
@@ -30,6 +32,9 @@ function build() {
   // top-left: time + needs
   H.wx = el('span.hud-wx'); H.clock = el('b.hud-clock'); H.date = el('span.hud-date');
   H.time = el('div.hud-chip.hud-time', { title: 'Time' }, H.wx, el('div.hud-tcol', null, H.clock, H.date));
+  /* My Day: the one phone feature with its own HUD button (owner msg 107). The sheet lives in ui/myday.js. */
+  H.dayBadge = el('span.hud-badge');
+  H.day = el('button.hud-chip.hud-myday', { 'aria-label': 'My Day: your schedule and ideas', onclick: () => { togglePanel(false); if (G.myDay && G.myDay.open) G.myDay.open(); else if (G.phone && G.phone.open) G.phone.open('planner'); } }, iconEl('myday.btn', 2), el('b', null, 'My', el('br'), 'Day'), H.dayBadge);
   H.face = el('span.hud-face');
   H.needs = el('button.hud-needs', { 'aria-label': 'Needs and mood', onclick: () => togglePanel() }, H.face);
   /* nine meters in one row: the six body needs, a hairline, then the three gentle ones (Comfort, Outdoors, Inspiration: data `soft`) with calmer teal bars */
@@ -53,7 +58,7 @@ function build() {
   H.phone = el('button.hud-btn.hud-phone', { 'aria-label': 'Phone', onclick: () => (G.phone && G.phone.open ? G.phone.open() : toast('No signal yet.', 'info')) }, iconEl('ui.phone', 3), H.phoneBadge);
   H.panel = el('div.hud-panel');
   H.paused = el('button.hud-paused', { onclick: () => pause(false) }, el('b', { text: 'Paused' }), el('span', { text: 'tap to continue' }));
-  H.root.append(el('div.hud-tl', null, H.time, H.needs), el('div.hud-tr', null, el('div.hud-trrow', null, H.saved, H.money), H.delta, H.speed, H.ind), el('div.hud-bc', null, H.prompt, H.act), el('div.hud-br', null, H.bag, H.phone), H.panel, H.paused);
+  H.root.append(el('div.hud-tl', null, el('div.hud-tlrow', null, H.day, H.time), H.needs), el('div.hud-tr', null, el('div.hud-trrow', null, H.saved, H.money), H.delta, H.speed, H.ind), el('div.hud-bc', null, H.prompt, H.act), el('div.hud-br', null, H.bag, H.phone), H.panel, H.paused);
   root().prepend(H.root);
 }
 
@@ -153,7 +158,7 @@ function toastsClear(dt) {
 }
 export function init() {
   injectCss(); build();
-  G.hud = { show, hide, refresh, addIndicator, togglePanel, pause, saved, setBadge: (k, v) => { badges[k] = v; dirty = true; }, get visible() { return shown; }, get el() { return H.root; } };
+  G.hud = { show, hide, refresh, addIndicator, togglePanel, pause, saved, setBadge: (k, v) => { badges[k] = v; dirty = true; }, setMyDay: o => { if (o.soon !== undefined) H.day.classList.toggle('soon', !!o.soon); if (o.badge !== undefined) { H.dayBadge.textContent = o.badge || ''; H.dayBadge.classList.toggle('on', !!o.badge); } }, get visible() { return shown; }, get el() { return H.root; } };
   G.on('frame', onFrame); G.on('frame', toastsClear);
   for (const ev of ['needs:change', 'inv:change', 'hour', 'weather', 'load', 'msg:new', 'moodlet', 'skill:up']) G.on(ev, () => { dirty = true; });
   G.on('money', moneyDelta);

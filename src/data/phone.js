@@ -36,7 +36,7 @@ export const APPS = [
     ],
     notes: 'A contact is added the first time you finish a `chat` with a named NPC. Family (sibling, grandma) and your old school friend are there from the start.' },
 
-  { id: 'planner', name: 'Planner', icon: 'calendar page with a red ring', slot: 1, question: 'What is on, and when?',
+  { id: 'planner', name: 'My Day', icon: 'calendar page with a red ring', slot: 1, question: 'What is on my day, and what could be?',   // was 'Planner' (owner msg 107: schedule vs ideas; ui/phone_planner.js has My Schedule / Ideas / Week)
     unlock: { at: 'start' }, badge: 'an appointment within the next 2 hours',
     tabs: [
       { id: 'today', name: 'Today', shows: 'Timeline of today: work shift, appointments, venue events, bills due; weather now + 3-day forecast (calendar.js WEATHER_RULES.forecastDays).',

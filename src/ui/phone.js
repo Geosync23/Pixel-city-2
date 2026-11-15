@@ -238,7 +238,7 @@ function wire() {
   G.on('bills:due', b => notify({ type: 'bill_paid', title: 'Bay Bank', text: 'Paid: ' + ((b && b.items) || []).map(i => `${i.label} ${money(i.amount)}`).join(', '), icon: 'ui.coin' }));
   G.on('money', () => { const m = balance(); if (m < 50) notify({ type: 'low_balance', title: 'Bay Bank', text: `Balance is low: ${money(m)}`, icon: 'ui.coin' }); });
   G.on('skill:up', (k, lvl) => notify({ type: 'skill_up', title: 'Wellness', text: `${cap(k)} is now level ${lvl}!`, icon: 'skill.' + k }));
-  G.on('needs:low', k => notify({ type: 'need_low', title: 'Wellness', text: ({ hunger: 'Getting hungry...', energy: 'Running low on energy...', hygiene: 'A shower would be nice.', fun: 'Time for something fun?', social: 'Maybe call someone?' })[k] || `Your ${k} is low.`, icon: 'need.' + k, priority: 'low' }));
+  if (0) G.on('needs:low', k => notify({ type: 'need_low', title: 'Wellness', text: ({ hunger: 'Getting hungry...', energy: 'Running low on energy...', hygiene: 'A shower would be nice.', fun: 'Time for something fun?', social: 'Maybe call someone?' })[k] || `Your ${k} is low.`, icon: 'need.' + k, priority: 'low' }));
   G.on('shop:buy', (item, qty, venueId) => { const v = VENUE_BY_ID[venueId]; if (v && v.delivers && !isUnlocked('delivery')) unlock('delivery'); });
 }
 

@@ -116,6 +116,13 @@ export default [
     } },
   { id: 'furn.story.rafters', kind: 'furniture', tags: ['story'], solid: false, size: [8, .1, .4], mount: 1.75, vb: [-.2, -.2, -.2, 8.2, .5, .7],
     draw(p) { const w = p.w || 8; qy(0, w, .03, .12, .3, WOOD2, dk(WOOD2, .15)); for (let x = .6; x < w; x += 1.6) qy(x, x + .16, .04, -.15, .3, WOOD, WOOD2); } },
+  { id: 'furn.story.book', kind: 'furniture', tags: ['story', 'nells_book'], solid: false, size: [.7, .7, .6], vb: [-.2, -.2, 0, .9, .9, .9],
+    draw() {      /* Mom's exercise book, on a little three-legged stool */
+      for (const [x, y] of [[.12, .12], [.58, .12], [.35, .58]]) cyl(x, y, 0, .04, .36, WOOD2);
+      cyl(.35, .35, .36, .3, .06, WOOD, { t: lt(WOOD, .15) });
+      box(.16, .2, .42, .4, .3, .05, '#7d93b8', { l: '#6a7fa3', r: '#586c8f', t: '#8fa6cc' }); qz(.2, .52, .24, .3, .475, '#f4ecd8');
+      glow(() => { const q = PW(.36, .35, .5); px(Math.round(q[0]), Math.round(q[1]) - 3, C('#ffe9a6')); });
+    } },
   { id: 'prop.story.bell', kind: 'prop', tags: ['story', 'bell'], solid: false, size: [.5, .5, 1.5], vb: [-.3, -.3, 0, .8, .8, 1.8],
     draw() {
       cyl(.25, .25, 0, .06, 1.25, '#5a4a3a'); lw([.25, .25, 1.25], [.55, .25, 1.25], '#3a2c22'); lw([.25, .25, 1.26], [.55, .25, 1.26], '#3a2c22');

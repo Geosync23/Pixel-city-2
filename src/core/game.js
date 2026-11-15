@@ -120,7 +120,7 @@ function onTap(clx, cly) {
   if (G.modal || G.cutscene) return; if (G.busy) { return; }
   const w = G.toWorld(clx, cly), it = pick(w.px, w.py);
   // people are only talked to through the Talk prompt/button (E), never by a stray tap while walking (owner request)
-  if (it && !(it.ent && /^talk/i.test(it.label || ''))) return G.useInteractable(it);
+  if (it && !(it.ent && /^(talk|say hello)/i.test(it.label || ''))) return G.useInteractable(it);
   G.pending = null; if (G.player.goTo(G.world, w.x, w.y, { snap: 10, limit: 30000 })) { const p = G.player.path; G.target = p && p.length ? p[p.length - 1] : null; }
 }
 
@@ -146,7 +146,10 @@ function frame(now) {
     G.state.t = t0 + gm; tickTime(t0, G.state.t);
     if (G.busy) { G.busy.tick && G.busy.tick(gm); if (G.busy && G.busy.left <= 1e-6) G.endActivity(true); }
     const p = G.player, inp = G.input.poll();
-    if (G.cutscene) { G.cutscene.update(dt); p.t += dt; }
+    if (G.cutscene) {   /* QA6: rides (a cab is a cutscene) also run `sub` world steps at 2x / 4x, so a ride costs the same game time at any speed */
+      const spd = Math.max(1, G.state.speed || 1), sub = G.cutscene.ride ? Math.min(4, Math.round(spd)) : 1, sdt = dt * spd / sub, sgm = gm / sub;
+      for (let q = 0; q < sub; q++) { G.cutscene.update(sub > 1 ? sdt : dt); if (q < sub - 1) { if (G.scene.update) G.scene.update(sdt, sgm); for (const s of G.systems) if (s.update) s.update(sdt, sgm); if (!G.cutscene) break; } }
+      if (sub > 1) G._sub = [sdt, sgm]; p.t += dt; }
     else if (G.busy) { p.moving = false; p.t += dt; p.z = G.world.heightAt(p.x, p.y) + p.zoff; }
     else {
       let steer = null;

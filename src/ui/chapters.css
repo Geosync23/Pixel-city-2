@@ -123,3 +123,7 @@
 /* no blue tap flash on phones; text is not selectable while tapping through */
 .chd-wrap,.chd-wrap *,.chc-wrap,.chc-wrap *,.chp,.chp *{-webkit-tap-highlight-color:transparent}
 .chd-wrap{-webkit-user-select:none;user-select:none;touch-action:manipulation}
+
+.chp.solo{flex-direction:row;align-items:center;gap:8px}
+.chp.solo .chp-main{flex:1}
+.chp.solo .chp-out{min-height:34px}

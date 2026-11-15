@@ -5,6 +5,9 @@
 //   "Appointments" (the next planner entries of the coming 3 days, story beats included). Never "missions/quests".
 //   Tap a goal -> its hint as a toast (and a map waypoint when it has a placeId); tap an appointment -> planner app.
 //   Re-renders on 'goals:change', 'goal:done', 'story:offer', 'story:beat', 'appt:*', 'day', 'load', 'game:start'.
+//   MY DAY (owner msg 107): when ui/myday.js is there (G.myDayUI.chip()), the widget is only its one-line chip ("Next · 09:00 Shift at ..." / "To do · ..." /
+//   the gold Chapter line): a tap opens the My Day sheet, where the Goals, Opportunities and the schedule now live as sections. The list body is not drawn.
+//   G.goals, the "done" toast, the hint bubble and the captions work exactly as before.
 //
 // Exports (also reachable as G.intro.hint / G.goalsUI):
 //   hint(text | null, target?, opts?)   one small tutorial bubble at the top of the screen. target = CSS selector | DOM element |
@@ -27,7 +30,7 @@ export const fmtWhen = t => { const d = Math.floor(t / 1440), d0 = Math.floor(G.
 
 function build() {
   W = el('div', { id: 'goalsw' });
-  W.head = el('button.gw-head', { onclick: () => { const s = gs(); s.collapsed = !W.classList.contains('shut'); render(); } });
+  W.head = el('button.gw-head', { onclick: () => { if (G.myDayUI && G.myDayUI.chip) { G.myDay.open(); return; } const s = gs(); s.collapsed = !W.classList.contains('shut'); render(); } });
   W.body = el('div.gw-body'); W.append(W.head, W.body);
   const hud = document.getElementById('hud'); if (hud && hud.parentNode === root()) root().insertBefore(W, hud); else root().append(W);
 }
@@ -47,6 +50,12 @@ function appts() {
 }
 function render() {
   dirty = false; if (!W) return;
+  if (G.myDayUI && G.myDayUI.chip) {   /* My Day owns the lists; this is its "what is next" line */
+    let c = null; try { c = G.myDayUI.chip(); } catch (e) { c = null; }
+    W.classList.add('md'); W.classList.toggle('empty', !c || !c.text); W.classList.toggle('gold', !!(c && c.gold)); W.classList.add('shut'); W.body.replaceChildren();
+    if (c && c.text) W.head.replaceChildren(el('i', { text: c.label || 'Next' }), el('span', { text: c.text }));
+    return;
+  }
   const all = G.goals ? G.goals.list() : [], goals = all.filter(g => g.group !== 'opportunity'), opps = all.filter(g => g.group === 'opportunity'), ap = appts();
   const open = goals.filter(g => !g.done).length;
   W.classList.toggle('empty', !all.length && !ap.length);
@@ -95,7 +104,7 @@ export function skipButton(label, fn) { injectCss(); const b = el('button.tut-sk
 export function init() {
   injectCss(); build();
   G.goalsUI = { hint, caption, skipButton, refresh, fmtWhen };
-  for (const ev of ['goals:change', 'story:offer', 'story:beat', 'appt:add', 'appt:remove', 'appt:done', 'appt:missed', 'appt:start', 'day', 'load', 'game:start', 'ready']) G.on(ev, refresh);
+  for (const ev of ['goals:change', 'story:offer', 'story:beat', 'appt:add', 'appt:remove', 'appt:done', 'appt:missed', 'appt:start', 'day', 'load', 'game:start', 'ready', 'myday:change']) G.on(ev, refresh);
   G.on('goal:done', (id, g) => {
     render(); const r = W.querySelector(`[data-g="${id}"]`); if (r) r.classList.add('pop');
     toast((g && g.doneText) || 'Done: ' + ((g && g.text) || id), 'good', 3600); try { G.audio && G.audio.sfx && G.audio.sfx('success'); } catch (e) { /* no audio */ }

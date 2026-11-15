@@ -52,7 +52,7 @@ function drawMarker(ctx, cam) {
 /* ---------- phone Map pins (G.mapPins: fn(g, X, Y, z, label, W, H) called at the end of the Map's draw) ---------- */
 function mapPins(g, X, Y, z, label) {
   if (H) for (const p of safe(() => H.pins(), [])) { const x = X(p.x), y = Y(p.y); g.drawImage(pageSprite(), x - 4, y - 18, 9, 11); if (z >= 4 && p.note) { g.save(); g.font = 'italic 700 12px "Segoe Script","Bradley Hand",cursive'; label(p.note, x + 8, y - 13); g.restore(); } }
-  if (M) { const x = X(M.x), y = Y(M.y), c = markerSprite(0); g.drawImage(c, x - 8, y - 30, 17, 26); if (z >= 2) label(M.label, x + 12, y - 20, true); }
+  if (M) { const x = X(M.x), y = Y(M.y), c = markerSprite(0); g.imageSmoothingEnabled = false; g.drawImage(c, x - 13, y - 44, 26, 39); if (z >= 2) label(M.label, x + 16, y - 34, true); }
 }
 
 /* ---------- story props in the city ---------- */
@@ -81,9 +81,13 @@ function onRoom(sc) {
   }
   const home = safe(() => G.housing.current().roomId, null);
   if (home && rid === home && H.hasBook()) {
-    const fx = sc.fixtures.find(f => /bookshelf|console|dresser|desk|table|coffeetable/.test(String(f.asset && f.asset.id))) || null;
-    const at = fx ? { x: fx.x, y: fx.y, spot: fx.use || undefined } : { x: sc.spawn ? sc.spawn.x + 1 : 2, y: sc.spawn ? sc.spawn.y - 1 : 2 };
-    sc.interactables.push(Object.assign({ label: "Mom's book", h: 1.3, hit: 14, range: 1.7, use: () => H.openBook() }, at));
+    /* Mom's book sits on a little stool near the door (a free floor cell), where you see it every time you come in */
+    const sp = sc.spawn && typeof sc.spawn === 'object' ? sc.spawn : { x: 2, y: 2 }, w = sc.world; let at = null;
+    for (const o of [[1.5, -1.5], [-1.5, -1.5], [1.5, 0], [-1.5, 0], [2.5, -1], [-2.5, -1], [0, -2.5], [2, -2.5], [-2, -2.5], [3, 0], [-3, 0]]) { const x = Math.round((sp.x + o[0]) * 2) / 2, y = Math.round((sp.y + o[1]) * 2) / 2; if (x > 1.2 && y > 1.2 && x < w.w - 2 && y < w.h - 2 && !safe(() => w.isBlocked(x, y), true) && !safe(() => w.isBlocked(x + .5, y + .5), true)) { at = { x, y }; break; } }
+    if (at) {
+      safe(() => w.place(asset('furn.story.book'), at.x - .35, at.y - .35, { solid: false }));
+      sc.interactables.push({ x: at.x, y: at.y, label: "Mom's book", h: .9, hit: 16, range: 1.8, use: () => H.openBook() });
+    }
   }
 }
 

@@ -92,6 +92,7 @@ const held = [];
 function show(id) {
   const t = BY_ID[id], s = S(); if (!t || s.seen[id] || G.onTitle) return false; const now = G.state.t || 0;
   if (inAirportIntro() && (t.topic === 'home' || (t.go && t.go.app === 'homes'))) { if (!held.includes(id)) held.push(id); return false; }
+  if (safe(() => G.needs.sleeping, false)) { if (!held.includes(id)) held.push(id); return false; }   /* QA6: no tips while you sleep; they wait for the morning */
   if (now - (s.last === undefined ? -999 : s.last) < 60 && now >= s.last) return false;
   s.seen[id] = 1; s.last = now;
   safe(() => G.phone.notify({ app: 'tips', title: 'Tip: ' + t.title, text: t.text.split('. ')[0].replace(/\.$/, '') + '.', data: { tip: id }, priority: 'normal' }), 0);
@@ -142,6 +143,7 @@ function wire() {
   // Wander is introduced right after Nora's first text (once you have answered her), not at the first "Discovered" toast
   const wander = () => setTimeout(() => { S().last = -999; show('wander'); }, 3500);
   G.on('msg:reply', th => { if (th === 'jules') wander(); }); G.on('intro:done', wander);
+  G.on('activityEnd', () => { if (held.length && !inAirportIntro() && !safe(() => G.needs.sleeping, false)) setTimeout(() => { const id = held.shift(); if (id) { S().last = -999; show(id); } }, 8000); });
   G.on('intro:step', () => { if (!inAirportIntro() && held.length) setTimeout(() => { const id = held.shift(); if (id) { S().last = -999; show(id); } }, 6000); });
   on('weather', 'weather', k => /rain|storm|snow/.test(k)); on('hour', 'sleep', h => h >= 0 && h < 4 && !G.busy);
   on('game:start', 'navigator');

@@ -193,7 +193,7 @@ function wakeSummary(st) {
     row('need.energy', `Slept ${hm(st.elapsed)}`, `Energy ${e} (${gain >= 0 ? '+' : ''}${gain})`),
     row('need.hunger', 'Hunger', `${Math.round(N.get('hunger'))} · ${N.band('hunger').label}`),
     row(weatherIcon(wk, n.hour >= 20 || n.hour < 6), 'Outside', (wk[0].toUpperCase() + wk.slice(1)) + (w.tempC !== undefined ? `, ${Math.round(w.tempC)}°C` : '')),
-    hrs >= 6 && e >= 85 ? el('p.wake-note', { text: 'You feel properly rested.' }) : e < 40 ? el('p.wake-note', { text: 'Still tired. A longer night would help.' }) : null,
+    hrs >= 6 && e >= 85 ? el('p.wake-note', { text: 'You feel properly rested.' }) : e < 40 ? el('p.wake-note', { text: 'Still tired. A longer night would help.' }) : '',
     el('button.go', { onclick: () => m.close() }, morning ? 'Start the day' : 'Get up'));
 }
 

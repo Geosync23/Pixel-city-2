@@ -37,13 +37,13 @@ export const CATALOG = [
   { id: 'weather', name: 'Skies', cat: 'life', tagline: 'Umbrella or sunglasses?', size: '5 MB', rating: 4.5, iconIds: ['weather.partly', 'weather.sun'], color: '#5aa7dd', release: { day: 2, text: 'day 2' },
     desc: 'Today hour by hour and the next three days, with a plain hint about what to wear and what the day is good for.', does: ['Hourly forecast', '3-day outlook', 'What to wear, what to do'] },
   { id: 'transit', name: 'Bay Transit', cat: 'town', tagline: 'When is the next one?', size: '13 MB', rating: 4.4, iconIds: ['transport.train', 'transport.bus', 'ui.ticket', 'ui.pin'], color: '#2f8f5b',
-    release: { day: 2, on: 'ride:end', text: 'your first train or bus ride, or day 2' },
+    release: { day: 2, on: 'ride:end', when: kind => kind === 'train' || kind === 'bus', text: 'your first train or bus ride, or day 2' },
     desc: 'Live departures from the nearest station and bus stop, tickets and passes, and the loop line at a glance.', does: ['Next trains and buses near you', 'Buy a ticket, day pass or weekly pass', 'Loop line diagram'] },
   { id: 'showtime', name: 'Showtime', cat: 'town', tagline: 'What is on tonight?', size: '19 MB', rating: 4.6, iconIds: ['ui.ticket', 'ui.mask', 'ui.star'], color: '#a23b72',
     release: { day: 3, on: 'place:discover', when: id => VENUES.some(v => String((id && id.id) || id || '').indexOf(v) >= 0), text: 'finding a cinema or hall, or day 3' },
     desc: 'Films at The Orpheum, concerts at Symphony Hall and plays at the Lantern Playhouse, all on one evening list.', does: ["Tonight's and tomorrow's showings", 'Add to planner', 'Take me there'] },
   { id: 'closet', name: 'Closet', cat: 'life', tagline: 'What shall I wear?', size: '8 MB', rating: 4.3, iconIds: ['outfit_casual', 'ui.shirt', 'ui.hanger', 'ui.heart'], color: '#8a5cc2',
-    release: { day: 2, on: 'shop:buy', poll: () => safe(() => G.wardrobe.owned().length, 0) >= 2, text: 'your first purchase, or day 2' },
+    release: { day: 2, on: 'shop:buy', when: () => safe(() => G.wardrobe.owned().length, 0) >= 2, poll: () => safe(() => G.wardrobe.owned().length, 0) >= 2, text: 'your first clothes, or day 2' },
     desc: 'Every outfit you own in one grid. Change in a tap, wherever you are.', does: ['Outfit grid', 'Wear now', "Today's outfit"] },
   { id: 'friends', name: 'Circle', cat: 'people', tagline: 'How are my people?', size: '15 MB', rating: 4.7, iconIds: ['need.social', 'ui.heart'], color: '#e0527a',
     release: { poll: () => friendsMet() >= 3, on: 'npc:met', when: () => friendsMet() >= 3, text: 'meeting three people' },
@@ -89,7 +89,7 @@ const refresh = () => safe(() => G.phone.refresh(), 0);
 
 function release(id, quiet) {
   const a = BY_ID[id]; if (!a || a.soon || isReleased(id)) return false;
-  const s = S(); s.released[id] = day(); s.lastRel = G.state.t || 0; G.emit('app:released', id);
+  const s = S(); s.released[id] = day(); s.lastRel = G.state.t || 0; s.perDay = s.perDay || {}; s.perDay[day()] = (s.perDay[day()] || 0) + 1; G.emit('app:released', id);   /* QA6: every release counts toward the first week's 2-a-day */
   if (!quiet) safe(() => G.phone.notify({ app: 'store', title: 'New app: ' + a.name, text: `${a.name} is now on ${STORE_NAME}. Tap to install it.`, data: { app: id }, priority: 'normal' }), 0);
   refresh(); return true;
 }
@@ -110,7 +110,12 @@ function catalog() {
 function check() {
   if (G.onTitle) return;
   if (G.intro && G.intro.active && ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'].includes(G.intro.at)) return;   // no app releases (Nestly, Circle...) while you are still in the airport (owner msg 78)
-  const s = S(), t = G.state.t || 0; if (t - (s.lastRel || -9999) < 60 && t >= (s.lastRel || 0)) return;
+  const s = S(), t = G.state.t || 0, h = safe(() => G.now().hour, 12), early = day() < 7;
+  /* QA6 (calm first week): calendar / polled releases only while you are up and about (08:00-21:00, never asleep, so nothing piles up overnight),
+     at least 5 game hours apart and at most 2 a day (event releases included) during the first week; afterwards one an hour as before. Event releases still fire at once. */
+  if (h < 8 || h >= 21 || safe(() => G.needs.sleeping, false)) return;
+  if (t - (s.lastRel || -9999) < (early ? 300 : 60) && t >= (s.lastRel || 0)) return;
+  s.perDay = s.perDay || {}; if (early && (s.perDay[day()] || 0) >= 2) return;
   for (const a of CATALOG) {
     const r = a.release; if (!r || isReleased(a.id)) continue;
     if ((r.day && day() + 1 >= r.day) || (r.poll && safe(r.poll, false))) { release(a.id); return; }

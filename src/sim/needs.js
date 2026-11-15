@@ -89,13 +89,14 @@ function check(k) {
   if (prev && prev !== b) {
     applySpeed();
     if ((b === 'low' && prev !== 'critical') || (b === 'critical' && prev !== 'low' && S.v[k] > 0)) { G.emit('needs:low', k); }
+    else if (b === 'critical' && prev === 'low' && S.v[k] > 0 && !BY[k].soft) G.emit('needs:critical', k);   /* QA6: low -> critical used to be silent (the step before a pass-out) */
   }
   if (S.v[k] <= 0 && !passing && !BY[k].soft) { const z = BY[k].atZero; if (prev !== 'zero') { lastBand[k] = 'zero'; G.emit('needs:zero', k); zero(k, z); } else lastBand[k] = 'zero'; }
 }
 function zero(k, z) {
   if (z.type === 'pass_out') { passing = true; setTimeout(() => passOut(k), 0); return; }
   if (z.siblingCheckInCall) { const day = G.now().day; if (S.sib === day) return; S.sib = day; setTimeout(() => { api.add('social', z.siblingCheckInCall.social); if (G.phone && G.phone.notify) G.phone.notify({ app: 'messages', title: 'Missed call', text: z.message, icon: 'need.social' }); toast(z.message, 'info', 5200); }, 0); return; }
-  toast(z.message, 'bad', 5200);
+  if (!api.sleeping) toast(z.message, 'bad', 5200);   /* QA6: not in your sleep */
 }
 async function passOut(k) {
   const z = BY[k].atZero; if (!z || z.type !== 'pass_out') { passing = false; return; }
@@ -167,8 +168,10 @@ export function init() {
   G.on('scene', applySpeed); G.on('weather', applySpeed);
   const softSaid = {};   /* the gentle needs speak at most once a game day each, even if they bob around the band edge */
   /* QA6: everyday Social: a word at the till, and story scenes with family / friends (meals feed you too) */
-  let tillT = -999;
+  let tillT = -999; const lateLow = new Set();
+  G.on('activityEnd', () => { if (api.sleeping || !lateLow.size) return; const ks = [...lateLow]; lateLow.clear(); setTimeout(() => { for (const k of ks) { const id = api.band(k).id; if ((id === 'low' || id === 'critical') && LOW_NOTICE[k]) toast(LOW_NOTICE[k][id], 'bad', 5200); } }, 2500); });
   G.on('shop:buy', () => { if (G.state.t - tillT < SOCIAL.tillEveryMin) return; tillT = G.state.t; api.add('social', SOCIAL.till); });
   G.on('story:beat', id => { const g = SOCIAL.beats[id] || SOCIAL.beatDefault; for (const k in g) api.add(k, g[k]); });
-  G.on('needs:low', k => { const b = api.band(k); const L = LOW_NOTICE[k]; if (L && !BY[k].soft) { if (G.busy && /^(Eating|Drinking|Cooking|Making|Baking)\b/.test(G.busy.label || '') && (k === 'hunger' || k === 'energy')) return;   /* QA6: not while you are already eating */ toast(b.id === 'critical' ? L.critical : L.low, 'bad', b.id === 'critical' ? 7000 : 5200); if (b.id === 'critical' && (k === 'hunger' || k === 'energy')) { try { G.phone && G.phone.notify && G.phone.notify({ app: 'wellness', title: k === 'hunger' ? 'Starving' : 'Exhausted', text: L.critical, icon: 'need.' + k, priority: 'high' }); } catch (e) { } } return; } if (BY[k].soft) { const d = G.now().day; if (softSaid[k] === d) return; softSaid[k] = d; toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
+  G.on('needs:critical', k => { const L = LOW_NOTICE[k]; if (!L) return; if (api.sleeping) { lateLow.add(k); return; } let banner = false; if (k === 'hunger' || k === 'energy') { try { banner = !!(G.phone && G.phone.notify && G.phone.notify({ app: 'wellness', title: k === 'hunger' ? 'Starving' : 'Exhausted', text: L.critical, icon: 'need.' + k, priority: 'high' })); } catch (e) { } } if (!banner) toast(L.critical, 'bad', 7000); });   /* hunger / energy: a high-priority phone banner (one message, not banner + toast) */
+  G.on('needs:low', k => { const b = api.band(k); const L = LOW_NOTICE[k]; if (L && !BY[k].soft) { if (G.busy && /^(Eating|Drinking|Cooking|Making|Baking)\b/.test(G.busy.label || '') && (k === 'hunger' || k === 'energy')) return; if (api.sleeping && b.id !== 'critical') { lateLow.add(k); return; }   /* QA6: said when you wake, not while you sleep */   /* QA6: not while you are already eating */ toast(b.id === 'critical' ? L.critical : L.low, 'bad', b.id === 'critical' ? 7000 : 5200); return; } if (BY[k].soft) { const d = G.now().day; if (softSaid[k] === d) return; softSaid[k] = d; toast(BY[k].lowText || `${BY[k].name}: ${b.label.toLowerCase()}`, 'info', 4200); return; } toast(`${BY[k].name}: ${b.label.toLowerCase()}`, 'bad'); });   /* the gentle needs (data `soft`) speak once, kindly */
 }

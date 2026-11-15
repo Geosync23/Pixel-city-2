@@ -5,6 +5,12 @@
 #goalsw .gw-head i{font-style:normal;opacity:.7;font-weight:600}
 #goalsw .gw-body{margin-top:6px;background:var(--panel);border:2px solid var(--edge);box-shadow:0 3px 0 var(--edge);padding:5px 7px 7px;max-height:min(46vh,330px);overflow:auto}
 #goalsw.shut .gw-body{display:none}
+/* My Day's "what is next" line (the widget is only this chip when ui/myday.js is there) */
+#goalsw.md{width:auto;max-width:min(300px,calc(100vw - 16px))}
+#goalsw.md .gw-head{max-width:100%;font-weight:600;gap:7px}
+#goalsw.md .gw-head i{flex:none;opacity:1;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;background:var(--ink);color:#fff4dc;padding:1px 5px}
+#goalsw.md .gw-head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#goalsw.md.gold .gw-head{background:#ffe9a6}#goalsw.md.gold .gw-head i{background:#f2c230;color:#4a3410}
 #goalsw .gw-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;opacity:.6;margin:6px 0 3px}
 #goalsw .gw-sec:first-child{margin-top:0}
 #goalsw .gw-list{font-size:11px;font-weight:700;margin:2px 0 3px;opacity:.85}
@@ -32,3 +38,5 @@
 
 #ui:has(.modal) #goalsw{display:none}
 #ui > .tut-arrow{pointer-events:none}
+/* the toast column starts under the My Day line instead of on top of it */
+#ui:has(#goalsw.md:not(.empty):not(.off)) #toasts{top:134px}

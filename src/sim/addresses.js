@@ -17,11 +17,12 @@ function of(pt) {
   if (!best || bd > 40) return null; const s = best.s; let block = 1; for (const c of s.cuts) if (c <= best.along) block++; const start = [...s.cuts].reverse().find(c => c <= best.along); const within = Math.max(0, Math.round((best.along - (start === undefined ? s.a : start)) / 2)) * 2; let num = block * 100 + within; if (best.across > 0) num += 1;
   return { number: num, street: s.name, text: num + ' ' + s.name };
 }
+const CANON = { 'door:home:grandma': '4 Thimble Street', 'door:home:sibling': '12 Sycamore Lane' };   /* the story's addresses win (docs/story/CHAPTERS.md) */
 export function init() {
   G.address = { of, streets: () => streets, find: t => { t = String(t).toLowerCase(); return world ? world.pois.find(p => p.address && p.address.toLowerCase() === t) || null : null; } };
   G.on('scene', s => {
     if (s.id !== 'city' || s._addr) return; s._addr = true; build(s.world); const seen = new Set();
-    for (const p of s.world.pois) { if (p.type !== 'door' && p.type !== 'station' && p.type !== 'stall') continue; const a = of(p); if (!a) continue; let t = a.text, n = a.number; while (seen.has(t)) { n += 2; t = n + ' ' + a.street; } seen.add(t); p.address = t; }
+    for (const p of s.world.pois) { if (p.type !== 'door' && p.type !== 'station' && p.type !== 'stall') continue; const a = of(p); if (!a) continue; let t = a.text, n = a.number; while (seen.has(t)) { n += 2; t = n + ' ' + a.street; } seen.add(t); p.address = CANON[p.id] || t; }
     for (const it of s.interactables) { const p = s.world.pois.find(q => q.address && q.type === 'door' && Math.abs(q.x - it.x) < .01 && Math.abs(q.y - it.y) < .01); if (p && it.label && !it._addr) { it._addr = true; it.label = it.label + '  ·  ' + p.address; } }
     G.emit('addresses:built');
   });

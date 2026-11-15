@@ -91,6 +91,8 @@ export function say(line) {
     d.typing = setInterval(() => { i += 2; d.text.textContent = d.full.slice(0, i); if (i >= d.full.length) { stopType(); d.more.style.visibility = ''; } }, 22);
   });
 }
+/** show a line at once, without waiting for a tap (the line a choice answers, when the sheet opens straight onto the choice after a reload) */
+export function context(line) { const d = open(); head(line); stopType(); d.full = line.text; d.text.textContent = line.text; d.more.style.visibility = 'hidden'; }
 export function choice(options) {
   const d = open(); stopType(); d.more.style.visibility = 'hidden'; d.box.classList.add('choosing');
   return new Promise(res => {
@@ -165,6 +167,7 @@ export function chip(info) {
   if (!info) { if (C) { C.remove(); C = null; } return; }
   if (!C) { C = el('div.chp'); root().append(C); }
   const key = [info.kicker, info.text, info.go && info.go.label, info.skip && info.skip.label].join('|'); if (C._k === key) { C._i = info; return; } C._k = key; C._i = info;
+  C.classList.toggle('solo', !info.go && !info.skip);
   C.replaceChildren(
     el('div.chp-main', null, el('small', { text: info.kicker || '' }), el('span', { text: info.text || '' })),
     el('div.chp-btns', null,
@@ -222,4 +225,4 @@ export function toastGold(text, ms = 5200) {
   const t = el('div.toast.chgold', { text }); box.append(t); setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 400);
 }
 
-export const UI = { say, choice, beat, close, setModal, setOut, isOpen, log, card, endCard, chip, book, frame, face, toastGold };
+export const UI = { say, context, choice, beat, close, setModal, setOut, isOpen, log, card, endCard, chip, book, frame, face, toastGold };

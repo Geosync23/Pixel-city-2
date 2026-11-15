@@ -78,7 +78,7 @@ function showHud(title, sub, btns) {
 function hideHud() { if (hud) { hud.root.remove(); hud = null; } }
 function begin(r) {
   const p = G.player; ride = r; r.t = 0; r.district = W().districtAt(r.vehicle.x, r.vehicle.y); p.stop && p.stop(); p.hidden = true; G.target = null; G.pending = null;
-  G.camTarget = r.vehicle; r.vehicle.ghost = true; G.cutscene = { update: rideTick }; G.emit('ride:start', r.kind, r.destination);
+  G.camTarget = r.vehicle; r.vehicle.ghost = true; G.cutscene = { update: rideTick, ride: true }; G.emit('ride:start', r.kind, r.destination);
 }
 function finish(sp, ok = true) {
   const r = ride, p = G.player; if (!r) return; ride = null; p.x = sp.x; p.y = sp.y; p.z = W().heightAt(sp.x, sp.y); p.hidden = false; p.path = null;
@@ -87,7 +87,7 @@ function finish(sp, ok = true) {
 }
 function rideTick(dt) {
   const r = ride; if (!r) { G.cutscene = null; return; } const v = r.vehicle, p = G.player; p.x = v.x; p.y = v.y; p.z = v.z; r.t += dt;
-  const extra = r.kind === 'bus' ? 0 : 1.5 - G.state.speed; if (extra > 0) G.advance(dt * extra); // cab rides pass at 1.5 game-min per second; bus rides run the clock at BUS_CLOCK (see boardNow)
+  const sp = G.state.speed || 0, extra = r.kind === 'bus' ? 0 : sp >= 1 ? .5 : 1.5 - sp;   /* QA6: +0.5 game-min per world second at any speed (core sub-steps rides now), so a cab ride costs the same game time at 1x / 2x / 4x */ if (extra > 0) G.advance(dt * extra); // cab rides pass at 1.5 game-min per second; bus rides run the clock at BUS_CLOCK (see boardNow)
   if (!v.active) return finish(curbSpot(p.x, p.y, p.x, p.y), false);
   if (r.holdT > 0 && (r.holdT -= dt) <= 0 && r.bus) r.bus.hold = false;
   if (r.kind === 'taxi') { r.done += v.v * dt; r.progress = Math.min(1, r.done / r.total); if (r.t > r.total / 4 + 90 && !r.skipping) skipRide(); }

@@ -28,7 +28,7 @@
 //        'chapter:done'(id) · 'chapter:page'(pageId) · 'chapters:change' (any change the rows / marker should follow)
 // OLD SAVES: see credit() below (old story beats done -> Act One Chapters credited; nothing is taken away).
 import { G } from '../core/game.js';
-import { toast } from '../ui/kit.js';
+import { toast, choose } from '../ui/kit.js';
 import { CHAPTERS, CHAPTERS_BY_ID, BOOK, FAMILY_PAGES, ITEMS_NEW } from '../story/chapters.js';
 import { STORY_ITEMS } from '../story/story.js';
 import { ITEM_BY_ID, RECIPE_BY_ID } from '../data/items.js';
@@ -137,7 +137,7 @@ function hm(s) {
 }
 function windowOpen(ch) {
   const w = ch.window; if (!w) return true; const n = G.now(), tod = n.hf * 60;
-  if (w.weather === 'clear' && !(safe(() => G.observatory.sky().observing, null) === true || /clear|partly/.test(weatherKind()))) return false;
+  if (w.weather === 'clear') { const ob = safe(() => G.observatory.sky().observing, null); if (ob === null ? !/clear|partly/.test(weatherKind()) : !ob) return false; }   /* the observatory's own idea of a clear night, when it is there */
   return (w.slots || []).some(sl => (!sl.days || sl.days.includes(WD[n.weekday])) && tod >= hm(sl.from) && tod <= hm(sl.to));
 }
 /** the minute a Chapter opens (Infinity while its predecessor is not done) and whether its life condition still holds it back */
@@ -240,6 +240,7 @@ async function exec(ch, o, alive, ops) {
     case 'scene': await enterScene(ch, o, alive, false); return;
     case 'say': { const r = await sayLine(ch, o); if (r === 'out') stepOut(); return; }
     case 'choice': {
+      if (!UI.isOpen()) { for (let k = s.cur.pc - 1; k >= 0 && ops[k].op !== 'scene'; k--) if (ops[k].op === 'say') { UI.context(lineOf(ch, ops[k])); break; } }
       const v = await UI.choice(o.options.map(x => ({ id: x.id, text: fill(x.text) }))); if (v === 'out' || v === 'closed') { if (v === 'out') stepOut(); return; }
       const opt = o.options.find(x => x.id === v) || o.options[0]; s.picks[o.id] = opt.id;
       if (opt.fx) { for (const k in opt.fx.rel || {}) rel(k, opt.fx.rel[k]); if (opt.fx.flag) s.flags[opt.fx.flag] = true; }
@@ -271,6 +272,10 @@ async function exec(ch, o, alive, ops) {
 }
 const present = () => comp.ids();
 function rel(id, n) { safe(() => G.social.addRel(id, n, { raw: true })); }
+function lineOf(ch, o) {
+  const i = who(o.who), off = offstage(ch, o.who, st().cur && st().cur.scene), phone = off === 'phone', style = o.who === 'narrator' ? 'narrator' : o.who === 'nell' ? 'hand' : off ? 'phone' : o.who === 'player' ? 'you' : '';
+  return { name: i.short || i.name, spec: i.spec, text: fill(o.text), style, sub: off && !phone ? off : '' };
+}
 async function sayLine(ch, o) {
   const i = who(o.who), off = offstage(ch, o.who, st().cur && st().cur.scene), phone = off === 'phone', style = o.who === 'narrator' ? 'narrator' : o.who === 'nell' ? 'hand' : off ? 'phone' : o.who === 'player' ? 'you' : '';
   if (!safe(() => G.transit.ride, null)) UI.setModal(true);
@@ -326,13 +331,14 @@ async function enterScene(ch, o, alive, back) {
   if (d && d.ride) { if (safe(() => G.transit.ride, null)) { comp.hide(true); UI.setModal(false); } return; }
   UI.setModal(true);
   if (safe(() => G.transit.ride, null)) {            /* still on the road: let the ride finish (or skip the rest of it) */
-    UI.close(); UI.chip({ kicker: kicker(ch), text: 'Riding into town', out: null, go: { label: 'Skip the ride', fn: () => safe(() => G.transit.skipRide()) } });
+    UI.close(); UI.chip(null);                      /* the cab's own strip (with its Skip ride button) is on screen */
     while (alive() && safe(() => G.transit.ride, null)) await sleep(250);
     UI.chip(null); await sleep(700); if (!alive()) return;
   }
   comp.hide(false);
   if (d && !here(d)) {
-    if (back || s.cur.back) { UI.close(); comp.set(o.cast); await travel(ch, d, 'Back to ' + d.name, null, alive); }
+    if ((back || s.cur.back) && d.room && inCity() && Math.hypot(G.player.x - d.x, G.player.y - d.y) < 8) { UI.close(); await hop(d, true); }      /* picked up at the marker by the door: you walk straight in */
+    else if (back || s.cur.back) { UI.close(); comp.set(o.cast); await travel(ch, d, 'Back to ' + d.name, null, alive); }
     else { UI.close(); await hop(d, true); }
   }
   s.cur.back = 0; if (!alive()) return;
@@ -379,7 +385,10 @@ async function go(ch, o, alive) {
     let rode = false, failed = false; const t0 = performance.now(), P = G.player;
     const off = G.on('ride:start', () => { rode = true; }), offH = G.on('taxi:here', cab => { if (cab && !G.busy && !G.modal) safe(() => P.goTo(G.world, cab.x, cab.y, { snap: 8 })); });
     if (!inCity()) { safe(() => exitRoom()); await sleep(900); }
-    const pr = safe(() => G.transit.callTaxi(d.root || d.room || d.id, { free: true, silent: true }), null);
+    /* a cab standing at the rank is hailed (it is right there at Arrivals); otherwise one is called. Either way the destination and the fare are settled for you. */
+    const pl = safe(() => G.places.get(d.root || d.room || d.id), null);
+    const pr = safe(() => G.transit.hailTaxi(), null), pd = safe(() => G.transit.pending, null);
+    if (pd && pl) { pd.place = pl; pd.opts = Object.assign({}, pd.opts, { free: true, silent: true }); } else if (!pd) failed = true;
     if (pr && pr.then) pr.then(v => { if (v === false) failed = true; }); else failed = true;
     while (alive() && !rode && !failed && performance.now() - t0 < 150000) {
       const cab = safe(() => G.transit.pending.cab, null);
@@ -413,6 +422,8 @@ function stage(o) {
 
 /* ---------- give / pages / keepsakes ---------- */
 const FURN = { nana_armchair: 'armchair', wobbly_shelf: 'bookshelf' };
+/* the standing family invitations: they go on the calendar through the old story engine's weekly `recur` list (kind 'friend' appointments you may keep or not) */
+const RECUR = { sunday_dinner: { title: 'Sunday dinner on Sycamore Lane', place: 'home_jules', weekday: 'sun', from: '17:30', to: '20:30' }, kettle_corner_tea: { title: 'Saturday tea at the Kettle Corner', place: 'bakery', weekday: 'sat', from: '15:00', to: '17:00' } };
 const NAMES = { postcard: 'A postcard of the Light', sky_poster: 'The SkyDeck poster', obs_starwheel: 'A star wheel, with the Kettle drawn on in pen', fm_tally: "A brass buyer's tally" };
 function itemName(id) { return NAMES[id] || (ITEMS_NEW[id] && ITEMS_NEW[id].name) || (STORY_ITEMS[id] && STORY_ITEMS[id].name) || (ITEM_BY_ID[id] && ITEM_BY_ID[id].name) || (RECIPE_BY_ID[id] && RECIPE_BY_ID[id].name) || id; }
 function keep(id) { const s = st(); if (!s.keeps.includes(id)) s.keeps.push(id); const k = safe(() => G.story.keepsakes(), null); if (k && !k.includes(id)) k.push(id); }
@@ -432,12 +443,13 @@ function give(o, quiet) {
   else if (o.type === 'ticket') { if (o.id === 'skydeck' && !safe(() => G.showpieces.skydeck.hasTicket(), true)) { safe(() => G.money.add(8, 'gift')); safe(() => G.showpieces.skydeck.buyTicket()); } }
   else if (o.type === 'contact') contact(o.id);
   else if (o.type === 'flag' || o.type === 'ability' || o.type === 'recurring' || o.type === 'opportunity') { if (o.id) s.flags[o.id] = true; if (o.type === 'flag' && o.id) (G.state.flags || {})[o.id] = true; }
+  if (o.type === 'recurring' && RECUR[o.id]) { const r = safe(() => G.story.state().recur, null); if (r && !r[o.id]) r[o.id] = Object.assign({ last: -1 }, RECUR[o.id]); }
   else if (o.type === 'place') safe(() => G.places.discover(o.id, true));
   else if (o.type === 'page') foundPage(o.id, true);
   else if (o.type === 'rel') rel(o.id, o.n || 0);
   say(o.text);
 }
-function contact(id) { const s = st(); if (CAST_OK(id)) safe(() => G.social.meet(id)); else { s.flags['contact:' + id] = true; } }
+function contact(id) { const s = st(); if (CAST_OK(id)) { safe(() => G.social.meet(id)); if (id === 'dad' && safe(() => G.social.rel('dad'), 0) < 45) safe(() => G.social.setRel('dad', 45)); } else { s.flags['contact:' + id] = true; } }
 function foundPage(id, quiet) {
   const s = st(), first = s.pages[id] === undefined; if (first) s.pages[id] = G.now().day;
   if (first) { G.emit('chapter:page', id); WORLD.sync(); }
@@ -458,6 +470,23 @@ function pins() {
   const s = st(), out = []; if (s.pages.cover === undefined && !s.keeps.includes('nells_book')) return out;
   for (const id in s.pages) { const p = BOOK.pages[id]; if (!p || !p.pin) continue; const d = resolve(p.place); if (d) out.push({ id, x: d.x, y: d.y, note: p.pin, title: p.title }); }
   return out;
+}
+
+/* ---------- "A page from the book" (pages 6-10): one quiet Opportunity at a time, from Chapter 6 on, never timed. Going to the place she wrote about
+   finds the page: it opens in her handwriting, pins itself on the Map, and the next one is offered another day. ---------- */
+const PAGE_OPPS = ['glasshouse', 'baths', 'grandmaple', 'orpheum', 'numbernine'];
+const oppNow = () => safe(() => G.goals.list().find(g => /^bookpage:/.test(g.id) && !g.done), null);
+function pageOpp() {
+  const s = st(); if (!s.done.ch06 || s.cur || oppNow() || !G.goals) return;
+  const id = PAGE_OPPS.find(k => s.pages[k] === undefined); if (!id || (s.pageDay !== undefined && G.now().day <= s.pageDay)) return;
+  const p = BOOK.pages[id], d = resolve(p.place), pl = d && safe(() => G.places.get(d.root || d.room || d.id), null);
+  G.goals.add({ id: 'bookpage:' + id, group: 'opportunity', text: 'A page from the book: ' + p.title, hint: (p.todo || 'Go and stand where she stood.') + ' No rush.', placeId: pl ? pl.id : undefined, doneText: 'A page found: ' + p.title });
+}
+async function pageVisit() {
+  const s = st(), g = oppNow(); if (!g || s.cur || G.modal || G.busy || G.cutscene || running) return;
+  const id = g.id.slice(9), p = BOOK.pages[id], d = p && resolve(p.place); if (!d || !here(d)) return;
+  s.pageDay = G.now().day; foundPage(id); safe(() => G.goals.complete(g.id)); save();
+  await UI.book({ title: BOOK.title, pages: bookPages(), at: Math.max(0, bookPages().findIndex(q => q.id === id)) });
 }
 
 /* ---------- finishing ---------- */
@@ -522,6 +551,12 @@ const debug = {
   skipTo(n, step) { const ch = chOf(n); if (!debug.unlock(n)) return false; const s = st(); s.cur = { id: ch.id, pc: Math.max(0, Math.min(prog(ch).length - 1, step | 0)), paused: false, t0: Math.floor(G.state.t), went: null, back: 0 }; loop(); return true; },
   finish(n) { const ch = chOf(n), s = st(); if (!ch) return false; if (s.cur) stepOut(true); s.cur = null; for (const c of CHAPTERS) if (c.n <= ch.n && !s.done[c.id]) { s.done[c.id] = { t: Math.floor(G.state.t) - DAY, day: G.now().day - 1, credit: c.n < ch.n ? 1 : undefined }; settle(c, true); } refresh(); G.emit('chapters:change'); return true; },
   reset() { if (st().cur) stepOut(true); const k = fresh(); k.introT = null; k.credited = 1; G.state.chapters = k; S = null; st(); refresh(); G.emit('chapters:change'); return true; },
+  /** the dev menu's "Chapters…" entry: pick a Chapter, then jump to its marker / start it / mark it done / reset the story */
+  async menu() {
+    const n = await choose('Chapters', CHAPTERS.map(c => ({ label: `${kicker(c)} · ${c.title}`, sub: stateOf(c), value: c.n })), { cls: 'dev-list' }); if (!n) return;
+    const v = await choose(`${kicker(chOf(n))} · ${chOf(n).title}`, [{ label: 'Jump to its marker (opens it, moves the clock into its window)', value: 'go' }, { label: 'Start it right here', value: 'start' }, { label: 'Mark it done (and every Chapter before it)', value: 'done' }, { label: 'Reset the whole story', value: 'reset' }], { cls: 'dev-list' });
+    if (v === 'go') { debug.unlock(n); debug.toWindow(n); await debug.toMarker(); } else if (v === 'start') { debug.unlock(n); debug.toWindow(n); debug.start(n); } else if (v === 'done') debug.finish(n); else if (v === 'reset') debug.reset();
+  },
   toMarker() { const r = rowInfo(); if (!r || !r.place) return false; const f = freeNear(cityWorld(), r.place.x + 1.5, r.place.y + 2); return G.go('city', { x: f.x, y: f.y }); },
 };
 
@@ -548,7 +583,7 @@ export function init() {
     const s = st(); if (s.cur && !s.cur.paused && G.needs) for (const k of ['hunger', 'energy', 'hygiene', 'fun', 'social', 'bladder']) { const v = safe(() => G.needs.get(k), 100); if (v < NEED_FLOOR) safe(() => G.needs.set(k, NEED_FLOOR)); }
   });
   let acc = 0;
-  G.addSystem({ name: 'chapters', update(dt) { if (st().cur && !st().cur.paused) comp.update(dt); acc += dt; if (acc > 1) { acc = 0; safe(refresh); } } });
+  G.addSystem({ name: 'chapters', update(dt) { if (st().cur && !st().cur.paused) comp.update(dt); acc += dt; if (acc > 1) { acc = 0; safe(refresh); safe(pageOpp); pageVisit().catch(() => 0); } } });
   const wake = () => { S = null; const s = st(); tok++; running = false; hopping = false; PROG = {}; UI.close(); UI.chip(null); comp.clear(); safe(credit); safe(refresh);
     if (s.cur && !s.cur.paused) { s.cur.back = 1; const go = () => { if (!G.scene || G.modal || G.cutscene || !(G.state.flags || {}).introDone && s.cur.id !== 'ch01') return setTimeout(go, 500); loop(); }; setTimeout(go, 900); } };
   G.on('load', wake); G.on('game:start', () => { safe(credit); safe(refresh); if (st().cur && !st().cur.paused && !running) wake(); });

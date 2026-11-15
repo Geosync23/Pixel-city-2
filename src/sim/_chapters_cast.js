@@ -31,7 +31,7 @@ const LOOKS = {
 /* DAD (Frank): a new person, added to the cast at load so the social system, the phone contacts and the Talk panel know him. He has no routine in town
    (he lives in Pinehollow: "At home" to the social system) and is not met until the story gives his number (Chapter 7). In Chapter 15 he is a companion. */
 export const DAD = {
-  id: 'dad', name: 'Frank', short: 'Dad', age: 62, pronouns: 'he/him', group: 'family', role: 'Your dad, in Pinehollow', district: 'maplewood', home: 'pinehollow', work: null,
+  id: 'dad', name: 'Frank', short: 'Dad', age: 62, pronouns: 'he/him', group: 'family', role: 'Your dad, in Pinehollow', district: 'Pinehollow', home: 'pinehollow', work: null,
   personality: ['quiet', 'dry', 'steady'], likes: { gifts: ['postcard', 'jam_jar', 'wool_socks', 'fresh_fish'], topics: ['weather', 'history', 'food'] }, dislikes: { gifts: ['gadget'], topics: ['tech', 'money'] },
   birthday: { season: 'autumn', day: 9 }, flirtable: false, routine: [],
   look: 'Grey moustache, flat cap, a work jacket older than you, hands like tools.', spec: LOOKS.dad.spec,
@@ -63,16 +63,18 @@ function figure(id) {
 
 /* ---------- companions ---------- */
 let list = [], following = true, acc = 0, hid = {};
-function spotFor(i, at) {
-  const p = at || G.player, w = G.world, ang = [2.2, 3.6, .8, 4.6, 5.6, 1.5, 3, 0], r = 1.3 + Math.floor(i / 8) * .9, a = ang[i % 8];
-  return freeNear(w, Math.round((p.x + Math.cos(a) * r) * 2) / 2, Math.round((p.y + Math.sin(a) * r) * 2) / 2, 3);
+function spotFor(i, at, me) {
+  const p = at || G.player, w = G.world, ang = [2.2, 3.6, .8, 4.6, 5.6, 1.5, 3, 0];
+  const ok = (x, y) => !safe(() => w.isBlocked(x, y), true) && Math.hypot(x - G.player.x, y - G.player.y) > .6 && !list.some(c => c !== me && c.tgt && Math.hypot(c.tgt.x - x, c.tgt.y - y) < .7);
+  for (const r of [1.3 + Math.floor(i / 8) * .9, 2, 2.7, 3.4]) for (let k = 0; k < 8; k++) { const a = ang[(i + k) % 8], x = Math.round((p.x + Math.cos(a) * r) * 2) / 2, y = Math.round((p.y + Math.sin(a) * r) * 2) / 2; if (ok(x, y)) return { x, y }; }
+  return freeNear(w, p.x, p.y, 3);
 }
 function add(id, i, at) {
   const info = who(id); if (!info.spec) return null;
-  const s = spotFor(i, at), ch = new Char(info.spec, s.x, s.y); ch.chComp = id; ch.label = info.short; ch.speed = info.kid ? 3.9 : 3.5; ch.ghost = true;
+  const s = spotFor(i, at, null), ch = new Char(info.spec, s.x, s.y); ch.chComp = id; ch.label = info.short; ch.speed = info.kid ? 3.9 : 3.5; ch.ghost = true;
   ch.z = safe(() => G.world.heightAt(ch.x, ch.y), 0); ch.faceTo(G.player.x, G.player.y);
   if (G.scene && !G.scene.ents.includes(ch)) G.scene.ents.push(ch);
-  return { id, ch, i };
+  return { id, ch, i, tgt: s };
 }
 function drop(c) { for (const sc of (G.sceneCache ? G.sceneCache.values() : [])) { const k = sc.ents ? sc.ents.indexOf(c.ch) : -1; if (k >= 0) sc.ents.splice(k, 1); } }
 function tuck(id) { if (!CAST_BY_ID[id] || !G.social) return; hid[id] = 1; safe(() => G.social.place(id, null, { minutes: 240 })); }
@@ -97,7 +99,8 @@ export const comp = {
   retuck() { for (const c of list) tuck(c.id); },
   rescene(at) {
     if (!G.scene) return;
-    list.forEach((c, i) => { drop(c); const s = spotFor(i, at); c.ch.x = s.x; c.ch.y = s.y; c.ch.path = null; c.ch.pose = null; c.ch.z = safe(() => G.world.heightAt(s.x, s.y), 0); c.ch.faceTo(G.player.x, G.player.y); G.scene.ents.push(c.ch); });
+    for (const c of list) c.tgt = null;
+    list.forEach((c, i) => { drop(c); const s = spotFor(i, at, c); c.tgt = s; c.ch.x = s.x; c.ch.y = s.y; c.ch.path = null; c.ch.pose = null; c.ch.z = safe(() => G.world.heightAt(s.x, s.y), 0); c.ch.faceTo(G.player.x, G.player.y); G.scene.ents.push(c.ch); });
   },
   hide(on) { for (const c of list) c.ch.hidden = !!on; },
   /** send one companion to a point of the current scene (stage / walk steps) */
@@ -111,8 +114,8 @@ export const comp = {
       if (c.hold) { ch.move(w, dt); if (!ch.path && !ch.pose) ch.faceTo(P.x, P.y); return; }
       const d = Math.hypot(ch.x - P.x, ch.y - P.y);
       if (following && think) {
-        if (d > 16 || (d > 6 && !ch.path && c.stuck > 3)) { const s = spotFor(i); ch.x = s.x; ch.y = s.y; ch.path = null; c.stuck = 0; }
-        else if (d > 2.6 + (i % 3) * .5) { const s = spotFor(i); if (!ch.goTo(w, s.x, s.y, { snap: 6, limit: 6000 })) c.stuck = (c.stuck || 0) + 1; else c.stuck = 0; ch.pose = null; }
+        if (d > 16 || (d > 6 && !ch.path && c.stuck > 3)) { const s = spotFor(i, null, c); c.tgt = s; ch.x = s.x; ch.y = s.y; ch.path = null; c.stuck = 0; }
+        else if (d > 2.6 + (i % 3) * .5) { const s = spotFor(i, null, c); c.tgt = s; if (!ch.goTo(w, s.x, s.y, { snap: 6, limit: 6000 })) c.stuck = (c.stuck || 0) + 1; else c.stuck = 0; ch.pose = null; }
       }
       ch.speed = d > 7 ? 5.2 : P.speed ? Math.max(3.2, P.speed * 1.02) : 3.6;
       ch.move(w, dt);
