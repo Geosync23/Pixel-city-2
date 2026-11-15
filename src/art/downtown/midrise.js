@@ -35,36 +35,65 @@ const grid = K.asset('office.grid', ['office', 'midrise'], { w: 9, d: 7, floors:
   [{ w: 9, d: 7, floors: 6, seed: 2, name: 'MAPLE MUTUAL' }, { w: 8, d: 6, floors: 4, seed: 9, wall: '#c9b8a4', accent: '#2f6f5f', name: 'BAY TIMES', board: ['BAY', 'TIMES'], boardbg: '#22283a', boardfg: ['#fff2c4', '#ffb347'] }, { w: 11, d: 7, floors: 8, seed: 16, wall: '#e4e0d8', accent: '#3f6f9f', glass: ['#4f7fa8', '#6a98bd'], name: 'NORTHLINE' }, { w: 7, d: 7, floors: 5, seed: 28, wall: '#bfc4c8', accent: '#e8b63a', name: 'COWORK', board: ['FRESH', 'COFFEE'], boardbg: '#8a4b3a', boardfg: '#fff2c4' }]);
 
 /* ---- brutalist block ---- */
-const brut = K.asset('office.brutalist', ['office', 'midrise', 'brutalist'], { w: 10, d: 8, floors: 6, seed: 1, conc: '#b4ada2', glass: '#3f5568', accent: '#e8843a', name: 'CIVIC CENTRE' },
+/* looks picked by seed when the placement passes no colours of its own (so two blocks on one street differ): [conc, accent, glass] */
+const BRUT_DEF = { conc: '#b4ada2', accent: '#e8843a', glass: '#3f5568' };
+const BRUT_LOOKS = [['#b4ada2', '#e8843a', '#44627a'], ['#beb6a4', '#2f9aa8', '#3d6670'], ['#aaa9a6', '#c8463a', '#4a5f7c']];
+const brut = K.asset('office.brutalist', ['office', 'midrise', 'brutalist'], { w: 10, d: 8, floors: 6, seed: 1, ...BRUT_DEF, name: 'CIVIC CENTRE' },
   q => ({ h: q.floors * 2 + 2.6, top: 3 }),
   q => {
-    const { w, d, floors: fl, conc } = q, r = rng(q.seed), L = K.lights(q.seed, q.dens || .4), z0 = 2.4, H = z0 + fl * 2, cw = 2.6;
+    const { w, d, floors: fl } = q, r = rng(q.seed), L = K.lights(q.seed, q.dens || .4), z0 = 2.4, H = z0 + fl * 2, cw = 2.6;
+    const dflt = q.conc === BRUT_DEF.conc && q.accent === BRUT_DEF.accent && q.glass === BRUT_DEF.glass, LK = BRUT_LOOKS[dflt ? (q.seed >> 2) % 3 : 0];
+    const conc = dflt ? LK[0] : q.conc, accent = dflt ? LK[1] : q.accent, glass = dflt ? LK[2] : q.glass, r2 = rng(q.seed * 5 + 11);
     const board = c => (u, v) => v % 8 === 0 ? dk(c, .16) : (u % 24 === 0 ? dk(c, .1) : c);
     // recessed glazed base + pilotis
     box(cw, .8, 0, w - cw - .9, d - 1.7, z0, dk(conc, .35));
     K.shopGlass(FX(w - .9), 1.2, d - 1.3, .2, 2, { bayw: 1.3 }); K.shopGlass(FY(d - .9), cw + .3, w - 1.3, .2, 2, { bayw: 1.3, sil: () => { K.sil(FY(d - .9), w - 2.4, .2, 'desk', '#4a5068'); K.sil(FY(d - .9), cw + 1.2, .2, 'plant', '#4a5068'); } });
     K.glassDoor(FY(d - .9), cw + 2.6, 0, { w: 1.2, h: 1.7 });
+    /* accent door surround + soffit downlights under the cantilever */
+    { const FB = FY(d - .9); FB.q(cw + 1.85, cw + 1.95, 0, 1.95, accent, undefined, .02); FB.q(cw + 3.25, cw + 3.35, 0, 1.95, accent, undefined, .02); FB.q(cw + 1.85, cw + 3.35, 1.85, 1.98, accent, undefined, .02);
+      glow(() => { for (let x = cw + .9; x < w - 1; x += 1.3) qz(x, x + .25, d - .7, d - .5, z0 - .02, '#ffe6ac'); }); }
     for (let x = cw + 1.5; x < w - .4; x += 2.4) box(x, d - .5, 0, .45, .45, z0, conc, { l: board(dk(conc, .18)), ol: false });
     for (let y = d - .5 - 2.4; y > .3; y -= 2.4) box(w - .5, y, 0, .45, .45, z0, conc, { ol: false });
     // stair core (left), full height + taller
     box(0, 0, 0, cw, d, H + 1.6, conc, { l: board(dk(conc, .18)), r: board(dk(conc, .36)) });
     const FC = FY(d); FC.q(1.1, 1.45, 1, H + 1, '#2e3644'); for (let z = 1; z < H + .8; z += 1) if (L.r() < .55) glow(() => FC.q(1.1, 1.45, z + .1, z + .9, '#ffd98a')); for (let z = 1; z < H + 1; z += 1) FC.l(1.1, z, 1.45, z, dk(conc, .4));
+    /* cast-in relief on the core: a column of square coffers beside the stair slit, the top one in the accent colour */
+    for (let z = 1.2, i = 0; z + .6 < H + 1; z += 1, i++) { const top = z + 1.6 >= H + 1; FC.q(1.75, 2.3, z, z + .6, top ? accent : dk(conc, .3)); FC.l(1.75, z + .6, 2.3, z + .6, dk(conc, .5)); FC.l(1.75, z, 1.75, z + .6, dk(conc, .5)); FC.l(1.75, z, 2.3, z, lt(conc, .1)); if (top) lit(() => FC.q(1.85, 2.2, z + .1, z + .5, lt(accent, .25))); }
     K.bigSign(FC, q.name.split(' ')[0], .2, cw - .2, .25, .85, null, dk(conc, .55), { sc: 1 });
     K.roofTop(0, 0, H + 1.6, cw, d, conc); K.antenna(.8, 1, H + 1.6, 2.6); K.dish(1.6, d - 1.4, H + 1.6, 1.1);
+    /* optional lit roof-level sign on the core's side wall (pass p.sign, e.g. the lobby's sign text) */
+    if (q.sign) { const sc = K.bigW(q.sign, 2) / 16 <= d - 1.4 ? 2 : 1; K.bigSign(FX(cw), q.sign, .5, d - .5, H + .25, H + 1.35, '#2a2e3a', lt(accent, .4), { sc, lit: true }); }
+    else { const FS = FX(cw); for (let y = .8; y + .5 < d - .6; y += .9) { FS.q(y, y + .5, H + .5, H + 1.1, dk(conc, .42)); FS.l(y, H + .8, y + .5, H + .8, dk(conc, .55)); } }
     // cantilevered upper block with ribbon windows
     box(cw, 0, z0, w - cw, d, fl * 2, conc, { l: board(dk(conc, .18)), r: board(dk(conc, .36)) });
     for (const F of [FX(w), FY(d)]) {
-      const a0 = F.xf ? 0 : cw, a1 = F.xf ? d : w;
+      const a0 = F.xf ? 0 : cw, a1 = F.xf ? d : w, g = F.sh(glass), acc = F.sh(dk(accent, .08));
       for (let f = 0; f < fl; f++) {
         const z = z0 + f * 2 + .75; F.q(a0 + .35, a1 - .35, z - .08, z + .98, F.sh(dk(conc, .5)));
-        for (let u = a0 + .4; u + .7 <= a1 - .35; u += .8) { F.q(u, u + .7, z, z + .9, F.sh(q.glass), F.sh(lt(q.glass, .12))); if (L.on(f)) glow(() => F.q(u, u + .7, z, z + .9, L.col(f)[F.xf ? 1 : 0])); }
+        for (let u = a0 + .4, i = 0; u + .7 <= a1 - .35; u += .8, i++) {
+          /* glass with a sky reflection across the top, a glint, and blinds / desk lamps here and there */
+          F.q(u, u + .7, z, z + .9, g); F.q(u, u + .7, z + .55, z + .9, F.sh(lt(glass, .2))); F.q(u, u + .7, z + .42, z + .55, g, F.sh(lt(glass, .2)));
+          const k = r2();
+          if (k < .16) F.q(u, u + .7, z + .9 - .2 - r2() * .35, z + .9, F.sh('#cfcbc0'));
+          else if (k < .3) F.q(u + .2, u + .5, z, z + .3, F.sh(dk(glass, .35)));
+          if (L.on(f)) glow(() => F.q(u, u + .7, z, z + .9, L.col(f)[F.xf ? 1 : 0]));
+        }
         F.l(a0 + .35, z + .98, a1 - .35, z + .98, F.sh(dk(conc, .6))); F.l(a0 + .35, z - .08, a1 - .35, z - .08, F.sh(lt(conc, .35)));
+        /* accent spandrel panels wrapping the street corner */
+        if (f < fl - 1) { F.q(a1 - 2, a1 - .35, z + 1.12, z + 1.8, acc); F.l(a1 - 2, z + 1.12, a1 - .35, z + 1.12, F.sh(dk(accent, .45))); F.l(a1 - 1.18, z + 1.12, a1 - 1.18, z + 1.8, F.sh(dk(accent, .3))); }
       }
-      F.q(a0, a1, z0, z0 + .18, F.sh(q.accent));
+      /* concrete fins (brise-soleil) every third bay, with a shadow line */
+      for (let u = a0 + .37 + 2.4; u < a1 - 1; u += 2.4) { F.q(u - .06, u + .06, z0 + .2, H - .12, F.sh(lt(conc, .16)), undefined, .03); F.l(u + .08, z0 + .2, u + .08, H - .12, F.sh(dk(conc, .45)), .03); }
+      /* weather streaks under a few sills */
+      for (let f = 1; f < fl; f++) for (let u = a0 + .6; u < a1 - 2.2; u += .8) if (r2() < .16) F.q(u, u + .12, z0 + f * 2 + .1, z0 + f * 2 + .66, F.sh(dk(conc, .22)), 'glass');
+      F.q(a0, a1, z0, z0 + .22, F.sh(accent)); F.l(a0, z0 + .22, a1, z0 + .22, F.sh(dk(accent, .4)));
     }
     K.roofTop(cw, 0, H, w - cw, d, conc);
     for (let x = cw + .8; x + 1.2 < w - .5; x += 2.3) { box(x, 1, H, 1.2, 1.2, .9, conc); fq([[x, 2.2, H + .9], [x + 1.2, 2.2, H + .9], [x + 1.2, 1.6, H + 1.4], [x, 1.6, H + 1.4]], dk(conc, .3)); qy(x + .15, x + 1.05, 2.2, H + .2, H + .7, '#3a3f4a'); }
-    K.clutter(r, cw + .5, w - .5, 3, d - .5, H, 'aAvsk', .55);
+    /* a planted roof terrace along the street edge on some blocks */
+    const terr = d >= 7 && (q.seed >> 1) % 2 === 0;
+    K.clutter(r, cw + .5, w - .5, 3, d - (terr ? 2.6 : .5), H, 'aAvsk', .55);
+    if (terr) { K.garden(cw + .7, w - .7, d - 2.2, d - .6, H, rng(q.seed + 3), { low: true }); K.rail(FY(d - .25), cw + .4, w - .4, H); }
     K.planter(cw + .3, d + .2, 1.3, .6, r, { c: conc, tree: true });
   },
   [{ w: 10, d: 8, floors: 6, seed: 3 }, { w: 12, d: 7, floors: 4, seed: 14, conc: '#c2b8a8', accent: '#c8343a', name: 'RECORDS OFFICE' }, { w: 9, d: 8, floors: 8, seed: 22, conc: '#a8a8a4', accent: '#f2c230', glass: '#2f4a4a', name: 'TELECOM' }, { w: 11, d: 9, floors: 5, seed: 35, conc: '#b8a898', accent: '#4f9a8e', name: 'INSTITUTE' }]);

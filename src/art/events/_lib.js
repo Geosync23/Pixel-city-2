@@ -1,5 +1,5 @@
 // Shared helpers for the big-city-events art (floats, boats, festival props). Only raster.js is imported.
-import { PW, px, C, fq, lw, qy, qz, box, dk, lt, mix, glow, lit, isFlipped, PAT, ellipse, line } from '../../engine/raster.js';
+import { PW, px, C, fq, lw, qx, qy, qz, box, dk, lt, mix, glow, lit, isFlipped, PAT, ellipse, line } from '../../engine/raster.js';
 
 /** rounded screen pixel of a world point */
 export const P = (x, y, z) => { const s = PW(x, y, z); return [Math.round(s[0]), Math.round(s[1])]; };

@@ -13,6 +13,20 @@ function slice(n) { const rows = []; for (let y = 0; y < n; y++) { let s = ''; c
 const NOTE = ['...nnnn', '...n..n', '...n..n', '...n..n', '.nnn.nn', 'nnnn.nn', '.nn....'];
 const HEART = ['.hh.hh.', 'hhhhhhh', 'hhhhhhh', '.hhhhh.', '..hhh..', '...h...'];
 const DRESS = ['..ss..', '.ssss.', '..ss..', '.dddd.', '.dddd.', 'dddddd', 'dddddd', '..kk..'];
+/* tattoo-parlour flash emblems (h = neon colour, w = pale, g = leaf) + the seed-picked looks, so parlours repeated on one street do not look identical */
+const FLASH = {
+  rose: ['..hhh....', '.hhwhh...', 'hhwhhhh..', 'hhhhwhh..', '.hhhhh...', '..hhh.gg.', '...g.ggg.', '.ggg.gg..', '..ggg....', '...g.....', '...g.....'],
+  dagger: ['....w....', '...www...', '...www...', '...www...', '...www...', '...www...', '.hhhhhhh.', '...hhh...', '...hhh...', '...hhh...', '....h....'],
+  swallow: ['hh.......', '.hhh...hh', '..hhhhhh.', '.whhhhh..', 'wwhhhh...', '..hhhhh..', '...hh.hh.', '..hh...hh', '.hh......', '.........', '.........'],
+  anchor: ['...hhh...', '...h.h...', '...hhh...', '.hhhhhhh.', '....h....', '....h....', 'h...h...h', 'hh..h..hh', '.hhhhhhh.', '..hhhhh..', '....h....'],
+};
+const TAT_LOOKS = [
+  { wall: '#34323f', nc: '#ff4f8b', n2: '#7df9ff', dc: '#b3262e', trim: '#e8e2d4', art: 'rose', awn: null },
+  { wall: '#2c4046', nc: '#ffb340', n2: '#ff7a5a', dc: '#d89a2a', trim: '#e6dcc0', art: 'dagger', awn: ['#1f2a2e', '#ffb340'] },
+  { wall: '#4d2f36', nc: '#7df9ff', n2: '#ff9fd0', dc: '#2f7a7f', trim: '#ecdcd0', art: 'swallow', awn: null },
+  { wall: '#383460', nc: '#a6ff6a', n2: '#ffd84a', dc: '#7a5fc0', trim: '#dcd8ee', art: 'anchor', awn: ['#241f40', '#a6ff6a'] },
+];
+const tatLook = seed => TAT_LOOKS[((seed | 0) * 13 + ((seed | 0) >> 3)) % TAT_LOOKS.length];
 
 /* posters pasted on a wall area */
 function posters(side, a0, a1, pl, z0, z1, seed, cols) {
@@ -139,20 +153,29 @@ export default [
     variants: [{ w: 5, d: 6, floors: 2, seed: 6, style: 'tattoo', name: 'INK & IVY' }, { w: 6, d: 6, floors: 2, seed: 18, style: 'vintage', name: 'RETRO RAGS' }, { w: 5, d: 7, floors: 3, seed: 27, style: 'vintage', wall: '#7fb6a8', name: 'MOTH & MOON' }, { w: 6, d: 5, floors: 2, seed: 33, style: 'tattoo', wall: '#4a2f4f', name: 'BLACK CAT INK' }],
     draw(p) {
       const w = p.w || 5, d = p.d || 6, fl = p.floors || 2, H = fl * 2, r = rng(p.seed || 1), tat = (p.style || 'vintage') === 'tattoo';
-      const wall = p.wall || (tat ? '#34323f' : '#e2a84a'), trim = tat ? '#e8e2d4' : '#fff3d6', nc = tat ? '#ff4f8b' : '#c8423a';
+      const TL = tat ? tatLook(p.seed || 1) : null;
+      const wall = p.wall || (tat ? TL.wall : '#e2a84a'), trim = tat ? TL.trim : '#fff3d6', nc = tat ? TL.nc : '#c8423a';
       box(0, 0, 0, w, d, H, wall, wallPat(tat ? 'brick' : 'siding', wall));
       for (let f = 0; f < fl; f++) wins('x', .6, d - .6, w, f * 2 + .55, f * 2 + 1.55, { ww: .8, gap: 1.1, r, mullion: tat ? 'h' : 'cross', sill: true, trim, blind: tat ? .5 : 0 });
       // upper front
       for (let f = 1; f < fl; f++) {
-        if (tat) wins('y', .3, w - .3, d, f * 2 + .5, f * 2 + 1.5, { ww: 1, n: 2, r, p: .7, mullion: 'h', trim, blind: .4, glowc: ['#ff9fc0', '#f47aa8'] });
+        if (tat) { wins('y', .3, w - .3, d, f * 2 + .5, f * 2 + 1.5, { ww: 1, n: 2, r, p: .7, mullion: 'h', trim, blind: .4, glowc: [lt(nc, .45), lt(nc, .25)] });
+          /* painted flash emblem between the upper windows, glowing like neon at night */
+          const E = FLASH[TL.art], ea = w / 2 - iconW(E) / 2, ez = f * 2 + 1.42, epal = { h: nc, w: '#f4efe2', g: '#6fbf73' };
+          icon('y', E, ea, d + .01, ez, { h: dk(nc, .25), w: '#d8d2c4', g: '#4f8f5a' }); lit(() => icon('y', E, ea, d + .01, ez, epal)); }
         else wins('y', .3, w - .3, d, f * 2 + .45, f * 2 + 1.35, { ww: 1, n: 2, r, p: .7, arch: true, trim, mullion: 'v', curtain: pick(r, ['#c8423a', '#3f8fb0', '#8d7fd1']) });
       }
       // ground
-      door('y', 1.1, d, { c: tat ? '#b3262e' : '#3f7d6f', frame: trim });
-      qy(1.9, w - .3, d, .3, 1.72, trim); win('y', 2.0, w - .4, d, .5, 1.62, { on: true, glowc: tat ? ['#ffb0c8', '#ff8fb0'] : undefined });
+      if (tat) { qy(0, w, d, 0, .28, dk(wall, .3)); qx(w, 0, d, 0, .28, dk(wall, .42)); lw([0, d, .28], [w, d, .28], lt(wall, .18)); }
+      door('y', 1.1, d, { c: tat ? TL.dc : '#3f7d6f', frame: trim });
+      qy(1.9, w - .3, d, .3, 1.72, trim); win('y', 2.0, w - .4, d, .5, 1.62, { on: true, glowc: tat ? [lt(nc, .5), lt(nc, .3)] : undefined });
       if (tat) { // flash sheets in the window + neon
         goods(2.0, w - .4, d, .55, 1.3, p.seed || 1, ['#f6efe0', '#f6efe0', '#e8dcc0'], .34);
         neon('y', [[2.2, 1.5], [w - .6, 1.5]], d + .01, nc);
+        /* stone plinth + soldier course over the shopfront, and a striped awning on some looks */
+        lw([0, d, 1.86], [w, d, 1.86], lt(wall, .22)); lw([0, d, 1.92], [w, d, 1.92], dk(wall, .35));
+        if (TL.awn) awning(1.9, w - .3, d, 1.8, { c: TL.awn[0], c2: TL.awn[1], dep: .55, drop: .3 });
+        else neon('y', [[1.95, 1.78], [w - .35, 1.78]], d + .01, TL.n2);
       } else { // mannequins
         const pal2 = { s: '#f0c8a0', d: pick(r, ['#c8423a', '#3f8fb0', '#8d7fd1']), k: '#3a3350' };
         for (let x = 2.2, i = 0; x + .4 < w - .4; x += .75, i++) icon('y', DRESS, x, d + .01, 1.25, { ...pal2, d: ['#c8423a', '#3f8fb0', '#f2c230', '#8d7fd1'][i % 4] });
@@ -167,7 +190,7 @@ export default [
       box(w * .18, d - .35, H + .7, w * .64, .35, .7, wall, { l: tat ? PAT.brick(dk(wall, .18)) : PAT.siding(dk(wall, .18)) });
       snowTop(w * .18, w * .82, d - .35, d, H + 1.401, .05);
       const nm = p.name || (tat ? 'TATTOO' : 'VINTAGE');
-      if (tat) { sign('y', nm, .2, w - .2, d + .01, H + .1, H + .6, '#1c1a26', nc, { lit: true }); sign('y', 'TATTOO', w * .18 + .1, w * .82 - .1, d + .01, H + .78, H + 1.28, null, '#7df9ff', { lit: true }); icon('y', HEART, .35, d + .02, H - .35, { h: nc }); lit(() => icon('y', HEART, .35, d + .02, H - .35, { h: nc })); }
+      if (tat) { sign('y', nm, .2, w - .2, d + .01, H + .1, H + .6, '#1c1a26', nc, { lit: true }); sign('y', 'TATTOO', w * .18 + .1, w * .82 - .1, d + .01, H + .78, H + 1.28, null, TL.n2, { lit: true }); icon('y', HEART, .35, d + .02, H - .35, { h: nc }); lit(() => icon('y', HEART, .35, d + .02, H - .35, { h: nc })); }
       else { sign('y', nm, .2, w - .2, d + .01, H + .1, H + .6, nc, '#fff6e0', { lit: true }); sign('y', 'VINTAGE', w * .18 + .1, w * .82 - .1, d + .01, H + .78, H + 1.28, null, dk(wall, .6)); }
     },
   },

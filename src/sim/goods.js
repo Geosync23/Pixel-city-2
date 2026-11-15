@@ -100,7 +100,7 @@ function unpackBag() {
 }
 
 /* ---------- small pieces stand on furniture ---------- */
-const NO_TOP = ['seat', 'sofa', 'bed', 'plant', 'tv', 'shower', 'bath', 'toilet', 'lamp', 'easel', 'instrument', 'exercise', 'game', 'moving_box', 'delivery_box', 'fridge'];
+const NO_TOP = ['seat', 'sofa', 'bed', 'plant', 'tv', 'shower', 'bath', 'toilet', 'lamp', 'easel', 'instrument', 'exercise', 'game', 'moving_box', 'delivery_box', 'hd_box', 'hd_card', 'fridge'];
 /** called by housing.roomDef with the room's item defs: a 'surface' good whose middle is over a table, counter, dresser, shelf unit... gets that piece's height as its z */
 function surfaceZ(list) {
   const box = d => { try { const a = asset(d.id), s = assetSize(a, d.p || {}); return { a, w: d.flip ? s[1] : s[0], d: d.flip ? s[0] : s[1], h: s[2] }; } catch (e) { return null; } };

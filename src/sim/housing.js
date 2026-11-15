@@ -12,7 +12,14 @@
 //   storage: [itemId]                  owned but not placed            stay: [itemId]  stored pieces that belong to the home
 //   boxes:   [{ uid, k: 'm' (moving) | 'd' (delivery), label, items: [itemId], gives?: [{ item, qty }], intro? }]   unopened boxes standing in the home
 //   pending: [{ id, t }]               bought, arriving at abs minute t
-//   mortgage: { home, left, weekly, weeks } | null,   n (uid counter) }
+//   mortgage: { home, left, weekly, weeks } | null,   n (uid counter),
+//   card: n                            flattened cardboard waiting by the door after unpacking deliveries (recycle() clears it; each costs 1 ambience, 3 at most) }
+//   Delivery boxes (k 'd') may also carry: sz 's' small parcel | 'l' big carton | 'f' flat-pack (needs building), pos [planned place per item, from design
+//   mode's "try it here"], asm 1 (flat-pack that arrives built), from (seller name). Unpacking a delivery PUTS THE PIECE IN THE ROOM (planned place, else the
+//   nearest free spot to the box, else storage): see unpack(uid, { place: true }) and src/sim/homedesign.js.
+// SLOT RULE (Wave C): only real furniture counts toward the home's furniture slots (SIZE_CLASSES.furnitureSlots). Wall pieces, rugs, things that stand on a
+//   surface and small floor pieces (a footprint of half a tile: plants, floor lamps, baskets) are DECOR with their own allowance: 2 x the slots + 10.
+//   slots() -> { used, max, decor, decorMax }; isDecor(itemId).
 //
 // G.housing
 //   current() -> { id, home (data), owned, state, roomId, door (city poi id) } | null       isHome(sceneId = current scene) -> bool
@@ -24,6 +31,9 @@
 //   addFurniture(itemId, { instant? }) -> bool     bought home good: arrives as a delivery box (next day 09:00), or straight to storage
 //   deliverNow()                land all pending deliveries        unpack(boxUid) -> [itemId]   box contents -> storage (+ gifts to bag/wardrobe)
 //   storage() -> [itemId] (incl. stay)     items() -> placed     slots() -> { used, max }     ambience() -> number
+//   addBox({ label, items: [itemId], pos?, sz?, asm?, from? }) -> box | null (null = no room for another box)      BOX_MAX
+//   snapshot() -> string / restore(string)   the furniture layout + storage (design mode's undo)      recolour(uid, itemId) -> $ paid | false (same family)
+//   cardboard() -> n      recycle() -> n taken out
 //   check({ itemId, x, y, flip } | { itemId, wall, at }, ignoreUid?) -> null | reason string
 //       Rules: inside the room and off its void cut-outs (L-shaped homes), not on other solids, doorways (front door, exit mat, bathroom door) stay clear,
 //       the piece must be reachable from the door and must not wall in another piece or the spot you stand on to use one; wall pieces cannot hang
@@ -43,6 +53,8 @@ import { G } from '../core/game.js';
 import { HOMES, HOME_BY_ID, SIZE_CLASSES, MOVING_BOXES, MOVING_BOXES_DONE_MOODLET, AMBIENCE_TIERS, MOVING } from '../data/homes.js';
 import { ITEM_BY_ID } from '../data/items.js';
 import { MORTGAGE, SELL_BACK, DELIVERY } from '../data/economy.js';
+import { BOX_MAX, sizeOf as shipSize } from '../data/shipping.js';
+import { GOOD_BY_ID } from '../data/goods.js';
 import { asset, assetSize } from '../art/registry.js';
 import { SHELLS, STORY_HOMES, withExit, bathDoorItems, bathDef } from '../scenes/rooms/homes.js';
 import { toast } from '../ui/kit.js';
@@ -79,7 +91,7 @@ export function visual(itemId) {
 }
 
 let S = null;
-const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1, bathV: 1, shellV: 0 });
+const blank = () => ({ id: null, owned: false, items: [], storage: [], stay: [], boxes: [], pending: [], mortgage: null, n: 1, bathV: 1, shellV: 0, card: 0 });
 function norm() { S = G.state.home; if (!S || typeof S !== 'object') S = G.state.home = blank(); const old = S.bathV === undefined; const b = blank(); for (const k in b) if (S[k] === undefined) S[k] = b[k]; if (S.id && !SHELLS[S.id]) S.id = null; if (old) { S.bathV = 0; } if (!S.bathV) migrateBath(); if (S.id && (S.shellV || 1) < shellV(S.id)) migrateShell(); return S; }
 /* ---------- rooms of a home: 'main' | 'bath' ---------- */
 const BATH_TAGS = ['shower', 'bath'];
@@ -149,7 +161,9 @@ function check(c, ignore, room = curRoom()) {
     const L = c.wall === 'y' ? sh.w : sh.d, w = v.size[0]; if (c.at < -EPS || c.at + w > L + EPS) return 'Off the end of the wall';
     for (const s of wallCover(sh, c.wall)) if (c.at < s[1] - EPS && s[0] < c.at + w - EPS) return 'A wall is in the way';
     if (v.a.id.includes('fairylights')) return null;
-    for (const i of items) if (i.wall === c.wall && !i.id.includes('fairylights')) { const s = sizeOfDef(i)[0]; if (c.at < i.at + s - EPS && i.at < c.at + w - EPS) return 'Something already hangs there'; }
+    const m0 = v.mount !== undefined ? v.mount : (v.a.mount || 0), m1 = m0 + v.size[2];
+    for (const i of items) if (i.wall === c.wall && !i.id.includes('fairylights')) { const s = sizeOfDef(i); if (!(c.at < i.at + s[0] - EPS && i.at < c.at + w - EPS)) continue;
+      let im = 0; try { im = i.mount !== undefined ? i.mount : (asset(i.id).mount || 0); } catch (e) { im = 0; } if (m0 < im + s[2] - .05 && im < m1 - .05) return i.fixed ? 'A window or door is in the way' : 'Something already hangs there'; }
     return null;
   }
   if (c.wall) return 'This stands on the floor';
@@ -197,14 +211,15 @@ function roomDef(id, room) {
     const real = list.filter(solidDef).map(rectOfDef), voids = voidRects(sh), solids = real.concat(keepRects(sh), voids, list.map(useSpot).filter(Boolean).map(cellOf)), spots = sh.boxes.slice();
     for (let y = sh.d - 2; y >= 1; y -= 1) for (let x = sh.w - 1.5; x >= 1; x -= 1) spots.push([x, y]);
     for (const b of S.boxes) {
-      const sz = b.k === 'm' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids), fr = list.map(useSpot).filter(Boolean), fb = spotsReach(sh, real.concat(voids), fr);
+      const kind = boxKind(b), sz = b.k === 'm' || kind !== 's' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids), fr = list.map(useSpot).filter(Boolean), fb = spotsReach(sh, real.concat(voids), fr);
       for (const s of spots) { const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
         const front = cellOf(sz === 1 ? [s[0] + .5, s[1] + 1.3] : [s[0] + .25, s[1] + .8]); if (front[3] > sh.d || real.some(o => hit(front, o)) || voids.some(o => hit(front, o))) continue;
         const a = reach(sh, real.concat([r]), voids); if (!a[real.length] || base.some((ok, i) => ok && !a[i])) continue;
         const fa = spotsReach(sh, real.concat([r], voids), fr.concat([[front[0] + .25, front[1] + .25]])); if (fa[fr.length] && !fb.some((ok, i) => ok && !fa[i])) { at = s; break; } }
       at = at || any; if (at) { const r = [at[0], at[1], at[0] + sz, at[1] + sz]; solids.push(r); real.push(r); }
-      if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : 'furn.home.parcel', x: at[0], y: at[1], box: b.uid, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
+      if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : boxArt()[kind], x: at[0], y: at[1], box: b.uid, bk: b.k === 'm' ? 'm' : kind, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
     }
+    if (S.card > 0 && boxArt().card) { const s = spots.find(q => { const r = [q[0], q[1], q[0] + .5, q[1] + .5]; return r[2] <= sh.w && r[3] <= sh.d && !solids.some(o => hit(r, o)); }); if (s) list.push({ id: boxArt().card, x: s[0], y: s[1], card: 1, solid: false, p: { n: Math.min(3, S.card) } }); }
   }
   if (G.goods && G.goods.surfaceZ) G.goods.surfaceZ(list);   /* goods (sim/goods.js): small pieces stand ON the table / counter / dresser they were put on */
   const flat = i => (!i.wall && !solidDef(i) && sizeOfDef(i)[2] < .1 ? 0 : 1);
@@ -212,6 +227,11 @@ function roomDef(id, room) {
   if (bath) return Object.assign(bathDef(id, list), { home: mine });
   return withExit({ name: h.name, home: mine, homeId: id, w: sh.w, d: sh.d, floor: sh.floor, floors: sh.floors, wall: sh.wall, items: list }, sh, 'home:' + id);
 }
+
+/* delivery boxes: 's' small parcel, 'l' big carton, 'f' flat-pack (art: src/art/homedesign/boxes.js; the old parcel art when that is missing) */
+let BOX_ART_ = null;
+const boxArt = () => { if (BOX_ART_) return BOX_ART_; const o = {}; for (const [k, id] of [['s', 'parcel'], ['l', 'carton'], ['f', 'flatpack'], ['card', 'cardboard']]) { try { o[k] = asset('furn.homedesign.' + id).id; } catch (e) { o[k] = k === 'card' ? null : 'furn.home.parcel'; } } return BOX_ART_ = o; };
+function boxKind(b) { if (b.sz) return b.sz; const id = b.items && b.items[0], g = id && GOOD_BY_ID[id]; if (g) return g.carry ? 's' : 'l'; const it = id && ITEM_BY_ID[id]; return it && it.footprint && it.footprint[0] * it.footprint[1] >= 1.5 ? 'l' : 's'; }
 
 /* ---------- shell versions: the building was rebuilt (SHELLS[id].v went up) -> re-fit the furniture of an old save ---------- */
 function shellV(id) { return (SHELLS[id] && SHELLS[id].v) || 1; }
@@ -273,7 +293,7 @@ function moveIn(id, owned, o = {}) {
   const prev = S.id, carry = prev ? S.items.filter(i => !i.inc).map(i => i.itemId).concat(S.storage) : S.storage.slice();
   const inc = included(id);
   S.id = id; S.owned = !!owned; S.shellV = shellV(id); S.items = inc.items.map(i => Object.assign({ uid: uid('f') }, i)); S.stay = inc.rest.slice(); S.storage = [];
-  if (!prev) S.boxes = [];
+  if (!prev) S.boxes = []; S.card = 0;
   if (o.intro) for (const b of MOVING_BOXES) S.boxes.push({ uid: uid('b'), k: 'm', label: b.label, items: [], gives: b.gives, intro: 1 });
   while (carry.length && S.boxes.length < 7) S.boxes.push({ uid: uid('b'), k: 'm', label: 'FURNITURE', items: carry.splice(0, 4) });
   S.storage.push(...carry);
@@ -332,31 +352,64 @@ function addFurniture(itemId, o = {}) {
 function land(all) {
   const t = G.state.t, due = S.pending.filter(p => all || p.t <= t); if (!due.length) return 0;
   S.pending = S.pending.filter(p => !due.includes(p));
-  for (const p of due) { if (S.boxes.length >= 8) { S.storage.push(p.id); continue; } const b = { uid: uid('b'), k: 'd', label: nameOf(p.id), items: [p.id] }; S.boxes.push(b); G.emit('home:delivery', b); }
+  for (const p of due) { if (!addBox({ label: nameOf(p.id), items: [p.id] })) S.storage.push(p.id); }
   const msg = due.length === 1 ? `${nameOf(due[0].id)} has been delivered.` : `${due.length} parcels have been delivered.`;
   if (G.phone && G.phone.notify && !isHome()) G.phone.notify({ app: 'delivery', title: 'Nest & Wire', text: msg + ' Unpack at home.', icon: due[0].id }); else toast(msg, 'good');
   if (isHome()) refresh(); return due.length;
 }
+/** a delivery box lands in the home: { label, items: [itemId], pos? [planned place per item], sz? 's'|'l'|'f', asm?, from? } -> the box, or null when the home holds BOX_MAX boxes already */
+function addBox(o) {
+  if (!S.id || S.boxes.length >= BOX_MAX) return null; const items = (o.items || []).filter(id => ITEM_BY_ID[id]); if (!items.length) return null;
+  const b = { uid: uid('b'), k: 'd', label: o.label || nameOf(items[0]), items }; if (o.sz) b.sz = o.sz; if (o.pos) b.pos = o.pos; if (o.asm) b.asm = 1; if (o.from) b.from = o.from;
+  S.boxes.push(b); G.emit('home:delivery', b); return b;
+}
 function drain() { const o = G.state.owned; if (o && Array.isArray(o.furniture) && o.furniture.length) { for (const f of o.furniture.splice(0)) addFurniture(f.id || f, { quiet: true, instant: !S.id }); } }
-function unpack(boxUid) {
-  const i = S.boxes.findIndex(b => b.uid === boxUid); if (i < 0) return null; const b = S.boxes.splice(i, 1)[0], got = [];
-  for (const id of b.items) { S.storage.push(id); got.push(nameOf(id)); }
+/** a free place for a piece near (nx, ny) in the main room: the planned place when it still works, a table top for small surface pieces, else the nearest free spot */
+function spotFor(itemId, plan, nx, ny) {
+  const v = visual(itemId), ok = pos => pos && !check(Object.assign({ itemId }, pos), undefined, 'main');
+  if (plan && (v.wall ? plan.wall : plan.x !== undefined) && ok(plan)) return posOf(v, plan);
+  const g = GOOD_BY_ID[itemId];
+  if (g && g.place === 'surface' && !v.wall && G.goods && G.goods.surfaceZ) {          /* onto the nearest free table / shelf / counter top */
+    const defs = roomDef(S.id, 'main').items, tops = [];
+    for (const d of defs) { if (d.wall || d.box || d.x === undefined || !solidDef(d)) continue; const s = sizeOfDef(d), pos = { x: Math.round((d.x + s[0] / 2 - v.size[0] / 2) * 2) / 2, y: Math.round((d.y + s[1] / 2 - v.size[1] / 2) * 2) / 2, flip: false };
+      const probe = { id: v.id, p: v.p, good: itemId, x: pos.x, y: pos.y }; G.goods.surfaceZ(defs.concat([probe])); if (!probe.z) continue;
+      if (defs.some(o => o.good && o !== d && !o.wall && GOOD_BY_ID[o.good] && GOOD_BY_ID[o.good].place === 'surface' && Math.abs(o.x - pos.x) < .5 && Math.abs(o.y - pos.y) < .5)) continue;
+      if (ok(pos)) tops.push({ pos, d: Math.hypot(pos.x - nx, pos.y - ny) }); }
+    if (tops.length) return tops.sort((a, b) => a.d - b.d)[0].pos;
+  }
+  return nearest(v.wall ? { itemId, wall: nx >= ny ? 'y' : 'x', at: Math.max(0, nx >= ny ? nx : ny) } : { itemId, x: nx, y: ny, flip: false }, 'main');
+}
+function unpack(boxUid, o = {}) {
+  const i = S.boxes.findIndex(b => b.uid === boxUid); if (i < 0) return null; const b = S.boxes[i], got = [], placed = [], stored = [];
+  let near = [1, 1]; if (o.place) { const d = roomDef(S.id, 'main').items.find(q => q.box === boxUid); if (d) near = [d.x, d.y]; else { const sh = shOf(S.id, 'main'); near = [sh.w / 2, sh.d / 2]; } }
+  S.boxes.splice(i, 1);
+  for (let k = 0; k < b.items.length; k++) { const id = b.items[k]; S.storage.push(id); got.push(nameOf(id));
+    if (o.place) { const bathy = isBathGood(id) && shOf(S.id, 'bath'), pos = bathy ? { x: 0, y: 0 } : spotFor(id, b.pos && b.pos[k], near[0], near[1]), u = pos ? place(id, pos, { quiet: true, room: 'main' }) : null; if (u) placed.push({ uid: u, itemId: id }); else stored.push(id); } }
+  if (b.k === 'd' && o.place) S.card = Math.min(9, (S.card || 0) + 1);
+  b.placed = placed; b.stored = stored;
   for (const g of b.gives || []) { const it = ITEM_BY_ID[g.item]; if (!it) continue; got.push(it.name + (g.qty > 1 ? ' x' + g.qty : ''));
     if (it.category === 'homegood') for (let k = 0; k < (g.qty || 1); k++) S.storage.push(g.item);
     else if (it.category === 'outfit') { if (G.wardrobe) G.wardrobe.add(g.item, true); else (G.state.owned.outfits || (G.state.owned.outfits = [])).push(g.item); }
     else if (G.inv) { const kitchen = ['ingredient', 'meal', 'ready_meal'].includes(it.category) && G.inv.fridge;   // food from a box goes straight into the kitchen
       if (!(kitchen && G.inv.fridge.add(g.item, g.qty || 1, { silent: true })) && !G.inv.add(g.item, g.qty || 1) && G.inv.fridge) G.inv.fridge.add(g.item, g.qty || 1); } }
   if (b.intro) { const n = G.state.flags.boxes_unpacked = (G.state.flags.boxes_unpacked || 0) + 1; if (!S.boxes.some(x => x.intro) && G.needs) G.needs.addMoodlet(MOVING_BOXES_DONE_MOODLET); }
-  if (got.length) toast('Unpacked: ' + got.join(', ') + (b.items.length || (b.gives || []).some(g => (ITEM_BY_ID[g.item] || {}).category === 'homegood') ? '. Tap Decorate to place it.' : '.'), 'good', 4200);
-  G.emit('home:unpack', b, G.state.flags.boxes_unpacked || 0); G.emit('home:furnish'); return b.items;
+  if (got.length && !o.place) toast('Unpacked: ' + got.join(', ') + (b.items.length || (b.gives || []).some(g => (ITEM_BY_ID[g.item] || {}).category === 'homegood') ? '. Tap Decorate to place it.' : '.'), 'good', 4200);
+  G.emit('home:unpack', b, G.state.flags.boxes_unpacked || 0); G.emit('home:furnish'); return o.place ? { placed, stored, items: b.items } : b.items;
 }
 
 /* ---------- furniture ---------- */
-function slots() { const h = HOME_BY_ID[S.id]; if (!h) return { used: 0, max: 0 }; return { used: S.items.filter(i => !i.inc).length, max: SIZE_CLASSES[h.sizeClass].furnitureSlots + ((h.perk && h.perk.effect && h.perk.effect.extraFurnitureSlots) || 0) }; }
+/** decor = wall pieces, rugs and other flat things, pieces that stand on a surface, and small floor pieces (half a tile): they do not use up furniture slots */
+const decorCache = {};
+function isDecor(itemId) { if (decorCache[itemId] !== undefined) return decorCache[itemId]; const v = visual(itemId), it = ITEM_BY_ID[itemId] || {}; return decorCache[itemId] = !!(v.wall || !v.solid || it.placement === 'surface' || it.placement === 'wall' || v.size[0] * v.size[1] <= .3); }
+function slots() {
+  const h = HOME_BY_ID[S.id]; if (!h) return { used: 0, max: 0, decor: 0, decorMax: 0 }; const max = SIZE_CLASSES[h.sizeClass].furnitureSlots + ((h.perk && h.perk.effect && h.perk.effect.extraFurnitureSlots) || 0);
+  let used = 0, decor = 0; for (const i of S.items) { if (i.inc) continue; if (isDecor(i.itemId)) decor++; else used++; }
+  return { used, max, decor, decorMax: max * 2 + 10 };
+}
 const posOf = (v, pos) => (v.wall ? { wall: pos.wall, at: pos.at } : { x: pos.x, y: pos.y, flip: !!pos.flip });
 function place(itemId, pos, o = {}) {
   let from = S.storage, i = from.indexOf(itemId); if (i < 0) { from = S.stay; i = from.indexOf(itemId); } if (i < 0) return null;
-  const inc = from === S.stay, sl = slots(); if (!inc && sl.used >= sl.max) { if (!o.quiet) toast('This home is full: store something first.', 'bad'); return null; }
+  const inc = from === S.stay, sl = slots(), dec = isDecor(itemId); if (!inc && (dec ? sl.decor >= sl.decorMax : sl.used >= sl.max)) { if (!o.quiet) toast(dec ? 'That is a lot of decoration: store a piece first.' : 'This home is full of furniture: store a piece first.', 'bad'); return null; }
   const v = visual(itemId); let room = o.room || curRoom();
   if (room === 'main' && isBathGood(itemId) && shOf(S.id, 'bath')) {       // showers and tubs are plumbed into the bathroom wherever you drop them
     const bp = bathSpot(itemId); if (!bp) { if (!o.quiet) toast('The bathroom has no room for it: store something in there first.', 'bad'); return null; }
@@ -382,7 +435,17 @@ function sell(ref, o = {}) {
   else { const j = S.storage.indexOf(ref); if (j < 0) return 0; itemId = S.storage.splice(j, 1)[0]; }
   const p = sellPrice(itemId); if (G.money) G.money.add(p, 'Sold ' + nameOf(itemId)); changed(o.quiet); return p;
 }
-function ambience() { const h = HOME_BY_ID[S.id]; let a = (h && h.perk && h.perk.effect && h.perk.effect.ambienceBonus) || 0; for (const it of S.items) { const d = ITEM_BY_ID[it.itemId]; a += (d && d.bonus && d.bonus.ambience) || 0; } return a; }
+/** swap a placed piece for another colourway of the same family (same art, same footprint). Free when it costs the same or less, else the difference. -> $ paid | false */
+function recolour(ref, newId, o = {}) {
+  const it = S.items.find(i => i.uid === ref), a = it && GOOD_BY_ID[it.itemId], b = GOOD_BY_ID[newId]; if (!it || !a || !b || a.family !== b.family || it.inc) return false; if (a.id === b.id) return 0;
+  const va = visual(a.id), vb = visual(b.id); if (va.size[0] !== vb.size[0] || va.size[1] !== vb.size[1] || va.wall !== vb.wall) return false;
+  const cost = Math.max(0, b.price - a.price); if (cost && G.money && !G.money.pay(cost, 'New colour: ' + b.name, { category: 'homegood' })) return false;
+  it.itemId = b.id; it.asset = vb.id; changed(o.quiet); return cost;
+}
+const snapshot = () => JSON.stringify({ items: S.items, storage: S.storage, stay: S.stay });
+function restore(str, o = {}) { let q; try { q = JSON.parse(str); } catch (e) { return false; } if (!q || !Array.isArray(q.items)) return false; S.items = q.items; S.storage = q.storage || []; S.stay = q.stay || []; changed(o.quiet); return true; }
+function recycle() { const n = S.card || 0; S.card = 0; if (n) G.emit('home:furnish'); return n; }
+function ambience() { const h = HOME_BY_ID[S.id]; let a = ((h && h.perk && h.perk.effect && h.perk.effect.ambienceBonus) || 0) - Math.min(3, S.card || 0); for (const it of S.items) { const d = ITEM_BY_ID[it.itemId]; a += (d && d.bonus && d.bonus.ambience) || 0; } return a; }
 function homeMood() { if (!isHome() || !G.needs || !G.needs.addMoodlet) return; const a = ambience(), t = AMBIENCE_TIERS.find(x => a >= x.min); if (t) try { G.needs.addMoodlet(t.moodlet, 2); } catch (e) { /* unknown moodlet */ } }
 
 /* ---------- scene helpers ---------- */
@@ -422,7 +485,8 @@ export function init() {
     current: () => (S.id ? { id: S.id, home: HOME_BY_ID[S.id], owned: S.owned, state: S, roomId: 'home:' + S.id, door: 'door:home:' + S.id } : null),
     isHome, homes, rent, buy, payOff, mortgage: () => S.mortgage, start, goHome, refresh, equity,
     canEnter: roomId => !whyNot(roomId), whyNot, invite: (roomId, hours = 3) => { G.state.flags['invited:' + roomId] = G.state.t + hours * 60; },
-    addFurniture, deliverNow: () => land(true), unpack: id => { const r = unpack(id); if (r) refresh(); return r; },
+    addFurniture, deliverNow: () => land(true), unpack: (id, o) => { const r = unpack(id, o); if (r && !(o && o.quiet)) refresh(); return r; }, addBox, BOX_MAX, boxKind,
+    isDecor, recolour, snapshot, restore, cardboard: () => S.card || 0, recycle,
     storage: () => S.storage.concat(S.stay), items: () => S.items, boxes: () => S.boxes, slots, ambience,
     check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => (id ? SHELLS[id] : shOf(S.id, curRoom())), room: curRoom,
   };

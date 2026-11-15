@@ -42,21 +42,41 @@ const round = T('tower.round', ['tower', 'office', 'glass'], { w: 8, d: 8, floor
   q => [roundH(q), 3.5],
   q => {
     const { w, d, glass, frame } = q, r = rng(q.seed), L = K.lights(q.seed, q.dens || .45), H = roundH(q) - .4, rad = Math.min(q.rad, w / 2 - .6, d / 2 - .6), ins = K.rrect(0, 0, w, d, rad), bb = [0, 0, w, d];
+    /* four finishes picked by seed, so the same tower repeated across downtown reads as different buildings (colours still come from the params):
+       0 helipad (the original) | 1 sky garden + lit sky-lobby floor | 2 white fins + round mechanical penthouse | 3 two-tone glass + lit crown line */
+    const kind = q.kind === undefined ? (q.seed * 7 + (q.seed >> 4)) % 4 : q.kind, fhp = Math.round(FH * 16), nf = Math.max(1, Math.round((H - 2.5) / FH)), skyF = Math.round(nf * .62);
+    const acc = q.accent || ['#3d4a54', '#2f5a4a', '#7a2f3a', '#8a6a2a'][kind], g2 = q.glass2 || (kind === 3 ? dk(glass, .3) : null);
     const st = q.stone, lg = (u, v) => v >= 4 && v < 31 && (Math.floor(u) % 20) >= 3;
     K.extrude(ins, bb, 0, 2.5, (u, v, k) => lg(u, v) ? (v === 24 ? '#2e3440' : dk('#86bcd2', k * .2)) : dk(v < 4 ? dk(st, .2) : st, k * .22), st, { glowf: (u, v, k) => lg(u, v) && v !== 24 ? (k < .5 ? '#ffe6ac' : '#f4cc84') : null });
-    const sh = K.glassShader({ L, glass, bay: q.bay || .7, sp: q.band || lt(glass, .75), sph: q.sph || .45, mull: dk(glass, .35), tint: q.glass2 ? (f) => (f % 4 === 3 ? q.glass2 : glass) : null });
-    K.extrude(ins, bb, 2.5, H, sh.wall, frame, { glowf: sh.glowf });
-    K.extrude(ins, bb, H, H + .4, (u, v, k) => dk(frame, .1 + k * .25), frame);
+    const bayu = q.bay || .7, bayp = Math.round(bayu * 16);
+    const sh = K.glassShader({ L, glass, bay: bayu, sp: q.band || lt(glass, .75), sph: q.sph || (kind === 2 ? .3 : .45), mull: dk(glass, .35), tint: kind === 1 ? (f) => (f === skyF ? dk(glass, .38) : glass) : g2 ? (f) => (f % 4 === 3 ? g2 : glass) : null });
+    const finc = q.band || lt(glass, .75), shade = (c, k) => k < .25 ? c : k < .5 ? dk(c, .06) : k < .75 ? dk(c, .11) : dk(c, .17);
+    const wallf = kind === 2 ? (u, v, k) => { const bi = Math.floor(u / bayp), uu = Math.floor(u) - bi * bayp; return bi % 3 === 0 && uu < 2 ? shade(uu ? dk(finc, .18) : finc, k) : sh.wall(u, v, k); } : sh.wall;
+    const glowf = kind === 1 ? (u, v, k) => { const fi = Math.floor(v / fhp), vv = v - fi * fhp; if (fi !== skyF) return sh.glowf(u, v, k); return vv > 7 && Math.floor(u) % bayp ? (k < .5 ? '#ffe2a0' : '#f4c878') : null; }
+      : kind === 2 ? (u, v, k) => { const bi = Math.floor(u / bayp), uu = Math.floor(u) - bi * bayp; return bi % 3 === 0 && uu < 2 ? null : sh.glowf(u, v, k); } : sh.glowf;
+    K.extrude(ins, bb, 2.5, H, wallf, frame, { glowf });
+    const crownc = lt(acc, .5);
+    K.extrude(ins, bb, H, H + .4, (u, v, k) => kind === 3 && v >= 2 && v <= 3 ? acc : dk(frame, .1 + k * .25), frame, kind === 3 ? { glowf: (u, v) => v >= 2 && v <= 3 ? crownc : null } : {});
     K.extrude(K.rrect(.3, .3, w - .3, d - .3, rad - .3), bb, H + .4, H + .4, () => null, dk(frame, .28));
     K.snowTop(1.2, w - 1.2, 1.2, d - 1.2, H + .4);
     const z = H + .4;
-    K.antenna(1.3, 1.3, z, 3);
-    K.ac(w - 2.6, 1, z); K.hut(1, d - 2.6, z, 1.3, 1.2, 1.2, frame);
-    K.helipad(w / 2 + .5, d / 2 + .5, z, Math.min(w, d) * .24);
-    const F = FY(d); F.q(w / 2 - 1, w / 2 + 1, 0, 2.05, dk(st, .1)); K.glassDoor(F, w / 2, 0); K.canopy(F, w / 2 - 1.4, w / 2 + 1.4, 2, 1, q.accent || '#3d4a54', { posts: false, trim: '#e8d08a' });
+    if (kind === 1) { /* sky garden: lawn, trees, a little glazed pavilion */
+      K.hut(1, d - 2.6, z, 1.3, 1.2, 1.2, frame); K.garden(2.5, w - 1.3, 1.3, d - 1.4, z, rng(q.seed + 5)); K.antenna(1.3, 1.3, z, 3);
+      box(w - 2.9, d - 2.7, z + .22, 1.4, 1.1, .8, '#8fc4d6', { t: frame }); glow(() => { qy(w - 2.8, w - 1.6, d - 1.6, z + .3, z + .95, '#ffe6ac'); });
+    } else if (kind === 2) { /* round mechanical penthouse with a lit ring */
+      const cx = w / 2 + .3, cy = d / 2 + .3, pr = Math.min(w, d) * .27;
+      K.ac(w - 2.4, .9, z); K.hut(.9, d - 2.5, z, 1.2, 1.1, 1.1, frame);
+      K.extrude(K.circ(cx, cy, pr), bb, z, z + 1.3, (u, v, k) => v > 15 && v < 19 ? acc : v > 5 && v < 13 ? (Math.floor(u) % 6 ? dk(glass, .15 + k * .2) : dk(glass, .5)) : dk(frame, .12 + k * .25), dk(frame, .2), { glowf: (u, v) => v > 15 && v < 19 ? crownc : null });
+      K.antenna(cx, cy, z + 1.3, 3.2);
+    } else {
+      K.antenna(1.3, 1.3, z, 3);
+      K.ac(w - 2.6, 1, z); K.hut(1, d - 2.6, z, 1.3, 1.2, 1.2, frame);
+      K.helipad(w / 2 + .5, d / 2 + .5, z, Math.min(w, d) * .24);
+    }
+    const F = FY(d); F.q(w / 2 - 1, w / 2 + 1, 0, 2.05, dk(st, .1)); K.glassDoor(F, w / 2, 0); K.canopy(F, w / 2 - 1.4, w / 2 + 1.4, 2, 1, acc, { posts: false, trim: '#e8d08a' });
     if (q.name) F.sign(q.name, w / 2 - 1.4, w / 2 + 1.4, 2, 2.4, '#1f2a33', '#ffd98a', { lit: true }, 1.02);
     K.planter(w / 2 - 2.9, d + .2, 1, .5, r); K.planter(w / 2 + 1.9, d + .2, 1, .5, r);
-    K.art(['sphere', 'arc', 'cubes', 'fountain'][q.seed % 4], .7, d - .1, r); K.art('bench', w - .9, d - .3, r); K.cooling(w - 2.4, d - 2.8, z, .8);
+    K.art(['sphere', 'arc', 'cubes', 'fountain'][q.seed % 4], .7, d - .1, r); K.art('bench', w - .9, d - .3, r); if (kind !== 1 && kind !== 2) K.cooling(w - 2.4, d - 2.8, z, .8);
   },
   [{ w: 8, d: 8, floors: 14, seed: 5 }, { w: 9, d: 7, floors: 11, seed: 12, glass: '#3f6f9f', band: '#e8eef2', rad: 2.6 }, { w: 7, d: 7, floors: 16, seed: 19, glass: '#5aa890', band: '#f4e8c8', frame: '#f4e8c8', rad: 2.9 }, { w: 10, d: 8, floors: 9, seed: 23, glass: '#8a7fb8', glass2: '#b89fd0', band: '#f0e6f4', rad: 1.6 }]);
 

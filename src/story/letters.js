@@ -30,7 +30,7 @@ const an = j => (/^[aeiou]/i.test(j || '') ? 'an ' : 'a ') + j;   /* QA round 4:
 const season = c => ({ spring: 'spring', summer: 'summer', autumn: 'autumn', winter: 'winter' }[c.season] || 'spring');
 
 export const SENDERS = {
-  dad: { id: 'dad', name: 'Dad', short: 'Dad', rel: 'Your father', from: '14 Quarry Road, Pinehollow', greet: c => `DEAR ${c.name},`, sign: 'LOVE, DAD',
+  dad: { id: 'dad', name: 'Dad', short: 'Dad', rel: 'Your father', from: '14 Quarry Road, Pinehollow', greet: c => `DEAR ${String(c.name || '').toUpperCase()},`, sign: 'LOVE, DAD',
     hand: { font: 'sans-serif', weight: 'bold', size: 11, ink: '#2a3f8a', paper: 'graph', caps: true, slant: 0, wobble: .5, lh: 15, deco: 'ring' } },
   gramps: { id: 'gramps', name: 'Granddad Emmett', short: 'Granddad', rel: 'Your grandfather', from: 'The back bedroom, 14 Quarry Road, Pinehollow', greet: c => `My dear ${c.name},`, sign: 'Your loving Granddad, Emmett',
     hand: { font: 'serif', style: 'italic', size: 13, ink: '#3a2a1c', paper: 'cream', slant: -.12, wobble: 1.5, lh: 17, deco: 'rms' } },
@@ -466,6 +466,9 @@ export const REPLIES = {
     o.topics.includes('ask') ? `You enquire after Admiral. He is on your gatepost as I write. He is merely there.` : null,
     `I remain at the green gate.`),
 };
+
+/* QA round 4: a parcel has no letter in it, but every reply's second paragraph is about the letter's tone ("IT WAS A GOOD WARM LETTER"); drop it for parcels */
+for (const k of Object.keys(REPLIES)) { const f = REPLIES[k]; REPLIES[k] = (c, o) => { const out = f(c, o); if (o && o.kind === 'parcel' && out.length > 2) out.splice(1, 1); return out; }; }
 
 /* ---------------------------------------------------------------------- composing at the writing desk */
 export const COMPOSE = {

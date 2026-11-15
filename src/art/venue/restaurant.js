@@ -85,9 +85,10 @@ const rest = [
 
   F('pizza.counter', ['till', 'pizza', 'counter', 'checkout'], [2.5, .5, 1.5], p => {
     const c = p.c || '#3f8a55';
-    counter(0, 0, 2.5, .5, 1, '#f1ede4', '#d8d2c4', { panels: false }); qy(0, 2.5, .5, .1, .92, PAT.vstripes('#f1ede4', c, 4)); qy(0, 2.5, .5, .5, .92, '#f1ede4'); signY('PIZZA', .6, 1.9, .5, .47, .91, '#f1ede4', '#c0392b', { frame: false });
+    counter(0, 0, 2.5, .5, 1, '#f1ede4', '#d8d2c4', { panels: false }); qy(0, 2.5, .5, .1, .92, PAT.vstripes('#f1ede4', c, 4)); qy(0, 2.5, .5, .5, .92, '#f1ede4'); signY(String(p.sign || 'PIZZA').slice(0, 5), .6, 1.9, .5, .47, .91, '#f1ede4', p.sc || '#c0392b', { frame: false });   /* p.sign: up to 5 letters (TACOS, PHO, GRILL...) so other eateries can reuse the counter */
     // warmer with slices
-    lit(() => { bx(.1, .06, 1, 1.3, .38, .03, '#3a3f4c'); for (let i = 0; i < 3; i++) { cyl(.32 + i * .42, .25, 1.03, .17, .02, '#e8b860', { ol: false, t: i === 1 ? '#f0d080' : '#e86a3a' }); for (let k = 0; k < 4; k++) spx(.32 + i * .42, .25, 1.06, [-2, 1, 3, -1][k], [0, -1, 1, 1][k], i === 1 ? '#3f8a55' : '#a8281a'); } });
+    if (p.sign && p.sign !== 'PIZZA') lit(() => { bx(.1, .06, 1, 1.3, .38, .03, '#3a3f4c'); for (let i = 0; i < 3; i++) { bx(.16 + i * .42, .1, 1.03, .34, .3, .03, '#c8ccd2'); qz(.19 + i * .42, .47 + i * .42, .13, .37, 1.065, (p.trays || ['#c8703a', '#6fb858', '#e8c860'])[i % 3], dk((p.trays || ['#c8703a', '#6fb858', '#e8c860'])[i % 3], .15)); } });   /* neutral hot trays instead of pizzas */
+    else lit(() => { bx(.1, .06, 1, 1.3, .38, .03, '#3a3f4c'); for (let i = 0; i < 3; i++) { cyl(.32 + i * .42, .25, 1.03, .17, .02, '#e8b860', { ol: false, t: i === 1 ? '#f0d080' : '#e86a3a' }); for (let k = 0; k < 4; k++) spx(.32 + i * .42, .25, 1.06, [-2, 1, 3, -1][k], [0, -1, 1, 1][k], i === 1 ? '#3f8a55' : '#a8281a'); } });
     glow(() => qz(.1, 1.4, .06, .44, 1.04, '#ffd070', 'glass'));
     qy(.1, 1.4, .46, 1, 1.35, '#e4f6fa', 'glass'); frameY(.1, 1.4, .46, 1, 1.35, '#7a8690'); box(.08, .04, 1.35, 1.34, .44, .06, '#c0392b'); lit(() => lw([.12, .46, 1.34], [1.38, .46, 1.34], '#ffb040'));
     till(1.6, .08, 1); for (let i = 0; i < 5; i++) box(2.05, .08, 1 + i * .05, .38, .36, .05, i % 2 ? '#e8dcc4' : '#f1ede4', { ol: i === 4 });

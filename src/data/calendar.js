@@ -197,6 +197,26 @@ export const EVENTS = [
     place: { district: 'downtown' }, blurb: 'Thread & Co. and Nest & Wire clear the floor on the last day of every season.',
     special: { discounts: [{ venue: 'clothing', mult: 0.75 }, { venue: 'homegoods', mult: 0.85 }], crowdMult: 1.4 }, notify: 24 },
 
+  // ------------------------------------------------------------ the six BIG CITY EVENTS (staged by sim/cityevents.js from data/cityevents.js; that system sets place.poi = 'cev:<id>' at start-up and resolves it)
+  { id: 'blossom_parade', name: 'Blossom Parade', kind: 'seasonal', when: { season: 'spring', days: [13] }, hours: [11, 16],
+    place: { district: 'downtown' }, blurb: 'Floats, a marching band and a swan the size of a bus roll down Riverside Drive at one. Petal baskets by the River Walk.',
+    special: { bigEvent: true, guaranteedWeather: 'clear', moodlet: 'festival_spirit', highlight: 'Parade at 13:00. Throw petals from the baskets by the River Walk.' }, notify: 24 },
+  { id: 'harbor_day', name: 'Harbor Day', kind: 'seasonal', when: { season: 'summer', days: [6] }, hours: [16, 23],
+    place: { district: 'harbor' }, blurb: 'Music and food on Dock Street, a parade of lit boats round the pier at half past seven, fireworks from the barge at ten.',
+    special: { bigEvent: true, guaranteedWeather: 'clear', moodlet: 'festival_spirit', highlight: 'Boat parade 19:30. Fireworks 22:00: the Harbor Master wants a volunteer at the firing desk on the pier.' }, notify: 24 },
+  { id: 'river_fair', name: 'River Walk Summer Fair', kind: 'seasonal', when: { season: 'summer', days: [13] }, hours: [11, 20],
+    place: { district: 'downtown' }, blurb: 'A fairground on the River Walk: high striker, ring toss, a band on the stage, and the Rainbow Walk with a giant duck at three.',
+    special: { bigEvent: true, moodlet: 'festival_spirit', highlight: 'Rainbow Walk at 15:00. Ring the bell on the high striker to win a bear.' }, notify: 24 },
+  { id: 'harvest_parade', name: 'Harvest Festival', kind: 'seasonal', when: { season: 'autumn', days: [6] }, hours: [10, 18],
+    place: { district: 'oldtown' }, blurb: 'Hay bales and pumpkins fill Market Square, the tractor parade does laps of Chandler Street at two, and you can ride the hay wagon.',
+    special: { bigEvent: true, moodlet: 'festival_spirit', highlight: 'Tractor parade at 14:00. Press cider at the big press on the square.' }, notify: 24 },
+  { id: 'lantern_parade', name: 'Lantern Night Dragon Walk', kind: 'seasonal', when: { season: 'autumn', days: [13] }, hours: [18, 24],
+    place: { district: 'oldtown' }, blurb: 'The paper dragon dances down Chandler Street into Lantern Row at eight; at half past nine the wish lanterns go up.',
+    special: { bigEvent: true, moodlet: 'festival_spirit', highlight: 'Dragon at 20:00. Write a wish at the table on Lantern Row; lanterns rise at 21:30.' }, notify: 12 },
+  { id: 'winter_parade', name: 'Winter Lights Parade', kind: 'seasonal', when: { season: 'winter', days: [5] }, hours: [15.5, 21],
+    place: { district: 'downtown' }, blurb: 'Floats covered in lights roll past City Hall at five, and at six the giant tree on the plaza is lit.',
+    special: { bigEvent: true, moodlet: 'festival_spirit', highlight: 'Parade at 17:00. Tree lighting at 18:00: somebody has to throw the switch.' }, notify: 24 },
+
   // ------------------------------------------------------------ holidays
   { id: 'founders_day', name: "Founders' Day", kind: 'holiday', when: { season: 'summer', days: [1] }, hours: [0, 24],
     place: { district: 'downtown', poi: 'poi_city_plaza' }, blurb: 'Maple Bay turns another year older. Parade at noon, free cake on the plaza.',
