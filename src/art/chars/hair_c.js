@@ -49,7 +49,7 @@ regHair('sideshave', { f: [7, ['....hhhh...', '...thHHhh..', '..tthHhhhh.', '..t
   b: [7, ['....hhhh...', '...thhHhh..', '..tthhhhh..', '..ttthhhh..', '..tttthhh..', '...tt.hhh..', '......hhh..', '......hd...']] });
 // Silk press: long, poker-straight and glossy, centre part, a straight curtain in front of the shoulder.
 regHair('silkpress', { f: [7, ['...hhHh....', '..hhHh.hh..', '..hhhHhhhh.', '..hhh...hh.', '..hhh....h.', '..hhh....h.', '..hhh....h.', '..hhh....h.', '..hhh....H.', '..hhh....h.', '..Hhh......', '..hhd......']],
-  b: [7, ['...hhHh....', '..hhh.hhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhHhhh..', '..hhhhhhh..', '..ddddddd..']] });
+  b: [7, ['...hhHh....', '..hhh.hhh..', '..hhHhhhh..', '..hHhhhhh..', '..hhhhhhh..', '..hHhhhhh..', '..hhhhhhh..', '..hHhhhhh..', '..hhhhhhh..', '..hHhhhhh..', '..hhhhhhh..', '...ddddd...']] });
 // Bubble ponytail: high pony sectioned by bands (accent) into bubbles.
 regHair('bubblepony', { f: [6, ['...hHHhh...', '..hhHhhhh..', '..hhhh..h..', 'hhhh.......', 'cHhs.......', 'hh.........', '.c.........', 'Hh.........', 'hh.........', '.c.........', 'hh.........', '.d.........']],
   b: [6, ['...hhHhh...', '..hhhHhhh..', '..hhhhhhh..', '..hhhhhh...', '..dhhchs...', '...hHHh....', '....cc.....', '...hHHh....', '...hhhh....', '....cc.....', '...hHHh....', '....hd.....']] });
@@ -59,6 +59,18 @@ regHair('twistout', { f: [8, ['...hHhHh...', '..hHhhhHh..', '.hHhhHhhhh.', 'hhhH
 // Braided top bun: box braids swept up into a big bun.
 regHair('braidbun', { f: [9, ['..hdhd.....', '..dhdhd....', '...hdhh....', '..hdhdhdh..', '..dhdhdhd..', '..hdh...h..', '..hd.......', '..h........']],
   b: [9, ['...hdhd....', '..dhdhdh...', '...hdhd....', '..hdhdhdh..', '..dhdhdhd..', '..hdhdhdh..', '..dhdhdhd..', '..hdhdhs...', '...ddd.....']] });
+
+
+// Redraws of weak built-ins (they read the same as their neighbours at game scale):
+// Bowl cut: a round helmet of hair, a heavy fringe straight across the brows, sides level all round.
+regHair('bowl', { f: [7, ['....hhh....', '..hhHHhhh..', '.hhHhhhhhh.', '.hhhhhhhhh.', '.hhh.......', '..d........']],
+  b: [7, ['....hhh....', '..hhhHhhh..', '.hhhhHhhhh.', '.hhhhhhhhh.', '.hhhhhhhhh.', '.dhhhhhhd..']] }, true);
+// Pixie: cropped close, a wispy fringe flicked forward past the brow, tapered nape.
+regHair('pixie', { f: [7, ['....hh.....', '...hHhhh...', '..hhHhhhhh.', '..hhh..hHh.', '..h......h.', '..t........']],
+  b: [7, ['....hh.....', '...hhHhh...', '..hhhHhhh..', '..hhhhhhh..', '..thhhhh...', '...ttt.s...']] }, true);
+// Floor-sweeper (rapunzel): bangs and hair falling well past the hips, the longest silhouette in the book.
+regHair('rapunzel', { f: [7, ['....hhh....', '...hHHhhh..', '..hhHhhhh..', '..hhhhhhh..', '..hhh...h..', '..hhh......', '.hhhh......', '.hhh.......', '.hhh.......', '.hhh.......', '.hHh.......', '.hhh.......', '.hhh.......', '.hhh.......', '.hHh.......', '.hhh.......', '.hhd.......', '..dd.......']],
+  b: [7, ['....hhh....', '...hhHhhh..', '..hhhHhhh..', '..hhhhhhh..', '..hhhhhhh..', '..hhhhhh...', '..hhhhhh...', '..hhHhhh...', '..hhhhhh...', '..hhhhhh...', '..hhhhHh...', '..hhhhhh...', '..hhhhhh...', '..hhHhhh...', '..hhhhhh...', '..hhhhhh...', '..dhhhhd...', '...dddd....']] }, true);
 
 /* ---------------- facial hair ---------------- */
 // Boxed beard: neat and short, joined to the sideburns, a squared-off bottom edge.

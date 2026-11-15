@@ -137,7 +137,7 @@ KINDS.trace = E => {
       drawParts(c, parts);
     },
     want: () => (wait > 0 || g.done ? { type: 'drag', ready: false } : { type: 'drag', ready: true, pts: pts.slice(idx).map(p => [p.x, p.y]) }),
-    stats: () => ({ strokes: n, trails }),
+    stats: () => ({ strokes: n }),
   };
   return g;
 };

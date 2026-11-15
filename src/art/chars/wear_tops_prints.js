@@ -85,5 +85,5 @@ regShape('top', 'sailor', { sleeve: 2,
     const c = C2(g, .7); g.t(1, 0, g.sk); g.t(1, 1, g.sk); g.t(0, 0, c); g.t(0, 1, c); g.t(-1, 0, c); if (g.wide) { g.t(2, 0, c); g.t(2, 1, c); }
     g.t(1, 2, g.accent); g.t(0, 2, g.dk(g.accent, .2)); if (g.wide) g.t(2, 2, g.dk(g.accent, .2)); g.t(1, 3, g.dk(g.accent, .15));
   },
-  back(g) { const c = C2(g, .7); for (let j = 0; j < 4; j++) for (let x = g.x0; x <= 1; x++) g.t(x, j, j === 3 ? g.accent : x === g.x0 ? g.dk(c, .14) : c); },
+  back(g) { const c = C2(g, .7), n = g.T > 4 ? 4 : 3; for (let j = 0; j < n; j++) for (let x = g.x0; x <= 1; x++) g.t(x, j, j === n - 1 ? g.accent : x === g.x0 ? g.dk(c, .14) : c); },
 });

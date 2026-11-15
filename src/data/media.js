@@ -18,7 +18,7 @@
 //   Moodlets: 'nice_break' (+2 mood, 90 min) after a short session (8+ min, while the day's pool is still under SCREEN.full + 5);
 //             'eyes_tired' (-3 mood, 2 h) once the day's pool passes SCREEN.tired minutes.
 //   Late night (23:00-05:00): -1.5 energy per hour of screen on top of normal decay. No app touches hunger, bladder, hygiene or social.
-//   Time: reading and playing run the game clock at CLOCK game minutes per real second (the world is paused behind the phone, as with
+//   Time: reading and playing run the game clock at CLOCK.read / CLOCK.play game minutes per real second (the world is paused behind the phone, as with
 //   every app); a film costs FILM_MINUTES game minutes however long it is; an owned book is read in 15/30/60-minute sittings.
 //
 // REEL CONTENT RULES (owner msgs, 2026-11-15): two kinds of content.
@@ -33,7 +33,7 @@ export const TUNE = {
   context: { ride: 1.25, queue: 1.25, bench: 1.1, home: 1, out: 1 },
   contextLabel: { ride: 'On the move: +25% fun', queue: 'Killing time in the queue: +25% fun', bench: 'Park bench break: +10% fun', home: '', out: '' },
   lateEnergyPerHour: -1.5, lateHours: [23, 5],
-  CLOCK: 1 / 3,                 // game minutes per real second while reading a short read or playing a game
+  CLOCK: { read: 0.1, play: 0.2 },   // game minutes per real second while reading a short read (a 500-word piece = ~13 game minutes) / playing a game (a 60 s round = 12)
   FILM_MINUTES: 20,             // game minutes a film costs on the phone (the cinema show is ~100)
   READ_WPM: 230,                // "real reading speed": a page is worth words / READ_WPM real minutes, time stops counting at 1.6x that
   bookSittings: [15, 30, 60],   // game minutes; an owned book runs like an activity (fast clock, cancellable)

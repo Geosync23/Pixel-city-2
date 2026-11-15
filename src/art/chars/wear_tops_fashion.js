@@ -99,3 +99,10 @@ regShape('top', 'oneshoulder', { sleeve: 0,
   front(g) { g.t(1, 0, g.lt(g.body, .28)); if (g.wide) g.t(2, 0, g.lt(g.body, .15)); g.t(0, 1, g.lt(g.body, .2)); },
   back(g) { g.t(-1, 0, g.lt(g.body, .2)); g.t(0, 1, g.lt(g.body, .12)); },
 });
+
+// Halter-neck top (same cut as the framework example 'halter'). The id 'halter' is also a DRESS shape (artist B's halter dress), and a dress id
+// turns the top into a dress in char.js look(), so the catalogue sells halter TOPS under this collision-free id.
+regShape('top', 'halterneck', { sleeve: 0,
+  body(c, x, j, g) { return (j === 0 && (x < 0 || x > 1)) || (j === 1 && (x === g.x0 || x === g.x1)) ? g.sk : c; },
+  front(g) { g.t(1, 1, g.lt(g.body, .25)); g.t(1, 0, g.dk(g.body, .15)); },
+  back(g) { for (let j = 0; j < 3; j++) for (let x = g.x0; x <= g.x1; x++) g.t(x, j, x === g.x0 ? g.dk(g.sk, .1) : g.sk); g.t(0, 0, g.body); g.row(3, g.dk(g.body, .15)); } });

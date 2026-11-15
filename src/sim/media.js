@@ -118,7 +118,7 @@ function end() {
 
 /* ---------- Pages ---------- */
 const wordsOf = r => r._w || (r._w = String(r.text).split(/\s+/).filter(Boolean).length);
-const readMin = r => Math.max(2, Math.round(wordsOf(r) / TUNE.READ_WPM * 60 * TUNE.CLOCK));   // game minutes a read takes at reading speed
+const readMin = r => Math.max(2, Math.round(wordsOf(r) / TUNE.READ_WPM * 60 * TUNE.CLOCK.read));   // game minutes a read takes at reading speed
 const reads = () => { const d = today(); return READS.map(r => ({ ...r, words: wordsOf(r), minutes: readMin(r), released: d >= (r.day || 0), isNew: d >= (r.day || 0) && (r.day || 0) > (S.base || 0) && d - (r.day || 0) < 7 && S.reader.done[r.id] === undefined, done: S.reader.done[r.id] !== undefined, page: S.reader.pos[r.id] || 0 })); };
 const read = id => reads().find(r => r.id === id) || null;
 function touchStreak() { const st = S.reader.streak, d = today(); if (st.last === d) return; st.n = st.last === d - 1 ? st.n + 1 : 1; st.last = d; st.best = Math.max(st.best || 0, st.n); }

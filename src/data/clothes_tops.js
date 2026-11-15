@@ -49,7 +49,7 @@ hoodie_black    | hoodie | Pullover Hoodie, Black | casual,street | 2 | #33303f
 crop_white      | crop | Basic Crop Tee, White | casual,summer | 0 | #f4f0e8
 crop_lilac      | crop | Basic Crop Tee, Lilac | casual,summer | 0 | #c8b8e0
 cami_black      | cami | Jersey Cami, Black | casual,summer | 0 | #3a3842
-cami_nude       | cami | Jersey Cami, Sand | casual,summer | 0 | #e0c0a8
+cami_mauve      | cami | Jersey Cami, Mauve | casual,summer | 0 | #b08098
 polo_navy       | polo | Pique Polo, Navy | casual,smart | 1 | #3a4a72
 polo_white      | polo | Pique Polo, White | casual,smart | 1 | #f4f0e8
 turtle_black    | turtleneck | Plain Roll-Neck, Black | casual,smart | 2 | #33303f
@@ -127,8 +127,8 @@ qzip_charcoal   | quarterzip | Merino Quarter-Zip, Charcoal | smart,work | 3 | #
 shirt_burgundy  | shirt | Poplin Dress Shirt, Burgundy | formal,party | 2 | #7a2838
 
 @nightjar
-halter_black    | halter | Last Dance Halter, Black Sparkle | party | 0 | #2a2833 | | | sparkle
-halter_silver   | halter | Last Dance Halter, Silver | party | 0 | #c8ccd4
+halter_black    | halterneck | Last Dance Halter, Black Sparkle | party | 0 | #2a2833 | | | sparkle
+halter_silver   | halterneck | Last Dance Halter, Silver | party | 0 | #c8ccd4
 bust_black      | bustier | Velvet Bustier, Black & Plum | party | 0 | #2a2833 | #6a3a5a | #c8ccd4
 bust_plum       | bustier | Velvet Bustier, Plum | party | 0 | #6a3a5a | #2a2833 | #d8b048
 bust_red        | bustier | Velvet Bustier, Lipstick Red | party | 0 | #b02838 | #2a2833 | #2a2833
@@ -315,7 +315,7 @@ long_polka      | long | Polka Long Sleeve, Indigo | artsy,vintage | 2 | #2f3f72
 sweater_hand    | sweater | Hand-Knit Jumper, Indigo Speckle | artsy,cozy | 3 | #2f3f72 | #e8a030 | | dots
 cardi_embroid   | cardigan | Embroidered Cardigan | artsy,cozy | 2 | #3a4a7a | #f0d890 | #e86a6a | floral
 crop_daisy      | crop | Daisy Crop | artsy,summer | 0 | #f0d890 | #f4f0e8 | #e86a6a | floral
-halter_batik    | halter | Batik Halter | artsy,summer | 0 | #2f3f72 | #6a8ac8 | #f0d890 | tiedye | s1
+halter_batik    | halterneck | Batik Halter | artsy,summer | 0 | #2f3f72 | #6a8ac8 | #f0d890 | tiedye | s1
 offsh_poppy     | offshoulder | Poppy Off-Shoulder | artsy,summer | 0 | #f4f0e8 | #d9483b | #3f6a48 | floral
 vneck_dip       | vneck | Indigo Dip V-Neck | artsy | 1 | #f4f0e8 | #2f3f72 | | ombre
 band_brassprint | bandtee | Brass Parade Screenprint Tee | artsy,party | 1 | #f0e6d0 | #8a55c8 | #f2c230
@@ -331,8 +331,8 @@ crop_lemon      | crop | Sunny Crop, Lemon | summer | 0 | #f0e070
 crop_lido       | crop | Lido Stripe Crop | summer | 0 | #f4f0e8 | #3fb8a8 | | stripes
 tief_coral      | tiefront | Tie-Front Shirt, Coral | summer | 0 | #f07a5a | | | | s1
 tief_aqua       | tiefront | Tie-Front Shirt, Aqua Gingham | summer | 0 | #f4f0e8 | #3fb8a8 | | check | s1
-halter_coral    | halter | Sunset Halter, Coral | summer,party | 0 | #f07a5a
-halter_hibiscus | halter | Hibiscus Halter | summer,party | 0 | #d9483b | #f4f0e8 | #e8c83a | floral | s1
+halter_coral    | halterneck | Sunset Halter, Coral | summer,party | 0 | #f07a5a
+halter_hibiscus | halterneck | Hibiscus Halter | summer,party | 0 | #d9483b | #f4f0e8 | #e8c83a | floral | s1
 offsh_seafoam   | offshoulder | Breezy Off-Shoulder, Seafoam | summer | 0 | #a8e0d0
 offsh_stripe    | offshoulder | Boardwalk Stripe Off-Shoulder | summer | 0 | #f4f0e8 | #2f6ab0 | | stripes
 tube_aqua       | tubetop | Bandeau, Aqua | summer | 0 | #3fb8a8 | | | | s1
@@ -409,7 +409,7 @@ blazer_sapphire | blazer | Gold-Button Blazer, Sapphire | smart,formal | 2 | #2f
 coat_camel      | coat | Cashmere Coat, Camel | formal,winter | 3 | #c8a070
 pea_ivory       | peacoat | Admiral Coat, Ivory & Gold | formal,winter | 3 | #f0e6d0 | #d8b048
 shear_cognac    | shearling | Shearling Jacket, Cognac | smart,winter | 4 | #9a5a30 | #f0e6d0
-kimono_jade     | kimono | Silk Kimono Jacket, Jade | party,artsy | 1 | #2f7a5a | #d8b048 | #a02848
+kimono_jade     | kimonojacket | Silk Kimono Jacket, Jade | party,artsy | 1 | #2f7a5a | #d8b048 | #a02848
 lpuff_gold      | longpuffer | Gilded Long Puffer | winter,party | 4 | #d8b048 | | | | s3
 
 @hollowell
@@ -504,7 +504,7 @@ blazer_cord     | blazer | Corduroy Blazer, Tobacco | vintage,smart | 2 | #8a603
 coat_hound      | coat | Charity-Shop Coat, Houndstooth | vintage,smart | 3 | #e8e0d0 | #4a4a58 | | check
 wind_shell      | windbreaker | Shell Suit Jacket | vintage,sporty | 1 | #2f9a94 | #7a55c8
 poncho_granny   | poncho | Granny-Square Poncho | vintage,artsy | 2 | #e8b83a | #b8582e | #3f6a48 | floral
-kimono_vintage  | kimono | Vintage Floral Kimono | vintage,artsy | 1 | #2a2833 | #e8a0a0 | #e8c070 | floral
+kimono_vintage  | kimonojacket | Vintage Floral Kimono | vintage,artsy | 1 | #2a2833 | #e8a0a0 | #e8c070 | floral
 tux_powder      | tuxedo | Thrifted Prom Tuxedo, Powder Blue | vintage,party | 2 | #9ab8d8 | #2f3f72
 field_army      | fieldjacket | Old Army Field Jacket, Brown | vintage,outdoor | 2 | #6a5038
 
@@ -563,8 +563,8 @@ duffle_bivouac  | duffle | Bivouac Duffle, Olive | outdoor,winter | 3 | #6f7a48 
 parka_orange    | parka | Expedition Parka, Blaze Orange | outdoor,winter | 4 | #d8682a | | | | on
 
 @little_lantern
-kimono_marigold | kimono | Marigold Kimono Jacket | artsy,summer | 1 | #e8a030 | #2f3f72 | #f4f0e8
-kimono_rose     | kimono | Floral Kimono Jacket, Rose | artsy,summer | 1 | #f0d8d0 | #c84a4a | #3f6a48 | floral | s0
+kimono_marigold | kimonojacket | Marigold Kimono Jacket | artsy,summer | 1 | #e8a030 | #2f3f72 | #f4f0e8
+kimono_rose     | kimonojacket | Floral Kimono Jacket, Rose | artsy,summer | 1 | #f0d8d0 | #c84a4a | #3f6a48 | floral | s0
 poncho_indigo   | poncho | Woven Poncho, Indigo | artsy | 2 | #2f3f72 | #e8a030 | | stripes
 poncho_terra    | poncho | Woven Poncho, Terracotta | artsy | 2 | #b8582e | #f4e8d0 | | stripes
 robe_block      | robe | Block-Print House Robe | artsy,cozy | 2 | #2f3f72 | #ead9b8 | #e8a030 | floral
@@ -576,7 +576,7 @@ bolero_crochet  | bolero | Crochet Bolero, Cream | artsy,summer | 1 | #f0e8d8 | 
 wrap_indigo     | wrapcoat | Indigo Wrap Coat | artsy,smart | 3 | #2f3f72 | #e8a030
 
 @tidepool
-kimono_beach    | kimono | Beach Kimono, Aqua | summer | 0 | #5ac8c8 | #f4f0e8 | #f07a5a | | s1
+kimono_beach    | kimonojacket | Beach Kimono, Aqua | summer | 0 | #5ac8c8 | #f4f0e8 | #f07a5a | | s1
 wind_board      | windbreaker | Boardwalk Windbreaker | summer,sporty | 1 | #3fb8a8 | #f07a5a
 cardi_linen     | cardigan | Linen Cardigan, Seafoam | summer,casual | 1 | #a8e0d0
 denim_white     | denim | Sun-Bleached Denim Jacket, White | summer,casual | 1 | #e8eef4
@@ -590,7 +590,7 @@ track_aqua      | trackjacket | Boardwalk Track Jacket, Aqua | summer,sporty | 1
 
 @lacquer
 leather_ruby    | leather | Patent Jacket, Ruby | party,formal | 2 | #a02848
-cape_pearl      | cape | Pearl Cape | formal,party | 2 | #f0ece0
+cape_pearl      | cape | Pearl Cape | formal,party | 2 | #e4e0ec
 bolero_sapph    | bolero | Jewel Bolero, Sapphire | party,formal | 1 | #2f4fa0
 tux_goldlapel   | tuxedo | Gold Lapel Tuxedo | formal,party | 2 | #2a2833 | #d8b048
 moto_emerald    | moto | Lacquer Moto, Emerald | party,street | 2 | #2f7a5a
@@ -601,7 +601,7 @@ export const TOPS = [
   P({ id: 'tp_tee_white', slot: 'top', shape: 'tee', name: 'Everyday Tee, White', brand: 'maple_basics', styles: ['casual'], warmth: 1, c: '#f4f0e8' }),
   P({ id: 'tp_breton_navy', slot: 'top', shape: 'long', name: 'Breton Stripe Long Sleeve', brand: 'thread_co', styles: ['casual', 'smart'], warmth: 2, c: '#2f3f72', c2: '#f4f0e8', pat: 'stripes' }),
   P({ id: 'tp_raglan_otters', slot: 'top', shape: 'raglan', name: 'Dugout Raglan', brand: 'otterline', styles: ['sporty', 'casual'], warmth: 1, c: '#f4f0e8', c2: '#d2392f' }),
-  P({ id: 'tp_halter_plum', slot: 'top', shape: 'halter', name: 'Last Dance Halter', brand: 'nightjar', styles: ['party', 'summer'], warmth: 0, c: '#6a3a5a', pat: 'sparkle' }),
+  P({ id: 'tp_halter_plum', slot: 'top', shape: 'halterneck', name: 'Last Dance Halter', brand: 'nightjar', styles: ['party', 'summer'], warmth: 0, c: '#6a3a5a', pat: 'sparkle' }),
   P({ id: 'tp_peplum_cream', slot: 'top', shape: 'peplum', name: 'Gilded Peplum Blouse', brand: 'marigold', styles: ['smart', 'formal'], warmth: 1, c: '#f6ead0' }),
   P({ id: 'tp_shirt_oxford_blue', slot: 'top', shape: 'shirt', name: 'Oxford Button-Down, Sky', brand: 'hollowell', styles: ['smart', 'work'], warmth: 2, c: '#9ac8e8' }),
   P({ id: 'tp_hawaiian_coral', slot: 'top', shape: 'shortshirt', name: 'Boardwalk Aloha Shirt', brand: 'tidepool', styles: ['summer', 'casual'], warmth: 0, c: '#f07a5a', c2: '#f4f0e8', accent: '#3fb8a8', pat: 'floral', season: 1 }),
@@ -613,6 +613,6 @@ export const OUTERS = [
   P({ id: 'ou_slicker_yellow', slot: 'outer', shape: 'raincoat', name: 'Harbour Slicker', brand: 'saltline', styles: ['rain', 'work'], warmth: 2, c: '#e8b83a' }),
   P({ id: 'ou_trench_camel', slot: 'outer', shape: 'trench', name: 'Quayside Trench', brand: 'hollowell', styles: ['formal', 'smart', 'rain'], warmth: 3, c: '#c8a070' }),
   P({ id: 'ou_cape_wine', slot: 'outer', shape: 'cape', name: 'Opera Cape', brand: 'marigold', styles: ['formal', 'party'], warmth: 2, c: '#8a2f3a' }),
-  P({ id: 'ou_kimono_indigo', slot: 'outer', shape: 'kimono', name: 'Indigo Block-Print Kimono', brand: 'little_lantern', styles: ['artsy', 'summer'], warmth: 1, c: '#2f3f72', c2: '#ead9b8', accent: '#e8b83a' }),
+  P({ id: 'ou_kimono_indigo', slot: 'outer', shape: 'kimonojacket', name: 'Indigo Block-Print Kimono', brand: 'little_lantern', styles: ['artsy', 'summer'], warmth: 1, c: '#2f3f72', c2: '#ead9b8', accent: '#e8b83a' }),
   P({ id: 'ou_gilet_olive', slot: 'outer', shape: 'gilet', name: 'Ridgeline Gilet', brand: 'fern_field', styles: ['outdoor', 'casual'], warmth: 3, c: '#6f7a48' }),
 ].concat(table('outer', OUTER_ROWS));

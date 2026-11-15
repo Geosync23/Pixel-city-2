@@ -61,3 +61,9 @@ regShape('outer', 'skijacket', { sleeve: 9, tail: 1,
   front(g) { for (let x = g.x0 + 1; x <= g.x1; x++) g.t(x, 0, g.lt(g.body, .22)); for (let j = 0; j < g.T; j++) g.t(1, j, j === 2 || j === 3 ? g.lt(ZIP, .1) : ZIP); },
   back(g) { for (let x = -1; x <= 1; x++) g.t(x, 0, g.lt(g.body, .22)); },
 });
+
+// Kimono jacket (same cut as the framework example 'kimono'). 'kimono' is also a DRESS shape (artist B), and torsoShape() looks dresses up before
+// outerwear, so the catalogue sells the jacket under this collision-free id: crossed collar band (c2), accent sash, hem over the hips.
+regShape('outer', 'kimonojacket', { sleeve: 9, tail: 2,
+  front(g) { const band = g.c2 || g.lt(g.body, .45); g.t(1, 0, g.sk); g.t(0, 0, band); g.t(1, 1, band); if (g.wide) { g.t(2, 0, band); g.t(2, 2, band); } g.t(0, 1, g.inner); g.row(g.T - 2, g.accent); g.t(g.x0, g.T - 2, g.dk(g.accent, .15)); },
+  back(g) { const band = g.c2 || g.lt(g.body, .45); for (let x = -1; x <= 1; x++) g.t(x, 0, band); g.row(g.T - 2, g.accent); g.t(0, g.T - 3, g.lt(g.accent, .25)); g.t(0, g.T - 1, g.dk(g.accent, .2)); } });
