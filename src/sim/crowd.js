@@ -24,7 +24,7 @@ import { GT } from '../engine/world.js';
 import { VENUE_BY_ID, isOpen } from '../data/venues.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { X, Cit, rnd, ri, pick, rr, onScreen, okCell, dirOf, walkTo, getSpec, clearSpecs, registerTalk, ambientLine, speak, bubbleOk } from './_crowd_core.js';
-import { playerStates, duet } from './_crowd_lines.js';
+import { playerStates, duet, REACT } from './_crowd_lines.js';
 import { buildNet } from './_crowd_net.js';
 import { initAnimals, updateAnimals, leash, animalCount, clearAnimals } from './_crowd_animals.js';
 import { initRooms, updateRooms, reserve, release, roomCount, roomCits, roomInfo } from './_crowd_rooms.js';
@@ -301,16 +301,16 @@ function env() {
   X.dk = world.districtAt(X.fx, X.fy) || 'maplewood'; X.dens = density(X.dk);
   target = Math.min(CAP, Math.round(X.dens * (G.W + 2 * M_SPAWN) * (G.H + 2 * M_SPAWN) / 60000));
 }
-let stillT = 0, lastState = -99;
+let stillT = 0;
 function chatter() {   // -> true when a bubble was shown (QA round 3: a failed try retries in 1.5 s instead of waiting a whole 5-10 s period)
   if (G.cutscene || G.player.hidden || G.modal > 0) return false; const n = pool.length, s0 = ri(n), p = G.player; let best = null, nearC = null, nd = 1e9;
   for (let k = 0; k < n; k++) { const c = pool[(s0 + k) % n]; if (!c.active || c.alpha < 1 || c.hold > 0 || !onScreen(c.x, c.y, -24) || !bubbleOk(c)) continue; const d = Math.hypot(c.x - p.x, c.y - p.y); if (d < nd) { nd = d; nearC = c; }
     if (best && (best.chat || best.st === STATIC)) continue; if (c.chat || (c.st === STATIC && c.kind !== 'bench' && c.kind !== 'busker')) best = c; else if (!best && (c.st === STATIC || c.st === XWAIT || c.kind === 'jogger' || c.kind === 'carrier')) best = c; }
   // someone right next to the player may react to the player (owner msg 79): bumped into, stared at, or a visible state (smelly, soaked, in pajamas...). Same bubble slot, no extra bubbles.
-  if (nearC && G.time - lastState > 18) {
+  if (nearC && G.time - REACT.last > REACT.gap) {
     const st = nd < .7 && X.pmove ? 'bumped' : nd < 1.4 && stillT > 6 ? 'staring' : null;
-    if (st) { lastState = G.time; return speak(nearC, ambientLine(nearC, { state: st })); }
-    if (nd < 5 && rnd() < .5 && playerStates().length) { lastState = G.time; return speak(nearC, ambientLine(nearC, null)); }
+    if (st) return speak(nearC, ambientLine(nearC, { state: st }));
+    if (nd < 5 && rnd() < .5 && playerStates().length) return speak(nearC, ambientLine(nearC, null));
   }
   if (!best) best = nearC && rnd() < .5 ? nearC : null;   // QA round 3: a plain walker may talk too when nobody is standing / chatting (quiet streets were silent)
   if (!best) return false; const c = best, a = c.anchor, ev = a && a.t === 'event' ? a.ev : evs.length && rnd() < .4 ? evs[0] : null;

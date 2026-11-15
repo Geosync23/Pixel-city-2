@@ -60,7 +60,7 @@ const LEN = PATH.map((p, i) => (i ? Math.hypot(p[0] - PATH[i - 1][0], p[1] - PAT
 const at = s => { let i = 1; while (i < PATH.length - 1 && s > LEN[i]) { s -= LEN[i]; i++; } const a = PATH[i - 1], b = PATH[i], k = LEN[i] ? Math.max(0, Math.min(1, s / LEN[i])) : 0; return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k, b[0] - a[0], b[1] - a[1]]; };
 function climb(sc, up, base) {
   if (G.cutscene) return Promise.resolve(false); const p = G.player; let s = up ? 0 : TOTAL, said = -1; p.path = null;
-  return new Promise(res => { G.cutscene = { update(dt) { s += (up ? 1.5 : 2) * dt; const q = at(Math.max(0, Math.min(TOTAL, s))); p.x = O + q[0]; p.y = O + q[1]; p.z = q[2]; p.moving = true; p.face(up ? q[3] : -q[3], up ? q[4] : -q[4]);
+  return new Promise(res => { G.cutscene = { update(dt) { s += (up ? 1.5 : -2.1) * dt; const q = at(Math.max(0, Math.min(TOTAL, s))); p.x = O + q[0]; p.y = O + q[1]; p.z = q[2]; p.moving = true; p.face(up ? q[3] : -q[3], up ? q[4] : -q[4]);
     const st = Math.max(0, Math.min(N * 2, Math.round(q[2] / RISE))); if (st !== said && st % 4 === 0 && st > 0 && st < N * 2) { said = st; bubble(p, String(base + st), 650); try { G.audio && G.audio.sfx && G.audio.sfx('step_in'); } catch (e) { } }
     if (up ? s >= TOTAL : s <= 0) { G.cutscene = null; p.moving = false; if (!up) p.z = 0; res(true); } } }; });
 }

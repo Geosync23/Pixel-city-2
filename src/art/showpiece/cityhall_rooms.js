@@ -14,10 +14,10 @@ function nowserving(p) { const W = 5, y = .15; qy(0, W, y, 0, 1.5, SLATE); qy(.0
 function win(p) {
   const w = 3, n = p.n || 1, sh = !!p.shut;
   counter(w, .9, 1.05, OAK, MARBLE); signY(p.name || '', .12, w - .12, .91, .44, .82, sh ? '#6a6a70' : CIVIC, LINEN, { frame: false }); lw([.12, .91, .44], [w - .12, .91, .44], BRASS); lw([.12, .91, .82], [w - .12, .91, .82], BRASS);
-  if (sh) { qy(.08, w - .08, .5, 1.13, 2.1, '#8a8f9a'); for (let z = 1.2; z < 2.1; z += .12) lw([.08, .5, z], [w - .08, .5, z], '#6a7078'); }
-  else { for (const [a, b] of [[.5, 1.3], [1.0, 1.25], [2.2, 1.35]]) lw([a, .5, b], [a + .3, .5, b + .55], '#e4f4fa'); const s = S2(w / 2, .5, 1.62); ellipse(s[0], s[1], 3, 3, BRASS); px(s[0], s[1], C(INK)); px(s[0] - 1, s[1], C(INK)); px(s[0] + 1, s[1], C(INK)); qy(w / 2 - .3, w / 2 + .3, .5, 1.13, 1.2, BRASS_D); }
-  for (const x of [.04, w - .04]) { lw([x, .5, 1.12], [x, .5, 2.1], BRASS_D); lw([x + .03, .5, 1.12], [x + .03, .5, 2.1], BRASS); }
-  box(0, .42, 2.1, w, .16, .5, OAK_D); lit(() => { qy(.1, .55, .585, 2.16, 2.54, sh ? '#5a2a2a' : CIVIC_D); textY(String(n), .26, .59, 2.5, '#ffe9a0'); ctext(sh ? 'CLOSED' : (p.short || ''), .6, w - .05, .59, 2.5, sh ? '#ff8a7a' : '#f4f0e8'); });
+  if (sh) { qy(.08, w - .08, .5, 1.13, 2.4, '#8a8f9a'); for (let z = 1.2; z < 2.4; z += .12) lw([.08, .5, z], [w - .08, .5, z], '#6a7078'); }
+  else { for (const [a, b] of [[.3, 1.5], [2.5, 1.6]]) lw([a, .5, b], [a + .2, .5, b + .5], '#e4f4fa'); const s = S2(w / 2, .5, 1.62); ellipse(s[0], s[1], 3, 3, BRASS); px(s[0], s[1], C(INK)); px(s[0] - 1, s[1], C(INK)); px(s[0] + 1, s[1], C(INK)); qy(w / 2 - .3, w / 2 + .3, .5, 1.13, 1.2, BRASS_D); }
+  for (const x of [.04, w - .04]) { lw([x, .5, 1.12], [x, .5, 2.4], BRASS_D); lw([x + .03, .5, 1.12], [x + .03, .5, 2.4], BRASS); }
+  box(0, .42, 2.4, w, .16, .5, OAK_D); lit(() => { qy(.1, .55, .585, 2.46, 2.84, sh ? '#5a2a2a' : CIVIC_D); textY(String(n), .26, .59, 2.8, '#ffe9a0'); ctext(sh ? 'CLOSED' : (p.short || ''), .6, w - .05, .59, 2.8, sh ? '#ff8a7a' : '#f4f0e8'); });
   box(.3, .62, 1.12, .3, .2, .1, OAK_D, { ol: false }); lw([2.5, .7, 1.12], [2.42, .8, 1.3], BRASS); box(2.1, .6, 1.12, .28, .22, .03, PAPER, { ol: false });
 }
 function waitrow(p) { const n = p.n || 4, c = p.c || '#3a6a8a', w = n * .6; lw([.1, .3, 0], [.1, .3, .3], STEEL_D); lw([w - .1, .3, 0], [w - .1, .3, .3], STEEL_D); box(.05, .24, .28, w - .1, .12, .06, STEEL_D, { ol: false }); for (let i = 0; i < n; i++) { box(i * .6 + .06, .06, .34, .48, .5, .1, c); lw([i * .6 + .1, .56, .44], [i * .6 + .5, .56, .44], lt(c, .3)); } }
@@ -96,7 +96,7 @@ const WALL = { wall: true, mount: 0, solid: false };
 export default [
   A('ticketmachine', ['ch_ticket'], [.7, .5, 1.25], ticketmachine, { vb: [-.5, -.1, 0, 1.2, .7, 2.6], use: { x: .35, y: 1.05 } }),
   A('nowserving', ['decor'], [5, .15, 1.5], nowserving, Object.assign({ variants: [{ n: 47, win: 3 }] }, WALL, { mount: 2.9 })),
-  A('window', ['ch_window'], [3, .9, 1.12], win, { vb: [-.2, -.2, 0, 3.2, 1.1, 2.8], use: { x: 1.5, y: 1.45 }, staff: { x: 1.5, y: -.45, dir: 1 }, variants: [{ n: 1, short: 'CASHIER', name: 'PAY BILLS' }, { n: 5, short: 'FOUND', name: 'LOST+FOUND' }, { n: 2, shut: 1, name: 'ID + TAGS' }] }),
+  A('window', ['ch_window'], [3, .9, 1.12], win, { vb: [-.2, -.2, 0, 3.2, 1.1, 3.1], use: { x: 1.5, y: 1.45 }, staff: { x: 1.5, y: -.45, dir: 1 }, variants: [{ n: 1, short: 'CASHIER', name: 'PAY BILLS' }, { n: 5, short: 'FOUND', name: 'LOST+FOUND' }, { n: 2, shut: 1, name: 'ID + TAGS' }] }),
   A('waitrow', ['ch_wait'], p => [(p.n || 4) * .6, .6, .45], waitrow, { seats: p => Array.from({ length: p.n || 4 }, (_, i) => ({ x: i * .6 + .3, y: .3, z: .45, dir: p.dir === undefined ? 3 : p.dir })), variants: [{}, { n: 6, c: '#8a5a34' }] }),
   A('photobooth', ['ch_photo'], [1.6, 1.2, 2.2], photobooth, { vb: [-.1, -.1, 0, 1.8, 1.4, 2.4], use: { x: .6, y: 1.7 }, variants: [{}, { flash: 1 }] }),
   A('formtable', ['ch_forms'], [2.2, .7, 1.1], formtable, { vb: [-.1, -.1, 0, 2.3, .8, 2], use: { x: 1.1, y: 1.2 } }),

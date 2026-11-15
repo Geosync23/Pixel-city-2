@@ -13,7 +13,8 @@ import { LINES } from '../story/ambient_lines.js';
 import { AMBIENT } from '../story/dialogue.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 
-export const PLAYER_CHANCE = .4;      // chance that a bubble from someone standing near the player is about the player's visible state (when one applies)
+export const PLAYER_CHANCE = .4;
+export const REACT = { gap: 18, last: -99 };   // QA round 3: ONE shared limit for every line about the player (reactions + the near-player picker below): at most one per 18 s      // chance that a bubble from someone standing near the player is about the player's visible state (when one applies)
 const MIX = [['general', .5], ['district', .14], ['timeOfDay', .11], ['weather', .1], ['season', .08], ['weekday', .07]];   // the general mix (weights)
 
 const safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
@@ -146,8 +147,8 @@ export function duet(c, ctx = {}) {
 /** what an anonymous citizen says right now (already filled); null when no pool has anything */
 export function cityLine(c, ctx = {}) {
   wire(); const now = G.now(), h = now.hf !== undefined ? now.hf : now.hour, r = Math.random(); let s = null;
-  if (ctx.state) s = draw('player.' + ctx.state, poolOf('player', ctx.state));                                         // forced (bumped / staring)
-  if (!s && ctx.near && Math.random() < PLAYER_CHANCE) { const st = playerStates(); if (st.length) { const k = st[Math.floor(Math.random() * st.length)]; s = draw('player.' + k, poolOf('player', k)); } }
+  if (ctx.state) { s = draw('player.' + ctx.state, poolOf('player', ctx.state)); if (s) REACT.last = G.time; }         // forced (bumped / staring)
+  if (!s && ctx.near && G.time - REACT.last > REACT.gap && Math.random() < PLAYER_CHANCE) { const st = playerStates(); if (st.length) { const k = st[Math.floor(Math.random() * st.length)]; s = draw('player.' + k, poolOf('player', k)); if (s) REACT.last = G.time; } }
   if (!s && ctx.legacy && ctx.legacy.length && r < .6) s = draw('legacy.' + (ctx.legacyKey || 'x'), ctx.legacy.filter(usable));
   if (!s && ctx.eventId && r < .6) s = draw('events.' + ctx.eventId, poolOf('events', ctx.eventId));
   const kd = kindKey(ctx.kind); if (!s && kd && r < .55) s = draw('kind.' + kd, poolOf('kind', kd));

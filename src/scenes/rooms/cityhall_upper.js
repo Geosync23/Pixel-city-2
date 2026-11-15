@@ -29,7 +29,7 @@ const LINES = {
   H('furn.lobby.column', 9.8, 4, { c: '#efe8dc' }); H('furn.lobby.column', 9.8, 8.4, { c: '#efe8dc' }); H('railing', 9.9, .6, { w: 3.4 }, { flip: true }); H('railing', 9.9, 8.9, { w: 4.6 }, { flip: true });
   H('furn.hotel.arch', AX - 1.2, 1, {}); H('registrar', AX - 1, 1.9, {}); H('furn.hotel.carpet', AX - 1, 3.2, { w: 2, d: 8.4, c: '#7a2030' });
   for (const y of [6.2, 7.7, 9.2]) { H('bench', AX - 4.2, y, { w: 3, c: '#f4ecd8', bow: 1, dir: 3 }, { wed: 1 }); H('bench', AX + 1.2, y, { w: 3, c: '#f4ecd8', bow: 1, dir: 3 }, { wed: 1 }); }
-  H('planter', 11, .8, { k: 'tulips', seed: 4 }); H('planter', 19.8, .8, { k: 'tulips', seed: 7 }); H('furn.hotel.chandelier', AX - 1.2, 5, { r: .8 }, { z: 3.4 }); H('bench', 6.6, 11, { w: 3 });
+  H('planter', 11, .8, { k: 'tulips', seed: 4 }); H('planter', 19.8, .8, { k: 'tulips', seed: 7 }); H('bench', 6.6, 11, { w: 3 });
   S(3.1, 5.55, 1, { kind: 'staff', label: 'Deputy clerk', lines: LINES.office, dep: 1 }); S(2.6, 8.2, 3, { p: .5 }); S(7.4, 8.1, 3, { p: .6, couple: 1, lines: ['We are here for the licence. Sixty dollars and a signature. Romance!', 'He forgot his ID. On THIS of all days.'] }); S(8.1, 8.2, 3, { p: .6, couple: 1, lines: ['I did not forget it. I mislaid it. Strategically.'] }); S(12, 11.6, 0, { busy: 1, anim: 'phone' }); S(20.4, 11.4, 2, { busy: 1 });
 })();
 defineRoom({ id: CR.clerk, name: NAME + " — City Clerk & Wedding Room", w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'cityhall', venue: CV.place, floor: GT.f_wood, bg: '#15161f', edge: '#4a3a2a',
@@ -59,7 +59,7 @@ defineRoom({ id: CR.clerk, name: NAME + " — City Clerk & Wedding Room", w: W, 
         if (p === 'gather') { a.hidden = b.hidden = true; }
         if (p === 'enter') { for (const [c, dx] of [[a, -.5], [b, .5]]) { c.hidden = !!(me && c === b); c.alpha = 0; c.x = O + AX + dx; c.y = O + 12.2; c.pose = null; go(c, Wd, AX + dx, 3.6); } bubble(clerk, 'Everybody up! Here they come.', 3600); for (const c of cr.list) if (c.spot.wed && !c.hidden) c._hold = 2; }
         if (p === 'vows') { for (const [c, dx] of [[a, -.5], [b, .5]]) { if (c.hidden && !(me && c === b)) { c.hidden = false; } c.path = null; c.x = O + AX + dx; c.y = O + 3.6; c.dir = dx < 0 ? 0 : 2; c.alpha = undefined; } vow = 0; vT = 1; }
-        if (p === 'kiss') { for (const c of [a, b]) c.pose = 'cheer'; bubble(clerk, LINES.vows[4], 5200); for (const c of cr.list) if (c.spot.wed && !c.hidden) { c.pose = 'cheer'; c._hold = 5; } cT = 0; if (CH()) CH().wedding.kiss(sc); }
+        if (p === 'kiss') { for (const [c, dx] of [[a, -.5], [b, .5]]) { c.hidden = !!(me && c === b); c.path = null; c.x = O + AX + dx; c.y = O + 3.6; c.dir = 1; c.alpha = undefined; c.pose = 'cheer'; } bubble(clerk, LINES.vows[4], 5200); for (const c of cr.list) if (c.spot.wed && !c.hidden) { c.pose = 'cheer'; c._hold = 5; } cT = 0; if (CH()) CH().wedding.kiss(sc); }
         if (p === 'exit') { for (const [c, dx] of [[a, -.5], [b, .5]]) { c.pose = null; go(c, Wd, AX + dx, 12.4); } cT = 0; }
         if (!p) { a.hidden = b.hidden = true; if (was && CH()) CH().wedding.over(sc); } }
     };
@@ -108,7 +108,7 @@ const T = kit();
   const { H, Wl, S } = T;
   Wl('clockface', 'y', 5.4, { h: 10, m: 10 }, { face: 1 }); Wl('furn.hotel.window', 'y', 1, { w: 3, view: 'bay' }, { win: 1, view: 'bay' }); Wl('furn.hotel.window', 'y', 10, { w: 3 }, { win: 1, view: 'city' });
   Wl('furn.hotel.window', 'x', 1.6, { w: 3, seed: 4 }, { win: 1, view: 'plaza' }); Wl('furn.hotel.window', 'x', 6.2, { w: 3, view: 'bay', seed: 7 }, { win: 1, view: 'hills' });
-  H('clockworks', 5.4, 1.4, {}, { works: 1 }); H('bell', 10.6, 2.6, {}, { bell: 1 }); H('telescope', 1.6, 5, {}); H('bench', 9.6, 7.4, { w: 3, c: '#5a4636' }); H('parapet', 1, 10.2, { w: 5 }); H('parapet', 8, 10.2, { w: 5 });
+  H('clockworks', 5.4, 1.4, {}, { works: 1 }); H('bell', 10.6, 2.6, {}, { bell: 1 }); H('telescope', 1.6, 5, {}); H('bench', 9.6, 7.4, { w: 3, c: '#5a4636' }); H('shelves', 12.6, 5.6, { w: 2.5, kind: 'boxes', h: 1.8, seed: 41, c: '#6a4a34' }, { flip: true }); H('bench', 3.4, 8.2, { w: 2, c: '#5a4636' }); H('parapet', 1, 10.2, { w: 5 }); H('parapet', 8, 10.2, { w: 5 });
   S(11.6, 6.6, 3, { p: .6, lines: ['A hundred and twelve. I counted every one. I am never going down.', 'You can see the lighthouse AND the airport. And my house. I left the light on.', 'Wait for the hour. It goes right through you.'] }); S(3.2, 6.4, 2, { p: .5, anim: 'phone' }); S(4.4, 8.6, 1, { busy: 1, age: 'kid' });
 })();
 defineRoom({ id: CR.tower, name: NAME + ' — the Clock Tower', w: 14, d: 11, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'cityhall', venue: CV.place, floor: GT.f_wood, bg: '#15161f', edge: '#5a4a3a',

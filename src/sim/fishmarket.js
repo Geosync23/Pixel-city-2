@@ -116,7 +116,7 @@ function buy(stallId, itemId, mode) {
   st().spent += p; if (sc && sc.fm) sc.fm.weigh(stallId, itemId, kg, q.catch ? (CATCH.find(k => k.id === q.catch) || {}).sp : s.sp[0]); sfx('coin'); G.emit('shop:buy', itemId, 1, s.venue); G.emit('fishmarket:buy', itemId, stallId, p);
   const m = sc && sc.fm && sc.fm.monger(stallId); if (m) { m.pose = 'work'; m._hold = 2.5; }
   if (eat) { const seat = sc ? freeSeat(sc) : null, fin = () => { safe(() => G.inv.applyEffects(it.effects)); G.emit('inv:use', itemId); };
-    if (G.activities && G.activities.start) safe(() => G.activities.start(it.course === 'drink' ? 'drink' : 'eat', { minutes: it.eatMinutes || 8, at: seat || undefined, seated: !!seat, label: 'Eating ' + it.name, onDone: fin, onCancel: fin, summary: `${it.name}: ${G.inv.effectText(it)}` })); else fin();
+    G.startActivity({ label: 'Eating ' + it.name, anim: 'eat', minutes: it.eatMinutes || 8, rate: 2.5, at: seat ? { x: seat.x, y: seat.y, z: seat.z, dir: seat.dir } : undefined, done: () => { G.player.poseOpts = null; fin(); toast(`${it.name}: ${safe(() => G.inv.effectText(it)) || 'delicious'}.`, 'good', 3000); }, cancel: () => { G.player.poseOpts = null; fin(); } }); if (seat) G.player.poseOpts = { seated: true };
     toast(`${it.name}, ${fmt(p)}.${seat ? ' You carry it to a mess table.' : ''}`, 'good', 3200); return true; }
   safe(() => G.inv.add(itemId, 1, it.category === 'dish' ? { exp: G.state.t + 240 } : c && c.fresh ? { fresh: c.fresh } : {}));
   toast(`${kg.toFixed(2).replace(/0$/, '')} kg on the scale: ${it.name}, ${fmt(p)}.${c && c.level === 3 ? ' Landed this morning: it will keep a day longer.' : ''}`, 'good', 3600); return true;

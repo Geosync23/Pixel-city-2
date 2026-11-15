@@ -56,7 +56,7 @@ function build() {
   H('furn.hotel.grandstair', 12.5, .3, { n: 12 }); Wl('furn.hotel.doorway', 'y', 16.4, { name: 'ARCHIVE', c: '#3a4250', w: 3, lit: 1 }); Wl('noticeboard', 'y', 25.5, {});
   Wl('furn.hotel.doorway', 'x', 3, { name: 'COUNCIL CHAMBER', c: '#2f6f5f', w: 4.4, lit: 1 }); Wl('plaque', 'x', 8, { t: 'RESERVED' }, { plaque: 1 }); Wl('furn.hotel.doorway', 'x', 11, { name: 'PERMITS + RECORDS', c: '#22304e', w: 4.8, lit: 1 });
   for (const at of [.3, 6.6, 9.9, 15.8, 19.5, 27.4]) Wl('furn.lobby.sconce', 'y', at, {}); for (const at of [1.4, 9.6, 17.2, 20.6]) Wl('furn.lobby.sconce', 'x', at, {});
-  for (const at of [1, 10, 19]) Wl('bunting', 'y', at, { w: 8 }, { bunt: 1 }); for (const at of [1, 12]) Wl('bunting', 'x', at, { w: 9 }, { bunt: 1 });
+  for (const at of [1, 10, 19]) Wl('bunting', 'y', at, { w: 8 }, { bunt: 1, mount: 2.75 }); for (const at of [1, 12]) Wl('bunting', 'x', at, { w: 9 }, { bunt: 1, mount: 2.75 });
   H('seal', CX - 3, CY - 3, {}, { seal: 1 }); H('furn.hotel.chandelier', CX - 1.2, CY - 1.2, { r: 1.2 }, { z: 4 });
   for (let k = 0; k < 8; k++) { const a = Math.PI / 8 + k * Math.PI / 4; H('furn.hotel.column', Math.round((CX + Math.cos(a) * 5.6 - .4) * 2) / 2, Math.round((CY + Math.sin(a) * 5.6 - .4) * 2) / 2, { h: 5.75 }); }
   H('flagpole', 11.5, 4.4, {}); H('flagpole', 16, 4.4, { k: 'bay' });

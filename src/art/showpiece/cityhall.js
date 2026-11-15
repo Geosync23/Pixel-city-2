@@ -93,13 +93,13 @@ function daisdesk(p) {
 function cchair(p) { const c = p.c || '#4a2a24'; box(.06, .16, 0, .48, .48, .12, OAK_D, { ol: false }); box(.04, .12, .12, .52, .54, .33, c); if (p.back !== 0) { box(.04, .02, .45, .52, .12, p.tall ? 1.15 : .85, c); if (p.tall) { const s = S2(.3, .14, 1.4); ellipse(s[0], s[1], 3, 3, BRASS_L); } } }
 function podium() { box(.2, .1, 0, .6, .45, .12, OAK_D); box(.25, .14, .12, .5, .36, .9, OAK, { l: PAT.planks(dk(OAK, .12), 5) }); fq([[.15, .05, 1.02], [.85, .05, 1.02], [.85, .6, 1.2], [.15, .6, 1.2]], OAK_L); lw([.15, .6, 1.2], [.85, .6, 1.2], OAK_D); qy(.15, .85, .6, 1.1, 1.2, OAK_D); const s = S2(.5, .5, .62); ellipse(s[0], s[1], 4, 4, BRASS); leaf(s[0], s[1], 2, MAPLE); lw([.75, .2, 1.1], [.6, .15, 1.5], INK); dot(.6, .15, 1.52, SLATE, 2); }
 function voteboard(p) {
-  const W = 7, H = 3.2, y = .2, v = String(p.v || '-------'), yy = y + .002;
+  const W = 7, H = 3.4, y = .2, v = String(p.v || '-------'), yy = y + .002;
   qy(0, W, y, 0, H, OAK_D); lw([0, y, H], [W, y, H], OAK_L); qy(.12, W - .12, yy, .12, H - .12, '#141820');
-  lit(() => { ctext(p.h || 'MAPLE BAY CITY COUNCIL', .12, W - .12, yy, H - .2, '#ffd060'); ctext(String(p.t || '').slice(0, 26), .12, W - .12, yy, H - .64, '#f4f0e8');
-    if (p.a !== undefined) { textY('AYE', .9, yy, 1.95, '#6fe08a'); num7(p.a | 0, 1.9, yy, 1.4, '#6fe08a', .3, .56); textY('NAY', 3.9, yy, 1.95, '#ff7a6a'); num7(p.n | 0, 4.9, yy, 1.4, '#ff7a6a', .3, .56);
-      for (let i = 0; i < 7; i++) { const x = 1.1 + i * .8, c = v[i] === 'A' ? '#6fe08a' : v[i] === 'N' ? '#ff7a6a' : '#3a4250'; qy(x - .16, x + .16, yy, .9, 1.12, c); } }
-    else { ctext(p.t2 || '', .12, W - .12, yy, 2.1, '#8fd0ff'); ctext(p.t3 || '', .12, W - .12, yy, 1.62, '#f4f0e8'); ctext(p.t4 || '', .12, W - .12, yy, 1.14, '#f4f0e8'); }
-    ctext(p.s || '', .12, W - .12, yy, .62, p.sc || '#8fd0ff'); });
+  lit(() => { ctext(p.h || 'MAPLE BAY CITY COUNCIL', .12, W - .12, yy, H - .2, '#ffd060'); ctext(String(p.t || '').slice(0, 26), .12, W - .12, yy, H - .78, '#f4f0e8');
+    if (p.a !== undefined) { textY('AYE', .9, yy, 1.96, '#6fe08a'); num7(p.a | 0, 1.9, yy, 1.4, '#6fe08a', .3, .56); textY('NAY', 3.9, yy, 1.96, '#ff7a6a'); num7(p.n | 0, 4.9, yy, 1.4, '#ff7a6a', .3, .56);
+      for (let i = 0; i < 7; i++) { const x = 1.1 + i * .8, c = v[i] === 'A' ? '#6fe08a' : v[i] === 'N' ? '#ff7a6a' : '#3a4250'; qy(x - .16, x + .16, yy, .86, 1.08, c); } }
+    else { ctext(p.t2 || '', .12, W - .12, yy, 2.05, '#8fd0ff'); ctext(p.t3 || '', .12, W - .12, yy, 1.55, '#f4f0e8'); ctext(p.t4 || '', .12, W - .12, yy, 1.05, '#f4f0e8'); }
+    ctext(p.s || '', .12, W - .12, yy, .58, p.sc || '#8fd0ff'); });
 }
 function clerktable() { for (const [x, y] of [[.1, .1], [1.9, .1], [.1, .8], [1.9, .8]]) lw([x, y, 0], [x, y, .72], OAK_D); box(0, 0, .72, 2, .9, .08, OAK, { t: PAT.fboards(OAK, .3) }); box(.2, .3, .8, .5, .4, .03, PAPER, { ol: false }); qz(.24, .66, .34, .44, .835, '#8a5a34'); lw([.3, .5, .84], [.6, .5, .84], '#6a5a48'); lw([.3, .58, .84], [.55, .58, .84], '#6a5a48'); box(1.2, .25, .8, .5, .35, .16, SLATE, { ol: false }); lw([.9, .6, .8], [.84, .7, 1.02], BRASS); signY('SIGN UP', .1, 1.9, .9, .26, .6, CIVIC, LINEN, { frame: false }); }
 function railing(p) { const w = p.w || 4; for (const x of [.08, w - .08]) box(x - .08, .02, 0, .16, .16, .95, OAK, { ol: true }); railX(.16, w - .16, .1, 0, .8, BRASS); }
@@ -126,7 +126,7 @@ export default [
   A('daisdesk', ['decor'], p => [p.w || 6, .6, 1.11], daisdesk, { vb: p => [-.1, -.1, 0, (p.w || 6) + .1, .8, 1.6], variants: [{ seal: 1 }, { w: 2.4, n: 2 }] }),
   A('cchair', ['ch_cchair'], p => [.6, .7, p.back === 0 ? .45 : p.tall ? 1.6 : 1.3], cchair, { seats: [{ x: .3, y: .42, z: .45, dir: 1 }], variants: [{}, { tall: 1, c: '#2f5a4a' }, { back: 0 }] }),
   A('podium', ['ch_podium'], [1, .7, 1.25], podium, { vb: [-.1, -.1, 0, 1.1, .8, 1.7], use: { x: .5, y: 1.2 }, pose: { x: .5, y: 1.15, z: 0, dir: 3 } }),
-  A('voteboard', ['ch_board'], [7, .2, 3.2], voteboard, Object.assign({ use: { x: 3.5, y: .8 }, variants: [{ t: 'ROUTE 14: PUNCTUALITY', a: 4, n: 2, v: 'AANA-A-', s: 'VOTING', h: 'ITEM 2 OF 4' }, { t: 'NEXT MEETING', t2: 'TUESDAY 18:30', t3: 'PUBLIC WELCOME', s: 'CHAMBER OPEN' }] }, WALL, { mount: 1.9 })),
+  A('voteboard', ['ch_board'], [7, .2, 3.4], voteboard, Object.assign({ use: { x: 3.5, y: .8 }, variants: [{ t: 'ROUTE 14: PUNCTUALITY', a: 4, n: 2, v: 'AANA-A-', s: 'VOTING', h: 'ITEM 2 OF 4' }, { t: 'NEXT MEETING', t2: 'TUESDAY 18:30', t3: 'PUBLIC WELCOME', s: 'CHAMBER OPEN' }] }, WALL, { mount: 1.7 })),
   A('clerktable', ['ch_signup'], [2, .9, .8], clerktable, { vb: [-.1, -.1, 0, 2.1, 1, 1.2], use: { x: 1, y: 1.4 }, staff: { x: 1, y: -.45, dir: 1 } }),
   A('railing', ['decor'], p => [p.w || 4, .2, .95], railing, { variants: [{}, { w: 6 }] }),
 ];

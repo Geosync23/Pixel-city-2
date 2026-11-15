@@ -20,7 +20,7 @@ const LINES = {
   clerk: ['Next, please. Ticket?', 'You want form 27B. Everybody wants form 27B.', 'Sign here, here, and initial there. No, THERE.', 'We close at half past four. The queue does not know that.'],
 };
 function build() {
-  WINDOWS.forEach((w, i) => { H('window', WX[i], 1.2, { n: w.n, short: w.short, name: w.name }, { win: w.n, wname: w.who }); S(WX[i] + 1.5, .7, 1, { kind: 'staff', label: w.who, lines: LINES.clerk, win: w.n }); });
+  WINDOWS.forEach((w, i) => { H('window', WX[i], 1.2, { n: w.n, short: w.short, name: w.name }, { win: w.n, wname: w.who }); S(WX[i] + 1.2, .95, 1, { kind: 'staff', label: w.who, lines: LINES.clerk, win: w.n }); });
   H('shelves', 2.6, 0, { w: 4, kind: 'boxes', h: 2.1, seed: 2 }, { solid: false }); H('shelves', 7, 0, { w: 4, kind: 'boxes', h: 2.1, seed: 5 }, { solid: false }); H('shelves', 11.4, 0, { w: 4, kind: 'books', h: 2.1, seed: 3 }, { solid: false }); Wl('lostshelf', 'y', 16.4, {}, { lost: 1 });
   Wl('nowserving', 'y', 20.4, { n: 41, win: 1 }, { sign: 1 }); H('photobooth', 21, .5, {}, { booth: 1 }); H('formtable', 23.2, 3.6, {});
   for (const at of [.6, 19.8, 25.5]) Wl('furn.lobby.sconce', 'y', at, {}); Wl('noticeboard', 'x', 3.4, {}); Wl('furn.lobby.restroom', 'x', 7.4, { c: '#5a4030', dc: '#2f6f5f' }); Wl('furn.lobby.restroom', 'x', 8.6, { c: '#5a4030', dc: '#22304e' }); Wl('furn.lobby.sconce', 'x', 11, {}); Wl('portrait', 'x', 12.4, { k: 2 }, { portrait: 2 });

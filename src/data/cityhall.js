@@ -20,7 +20,7 @@ export const FEES = { id: 5, dog: 12, bike: 8, busk: 15, stall: 25, marriage: 60
 export const TUNE = { QUEUE_MIN: 5, WATCH_MIN: 20, SPEAK_MIN: 6, FORM_MIN: 3, PHOTO_MIN: 2, REEL_MIN: 12, WIND_MIN: 6, BUSK_MIN: 30, STALL_MIN: 60, DISPUTE_DAYS: 7, FUND: 340, REWARD: 150, WALKOUT: 20 };
 
 const DAY = 1440;
-export const isHoliday = day => EVENTS.some(e => e.kind === 'holiday' && e.hours && e.hours[0] === 0 && e.when && e.when.days && eventOnDay(e, day));
+export const isHoliday = day => day >= 0 && EVENTS.some(e => e.kind === 'holiday' && e.hours && e.hours[0] === 0 && e.when && e.when.days && eventOnDay(e, day));
 export const COUNCIL = { days: [1, 3], hours: [18.5, 20.5], item: 28 };
 export const WEDDING = { weekday: 5, slots: [11, 13, 15], len: 40 };
 export const TOUR = { days: [6], hours: [11, 12.5] };
