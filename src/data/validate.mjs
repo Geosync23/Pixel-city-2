@@ -3,7 +3,8 @@
 // Exits with code 1 if any cross-reference is broken.
 import { NEEDS, MOODLETS, MOOD, SKILLS, SKILL_XP } from './needs.js';
 import { VENUES, VENUE_BY_ID, SERVICES, POIS, STATIONS, DISTRICTS, isOpen } from './venues.js';
-import { ITEMS, ITEM_BY_ID, RECIPES, HOMEGOODS, DISHES } from './items.js';
+import { ITEMS, ITEM_BY_ID, RECIPES, HOMEGOODS, DISHES, INGREDIENTS, COOKBOOKS, RECIPE_CATS, LEARN_FROM, LEGACY_RECIPES } from './items.js';
+import './venues_extra.js'; // registers the generic venue types (gen_bodega, gen_retail_cheese ...) that items may list in soldAt
 import { ACTIVITIES, ANIMS, FUNCTION_TAGS } from './activities.js';
 import { JOBS, GIGS, WORK_RULES, shiftHours, weeklyBasePay } from './jobs.js';
 import { HOMES, SIZE_CLASSES, STARTER_KIT, MOVING_BOXES, AMBIENCE_TIERS, MOVING_BOXES_DONE_MOODLET } from './homes.js';
@@ -55,17 +56,50 @@ ITEMS.forEach((i) => {
     venue(v, `item ${i.id}`);
     const o = VENUE_BY_ID[v]?.offers || {};
     if (i.category === 'dish') ok(o.menu, `item ${i.id}: venue ${v} has no menu`);
-    else ok((o.shop || []).includes(i.category), `item ${i.id}: venue ${v} does not sell category ${i.category}`);
+    else if (!VENUE_BY_ID[v]?.generic || i.category === 'ingredient' || i.cookbook) ok((o.shop || []).includes(i.category), `item ${i.id}: venue ${v} does not sell category ${i.category}`); // (stock copied onto generic types by venues_extra.js is that file's business)
   });
   (i.blocksMoodlets || i.perk?.blocksMoodlets || []).forEach((m) => moodlet(m, `item ${i.id}`));
   skills(i.perk?.xpMult, `item ${i.id}`);
   if (i.category === 'book' && i.skill) skills({ [i.skill]: 1 }, `item ${i.id}`);
   (i.seasons || []).forEach((s) => ok(seasonIds.includes(s), `item ${i.id}: season`));
 });
+unique(RECIPES.map((r) => r.id), 'RECIPES');
+const catIds = RECIPE_CATS.map((c) => c.id), CORE_SHOPS = ['grocery', 'cornerstore', 'market_stalls', 'bakery'];
+const recipeCost = (r) => Object.entries(r.ingredients).reduce((s, [i, q]) => s + (ITEM_BY_ID[i]?.price || 0) * q, 0) / r.servings;
 RECIPES.forEach((r) => {
-  Object.keys(r.ingredients).forEach((ing) => { item(ing, `recipe ${r.id}`); ok(ITEM_BY_ID[ing]?.category === 'ingredient' && ITEM_BY_ID[ing].soldAt.length, `recipe ${r.id}: '${ing}' not a buyable ingredient`); });
-  ok(r.stoveTier >= 0 && r.stoveTier <= 2 && r.skill >= 1 && r.skill <= 10, `recipe ${r.id}: tier/skill range`);
+  const w = `recipe ${r.id}`;
+  Object.keys(r.ingredients).forEach((ing) => { item(ing, w); ok(ITEM_BY_ID[ing]?.category === 'ingredient' && ITEM_BY_ID[ing].soldAt.length, `${w}: '${ing}' not a buyable ingredient`); });
+  ok(r.stoveTier >= 0 && r.stoveTier <= 2 && r.skill >= 1 && r.skill <= 10, `${w}: tier/skill range`);
+  ['name', 'icon', 'cookMinutes', 'servings', 'effects', 'eatMinutes', 'shelfLifeDays', 'xp'].forEach((f) => ok(r[f] !== undefined, `${w}: missing ${f}`));
+  ok(['none', 'stove'].includes(r.appliance), `${w}: appliance`);
+  ok(catIds.includes(r.cat), `${w}: unknown menu category '${r.cat}'`);
+  ok(!r.oven || (r.appliance === 'stove' && r.stoveTier >= 1), `${w}: oven dishes need appliance 'stove' and stoveTier >= 1`);
+  ok(r.servings >= 1 && r.servings <= 6 && r.cookMinutes >= 5 && r.cookMinutes <= 120, `${w}: servings / cookMinutes range`);
+  ok(!r.giftable || (r.gift && r.gift.relationship > 0 && Array.isArray(r.gift.giftTags)), `${w}: giftable needs gift { relationship, giftTags }`);
+  ok(!!r.drink === (r.cat === 'drink'), `${w}: drink flag must match the 'drink' category`);
+  const c = recipeCost(r); ok(c >= 0.5 && c <= 6.5, `${w}: cost per serving $${c.toFixed(2)} outside $0.50-$6.50`);
+  ok(ITEM_BY_ID['meal_' + r.id]?.category === 'meal', `${w}: no meal item`);
+  const l = r.learn;
+  if (l) {
+    ok(['level', 'book', 'eat', 'friend', 'story'].filter((k) => l[k] !== undefined).length === 1, `${w}: learn needs exactly one of level/book/eat/friend/story`);
+    if (l.level !== undefined) ok(l.level >= 2 && l.level <= 10 && l.level >= r.skill, `${w}: learn.level must be 2-10 and >= skill`);
+    if (l.book) ok(COOKBOOKS.some((b) => b.id === l.book), `${w}: unknown cookbook '${l.book}'`);
+    if (l.eat) { ok(l.n >= 1 && l.eat.length, `${w}: learn.eat needs dishes and n`); l.eat.forEach((d) => { item(d, w); ok(ITEM_BY_ID[d]?.soldAt.length, `${w}: learn.eat '${d}' is sold nowhere`); }); }
+    if (l.friend || l.story) ok(LEARN_FROM[l.friend || l.story], `${w}: no LEARN_FROM text for '${l.friend || l.story}'`);
+  }
 });
+LEGACY_RECIPES.forEach((id) => ok(RECIPES.some((r) => r.id === id), `LEGACY_RECIPES: '${id}' is gone (old saves could cook it)`));
+INGREDIENTS.forEach((i) => {
+  ok(i.soldAt.some((v) => CORE_SHOPS.includes(v)), `ingredient ${i.id}: must be sold at FreshWay, Lucky Corner, the market or the bakery`);
+  ok(i.shelfLifeDays === null || i.shelfLifeDays > 0, `ingredient ${i.id}: shelfLifeDays`);
+  ok(RECIPES.some((r) => r.ingredients[i.id]), `ingredient ${i.id}: used by no recipe`);
+});
+COOKBOOKS.forEach((b) => { ok(b.teaches.length >= 3, `cookbook ${b.id}: teaches fewer than 3 recipes`); ok(b.soldAt.length, `cookbook ${b.id}: sold nowhere`); });
+// icons: every meal, ingredient and cookbook needs its own art (no word / category fallback)
+try {
+  const { hasIcon } = await import('../art/icons/icons.js'); await import('../art/icons/recipes.js');
+  [...RECIPES.map((r) => 'meal_' + r.id), ...INGREDIENTS.map((i) => i.id), ...COOKBOOKS.map((b) => b.id)].forEach((id) => ok(hasIcon(id), `icon missing: ${id} (src/art/icons/recipes.js)`));
+} catch (e) { errors.push('could not load the icon modules: ' + e.message); }
 FUNCTION_TAGS.home.forEach((t) => [0, 1, 2].forEach((tier) => ok(ITEM_BY_ID[`${t}_t${tier}`], `homegood ${t}_t${tier} missing`)));
 HOMEGOODS.forEach((h) => ok(FUNCTION_TAGS.home.includes(h.tag), `homegood ${h.id}: tag`));
 VENUES.filter((v) => v.offers.menu).forEach((v) => ok(DISHES.some((d) => d.venue === v.id), `venue ${v.id}: menu but no dishes`));
@@ -173,8 +207,16 @@ if (process.argv.includes('--summary')) {
   JOBS.forEach((j) => console.log(`  ${j.id.padEnd(16)} ${String(shiftHours(j) * j.shifts.days.length).padStart(2)}h  ` + [1, 2, 3, 4].map((l) => ('$' + weeklyBasePay(j, l)).padStart(6)).join(' ')));
   console.log('\nNeed budget per day (16 h awake / 8 h asleep):');
   NEEDS.forEach((n) => console.log(`  ${n.id.padEnd(8)} ${(n.decayAwake * 16 + n.decayAsleep * 8).toFixed(0)}`));
+  console.log(`\nRecipes: ${RECIPES.length} | ingredients ${INGREDIENTS.length} | cookbooks ${COOKBOOKS.length}`);
+  console.log('  by category: ' + RECIPE_CATS.map((c) => `${c.id} ${RECIPES.filter((r) => r.cat === c.id).length}`).join(' · '));
+  console.log('  by skill:    ' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `${n}: ${RECIPES.filter((r) => r.skill === n).length}`).join(' · '));
+  const how = (r) => (!r.learn ? 'known from the start' : r.learn.level ? 'cooking level-up' : r.learn.book ? 'cookbook / card' : r.learn.eat ? 'eating out' : r.learn.friend ? 'friend' : 'story');
+  const by = {}; RECIPES.forEach((r) => { by[how(r)] = (by[how(r)] || 0) + 1; });
+  console.log('  learned by:  ' + Object.entries(by).map(([k, v]) => `${k} ${v}`).join(' · '));
+  console.log(`  no-cook ${RECIPES.filter((r) => r.appliance === 'none').length} · hot plate ${RECIPES.filter((r) => r.appliance === 'stove' && r.stoveTier === 0).length} · range/oven ${RECIPES.filter((r) => r.stoveTier === 1).length} · chef's range ${RECIPES.filter((r) => r.stoveTier === 2).length} · giftable ${RECIPES.filter((r) => r.giftable).length}`);
+  console.log('  known from the start, skill 1-2: ' + RECIPES.filter((r) => !r.learn && r.skill <= 2).length);
   console.log('\nRecipe cost per serving / hunger per $:');
-  RECIPES.forEach((r) => { const c = Object.entries(r.ingredients).reduce((s, [i, q]) => s + ITEM_BY_ID[i].price * q, 0) / r.servings; console.log(`  ${r.id.padEnd(20)} $${c.toFixed(2)}  hunger ${r.effects.hunger}  (${(r.effects.hunger / c).toFixed(1)}/$)`); });
+  RECIPES.forEach((r) => { const c = recipeCost(r); console.log(`  ${r.id.padEnd(22)} s${String(r.skill).padEnd(2)} ${r.cat.padEnd(9)} $${c.toFixed(2)}  x${r.servings}  ${String(r.cookMinutes).padStart(3)} min  hunger ${String(r.effects.hunger || 0).padStart(2)}  (${((r.effects.hunger || 0) / c).toFixed(1)}/$)  xp ${r.xp}`); });
   console.log('\nStarter studio first-week cost (rent + utilities + phone):');
   HOMES.filter((h) => h.kind === 'starter_studio').forEach((h) => console.log(`  ${h.id.padEnd(18)} $${h.rentPerWeek + SIZE_CLASSES[h.sizeClass].utilitiesPerWeek + 8}`));
 }

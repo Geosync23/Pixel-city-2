@@ -16,11 +16,11 @@
 // Fixture tags handled (registerFixture): every tag in data FUNCTION_TAGS.home/homeFixed/venue plus the art aliases
 //   seating, booth, fitting, cardio, yoga, lockers, reading, pantry, moving, boxes, armchair.
 // City: on entering the city scene, world pois of type 'bench' / 'spot' (and anything carrying a world function tag) become interactables.
-// Events: 'activity:start'(id, ctx), 'activity:done'(id, { completed, minutes, totals }), 'ui:open'(key, ctx), 'cooked'(recipeId, servings)
-// State: G.state.acts = { plants: { key: absDay watered }, last: { activityId: t } }
+// Events: 'activity:start'(id, ctx), 'activity:done'(id, { completed, minutes, totals }), 'ui:open'(key, ctx), 'cooked'(recipeId, servings), 'recipe:learned'(recipeId, how)
+// State: G.state.acts = { plants: { key: absDay watered }, last: { activityId: t } }; G.state.cook = recipe knowledge (see the cooking section; API G.cooking)
 import { G } from '../core/game.js';
 import { ACTIVITIES, ACTIVITY_BY_ID, FUNCTION_TAGS } from '../data/activities.js';
-import { ITEM_BY_ID, RECIPES, homegoodsForTag } from '../data/items.js';
+import { ITEM_BY_ID, RECIPES, RECIPE_BY_ID, RECIPE_CATS, LEARN_FROM, LEGACY_RECIPES, COOKBOOKS, homegoodsForTag } from '../data/items.js';
 import { VENUE_BY_ID, isOpen, POIS } from '../data/venues.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { NEEDS, SKILLS, MOODLETS } from '../data/needs.js';
@@ -214,29 +214,209 @@ Object.assign(opens, {
 });
 
 /* ---------- cooking ---------- */
-function takeIngredients(rec, giveBack) { for (const k in rec.ingredients) { let n = rec.ingredients[k]; if (giveBack) { G.inv.add(k, n, { silent: true }) || G.inv.fridge.add(k, n, { silent: true }); continue; } const f = isHome(G.scene) ? Math.min(n, G.inv.fridge.count(k)) : 0; if (f) G.inv.fridge.remove(k, f); if (n - f) G.inv.remove(k, n - f); } }
-async function cookMenu(fx, appliance) {
-  const stove = goodOf(fx, 'stove'), sb = (stove && stove.bonus) || { stoveTier: 0, cookTimeMult: 1, mealEffectMult: 1 }, lvl = G.skills ? G.skills.level('cooking') : 1;
-  const list = RECIPES.filter(r => r.appliance === appliance).map(r => {
-    const miss = Object.keys(r.ingredients).filter(k => invCount(k) < r.ingredients[k]), min = Math.max(5, Math.round(r.cookMinutes * (appliance === 'stove' ? sb.cookTimeMult : 1) * (1 - .03 * (lvl - 1))));
-    const why = lvl < r.skill ? `Cooking level ${r.skill}` : appliance === 'stove' && sb.stoveTier < r.stoveTier ? 'Needs a better stove' : miss.length ? 'Missing: ' + miss.map(k => ITEM_BY_ID[k].name).join(', ') : null;
-    return { label: r.name, sub: why || `${hm(min)} · makes ${r.servings} · Hunger +${r.effects.hunger}`, icon: iconEl('meal_' + r.id, 2, 'meal'), disabled: !!why, value: { r, min }, ord: (why ? 100 : 0) + r.skill };
-  }).sort((a, b) => a.ord - b.ord);
-  const pick = await choose(appliance === 'stove' ? 'What shall we cook?' : 'No-cook dishes', list, { cls: 'act-menu', text: `Cooking level ${lvl}. Ingredients come from your kitchen.` });
-  if (!pick) return; const { r, min } = pick;
-  takeIngredients(r);
-  start(appliance === 'stove' ? 'cook' : 'prep_cold', { fx, minutes: min, full: true, label: 'Cooking ' + r.name, noSummary: true, noOpen: true,
-    onCancel: () => { takeIngredients(r, true); toast('You stopped cooking and put the ingredients back.', 'info'); },
-    onDone: async () => {
-      const id = 'meal_' + r.id, q = appliance === 'stove' ? sb.mealEffectMult : 1; if (G.skills) G.skills.addXp('cooking', r.xp);
-      let inF = 0, inB = 0; for (let i = 0; i < r.servings; i++) { if (isHome(G.scene) && G.inv.fridge.add(id, 1, { q, silent: true })) inF++; else if (G.inv.add(id, 1, { q, silent: true })) inB++; }
-      G.emit('cooked', r.id, inF + inB);
-      if (!inF && !inB) return toast('No room to keep the food!', 'bad');
-      const v = await choose(`${r.name} is ready!`, [{ label: 'Eat now', sub: G.inv.effectText(ITEM_BY_ID[id], q), icon: iconEl(id, 2, 'meal'), value: 'eat' }, { label: inF ? 'Save it for later' : 'Pack it up', sub: inF ? `${inF} in the fridge` : `${inB} in your backpack`, value: 'keep' }], { text: `Made ${r.servings} serving${r.servings > 1 ? 's' : ''}. +${r.xp} cooking xp.` });
-      if (v === 'eat') G.inv.use(id, { from: inF ? 'fridge' : 'bag', at: tableSeat(fx) });
-    } });
+// Recipes: data/items.js RECIPES (+ data/recipes_extra.js). Ingredients come from the kitchen (fridge + cupboards) first, then the backpack.
+// RECIPE KNOWLEDGE — state G.state.cook = { v: 1, known: { recipeId: day learned }, eaten: { dishId: times eaten out }, books: [cookbookId on the kitchen shelf],
+//   made: { recipeId: times cooked }, legacy?: 1 (a save from before recipe knowledge: keeps the 17 original recipes) }.
+//   A recipe is known when it has no `learn` field, or it is in `known`, or the story set the flag 'recipe:<id>', or (legacy save) it is one of LEGACY_RECIPES.
+//   Learned by: cooking level-ups ('skill:up'), cookbooks / recipe cards (bought -> shelved at once), eating a restaurant dish n times ('inv:use'),
+//   friends ('friend:up' to friend / close), the story (flags). syncRecipes() re-checks all of them (also on load, every game day and when the menu opens).
+// G.cooking = { knows(id), learn(id, how?) -> bool, known() -> [ids], status(id, fx?) -> { known, can, why, miss: [ingredientIds], minutes }, sync(),
+//   open(fx, 'stove' | 'none'), teaser(id) -> how to learn it, shopHint([ingredientIds]) -> text, learnAll() (debug) }       Event: 'recipe:learned'(recipeId, how)
+const CK = () => { let c = G.state.cook; if (!c) c = G.state.cook = {}; for (const k of ['known', 'eaten', 'made']) if (!c[k]) c[k] = {}; if (!Array.isArray(c.books)) c.books = []; return c; };
+const LEGACY = new Set(LEGACY_RECIPES), EAT_IDS = new Set(RECIPES.flatMap(r => (r.learn && r.learn.eat) || [])), CAT_NAME = Object.fromEntries(RECIPE_CATS.map(c => [c.id, c.name]));
+const knows = r => !!r && (!r.learn || CK().known[r.id] !== undefined || !!(G.state.flags && G.state.flags['recipe:' + r.id]) || (!!CK().legacy && LEGACY.has(r.id)));
+const names = (list, max = 3) => list.slice(0, max).join(', ') + (list.length > max ? ` and ${list.length - max} more` : '');
+function learn(id, how, quiet) {
+  const r = RECIPE_BY_ID[id]; if (!r || knows(r)) return false;
+  CK().known[id] = G.now().day; G.emit('recipe:learned', id, how || 'gift');
+  if (!quiet) toast(`New recipe: ${r.name}!`, 'good', 3600); return true;
+}
+const tierOf = id => { try { return G.social && G.social.tier ? G.social.tier(id) : null; } catch (e) { return null; } };
+const eatenOf = l => l.eat.reduce((n, d) => n + (CK().eaten[d] || 0), 0);
+/** re-check every way of learning; returns the recipes learned just now */
+function syncRecipes(quiet) {
+  const c = CK(), lvl = G.skills ? G.skills.level('cooking') : 1, got = [];
+  for (const r of RECIPES) {
+    const l = r.learn; if (!l || knows(r)) continue;
+    const yes = l.level ? lvl >= l.level : l.book ? c.books.includes(l.book) : l.eat ? eatenOf(l) >= l.n : l.friend ? ['friend', 'close'].includes(tierOf(l.friend)) : false;
+    if (yes && learn(r.id, l.level ? 'level' : l.book ? 'book' : l.eat ? 'eat' : 'friend', true)) got.push(r);
+  }
+  if (got.length && !quiet) toast(`${got.length === 1 ? 'New recipe' : got.length + ' new recipes'}: ${names(got.map(r => r.name))}!`, 'good', 4200);
+  return got;
+}
+/** cookbooks and recipe cards never ride in the backpack: the moment you have one it goes on the kitchen shelf and its recipes are yours */
+let shelving = false;
+function shelveBooks() {
+  if (shelving || !G.inv) return; shelving = true;
+  try {
+    for (const b of COOKBOOKS) {
+      const n = G.inv.count(b.id); if (!n) continue; G.inv.remove(b.id, n);
+      if (CK().books.includes(b.id)) { toast(`You already have "${b.name}" — you leave the spare copy on the bookshop swap shelf.`, 'info', 3600); continue; }
+      CK().books.push(b.id); const got = syncRecipes(true);
+      toast(`"${b.name}" goes on your kitchen shelf. ${got.length ? `${got.length} new recipe${got.length === 1 ? '' : 's'}: ${names(got.map(r => r.name))}.` : 'You knew all of these already.'}`, 'good', 5200);
+    }
+  } finally { shelving = false; }
+}
+function ateOut(id) {
+  if (!EAT_IDS.has(id)) return; const c = CK(); c.eaten[id] = (c.eaten[id] || 0) + 1;
+  const got = syncRecipes(true);
+  if (got.length) return toast(`You have had it often enough to work out how it is made. New recipe${got.length > 1 ? 's' : ''}: ${names(got.map(r => r.name))}!`, 'good', 5200);
+  const r = RECIPES.find(q => q.learn && q.learn.eat && q.learn.eat.includes(id) && !knows(q)); if (!r) return;
+  const k = eatenOf(r.learn); if (k === 1) toast(`You pay attention to how the ${ITEM_BY_ID[id].name} is made. ${r.learn.n - k} more and you could cook something like it at home.`, 'info', 4600);
+}
+/** "FreshWay Market sells all of it." — which shops stock these ingredients (fewest shops first; real places only, never the generic venue types) */
+const SHOP_PRI = ['grocery', 'market_stalls', 'cornerstore', 'bakery'];
+function shopHint(ids) {
+  ids = [...new Set(ids)].filter(i => ITEM_BY_ID[i]); if (!ids.length) return '';
+  const all = Object.values(VENUE_BY_ID).filter(v => v && !v.generic && v.offers && (v.offers.shop || []).includes('ingredient')), seenName = new Set(), shops = [];
+  for (const v of [...SHOP_PRI.map(i => VENUE_BY_ID[i]).filter(Boolean), ...all.filter(v => !SHOP_PRI.includes(v.id))]) { if (seenName.has(v.name)) continue; seenName.add(v.name); shops.push(v); }
+  let left = ids.slice(); const parts = [], n = G.now();
+  for (let k = 0; k < 3 && left.length; k++) {
+    let best = null, bn = 0; for (const v of shops) { const c = left.filter(i => ITEM_BY_ID[i].soldAt.includes(v.id)).length; if (c > bn) { bn = c; best = v; } }
+    if (!best) break; const has = left.filter(i => ITEM_BY_ID[i].soldAt.includes(best.id)); left = left.filter(i => !has.includes(i));
+    let shut = false; try { shut = !isOpen(best, n.weekday, n.hf); } catch (e) { /* no hours */ }
+    parts.push(`${best.name}${shut ? ' (closed now)' : ''} sells ${!k && !left.length && ids.length > 1 ? (ids.length === 2 ? 'both' : 'all of it') : names(has.map(i => ITEM_BY_ID[i].name), 4)}`);
+  }
+  return parts.length ? parts.join('; ') + '.' : '';
+}
+function sellers(itemId) {
+  const it = ITEM_BY_ID[itemId]; if (!it) return ''; const out = [];
+  for (const v of it.soldAt.map(i => VENUE_BY_ID[i])) if (v && !v.generic && !out.includes(v.name)) out.push(v.name);
+  return out.slice(0, 2).join(' or ');
+}
+/** how an unknown recipe is learned (shown under the "???" teaser) */
+function teaser(r) {
+  const l = r.learn; if (!l) return '';
+  if (l.level) return `You will work this one out yourself at Cooking level ${l.level}.`;
+  if (l.book) { const b = ITEM_BY_ID[l.book], at = sellers(l.book); return `In ${b.name.startsWith('Recipe Card') ? 'the' : 'the cookbook'} "${b.name.replace('Recipe Card: ', '')}"${b.name.startsWith('Recipe Card') ? ' recipe card' : ''}${at ? ' — sold at ' + at : ''} (${G.money ? G.money.fmt(b.price) : '$' + b.price}).`; }
+  if (l.eat) { const d = l.eat.map(i => ITEM_BY_ID[i]).find(i => i && sellers(i.id)) || ITEM_BY_ID[l.eat[0]], at = sellers(d.id), k = Math.min(l.n, eatenOf(l)); return `Taste it first: have the ${d.name}${at ? ' at ' + at : ''} ${l.n} times (${k}/${l.n}) and you will work out how it is made.`; }
+  if (l.friend) return `A friend's recipe: get to know ${LEARN_FROM[l.friend] || l.friend}.`;
+  return `A recipe somebody in town will hand you when the time is right (${LEARN_FROM[l.story] || 'the story'}).`;
+}
+const METHOD = r => (r.appliance === 'none' ? 'No-cook' : r.oven ? 'Oven' : r.stoveTier === 2 ? "Chef's range" : r.stoveTier === 1 ? 'Range' : 'Stove');
+/** everything the menu needs to know about one recipe right now */
+function recipeStatus(r, sb, atStove = true) {
+  const lvl = G.skills ? G.skills.level('cooking') : 1, known = knows(r), miss = Object.keys(r.ingredients).filter(k => invCount(k) < r.ingredients[k]);
+  const minutes = Math.max(5, Math.round(r.cookMinutes * (r.appliance === 'stove' ? sb.cookTimeMult : 1) * (1 - .03 * (lvl - 1))));
+  const hard = !known ? 'Unknown recipe' : lvl < r.skill ? `Needs Cooking level ${r.skill}` : r.appliance === 'stove' && !atStove ? 'Cook this one at the stove'
+    : r.appliance === 'stove' && sb.stoveTier < r.stoveTier ? (r.stoveTier === 2 ? "Needs a Chef's Range" : r.oven ? 'Needs an oven (Gas Range & Oven)' : 'Needs a real range, not a hot plate') : null;
+  const why = hard || (miss.length ? 'Missing: ' + names(miss.map(k => ITEM_BY_ID[k].name), 3) : null);
+  return { r, known, miss, minutes, hard, why, can: !why, rank: !known ? 3 : hard ? 2 : miss.length ? 1 : 0 };
+}
+const fxLine = e => { const out = []; for (const k of ['hunger', 'energy', 'fun', 'social']) if (e[k] && out.length < 2) out.push(`${NEED_NAME[k]} +${e[k]}`); if (e.caffeine && out.length < 2) out.push('Caffeine'); return out.join(' · '); };
+let cookCss = false;
+function cookStyle() {
+  if (cookCss || typeof document === 'undefined') return; cookCss = true;
+  document.head.append(el('style', { text: `.cook-win{width:min(440px,96vw)}.cook-win .win-body{padding:0 10px 10px;display:flex;flex-direction:column;gap:5px}
+.ck-head{position:sticky;top:0;z-index:2;background:var(--panel);padding:8px 0 6px;border-bottom:2px solid var(--shade);display:flex;flex-direction:column;gap:6px}
+.ck-top{font-size:12px;font-weight:600;opacity:.8}.ck-tabs{display:flex;flex-wrap:wrap;gap:4px}
+.ck-tabs button{min-height:30px;padding:2px 7px;font-size:12px;box-shadow:0 2px 0 var(--edge)}.ck-tabs button.on{background:var(--gold)}.ck-tabs button.dim{opacity:.55}
+.ck-sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.65;margin:7px 0 0}
+.ck-row{display:flex;align-items:center;gap:8px;text-align:left;width:100%;padding:4px 8px;min-height:46px;flex:none}
+.ck-row.off{background:#f3e8cf;box-shadow:0 2px 0 #2a273366;border-color:#2a273399}.ck-row.off .ico{opacity:.6}
+.ck-m{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}.ck-m b{font-size:14px}.ck-s{font-size:12px;font-weight:600;opacity:.75}
+.ck-row.miss .ck-s{color:#a3401f;opacity:1}.ck-row.unk b{letter-spacing:.12em;opacity:.6}
+.ck-tag{font-size:10px;font-weight:700;border:2px solid var(--edge);padding:0 4px;background:var(--gold);flex:none}.ck-tag.lv{background:transparent;border-color:#2a273366;opacity:.75}
+.ck-sil{filter:brightness(0);opacity:.3}.ck-note{font-size:12px;font-weight:600;opacity:.8;margin:2px 0}
+.ck-hint{font-size:12px;font-weight:700;background:#fff0b8;border:2px solid var(--edge);padding:5px 8px;margin:2px 0}
+.ck-det{display:flex;flex-direction:column;gap:7px;padding-top:10px}.ck-dh{display:flex;gap:10px;align-items:center}.ck-dh div{display:flex;flex-direction:column;line-height:1.25}
+.ck-dh b{font-size:16px}.ck-dh span{font-size:12px;font-weight:600;opacity:.75}
+.ck-ings{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}.ck-ing{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;min-width:0}
+.ck-ing span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ck-ing i{font-style:normal;font-weight:700;color:var(--good)}.ck-ing.no i{color:var(--bad)}.ck-ing.no span{color:var(--bad)}
+.ck-btns{display:flex;gap:8px;margin-top:4px}.ck-btns .go{flex:1;background:var(--gold)}` }));
+}
+function takeIngredients(rec, giveBack) { for (const k in rec.ingredients) { let n = rec.ingredients[k]; if (giveBack) { (isHome(G.scene) && G.inv.fridge.add(k, n, { silent: true })) || G.inv.add(k, n, { silent: true }) || G.inv.fridge.add(k, n, { silent: true }); continue; } const f = isHome(G.scene) ? Math.min(n, G.inv.fridge.count(k)) : 0; if (f) G.inv.fridge.remove(k, f); if (n - f) G.inv.remove(k, n - f); } }
+/** the recipe window. appliance 'stove' = everything; 'none' (opened at the fridge) = no-cook dishes and drinks only */
+async function cookMenu(fx, appliance = 'stove') {
+  if (G.busy) return; cookStyle(); shelveBooks(); syncRecipes();
+  const atStove = appliance === 'stove', stove = goodOf(fx, 'stove'), sb = (atStove && stove && stove.bonus) || { stoveTier: 0, cookTimeMult: 1, mealEffectMult: 1 }, lvl = G.skills ? G.skills.level('cooking') : 1;
+  const pool = RECIPES.filter(r => atStove || r.appliance === 'none'), made = CK().made;
+  let tab = 'ready', sel = null, keep = 0;
+  const m = modal({ title: atStove ? 'What shall we cook?' : 'No-cook dishes & drinks', cls: 'cook-win' });
+  const stat = () => pool.map(r => recipeStatus(r, sb, atStove)), byName = (a, b) => a.r.skill - b.r.skill || a.r.name.localeCompare(b.r.name);
+  const row = s => {
+    const r = s.r, unk = !s.known;
+    const sub = unk ? teaser(r) : s.why || `${hm(s.minutes)} · makes ${r.servings} · ${fxLine(r.effects)}`;
+    const ic = iconEl('meal_' + r.id, 2, 'meal'); if (unk) ic.classList.add('ck-sil');
+    return el('button.ck-row' + (s.can ? '' : '.off') + (s.rank === 1 ? '.miss' : '') + (unk ? '.unk' : ''), { onclick: () => { keep = m.body.scrollTop; sel = r; render(); } }, ic,
+      el('span.ck-m', null, el('b', { text: unk ? '? ? ?' : r.name }), el('span.ck-s', { text: sub })),
+      !unk && !made[r.id] && s.can ? el('span.ck-tag', { text: 'NEW' }) : null, el('span.ck-tag.lv', { text: 'Lv ' + r.skill }));
+  };
+  const cook = (r, min) => {
+    m.close(); takeIngredients(r);
+    const ok = start(atStove && r.appliance === 'stove' ? 'cook' : 'prep_cold', { fx, minutes: min, full: true, label: (r.appliance === 'none' ? 'Making ' : r.oven ? 'Baking ' : 'Cooking ') + r.name, noSummary: true, noOpen: true,
+      onCancel: () => { takeIngredients(r, true); toast('You stopped and put the ingredients back.', 'info'); },
+      onDone: async () => {
+        const id = 'meal_' + r.id, q = r.appliance === 'stove' ? sb.mealEffectMult : 1, first = !CK().made[r.id], xp = Math.round(r.xp * (first ? 1.5 : 1));
+        CK().made[r.id] = (CK().made[r.id] || 0) + 1; if (G.skills) G.skills.addXp('cooking', xp);
+        let inF = 0, inB = 0; for (let i = 0; i < r.servings; i++) { if (isHome(G.scene) && G.inv.fridge.add(id, 1, { q, silent: true })) inF++; else if (G.inv.add(id, 1, { q, silent: true })) inB++; }
+        G.emit('cooked', r.id, inF + inB);
+        if (!inF && !inB) return toast('No room to keep the food!', 'bad');
+        const v = await choose(`${r.name} is ready!`, [{ label: r.drink ? 'Drink it now' : 'Eat now', sub: G.inv.effectText(ITEM_BY_ID[id], q), icon: iconEl(id, 2, 'meal'), value: 'eat' }, { label: inF ? 'Save it for later' : 'Pack it up', sub: inF ? `${inF} in the kitchen` : `${inB} in your backpack`, value: 'keep' }],
+          { text: `Made ${inF + inB} serving${inF + inB > 1 ? 's' : ''}. +${xp} cooking xp${first ? ' (first time — bonus!)' : ''}.${r.giftable ? ' A serving makes a good gift.' : ''}` });
+        if (v === 'eat') G.inv.use(id, { from: inF ? 'fridge' : 'bag', at: tableSeat(fx) });
+      } });
+    if (!ok) takeIngredients(r, true);
+  };
+  const detail = r => {
+    const s = recipeStatus(r, sb, atStove), unk = !s.known, ic = iconEl('meal_' + r.id, 3, 'meal'), d = el('div.ck-det'); if (unk) ic.classList.add('ck-sil');
+    d.append(el('div.ck-dh', null, ic, el('div', null, el('b', { text: unk ? '? ? ?' : r.name }), el('span', { text: `${CAT_NAME[r.cat] || 'Recipe'} · ${METHOD(r)} · Cooking level ${r.skill}` }),
+      !unk && el('span', { text: `${hm(s.minutes)} · makes ${r.servings} · keeps ${r.shelfLifeDays} day${r.shelfLifeDays === 1 ? '' : 's'}${made[r.id] ? ` · cooked ${made[r.id]}x` : ''}` }))));
+    if (unk) d.append(el('p.ck-hint', { text: teaser(r) }), el('p.ck-note', { text: 'You do not know this recipe yet.' }));
+    else {
+      d.append(el('p.ck-note', { text: G.inv.effectText(ITEM_BY_ID['meal_' + r.id], r.appliance === 'stove' ? sb.mealEffectMult : 1) + (r.giftable ? ' · makes a good gift' : '') }));
+      d.append(el('div.ck-sec', { text: 'Ingredients (from your kitchen)' }), el('div.ck-ings', null, Object.keys(r.ingredients).map(k => { const have = invCount(k), need = r.ingredients[k];
+        return el('div.ck-ing' + (have < need ? '.no' : ''), null, iconEl(k, 1.5, 'ingredient'), el('span', { text: ITEM_BY_ID[k].name }), el('i', { text: `${Math.min(have, 99)}/${need}` })); })));
+      if (s.miss.length) d.append(el('p.ck-hint', { text: 'Shopping: ' + (shopHint(s.miss) || 'nobody seems to sell that right now.') }));
+      if (s.hard) d.append(el('p.ck-note', { text: s.hard + '.' }));
+    }
+    d.append(el('div.ck-btns', null, el('button', { onclick: () => { sel = null; render(); m.body.scrollTop = keep; } }, '< Back'),
+      !unk && el('button.go', { disabled: !s.can, onclick: () => cook(r, s.minutes) }, s.can ? (r.appliance === 'none' ? 'Make it' : r.oven ? 'Bake it' : 'Cook it') + ` · ${hm(s.minutes)}` : s.hard ? 'Not yet' : 'Missing ingredients')));
+    return d;
+  };
+  const render = () => {
+    m.body.textContent = ''; if (sel) { m.body.append(detail(sel)); m.body.scrollTop = 0; return; }
+    const all = stat(), ready = all.filter(s => s.rank === 0), unknown = all.filter(s => !s.known), cats = RECIPE_CATS.filter(c => all.some(s => s.r.cat === c.id));
+    const tabs = [['ready', `Can cook now · ${ready.length}`], ...cats.map(c => [c.id, c.name]), ['learn', `To learn · ${unknown.length}`]];
+    m.body.append(el('div.ck-head', null,
+      el('div.ck-top', { text: `Cooking level ${lvl}${atStove ? ' · ' + ((stove && stove.name) || 'Stove') : ''} · you know ${all.length - unknown.length} of ${all.length} recipes` }),
+      el('div.ck-tabs', null, tabs.map(([id, name]) => el('button' + (tab === id ? '.on' : '') + (id !== 'ready' && id !== 'learn' && !all.some(s => s.r.cat === id && s.rank === 0) ? '.dim' : ''), { onclick: () => { tab = id; render(); m.body.scrollTop = 0; } }, name)))));
+    const sec = (title, list, note) => { if (!list.length) return; m.body.append(el('div.ck-sec', { text: title })); if (note) m.body.append(el('p.ck-note', { text: note })); for (const s of list) m.body.append(row(s)); };
+    if (tab === 'ready') {
+      if (!ready.length) m.body.append(el('p.ck-note', { text: atStove ? 'Nothing you know can be cooked with what is in the kitchen right now.' : 'Nothing no-cook can be made with what is in the kitchen right now.' }));
+      sec('With what you have', ready.sort((a, b) => b.r.skill - a.r.skill || a.r.name.localeCompare(b.r.name)));
+      const near = all.filter(s => s.rank === 1 && s.miss.length === 1).sort(byName).slice(0, 10), want = [...new Set(near.map(s => s.miss[0]))];
+      sec('One ingredient short', near, want.length ? 'Shopping: ' + shopHint(want) : '');
+      if (!near.length && !ready.length) { const two = all.filter(s => s.rank === 1).sort((a, b) => a.miss.length - b.miss.length || byName(a, b)).slice(0, 6); sec('Closest', two, two.length ? 'Shopping: ' + shopHint(two[0].miss) : ''); }
+    } else if (tab === 'learn') {
+      if (!unknown.length) m.body.append(el('p.ck-note', { text: 'You know every recipe here. Chef!' }));
+      const kind = s => { const l = s.r.learn || {}; return l.level ? 0 : l.book ? 1 : l.eat ? 2 : l.friend ? 3 : 4; }, T = ['Work them out as your cooking improves', 'From cookbooks & recipe cards', 'Taste them around town first', "Friends' recipes", 'Family & story recipes'];
+      for (let k = 0; k < 5; k++) sec(T[k], unknown.filter(s => kind(s) === k).sort((a, b) => k === 1 ? a.r.learn.book.localeCompare(b.r.learn.book) || byName(a, b) : k === 0 ? a.r.learn.level - b.r.learn.level || byName(a, b) : byName(a, b)));
+    } else {
+      const list = all.filter(s => s.r.cat === tab).sort((a, b) => a.rank - b.rank || byName(a, b));
+      sec('Ready', list.filter(s => s.rank === 0)); sec('Need shopping', list.filter(s => s.rank === 1)); sec('Not yet', list.filter(s => s.rank === 2)); sec('Still to learn', list.filter(s => s.rank === 3));
+    }
+  };
+  render();
 }
 function tableSeat(fx) { if (!G.scene || !G.scene.fixtures) return undefined; let best = null, bd = 7; for (const f of G.scene.fixtures) { if (!f.seats || !f.seats.length || f.tags.includes('bed') || f.tags.includes('bath')) continue; const d = Math.hypot(f.x - G.player.x, f.y - G.player.y) + (f.tags.includes('dining') ? -3 : 0); if (d < bd) { bd = d; best = f; } } return best ? best.seats[0] : undefined; }
+function cookInit() {
+  const blank = () => ({ known: {}, eaten: {}, books: [], made: {} });
+  G.defineState('cook', blank); CK().v = 1;      // a game started in this version: knowledge begins with the base recipes
+  // a save from before recipe knowledge has no slice (G.load fills in an unstamped default): it keeps everything it could cook
+  G.on('load', () => { const c = CK(); if (!c.v) { c.v = 1; c.legacy = 1; } setTimeout(() => { try { syncRecipes(true); } catch (e) { console.warn('recipes: ' + e.message); } }, 0); });
+  const safe = fn => (...a) => { try { fn(...a); } catch (e) { console.warn('recipes: ' + e.message); } };
+  G.on('skill:up', safe(k => { if (k === 'cooking') setTimeout(safe(() => syncRecipes()), 600); }));
+  G.on('friend:up', safe(() => syncRecipes()));
+  G.on('story:beat', safe(() => setTimeout(safe(() => syncRecipes(true)), 0)));
+  G.on('day', safe(() => syncRecipes()));
+  G.on('inv:use', safe(id => ateOut(id)));
+  G.on('inv:change', safe(() => { if (!shelving && G.inv && COOKBOOKS.some(b => G.inv.has(b.id))) setTimeout(safe(shelveBooks), 0); }));
+  G.cooking = { knows: id => knows(RECIPE_BY_ID[id]), learn: (id, how) => learn(id, how), known: () => RECIPES.filter(knows).map(r => r.id), sync: () => syncRecipes(), open: cookMenu, shopHint,
+    teaser: id => (RECIPE_BY_ID[id] ? teaser(RECIPE_BY_ID[id]) : ''),
+    status: (id, fx) => { const r = RECIPE_BY_ID[id]; if (!r) return null; const g = goodOf(fx, 'stove'), s = recipeStatus(r, (g && g.bonus) || { stoveTier: 0, cookTimeMult: 1, mealEffectMult: 1 }); return { known: s.known, can: s.can, why: s.why, miss: s.miss, minutes: s.minutes }; },
+    learnAll: () => RECIPES.filter(r => learn(r.id, 'debug', true)).length };
+}
 async function heatMenu(fx, actId) {
   const items = [...new Set([...G.inv.find(it => it.heat), ...(isHome(G.scene) ? G.inv.fridge.find(it => it.heat) : [])])];
   if (!items.length) return toast('Nothing to heat. Ready meals are sold at FreshWay and Lucky Corner.', 'info');
@@ -267,8 +447,8 @@ async function pickAndStart(a, ctx) {
 async function menu(ctx) {
   if (G.busy) return; const tags = ctx.tags || [], fx = ctx.fx, opts = [];
   const add = (label, sub, fn, disabled, icon) => opts.push({ label, sub: typeof disabled === 'string' ? disabled : sub, disabled: !!disabled, value: fn, icon });
-  if (tags.includes('fridge') || tags.includes('pantry')) { add(tags.includes('fridge') ? 'Open the fridge' : 'Open the pantry', 'Store, take or eat food', () => G.inv.openFridge(fx)); if (tags.includes('fridge')) add('Make a no-cook dish...', 'Salads and such', () => cookMenu(fx, 'none')); }
-  if (tags.includes('stove')) { add('Cook...', 'Pick a recipe', () => cookMenu(fx, 'stove')); add('Heat a ready meal', 'The slow way: 8 min', () => heatMenu(fx, 'heat_on_stove')); }
+  if (tags.includes('fridge') || tags.includes('pantry')) { add(tags.includes('fridge') ? 'Open the fridge' : 'Open the pantry', 'Store, take or eat food', () => G.inv.openFridge(fx)); if (tags.includes('fridge')) add('Make a no-cook dish...', 'Sandwiches, salads, smoothies', () => cookMenu(fx, 'none')); }
+  if (tags.includes('stove')) { add('Cook...', 'Open your recipes', () => cookMenu(fx, 'stove')); add('Heat a ready meal', 'The slow way: 8 min', () => heatMenu(fx, 'heat_on_stove')); }
   if (tags.includes('microwave')) add('Heat a ready meal', 'Ding!', () => heatMenu(fx, 'microwave_meal'));
   if (tags.includes('bed')) {
     const n = G.now(), wake = 7, toMorning = Math.round((((wake - n.hf) % 24) + 24) % 24 * 60) || 1440, e = G.needs ? G.needs.get('energy') : 50, why = e > 92 ? 'You are wide awake' : null;
@@ -332,6 +512,7 @@ function addSeats(sc) {
 export function init() {
   S = G.defineState('acts', () => ({ plants: {}, last: {}, canvas: 0 }));
   G.on('load', () => { S = G.state.acts || (G.state.acts = { plants: {}, last: {}, canvas: 0 }); run = null; });
+  cookInit();
   G.activities = { start, blocked, forTags, tagsFor, menu, onOpen: (k, fn) => { opens[k] = fn; }, cancel: () => { if (G.busy && G.busy.canCancel !== false) G.endActivity(false); },
     current: () => (run && G.busy ? { id: run.id, def: run.def, elapsed: run.elapsed, minutes: run.minutes, canCancel: G.busy.canCancel !== false } : null), cookMenu, isHome };
   for (const t of RAW) registerFixture(t, (fx, scene) => {

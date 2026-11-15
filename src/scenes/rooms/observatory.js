@@ -147,7 +147,7 @@ defineRoom({ id: 'observatory', name: 'Maple Bay Observatory', w: W, d: D, zoom:
     const startTalk = force => { if (talk.on) return false; talk.on = true; talk.t = force ? -2 : -8; talk.i = 0; talk.topic = TALKS[(G.now().day + (talk.n++)) % TALKS.length]; doc.pose = null; if (!doc.goTo(Wd, lect.x, lect.y)) { doc.x = lect.x; doc.y = lect.y; } if (screen) setP(screen, { slide: 1 + (talk.n % 3) }); bubble(doc, 'Astronomy talk in the gallery, starting in a moment! Find a bench.'); G.emit('observatory:talkstart', talk.topic.title); sync(); return true; };
     const endTalk = () => { talk.on = false; if (screen) setP(screen, { slide: 0 }); doc.pose = null; dw = 2; if (talk.joined && OB()) OB().talkDone(talk); talk.joined = false; sync(); };
     // ---- sync with the clock / weather / tickets
-    let view = null, wxv = null, tick = 0, gateOpen = null, ph = -1, pdown = -1, sk = null, hadComet = null, nextT = '', open = null, bz = null, oa = 0, ot = 0, spin = 0, wf = 0, wt = 0, ct = 4, okPos = null, lastT = 0, scT = 0;
+    let view = null, wxv = null, tick = 0, gateOpen = null, ph = -1, pdown = -1, sk = null, hadComet = null, nextT = '', open = null, bz = null, oa = 0, ot = 0, spin = 0, wf = 0, wt = 0, ct = 4, okPos = null, lastT = 0, scT = 0, kt = 8;
     function sync() {
       const n = G.now(), h = n.hf, s = OB() ? OB().sky() : { time: 'day', wx: null, moon: .5 }, isOpen = h >= OBS_HOURS[0] && h < OBS_HOURS[1];
       if (s.time !== view || s.wx !== wxv) { view = s.time; wxv = s.wx; for (const o of sky) setP(o, { time: view, wx: wxv, frame: 0 }); Wd.bg = view === 'night' ? '#0a0e22' : '#141a34'; }
@@ -179,6 +179,7 @@ defineRoom({ id: 'observatory', name: 'Maple Bay Observatory', w: W, d: D, zoom:
       if (wxv && (wt += dt) > .3) { wt = 0; wf = (wf + 1) % 8; for (const o of sky) setP(o, { frame: wf }); }
       // coins circle the gravity well
       if (sc.life.open && (ct -= dt) <= 0) { ct = 9 + Math.random() * 16; if (sc.life.level > .3) dropCoin(); }
+      if (sc.life.open && (kt -= dt) <= 0) { kt = 11 + Math.random() * 14; if (!rk.on && !G.busy && cr.list.some(c => !c.hidden && c.spot.age === 'kid' && c.spot.y > 17 && c.spot.x < 6)) launch(.2 + Math.random() * .7); }
       for (let i = coins.length - 1; i >= 0; i--) { const c = coins[i]; c.t += dt; c.r = Math.max(.05, .9 - c.t * .1 - c.t * c.t * .004); c.a += dt * (1.6 / Math.max(.12, c.r)) ; c.x = well.x + Math.cos(c.a) * c.r; c.y = well.y + Math.sin(c.a) * c.r; c.z = 1.02 - (.9 - c.r) * .08; if (c.r <= .07) { coins.splice(i, 1); const j = sc.ents.indexOf(c); if (j >= 0) sc.ents.splice(j, 1); } }
       // rocket
       if (rk.on) { rk.z += rk.v * dt; rk.v -= 9.8 * dt * (rk.v < 0 ? .35 : 1); rk.x += rk.vx * dt; rk.top = Math.max(rk.top, rk.z); if (rk.z <= .4 && rk.v < 0) { rk.on = false; rk.hidden = true; if (rocketOb) setP(rocketOb, { away: 0 }); } }
@@ -337,7 +338,7 @@ defineRoom({ id: 'observatory:roof', name: 'Observatory Dome & Terrace', w: RW, 
       if (notice) { const show = isOpen && night && !s.observing; if (notice.hidden !== !show) notice.hidden = !show; if (show) { const b = s.wx === 'rain' ? 'RAIN' : 'CLOUD'; if (notice.p.b !== b) setP(notice, { a: 'CLOSED', b }); } }
       const po = isOpen && !!s.party; if (po !== pOn) { pOn = po; for (const o of party) { o.hidden = !po; if (o.solid) { if (po) Wd.block(o.B[0], o.B[1], o.B[3], o.B[4]); else Wd.free(o.B[0], o.B[1], o.B[3], o.B[4]); } } for (const l of partyL) { const i = Wd.lights.indexOf(l); if (po && i < 0) Wd.lights.push(l); if (!po && i >= 0) Wd.lights.splice(i, 1); } }
       const wet = s.wx === 'rain'; for (const o of tscopes) { const cov = wet || (night && !!s.wx) ? 1 : 0; if ((o.p.cover || 0) !== cov) setP(o, { cover: cov }); }
-      const lvl = !isOpen || wet ? 0 : night ? (s.observing ? .75 : .3) + (n.weekday >= 5 ? .15 : 0) : .4, k = lvl + '|' + night + '|' + po + '|' + s.observing;
+      const lvl = !isOpen || wet ? 0 : night ? (s.observing ? .75 : .3) + (n.weekday >= 5 ? .15 : 0) : .6, k = lvl + '|' + night + '|' + po + '|' + s.observing;
       if (k !== lvlK) { lvlK = k; sc.life.level = lvl; for (const c of cr.list) { const sp = c.spot; c.hidden = lvl <= 0 || (sp.party ? !po : (sp.night && !night) || (sp.busy ? lvl < .6 || c.roll > lvl + .2 : c.roll > Math.min(sp.p === undefined ? 1 : sp.p + .2, lvl + .15))); } }
       astro.hidden = !isOpen || !night; sc.life.open = isOpen; sc.life.party = po;
     }

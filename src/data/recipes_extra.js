@@ -21,7 +21,7 @@
 // BALANCE (same rules as the items.js header; run `node src/data/validate.mjs --summary`)
 //   cost per serving  $0.50-$6.50 (drinks from $0.50; skill 1-2 dishes $1-3; showpieces $3-5.50 but they serve 4-6).
 //   cookMinutes       by skill: 15 / 22 / 30 / 38 / 48 / 55 / 65 / 80 / 90 / 100 unless the dish says otherwise (no-cook: 8-20).
-//   xp                by skill: 20 / 30 / 42 / 52 / 65 / 75 / 88 / 110 / 130 / 150; no-cook dishes 75%, drinks 50%.
+//   xp                by skill: 20 / 30 / 42 / 52 / 65 / 75 / 88 / 110 / 130 / 150; no-cook dishes 75%, drinks 35%. The first time a recipe is cooked gives x1.5 xp (activities.js).
 //   hunger            skill 1: 22-40, skill 2-3: 34-52, skill 4-6: 44-62, skill 7+: 56-72; baking / desserts 12-24 with fun + 'sweet_treat'.
 //   stove tiers       0 hot plate (anything in one pan or pot), 1 range with oven (`oven: true`, or a big pot), 2 chef's range (showpieces).
 
@@ -89,7 +89,7 @@ export const INGREDIENTS_EXTRA = [
   ing('pork', 'Pork', 4, G, 3, true, 'pink chop on tray'),
   ing('ground_beef', 'Ground Beef', 3.5, G, 3, true, 'tray of red mince'),
   ing('shrimp', 'Shrimp', 5, GM, 2, true, 'three pink curled shrimp'),
-  ing('salmon', 'Salmon Fillet', 6, GM, 2, true, 'orange fillet, white lines'),
+  ing('salmon', 'Salmon Fillet', 5, GM, 2, true, 'orange fillet, white lines'),
   ing('mussels', 'Mussels', 4, M, 2, true, 'dark blue shells, one open'),
   // produce
   ing('garlic', 'Garlic', 0.5, GCM, 20, false, 'white bulb, purple streaks'),
@@ -153,7 +153,7 @@ function rc(id, name, cat, skill, ings, servings, hunger, fun, o = {}) {
     id, name, icon: o.icon || name.toLowerCase(), ingredients, skill, appliance: none ? 'none' : 'stove', stoveTier: none ? 0 : o.tier ?? (o.oven ? 1 : 0),
     cookMinutes: o.min ?? (drink ? 5 : none ? 5 + skill * 3 : MIN[skill]), servings, effects,
     eatMinutes: o.eat ?? (drink ? 4 : hunger >= 50 ? 15 : hunger >= 36 ? 12 : hunger >= 22 ? 8 : 5), shelfLifeDays: o.shelf ?? SHELF[cat] ?? 2,
-    xp: o.xp ?? Math.round(XP[skill] * (drink ? .5 : none ? .75 : 1)), cat,
+    xp: o.xp ?? Math.round(XP[skill] * (drink ? .35 : none ? .75 : 1)), cat,
   };
   if (o.gift) { r.giftable = true; r.gift = { relationship: o.gift[0], giftTags: o.gift.slice(1) }; }
   if (o.oven) r.oven = true; if (drink) r.drink = true; if (o.learn) r.learn = o.learn;
@@ -167,7 +167,7 @@ export const RECIPES_EXTRA = [
   rc('banana_porridge', 'Banana Oat Porridge', 'breakfast', 1, 'oats milk banana', 1, 36, 3, { min: 12, energy: 2 }),
   rc('boiled_eggs', 'Boiled Eggs & Soldiers', 'breakfast', 1, 'eggs bread', 1, 30, 2, { min: 10 }),
   rc('cinnamon_toast', 'Cinnamon Toast', 'breakfast', 1, 'bread butter sugar cinnamon', 2, 20, 6, { min: 8 }),
-  rc('yogurt_parfait', 'Yogurt Parfait', 'breakfast', 1, 'plain_yogurt berries oats', 1, 26, 6, { none: true }),
+  rc('yogurt_parfait', 'Yogurt Parfait', 'breakfast', 1, 'plain_yogurt berries oats', 2, 24, 6, { none: true }),
   rc('fruit_salad', 'Fruit Salad', 'breakfast', 1, 'apple banana orange', 2, 18, 6, { none: true, energy: 3 }),
   rc('french_toast', 'French Toast', 'breakfast', 2, 'bread eggs milk sugar', 2, 34, 7),
   rc('cheese_omelette', 'Cheese Omelette', 'breakfast', 2, 'eggs*2 cheese butter', 1, 46, 4, { min: 15 }),
@@ -183,15 +183,15 @@ export const RECIPES_EXTRA = [
   rc('eggs_benedict', 'Eggs Benedict', 'breakfast', 6, 'eggs*2 ham bread butter lemon', 2, 52, 12, { min: 40, learn: B('cookbook_brunch') }),
 
   // ============================================================ SANDWICHES, SALADS & NO-COOK PLATES
-  rc('cheese_sandwich', 'Cheese & Tomato Sandwich', 'light', 1, 'bread cheese tomato', 1, 32, 2, { none: true, min: 6 }),
-  rc('pbj', 'PB&J Sandwich', 'light', 1, 'bread peanut_butter jam', 1, 30, 5, { none: true, min: 5 }),
-  rc('ham_sandwich', 'Ham & Pickle Sandwich', 'light', 1, 'bread ham pickles', 1, 36, 3, { none: true, min: 6 }),
-  rc('ploughmans', "Ploughman's Plate", 'light', 1, 'bread cheese apple pickles', 1, 42, 4, { none: true }),
-  rc('veggie_wrap', 'Crunchy Veggie Wrap', 'light', 1, 'tortillas lettuce carrot cheese', 1, 34, 3, { none: true, energy: 2 }),
+  rc('cheese_sandwich', 'Cheese & Tomato Sandwich', 'light', 1, 'bread cheese tomato', 2, 30, 2, { none: true, min: 6 }),
+  rc('pbj', 'PB&J Sandwich', 'light', 1, 'bread peanut_butter jam', 2, 28, 5, { none: true, min: 5 }),
+  rc('ham_sandwich', 'Ham & Pickle Sandwich', 'light', 1, 'bread ham pickles', 2, 34, 3, { none: true, min: 6 }),
+  rc('ploughmans', "Ploughman's Plate", 'light', 1, 'bread cheese apple pickles', 2, 38, 4, { none: true }),
+  rc('veggie_wrap', 'Crunchy Veggie Wrap', 'light', 1, 'tortillas lettuce carrot cheese', 2, 32, 3, { none: true, energy: 2 }),
   rc('tuna_salad', 'Tuna & Bean Salad', 'light', 1, 'tuna beans onion lemon', 2, 34, 2, { none: true, learn: B('cookbook_student') }),
   rc('quesadilla', 'Cheese Quesadilla', 'light', 1, 'tortillas cheese', 1, 34, 5, { min: 10 }),
-  rc('tuna_melt', 'Tuna Melt', 'light', 2, 'bread tuna cheese', 1, 44, 4, { min: 15 }),
-  rc('blt', 'BLT', 'light', 2, 'bread bacon lettuce tomato', 1, 44, 5, { min: 15 }),
+  rc('tuna_melt', 'Tuna Melt', 'light', 2, 'bread tuna cheese', 2, 40, 4, { min: 15 }),
+  rc('blt', 'BLT', 'light', 2, 'bread bacon lettuce tomato', 2, 42, 5, { min: 15 }),
   rc('egg_salad_sandwich', 'Egg Salad Sandwich', 'light', 2, 'eggs bread spring_onion butter', 2, 34, 3, { min: 18, learn: L(2) }),
   rc('caprese', 'Caprese Salad', 'light', 2, 'mozzarella tomato herbs olive_oil', 2, 26, 7, { none: true, learn: B('card_picnic') }),
   rc('greek_salad', 'Greek Salad', 'light', 2, 'cucumber tomato olives cheese olive_oil', 2, 30, 5, { none: true, learn: B('card_picnic') }),
@@ -254,8 +254,8 @@ export const RECIPES_EXTRA = [
   rc('stuffed_peppers', 'Stuffed Peppers', 'rice', 4, 'bell_pepper*2 rice ground_beef tomato_sauce cheese', 4, 48, 7, { oven: true, min: 50, shelf: 3, learn: B('cookbook_roast') }),
   rc('poke_bowl', 'Bay Poke Bowl', 'rice', 4, 'salmon rice avocado cucumber soy_sauce nori', 2, 52, 12, { min: 25, shelf: 1, learn: B('cookbook_bay') }),
   rc('green_curry', 'Green Coconut Curry', 'rice', 5, 'chicken coconut_milk chili herbs broccoli rice', 3, 56, 10, { min: 40, shelf: 3, learn: B('cookbook_spice') }),
-  rc('teriyaki_salmon', 'Teriyaki Salmon Bowl', 'rice', 5, 'salmon rice soy_sauce honey broccoli sesame', 2, 58, 12, { min: 35, learn: B('cookbook_bay') }),
-  rc('bibimbap', 'Bibimbap', 'rice', 5, 'rice beef spinach carrot eggs kimchi sesame', 2, 60, 11, { min: 45, learn: E(3, 'gen_bibimbap') }),
+  rc('teriyaki_salmon', 'Teriyaki Salmon Bowl', 'rice', 5, 'salmon rice soy_sauce sugar broccoli sesame', 2, 58, 12, { min: 35, learn: B('cookbook_bay') }),
+  rc('bibimbap', 'Bibimbap', 'rice', 5, 'rice beef spinach carrot eggs kimchi sesame', 3, 58, 11, { min: 45, learn: E(3, 'gen_bibimbap') }),
   rc('sweet_sour_pork', 'Sweet & Sour Pork', 'rice', 5, 'pork bell_pepper orange sugar soy_sauce rice', 3, 56, 10, { min: 40, learn: B('cookbook_wok') }),
   rc('mapo_tofu', 'Mapo Tofu', 'rice', 5, 'tofu ground_beef chili garlic soy_sauce rice', 2, 54, 10, { min: 30, energy: 2, learn: B('cookbook_wok') }),
   rc('katsu_curry', 'Katsu Curry', 'rice', 6, 'pork flour eggs curry_powder rice carrot', 2, 62, 12, { min: 50, learn: L(6) }),
@@ -290,7 +290,7 @@ export const RECIPES_EXTRA = [
   rc('dim_sum', 'Dim Sum Spread', 'world', 9, 'dumpling_wrappers*2 shrimp pork flour mushroom spring_onion soy_sauce', 6, 56, 20, { tier: 1, min: 110, social: 3, moodlet: FINE, learn: E(5, 'gen_dimsum_basket') }),
 
   // ============================================================ ROASTS, FISH & PIZZA
-  rc('pan_fish', 'Pan-Fried Fish & Lemon', 'mains', 2, 'fish butter lemon', 1, 46, 6, { min: 18 }),
+  rc('pan_fish', 'Pan-Fried Fish & Lemon', 'mains', 2, 'fish butter lemon', 2, 44, 6, { min: 18 }),
   rc('sausage_mash', 'Bangers & Mash', 'mains', 2, 'sausage potato butter onion', 2, 52, 4, { min: 30 }),
   rc('flatbreads', 'Skillet Flatbreads', 'mains', 2, 'flour plain_yogurt olive_oil', 4, 20, 3, { min: 25, shelf: 3, learn: B('cookbook_student') }),
   rc('roast_veg', 'Tray-Roasted Vegetables', 'mains', 2, 'potato carrot bell_pepper onion olive_oil', 3, 34, 4, { oven: true, min: 40, energy: 2, learn: B('cookbook_roast') }),
@@ -321,7 +321,7 @@ export const RECIPES_EXTRA = [
   rc('shortbread', 'Butter Shortbread', 'baking', 2, 'flour butter sugar', 6, 12, 7, { oven: true, min: 30, shelf: 10, moodlet: SW, gift: [6, 'sweet', 'homemade'], learn: B('cookbook_baking') }),
   rc('oat_cookies', 'Oat & Honey Cookies', 'baking', 2, 'oats flour butter honey', 6, 12, 7, { oven: true, min: 28, shelf: 7, moodlet: SW, gift: [6, 'sweet', 'homemade'], learn: B('cookbook_baking') }),
   rc('banana_bread', 'Banana Bread', 'baking', 3, 'banana*2 flour sugar eggs butter', 6, 18, 8, { oven: true, min: 55, moodlet: SW, gift: [7, 'sweet', 'homemade', 'cozy'] }),
-  rc('no_knead_bread', 'No-Knead Bread', 'baking', 3, 'flour*2 yeast', 6, 18, 2, { oven: true, min: 60, shelf: 4, gift: [5, 'homemade'], learn: B('cookbook_baking') }),
+  rc('no_knead_bread', 'No-Knead Bread', 'baking', 3, 'flour*3 yeast', 6, 18, 2, { oven: true, min: 60, shelf: 4, gift: [5, 'homemade'], learn: B('cookbook_baking') }),
   rc('cornbread', 'Skillet Cornbread', 'baking', 3, 'cornmeal flour eggs milk butter', 6, 20, 5, { oven: true, min: 35, shelf: 4, gift: [5, 'homemade'], learn: B('cookbook_baking') }),
   rc('muffins', 'Blueberry Muffins', 'baking', 3, 'flour sugar eggs milk berries butter', 6, 16, 8, { oven: true, min: 35, moodlet: SW, gift: [7, 'sweet', 'homemade'], learn: E(3, 'cafe_muffin') }),
   rc('brownies', 'Fudgy Brownies', 'baking', 4, 'cocoa chocolate_chips butter sugar eggs flour', 6, 16, 12, { oven: true, min: 40, shelf: 6, moodlet: SW, gift: [8, 'sweet', 'homemade'], learn: B('cookbook_baking') }),
@@ -338,13 +338,13 @@ export const RECIPES_EXTRA = [
   rc('pumpkin_pie', 'Harvest Pumpkin Pie', 'baking', 6, 'pumpkin flour butter eggs sugar cinnamon cream', 6, 20, 13, { oven: true, min: 80, shelf: 4, moodlet: SW, gift: [10, 'sweet', 'homemade', 'cozy'], learn: B('cookbook_patisserie') }),
   rc('choc_cake', 'Triple Chocolate Cake', 'baking', 7, 'flour cocoa chocolate_chips sugar eggs*2 butter cream', 6, 22, 16, { oven: true, min: 80, moodlet: SW, gift: [12, 'sweet', 'homemade', 'fancy'], learn: B('cookbook_patisserie') }),
   rc('cheesecake', 'Baked Cheesecake', 'baking', 7, 'cream_cheese*2 eggs sugar butter oats berries', 6, 22, 16, { oven: true, min: 85, moodlet: SW, gift: [11, 'sweet', 'homemade', 'fancy'], learn: B('cookbook_patisserie') }),
-  rc('sourdough', 'Sourdough Loaf', 'baking', 8, 'flour*3 yeast', 6, 24, 6, { oven: true, min: 120, shelf: 6, gift: [8, 'homemade', 'fancy'], learn: L(8) }),
+  rc('sourdough', 'Sourdough Loaf', 'baking', 8, 'flour*4 yeast', 6, 24, 6, { oven: true, min: 120, shelf: 6, gift: [8, 'homemade', 'fancy'], learn: L(8) }),
   rc('croissants', 'Butter Croissants', 'baking', 9, 'flour*2 butter*3 yeast milk sugar', 6, 22, 14, { oven: true, tier: 2, min: 120, shelf: 3, gift: [11, 'homemade', 'fancy'], learn: E(5, 'cafe_croissant') }),
   rc('celebration_cake', 'Celebration Layer Cake', 'baking', 9, 'flour*2 sugar*2 eggs*2 butter*2 cream berries jam', 6, 24, 20, { oven: true, min: 110, moodlet: SW, gift: [14, 'sweet', 'homemade', 'fancy'], learn: B('cookbook_patisserie') }),
 
   // ============================================================ DESSERTS
-  rc('fried_bananas', 'Caramel Fried Bananas', 'sweet', 1, 'banana butter sugar', 1, 16, 8, { min: 8, moodlet: SW }),
-  rc('mug_cake', 'Chocolate Mug Cake', 'sweet', 1, 'flour cocoa sugar milk', 1, 14, 9, { min: 8, shelf: 1, moodlet: SW, learn: B('cookbook_student') }),
+  rc('fried_bananas', 'Caramel Fried Bananas', 'sweet', 1, 'banana butter sugar', 2, 14, 8, { min: 8, moodlet: SW }),
+  rc('mug_cake', 'Chocolate Mug Cake', 'sweet', 1, 'flour cocoa sugar milk', 2, 14, 9, { min: 8, shelf: 1, moodlet: SW, learn: B('cookbook_student') }),
   rc('ice_pops', 'Berry Ice Pops', 'sweet', 1, 'berries orange sugar', 4, 5, 9, { none: true, min: 10, shelf: 14, learn: B('card_smoothies') }),
   rc('rice_pudding', 'Cinnamon Rice Pudding', 'sweet', 2, 'rice milk sugar cinnamon', 3, 22, 8, { min: 35, moodlet: SW, learn: L(2) }),
   rc('apple_crumble', 'Apple Crumble', 'sweet', 3, 'apple*2 oats butter sugar', 4, 22, 10, { oven: true, min: 45, moodlet: SW, gift: [7, 'sweet', 'homemade', 'cozy'], learn: L(4) }),
@@ -382,7 +382,7 @@ export const RECIPES_EXTRA = [
 export const LEGACY_PATCH = {
   garden_salad: { cat: 'light' }, scrambled_eggs: { cat: 'breakfast' }, grilled_cheese: { cat: 'light' }, noodle_soup: { cat: 'soup' }, bacon_and_eggs: { cat: 'breakfast' },
   pancakes: { cat: 'breakfast' }, tomato_pasta: { cat: 'pasta' }, veggie_stir_fry: { cat: 'rice' }, choc_chip_cookies: { cat: 'baking', oven: true }, chicken_rice_bowl: { cat: 'rice' },
-  fish_and_chips: { cat: 'mains', learn: L(4) }, beef_stew: { cat: 'soup', learn: L(5) }, homemade_pizza: { cat: 'mains', oven: true, learn: L(5) },
+  fish_and_chips: { cat: 'mains' }, beef_stew: { cat: 'soup' }, homemade_pizza: { cat: 'mains', oven: true },
   mushroom_risotto: { cat: 'rice', learn: B('cookbook_pasta') }, lemon_tart: { cat: 'baking', oven: true, learn: B('cookbook_patisserie') },
   sunday_roast: { cat: 'mains', oven: true, learn: ST('theo') }, bay_paella: { cat: 'rice', learn: B('cookbook_bay') },
 };

@@ -280,7 +280,7 @@ function moveIn(id, owned, o = {}) {
   if (G.places && G.places.discover) try { G.places.discover('home:' + id); } catch (e) { /* not a registered place */ }
   G.emit('home:move', id, prev);
 }
-const STARTER_PANTRY = [['eggs', 3], ['bread', 3], ['butter', 2], ['cheese', 2], ['milk', 1], ['noodles', 2], ['carrot', 2], ['tomato', 1], ['lettuce', 1], ['lemon', 1]];
+const STARTER_PANTRY = [['eggs', 4], ['bread', 4], ['butter', 3], ['cheese', 2], ['milk', 2], ['noodles', 2], ['rice', 2], ['oats', 2], ['carrot', 2], ['tomato', 1], ['lettuce', 1], ['lemon', 1], ['banana', 2], ['sugar', 1], ['tea', 2]]; // day 1: ~15 known recipes cookable (data/recipes_extra.js)
 function start(homeId) {
   norm(); if (!SHELLS[homeId]) return false; const keep = S.storage; Object.assign(S, blank(), { storage: keep || [] });
   moveIn(homeId, false, { intro: true }); G.state.flags.boxes_unpacked = 0;

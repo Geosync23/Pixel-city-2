@@ -165,7 +165,7 @@ function theatredoor(p) {
 }
 function board(p) {
   const s = String(p.s || ''); for (const x of [.15, 1.95]) box(x, .1, 0, .1, .1, 1.6, WOOD, { ol: false }); box(0, .08, .55, 2.2, .1, 1.1, WOOD); qy(.07, 2.13, .181, .62, 1.58, '#c9a26a');
-  textY('SKETCHES', .6, .182, 1.57, WOOD);
+  textY('MOON', .86, .182, 1.57, WOOD);
   for (let i = 0; i < Math.min(6, s.length); i++) { const x = .18 + (i % 3) * .66, z = 1.36 - Math.floor(i / 3) * .42 - (i % 2) * .03; qy(x, x + .54, .183, z - .36, z, '#f4f0e8'); const q = PW(x + .27, .184, z - .19); ellipse(q[0], q[1], 3.6, 3.6, '#3a4058'); moonDisc((a, b, c) => px(a, b, C(c)), Math.round(q[0]), Math.round(q[1]), 3, (+s[i] || 0) / 8, { c: '#f4f0dc', c2: '#a8a594' }); dot(x + .27, .184, z, RED); }
   if (!s.length) { qy(.4, 1.8, .183, .9, 1.2, '#f4f0e8'); textY('YOURS?', .72, .184, 1.12, '#8a8a94'); }
 }
