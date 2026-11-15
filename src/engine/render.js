@@ -1,7 +1,7 @@
 // Frame renderer: ground chunks -> depth-sorted sprites -> ambient light map -> night lights.
 import { WS, U, screenBox, renderJob, renderStep, renderResult } from './raster.js';
 import { renderChunk, chunkJob, CH, outskirtChunks } from './ground.js';
-import { toSpritePooled, objSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, workerTestChar, workerObj, BAKE } from './sprites.js';
+import { toSpritePooled, objSprite, frontSprite, assetSprite, prebake, prebakeObj, bakePri, ageBakes, rushBake, sortBakes, bakeTick, spriteStats, sliceTest, workerTest, workerTestChar, workerObj, BAKE } from './sprites.js';
 import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -79,10 +79,10 @@ function treeLayer(world, cx, cy) {
  * ---------- seating (docs/reports/seating.md) ----------
  * A seated character is not sorted on its own: it is drawn as part of the piece of furniture it sits on, right after the piece, and then
  * the parts of the piece that stand between the sitter and the camera (backrest seen from behind, the bench in front of the legs, a table
- * edge, the next row) are drawn again over the sitter. Those parts are "occluders": boxes in the piece's own coordinates. The default comes
- * from the way the sitter faces (facing away from the camera: everything of the piece on the camera side of the sitter's back); an asset can
- * give exact ones with seatOcc(p, seat) -> [[x0, y0, z0, x1, y1, z1], ...] (un-flipped local coords; [] = none). The overlay is cut out of
- * the piece's already baked sprite (once per piece + seat), so the bake pipeline and the depth sort are untouched.
+ * edge, the next row) are
+ * drawn again over the sitter. That part is the piece's art on the camera side of a plane through the sitter (seatOverlay below; the art
+ * is painted once more with a depth cut, engine/sprites.js frontSprite), so the piece's own sprite, the bake pipeline and the depth sort
+ * are untouched.
  */
 const isSitter = e => e.seated || e.pose === 'sit' || (e.poseOpts && e.poseOpts.seated);
 const SQ = [];
@@ -100,40 +100,20 @@ function seatObj(world, e) {
   }
   SQ.length = 0; return e._so = best;
 }
-/** occluder boxes of a sitter on ob, in the object's placed frame (x/y swapped when flipped), relative to ob.x, ob.y, ob.z */
-function seatBoxes(ob, e) {
-  const a = ob.a, lx = e.x - ob.x, ly = e.y - ob.y, lz = e.z - ob.z, vb = ob.vbl, fl = ob.flip;
-  if (a && a.seatOcc) { let r; try { r = a.seatOcc(ob.p || {}, fl ? { x: ly, y: lx, z: lz, dir: [1, 0, 3, 2][e.dir] } : { x: lx, y: ly, z: lz, dir: e.dir }); } catch (err) { r = undefined; } if (r) return fl ? r.map(b => [b[1], b[0], b[2], b[4], b[3], b[5]]) : r; if (r === null) return []; }
-  if (!a || !(a.seats || a.seatsFor)) return [];
-  if (e.dir === 3) return ly + .15 < vb[4] ? [[vb[0], ly + .15, vb[2], vb[3], vb[4], vb[5]]] : [];
-  if (e.dir === 2) return lx + .15 < vb[3] ? [[lx + .15, vb[1], vb[2], vb[3], vb[4], vb[5]]] : [];
-  return [];
-}
-const OV_NONE = { c: null };
-/** the part of ob's sprite that covers a sitter: { c: canvas | null, x, y (px offset in the sprite) }. Cached per object + seat; rebuilt when the sprite is re-baked. */
-function seatOverlay(ob, spr, e) {
-  const key = Math.round((e.x - ob.x) * 100) * 4096 + Math.round((e.y - ob.y) * 100) * 4 + e.dir + Math.round((e.z - ob.z) * 50) * 16777216, M = ob._ovl || (ob._ovl = new Map()); let o = M.get(key);
-  if (o && o.src === spr.c) return o;
-  const boxes = seatBoxes(ob, e); if (!boxes.length) { o = { src: spr.c, c: null }; M.set(key, o); return o; }
-  // screen bounds of the boxes inside the sprite
-  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const E = .07;
-  for (const b of boxes) for (let i = 0; i < 8; i++) { const X = i & 1 ? b[3] + E : b[0] - E, Y = i & 2 ? b[4] + E : b[1], Z = i & 4 ? b[5] + E : b[2] - E, sx = (X - Y) * U - spr.x, sy = (X + Y) * U / 2 - Z * U - spr.y; if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy; }
-  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(spr.w, Math.ceil(x1) + 1); y1 = Math.min(spr.h, Math.ceil(y1) + 1);
-  if (x1 <= x0 || y1 <= y0) { o = { src: spr.c, c: null }; M.set(key, o); return o; }
-  const w = x1 - x0, h = y1 - y0, id = spr.c.getContext('2d').getImageData(x0, y0, w, h), d = id.data; let any = false;
-  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-    const q = (j * w + i) * 4; if (!d[q + 3]) continue; const a = (spr.x + x0 + i + .5) / U, py = (spr.y + y0 + j + .5) / U; let hit = false;
-    for (let k = 0; k < boxes.length && !hit; k++) {
-      const b = boxes[k], bx0 = b[0] - E, bx1 = b[3] + E, by0 = b[1], by1 = b[4] + E, bz0 = b[2] - E, bz1 = b[5] + E;
-      /* inside the silhouette of the box = on its top face, its +y face or its +x face (px: sx = (x - y) U, sy = (x + y) U / 2 - z U) */
-      const s = 2 * (py + bz1), tx = (a + s) / 2, ty = (s - a) / 2; if (tx >= bx0 && tx <= bx1 && ty >= by0 && ty <= by1) { hit = true; break; }
-      const fx = a + by1, fz = (fx + by1) / 2 - py; if (fx >= bx0 && fx <= bx1 && fz >= bz0 && fz <= bz1) { hit = true; break; }
-      const gy = bx1 - a, gz = (bx1 + gy) / 2 - py; if (gy >= by0 && gy <= by1 && gz >= bz0 && gz <= bz1) hit = true;
-    }
-    if (hit) any = true; else d[q + 3] = 0;
-  }
-  if (!any) { o = { src: spr.c, c: null }; M.set(key, o); return o; }
-  const c = mk(w, h); c.getContext('2d').putImageData(id, 0, 0); o = { src: spr.c, c, x: x0, y: y0 }; M.set(key, o); return o;
+/**
+ * the part of the piece that is drawn again over a sitter (a sprite like objSprite's, or null). The cut plane comes from the way the sitter
+ * faces, in the piece's placed frame: facing away from the camera (dir 3 / 2) everything from just behind the sitter's back towards the
+ * camera (backrest, the seat's front, the legs of the piece, the rows in front); facing the camera (dir 1 / 0) everything beyond the feet
+ * (a table edge, the next row). An asset can override with seatCut(p, seat) -> { ax, v } | null (un-flipped local coords; null = nothing in front).
+ * Cached on the sitter until it moves, turns, or the piece's sprite is baked again.
+ */
+function seatOverlay(ob, base, e) {
+  if (e._ob === ob && e._od === e.dir && e._obs === base && e._ox === e.x && e._oy === e.y) return e._ov;
+  e._ob = ob; e._od = e.dir; e._obs = base; e._ox = e.x; e._oy = e.y;
+  const lx = e.x - ob.x, ly = e.y - ob.y, d = e.dir, fl = ob.flip, a = ob.a; let ax = d & 1, v = (d & 1 ? ly : lx) + (d >= 2 ? .15 : .5);
+  if (a && a.seatCut) { let c; try { c = a.seatCut(ob.p || {}, fl ? { x: ly, y: lx, z: e.z - ob.z, dir: [1, 0, 3, 2][d] } : { x: lx, y: ly, z: e.z - ob.z, dir: d }); } catch (err) { c = undefined; } if (c === null) return e._ov = null; if (c) { ax = fl ? 1 - c.ax : c.ax; v = c.v; } }
+  if (v >= (ax ? ob.vbl[4] : ob.vbl[3])) return e._ov = null;
+  return e._ov = frontSprite(ob, ax, Math.round(v * 32) / 32);
 }
 
 export class Renderer {
@@ -284,7 +264,7 @@ export class Renderer {
     for (const ob of fading) { ob._a += (ob._want - ob._a) * .18; if (ob._want === 1 && ob._a > .97) { ob._a = undefined; fading.delete(ob); } }
     for (const it of S) { const sp = it.spr; if (it.ob && it.ob._a !== undefined) { ctx.globalAlpha = it.ob._a; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else if (it.e && it.e.alpha !== undefined) { ctx.globalAlpha = it.e.alpha; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y);
       /* seating: the piece's sitters (far to near), each followed by the parts of the piece in front of it */
-      if (it.ns) for (let q = it.sit; q; q = q.next) { const qs = q.spr, ea = q.e.alpha; if (ea !== undefined) ctx.globalAlpha = ea; ctx.drawImage(qs.c, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y); if (ea !== undefined) ctx.globalAlpha = 1; const ov = q.ov; if (ov.c) { const oa = it.ob._a; if (oa !== undefined) ctx.globalAlpha = oa; ctx.drawImage(ov.c, sp.x + ov.x + it.ax - cam.x, sp.y + ov.y + it.ay - cam.y); if (oa !== undefined) ctx.globalAlpha = 1; } } }
+      if (it.ns) for (let q = it.sit; q; q = q.next) { const qs = q.spr, ea = q.e.alpha; if (ea !== undefined) ctx.globalAlpha = ea; ctx.drawImage(qs.c, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y); if (ea !== undefined) ctx.globalAlpha = 1; const ov = q.ov; if (ov) { const oa = it.ob._a; if (oa !== undefined) ctx.globalAlpha = oa; ctx.drawImage(ov.c, ov.x + it.ax - cam.x, ov.y + it.ay - cam.y); if (oa !== undefined) ctx.globalAlpha = 1; } } }
     for (const it of S) if (it.e && it.e.ghost && !isSitter(it.e)) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
