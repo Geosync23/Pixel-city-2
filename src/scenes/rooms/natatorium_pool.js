@@ -117,14 +117,14 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
       }
       const cards = sc0 => { cardE.forEach((e, i) => { if (!sc0) { e.hidden = true; return; } e.spr = cardSpr(sc0[i].toFixed(1)); e.hidden = false; judges[i].pose = 'cheer'; }); if (!sc0) judges.forEach(j => { j.pose = 'sit'; }); };
       /* ----- rescue drill ----- */
-      const cas = wader(sc, P.guard[3], O + 36, O + 11.2, 19, 'wave'); cas.hidden = true; const resc = mkSwimmer(sc, look(P.guard[4]), { v: 2.2, cap: '#d8402e' }); resc.hidden = true; resc.axis = 'y';
+      const cas = wader(sc, P.guard[3], O + 36, O + 11.2, 15, 'wave'); cas.hidden = true; const resc = mkSwimmer(sc, look(P.guard[4]), { v: 2.2, cap: '#d8402e' }); resc.hidden = true; resc.axis = 'y';
       const torp = ent(sc, 0, 0, -.05, () => cardSpr(' ', '#e8483a'), [-.1, -.1, .1, .1, .1]); torp.hidden = true;
       const drill = { on: false, t: 0, vol: null, volunteer(cb) { if (!drill.on || drill.vol) return false; drill.vol = cb; drill.t = 0; return true; }, spot: { x: O + 36, y: O + 11.2 } };
       const drillTick = dt => { if (!drill.on) { cas.hidden = resc.hidden = torp.hidden = true; return; } drill.t += dt; const t = drill.t % 30, y0 = O + DIVE.y1 - .3, cy = O + 11.2; cas.hidden = t > 21; if (drill.vol) cas.hidden = true;
         if (t < 4) { resc.hidden = true; torp.hidden = t < 2; torp.x = O + 36; torp.y = y0 - (t - 2) * 1.6; if (Math.floor(t * 10) === 20) bubble(walt, 'Casualty in the water! GO!', 2000); }
         else if (t < 9) { resc.hidden = false; torp.hidden = true; resc.dir = -1; resc.moving = true; resc.x = O + 36.4; resc.y = y0 - (t - 4) / 5 * (y0 - cy - .5); }
-        else if (t < 12) { resc.moving = false; }
-        else if (t < 20) { resc.dir = 1; resc.moving = true; resc.stroke = 'back'; resc.y = cy + .5 + (t - 12) / 8 * (y0 - cy - .5); cas.y = resc.y - .55; if (drill.vol && drill.vol.at) drill.vol.at(O + 36, cas.y); }
+        else if (t < 12) { resc.hidden = false; resc.moving = false; }
+        else if (t < 20) { resc.hidden = false; resc.dir = 1; resc.moving = true; resc.stroke = 'back'; resc.y = cy + .5 + (t - 12) / 8 * (y0 - cy - .5); cas.y = resc.y - .55; if (drill.vol && drill.vol.at) drill.vol.at(O + 36, cas.y); }
         else if (t < 21) { cas.y = y0; } else { resc.hidden = true; resc.stroke = 'free'; cas.y = cy; if (drill.vol) { const cb = drill.vol; drill.vol = null; cb.done && cb.done(); } }
       };
       /* ----- scoreboard ----- */
@@ -173,6 +173,7 @@ export function wader(sc, spec, x, y, cut = 13, pose = null) {
       sc.interactables.push({ x: O + 36, y: O + DIVE.y1 + .2, label: 'Volunteer for the rescue drill', h: 1, hit: 18, range: 2, spot: { x: O + 36, y: O + DIVE.y1 + .9 }, visible: () => drill.on && !drill.vol, use: () => NS() && NS().drill() });
       sc.interactables.push({ x: O + 33, y: O + .2, label: 'The scoreboard', h: 3, hit: 26, range: 3, spot: { x: O + 33, y: O + 1.6 }, use: () => NS() && NS().lookBoard() });
       hook(sc, 'wb', 'Coach\'s whiteboard', () => NS().whiteboard());
+      { const inSt = () => G.player.y - O < STAND.rail && G.player.x - O < 27.5; for (const it of sc.interactables) if (it.exit) it.visible = it.y - O < STAND.rail ? inSt : () => !inSt(); }
       sc.env = hallEnv(Wd, .62, .5, '#dff4ff'); wireLife(sc, [cr, dk, { count: () => swimmers.filter(e => !e.hidden).length + racers.filter(q => !q.sw.hidden || !q.ch.hidden).length }]); sync(); drawBoard();
       const out = {}, u0 = sc.update; sc.update = (dt, gm) => {
         u0(dt, gm); cr.update(dt); dk.update(dt); sweep(sc);

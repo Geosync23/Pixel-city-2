@@ -6,7 +6,7 @@
 //   ---------------------------  -------------------  ------------------------------------------------------------
 //   Pages: novel / short read    6                    read_novel at a bookshelf 12 / library nook 12 (+creativity xp 4/h; phone 3/h)
 //   Pages: skill book            -2 (same as home)    read_skill_book -2, xp 60/h at home; phone 45/h (75%)
-//   Reel: a film you own         6.5                  watch_tv 14 at home; the Orpheum pays a +38 lump per film + Movie Magic
+//   Reel: any show or owned film 6.5                  watch_tv 14 at home (Reel on the home TV pays that same 14); the Orpheum pays a +38 lump per film + Movie Magic
 //   PlayBox: any game            8                    play_games 18 at home (+logic xp 6/h; phone 2/h); lobby arcade 30
 //
 //   SCREEN TIME (shared by the three apps, resets every game day): the first SCREEN.full minutes pay the full rate, then the rate slides
@@ -20,6 +20,12 @@
 //   Late night (23:00-05:00): -1.5 energy per hour of screen on top of normal decay. No app touches hunger, bladder, hygiene or social.
 //   Time: reading and playing run the game clock at CLOCK game minutes per real second (the world is paused behind the phone, as with
 //   every app); a film costs FILM_MINUTES game minutes however long it is; an owned book is read in 15/30/60-minute sittings.
+//
+// REEL CONTENT RULES (owner msgs, 2026-11-15): two kinds of content.
+//   1. Phone & TV-only shows (TV_SHOWS in _media_films.js): free in the app from their release day, also streamable on the home TV. Never at the cinema.
+//   2. Cinema films (the Orpheum's programme): not in the app until you have SEEN the film at the cinema; REEL.buyDelayDays game days later it
+//      appears in the app to BUY for REEL.price; once bought you can re-watch it on the phone and on the home TV. Unseen films are only listed
+//      as "In cinemas now" with the next showtime and Take me there. Films seen before this update are buyable straight away.
 export const TUNE = {
   fun: { read: 6, book_novel: 6, book_skill: -2, watch: 6.5, play: 8 },
   xp: { novelCreativity: 3, skillBook: 45, playLogic: 2 },          // per game hour (home: 4 / 60 / 6)
@@ -34,6 +40,9 @@ export const TUNE = {
   bookSecondsPerSitting: 5,     // real seconds a sitting takes
   niceBreakMin: 8, dailyFun: 3, // daily PlayBox challenge: +3 fun, once a day
   dayStartHour: 4,              // the screen-time day rolls over at 04:00
+  bookPace: 0.85,               // an owned novel advances 0.85 book-minutes per minute read on the phone (the armchair is 1.0)
+  REEL: { price: 5, buyDelayDays: 2 },   // a cinema film can be bought in Reel this many game days after you saw it at the Orpheum, for this price
+  tvFunPerHour: 14,             // streaming Reel on the home TV = the normal watch_tv rate (tier-scaled by the TV), no screen-time taper
 };
 
 /** PlayBox games. price 0 = free; others are bought once with in-game money. skins: [{ id, name, price }] */
@@ -61,7 +70,7 @@ export const DAILY = { frac: { match: .75, pidge: .55, cast: .7, stack: .6, pair
 /** Guide "Things To Try" entries pushed at runtime (group must be one of _guide_data.js STAMP_GROUPS) */
 export const STAMPS = [
   { id: 'x:media_read', title: 'Read on Your Phone', group: 'At home', glyph: 'stamp', blurb: 'Open Pages and finish one short read: a Bay Courier column, a harbor mystery, a poem for the 7:42.' },
-  { id: 'x:media_watch', title: 'Rewatch a Film in Reel', group: 'At home', glyph: 'stamp', blurb: 'See a film at The Orpheum first. After the credits it joins your Reel collection, to watch again anywhere.' },
+  { id: 'x:media_watch', title: 'Stream a Show on Reel', group: 'At home', glyph: 'stamp', blurb: 'Reel has small-screen shows for the bus and the sofa. The Orpheum\'s films turn up to buy a couple of days after you have seen them there.' },
   { id: 'x:media_play', title: 'Beat a PlayBox Daily', group: 'At home', glyph: 'stamp', blurb: 'PlayBox sets one small challenge a day. Beat it on the bus and feel briefly unstoppable.' },
 ];
 

@@ -195,7 +195,7 @@ function timetable() {
   const n = G.now(), m = modal({ title: 'Timetable · ' + n.weekdayName }), f = h => clock(h), w = waveOn(G.state.t);
   for (const s of sessionsOn(n)) { m.body.append(row(f(s.from) + '-' + f(s.to), s.where === 'leisure' ? 'Leisure' : s.where === 'dive' ? 'Diving' : 'Pool', s.name, n.hf >= s.from && n.hf < s.to)); m.body.append(css(el('div', { text: s.blurb }), { fontSize: '12px', opacity: .8, margin: '0 4px 5px 102px' })); }
   m.body.append(row('All day', 'Pool', 'Public lane swimming in every lane not listed above: 1-2 slow, 3-5 medium, 6-8 fast')); m.body.append(row(f(HOURS.leisure[0]) + '-' + f(n.weekday === 4 ? 22 : HOURS.leisure[1]), 'Leisure', 'Lazy river, slides, toddler zone. Waves on the hour and the half hour' + (w.on ? ' (running now)' : ` (next in ${Math.ceil(w.next)} min)`)));
-  const ls = lidoState(n); m.body.append(row(ls === 'winter' ? 'Closed' : f(HOURS.lido[0]) + '-' + f(HOURS.lido[1]), 'Lido', ls === 'winter' ? 'Covered for the winter. Back in spring.' : ls === 'summer' ? 'Loungers out, kiosk open' : 'Open on dry days'));
+  const ls = lidoState(n); m.body.append(row(ls === 'winter' ? 'Closed' : f(HOURS.lido[0]) + '-' + f(HOURS.lido[1]), 'Lido', ls === 'winter' ? 'Under its cover for the cold months. Opens from mid-spring.' : ls === 'summer' ? 'Loungers out, kiosk open' : 'Open on dry days'));
   const tm = sessionsOn({ weekday: (n.weekday + 1) % 7, dayOfMonth: n.dayOfMonth % 14 + 1, season: n.season }).filter(s => s.id !== 'early'); if (tm.length) m.body.append(css(el('p', { text: 'Tomorrow: ' + tm.map(s => s.name + ' ' + f(s.from)).join(' · ') }), { fontSize: '12px', margin: '8px 4px 2px' }));
 }
 function honours() { const S = st(); if (S.chain.st >= 5) return toast(`FRIENDS OF THE MARLINS. The newest brass line reads "${playerName()}". Walt polished it himself.`, 'good', 4600); toast('FRIENDS OF THE MARLINS: forty years of names in gold paint. Timekeepers, tea-urn fillers, a man who mended the pace clock in 1988.', 'info', 4600); }
@@ -470,7 +470,7 @@ function openWater() {
 }
 function drill() {
   const sc = scn(NR.pool), S = st(); if (!sc || G.busy) return false; const D = sc.nat.drill; if (!D.on) { toast('The rescue drill is Wednesday at four.', 'info'); return false; }
-  const e = wader(sc, G.state.player.spec, D.spot.x, D.spot.y, 19, 'wave'); S.wet = 1; const rm = () => { e.hidden = true; e.dead = true; sc._fxn = 99; };
+  const e = wader(sc, G.state.player.spec, D.spot.x, D.spot.y, 15, 'wave'); S.wet = 1; const rm = () => { e.hidden = true; e.dead = true; sc._fxn = 99; };
   const act = G.startActivity({ label: 'Being rescued (drill)', anim: 'stand', hide: true, minutes: 20, rate: .3, cancel: () => { rm(); D.vol = null; }, done: rm });
   if (!D.volunteer({ at: (x, y) => { e.x = x; e.y = y; }, done: () => { S.drills++; add('fun', 10); add('social', 4); if (G.busy === act) G.endActivity(true); toast('Towed to the side by the chin, backwards, by a nineteen-year-old who did not even breathe hard. Walt: "Textbook. The casualty wriggled a bit."', 'good', 5400); } })) { G.endActivity(false); return false; }
   toast('You tread water in the middle of the diving well and wave an arm. "HELP," you say, feeling silly. A whistle goes.', 'info', 3800); return true;
