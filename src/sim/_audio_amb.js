@@ -25,6 +25,7 @@ export const NOISE_TONES = false;   // every other continuous noise layer: room 
 /* random one-shot events OUTDOORS: 'all' = as before; 'tonal' = only the clean bells (bike bell, harbor buoy), because the recordings now carry the birds, crickets, gulls,
    horns, planes and passing cars and the owner rejected generated city sounds (msgs 116-118); 'none'. Indoor events (cups, pages, typing...) are not affected. */
 export const AMBIENT_EVENTS = 'tonal';
+const HISSY = { sizzle: 1, applause: 1, whoosh: 1 };   // one-shots that are seconds of filtered noise: never fired as random ambience (they stay available as effects: cooking, shows)
 const TONAL = { bike_bell: 1, buoy: 1 }, TONE_LAYERS = { engine: 1 }, OUTDOOR = /^(city|suburb|industrial|park|harbor|airport)/;
 export const LAYER_NAMES = Object.keys(LAYERS);
 const WEATHER_LAYERS = { rain: 1, rumble: 1, hush: 1 };
@@ -89,7 +90,8 @@ export class Ambience {
       const L = this.layer(k, !!WEATHER_LAYERS[k] && !!W && !!W.layers[k] && !P.layers[k]); L.target = v; L.g.gain.setTargetAtTime(v, now, 1.6); L.stopAt = v ? 0 : now + 10;
     }
     const out = !indoor && OUTDOOR.test(profile), evs = !out || AMBIENT_EVENTS === 'all' ? P.ev : AMBIENT_EVENTS === 'tonal' ? P.ev.filter(e => TONAL[e[0]]) : [];
-    this.events = evs.map(e => [e[0], e[1], e[2] * (indoor ? 1 : hush), e[3]]).concat(W && !indoor ? W.ev : W && weather === 'storm' ? [['thunder', 30, .3]] : []);
+    const quiet = NOISE_TONES ? evs : evs.filter(e => !HISSY[e[0]]);
+    this.events = quiet.map(e => [e[0], e[1], e[2] * (indoor ? 1 : hush), e[3]]).concat(W && !indoor ? W.ev : W && weather === 'storm' ? [['thunder', 30, .3]] : []);
     this.next = this.events.map(e => now + (e[3] ? e[1] : e[1] * (.3 + Math.random())));
   }
   tick(now) {
