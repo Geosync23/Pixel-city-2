@@ -352,7 +352,7 @@ function homeBuild(sc) {
     if (W.isBlocked(x + .3, y + .2) || W.isBlocked(x + .3, y + .7)) continue; if (sc.interactables.some(i => i !== ex && Math.hypot(i.x - x - .3, i.y - y - .2) < 1.05)) continue;
     if (W.objs.some(o => o.B && x + .6 > o.B[0] && x < o.B[3] && y + .4 > o.B[1] && y < o.B[4] && o.B[5] - o.B[2] > .12 && o.solid !== false)) continue; at = { x, y }; break; }
   if (!at) at = { x: Math.max(1.2, ex.x - 1.7), y: Math.max(1.2, ex.y + .1) }; homeOb = safe(() => W.place('furn.postoffice.basket', at.x, at.y, { p: { n: 0, slip: 0 }, solid: false })); if (!homeOb) return;
-  sc.interactables.push({ x: at.x + .3, y: at.y + .2, label: 'Mail basket', h: .5, hit: 12, range: 1.5, guestOk: true, use: () => homeMail() }); syncHome();
+  sc.interactables.push({ x: at.x + .3, y: at.y + .2, label: 'Mail basket', h: .5, hit: 7,   /* QA10: it sits by the doors: a 12 px hit took two floor taps meant for walking */ range: 1.5, guestOk: true, use: () => homeMail() }); syncHome();
 }
 function homeMail() {
   const L = waiting('home'), opts = []; if (L.length) opts.push({ label: `Pick up the post (${L.length})`, sub: L.slice(0, 3).map(mailTitle).join('; '), value: 'get' });
