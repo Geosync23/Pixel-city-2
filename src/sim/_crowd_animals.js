@@ -1,7 +1,7 @@
 // Ambient animals for the crowd system: pigeons (scatter), seagulls (perch / circle), ducks (swim / waddle), squirrels (dart), cats, leashed dogs.
 // Animals live in "habitats" (points with a radius) that switch on when near the camera. Flying birds get a ground shadow via G.underlays.
 import { G } from '../core/game.js';
-import { pixSprite } from '../engine/sprites.js';
+import { pixSprite, prebakePix } from '../engine/sprites.js';
 import { U } from '../engine/raster.js';
 import { GT } from '../engine/world.js';
 import { stepToward } from '../engine/nav.js';
@@ -17,6 +17,11 @@ class Ani {
     const A = art(), f = Math.floor(this.t * (AFPS[this.anim] || 2)) & 1 ? 1 : 0, f2 = this.anim === 'walk' && (this.kind === 'cat' || this.kind === 'dog') ? Math.floor(this.t * 7) % 4 : f, k = AIX[this.anim] * 64 + f2 * 8 + this.dir;
     if (k === this._sk && this._spr) return this._spr; this._sk = k; const kind = this.kind, anim = this.anim, dir = this.dir, variant = this.variant;
     return this._spr = pixSprite('an' + kind + variant + anim + f2 + dir, A.ANIMAL_SB, () => A.drawAnimal(kind, { anim, frame: f2, dir, variant }));
+  }
+  /* performance report (QA13): bake the current frame ahead, same key and drawing as sprite() */
+  prebake(pri) {
+    const A = art(), f = Math.floor(this.t * (AFPS[this.anim] || 2)) & 1 ? 1 : 0, f2 = this.anim === 'walk' && (this.kind === 'cat' || this.kind === 'dog') ? Math.floor(this.t * 7) % 4 : f, kind = this.kind, anim = this.anim, dir = this.dir, variant = this.variant;
+    prebakePix('an' + kind + variant + anim + f2 + dir, A.ANIMAL_SB, () => A.drawAnimal(kind, { anim, frame: f2, dir, variant }), pri);
   }
 }
 const pool = [], HAB = []; let world = null, tick = 0, nAct = 0;

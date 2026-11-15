@@ -404,6 +404,9 @@ function openListings() {
 }
 function showCard(homeId) {
   injectCss(); const L = H().homes().find(x => x.id === homeId); if (!L) return; const m = modal({ title: L.available ? (L.rent ? 'For rent' : 'For sale') : 'Not on the market yet', cls: 'fz-list' });
+  /* QA13 (lead decision): the nine new apartment lobbies are for residents only; say so plainly at the street door */
+  const MB = G.mailboxes, AP = MB && MB.boxes && MB.boxes.APARTMENTS && MB.boxes.APARTMENTS[homeId];
+  if (AP && AP.lobby && !AP.share && MB.route && MB.route() === 'lobby') m.body.append(el('p.fz-sub', { style: 'font-weight:700;margin:0 0 6px', text: `Residents only: the lobby of ${AP.lobby.name} is for the people who live here. ${AP.unit || 'The flat'} ${L.available ? (L.rent ? 'is to let' : 'is for sale') + ': here is its listing.' : 'is not on the market yet.'}` }));
   m.body.append(homeBody(L, false), el('p.fz-sub', { text: 'Step in and look round. The paperwork is in the Nestly app, or at Bay Realty & Trust, Downtown.' }), el('div.fz-btns', null,
     H().view ? el('button', { text: 'Look inside', onclick: () => { m.close(); H().view(homeId); } }) : null,
     G.phone && G.phone.open ? el('button', { text: 'Listing', onclick: () => { m.close(); G.phone.open('homes', { home: homeId }); } }) : null, el('button', { text: 'Not now', onclick: m.close })));

@@ -103,7 +103,7 @@ export function talkAct(ses, vid, arg) {
     case 'ask_move_in': if (r.hearts[2] || HOOK.seen(id + '.h3')) scene('movein'); else soft(); break;
     case 'propose': scene('proposal'); break;
     case 'stay_in': r.stayDay = today(); res.end = true; ses.ended = true; res.start = () => HOOK.stayIn(id); break;
-    case 'just_friends': res.you = ''; res.them = ''; res.end = true; ses.ended = true; res.start = () => HOOK.endIt(id, 'letdown'); break;
+    case 'just_friends': res.you = ''; res.them = ''; res.end = true; ses.ended = true; res.start = () => HOOK.endIt(id, 'letdown', { ask: true }); break; /* QA13: the verb asks first, as end_it does (a tap meant to move the talk on landed on it and ended a Dating track) */
     case 'end_it': res.you = ''; res.them = ''; res.end = true; ses.ended = true; res.start = () => HOOK.endIt(id, 'breakup'); break;
     default: break;
   }

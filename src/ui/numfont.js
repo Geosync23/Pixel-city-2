@@ -27,13 +27,14 @@ const LOCAL = w => (w === 700 ? ['Roboto Bold', 'Roboto-Bold', 'HelveticaNeue-Bo
   : ['Roboto', 'Roboto-Regular', 'Roboto Regular', 'HelveticaNeue', 'Helvetica Neue', 'ArialMT', 'Arial', 'Segoe UI', 'Inter', 'Inter Regular', 'Liberation Sans', 'DejaVu Sans']).map(n => `local("${n}")`).join(',');
 
 function faces(m) {
-  const fam = FAM[m]; if (!fam || loaded[fam]) return loaded[fam] || Promise.resolve(true);
-  const add = (src, weight) => { try { const f = new FontFace(fam, src, { weight, unicodeRange: DIG }); document.fonts.add(f); return f.load().then(() => true, () => false); } catch (e) { return Promise.resolve(false); } };
+  const fam = FAM[m]; if (!fam || loaded[m]) return loaded[m] || Promise.resolve(true);
+  const add = (src, weight, extra, family = fam) => { try { const f = new FontFace(family, src, Object.assign({ weight, unicodeRange: DIG }, extra)); document.fonts.add(f); return f.load().then(() => true, () => false); } catch (e) { return Promise.resolve(false); } };
   let p;
-  if (m === 'a' || m === 'b') p = add(pixelSrc(), '400'); // one face at 400: bold text matches it and, with font-synthesis-weight:none, is not thickened
+  if (m === 'a') p = add(pixelSrc(), '400'); // one face at 400: bold text matches it and, with font-synthesis-weight:none, is not thickened
+  else if (m === 'b') p = Promise.all([add(pixelSrc(), '400'), add(pixelSrc(), '400', { sizeAdjust: '112%', ascentOverride: '82.1%', descentOverride: '25%', lineGapOverride: '0%' }, 'MB Digits B')]).then(r => r[0]); // B: the same digits 12% larger, line metrics unchanged
   else if (m === 'd') p = Promise.all([add(b64(DIGITS_REGULAR), '100 550'), add(b64(DIGITS_BOLD), '551 1000')]).then(r => r[0] && r[1]);
   else p = Promise.all([add(LOCAL(400), '100 550'), add(LOCAL(700), '551 1000')]).then(r => r[0] || r[1]);
-  return (loaded[fam] = p);
+  return (loaded[m] = p);
 }
 
 function css() {
@@ -44,7 +45,7 @@ function css() {
     r.push(`${sel('body,.bk-note')}{font-family:"${FAM[m]}",${STACK}}`, `${sel('#nav-trip')}{font-family:"${FAM[m]}",${STACK}!important}`);
   }
   r.push(':root[data-num] body{font-variant-numeric:tabular-nums;font-synthesis-weight:none}');
-  r.push(MONEY.map(s => `:root[data-num=b] ${s}`).join(',') + '{font-size:1.12em}');
+  r.push(MONEY.map(s => `:root[data-num=b] ${s}`).join(',') + `{font-family:"MB Digits B","MB Digits A",${STACK}}`);
   const st = document.createElement('style'); st.id = 'numfont-css'; st.textContent = r.join('\n'); document.head.append(st);
 }
 

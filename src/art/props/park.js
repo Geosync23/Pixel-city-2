@@ -47,7 +47,7 @@ export default [
       for (let y = .3; y + 1.7 < L; y += 1.7) for (const x of [.12, 1.88]) { const A = PW(x, y, .85), B = PW(x, y + 1.7, .85), n = Math.round(A[0] - B[0]); for (let i = 1; i < n; i++) px(Math.round(A[0]) - i, Math.round(A[1] + (B[1] - A[1]) * i / n + Math.sin(i / n * Math.PI) * 3), C(i & 1 ? '#e8dcc0' : '#c9b88a')); }
       const q = P(1.88, L - .4, .7); ring(1.88, L - .35, .68, 3, '#f4f0e0'); px(q[0] - 3, q[1], C('#d8342c')); px(q[0] + 3, q[1], C('#d8342c')); px(q[0], q[1] - 3, C('#d8342c')); px(q[0], q[1] + 3, C('#d8342c'));
       if (p.lamp) { pole(.12, L - .2, .4, 2.2, '#3a3440', 1, false); bulb(.12, L - .2, 2.3, 2); }
-      if (p.boat) rowboat(2.15, L - 2.9, -.3, 2.4, p.boat);
+      if (p.boat) rowboat(2.15, L - 2.9, -.3, 2.4, typeof p.boat === 'string' ? p.boat : '#d8342c'); /* QA13: the city places it with boat: true (a colour was expected; it threw and the dock was cut off) */
     },
   },
   {
@@ -57,7 +57,7 @@ export default [
     draw(p) {
       // octagonal bandstand. Raised walkable floor at z = 0.4 (step up on the +y and +x sides); the 8 posts are the only solid parts; roof is overhead.
       const c = p.c || '#f4f0e6', roof = p.roof || ['#3f7a6a', '#35695b'], fl = p.floor || '#c9a268', cx = 2.5, cy = 2.5, R = 2.2, ps = [];
-      cyl(cx, cy, 0, 2.45, .4, '#b9b4a8', { t: fl, l: PAT.stone('#a8a69c'), r: PAT.stone('#8a887e') }); const f = PW(cx, cy, .4); ellipse(f[0], f[1], 2.3 * U * 1.414, 2.3 * U * .707, fl, dk(fl, .1));
+      cyl(cx, cy, 0, 2.45, .4, '#b9b4a8', { t: fl, l: '#a8a69c', r: '#8a887e' }); /* QA13: cyl takes colours, not PAT functions (it threw: every gazebo drew only its base) */ const f = PW(cx, cy, .4); ellipse(f[0], f[1], 2.3 * U * 1.414, 2.3 * U * .707, fl, dk(fl, .1));
       box(2.0, 4.7, 0, 1, .4, .2, '#b9b4a8'); box(4.7, 2.0, 0, .4, 1, .2, '#b9b4a8');
       for (let i = 0; i < 8; i++) { const a = i * .7854 + .3927; ps.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R, a]); }
       ps.sort((a, b) => a[0] + a[1] - b[0] - b[1]);

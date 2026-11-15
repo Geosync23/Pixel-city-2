@@ -22,7 +22,7 @@
 // State: G.state.rail = { rides, cur: {dir, train, from, to} | null }.
 import { G } from '../core/game.js';
 import { asset } from '../art/registry.js';
-import { assetSprite } from '../engine/sprites.js';
+import { assetSprite, prebakeAsset } from '../engine/sprites.js';
 import { FARES } from '../data/economy.js';
 import { getCity } from '../world/_city.js';
 import { el, toast, modal } from '../ui/kit.js';
@@ -104,7 +104,8 @@ function plan(from, to, t = G.state.t) {
 function mkCar(set, k) {
   return { x: 0, y: 0, z: 0, bb: [0, 0, 12, 2.2, 2.6], set, k, p: null, key: '', flip: false, isTrain: true,
     // sort z (this.z) is lifted strictly above everything under the car floor (deck slabs, lamp tops); the sprite is shifted back down by the same amount (lift) so the picture does not move
-    lift: 0, _sh: null, sprite() { const spr = assetSprite(carA, this.p, this.flip, this.key); if (!this.lift || !spr) return spr; const sh = this._sh; if (sh && sh.src === spr && sh.lift === this.lift) return sh.out; const out = Object.assign({}, spr, { y: spr.y + Math.round(this.lift * 16) }); this._sh = { src: spr, lift: this.lift, out }; return out; } };
+    lift: 0, _sh: null, sprite() { const spr = assetSprite(carA, this.p, this.flip, this.key); if (!this.lift || !spr) return spr; const sh = this._sh; if (sh && sh.src === spr && sh.lift === this.lift) return sh.out; const out = Object.assign({}, spr, { y: spr.y + Math.round(this.lift * 16) }); this._sh = { src: spr, lift: this.lift, out }; return out; },
+    prebake(pri) { if (this.p) prebakeAsset(carA, this.p, this.flip, pri, this.key); } }; // performance report: bake train cars ahead (QA13)
 }
 /* objects along the line that sit under the cars' floor: their tops must sort below the cars (long thin deck boxes otherwise tie with the car boxes -> draw-order flicker) */
 let UNDER = null;

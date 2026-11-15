@@ -14,7 +14,7 @@
 // No state is saved. Entities: the aircraft (z = altitude, tall sort box -> draws over the city) and its flat '<id>.shadow' on the ground.
 import { G } from '../core/game.js';
 import { asset } from '../art/registry.js';
-import { assetSprite } from '../engine/sprites.js';
+import { assetSprite, prebakeAsset } from '../engine/sprites.js';
 
 const KINDS = ['airliner', 'turboprop', 'bizjet', 'cargo'], WEIGHT = ['airliner', 'airliner', 'turboprop', 'turboprop', 'bizjet', 'cargo'];
 const flights = []; let C = null, AP = null, next = 3, flip = 0;
@@ -22,17 +22,18 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 
 class PlaneEnt {
   constructor(shadow) { this.shadow = shadow; this.x = 0; this.y = 0; this.z = 0; this.bb = [0, 0, 1, 1, 1]; this.hidden = true; this.alpha = 1; this.f = null; this.isPlane = true; }
-  sprite() {
+  /* [asset, params, flip, key] of the current sprite (shared by sprite() and prebake()) */
+  args() {
     const f = this.f; if (!f) return null;
-    try {
-      if (f.ay) { // turned onto the y axis (taxiing off the runway): the mirrored sprite, nose toward f.ay (+1 = +y)
-        if (this.shadow) return assetSprite(f.sa, { dir: f.ay }, true, f.sa.id + '|Y' + f.ay);
-        return assetSprite(f.a, Object.assign({}, f.pDown, { dir: f.ay }), true, f.a.id + '|' + f.vi + '|Y' + f.ay);
-      }
-      if (this.shadow) return assetSprite(f.sa, f.sp, false, f.sa.id + '|' + f.dir);
-      return assetSprite(f.a, f.gear ? f.pDown : f.pUp, false, f.a.id + '|' + f.vi + '|' + f.dir + '|' + (f.gear ? 1 : 0));
-    } catch (e) { return null; }
+    if (f.ay) { // turned onto the y axis (taxiing off the runway): the mirrored sprite, nose toward f.ay (+1 = +y)
+      if (this.shadow) return [f.sa, { dir: f.ay }, true, f.sa.id + '|Y' + f.ay];
+      return [f.a, Object.assign({}, f.pDown, { dir: f.ay }), true, f.a.id + '|' + f.vi + '|Y' + f.ay];
+    }
+    if (this.shadow) return [f.sa, f.sp, false, f.sa.id + '|' + f.dir];
+    return [f.a, f.gear ? f.pDown : f.pUp, false, f.a.id + '|' + f.vi + '|' + f.dir + '|' + (f.gear ? 1 : 0)];
   }
+  sprite() { try { const q = this.args(); return q ? assetSprite(q[0], q[1], q[2], q[3]) : null; } catch (e) { return null; } }
+  prebake(pri) { try { const q = this.args(); if (q) prebakeAsset(q[0], q[1], q[2], pri, q[3]); } catch (e) { } } // performance report: bake aircraft ahead (QA13)
 }
 const pool = [];
 function ents() { let p = pool.find(q => !q.f); if (!p) { p = { e: new PlaneEnt(false), s: new PlaneEnt(true), f: null }; pool.push(p); C.ents.push(p.s, p.e); } return p; }

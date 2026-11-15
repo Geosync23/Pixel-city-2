@@ -174,6 +174,8 @@ async function cont() {
     else await G.go('city', { poi: (G.state.flags && G.state.flags.lastDoor) || undefined });
     /* QA9: saved inside your own home (every night's sleep saves there): continue at home, not on the pavement outside */
     if (/^int:home:/.test(P.scene || '') && G.housing && G.housing.current && G.housing.current() && String(P.scene).startsWith('int:home:' + G.housing.current().id) && G.housing.goHome) { try { await G.housing.goHome(); } catch (e) { /* stay outside */ } }
+    /* QA13: saved in the lobby of the building you live in: continue in that lobby (where you stood), not on the street */
+    else if (/^int:/.test(P.scene || '') && G.mailboxes && G.housing && G.housing.current && G.housing.current() && G.mailboxes.homeOfLobby(P.scene) === G.housing.current().id) { try { const sc = String(P.scene); await G.go(sc, P.x !== undefined ? { x: P.x, y: P.y } : {}); } catch (e) { /* stay outside */ } }
   } catch (e) { console.error(e); await G.go('city'); }
   G.player.hidden = false;
   closeTitle(); G.emit('game:start', { isNew: false });

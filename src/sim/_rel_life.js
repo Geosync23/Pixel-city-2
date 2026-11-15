@@ -49,9 +49,9 @@ export function milestone(sc) {
 }
 
 /* ---------- kind endings ---------- */
-export async function endIt(id, how) {
+export async function endIt(id, how, o) {
   if (!isRom(id) || stage(id) === 'none' || HOOK.isRunning()) return false; const H = HEARTS[id], kind = how === 'breakup' || stageIdx(id) >= 3 ? 'breakup' : 'letdown';
-  if (kind === 'breakup') { const sure = await choose(fill(PLAYER_KIND.sure, { partner: short(id) }), [{ label: 'Yes. Say it kindly.', value: 1 }, { label: 'No. Not today.', value: 0 }]); if (!sure) return false; }
+  if (kind === 'breakup' || (o && o.ask)) { const sure = await choose(fill(PLAYER_KIND.sure, { partner: short(id) }), [{ label: 'Yes. Say it kindly.', value: 1 }, { label: 'No. Not today.', value: 0 }]); if (!sure) return false; }
   HOOK.withUs([id]);
   const steps = [say('narrator', kind === 'breakup' ? 'You ask if the two of you can talk. They put down what they are holding.' : 'There is no good moment for this. You pick this one, and say it to their face.'),
     { do: 'choice', id: 'kind_' + kind + '_' + id, options: PLAYER_KIND[kind].map(o => ({ id: o.id, text: o.text, reply: H.kind[kind] })) }];
