@@ -37,7 +37,8 @@ export function pool(key) {
 export const namedPools = () => Object.keys(POOL_INFO);
 /** every place a tune plays, as text */
 export function whereOf(id) { const s = SONG[id], o = []; if (!s) return ''; for (const p of (s.pl || '').split(/\s+/).filter(Boolean)) o.push(POOL_INFO[p] || p);
-  if (s.out) { const [t, d] = s.out.split('|'); o.push('Outdoors' + (s.sea !== undefined ? ' in ' + SEASONS[s.sea] : '') + ': ' + (t === '*' ? 'any time' : t.replace(/golden/, 'golden hour').replace(/late/, 'late night').split(/\s+/).join(', ')) + (d === '*' ? '' : ' (' + d.replace(/oldtown/, 'old town').replace(/arts/, 'arts quarter').split(/\s+/).join(', ') + ')')); }
+  if (s.out) { const [t, d] = s.out.split('|'); const nm = { golden: 'golden hour', late: 'late night', oldtown: 'old town', arts: 'arts quarter' }, list = x => x.split(/\s+/).map(w => nm[w] || w).join(', ');
+    o.push('Outdoors' + (s.sea !== undefined ? ' in ' + SEASONS[s.sea] : '') + ': ' + (t === '*' ? 'any time' : list(t)) + (d === '*' ? '' : ' (' + list(d) + ')')); }
   return o.join('; '); }
 
 /** The shuffle bag. st (saved): { bags: { key: [ids not played yet in this round] }, last, recent: [ids], n }.
