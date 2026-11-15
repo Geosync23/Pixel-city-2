@@ -156,3 +156,62 @@ All of it: the 19 cuts, the level balance between tracks, the night low-pass, wh
 3. Outdoors two generated bells still ring now and then (bike bell, harbor buoy). Keep, or recordings only?
 4. Indoors is untouched as asked. The "street through the wall + real crowd murmur in cafes" version exists behind `BED_INDOORS`; want to hear it some day?
 5. May the lead fetch rain, more water and a real park recording?
+
+---
+# Follow-up, same day: rain, and the crickets at night
+The sections above describe the first delivery; where they differ from this one (19 stretches, "no rain sound", the night rows of the place table, the 4.80 MB figure), **this section is current**.
+
+## Rain (owner msg 127; nine CC0 recordings added by the lead; nobody has heard the cuts)
+| stretch | source | source seconds | cycle s | file | LUFS phone / full | peak dBFS | codec: bandwidth kept / of source, holes | what was cut, and why |
+|---|---|---|---|---|---|---|---|---|
+| rain_a | R30_24_Rain_on_Roof_and_Concrete | 3-62 | 55.0 | 221 kB, 32 kbit/s | -23.0 / -22.9 | -10.7 | 7.7 / 7.7 kHz, 0.0 % | first 3 s; last 24 s (size). The take is even throughout (crest 4) |
+| rain_b | R30_25a_Steady_Heavy_Rain | 1-39 | 34.0 | 135 kB, 31 | -23.0 / -23.0 | -13.5 | 9.5 / 9.5 kHz, 0.6 % | last 7 s (size) |
+| rain_c | R23_35_Rain_with_Wind | 4-42 | 34.0 | 129 kB, 30 | -23.0 / -23.0 | -12.9 | 7.7 / 9.5 kHz, 2.6 % | first 4 s (louder start); last 4 s (fade). The encoder gives up the 7.7-9.5 kHz edge on this one |
+| storm_a | G46_04_Distant_Storm | 10-48 | 34.0 | 97 kB, 22 | -23.0 / -20.8 | -5.4 | 1.5 / 1.5 kHz, 0.0 % | first 10 s (slate burst, hole); after 0:48 (30 dB holes; size). Low-pass 2.5 kHz: 99.9 % of it is below 1.2 kHz |
+
+- **Size**: 0.58 MB of MP3 = **+0.76 MB in the game file** (limit asked: 0.9). All 23 stretches: 4.26 MB of MP3 = 5.55 MB of the 14.32 MB `dist/index.html`. Listening page 5.7 MB.
+- **Not used, and why**: `R10_04_Heavy_Rain_and_Wind` (bangs and something voice-like: crest up to 24, speech-proxy up to 1.3); `G46_01 / 02 / 08 / 09` (their thunder is close and loud, +9 to +15 dB over the rain: it would double the game's own thunder clap, which stays tied to the lightning flash).
+- **What plays** (`WET` and `POOLS` in `src/sim/_audio_bed.js`), outdoors only:
+  - rain: the dry scene at half level (as before) + a `rain` track, pool `rain_a` (lighter patter) and `rain_b` (steady), ending up 3 dB under a dry day street;
+  - storm: the dry scene at x0.4 + a `rain` track, pool `rain_c` (wind-driven) and `rain_b`, 2 dB under a dry day street, + `thunder` (`storm_a`): far rolls that drift in for 14-28 s every 35-100 s, 7 dB under. No recorded close thunder anywhere.
+  - Same mixing as every other track (crossfade to the other stretch, entry where it was left, speed change, level drift, loop hand-over). Rain -> storm crossfades the rain tracks over 2.5 s.
+  - **Indoors unchanged**: the old muffled rain layer (it is a noise layer) plays as before; the recordings are silent indoors.
+- **Measured** (offline, 180 s): city day + rain: integrated -23.1 LUFS, short-term -25.5..-20.4, true peak -6.9 dBFS, best waveform match 0.14; first reuse of a rain second after 19 s of other material (rain pool is 89 s: it comes round in about a minute and a half). Suburb evening + storm: -24.3 LUFS, short-term -26.5..-20.6, true peak -8.9 dBFS, waveform match 0.07. Live: in rain and storm exactly the expected tracks run (e.g. `busy + rain=rain_a`; `busy + rain=rain_c + thunder resting`), no noise-buffer source.
+- **Honest risk**: steady rain is, physically, broadband noise. These are real recordings and they are 3 dB under the street, but if the owner hears "white noise machine" again, the knob is the `3` and `6` in `WET` (or drop `rain_b`, the densest one).
+
+## Crickets at night (owner, after hearing the game: "way too prominent and loud at night")
+**Why they stuck out (measured)**: `G16_07_Crickets_Near_and_Far` has 75-80 % of its energy between 3 and 4 kHz, where hearing is keenest, and it was loudness-matched to the same -23 LUFS as broadband traffic; at night it was a steady bed at -3 dB (park) to -9 dB (downtown) over a quiet, low-passed city. **There is no separate "far" part to cut to**: across the whole 2:30 the level stays within +-2.5 dB, the band balance within 1 dB and the chirp depth within 0.70-0.79 (4 s windows); near and far crickets sound together throughout. (It also has a 40 s level cycle: dips at 0:20, 1:00, 1:40.) So the recording is unchanged and the distance is made in the mix.
+
+**Exactly what changed** (`OUTDOOR` in `src/sim/_audio_bed.js`; `CR(level, on, off)` = a drifting crickets layer, low-passed at 3 kHz):
+| place, night | before | after |
+|---|---|---|
+| city (downtown) | steady -9 dB | drifts in at **-26 dB** for 15-30 s every 2-4 min |
+| town (old town, arts) | steady -7 | drifts at **-22** for 20-40 s every 80-170 s |
+| suburb | steady -5 (+ far -9, air -13) | drifts at **-17** for 30-60 s every 50-110 s; the night is now far rumble -8, night air -10, a muffled street -15 |
+| park | steady -3 (+ far -12) | drifts at **-15** for 35-70 s every 45-95 s; the night is now far rumble -9 and night air -11 |
+| industrial | steady -12 | **none** |
+| market | steady -7 | **none** |
+| airport | steady -11 | **none** (far rumble -12 added) |
+| harbor, waterfront | none | none |
+| evening: suburb / park | drifting at -12 / steady at -12 | drift at **-21** for 20-40 s every 60-150 s |
+
+**Before / after, 3-minute offline renders** (same tool, same seeds; "cricket band" = 2.8-4.5 kHz as a share of the whole mix, the direct measure of how far forward they sit; integrated LUFS moves less because the low rumble dominates it):
+| scene | integrated LUFS before -> after | cricket band under the mix, before -> after |
+|---|---|---|
+| city night | -25.8 -> -28.0 | -10.9 dB -> -36.4 dB |
+| town night | -25.3 -> -28.2 | -9.0 -> -33.2 |
+| market night | -25.8 -> -27.1 | -9.2 -> -42.5 |
+| suburb night | -25.4 -> -26.2 | -6.8 -> -20.5 (the night air also lives in this band) |
+| park night | -25.1 -> -28.0 | -3.6 -> -18.9 (same) |
+| industrial night | -25.5 -> -25.8 | -15.4 -> -45.7 |
+| airport night | -27.3 -> -27.0 | -10.4 -> -19.0 (now only the airport's own sound) |
+| harbor night | -25.9 -> -25.9 | -12.7 -> -12.7 (never had crickets: that is the waves) |
+| suburb evening | -25.3 -> -26.2 | -13.3 -> -15.4 |
+| park evening | -28.1 -> -28.7 | -6.6 -> -9.4 (the birds live here too) |
+
+So the crickets are 12-17 dB lower where they remain, low-passed, present well under half the time, and gone in four places. The nights are 0.3-2.9 dB quieter overall. **Side effect to judge by ear**: `night_air` (the stairwell recording, the one I trust least) now carries more of the suburb and park night. If it reads as hiss, lower `T('air', ...)` in those two rows.
+The listening page's night scenes are updated (six night buttons, with what to expect in each).
+
+## Result of the last full run (after rain + crickets)
+`node tools/ambience_check.mjs`: **138 / 138 checks passed**, zero page errors (live, broken, render); 23 of 23 stretches decode and play (64 fresh decodes: 66-189 ms each off the main thread, base64 unpack 0.7-1.9 ms on it; no frame over 100 ms while decoding). `node src/data/validate.mjs` OK; `node tools/build.mjs` -> 14,323 KB. At night the live check sees e.g. `park night: far + air, crickets resting`, `city night: busy + far, crickets resting`, `airport night: airport + far`.
+New in the tool: `--scenes place:phase[:weather],...` chooses what to render, and each render prints the 2.8-4.5 kHz share.
