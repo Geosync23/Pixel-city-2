@@ -43,7 +43,7 @@ Format: MP3 (MPEG-2 Layer III), mono, 24 kHz, LAME VBR -V8 (22-36 kbit/s), high-
 | airport_c | in/G16_01_Small_Airport_Ambience.mp3 (GOLD_TAPE, CC0) | 18.5-69.5 | 47 s |
 Not shipped (left in docs/audio/game/ from a first, larger cut, not in the manifest; safe to delete): airport_b.mp3, crickets_b.mp3.
 Found while measuring: `meadow_6min.mp3` is not one continuous recording but a studio mix: one layer repeats every 30.000 s exactly (a broadband wind/hiss swell, 12 times in the 6 minutes) and the bird layer repeats after 180 s. The library subtracts the 30 s layer and uses only the first 180 s. `G16_17` contains the same horn figure four times.
-STILL MISSING (public domain / CC0, 60 s or more, with the link): RAIN (steady rain on a street; ideally a second take with thunder far off); a SECOND and THIRD take of WAVES / harbor water (the only one is 33 s); a real PARK or garden recording with birds (to replace the meadow studio mix); a quiet residential street at night; more market / plaza crowd. Drop them into docs/audio/in/ and add one line to the table in make_library.py.
+STILL MISSING (public domain / CC0, 60 s or more, with the link): a SECOND and THIRD take of WAVES / harbor water (the only one is 33 s); a real PARK or garden recording with birds (to replace the meadow studio mix); a quiet residential street at night; more market / plaza crowd. Drop them into docs/audio/in/ and add one line to the table in make_library.py.
 
 OWNER APPROVAL (msg 123, 2026-11-15): all 16 recordings on the audition page (the 13 Internet Archive files + street, gulls, beach from Wikimedia) are approved by ear.
 OWNER (msg 125): indoor sounds (room tones, murmur, hvac) were OK as they are: KEEP indoors. The no-noise rule applies to the outdoor city ambience.
@@ -53,4 +53,11 @@ OWNER (msg 126): keep all 19 stretches.
 Both collections are from the USC sound-effect archive on the Internet Archive, licence CC0 1.0 (metadata licenseurl). Originals in docs/audio/in/.
 - Red_Library_Nature_Rain — https://archive.org/details/Red_Library_Nature_Rain : R10_04_Heavy_Rain_and_Wind (104 s), R30_24_Rain_on_Roof_and_Concrete (86 s), R30_25a_Steady_Heavy_Rain (46 s), R23_35_Rain_with_Wind (46 s)
 - GOLD_TAPE_46_Thunderstorm_Rain — https://archive.org/details/GOLD_TAPE_46_Thunderstorm_Rain : G46_01_Light_Rain_and_Natural_Thunder (95 s), G46_02_Quiet_Rain_Rolling_Thunder (60 s), G46_08_Rain_Distant_Thunder (48 s), G46_09_Steady_Rain_and_Thunder (52 s), G46_04_Distant_Storm (127 s)
-The owner has NOT heard these yet. Not yet cut into game stretches.
+The owner has NOT heard these yet. Cut into game stretches on 2026-11-15 (ambience worker), same format and tool as the library above (`docs/audio/tools/make_library.py`):
+| stretch | from | source seconds used | cycle |
+|---|---|---|---|
+| rain_a | in/R30_24_Rain_on_Roof_and_Concrete.mp3 (Red Library, CC0) | 3-62 | 55 s |
+| rain_b | in/R30_25a_Steady_Heavy_Rain.mp3 (Red Library, CC0) | 1-39 | 34 s |
+| rain_c | in/R23_35_Rain_with_Wind.mp3 (Red Library, CC0) | 4-42 | 34 s |
+| storm_a | in/G46_04_Distant_Storm.mp3 (GOLD_TAPE 46, CC0) | 10-48 | 34 s |
+Not used: R10_04_Heavy_Rain_and_Wind (bangs and something voice-like: crest up to 24, speech-proxy up to 1.3), and G46_01 / G46_02 / G46_08 / G46_09 (their thunder is close and loud, +9 to +15 dB over the rain: it would double the game's own thunder clap).

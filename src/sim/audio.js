@@ -188,7 +188,7 @@ export function init() {
       async menu() {
         const st = bed ? bed.state() : null, o = [{ label: 'Follow the game again', sub: st ? 'Now: ' + (st.scene || 'nothing') + (st.forced ? ' (forced)' : '') + ' | ' + st.tracks.map(t => t.id + ':' + t.voices.map(v => v.name).join('+')).join(', ') : 'Sound has not started: tap the game once', value: 'auto' }];
         for (const p of PLACES) for (const ph of PHASES) o.push({ label: 'Place: ' + p + ', ' + ph, value: 'p|' + p + '|' + ph });
-        for (const w of ['rain', 'storm', 'snow', 'fog']) o.push({ label: 'Weather: city, day, ' + w, sub: w === 'rain' || w === 'storm' ? 'No rain recording yet: the dry bed steps back' : '', value: 'p|city|day|' + w });
+        for (const w of ['rain', 'storm', 'snow', 'fog']) o.push({ label: 'Weather: city, day, ' + w, sub: w === 'rain' ? 'Rain recordings over the lowered street' : w === 'storm' ? 'Wind-driven rain, far thunder now and then' : 'The dry bed steps back', value: 'p|city|day|' + w });
         for (const r of Object.keys(BED_ROOMS)) o.push({ label: 'Indoors: ' + r + ' (town, day outside)', value: 'p|town|day||' + r });
         for (const n of Object.keys(STRETCHES)) o.push({ label: 'One recording: ' + n, sub: STRETCHES[n].desc + ' (' + Math.round(STRETCHES[n].s) + ' s)', value: 'a|' + n });
         const v = await choose('City ambience', o, { cls: 'dev-list' }); if (!v) return null; const a = String(v).split('|');

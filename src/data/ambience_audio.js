@@ -152,5 +152,37 @@ export const STRETCHES = {
   "place": "airport",
   "desc": "Small airfield, a propeller plane",
   "src": "G16_01_Small_Airport_Ambience.mp3"
+ },
+ "rain_a": {
+  "s": 55,
+  "a": 0.3,
+  "b": 55.3,
+  "place": "rain",
+  "desc": "Rain on a roof and on concrete: the lighter, pattering rain",
+  "src": "R30_24_Rain_on_Roof_and_Concrete.mp3"
+ },
+ "rain_b": {
+  "s": 34,
+  "a": 0.3,
+  "b": 34.3,
+  "place": "rain",
+  "desc": "Steady heavy rain",
+  "src": "R30_25a_Steady_Heavy_Rain.mp3"
+ },
+ "rain_c": {
+  "s": 34,
+  "a": 0.3,
+  "b": 34.3,
+  "place": "storm",
+  "desc": "Rain driven by wind",
+  "src": "R23_35_Rain_with_Wind.mp3"
+ },
+ "storm_a": {
+  "s": 34,
+  "a": 0.3,
+  "b": 34.3,
+  "place": "storm layer",
+  "desc": "Thunder rolling far away (no close claps)",
+  "src": "G46_04_Distant_Storm.mp3"
  }
 };
