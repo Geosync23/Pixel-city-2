@@ -105,3 +105,4 @@
 85. (msg 125) (a) Going through the LOBBY to leave/enter the flat: KEEP (he likes it). (b) INDOOR sounds (room tones) were OK: keep them; the "no white noise" rule is about the OUTDOOR city bed. (c) Small UI sounds (phone open, cab, paying, eating): leave for now.
 86. (msg 126) SOUND: keep all 19 stretches (4.8 MB).
 87. (msg 127) SOUND: yes, look for rain recordings.
+88. (msg 128) Asked whether the 17 added jobs would push the game over the page size limit. Lead answered: no by estimate (about 15 MB of 16), but little room after.
