@@ -51,7 +51,7 @@ function sit(tag, label, minutes, anim, fx, done, room) {
 const KIDS = []; function kidSpec(i) { if (!KIDS[i]) { const s = charArt().randomSpec(rng(7001 + i * 37), { age: 'kid', season: 1 }); s.outfit = null; s.bag = null; s.hat = null; KIDS[i] = s; } return KIDS[i]; }
 /** a named person of the job's cast in the room. o: { seat: {x,y,z,dir} room coords, when(n) -> bool, shift: { x, y, dir } where they stand while the PLAYER works (their seat may be the player's station) } */
 function person(sc, id, x, y, dir, o = {}) {
-  const w = who(id), spec = w.spec || kidSpec(3), c = new Char(spec, x + O, y + O); c.dir = dir; c.jobFig = id; c.label = w.short || w.name; c.kind = 'staff'; c.t = Math.random() * 4; c._home = { x: x + O, y: y + O, dir, seat: o.seat || null }; c._o = o;
+  const w = who(id), spec = w.spec || kidSpec(3), c = new Char(spec, x + O, y + O); c.dir = dir; c.jobFig = id; c.named = true; c.label = w.short || w.name; c.kind = 'staff'; c.t = Math.random() * 4; c._home = { x: x + O, y: y + O, dir, seat: o.seat || null }; c._o = o;
   place(sc, c, false); sc.ents.push(c);
   c.update = dt => { c.t += dt; c.moving = false; if (c._hold > 0) { c._hold -= dt; return; } if (!c.poseOpts && Math.floor(c.t) % 6 === 0 && Math.hypot(G.player.x - c.x, G.player.y - c.y) < 3.5) c.faceTo(G.player.x, G.player.y); else if (!c.poseOpts && Math.floor(c.t) % 6 === 3) c.dir = c._dir; };
   sc.interactables.push({ ent: c, x: c.x, y: c.y, h: 1.4, hit: 10, range: 2.2, label: 'Talk to ' + c.label, npcJob: id, visible: () => !c.hidden, use: () => { c._hold = 4; if (!c.poseOpts) c.faceTo(G.player.x, G.player.y); const it = sc.interactables.find(q => q.ent === c); if (it) { it.x = c.x; it.y = c.y; }
@@ -66,7 +66,7 @@ function place(sc, c, working) {
   const it = sc.interactables.find(q => q.ent === c); if (it) { it.x = c.x; it.y = c.y; }
 }
 function kid(sc, i, seat, lines) {
-  const c = new Char(kidSpec(i), seat.x, seat.y); c.zoff = seat.z || 0; c.z = c.zoff; c.dir = seat.dir === undefined ? 1 : seat.dir; c.poseOpts = { seated: true }; c.pose = 'sit'; c.kind = 'customer'; c.t = Math.random() * 5; c.label = 'A second-grader';
+  const c = new Char(kidSpec(i), seat.x, seat.y); c.zoff = seat.z || 0; c.z = c.zoff; c.dir = seat.dir === undefined ? 1 : seat.dir; c.poseOpts = { seated: true }; c.pose = 'sit'; c.kind = 'customer'; c.named = true; c.t = Math.random() * 5; c.label = 'A second-grader';
   c.update = dt => { c.t += dt; c.moving = false; if (Math.floor(c.t * .7) % 9 === i % 9) c.pose = pick(['sit', 'sit', 'read', 'talk']); };
   sc.ents.push(c); sc.job.kids.push(c);
   sc.interactables.push({ ent: c, x: c.x, y: c.y, h: 1, hit: 8, range: 2, label: c.label, visible: () => !c.hidden, use: () => bubble(c, pick(lines), 2800) });

@@ -77,7 +77,7 @@ export const figures = {
       let at = null; for (const sp of spotsFor(figs.filter(f => !f.own).length)) { const q = freeNear(w, sp.x, sp.y); if (!q) continue; if (used.some(u => Math.hypot(u.x - q.x, u.y - q.y) < 1.4) || Math.hypot(G.player.x - q.x, G.player.y - q.y) < 1) continue; at = q; break; }
       if (!at) continue; used.push(at);
       let c; try { c = new Char(spec, at.x, at.y); } catch (e) { continue; }
-      c.jobFig = id; c.jobStand = true; c.label = who(id).short; c.t = Math.random() * 3; c.z = safe(() => w.heightAt(c.x, c.y), 0);
+      c.jobFig = id; c.jobStand = true; c.named = true; c.label = who(id).short; c.t = Math.random() * 3; c.z = safe(() => w.heightAt(c.x, c.y), 0);
       c.update = dt => { c.t += dt; c.moving = false; if (Math.floor(c.t) % 5 === 0 && Math.hypot(G.player.x - c.x, G.player.y - c.y) < 4) c.faceTo(G.player.x, G.player.y); };
       scene.ents.push(c);
       const it = { x: c.x, y: c.y, h: 1.5, hit: 12, range: 2.4, label: who(id).short, use: () => { safe(() => { G.player.faceTo(c.x, c.y); c.faceTo(G.player.x, G.player.y); }); if (onTap) onTap(id, c); } };

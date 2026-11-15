@@ -52,7 +52,7 @@ export default [
     cyl(1.1, .84, .78, .06, .13, '#f1ede4', { ol: false }); for (let i = 0; i < 3; i++) post(1.08 + i * .02, .84, .9, 1.02, ['#e8483a', '#3b6fd0', '#f2c230'][i]);
     cyl(1.5, .96, .78, .09, .03, '#5a3a28', { ol: false }); post(1.5, .96, .8, .9, BRASS); ball(1.5, .96, 1.02, .13, '#5ab0e0', { ol: false }); spx(1.5, .96, 1.04, -1, 0, '#3c9a5a'); spx(1.5, .96, 1.0, 1, 1, '#3c9a5a'); spx(1.5, .96, 1.06, 2, -1, '#3c9a5a');
     cyl(1.28, 1.16, .78, .05, .04, BRASS, { ol: false }); post(1.28, 1.16, .82, .9, '#5a3a28');
-  }, { use: { x: .9, y: 1.85 }, staff: { x: .9, y: .34, dir: 1 }, seats: [{ x: .9, y: .34, z: .5, dir: 1, staff: true }], variants: [{}] }),
+  }, { use: { x: .9, y: 1.85 }, variants: [{}] }),
 
   /* ---------------- the carpet: circle time ---------------- */
   J('school.carpet', ['class_carpet', 'rug'], p => [p.w || 3, p.d || 2.4, .03], p => {

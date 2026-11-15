@@ -137,7 +137,7 @@ export default [
     /* the logbook, open; cold tea; a lamp */
     bx(1.1, .92, .82, .75, .46, .02, '#7a2e2a'); qz(1.15, 1.8, .96, 1.34, .845, PAPER, '#ece6d6'); lw([1.47, .96, .85], [1.47, 1.34, .85], '#b8b2a2'); for (let i = 0; i < 4; i++) { lw([1.2, 1.02 + i * .08, .85], [1.42, 1.02 + i * .08, .85], '#6a6a80'); lw([1.52, 1.02 + i * .08, .85], [1.72 - (i % 2) * .1, 1.02 + i * .08, .85], '#6a6a80'); }
     cup(1.9, .86, .82, '#f1ede4'); lamp(.2, 1.26, .82, .5, '#3f8a55');
-  }, { use: { x: 1, y: 1.9 }, staff: { x: 1.4, y: .4, dir: 1 }, seats: [{ x: 1.4, y: .4, z: .5, dir: 1, staff: true }], variants: [{}] }),
+  }, { use: { x: 1, y: 1.9 }, variants: [{}] }),
 
   /* ---------------- Sprinkler the tortoise: a low pen with a heat lamp ---------------- */
   J('fire.sprinkler', ['fire_tortoise', 'pet'], [1.4, 1, .9], p => {

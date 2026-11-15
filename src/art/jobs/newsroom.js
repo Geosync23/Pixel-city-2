@@ -55,7 +55,7 @@ export default [
       cup(1.2, 1.2, .76, own ? '#f2c230' : PAPER); lamp(1.52, 1.22, .76, .46, GREEN); if (own) { qz(.66, 1.0, 1.12, 1.34, .765, '#f8e8a0'); post(1.1, 1.3, .76, .9, '#f2c230'); }
       else bx(.9, 1.12, .76, .3, .2, .05, '#3a3f4c');
     }
-  }, { use: { x: .85, y: 1.9 }, staff: { x: .84, y: .32, dir: 1 }, seats: [{ x: .84, y: .32, z: .5, dir: 1, staff: true }], variants: [{}, { kind: 'own' }, { kind: 'edwina' }, { kind: 'photo' }] }),
+  }, { use: { x: .85, y: 1.9 }, staff: p => (p.kind === 'own' ? { x: .84, y: .32, dir: 1 } : null), seats: p => (p.kind === 'own' ? [{ x: .84, y: .32, z: .5, dir: 1, staff: true }] : []), variants: [{}, { kind: 'own' }, { kind: 'edwina' }, { kind: 'photo' }] }),
 
   /* ---------------- Max's desk ---------------- */
   J('news.editor', ['news_editor_desk', 'desk'], [2.4, 1.7, 1.4], p => {

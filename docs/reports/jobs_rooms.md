@@ -1,0 +1,64 @@
+# Jobs J3: the four job rooms, their plays, real stations, looks, uniforms, keepsakes — worker report
+
+Builds on `docs/reports/jobs_engine.md` (J2) and `docs/story/JOBS.md` (J1). All 25 jobs are live now. No file of another system was edited: everything added to other rooms and to the city is appended in memory at start-up from files this worker owns (listed under "Add-only changes").
+
+## What exists
+**Four new rooms** (`src/scenes/rooms/job_rooms.js`, art `src/art/jobs/firehouse.js`, `classroom.js`, `newsroom.js`, `radio.js`, helpers `_lib.js`), each inside a building that already stands:
+
+| room id | place | size | door in the city | visitors |
+|---|---|---|---|---|
+| `fire_station` | Maple Bay Fire Station No. 2 (`bld.civic.firestation`, 274,252) | 17x11 | `door:fire_station` at its red personnel door (275.2, 260.75) | 08-20 |
+| `school_classroom` | Maplewood Elementary, Room 4 + a strip of corridor with Room 5's door (the school, 308,206) | 16x11 | `door:school_classroom` at the school's front door (317, 215.75) | school days 07:30-17 |
+| `gazette_newsroom` | The Maple Bay Gazette (the OSTRANDER block, 222,241) | 15x10 | `door:gazette_newsroom` (230.8, 243): its own street door beside the lobby entrance | Mon-Sat 09-19 |
+| `radio_studio` | Bay Radio 98.6, Studio B (MBTV Broadcast House, 110,12) | 12x9 | `door:radio_studio` (116.8, 14.2): round the side | 16-21 |
+
+- Fire station: Engine 2, the turnout rack (a bay per firefighter, the fourth plate is yours), the brass pole, hose rack, bell + call box, call board, tools, district map, watch desk with radio and logbook, Sprinkler's pen, Dutch's kitchen, mess table (sit), sofa, two bunks. Classroom: board with alphabet frieze, four tables of four, teacher's desk, carpet, reading tent, Twiglet's nature table, "Our Town", art lines, window; corridor behind a glazed partition with Room 4's door (paper sun), cubbies, fountain, Room 5, notices, the caretaker's trolley. Newsroom: layout wall, assignment board, clocks, Max's desk, six reporters' desks (yours, Lev's, Edwina's by the window), the morgue, darkroom door with a red light, proof press + wire machine, bundles, front counter, the stair door. Radio: walnut console (board, two turntables, microphone), record wall, four-line telephone, kettle corner, ON AIR light (lit while a show is on), window over Hillcrest, glass to Hattie's bench, tape rack, guest sofa, the listener tally.
+- **People in the rooms** (room characters with `c.jobFig = speaker id`, hand looks): Captain Abara, Dutch, Tully; Mr. Calloway, Principal Whitlow, Mr. Nguyen, Cosmo, Juniper, Ayo and nine more children at the tables (school hours); Max, Lev, Edwina; Sunny (17-21) and Hattie. On the player's shift all of the job's people are in, and anyone sitting at the player's station steps aside. Off shift: the Talk prompt gives a line (see "Greetings").
+- **Visitor things** (15 "look" prompts + 2 sit-downs): slide down the pole, Sprinkler, the call board, the bell, Engine 2, the rack; look for Twiglet, read a picture book in the tent (15 min), "Our Town", the board, cubbies, trolley, fountain, Room 5; read today's paper at the counter, tomorrow's pages, the wire machine, a drawer in the morgue, the darkroom, old front pages; sit in on the show (20 min, a little music xp), the records, the window, the tally, the bench, the kettle. `registerInfo` entries for the guide.
+- **The four jobs are hireable** (`needsRoom` removed; `tools/jobs_check.mjs` now requires the four `PLACES_NEW` rooms to exist). Stations are the fixtures' own tags; ticket scripts in `_jobstory_stations.js`. "Go to the place" / "three voices" (reporter) and "the call" (firefighter) are resolved without leaving the room: the player goes out by the stair door (and Engine 2 leaves the bay) for the length of the task. The firefighter's bunk restores energy.
+- **Four plays** (`_jobplay_games.js`, J2's kit): radio "Hit the Post" (a record for the caller's mood, then hold to talk over the intro and let go before the singing, twice); teacher "Who Can Show Me?" (five questions, call on a spread of hands, the daydreamer); reporter "Who Cares?" (three voices: a fact, a feeling, a shrug; first line; order; headline; three stories); firefighter "The Bell" (dress in order, three pieces of kit from six, the one careful thing; six calls). Once a worked shift, Auto + x, never blocks pay.
+- **Real stations for the stand-ins** (art `src/art/jobs/fixtures.js`, placed by `src/scenes/rooms/job_fixtures.js`): the Gull's stove line under a copper hood, prep table, walk-in door, the quay door with Gilbert on the sill; the barbershop's shampoo basin; the aquarium's fish kitchen and water bench; the conservatory's flower cooler and florist's bench; Central Station's announcer's booth and lost-property cupboard; the observatory's terrace kit; Norm's chair by Marge's foot (decor). `STATIONS` rows use `{ first: [real, stand-in] }`: the real fixture when it is in the room, else the old one.
+- **Cast looks** (`src/sim/_jobstory_wear.js` `CAST_LOOKS`): a hand look for all 82 speakers who are not cast.js characters. **Showpiece staff**: Odile, Gus the doorman, Marisol, Dr. Okafor, Ines, Wendell, Dr. Reyes, Dr. Halvorsen and Stella are found in their rooms by label (`STAFF`) and used as the speaking figure (bubbles over them, their own look as the portrait once seen); nobody who belongs elsewhere (`existing`) is ever placed as a stand-in.
+- **Uniforms** (`JOB_WEAR`, merged into the wardrobe's `LOOKS`; new shapes in `src/art/jobs/uniforms.js`: `job_turnout`, `job_hivis`, `job_bellcoat`, `job_stationcoat`, `job_apron`, `job_smock`, `job_station`, `job_firehelmet`, `job_peaked`, `job_bellcap`, `job_whistle`, `job_scarfknot`): one per new job; gull cook keeps the chef art; the DJ wears their own clothes with headphones.
+- **Keepsakes** (`_jobstory_keeps.js`, art + icons `src/art/jobs/keepsakes.js`): all 12 are home goods that hang on a wall (`furn.home.jobkeep`), given into the home's storage and placed through Furnish; `dots_pie_card` teaches `berry_pie`, `chili_card` teaches `chili` (`G.cooking.learn`). Older saves get the things once on load.
+- **Small**: ambient lines prefer a speaker who is in view (bubble), otherwise a caption with the name; `TUNE.lineEvery` is 25-40 s (lead decision); the card and the play sheet carry a hidden `.jm-res` marker, which `G.firstTime.calm()` reads as "a scene is on"; phone banners were already held by `G.modal`. Off-shift greetings: `G.jobStory.greet(id, char, jobId)`; in older workplaces up to two of the job's own people stand about once the player has worked there.
+- **QA round 9 items** (jobs.js): one hire message ("... your first shift is on My Day"); every missed shift counts as a warning with one notice (the boss's text when there is one, a kind toast otherwise), plus a notice 20 minutes after a shift began; `G.jobs.clash(jobId)` and a "Heads up" line on the phone and computer hire cards and in the hire toast when a shift overlaps an appointment of the coming week (a university section); never blocks.
+- Two dialogue lines that were split after "Mr." are repaired (jobs_c.js, jobs_d.js).
+
+## API
+`G.jobRooms = { rooms, open(roomId), doors() }` · `G.jobFixtures = { added(), ADDED }` · `G.jobStory.greet` · `G.jobStory.debug.{ who, figs, give, greet, greeters }` · `G.jobs.clash(jobId)` · listing rows carry `clash` · events `jobstory:line`(who, 'bubble' | 'caption', text), `jobstory:greet`, `jobroom:look` · state `G.state.jobs.story.given`. Scene: `scene.job = { people, kids, sync() }`. Room defs carry `jobRoom: true, job`.
+
+## Add-only changes to things this worker does not own (all in memory, from job_rooms.js / job_fixtures.js; no file edited)
+- City: four door pois (above) and two `prop.job.sidedoor` props (non-solid) against the walls of MBTV (116, 13.4) and OSTRANDER (230, 242.2). Created after `G.lobbies.list()`, so no lobby is lost. Module order 57.5.
+- Room item lists, appended at order 59: `restaurant` + gullstove (9.0, .1), gullprep (11.45, .1), walkin (left wall .55), gulldoor (left wall 6.5); `pub:22` + barbersink (8.2, 4.1); `aquarium` + fishkitchen (.1, 6.3, flipped), waterlab (.1, 4.2, flipped); `conservatory` + flowercooler (.9, 22.8), floristbench (1.7, 25.6); `central_station` + announcer (1.0, 9.5), lostprop (.4, 16.0, flipped); `observatory` + terracekit (25.7, .3); `museum` + guardchair (18.4, 10.5).
+- Registries extended at import: wardrobe `LOOKS` (14 `job_*` looks), `ITEMS` / `ITEM_BY_ID` / `HOMEGOODS` / housing `VIS` (12 keepsakes), `ICONS` (12), clothes shapes (12).
+
+## What was run (headless Chromium, 390x844, touch, the dist build; logs in scratchpad/j3)
+- **By taps, each of the four jobs** (`prove.mjs`): phone button, Jobs, Board, Apply; on the shift day the player stands in the street and taps the door, walks in; beat 1 through the dialogue sheet; the card; a test ticket at every station tapped in the HUD (walk + work: 6 / 5 / 5 / 4 stations, all reached); real tickets with their micro-interactions; the pink ticket, walk, the sheet, Auto by tap; the pay card. Pay: firefighter $193.75, teacher $114.50, reporter $153.75, radio $65.50. Zero page errors. Time was advanced by `G.advance` between steps, and the player was placed 4 tiles from the door, not walked across town.
+- **By taps**: the four plays played through by a bot that reads the best answer (scores 1.0 / 0.91 / 0.96 / 1.0; the radio hold with real touch start / end).
+- **By the Talk prompt**: greetings in all four rooms as a visitor, as staff at four points of the arc, and a stand-in in the cafe.
+- **By API**: keepsakes given, both recipes learned, four hung on a home wall; `calm()` returns "scene" with the card open; nine ambient lines on a firefighter shift (4 bubbles, 5 captions, no stand-ins).
+- Checks: `validate.mjs` exit 0; `jobs_check.mjs` passes; `build.mjs` 8,574 KB; `navcheck --rooms all`: 264 rooms, the four new rooms and the seven rooms with added fixtures pass, all 44 audit rows pass; **one failure that is not mine: `home:grandma` has no path to `home:grandma:attic`**.
+- Looked at: every room at 3-4 camera positions by day, fire station and radio at night, the added fixtures in the Gull, conservatory, station, observatory; contact sheets of the 15 uniforms and 16 of the looks.
+- Still running when this was written: a second proof of radio and reporter on the final build (after the last seat / stand-in changes).
+
+**Not run:** the bad-play path of the four plays; `calm()` with only a play sheet open (a first-time window was already up in that test); the missed-shift, late notice and clash messages (code only); the added fixtures in the aquarium, barbershop and museum by eye (the aquarium walks a ticketless visitor back to the door); the 11 older new jobs re-proved with the real fixtures and new uniforms (station mapping checked by API only for use spots: all free); the other 66 looks by eye; a keepsake placed through the Furnish UI by taps; beats 2-9 of the four jobs on real shifts (J2's sweep covered them); night shifts with real needs; landscape; the sleep pose on the bunk.
+
+## Known gaps
+- Rooms are single rooms: no upstairs, the bay doors do not open, calls and assignments happen off screen.
+- Kids at the tables are generic except Cosmo, Juniper, Ayo; Pip and Milo appear only as cubby names.
+- The reporter's daily headline hook is not wired (no `G.gazette` found; the counter falls back to two written lines).
+- The terrace kit is half hidden behind a lamp by the stairs.
+- Greeting lines by stage are generic (five stages, two lines each) and then the person's own shift lines.
+- The dock hard hat is a wall piece, not wearable.
+
+## Lines wanted in lead-owned files
+1. `src/sim/firsttime.js` `calm()`: add `.jsc-wrap, .jp-wrap` to the `querySelector` list; the hidden `.jm-res` markers can then go.
+2. `src/world/_blocks.js` line 38, the fire station: its sign reads "FIRE STATION 7" (the art's default) while every line of the job says Station 2. Add `name: 'FIRE STATION 2'` to the params: `c.vp('bld.civic.firestation', c.sub(67), { w: 12, d: 8, name: 'FIRE STATION 2' })`. Not done here: it redraws a sign in the city.
+3. `src/data/firsttime.js` "Finding work": J2's item 4 still stands.
+
+## Questions for the owner
+1. **The fire station's sign says 7, the story says 2.** *Recommendation: change the sign (patch 2).*
+2. **The Gazette and the radio studio have their own street doors** instead of a door inside the office lobbies (those close at 20:00; the radio shift starts at 21:00). *Recommendation: keep.*
+3. **Visitors may walk into Room 4 on school days.** *Recommendation: keep; it is where Pip and Milo go.*
+4. **Calls and assignments are off screen** (the player and Engine 2 leave for a few seconds). *Recommendation: keep for now; a walked assignment for the reporter is the natural next step.*

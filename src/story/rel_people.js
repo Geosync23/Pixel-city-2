@@ -245,7 +245,7 @@ export const PEOPLE = {
     looks: { date: { top: 'suit', topColor: '#1d3557' }, home: { top: 'cardigan', topColor: '#6a2c70', bottom: 'slacks' } },
     inner: 'Eats alone three hundred nights a year and writes it up as a triumph. He cannot cook, has never been cooked for at home, and is keeping his fifth star for it.',
     likes: { recipes: ['cottage_pie', 'grilled_cheese', 'apple_crumble'], gifts: ['cheese', 'wine', 'pastry_box', 'jam_jar'], outings: ['cook', 'dinner', 'show', 'museum', 'plusone'], places: ['diner', 'restaurant', 'playhouse'] },
-    dislikes: { recipes: ['protein_bar'], outings: ['pier'] },
+    dislikes: { recipes: ['granola'], outings: ['pier'] },
     ageLine: 'I am fifty-seven. I mention it once, as one mentions the price of a tasting menu: so nobody is surprised at the end.',
     keyLine: 'A key! I have not been given a key since boarding school, and that one was to a broom cupboard.',
     missed: 'I dined out four nights and reviewed none of them. Everything tasted of your not being there. Two stars.',
@@ -306,7 +306,7 @@ export const PEOPLE = {
     advice: { work: 'Do they fix things or replace them? Work for the ones who fix.', home: 'Run the tap for a full minute. Listen to the pipes. The pipes don\'t lie to you.', heart: 'Hm. Somebody who knocks. That\'s all I\'ll say.', family: 'Pick up when they ring. I let it go to the machine for two years. Don\'t do that.' },
     giftNotes: { crossword_book: 'Finished your crossword book. In pen. Don\'t look at page nine.', coffee_beans: 'Good coffee. I had it on the stoop. The building looked better for it.' }, standing: 'Thursday, eight o\'clock, coffee on the stoop' },
   vik: { id: 'vik', kind: 'friend', craft: 'logic', likes: { recipes: ['masala_chai', 'samosas', 'dal'], gifts: ['tea_tin', 'crossword_book', 'novel'], outings: ['museum', 'plusone'], places: ['spot:chess_tables', 'library'] },
-    keyLine: 'A key. A responsibility. I shall water the plants on the Fibonacci days. They will be confused but healthy.',
+    keyLine: 'A key. A responsibility. I shall water the plants on the prime-numbered days. They will be confused but healthy.',
     advice: { work: 'Find the job where the problem is interesting on its worst day.', home: 'Consider the walk to the nearest decent tea. Compute it in minutes, in rain. Then decide.', heart: 'One does not win at this. I have been married forty-four years and I have not won once. It is wonderful.', family: 'I taught other people\'s children for forty years. Ring your own people. It is a shorter lesson.' },
     giftNotes: { tea_tin: 'Your tea is stronger than my thermos deserves. I have been thinking three moves further ahead. Unfair advantage.', novel: 'I have finished your novel. The detective made an arithmetic error on page ninety. I wrote to the publisher.' }, standing: 'Table three, any morning. He plays white. He always plays white' },
 };

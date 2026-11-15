@@ -337,7 +337,7 @@ const ch02 = {
   hook: 'Cousin Dez is outside your building with a bike and a plan.',
   ready: "No rush. He's got parcels to drop either way.",
   marker: { place: 'spot:building_stoop', label: 'Dez, on your front stoop' },
-  window: { slots: [{ from: '08:00', to: '18:00' }], closed: "Dez knocks off at dark. He'll be leaning on your building again tomorrow." },
+  window: { slots: [{ from: '08:00', to: '18:00' }], closed: "Dez knocks off at six. He'll be leaning on your building again tomorrow." },
   cast: ['dez'],
   unlock: { after: 'ch01', breath: 'next_morning' },
   minutes: [7, 11],

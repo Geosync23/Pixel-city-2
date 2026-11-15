@@ -287,7 +287,7 @@ export function summary() {
   const top2 = L.find(i => i.kind !== 'big') || null, clean = x => x.title.replace(/^(Somewhere new|A rainy day|A fine day|A clear night): /, '') + (x.fixed && x.t ? ' at ' + hh(x.t) : '');
   let text = big ? `${big.title} is on today${big.t > now() ? ', from ' + hh(big.t) : ''}. ` : '';
   /* QA8: the open Chapter first (a banner shows two lines: at the end it was always cut off), and a shorter "free" line */
-  const chOpen = !!(sc.chapter && !sc.chapter.stub && /open|paused/.test(sc.chapter.state || '')); if (chOpen) text += `${sc.chapter.text}, whenever you're ready. `;
+  const chOpen = !!(sc.chapter && !sc.chapter.stub && /open|paused/.test(sc.chapter.state || '')); if (chOpen) text += `${sc.chapter.text}, ${sc.chapter.hours && sc.chapter.hours !== 'closed' ? 'today ' + sc.chapter.hours : "whenever you're ready"}. `;   /* QA10: say the hours when it shuts today */
   text += parts.length ? 'On your day: ' + parts.join(', ') + (sc.today.length > 3 ? ' and more' : '') + '.' : big || chOpen ? 'Nothing else is on your day.' : 'Your day is free.';
   if (L.length) { const c = count(L.length); text += ` ${when ? 'Free ' + when + ': ' + c : c[0].toUpperCase() + c.slice(1)}${top2 ? ', like ' + clean(top2) : ''}.`; }
   if (wx) text += ' ' + wx;

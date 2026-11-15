@@ -202,7 +202,18 @@ function announce(ch) {
 function rowInfo() {
   const s = st(), ch = s.cur ? CHAPTERS_BY_ID[s.cur.id] : nextCh(); if (!ch) return null; const state = stateOf(ch); if (state === 'locked' || state === 'done') return null;
   const d = markerPlace(ch), u = unlockInfo(ch);
-  return { id: ch.id, n: ch.n, title: ch.title, hook: ch.hook, ready: ch.ready, state, text: state === 'waiting' ? u.waiting : `${kicker(ch)} · ${ch.title}`, place: d ? { x: d.x, y: d.y, name: ch.marker.label } : null };
+  return { id: ch.id, n: ch.n, title: ch.title, hook: ch.hook, ready: ch.ready, state, text: state === 'waiting' ? u.waiting : `${kicker(ch)} · ${ch.title}`, place: d ? { x: d.x, y: d.y, name: ch.marker.label } : null,
+    hours: state === 'open' ? safe(() => hoursOf(ch), null) : null, closed: (ch.window && ch.window.closed) || null };
+}
+/* QA10: My Day said "Whenever you're ready" at 17:46 for a Chapter whose window shut at 18:00 (the player took a cab and found the closed card).
+   'until 18:00' while open (and it ends today), 'from 16:09' when it opens later today, 'closed' when not again today; null = nothing to say */
+const hhmm = m => { m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+function hoursOf(ch) {
+  const w = ch.window; if (!w || !w.slots || !w.slots.length || shutToday(ch)) return shutToday(ch) ? 'closed' : null; const n = G.now(), tod = n.hf * 60;
+  const today = w.slots.filter(sl => !sl.days || sl.days.includes(WD[n.weekday]));
+  if (windowOpen(ch)) { const sl = today.find(sl => tod >= hm(sl.from) && tod <= hm(sl.to)); return sl && hm(sl.to) < 24 * 60 - 1 ? 'until ' + hhmm(hm(sl.to)) : null; }
+  if (w.weather === 'clear' && today.some(sl => tod >= hm(sl.from) && tod <= hm(sl.to))) return null;   /* it is the hour but not the sky: the closed card says why */
+  const later = today.filter(sl => hm(sl.from) > tod).sort((a, b) => hm(a.from) - hm(b.from))[0]; return later ? 'from ' + hhmm(hm(later.from)) : 'closed';
 }
 
 /* The marker stands beside a door, and a new player taps the DOOR: walking in through the door of an open Chapter's place offers the same start card

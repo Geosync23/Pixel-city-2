@@ -130,7 +130,7 @@ export const WEDDING = {
   plan: {
     card: 'After the proposal My Day shows one gold-edged card: "The wedding: whenever you two are ready." Tapping it opens four small choices, in any order, each changeable until the day. Nothing has a deadline.',
     steps: [
-      { id: 'where', ask: 'Where?', pick: 'one of WEDDING.venues', note: 'The partner says their `venueLine` for the one picked if it is in their likes.places.' },
+      { id: 'where', ask: 'Where?', pick: 'one of WEDDING.venues', note: 'If the venue is in the partner\'s likes.places, WEDDING.venueLiked plays.' },
       { id: 'when', ask: 'When?', pick: 'a day and hour inside the venue\'s `when`, at least two days ahead', note: 'Lands on My Day for both, tagged "The wedding". The family and friends at Friend+ are invited by themselves.' },
       { id: 'who', ask: 'Who stands up with you?', pick: 'any Close Friend or family member', note: 'They say their `standLine` (WEDDING.stand) and hold the rings.' },
       { id: 'after', ask: 'And afterwards?', pick: 'one of WEDDING.receptions', note: '' },
@@ -141,15 +141,15 @@ export const WEDDING = {
   },
   venues: [
     VENUE('cityhall', 'cityhall', 'The Wedding Room, City Hall', 'clerk_bell', { days: [5], hours: [11, 13, 15] }, 24,
-      ['clerk_bell|Good morning. I have married nine hundred and four couples in this room. I mention it so you know I shall not be the nervous one.', 'clerk_bell|Confetti is permitted. Rice upsets the pigeons. Shall we?'], 'The second-floor room with the tall windows; the existing Saturday civil weddings, and this slot is yours.'),
+      ['clerk_bell|Good morning. I have married nine hundred and four couples in this room.', 'clerk_bell|I mention it so you know I shall not be the nervous one.', 'clerk_bell|Confetti is permitted. Rice upsets the pigeons. Shall we?'], 'The second-floor room with the tall windows; the existing Saturday civil weddings, and this slot is yours.'),
     VENUE('conservatory', 'conservatory', 'Under the fig, at the Conservatory', 'wendell', { days: [0, 1, 2, 3, 4, 5, 6], hours: [10, 14, 17] }, 30,
-      ['wendell|Welcome, everyone. Mind the koi. They are not invited, and they have come anyway.', 'wendell|This fig was planted in 1911 by two people who had just been married. So it knows what to do. You need only stand under it.'], 'The palm house by the koi pond; green light, dripping glass.'),
+      ['wendell|Welcome, everyone. Mind the koi. They are not invited, and they have come anyway.', 'wendell|This fig was planted in 1911 by two people who had just been married.', 'wendell|So it knows what to do. You need only stand under it.'], 'The palm house by the koi pond; green light, dripping glass.'),
     VENUE('lighthouse', 'lighthouse', 'The gallery at Gull Point Light', 'silas', { days: [0, 1, 2, 3, 4, 5, 6], hours: [16, 18] }, 12,
-      ['silas|Ninety-seven steps, and all of you made it. Ninety-eight, for those who count the doorstep.', 'silas|The lamp has seen two hundred years of people finding their way home. It seemed the right witness. I\'ll write you both in the log.'], 'The lamp gallery at dusk; small, windy, the whole bay below. The lamp is lit as you kiss.'),
+      ['silas|Ninety-seven steps, and all of you made it. Ninety-eight, for those who count the doorstep.', 'silas|The lamp has seen two hundred years of people finding their way home.', 'silas|It seemed the right witness. I\'ll write you both in the log.'], 'The lamp gallery at dusk; small, windy, the whole bay below. The lamp is lit as you kiss.'),
     VENUE('bandstand', '@Bandstand', 'The bandstand in Central Park', 'captain', { days: [5, 6], hours: [11, 14, 16] }, 40,
-      ['captain|A ship\'s captain may marry people. I looked it up. I did not look it up very hard.', 'captain|I ran a ferry forty years. I have seen every sort of crossing. This is the only one where both of you get off on the same side.'], 'White iron, bunting, folding chairs on the grass; Fenn plays if they are your friend.'),
+      ['captain|A ship\'s captain may marry people. I looked it up. I did not look it up very hard.', 'captain|I ran a ferry forty years. I have seen every sort of crossing.', 'captain|This is the only one where both of you get off on the same side.'], 'White iron, bunting, folding chairs on the grass; Fenn plays if they are your friend.'),
     VENUE('lookout', 'lookout', 'Hillcrest Lookout', 'captain', { days: [0, 1, 2, 3, 4, 5, 6], hours: [10, 15, 17] }, 20,
-      ['captain|Up here you can see the whole of it. The Light, the harbor, the Wheel. Everything you two will ever argue about is down there, looking small.', 'captain|Stand at the rail. Face each other, not the view. The view will keep.'], 'The rail where Chapter 15 ends (only offered once ch15 is done); maples in season.'),
+      ['captain|Up here you can see the whole of it. The Light, the harbor, the Wheel.', 'captain|Everything you two will ever argue about is down there, looking small.', 'captain|Stand at the rail. Face each other, not the view. The view will keep.'], 'The rail where Chapter 15 ends (only offered once ch15 is done); maples in season.'),
     VENUE('ballroom', 'hotel_ballroom', 'The Bay Ballroom, the Grand Maple', 'clerk_bell', { days: [5], hours: [15] }, 60,
       ['clerk_bell|I do not usually leave City Hall. An exception has been made. There was talk of cake.', 'clerk_bell|It is a very large room. I shall speak up. You two need only say two words each, and you may say them quietly.'], 'Chandeliers and a dance floor; rolls straight into the existing Saturday reception hours.'),
   ],
@@ -163,14 +163,15 @@ export const WEDDING = {
     jules: 'Me? Of course me. I\'ve been standing up for you since you were four and bit a boy at the swings.', kit: 'Finally, a gig where I don\'t have to sing. I\'m going to sing.', dez: 'I\'ll hold the rings. In the bag. The zip pocket. They\'re safer in there than in a bank.',
     theo: 'I\'d be honored. I\'ll make a little box for the rings. It will wobble.', nana: 'I shall sit. I am seventy-eight. But I shall sit at the FRONT, and hold them in my handbag.', dad: 'Aye. I\'ll stand.', any: 'They say yes before you have finished asking.',
   },
+  venueLiked: steps(['*|You name the place. They do not answer at once. Then: "You remembered." That is all, and it is plenty.']),
   proposalPlace: steps(['*|You chose this place on purpose. They see that you did. It goes in, and stays.']),
   ceremony: {
     order: ['gather', 'venue.words', 'walk', 'vows.partner', 'vows.player', 'rings', 'kiss', 'after', 'reception'],
     gather: steps([
       '*|{place}. Chairs, and people finding them. Everyone you have met in this town seems to be here, in a better shirt.',
-      iff('done:ch03', ['pip|Row one is family. Row two is friends. I have laminated the plan. Uncle Dez, you are in the wrong row. You are ALWAYS in the wrong row.']),
+      iff('done:ch03', ['pip|Row one is family. Row two is friends. I have laminated the plan.', 'pip|Uncle Dez, you are in the wrong row. You are ALWAYS in the wrong row.']),
       'dez|I\'m in the fun row.',
-      iff('done:ch15', ['*|Dad is at the end of the front row in a suit that has been in a wardrobe since 1988. It still fits. He has checked the roof of the building, twice.', 'dad|It\'s a good day for it.']),
+      iff('done:ch15', ['*|Dad is at the end of the front row in a suit that has been in a wardrobe since 1988.', '*|It still fits. He has checked the roof of the building, twice.', 'dad|It\'s a good day for it.']),
       'nana|Stand up straight. No. You are standing beautifully. I only wanted something to say.',
       'jules|Has anyone got a tissue? Theo. Theo, you had ONE job.',
       'theo|I have eleven tissues. I\'ve been to a wedding with you before.',
@@ -197,11 +198,11 @@ export const WEDDING = {
       'dez|YES! Sorry. Yes.',
     ]),
     after: steps([
-      'nana|There. Now come here, both of you. {partner}, you may call me Bea. I have decided. It took me less time than I expected.',
+      'nana|There. Now come here, both of you. {partner}, you may call me Bea.', 'nana|I have decided. It took me less time than I expected.',
       iff('done:ch15', ['dad|She\'d have narrated the whole thing. Start to finish. What everybody wore.', 'dad|So I\'ll say it. It was a good wedding. You looked happy. That\'s what I\'m looking at.']),
       iff('done:ch11', ['jules|Little one. I\'m allowed to say it today. Tomorrow I\'ll stop. I won\'t stop.']),
-      'theo|Welcome to the out-law club, {partner}. Best seats in the house. I\'ll go for cocoa, slowly, and you two take as long as you like.',
-      iff('done:ch03', ['pip|The ceremony ran four minutes over. I have allowed for it. Photographs are now. Everybody look at the camera. MILO.', 'milo|There was a bird.']),
+      'theo|Welcome to the out-law club, {partner}. Best seats in the house.', 'theo|I\'ll go for cocoa, slowly, and you two take as long as you like.',
+      iff('done:ch03', ['pip|The ceremony ran four minutes over. I have allowed for it.', 'pip|Photographs are now. Everybody look at the camera. MILO.', 'milo|There was a bird.']),
       'kit|I wrote you a song. It\'s finished. That\'s two finished songs now. I\'m practically prolific.',
     ]),
     rain: steps(['*|It rains. Forty umbrellas go up at once, like a field of mushrooms. Nobody leaves.', 'nana|Rain on a wedding is luck. I have just decided that, and I am old enough to make it true.']),
@@ -209,7 +210,7 @@ export const WEDDING = {
   reception: {
     toast: steps([
       'theo|I\'ve been asked to say a few words. I\'ve drawn them on a napkin.',
-      'theo|There are three columns. HAS TO, WANT TO and MIGHT. Under HAS TO it says "be kind". Under WANT TO, it says "each other". Under MIGHT, it says "learn to dance".',
+      'theo|There are three columns. HAS TO, WANT TO and MIGHT. Under HAS TO it says "be kind".', 'theo|Under WANT TO, it says "each other". Under MIGHT, it says "learn to dance".',
       'theo|To the pair of you.',
     ]),
     dance: steps([

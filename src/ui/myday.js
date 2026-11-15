@@ -51,7 +51,9 @@ function go(dest) {
 function chip() {
   if (!G.myDay) return null; const sc = safe(() => G.myDay.schedule(), null); if (!sc) return null;
   /* QA8: a next entry on another day said "NEXT 11:30 Bay Ecology" on Wednesday afternoon for Saturday's class; it names the day now */
-  const n = sc.next; if (n) { const dd = Math.floor(n.t / DAY) - Math.floor(now() / DAY), day = n.flex || dd <= 0 ? '' : dd === 1 ? 'Tomorrow ' : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][Math.floor(n.t / DAY) % 7] + ' ';
+  /* QA10: an open Chapter was hidden for 2.5 days behind "NEXT Tue 09:00 Shift"; a timed entry more than 3 hours off now gives way to it */
+  const chOpen = !!(sc.chapter && /open|paused|running/.test(sc.chapter.state || ''));
+  const n = sc.next; if (n && !(chOpen && !n.flex && n.t - now() > 180)) { const dd = Math.floor(n.t / DAY) - Math.floor(now() / DAY), day = n.flex || dd <= 0 ? '' : dd === 1 ? 'Tomorrow ' : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][Math.floor(n.t / DAY) % 7] + ' ';
     return { label: n.flex || n.t > now() ? 'Next' : 'Now', text: (n.flex ? '' : day + hh(n.t) + ' ') + n.title }; }
   /* QA8: an open Chapter comes before the to-do list (on day 1 the plain "TO DO Breakfast at Nana's" hid the gold Chapter 1 line) */
   if (sc.chapter && /open|paused|running/.test(sc.chapter.state || '')) return { label: 'Story', text: sc.chapter.text, gold: true };
@@ -130,7 +132,7 @@ function render() {
   else sched.append(sec('My schedule'), el('p.md-note.md-none', { text: empty ? 'Nothing on your day yet. Pick an idea and add it, or just wander.' : 'Nothing else for now.' }));
   if (sc.chapter) { const c = sc.chapter, ready = /open|paused/.test(c.state || '') || c.stub;
     sched.append(el('button.md-chap', { 'data-g': 'chapter', onclick: () => { const mk = safe(() => G.chapters.marker(), null), pl = c.place || (mk ? { x: mk.x, y: mk.y, name: mk.label } : null); if (pl && ready) { safe(() => G.phone.setWaypoint({ id: null, name: pl.name || c.title, x: pl.x, y: pl.y })); close(); toast('Follow the gold marker. No rush.', 'good', 2600); } else flash(c.state === 'waiting' ? 'No hurry. It will come.' : c.hook || c.ready || "Whenever you're ready."); } },
-      el('span.md-chdia'), el('span.md-main', null, el('b', { text: c.text }), el('small', { text: c.state === 'waiting' ? 'No hurry.' : c.state === 'running' ? 'You are in it.' : c.state === 'paused' ? "Your place is kept. It'll keep." : "Whenever you're ready." + (c.hook ? ' ' + c.hook : '') })), ready && c.place ? iconEl('ui.pin', 1) : null)); }
+      el('span.md-chdia'), el('span.md-main', null, el('b', { text: c.text }), el('small', { text: c.state === 'waiting' ? 'No hurry.' : c.state === 'running' ? 'You are in it.' : c.state === 'paused' ? "Your place is kept. It'll keep." : c.hours === 'closed' ? (c.closed || 'Not again today.') : (c.hours ? `Today ${c.hours}.` : "Whenever you're ready.") + (c.hook ? ' ' + c.hook : '') })), ready && c.place ? iconEl('ui.pin', 1) : null)); }
   if (rest.length) { sched.append(sec(sc.next ? 'Later today' : 'Today')); const cut = !M.allToday && rest.length > 5 ? 4 : rest.length; for (const a of rest.slice(0, cut)) sched.append(schedRow(a));
     if (cut < rest.length) sched.append(el('button.md-tom', { 'data-more': 1, onclick: () => { M.allToday = true; render(); } }, el('b', { text: `${rest.length - cut} more today` }), el('span', { text: rest.slice(cut, cut + 3).map(a => `${hh(a.t)} ${a.title}`).join(' · ') }))); }
   if (flex.length) { sched.append(sec('Any time today')); for (const a of flex) sched.append(schedRow(a)); }
