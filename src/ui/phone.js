@@ -160,7 +160,7 @@ function homeView() {
   }
   const quick = el('div.ph-quick', null,
     isUnlocked('taxi') ? el('button', { onclick: () => openApp('taxi') }, iconEl('transport.taxi', 1), el('span', { text: 'Call a cab' })) : null,
-    el('button', { onclick: () => openApp('planner', nx ? { appt: nx.id } : null) }, iconEl('ui.calendar', 1), el('span', { text: nx ? `${nx.title} · ${when(nx.t)}` : 'Nothing planned' })));
+    el('button', { onclick: () => openApp('planner', nx ? { appt: nx.id } : { myday: 1 }) }, iconEl('ui.calendar', 1), el('span', { text: nx ? `${nx.title} · ${when(nx.t)}` : 'Nothing planned' })));
   return el('div.ph-home', null,
     el('button.ph-widget', { 'aria-label': 'Notifications', onclick: () => openApp('notifications') },
       el('span.ph-w-l', null, el('b.ph-w-clock', { text: n.clock }), el('span', { text: `${n.weekdayName} ${n.dayOfMonth} ${n.seasonName}` })),
