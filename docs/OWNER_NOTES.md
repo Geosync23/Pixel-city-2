@@ -121,3 +121,4 @@
 101. (msg 141) (a) the job-nudge question again (answered: cab driver mention on arrival; Nora's text on the third day at 1 pm; Chapter 4). (b) AQUARIUM: the sea turtle is way too big.
 102. (msg 142) (a) Nora's job-hunt text ("notes" = Nora's, lead's reading): move to DAY 2, late in the day. (b) Game TIME should run just a little slower.
 103. (msg 143) (a) THOROUGHLY check for conflicts caused by the time-scale change (clock 0.85x). (b) CONTROLLER (gamepad) SUPPORT: design and implement it now, by a Fable agent; he knows it is a touch game first.
+104. (msg 144) CONTROLLER SUPPORT: wait for a free Fable worker (no third worker).

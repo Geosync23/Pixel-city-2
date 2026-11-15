@@ -12,7 +12,7 @@ export const pickIcon = ids => (ids || []).find(i => hasIcon(i)) || (ids && ids[
 export const iconOf = a => appIcon(a.id, 48, { iconId: a.iconIds ? pickIcon(a.iconIds) : undefined, color: a.color });
 export const regDef = id => { const a = CATALOG.find(c => c.id === id) || { id, name: id }; return { id, name: a.name, question: a.tagline, iconId: pickIcon(a.iconIds), color: a.color, slot: 50 }; };
 export const cityPois = () => safe(() => G.sceneCache.get('city').world.pois, []) || [];
-export const walkMin = (a, b) => (a && b ? Math.max(1, Math.round((Math.abs(a.x - b.x) + Math.abs(a.y - b.y)) / 3.8)) : null);
+export const walkMin = (a, b) => (a && b ? Math.max(1, Math.round((Math.abs(a.x - b.x) + Math.abs(a.y - b.y)) * .215 * (G.CLOCK || .85))) : null);   /* QA13: the navigator's walking pace (was / 3.8 = .26 min per unit) at the owner's slower clock (msg 142) */
 export const walkText = m => (m === null || m === undefined ? '' : m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min walk` : `${m} min walk`);
 /** set a waypoint to a place id, a city poi id or {x, y, name}; closes the phone */
 export function goTo(target, ctx, name) {

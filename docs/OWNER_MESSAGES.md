@@ -552,3 +552,6 @@ Time should also go just a little slower
 Yes be sure to throughly check any conflicts die to the time scale cha ge. 
 
 Lets also design and implement controller support now. I know it is very much a touch screen game but if dome by a Fable agent I think they can figure it out!
+
+## 144 (2026-11-15)
+Wait for a free worker

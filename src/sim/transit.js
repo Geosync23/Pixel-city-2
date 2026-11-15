@@ -272,7 +272,7 @@ function waitBus(stop, rid, dest, resolve) {
   const here = TX().buses.find(b => b.veh && b.atStop === stop.id && (!rid || b.route === rid)); if (here) { here.hold = true; return boardNow(here, stop, dest, resolve); }
   wait = { stop, rid, dest, resolve };
   G.startActivity({ label: 'Waiting for the bus', anim: null, minutes: 300, rate: 10, canCancel: true,
-    tick() { const nb = TX().nextBuses(stop.id).find(a => !rid || a.route === rid); if (G.busy) G.busy.rate = nb && (nb.bus.veh || nb.minutes <= 6) ? 1 : 10; },   /* QA7: 1, not the game speed: an activity does not sub-step the world, so at 4x the bus you watch arriving cost 4x the game minutes */   // QA round 3: slow down before the bus is due, so an off-screen bus cannot skip past the spawn ring at 10x and go by unseen
+    tick() { const nb = TX().nextBuses(stop.id).find(a => !rid || a.route === rid); if (G.busy) G.busy.rate = nb && (nb.bus.veh || nb.minutes <= 6) ? (G.CLOCK || .85) : 10; },   /* QA13: the free clock's pace (G.CLOCK game minutes per real second), so a bus in sight keeps its quoted minutes */   /* QA7: 1, not the game speed: an activity does not sub-step the world, so at 4x the bus you watch arriving cost 4x the game minutes */   // QA round 3: slow down before the bus is due, so an off-screen bus cannot skip past the spawn ring at 10x and go by unseen
     done() { if (wait) { const w = wait; wait = null; toast('No bus came.'); if (w.resolve) w.resolve(false); } }, cancel() { if (wait && !wait.boarding) { const w = wait; wait = null; if (w.resolve) w.resolve(false); } } });
 }
 function onBusArrive(b, stopId) {

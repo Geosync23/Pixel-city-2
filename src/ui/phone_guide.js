@@ -14,7 +14,7 @@ import { TOOLS, TOOL_BY_ID, picks, tileSub, registerSources, hold } from './_gui
 export const order = 120;
 const DAY = 1440, WD = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const g = () => G.guide, St = () => G.state.guide;
-const walkMin = e => { const p = g().pos(e); if (!p) return null; const c = cityPos(); return Math.max(1, Math.round((Math.abs(p.x - c.x) + Math.abs(p.y - c.y)) / 3.8)); };
+const walkMin = e => { const p = g().pos(e); if (!p) return null; const c = cityPos(); return Math.max(1, Math.round((Math.abs(p.x - c.x) + Math.abs(p.y - c.y)) * .215 * (G.CLOCK || .85))); };   /* QA13: the navigator's walking pace (was / 3.8 = .26 min per unit) at the owner's slower clock (msg 142) */
 const walkText = m => (m === null ? '' : m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min walk` : `${m} min walk`);
 const dname = k => DISTRICT_NAME[k] || '';
 const scr = {}, filters = {}; let query = '';

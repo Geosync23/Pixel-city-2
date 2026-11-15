@@ -70,7 +70,7 @@ else {
           info.push({ id: c.t.id, vi: c.t.vi, flip: c.t.flip, seats: sa.map(s => [+(s.x - fa.ob.x).toFixed(2), +(s.y - fa.ob.y).toFixed(2), s.z, s.dir]), size: c.s, sitter: G.player._sit ? 1 : 0 });
         }
         G.endActivity(false); G.camTarget = null;
-        const S = o.scale, cols = o.cols, cwm = Math.max(...res.filter(Boolean).map(k => k.width)) * S + 8, chm2 = Math.max(...res.filter(Boolean).map(k => k.height)) * S + 22, rows = Math.ceil(res.length / cols);
+        const S = o.scale, cw0 = Math.max(...res.filter(Boolean).map(k => k.width)) * S + 8, cols = Math.max(1, Math.min(o.cols, Math.floor(1640 / cw0))), cwm = Math.max(...res.filter(Boolean).map(k => k.width)) * S + 8, chm2 = Math.max(...res.filter(Boolean).map(k => k.height)) * S + 22, rows = Math.ceil(res.length / cols);
         const sheet = document.createElement('canvas'); sheet.width = cwm * cols; sheet.height = chm2 * rows; const g = sheet.getContext('2d'); g.fillStyle = '#14131a'; g.fillRect(0, 0, sheet.width, sheet.height); g.imageSmoothingEnabled = false; g.font = '11px monospace'; g.textBaseline = 'top';
         res.forEach((k, i) => { if (!k) return; const X = (i % cols) * cwm + 4, Y = Math.floor(i / cols) * chm2; g.fillStyle = '#ffe9a8'; const t = part[i]; g.fillText((t.id.replace(/^furn\.|^prop\./, '') + ' #' + t.vi + (t.flip ? ' FLIP' : '') + ' d' + t.dirs).slice(0, Math.floor(cwm / 6.7)), X, Y + 4); g.drawImage(k, X, Y + 20, k.width * S, k.height * S); });
         return { url: sheet.toDataURL('image/png'), info, w: sheet.width, h: sheet.height };

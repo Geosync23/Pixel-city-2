@@ -75,6 +75,67 @@ function treeLayer(world, cx, cy) {
   return { c, x: bx0, y: by0 };
 }
 
+/*
+ * ---------- seating (docs/reports/seating.md) ----------
+ * A seated character is not sorted on its own: it is drawn as part of the piece of furniture it sits on, right after the piece, and then
+ * the parts of the piece that stand between the sitter and the camera (backrest seen from behind, the bench in front of the legs, a table
+ * edge, the next row) are drawn again over the sitter. Those parts are "occluders": boxes in the piece's own coordinates. The default comes
+ * from the way the sitter faces (facing away from the camera: everything of the piece on the camera side of the sitter's back); an asset can
+ * give exact ones with seatOcc(p, seat) -> [[x0, y0, z0, x1, y1, z1], ...] (un-flipped local coords; [] = none). The overlay is cut out of
+ * the piece's already baked sprite (once per piece + seat), so the bake pipeline and the depth sort are untouched.
+ */
+const isSitter = e => e.seated || e.pose === 'sit' || (e.poseOpts && e.poseOpts.seated);
+const SQ = [];
+/** the object a seated entity sits on (cached on the entity until it moves), or null */
+function seatObj(world, e) {
+  if (e._sw === world && e._sx === e.x && e._sy === e.y && e._sv === world.version) { const o = e._so; return o && !o.hidden ? o : null; }
+  e._sw = world; e._sx = e.x; e._sy = e.y; e._sv = world.version; e._so = null;
+  const px = (e.x - e.y) * U, py = (e.x + e.y) * U / 2 - e.z * U; SQ.length = 0; world.query(px - 2, py - 2, px + 2, py + 20, SQ);
+  let best = null, ba = 1e9;
+  for (let i = 0; i < SQ.length; i++) {
+    const ob = SQ[i], B = ob.B; if (ob.size[2] <= .06 || ob.noSit) continue; const a = ob.a, has = !!(a && (a.seats || a.seatsFor)), m = has ? .16 : 0;
+    if (e.x < B[0] - m || e.x > B[3] + m || e.y < B[1] - m || e.y > B[4] + m) continue;
+    const dz = e.z - B[2]; if (dz > B[5] - B[2] + .45 || dz < (has ? -.05 : .15)) continue;   // a piece without seat data only counts when the sitter is really up on it
+    const ar = (B[3] - B[0]) * (B[4] - B[1]) + (has ? 0 : 1e3); if (ar < ba) { ba = ar; best = ob; }
+  }
+  SQ.length = 0; return e._so = best;
+}
+/** occluder boxes of a sitter on ob, in the object's placed frame (x/y swapped when flipped), relative to ob.x, ob.y, ob.z */
+function seatBoxes(ob, e) {
+  const a = ob.a, lx = e.x - ob.x, ly = e.y - ob.y, lz = e.z - ob.z, vb = ob.vbl, fl = ob.flip;
+  if (a && a.seatOcc) { let r; try { r = a.seatOcc(ob.p || {}, fl ? { x: ly, y: lx, z: lz, dir: [1, 0, 3, 2][e.dir] } : { x: lx, y: ly, z: lz, dir: e.dir }); } catch (err) { r = undefined; } if (r) return fl ? r.map(b => [b[1], b[0], b[2], b[4], b[3], b[5]]) : r; if (r === null) return []; }
+  if (!a || !(a.seats || a.seatsFor)) return [];
+  if (e.dir === 3) return ly + .15 < vb[4] ? [[vb[0], ly + .15, vb[2], vb[3], vb[4], vb[5]]] : [];
+  if (e.dir === 2) return lx + .15 < vb[3] ? [[lx + .15, vb[1], vb[2], vb[3], vb[4], vb[5]]] : [];
+  return [];
+}
+const OV_NONE = { c: null };
+/** the part of ob's sprite that covers a sitter: { c: canvas | null, x, y (px offset in the sprite) }. Cached per object + seat; rebuilt when the sprite is re-baked. */
+function seatOverlay(ob, spr, e) {
+  const key = Math.round((e.x - ob.x) * 100) * 4096 + Math.round((e.y - ob.y) * 100) * 4 + e.dir + Math.round((e.z - ob.z) * 50) * 16777216, M = ob._ovl || (ob._ovl = new Map()); let o = M.get(key);
+  if (o && o.src === spr.c) return o;
+  const boxes = seatBoxes(ob, e); if (!boxes.length) { o = { src: spr.c, c: null }; M.set(key, o); return o; }
+  // screen bounds of the boxes inside the sprite
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const E = .07;
+  for (const b of boxes) for (let i = 0; i < 8; i++) { const X = i & 1 ? b[3] + E : b[0] - E, Y = i & 2 ? b[4] + E : b[1], Z = i & 4 ? b[5] + E : b[2] - E, sx = (X - Y) * U - spr.x, sy = (X + Y) * U / 2 - Z * U - spr.y; if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy; }
+  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(spr.w, Math.ceil(x1) + 1); y1 = Math.min(spr.h, Math.ceil(y1) + 1);
+  if (x1 <= x0 || y1 <= y0) { o = { src: spr.c, c: null }; M.set(key, o); return o; }
+  const w = x1 - x0, h = y1 - y0, id = spr.c.getContext('2d').getImageData(x0, y0, w, h), d = id.data; let any = false;
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const q = (j * w + i) * 4; if (!d[q + 3]) continue; const a = (spr.x + x0 + i + .5) / U, py = (spr.y + y0 + j + .5) / U; let hit = false;
+    for (let k = 0; k < boxes.length && !hit; k++) {
+      const b = boxes[k], bx0 = b[0] - E, bx1 = b[3] + E, by0 = b[1], by1 = b[4] + E, bz0 = b[2] - E, bz1 = b[5] + E;
+      /* inside the silhouette of the box = on its top face, its +y face or its +x face (px: sx = (x - y) U, sy = (x + y) U / 2 - z U) */
+      const s = 2 * (py + bz1), tx = (a + s) / 2, ty = (s - a) / 2; if (tx >= bx0 && tx <= bx1 && ty >= by0 && ty <= by1) { hit = true; break; }
+      const fx = a + by1, fz = (fx + by1) / 2 - py; if (fx >= bx0 && fx <= bx1 && fz >= bz0 && fz <= bz1) { hit = true; break; }
+      const gy = bx1 - a, gz = (bx1 + gy) / 2 - py; if (gy >= by0 && gy <= by1 && gz >= bz0 && gz <= bz1) hit = true;
+    }
+    if (hit) any = true; else d[q + 3] = 0;
+  }
+  if (!any) { o = { src: spr.c, c: null }; M.set(key, o); return o; }
+  const c = mk(w, h); c.getContext('2d').putImageData(id, 0, 0); o = { src: spr.c, c, x: x0, y: y0 }; M.set(key, o); return o;
+}
+
 export class Renderer {
   constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0, frames: 0, tGround: 0, tUnder: 0, tItems: 0, tAmb: 0, tGlow: 0, tOver: 0 };   /* t*: total ms per part of draw() (tools/perf.mjs divides by frames) */ this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
   /** test hook (tools/perf.mjs --verify): paint objects [from, from + n) of the world and every chunk both ways (whole / in bands); returns { tested, bad: [ids...] }. Expect bad = []. */
@@ -199,25 +260,32 @@ export class Renderer {
     this._ground(world, cam, ctx); tn = performance.now(); ST.tGround += tn - tm; tm = tn;
     if (hooks.under) hooks.under(ctx, cam); tn = performance.now(); ST.tUnder += tn - tm; tm = tn;
     /* perf: the item list, its items and the object query are reused from frame to frame (they were ~15 KB of garbage per frame) */
+    const fr = this.frameNo, SP = this._SP || (this._SP = []); let nsp = 0, gh = null;   /* seating: sitter records (reused) + the seated focus entity, if any */
     const L = this._L, vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4; let n = 0;
     const Q = this._Q; Q.length = 0; world.query(vx0, vy0, vx1, vy1, Q);
-    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; }
+    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; it.ns = 0; ob._fr = fr; ob._it = it; }
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U), ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
       const rx0 = spr.x + ax, ry0 = spr.y + ay, rx1 = rx0 + spr.w, ry1 = ry0 + spr.h; if (rx1 < vx0 || rx0 > vx1 || ry1 < vy0 || ry0 > vy1) continue;
-      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++;
+      if (isSitter(e)) { const so = seatObj(world, e); if (so && so._fr === fr) { const h = so._it, q = SP[nsp] || (SP[nsp] = { e: null, spr: null, ax: 0, ay: 0, d: 0, ov: null, next: null }); nsp++; q.e = e; q.spr = spr; q.ax = ax; q.ay = ay; q.d = e.x + e.y; q.ov = seatOverlay(so, h.spr, e);
+        /* the piece's sitters as a list, far to near */ if (!h.ns || q.d < h.sit.d) { q.next = h.ns ? h.sit : null; h.sit = q; } else { let p = h.sit; while (p.next && p.next.d <= q.d) p = p.next; q.next = p.next; p.next = q; } h.ns++; if (e.ghost && !gh) gh = q, q.host = h; continue; } }
+      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.ns = 0;
       const b = e.bb || BB, B = it._B, r = it._r; B[0] = e.x + b[0]; B[1] = e.y + b[1]; B[2] = e.z; B[3] = e.x + b[2]; B[4] = e.y + b[3]; B[5] = e.z + b[4]; r[0] = rx0; r[1] = ry0; r[2] = rx1; r[3] = ry1;
       it.B = B; it.spr = spr; it.ax = ax; it.ay = ay; it.r = r; it.k = B[0] + B[3] + B[1] + B[4]; it.ob = null; it.e = e;
     }
-    for (let i = n; i < L.length && L[i].spr; i++) { L[i].spr = null; L[i].ob = null; L[i].e = null; }   // do not keep last frame's sprites / entities alive
+    for (let i = n; i < L.length && L[i].spr; i++) { L[i].spr = null; L[i].ob = null; L[i].e = null; L[i].sit = null; L[i].ns = 0; }
+    for (let i = nsp; i < SP.length && SP[i].e; i++) { SP[i].e = null; SP[i].spr = null; SP[i].next = null; SP[i].ov = null; SP[i].host = null; }   // do not keep last frame's sprites / entities alive
     const S = sortItems(L, n, this._S); this.stats.items = S.length;
     // see-through: tall static objects drawn in front of the focus entity (the player) fade out
-    let fi = -1; for (let i = 0; i < S.length; i++) if (S[i].e && S[i].e.ghost && !S[i].e.hidden) { fi = i; break; }
+    let fi = -1, fo = null; for (let i = 0; i < S.length; i++) if (S[i].e && S[i].e.ghost && !S[i].e.hidden) { fi = i; fo = S[i]; break; }
+    if (fi < 0 && gh) { fi = S.indexOf(gh.host); fo = gh; }   /* seated on a piece of furniture: the focus is drawn with that piece */
     const fading = this.fading || (this.fading = new Set()); for (const ob of fading) ob._want = 1;
-    if (fi >= 0) { const f = S[fi], fx = f.ax, fy = f.ay - 12; for (let i = fi + 1; i < S.length; i++) { const it = S[i], ob = it.ob; if (!ob || ob.noFade /* never made see-through, e.g. an overlay that must keep covering what is under it */ || ob.B[5] - ob.B[2] < 2.4) continue; const r = it.r; if (fx < r[0] + 6 || fx > r[2] - 6 || fy < r[1] + 4 || fy > r[3] + 6) continue; if (ob.B[3] - ob.B[0] < 1.2 && ob.B[4] - ob.B[1] < 1.2) continue; ob._want = .28; if (ob._a === undefined) ob._a = 1; fading.add(ob); } }
+    if (fi >= 0) { const f = fo, fx = f.ax, fy = f.ay - 12; for (let i = fi + 1; i < S.length; i++) { const it = S[i], ob = it.ob; if (!ob || ob.noFade /* never made see-through, e.g. an overlay that must keep covering what is under it */ || ob.B[5] - ob.B[2] < 2.4) continue; const r = it.r; if (fx < r[0] + 6 || fx > r[2] - 6 || fy < r[1] + 4 || fy > r[3] + 6) continue; if (ob.B[3] - ob.B[0] < 1.2 && ob.B[4] - ob.B[1] < 1.2) continue; ob._want = .28; if (ob._a === undefined) ob._a = 1; fading.add(ob); } }
     for (const ob of fading) { ob._a += (ob._want - ob._a) * .18; if (ob._want === 1 && ob._a > .97) { ob._a = undefined; fading.delete(ob); } }
-    for (const it of S) { const sp = it.spr; if (it.ob && it.ob._a !== undefined) { ctx.globalAlpha = it.ob._a; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else if (it.e && it.e.alpha !== undefined) { ctx.globalAlpha = it.e.alpha; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); }
-    for (const it of S) if (it.e && it.e.ghost) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
+    for (const it of S) { const sp = it.spr; if (it.ob && it.ob._a !== undefined) { ctx.globalAlpha = it.ob._a; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else if (it.e && it.e.alpha !== undefined) { ctx.globalAlpha = it.e.alpha; ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y); ctx.globalAlpha = 1; } else ctx.drawImage(sp.c, sp.x + it.ax - cam.x, sp.y + it.ay - cam.y);
+      /* seating: the piece's sitters (far to near), each followed by the parts of the piece in front of it */
+      if (it.ns) for (let q = it.sit; q; q = q.next) { const qs = q.spr, ea = q.e.alpha; if (ea !== undefined) ctx.globalAlpha = ea; ctx.drawImage(qs.c, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y); if (ea !== undefined) ctx.globalAlpha = 1; const ov = q.ov; if (ov.c) { const oa = it.ob._a; if (oa !== undefined) ctx.globalAlpha = oa; ctx.drawImage(ov.c, sp.x + ov.x + it.ax - cam.x, sp.y + ov.y + it.ay - cam.y); if (oa !== undefined) ctx.globalAlpha = 1; } } }
+    for (const it of S) if (it.e && it.e.ghost && !isSitter(it.e)) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
@@ -229,7 +297,8 @@ export class Renderer {
       const b = this.Bx; b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
       /* perf: an item only has to be cut out of the light buffer where light has been drawn: lx0..ly1 = the box around all light sprites drawn so far (cutting elsewhere changed nothing, but was a draw call per item per frame) */
       let lx0 = 1e9, ly0 = 1e9, lx1 = -1e9, ly1 = -1e9;
-      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && x < lx1 && x + sp.w > lx0 && y < ly1 && y + sp.h > ly0) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; if (x < lx0) lx0 = x; if (y < ly0) ly0 = y; if (x + sp.w > lx1) lx1 = x + sp.w; if (y + sp.h > ly1) ly1 = y + sp.h; } }
+      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && x < lx1 && x + sp.w > lx0 && y < ly1 && y + sp.h > ly0) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; if (x < lx0) lx0 = x; if (y < ly0) ly0 = y; if (x + sp.w > lx1) lx1 = x + sp.w; if (y + sp.h > ly1) ly1 = y + sp.h; }
+        if (it.ns && any) { b.globalCompositeOperation = 'destination-out'; for (let q = it.sit; q; q = q.next) b.drawImage(q.spr.c, q.spr.x + q.ax - cam.x, q.spr.y + q.ay - cam.y); } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     tn = performance.now(); ST.tGlow += tn - tm; tm = tn;
