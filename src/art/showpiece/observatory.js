@@ -25,25 +25,25 @@ const HW = 4.6;
 function wallpanel(p) {
   const w = p.w || 4, k = p.kind || 'plain', y = .1, r = rng((p.seed || 3) + w * 7);
   qy(0, w, y, 0, HW, NAVY, k === 'window' ? null : undefined); qy(0, w, y, 0, .9, PAT.planks(WOOD, 6)); qy(0, w, y, .9, .98, BRASS); lw([0, y, .98], [w, y, .98], BRASS_L);
-  qy(0, w, y, HW - .34, HW, CREAM); qy(0, w, y, HW - .4, HW - .34, BRASS); lw([0, y, HW], [w, y, HW], MARBLE_D);
+  qy(0, w, y, HW - .44, HW, CREAM); qy(0, w, y, HW - .5, HW - .44, BRASS); lw([0, y, HW], [w, y, HW], MARBLE_D);
   for (let x = 0; x <= w + .01; x += 2) { const a = Math.max(0, x - .08), b = Math.min(w, x + .08); if (b > a) { qy(a, b, y, .98, HW - .4, NAVY_L); lw([a, y, .98], [a, y, HW - .4], dk(NAVY, .3)); } }
   if (k === 'plain') { for (let i = 0; i < w * 2.2; i++) { const x = .3 + r() * (w - .6), z = 1.3 + r() * 2.6; if (r() < .35) star(x, y + .01, z, r() < .5 ? BRASS : BRASS_L); else dot(x, y + .01, z, r() < .5 ? BRASS : '#8a94c8'); } }
   else if (k === 'const') {
     const put = wallPut(w, y + .01, 1.2), n = Math.round(w * 16); let i = 0;
     for (const id of [p.a || 'orion', p.b || 'ursa']) { const c = CONS_BY_ID[id]; if (!c) continue; const bw = Math.min(52, n / 2 - 8), x0 = 6 + i * (n / 2); drawFigure((u, v, col) => put(u, 46 - v, col, false), c, x0, 0, bw, 40, { lines: true, lineC: BRASS_D, starC: BRASS_L, big: 2 }); tctr(c.name.split(',')[0].toUpperCase(), x0 / 16, (x0 + bw) / 16, y + .01, 1.5, BRASS); i++; }
   } else if (k === 'planets') {
-    tctr('SCALE OF THE PLANETS', 0, w, y + .01, HW - .08, NAVY); const zc = 2.5, pt = (X, Y, c) => px(X, Y, C(c));
-    { const q = PW(-.9, y + .01, zc); for (let dy = -34; dy <= 34; dy++) for (let dx = 0; dx <= 34; dx++) { const d = Math.hypot(dx, dy); if (d > 34) continue; const u = dx / 16 - .9 + .9; if (u < 0 || u > w) continue; const s = PW(-.9 + dx / 16, y + .01, zc); lit(() => px(Math.round(s[0]), Math.round(s[1]) + dy, C(d > 31 ? '#f08a2a' : hash2(dx, dy, 3) > .82 ? '#ffe070' : '#ffc23a'))); } void q; }
+    tctr('SCALE OF THE PLANETS', 0, w, y + .01, HW - .1, NAVY); const zc = 2.5, pt = (X, Y, c) => px(X, Y, C(c));
+    for (let dx = 15; dx <= 36; dx++) { const s = PW(-.9 + dx / 16, y + .01, zc), hh = Math.min(26, Math.floor(Math.sqrt(36 * 36 - dx * dx))); for (let dy = -hh; dy <= hh; dy++) { const d = Math.hypot(dx, dy); lit(() => px(Math.round(s[0]), Math.round(s[1]) + dy, C(d > 33 ? '#f08a2a' : hash2(dx, dy, 3) > .82 ? '#ffe070' : '#ffc23a'))); } }
     textY('SUN', .25, y + .01, 1.5, BRASS_L);
     const xs = [1.9, 2.5, 3.15, 3.8, 5.2, 7.3, 8.75, 9.5], rs = [1, 1.6, 1.8, 1.2, 15, 12.5, 5.5, 5.3];
     PLANETS.forEach((P, i) => { if (xs[i] > w - .2) return; const q = PW(xs[i], y + .01, zc); planetDisc(pt, P.id, Math.round(q[0]), Math.round(q[1]), rs[i]); lw([xs[i], y + .01, 1.72], [xs[i], y + .01, zc - rs[i] / 16 - .1], BRASS_D); });
     for (const [s, x0, x1] of [['EARTH', 2.6, 3.7], ['JUPITER', 4.4, 6], ['SATURN', 6.6, 8], ['NEPTUNE', 8.3, 9.9]]) if (x1 <= w) tctr(s, x0, x1, y + .01, 1.5, BRASS_L);
   } else if (k === 'moonwall') {
-    tctr('PHASES OF THE MOON', 0, w, y + .01, HW - .08, NAVY); const ph = p.phase === undefined ? 4 : p.phase;
+    tctr('PHASES OF THE MOON', 0, w, y + .01, HW - .1, NAVY); const ph = p.phase === undefined ? 4 : p.phase;
     for (let i = 0; i < 8; i++) { const xc = .5 + i * (w - 1) / 7, q = PW(xc, y + .01, 2.7), X = Math.round(q[0]), Y = Math.round(q[1]), on = i === ph;
-      ellipse(X, Y, on ? 10 : 8.5, on ? 10 : 8.5, on ? BRASS : NAVY_D); ellipse(X, Y, 7.5, 7.5, '#262c52');
-      const pt = (a, b, c) => (on ? lit(() => px(a, b, C(c))) : px(a, b, C(c))); moonDisc(pt, X, Y, 7, i / 8, { c: on ? '#fffbe0' : '#d8d4c0', c2: on ? '#d0cdb8' : '#a8a594' });
-      if (on) { lit(() => { for (const d of [-2, -1, 0, 1, 2]) px(X + d, Y + 13 + Math.abs(d), C(BRASS_L)); }); } }
+      ellipse(X, Y, on ? 8 : 6.5, on ? 8 : 6.5, on ? BRASS : NAVY_D); ellipse(X, Y, 5.6, 5.6, '#262c52');
+      const pt = (a, b, c) => (on ? lit(() => px(a, b, C(c))) : px(a, b, C(c))); moonDisc(pt, X, Y, 5, i / 8, { c: on ? '#fffbe0' : '#d8d4c0', c2: on ? '#d0cdb8' : '#a8a594' });
+      if (on) { lit(() => { for (const d of [-2, -1, 0, 1, 2]) px(X + d, Y + 10 + Math.abs(d), C(BRASS_L)); }); } }
     tctr('TONIGHT: ' + PHASE_NAMES[ph].toUpperCase(), 0, w, y + .01, 1.62, BRASS_L);
   } else if (k === 'window') {
     const x0 = .7, x1 = w - .7, put = wallPut(w, y + .01, 1.3), o = { time: p.time || 'day', wx: p.wx || null, frame: p.frame || 0 }, n0 = Math.round(x0 * 16), n1 = Math.round(x1 * 16), mid = (n0 + n1) / 2, hw = (n1 - n0) / 2;
@@ -51,12 +51,12 @@ function wallpanel(p) {
     for (const x of [x0, (x0 + x1) / 2, x1]) lw([x, y + .01, 1.3], [x, y + .01, x === (x0 + x1) / 2 ? 4.05 : 3.2], BRASS); for (const z of [1.3, 2.2, 3.15]) lw([x0, y + .01, z], [x1, y + .01, z], z === 1.3 ? BRASS_L : BRASS_D);
     qy(x0 - .1, x1 + .1, y + .02, 1.18, 1.3, MARBLE);
   } else if (k === 'poster') {
-    const pr = p.prog || 0, bg = ['#141a3a', '#2a1a4a', '#3a1420', '#0f2a3a', '#101830'][pr % 5], x0 = w / 2 - .7, x1 = w / 2 + .7;
+    const pr = p.prog || 0, bg = ['#141a3a', '#2a1a4a', '#3a1420', '#0f2a3a', '#101830'][pr % 5], x0 = w / 2 - .9, x1 = w / 2 + .9;
     qy(x0 - .08, x1 + .08, y + .01, 1.32, 3.78, BRASS); lit(() => { qy(x0, x1, y + .02, 1.4, 3.7, bg); const q = PW(w / 2, y + .02, 2.8), X = Math.round(q[0]), Y = Math.round(q[1]), pt = (a, b, c) => px(a, b, C(c));
       for (let i = 0; i < 14; i++) dot(x0 + .1 + r() * 1.2, y + .02, 1.6 + r() * 2, r() < .3 ? '#ffe9b0' : '#b8c6f0');
       if (pr === 0) drawFigure((a, b, c) => pt(X - 9 + a, Y - 9 + b, c), CONSTELLATIONS[9], 0, 0, 18, 20, { lines: true, big: 2 }); else if (pr === 1) planetDisc(pt, 'saturn', X, Y, 5); else if (pr === 2) { ellipse(X, Y, 8, 6, '#d8588a', 0 || undefined); ellipse(X + 1, Y, 5, 4, '#f4a0c0'); ellipse(X, Y, 2, 2, '#ffffff'); } else if (pr === 3) { for (let i = 0; i < 16; i++) for (let j = 0; j < 12; j++) if ((j + Math.round(Math.sin(i * .9) * 2)) % 4 < 2) px(X - 8 + i, Y - 8 + j + Math.round(Math.sin(i * .6) * 3), C(j < 5 ? '#7df0a0' : '#4ac8b0')); } else { for (let i = 0; i < 14; i++) { px(X - i, Y + (i >> 1), C(i < 3 ? '#ffffff' : '#a8d8ff')); if (i > 2) px(X - i, Y + (i >> 1) + 1, C('#5a8ad8')); } ellipse(X + 1, Y, 2, 2, '#ffffff'); }
-      tctr(['TONIGHTS SKY', 'THE PLANETS', 'STAR BIRTH', 'AURORA', 'THE COMET'][pr % 5], x0, x1, y + .03, 1.86, '#ffe9b0'); });
-    tctr('STAR THEATRE', 0, w, y + .01, 4.1, BRASS_L);
+      tctr(['THE SKY', 'PLANETS', 'STARS', 'AURORA', 'COMET'][pr % 5], x0, x1, y + .03, 1.86, '#ffe9b0'); });
+    
   }
 }
 
@@ -101,7 +101,7 @@ function desk(p) {
   for (let x = .5; x < w - .2; x += 1) star(x, .602, .5, BRASS);
   if (k === 'ticket') { signY('TICKETS', w / 2 - .8, w / 2 + .8, .32, 1.42, 1.74, CREAM, NAVY); lw([w / 2 - .6, .32, 1.42], [w / 2 - .6, .32, 1], BRASS_D); lw([w / 2 + .6, .32, 1.42], [w / 2 + .6, .32, 1], BRASS_D); box(.2, .12, 1, .34, .3, .26, DARK); lit(() => qy(.23, .51, .421, 1.05, 1.22, '#7ad8ff')); for (let i = 0; i < 3; i++) box(w - .9 + i * .22, .15, 1, .16, .3, .04, ['#f4ead0', '#e8b83a', '#c8402f'][i], { ol: false }); }
   else if (k === 'shop') { box(.2, .12, 1, .36, .3, .22, DARK); lit(() => qy(.23, .53, .421, 1.05, 1.18, '#7df0a0')); const q = PW(w - .5, .3, 1.24); planetDisc((a, b, c) => px(a, b, C(c)), 'earth', Math.round(q[0]), Math.round(q[1]), 4); cyl(w - .5, .3, 1, .1, .06, BRASS, { ol: false }); lw([w / 2 - .2, .3, 1.05], [w / 2 + .35, .3, 1.36], '#e4e8ec'); lw([w / 2 - .2, .3, 1.02], [w / 2 + .35, .3, 1.33], '#9aa2ae'); lw([w / 2, .3, 1], [w / 2, .3, 1.14], BRASS_D); }
-  else { cyl(.45, .3, 1, .18, .42, '#b8562a', { t: '#8a3a1a' }); ball(.45, .3, 1.46, .1, BRASS, { ol: false }); dot(.45, .5, 1.12, BRASS_L); for (let i = 0; i < 3; i++) { cyl(w - .95 + i * .26, .3, 1, .08, .14, i === 1 ? NAVY_L : CREAM, { ol: false }); } box(w / 2 - .12, .15, 1, .24, .26, .3, '#e8f0f4', { ol: false, t: BRASS }); for (let i = 0; i < 5; i++) dot(w / 2 - .06 + (i % 2) * .1, .42, 1.06 + i * .04, '#fff8f0'); if (p.steam !== 0) glow(() => {}); const s = S2(.45, .3, 1.6); for (const [dx, dy] of [[0, -2], [1, -4], [0, -6], [-1, -8]]) px(s[0] + dx, s[1] + dy, C('#e8eef4')); }
+  else { cyl(.45, .3, 1, .18, .42, '#b8562a', { t: '#8a3a1a' }); ball(.45, .3, 1.46, .1, BRASS, { ol: false }); dot(.45, .5, 1.12, BRASS_L); for (let i = 0; i < 3; i++) { cyl(w - .95 + i * .26, .3, 1, .08, .14, i === 1 ? NAVY_L : CREAM, { ol: false }); } box(w / 2 - .12, .15, 1, .24, .26, .3, '#e8f0f4', { ol: false, t: BRASS }); for (let i = 0; i < 5; i++) dot(w / 2 - .06 + (i % 2) * .1, .42, 1.06 + i * .04, '#fff8f0'); const s = S2(.45, .3, 1.6); for (const [dx, dy] of [[0, -2], [1, -4], [0, -6], [-1, -8]]) px(s[0] + dx, s[1] + dy, C('#e8eef4')); }
 }
 function shelf(p) {
   const w = p.w || 3, k = p.kind || 'shop', r = rng((p.seed || 4) + w), nm = k === 'cocoa' ? 'COMET COCOA' : 'THE STAR SHOP';
@@ -132,7 +132,7 @@ function scale(p) {
   box(.1, .3, 0, 1.1, .7, .12, '#5e6676', { t: (x, y) => ((Math.floor(x * 8) + Math.floor(y * 8)) & 1 ? '#8a94a4' : '#9aa4b4') }); box(.5, 0, 0, .4, .28, 1.85, NAVY, { t: BRASS });
   qy(.54, .86, .281, 1.0, 1.78, '#101630'); const names = ['EARTH', 'MOON', 'MARS', 'JOVE'], cols = ['#4a8ae8', '#d8d4c0', '#d9683a', '#e8cfa0'];
   names.forEach((n, i) => { const z = 1.7 - i * .18, f = () => { dot(.59, .282, z - .06, cols[i]); dot(.59, .282, z - .06, cols[i], 1, 0); dot(.59, .282, z - .06, cols[i], 0, 1); dot(.59, .282, z - .06, cols[i], 1, 1); }; if (i === li || li === 4) lit(f); else f(); if (i === li || li === 4) lit(() => lw([.66, .282, z - .08], [.84, .282, z - .08], '#7df0a0')); else lw([.66, .282, z - .08], [.84, .282, z - .08], '#3a4466'); });
-  signY('YOUR WEIGHT', .2, 1.2, .29, .5, .78, CREAM, NAVY);
+  signY('SCALE', .5, .9, .285, .5, .9, CREAM, NAVY, { frame: false });
 }
 function rocket(p) {
   box(0, .25, 0, .7, .6, .08, DARK); ball(.35, .55, .16, .22, RED, { squash: .5 }); lw([.6, .55, .05], [1.05, .55, .05], '#3a3440'); lw([.6, .57, .05], [1.05, .57, .05], '#5a5468');
@@ -160,20 +160,20 @@ function theatredoor(p) {
   box(0, 0, 0, 3, .4, 3.2, NAVY_D, { t: BRASS }); qy(.3, 2.7, .401, 0, 2.3, BRASS); qy(.36, 1.48, .402, 0, 2.24, TEAL); qy(1.52, 2.64, .402, 0, 2.24, TEAL);
   for (const x of [.92, 2.08]) { const q = PW(x, .403, 1.55); ellipse(q[0], q[1], 5, 5, BRASS_D); ellipse(q[0], q[1], 4, 4, '#141a3a'); glow(() => ellipse(q[0], q[1], 4, 4, '#3a4a9a')); lit(() => { px(q[0] - 1, q[1] - 1, C('#ffe9b0')); px(q[0] + 2, q[1] + 1, C('#ffffff')); }); }
   for (const x of [1.4, 1.6]) lw([x, .403, .9], [x, .403, 1.3], BRASS_L);
-  signY('PLANETARIUM', .3, 2.7, .402, 2.42, 2.82, '#101630', '#ffe9b0', { lit: true }); lit(() => { for (let x = .4; x < 2.7; x += .25) dot(x, .403, 2.92, (Math.round(x * 4) % 2) ? '#ffe070' : '#ffffff'); });
+  signY('PLANETARIUM', .08, 2.92, .402, 2.42, 2.82, '#101630', '#ffe9b0', { lit: true }); lit(() => { for (let x = .4; x < 2.7; x += .25) dot(x, .403, 2.92, (Math.round(x * 4) % 2) ? '#ffe070' : '#ffffff'); });
   if (t) { box(3.1, .1, 0, .08, .08, 1.3, BRASS_D, { ol: false }); box(2.8, .08, 1.3, .7, .1, .62, DARK); lit(() => { qy(2.84, 3.46, .181, 1.34, 1.88, '#101630'); textY('NEXT', 2.9, .182, 1.84, '#7ad8ff'); textY(t, 2.86, .182, 1.6, '#ffe070'); }); }
 }
 function board(p) {
   const s = String(p.s || ''); for (const x of [.15, 1.95]) box(x, .1, 0, .1, .1, 1.6, WOOD, { ol: false }); box(0, .08, .55, 2.2, .1, 1.1, WOOD); qy(.07, 2.13, .181, .62, 1.58, '#c9a26a');
-  textY('MOON SKETCHES', .32, .182, 1.56, WOOD);
+  textY('SKETCHES', .6, .182, 1.57, WOOD);
   for (let i = 0; i < Math.min(6, s.length); i++) { const x = .18 + (i % 3) * .66, z = 1.36 - Math.floor(i / 3) * .42 - (i % 2) * .03; qy(x, x + .54, .183, z - .36, z, '#f4f0e8'); const q = PW(x + .27, .184, z - .19); ellipse(q[0], q[1], 3.6, 3.6, '#3a4058'); moonDisc((a, b, c) => px(a, b, C(c)), Math.round(q[0]), Math.round(q[1]), 3, (+s[i] || 0) / 8, { c: '#f4f0dc', c2: '#a8a594' }); dot(x + .27, .184, z, RED); }
-  if (!s.length) { qy(.4, 1.8, .183, .9, 1.2, '#f4f0e8'); textY('YOURS HERE?', .46, .184, 1.12, '#8a8a94'); }
+  if (!s.length) { qy(.4, 1.8, .183, .9, 1.2, '#f4f0e8'); textY('YOURS?', .72, .184, 1.12, '#8a8a94'); }
 }
 function lectern() { box(.15, .1, 0, .5, .4, 1.0, WOOD, { t: WOOD_L }); fq([[.1, .52, 1.0], [.7, .52, 1.0], [.7, .08, 1.2], [.1, .08, 1.2]], WOOD_L); qy(.25, .55, .501, .4, .7, NAVY); star(.4, .502, .55, BRASS_L); lit(() => dot(.62, .3, 1.24, '#ffe070')); }
 function screen(p) {
   const sl = p.slide || 0; for (const x of [.1, 1.9]) lw([x, .1, 0], [x, .1, 2.2], '#5e6676'); lw([.1, .1, 2.2], [1.9, .1, 2.2], '#3a3440'); box(.05, .06, 2.14, 1.9, .1, .1, '#3a3440', { ol: false });
   const f = () => { qy(.14, 1.86, .11, .9, 2.14, sl ? '#141a3a' : '#f4f0e8'); const q = PW(1, .12, 1.52), X = Math.round(q[0]), Y = Math.round(q[1]), pt = (a, b, c) => px(a, b, C(c));
-    if (sl === 1) { moonDisc(pt, X, Y, 8, .5, { detail: 1 }); } else if (sl === 2) { planetDisc(pt, 'saturn', X, Y, 5); } else if (sl === 3) { for (let i = 0; i < 40; i++) { const a = i * .5, rr = i * .32; px(X + Math.round(Math.cos(a) * rr), Y + Math.round(Math.sin(a) * rr * .6), C(i < 8 ? '#fff4d0' : '#a8b8f0')); } } else textY('TALK AT 15 & 17', .34, .12, 1.6, NAVY); };
+    if (sl === 1) { moonDisc(pt, X, Y, 8, .5, { detail: 1 }); } else if (sl === 2) { planetDisc(pt, 'saturn', X, Y, 5); } else if (sl === 3) { for (let i = 0; i < 40; i++) { const a = i * .5, rr = i * .32; px(X + Math.round(Math.cos(a) * rr), Y + Math.round(Math.sin(a) * rr * .6), C(i < 8 ? '#fff4d0' : '#a8b8f0')); } } else { textY('TALKS', .68, .12, 1.8, NAVY); textY('15 & 17', .56, .12, 1.4, RED); } };
   if (sl) lit(f); else f();
 }
 function globe(p) { const k = p.kind || 'moon'; cyl(.5, .5, 0, .3, .08, BRASS_D); cyl(.5, .5, .08, .05, .5, BRASS, { ol: false }); const q = PW(.5, .5, 1.02), X = Math.round(q[0]), Y = Math.round(q[1]), pt = (a, b, c) => px(a, b, C(c)); ellipse(X, Y, 9, 9, DARK); if (k === 'moon') moonDisc(pt, X, Y, 8, .5, { detail: 1 }); else planetDisc(pt, k, X, Y, 8); for (let i = -9; i <= 9; i++) { px(X + i, Y + Math.round(Math.sqrt(Math.max(0, 81 - i * i)) * .35) + 1, C(i % 3 ? BRASS : BRASS_L)); } }
@@ -183,7 +183,7 @@ function scopecase() { box(0, 0, 0, 1.6, .7, .6, NAVY, { t: '#7a2a3a' }); lw([.2
 const T = ['observatory', 'obs'];
 const A = (id, tags, size, draw, x) => Object.assign({ id: 'furn.obs.' + id, kind: 'furniture', tags: T.concat(tags), size, draw, variants: [{}] }, x);
 export default [
-  A('wallpanel', ['wall'], p => [p.w || 4, .12, HW], wallpanel, { wall: true, mount: 0, solid: false, vb: p => [0, 0, 0, p.w || 4, .2, HW + .1], variants: [{ w: 4, kind: 'plain' }, { w: 6, kind: 'const', a: 'orion', b: 'ursa' }, { w: 10, kind: 'planets' }, { w: 6, kind: 'moonwall', phase: 3 }, { w: 4, kind: 'window', time: 'night' }, { w: 4, kind: 'window', time: 'day' }, { w: 2, kind: 'poster', prog: 1 }, { w: 2, kind: 'poster', prog: 4 }] }),
+  A('wallpanel', ['wall'], p => [p.w || 4, .12, HW], wallpanel, { wall: true, mount: 0, solid: false, vb: p => [0, 0, 0, p.w || 4, .2, HW + .1], variants: [{ w: 4, kind: 'plain' }, { w: 6, kind: 'const', a: 'orion', b: 'ursa' }, { w: 10, kind: 'planets' }, { w: 8, kind: 'moonwall', phase: 3 }, { w: 4, kind: 'window', time: 'night' }, { w: 4, kind: 'window', time: 'day' }, { w: 2, kind: 'poster', prog: 1 }, { w: 2, kind: 'poster', prog: 4 }] }),
   A('rail', ['barrier'], p => [p.w || 3, .2, 1], rail, { variants: [{ w: 3 }, { w: 5.5 }] }),
   A('gate', ['obs_gate'], p => [p.w || 3, .3, 1.2], gate, { solid: false, vb: p => [-.1, -.4, 0, (p.w || 3) + .1, .5, 1.9], variants: [{}, { open: 1 }] }),
   A('pendulum', ['obs_pendulum'], [4, 4, .32], pendulum, { use: { x: 2, y: 4.5 }, variants: [{ down: 0 }, { down: 9 }] }),

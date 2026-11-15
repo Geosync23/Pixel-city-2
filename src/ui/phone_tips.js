@@ -85,8 +85,13 @@ function go(t, ctx) {
   if (g.find) { const r = safe(() => G.nav.find(g.find, 1), [])[0] || safe(() => G.guide.search(g.find)[0], null), p = r && (typeof r.x === 'number' ? r : safe(() => G.guide.pos(r), null)); if (p) return goTo({ x: p.x, y: p.y, name: r.name || r.title, id: r.placeId }, ctx, r.name || r.title); toast('Could not find one nearby. Try the Map.'); }
   return false;
 }
+// Pacing of the first hour (owner msg 78): nothing about homes / Nestly while you are still inside the airport; those tips wait in `held` until you step out to the curb.
+const AIRPORT_STEPS = ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'];
+export const inAirportIntro = () => !!(G.intro && G.intro.active && AIRPORT_STEPS.includes(G.intro.at));
+const held = [];
 function show(id) {
   const t = BY_ID[id], s = S(); if (!t || s.seen[id] || G.onTitle) return false; const now = G.state.t || 0;
+  if (inAirportIntro() && (t.topic === 'home' || (t.go && t.go.app === 'homes'))) { if (!held.includes(id)) held.push(id); return false; }
   if (now - (s.last === undefined ? -999 : s.last) < 60 && now >= s.last) return false;
   s.seen[id] = 1; s.last = now;
   safe(() => G.phone.notify({ app: 'tips', title: 'Tip: ' + t.title, text: t.text.split('. ')[0].replace(/\.$/, '') + '.', data: { tip: id }, priority: 'normal' }), 0);
@@ -125,7 +130,11 @@ function wire() {
   on('needs:low', 'needs_tap'); on('job:hired', 'shift'); on('job:shift:start', 'autowork'); on('home:delivery', 'boxes'); on('home:move', 'decorate');
   on('money', 'money_low', () => balance() < 50); on('ride:end', 'pass'); on('npc:met', 'talk'); on('friend:up', 'gifts'); on('cooked', 'cooking');
   on('shop:buy', 'fridge', item => { const it = item && (item.id ? item : null); return !it || /ingredient/.test(it.category || it.cat || it.type || 'ingredient'); });
-  on('show:ticket', 'shows'); on('bills:soon', 'bills'); on('app:released', 'store'); on('appt:missed', 'planner'); on('place:discover', 'wander');
+  on('show:ticket', 'shows'); on('bills:soon', 'bills'); on('app:released', 'store'); on('appt:missed', 'planner');
+  // Wander is introduced right after Nora's first text (once you have answered her), not at the first "Discovered" toast
+  const wander = () => setTimeout(() => { S().last = -999; show('wander'); }, 3500);
+  G.on('msg:reply', th => { if (th === 'jules') wander(); }); G.on('intro:done', wander);
+  G.on('intro:step', () => { if (!inAirportIntro() && held.length) setTimeout(() => { const id = held.shift(); if (id) { S().last = -999; show(id); } }, 6000); });
   on('weather', 'weather', k => /rain|storm|snow/.test(k)); on('hour', 'sleep', h => h >= 0 && h < 4 && !G.busy);
   on('game:start', 'navigator');
 }

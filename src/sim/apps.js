@@ -94,7 +94,8 @@ function catalog() {
 }
 // the calendar + polled conditions; at most one release per game hour
 function check() {
-  if (G.onTitle) return; const s = S(), t = G.state.t || 0; if (t - (s.lastRel || -9999) < 60 && t >= (s.lastRel || 0)) return;
+  if (G.onTitle) return;
+  if (G.intro && G.intro.active && ['arrival_plane_cinematic', 'cabin', 'concourse', 'tramride', 'baggage'].includes(G.intro.at)) return;   // no app releases (Nestly, Circle...) while you are still in the airport (owner msg 78) const s = S(), t = G.state.t || 0; if (t - (s.lastRel || -9999) < 60 && t >= (s.lastRel || 0)) return;
   for (const a of CATALOG) {
     const r = a.release; if (!r || isReleased(a.id)) continue;
     if ((r.day && day() + 1 >= r.day) || (r.poll && safe(r.poll, false))) { release(a.id); return; }
@@ -107,7 +108,7 @@ export function init() {
   const evs = {};
   for (const a of CATALOG) if (a.release && a.release.on) (evs[a.release.on] = evs[a.release.on] || []).push(a);
   for (const ev of Object.keys(evs)) G.on(ev, (...args) => { for (const a of evs[ev]) if (!isReleased(a.id) && (!a.release.when || safe(() => a.release.when(...args), false))) release(a.id); });
-  G.on('hour', () => check());
+  G.on('hour', () => check()); G.on('intro:step', () => setTimeout(check, 5000));
   for (const ev of ['game:start', 'load', 'game:load']) G.on(ev, () => setTimeout(check, 4000));
   setTimeout(check, 6000);
 }

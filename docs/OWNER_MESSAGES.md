@@ -337,3 +337,6 @@ Very short operational messages are included too, so the sequence is complete. A
 ## 77 — A ton of recipes; starting food must be cookable; ingredients live in the kitchen
 > Lets add a ton of recipes.  You start with some 
 >  food  now yet cant cook anything. The ingredients shouldn't be on you they should br in your kitchen.
+
+## 78 — Tip timing: Nestly after the airport; Wander after Nora's first text
+> The tips for nesty app shoild come after the airport, and  and wonder tup should come after your first text from nora

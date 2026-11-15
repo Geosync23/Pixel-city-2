@@ -112,11 +112,11 @@ function sketchstool() {
 function lantern(p) { cyl(.25, .25, 0, .1, .05, DARK, { ol: false }); cyl(.25, .25, .05, .03, 1.2, '#3a3440', { ol: false }); box(.13, .13, 1.2, .24, .24, .3, '#5a1a20', { t: DARK }); if (p.on) lit(() => { qy(.15, .35, .371, 1.23, 1.47, '#ff5a4a'); qx(.371, .15, .35, 1.23, 1.47, '#e8483b'); }); }
 function partytable() {
   box(0, 0, 0, 1.6, .7, .75, '#7a2a3a', { l: PAT.vstripes('#7a2a3a', '#8a3444', 4), t: CREAM }); cyl(.4, .35, .75, .2, .5, '#c2cad4', { t: '#e4e8ec' }); ball(.4, .35, 1.3, .07, DARK, { ol: false }); dot(.4, .56, .9, RED);
-  for (let i = 0; i < 4; i++) cyl(.85 + (i % 2) * .24, .22 + Math.floor(i / 2) * .26, .75, .07, .13, i % 2 ? NAVY_L : CREAM, { ol: false }); signY('FREE COCOA', .1, 1.5, .701, .2, .5, CREAM, RED);
+  for (let i = 0; i < 4; i++) cyl(.85 + (i % 2) * .24, .22 + Math.floor(i / 2) * .26, .75, .07, .13, i % 2 ? NAVY_L : CREAM, { ol: false }); signY('COCOA', .2, 1.4, .701, .2, .5, CREAM, RED);
   const s = S2(.4, .35, 1.4); for (const [dx, dy] of [[0, -2], [1, -4], [0, -6]]) px(s[0] + dx, s[1] + dy, C('#e8eef4'));
 }
-function notice(p) { const a = p.a || 'DOME', b = p.b || 'CLOSED'; fq([[.05, .42, 0], [.65, .42, 0], [.65, .25, 1.05], [.05, .25, 1.05]], CREAM); lw([.05, .42, 0], [.05, .25, 1.05], WOOD); lw([.65, .42, 0], [.65, .25, 1.05], WOOD); lw([.05, .25, 1.05], [.65, .25, 1.05], WOOD); lw([.1, .1, 0], [.1, .25, 1.05], WOOD); lw([.6, .1, 0], [.6, .25, 1.05], WOOD);
-  textY(a, .35 - textW(a) / 32, .31, .92, RED); textY(b, .35 - textW(b) / 32, .34, .62, NAVY); const s = S2(.35, .38, .3); ellipse(s[0], s[1], 4, 2, '#8a94a4'); ellipse(s[0] - 3, s[1] + 1, 3, 2, '#aab2be'); ellipse(s[0] + 3, s[1] + 1, 3, 2, '#aab2be'); }
+function notice(p) { const a = p.a || 'DOME', b = p.b || 'CLOSED', W = 1.7; for (const x of [.1, W - .1]) lw([x, .2, 0], [x, .2, 1.25], WOOD); qy(.05, W - .05, .22, .35, 1.25, CREAM); lw([.05, .22, 1.25], [W - .05, .22, 1.25], WOOD); lw([.05, .22, .35], [W - .05, .22, .35], WOOD);
+  textY(a, W / 2 - textW(a) / 32, .23, 1.16, RED); textY(b, W / 2 - textW(b) / 32, .23, .78, NAVY); }
 function deckchair(p) {
   const c = p.c || '#3b6fd0', st = PAT.stripes(c, CREAM, 3);
   for (const x of [.08, .7]) { lw([x, 1.5, 0], [x, .2, .95], WOOD_L); lw([x, .3, 0], [x, 1.3, .5], WOOD); }
@@ -146,7 +146,7 @@ export default [
   A('sketchstool', ['obs_sketch'], [1.1, .9, 1.1], sketchstool, { seats: [{ x: .3, y: .62, z: .42, dir: 3 }], use: { x: .3, y: 1.3 } }),
   A('lantern', ['lamp'], [.5, .5, 1.5], lantern, { solid: false, variants: [{ on: 1 }, {}] }),
   A('partytable', ['obs_partycocoa'], [1.6, .7, 1.3], partytable, { use: { x: .8, y: 1.2 }, vb: [-.1, -.1, 0, 1.7, .8, 1.8] }),
-  A('notice', ['sign'], [.7, .5, 1.1], notice, { solid: false, variants: [{}, { a: 'CLOUD', b: 'TONIGHT' }] }),
+  A('notice', ['sign'], [1.7, .4, 1.3], notice, { solid: false, variants: [{}, { a: 'CLOUD', b: 'TONIGHT' }] }),
   A('deckchair', ['obs_deckchair'], [.8, 1.6, .6], deckchair, { seats: [{ x: .4, y: .95, z: .3, dir: 3 }], use: { x: .4, y: 2 }, vb: [-.1, 0, 0, .9, 1.7, 1.1], variants: [{}, { c: '#c8402f' }] }),
   A('stairhead', ['obs_stairhead'], [2, 1.2, 2.3], stairhead, { use: { x: 1, y: 1.8 } }),
   A('planter', ['decor'], [1.2, .6, 1.2], planter, { variants: [{ seed: 3 }, { seed: 8 }] }),

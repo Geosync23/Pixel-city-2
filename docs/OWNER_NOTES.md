@@ -52,3 +52,4 @@
 37. (msg 75) New Fable 5.2 lead session started: review the previous (Opus-lead) session first, report plainly, then nav arrow -> Opus QA/data lane -> signature showpieces.
 38. (msg 76) Doors must be tappable on the door itself, not only on the ground in front; wider touch area. Done in core/game.js pick() (tall capsule target for doors/exits/stairs/lifts).
 39. (msg 77) Wants a TON of recipes; the starting food could not be cooked into anything; ingredients must live in the kitchen, not on the player. Lead did the kitchen part (Stage 15c); the recipe batch is queued as the next worker.
+40. (msg 78) Tip pacing: Nestly tips only after the airport; the Wander tip after Nora's first text. Done (Stage 15d); all new-app banners also wait until you leave the airport.
