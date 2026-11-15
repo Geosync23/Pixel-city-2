@@ -262,7 +262,7 @@ export const NUDGES = [
   { id: 'd2_dez_train', day: 2, at: '09:00', from: 'dez',
     text: "CUZ. Welcome!! Pro tip from a courier: the light rail loops the whole city, 8 stops, cheap. Ride it once just to look out the window. Trust me.",
     goal: { id: 'ride_train', list: 'settling_in' }, unless: 'rode_train' },
-  { id: 'd2_jules_job', day: 2, at: '13:00', from: 'jules',
+  { id: 'd2_jules_job', day: 1, at: '19:00', from: 'jules',   /* owner msg 142: the job-hunt push comes on day 2 (the day after you arrive), late in the day (was the third day at 13:00) */
     text: "No pressure AT ALL but when you're ready to job hunt: the library in the Arts Quarter has free computers upstairs. You don't own one yet, right?",
     goal: { id: 'library_job', list: 'settling_in' }, unless: 'job' },
   { id: 'd2_walt', day: 2, at: '18:00', from: 'walt',

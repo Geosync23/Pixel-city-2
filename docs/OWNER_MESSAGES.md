@@ -543,3 +543,7 @@ Sitting animations are weird all over. Sometimes the are under it  sometimes ove
 ## 141 (2026-11-15)
 When does the game first nudge you to get a job? Don't code anything just asking
 The sea turtle is way too big
+
+## 142 (2026-11-15)
+Lets make notes job push to day 2 late in the day
+Time should also go just a little slower

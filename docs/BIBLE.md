@@ -259,3 +259,7 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - The outdoor city ambience is built ONLY from real recordings (public domain / CC0, sources and licences kept in docs/audio/SOURCES.md). No white-noise or generated bed anywhere, no generated car / footstep / fountain layer. Music and the existing one-shot effects stay.
 - Long samples (a minute or more each), several per kind of place (busy street, quiet street, park, harbor, night, rain, airport), mixed so no loop is heard: random entry points, long crossfades between different stretches every 40-70 s, occasional layers that drift in and out (gulls, birds), level and tone following time of day, weather and indoors (muffled). Follows the district the player is in.
 - Budget: keep the added download to a few MB; the game stays one file unless the size forces a separate asset.
+
+## Direction update 25 (owner msg 142, 2026-11-15) — pace
+- The game clock runs a little slower than one game minute per real second: 0.85 at 1x (`G.CLOCK`). Travel estimates and reminders must follow it.
+- The first push to find a job (Nora's text + the to-do) comes on the second day, in the evening.

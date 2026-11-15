@@ -146,11 +146,13 @@ let last = 0;
 function frame(now) {
   requestAnimationFrame(frame);
   let dt = Math.min(.05, (now - last) / 1000); last = now; if (!G.scene) return; G.time += dt; G.fps += (1 / Math.max(dt, .001) - G.fps) * .05;
+  /* owner msg 142: 'time should go just a little slower': at 1x one real second is now 0.85 game minutes (was 1). Activities (G.busy) keep their own rates; a cab ride owns the clock. */
+  const CLOCK = G.CLOCK = .85;
   const paused = G.modal > 0; let gm = 0;
   if (!paused) {
     const t0 = G.state.t; let rate = G.state.speed;
     if (G.busy) { rate = G.busy.rate; } else if (G.cutscene && G.cutscene.clock) rate = 0;   /* QA7: a cab ride owns the clock (sim/transit.js rideClock: game time from the route, at any speed) */
-    gm = dt * rate; if (G.busy) { gm = Math.min(gm, G.busy.left); G.busy.left -= gm; }
+    gm = dt * rate * (G.busy ? 1 : CLOCK); if (G.busy) { gm = Math.min(gm, G.busy.left); G.busy.left -= gm; }
     G.state.t = t0 + gm; tickTime(t0, G.state.t);
     if (G.busy) { G.busy.tick && G.busy.tick(gm); if (G.busy && G.busy.left <= 1e-6) G.endActivity(true); }
     const p = G.player, inp = G.input.poll();

@@ -119,3 +119,4 @@
 99. (msg 139) QUESTION ONLY, no code: when does the game first nudge you to get a job? (Lead answered in chat.)
 100. (msg 140) SITTING IS WRONG ALL OVER: seated people are sometimes drawn under the seat, sometimes over it with no occlusion (screenshot: the benches around the Big Blue tank at the aquarium). With msg 138 (wrong way on the chair by the range at Nana's): a whole-game seating pass.
 101. (msg 141) (a) the job-nudge question again (answered: cab driver mention on arrival; Nora's text on the third day at 1 pm; Chapter 4). (b) AQUARIUM: the sea turtle is way too big.
+102. (msg 142) (a) Nora's job-hunt text ("notes" = Nora's, lead's reading): move to DAY 2, late in the day. (b) Game TIME should run just a little slower.

@@ -418,7 +418,7 @@ define('meet', 'commit', 68, ctx => {
   /* QA round 5: inside the meeting place before the friend has arrived, the arrow used to send you out to wherever they were (Dot's Diner -> "Exit -> Dez" at his depot an hour before lunch). Wait here instead. */
   const c0 = safe(() => G.social.char(npc), null); if ((!c0 || c0.hidden) && ctx.root && ctx.here === ctx.root) return { room: roomId() || 'city', find: null, label: `${a.title}: ${npcShort(npc)} is on the way, wait here`, short: npcShort(npc) };
   /* QA13: not at the meeting place yet and they are not in sight here (Felix had left his shop for the meeting): no "wait here" in the wrong building; the place arrow leads on */
-  if ((!c0 || c0.hidden) && ctx.root && ctx.here !== ctx.root) return null;
+  if ((!c0 || c0.hidden) && ctx.root && ctx.here !== ctx.root && roomId() && roomId() !== 'city') return null;   /* (indoors only: in the street the door arrow 'Go in: X → Kit' stays) */
   return npcStep(npc, a.title, 'say hello to');
 }, (ctx, s) => !!s.appt);
 
