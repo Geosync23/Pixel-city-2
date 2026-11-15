@@ -468,3 +468,6 @@ Take out foot steps and try soindscape again
 
 ## 118 (2026-11-15) — ambience decision: recordings only
 Yeah lets just do recordings. Longer samples and clever editing and remixing to avoid loops
+
+## 119 (2026-11-15) — sound before the jobs
+Yes lets het sound done before the jobs

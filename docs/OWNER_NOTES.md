@@ -96,3 +96,4 @@
 76. (msg 116) SOUND TEST: the recordings work; the generated sounds do not, mainly because of the white noise in them. NO WHITE NOISE LAYER ANYWHERE. Wants: a little putter for cars, footsteps, etc.; the recording as background with a LONGER loop and MORE VARIETY. Show again.
 77. (msg 117) SOUND TEST: take the footsteps out and show the soundscape again.
 78. (msg 118) AMBIENCE DECISION: recordings only (no generated city sounds). Longer samples, with clever editing and remixing so no loop is heard.
+79. (msg 119) ORDER: the recorded ambience goes into the game BEFORE the 17 new jobs.
