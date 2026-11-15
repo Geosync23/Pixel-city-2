@@ -11,7 +11,7 @@
 //        virtual entries { id: 'ev:<eventId>:<day>', kind: 'event', event: true, title, placeId, t, dur, data: { eventId, blurb } }
 //   next() -> the next (or currently running) own appointment, or null         eventsOn(absDay) -> virtual event entries of that day
 //   alarm() / setAlarm(hour | null)   wake-up alarm for the sleep activity (decimal hour)
-// Events: 'appt:add'(a), 'appt:remove'(a), 'appt:soon'(a) `remind` minutes before, 'appt:start'(a), 'appt:done'(a) kept, 'appt:missed'(a)
+// Events: 'appt:add'(a), 'appt:remove'(a), 'appt:leave'(a, travel) when it is time to set off (walk time + LEAD.buffer; a 'high' notification + an in-world banner), 'appt:soon'(a) `remind` minutes before, 'appt:start'(a), 'appt:done'(a) kept, 'appt:missed'(a)
 //   "Kept" = the player was at the place (inside the room, or within 12 units of it in the city) at some point while it ran, or done(id)
 //   was called; appointments without a place are always kept. All fired from the 'minutes' tick, so they also work across G.advance().
 import { G } from '../core/game.js';
@@ -59,13 +59,36 @@ function atPlace(a) {
   const p = G.places && G.places.get ? G.places.get(a.placeId) : null; return !!p && Math.hypot(p.x - G.player.x, p.y - G.player.y) < 12;
 }
 const say = (a, lead) => `${lead}${a.title}${a.placeId && placeName(a.placeId) && !a.title.includes(placeName(a.placeId)) ? ' at ' + placeName(a.placeId) : ''}`;
-const note = (a, text, pri) => { if (G.phone && G.phone.notify) G.phone.notify({ type: a.kind === 'work' ? 'shift_reminder' : 'appointment_reminder', app: a.kind === 'work' ? 'jobs' : 'planner', title: a.kind === 'work' ? 'Work' : 'Planner', text, icon: a.kind === 'work' ? 'ui.clock' : 'ui.calendar', priority: pri, data: { appt: a.id } }); };
+// Every planner notification opens that item in the Planner when tapped (data.appt -> phone_planner.js detail view), work shifts included (owner msg 99).
+// `head` is the bold first line ("Leave now", "In 30 min", "Starting now"); 'high' priority banners stay until tapped or dismissed.
+const note = (a, text, pri, head) => { if (G.phone && G.phone.notify) G.phone.notify({ app: 'planner', title: head ? 'Planner · ' + head : a.kind === 'work' ? 'Planner · Work' : 'Planner', text, icon: a.kind === 'work' ? 'ui.clock' : 'ui.calendar', priority: pri, data: { appt: a.id } }); };
+/* ---------- lead time: "leave now so you get there on time" ---------- */
+export const LEAD = { buffer: 10, recheck: 5, horizon: 240 };   // minutes: spare time on top of the trip; how often the trip is re-estimated; how far ahead we look
+/** best travel estimate to an appointment's place from where the player is now: { walk, best, mode } in game minutes, or null when there is no place / already there */
+export function travelTo(a) {
+  if (!a || !a.placeId || atPlace(a)) return null; const p = G.places && G.places.get ? G.places.get(a.placeId) : null; if (!p) return null;
+  let o = []; try { o = (G.nav && G.nav.routeTo && G.nav.routeTo(p)) || []; } catch (e) { o = []; }
+  if (!o.length) { const c = (G.state.phone && G.state.phone.cityPos) || G.player, d = Math.abs(p.x - c.x) + Math.abs(p.y - c.y); return { walk: Math.round(d / 3.1) + 2, best: Math.round(d / 3.1) + 2, mode: 'walk' }; }
+  const w = o.find(x => x.mode === 'walk'), b = o.slice().sort((x, y) => x.minutes - y.minutes)[0];
+  return { walk: w ? w.minutes : b.minutes, best: b.minutes, mode: b.mode };
+}
+function leadCheck(a, t) {
+  if (a.lv || a.s >= 2 || t >= a.t || a.t - t > LEAD.horizon) return; if (a.lc !== undefined && t - a.lc < LEAD.recheck && a.t - t > 20) return; a.lc = t;
+  const tr = travelTo(a); if (!tr) return; const left = a.t - t;
+  if (left > tr.walk + LEAD.buffer) return;   // still time to walk there
+  a.lv = 1; const where = placeName(a.placeId) || 'there', late = left < tr.best;
+  const how = tr.best < tr.walk ? `${tr.walk} min on foot, ${tr.best} by ${tr.mode}` : `${tr.walk} min on foot`;
+  const text = late ? `${a.title} starts at ${clock(a.t)} and ${where} is ${how} away. Go now, you may be a little late.` : `${a.title} starts at ${clock(a.t)} (in ${Math.round(left)} min). ${where} is ${how} away.`;
+  note(a, text, 'high', late ? 'Leave now, running late' : 'Leave now'); G.emit('appt:leave', a, tr);
+  try { if (G.navArrow && G.navArrow.banner) G.navArrow.banner(late ? 'Leave now, running late' : 'Time to leave', `${a.title} · ${clock(a.t)} · ${how}`, { ms: 8000, red: late }); } catch (e) { /* no banner layer */ }
+}
 
 function tick() {
   const t = G.state.t;
   for (const a of S.items.slice()) {
-    if (a.s === 0 && a.remind > 0 && t >= a.t - a.remind && t < a.t) { a.s = 1; G.emit('appt:soon', a); note(a, say(a, `In ${Math.max(1, Math.round(a.t - t))} min: `) + ` (${clock(a.t)})`); }
-    if (a.s < 2 && t >= a.t) { a.s = 2; a.here = a.here || (atPlace(a) ? 1 : 0); G.emit('appt:start', a); if (t < a.t + a.dur && !(a.here && a.placeId)) note(a, say(a, 'Starting now: ')); }
+    leadCheck(a, t);
+    if (a.s === 0 && a.remind > 0 && t >= a.t - a.remind && t < a.t) { a.s = 1; G.emit('appt:soon', a); const m = Math.max(1, Math.round(a.t - t)); note(a, say(a, '') + ` at ${clock(a.t)}.` + (atPlace(a) && a.placeId ? ' You are already there.' : ''), 'normal', `In ${m} min`); }
+    if (a.s < 2 && t >= a.t) { a.s = 2; a.here = a.here || (atPlace(a) ? 1 : 0); G.emit('appt:start', a); if (t < a.t + a.dur && !(a.here && a.placeId)) { note(a, say(a, '') + ' has started.', 'high', 'Starting now'); try { if (G.navArrow && G.navArrow.banner) G.navArrow.banner('Starting now', say(a, ''), { ms: 7000 }); } catch (e) { /* no banner layer */ } } }
     if (a.s === 2) {
       if (!a.here && atPlace(a)) a.here = 1;
       if (t >= a.t + a.dur) {
@@ -95,5 +118,5 @@ export function init() {
   S = G.defineState('planner', fresh);
   G.on('load', () => { S = G.state.planner || (G.state.planner = fresh()); S.items = S.items || []; S.ev = S.ev || {}; });
   G.on('minutes', tick); G.on('hour', hourly);
-  G.planner = { add, remove, get, update, done, list, next, eventsOn, alarm, setAlarm, npcShort };
+  G.planner = { add, remove, get, update, done, list, next, eventsOn, alarm, setAlarm, npcShort, travelTo, LEAD };
 }

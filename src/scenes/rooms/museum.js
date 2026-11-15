@@ -92,7 +92,7 @@ function build() {
   M('photospot', 41.2, 22, {}, { spot: 'special' }); M('audiopost', 36.3, 23.4, { n: 10 }); M('bench', 42.4, 24.2); M('rope', 37, 23.2, { w: 3.4 });
   S(45.2, 22.6, 2, { kind: 'staff', label: 'Gallery guard', lines: LINES.guard }); S(35.6, 19.6, 3, { p: .6 }); S(41.6, 19.6, 3, { p: .5 }); S(38.4, 24.2, 3, { age: 'kid', lines: LINES.kid, p: .8 }); S(39.6, 24.3, 3, { p: .7 }); S(34, 22.8, 3, { busy: 1 }); S(43.8, 20.4, 3, { busy: 1, anim: 'phone' }); S(36.4, 24.6, 3, { busy: 1, age: 'elder' });
   // ---- shop
-  M('shelf', 32.6, 27, { kind: 'gift', w: 3.4, seed: 4, name: 'MUSEUM SHOP' });   // (QA round 3: 'THE MUSEUM SHOP' ran off the shelf top) M('shelf', 36.2, 27, { kind: 'books', w: 3, seed: 6 }); M('shelf', 39.4, 27, { kind: 'gift', w: 3.2, seed: 9 }); M('shelf', 42.8, 27, { kind: 'books', w: 3, seed: 2 });
+  M('shelf', 32.6, 27, { kind: 'gift', w: 3.4, seed: 4, name: 'SHOP' }); /* (QA round 3: 'THE MUSEUM SHOP' and 'MUSEUM SHOP' ran off the shelf top) */ M('shelf', 36.2, 27, { kind: 'books', w: 3, seed: 6 }); M('shelf', 39.4, 27, { kind: 'gift', w: 3.2, seed: 9 }); M('shelf', 42.8, 27, { kind: 'books', w: 3, seed: 2 });
   M('desk', 41, 29.4, { kind: 'shop', w: 3 }, { tags: ['mus_shop'], venue: MUS_VENUES.shop, label: 'The Museum Shop' }); S(42.5, 28.95, 1, { kind: 'staff', label: 'The Museum Shop', lines: LINES.shop });
   M('giftstand', 32.6, 29.4, { seed: 3 }); M('giftstand', 36.4, 29.6, { seed: 8 }); M('plant', 45, 30.8, { seed: 8 });
   S(34.6, 28.2, 3, { p: .6 }); S(38, 28.2, 3, { p: .5 }); S(35.2, 30.6, 2, { busy: 1, age: 'kid', lines: LINES.kid }); S(40.4, 28.3, 3, { busy: 1 }); S(42.5, 31, 3, { busy: 1 });

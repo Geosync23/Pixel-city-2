@@ -38,9 +38,12 @@ function detail(a) {
     const p = a.placeId ? place(a.placeId) : null, os = p ? openState(p, a.t) : null;
     b.append(el('div.ph-hero', null, iconEl(KICON[a.kind] || 'ui.calendar', 3), el('div', null, el('b', { text: a.title, style: { fontSize: '17px' } }), el('small', { text: KIND[a.kind] || '' }))));
     const c = card(kv('When', when(a.t)), kv('Until', hhmm(((a.t + a.dur) % DAY) / 60) + ` (${dur(a.dur)})`));
-    if (a.placeId) c.append(kv('Where', placeName(a.placeId))); if (os && os.open !== null) c.append(kv('At that time', os.open ? 'Open' : 'Closed'));
+    if (a.placeId) c.append(kv('Where', placeName(a.placeId)));
+    { const tr = !a.event || a.t > G.state.t ? safe(() => P().travelTo(a), null) : null, left = a.t - G.state.t; if (tr) c.append(kv('From here', (tr.best < tr.walk ? `${tr.walk} min on foot · ${tr.best} by ${tr.mode}` : `${tr.walk} min on foot`) + (left > 0 && left < 240 ? (left >= tr.walk + 10 ? ` · leave by ${hhmm((((a.t - tr.walk - 10) % DAY) + DAY) % DAY / 60)}` : ' · leave now') : ''))); }
+    if (os && os.open !== null) c.append(kv('At that time', os.open ? 'Open' : 'Closed'));
     if (a.withNpc) c.append(kv('With', npcName(a.withNpc))); if (!a.event) c.append(kv('Reminder', a.remind ? `${a.remind} min before` : 'Off'));
     b.append(c); if (a.data && a.data.blurb) b.append(card(el('p', { text: a.data.blurb })));
+    if (p && G.phone.routeTo) b.append(btn('Take me there', () => G.phone.routeTo(p.id), 'pri wide', 'ui.pin'));
     if (p) b.append(el('div.ph-btns', null, btn('Show on map', () => ctx.open('map', { place: p.id }), '', 'ui.pin'), G.phone.isUnlocked('taxi') ? btn('Cab there', () => ctx.open('taxi', { place: p.id }), '', 'transport.taxi') : null));
     const mine = a.event ? safe(() => P().list(dayOf(a.t) * DAY, (dayOf(a.t) + 1) * DAY, { events: false }).find(q => sameEvent(a, q)), null) : null;
     if (mine) b.append(btn('In your Planner: ' + hhmm((mine.t % DAY) / 60) + ' - open it', () => ctx.push(mine.title, detail(mine)), 'wide', 'ui.check'));

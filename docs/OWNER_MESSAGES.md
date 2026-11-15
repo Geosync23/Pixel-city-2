@@ -401,3 +401,6 @@ Very short operational messages are included too, so the sequence is complete. A
 
 ## 98 — Movie app: yes to phone/TV-only content; cinema films become buyable on the phone a short time after you have seen them
 > Yes phone ans tv only content. But once you see a movie at cinema, it appears on you phone to buy a shirt time later
+
+## 99 — Planner: very clear notifications, a lead-time alert so you arrive on time, tapping a notification opens the item
+> Need very clear notifications for planner itesm. And a lead time alert so we can get there on time. Picking the notifications in game opens the item in the plammer

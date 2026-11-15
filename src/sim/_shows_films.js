@@ -116,3 +116,5 @@ export function drawFilm(film, ctx, t) {
   const e = Math.min(t - sc[0], sc[1] - t); if (e < .35) { g.globalAlpha = 1 - e / .35; r(0, 0, W, H, '#05070e'); g.globalAlpha = 1; }
   if (Math.floor(t * 12) % 9 === 0) r(h1(Math.floor(t * 12), 91) * W, 0, 1, H, '#ffffff10');
 }
+/** the frame context drawFilm is painting on right now: lets films defined in other modules (src/sim/_media_films.js) share this engine */
+export const filmCtx = () => g;

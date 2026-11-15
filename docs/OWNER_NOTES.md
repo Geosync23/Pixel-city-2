@@ -71,3 +71,4 @@
 56. (msg 96) Bladder drained too fast. Tuned (Stage 27b): about half the old rate — a full bladder lasts ~8 waking hours before 'Need to go' (was ~4), drinks cost less, a night's sleep costs ~16.
 57. (msg 97) The movie app only shows films you have already seen at the cinema (no automatic release). So new films premiere at the cinema and the app is your collection for re-watching.
 58. (msg 98) Movie app, final rule: there IS phone- and TV-only content (shows made for the small screen). Cinema films are different: once you have seen one at the cinema it appears on the phone TO BUY a short time later; after buying you can re-watch it.
+59. (msg 99) Planner: very clear notifications, a lead-time alert so you can get there on time, and tapping a notification opens that item in the Planner. Done (Stage 28).
