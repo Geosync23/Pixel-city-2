@@ -83,9 +83,25 @@ export function ambientLine(c, ctx) {
   return s || fromPool(A.timeOfDay[dayPart()], c) || 'Lovely day in Maple Bay.';
 }
 export function greeting(c) { return rnd() < .6 ? fromPool(AMBIENT.reactions.greeting, c) || 'Hi there!' : rnd() < .5 ? fromPool(AMBIENT.reactions.friendly_stranger, c) || 'Hello!' : ambientLine(c); }
+/* QA round 3: a bubble must be fully on screen and clear of the HUD (portrait phones: the clock/needs cluster top-left, money/speed top-right, bag/phone bottom-right) */
+let hudR = null, hudT = -9;
+function hudRects() {
+  if (G.time - hudT < 1 && hudR) return hudR; hudT = G.time; hudR = [];
+  for (const q of ['.hud-tl', '.hud-tr', '.hud-br', '.hud-bc', '#nav-trip', '#nav-arrow', '.ride-hud']) { const e = document.querySelector(q); if (!e) continue; const r = e.getBoundingClientRect(); if (r.width > 0 && r.height > 0) hudR.push(r); }
+  return hudR;
+}
+/** would a bubble over citizen c (text: its line, for the width) be fully visible and off the HUD? */
+export function bubbleOk(c, text) {
+  if (typeof document === 'undefined' || !G.toScreen) return true;
+  const s = G.toScreen(c.x, c.y, (c.z || 0) + (c.bubbleH || 1.9)), W = innerWidth, H = innerHeight, len = text ? text.length : 60;
+  const w = Math.min(224, 20 + len * 7.4), h = 24 + Math.floor(len * 7.4 / 204) * 17, l = s.x - w / 2, r = s.x + w / 2, t = s.y - h - 8, b = s.y;
+  if (l < 4 || r > W - 4 || t < 4 || b > H - 8) return false;
+  for (const q of hudRects()) if (l < q.right && r > q.left && t < q.bottom && b > q.top) return false;
+  return true;
+}
 /** speech bubble with a global cap of two visible. force: always show (player tapped) */
 export function speak(c, text, force) {
-  if (!text || typeof document === 'undefined') return false; const now = G.time, i = bubEnd[0] <= now ? 0 : bubEnd[1] <= now ? 1 : force ? 0 : -1; if (i < 0) return false;
+  if (!text || typeof document === 'undefined') return false; if (!force && !bubbleOk(c, text)) return false; const now = G.time, i = bubEnd[0] <= now ? 0 : bubEnd[1] <= now ? 1 : force ? 0 : -1; if (i < 0) return false;
   const ms = Math.min(4200, 1700 + text.length * 38); bubEnd[i] = now + ms / 1000 + .3; bubble(c, text, ms); return true;
 }
 /** tap handler shared by city citizens and room NPCs */

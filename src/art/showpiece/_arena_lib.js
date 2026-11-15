@@ -11,20 +11,21 @@ export const RED = '#d2392f', RED_D = '#a82a26', RED_L = '#e8584a', CREAM = '#f4
   WOOD = '#d9a45c', WOOD_D = '#b8813f', WOOD_L = '#e8bc7a', GOLD = '#f2c230', LED = '#ffb23a', BLUE = '#2f6fd0', INK = '#262a3a', BROWN = '#8a5a34', BROWN_D = '#6a4226', FUR = '#9a6a3c';
 
 export const BOWL = { W: 31, D: 23 };
-export const COURT = { x0: 8.6, x1: 23.6, y0: 8.5, y1: 16.5, cx: 16.1, cy: 12.5, rim: .85, rimZ: 2.35 };
+export const COURT = { x0: 8.5, x1: 23.5, y0: 8.5, y1: 16.5, cx: 16, cy: 12.5, rim: .95, rimZ: 2.35 };
+export const RD = .5; // depth of one row (world.place snaps to half units)
 export const PITCH = .6;
 /** seat offsets along a row of length len, skipping the aisles ([[from, to]]) */
 export function seatXs(len, aisles = []) { const out = []; for (let x = .4; x <= len - .3; x += PITCH) if (!aisles.some(a => x > a[0] - .25 && x < a[1] + .25)) out.push(Math.round(x * 100) / 100); return out; }
 // The stands. North + west rise toward the back walls (rows 0 = front); south is a low riser with its back to the viewer.
-// row k of a stand: front edge offset k * .75 from the stand's front, top at z0 + k * rise.
+// row k of a stand: front edge offset k * RD from the stand's front, top at z0 + k * rise.
 export const STANDS = [
-  { id: 'N', axis: 'x', rows: 8, x0: 1, len: 23.4, front: 7, dirOut: -1, rise: .5, z0: .5, face: 1, aisles: [[7.4, 8.4], [15.4, 16.4]], sec: '10' },
-  { id: 'W', axis: 'y', rows: 8, y0: 7.2, len: 11.4, front: 7, dirOut: -1, rise: .5, z0: .5, face: 0, aisles: [[5.2, 6.2]], sec: '11' },
-  { id: 'S', axis: 'x', rows: 3, x0: 3, len: 10.8, front: 18.6, dirOut: 1, rise: .4, z0: .4, face: 3, aisles: [], sec: '12' },
-  { id: 'S2', axis: 'x', rows: 3, x0: 17.4, len: 10.8, front: 18.6, dirOut: 1, rise: .4, z0: .4, face: 3, aisles: [], sec: '12' },
+  { id: 'N', axis: 'x', rows: 10, x0: 1, len: 23.4, front: 7, dirOut: -1, rise: .45, z0: .5, face: 1, aisles: [[7.4, 8.4], [15.4, 16.4]], sec: '10' },
+  { id: 'W', axis: 'y', rows: 10, y0: 7.5, len: 11, front: 7, dirOut: -1, rise: .45, z0: .5, face: 0, aisles: [[5.2, 6.2]], sec: '11' },
+  { id: 'S', axis: 'x', rows: 4, x0: 3, len: 10.8, front: 18.5, dirOut: 1, rise: .35, z0: .4, face: 3, aisles: [], sec: '12' },
+  { id: 'S2', axis: 'x', rows: 4, x0: 17.5, len: 10.8, front: 18.5, dirOut: 1, rise: .35, z0: .4, face: 3, aisles: [], sec: '12' },
 ];
 /** geometry of row k: { o (world coordinate of the row's far/back edge on the cross axis for N/W, near edge for S), z } */
-export function rowGeo(st, k) { const o = st.dirOut < 0 ? st.front - (k + 1) * .75 : st.front + k * .75; return { o, z: st.z0 + k * st.rise }; }
+export function rowGeo(st, k) { const o = st.dirOut < 0 ? st.front - (k + 1) * RD : st.front + k * RD; return { o, z: st.z0 + k * st.rise }; }
 
 /* ---------- the event floor ---------- */
 const inC = (x, y) => x >= COURT.x0 && x <= COURT.x1 && y >= COURT.y0 && y <= COURT.y1;

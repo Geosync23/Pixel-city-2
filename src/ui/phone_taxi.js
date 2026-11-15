@@ -62,6 +62,12 @@ export default {
     const item = p => { const os = openState(p); return row({ icon: p.kind === 'home' ? 'ui.home' : p.kind === 'station' ? 'transport.train' : p.kind === 'airport' ? 'transport.plane' : el('i', { style: { width: '16px', height: '16px', border: '2px solid #2a2733', background: CAT_BY_ID[placeCat(p)].color, flex: 'none' } }), iconScale: 1,
       title: p.name, sub: [CAT_BY_ID[placeCat(p)].name, os.open === null ? '' : os.open ? 'open now' : 'closed now'].filter(Boolean).join(' · '), right: freeRide() ? 'Free' : money(taxiFare(p)), onclick: () => ctx.push('Your ride', quote(p)) }); };
     const home = homePlace(), work = safe(() => place(G.jobs.current().venue), null), quick = [home, work, ...(S().seen.taxi || []).map(place)].filter((p, i, arr) => p && far.includes(p) && arr.indexOf(p) === i);
+    // "For you now" (owner msg 84): where your arrow / current trip points, and anything on the planner in the next 12 hours
+    const sug = [], addS = (pl, why) => { if (pl && typeof pl.x === 'number' && Math.abs(pl.x - here.x) + Math.abs(pl.y - here.y) > 10 && !sug.some(q => q.p === pl)) sug.push({ p: pl, why }); };
+    const tr = safe(() => G.nav.trip(), null), wp = safe(() => G.phone.waypoint(), null), hhmm = t => { const m = ((t % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0'); };
+    addS(tr && tr.dest && tr.dest.id && place(tr.dest.id), 'Your current trip'); addS(wp && wp.id && place(wp.id), 'Your arrow points here');
+    for (const ap of safe(() => G.planner.list(G.state.t - 30, G.state.t + 720), []).slice(0, 8)) if (ap.placeId && ap.s !== 3 && ap.s !== 4) addS(place(ap.placeId), 'Planner · ' + ap.title + ' · ' + hhmm(ap.t));
+    if (sug.length) { b.append(section('For you now')); for (const q of sug.slice(0, 5)) { const r0 = item(q.p), sm = r0.querySelector('small'); if (sm) sm.textContent = q.why; r0.dataset.sug = '1'; b.append(r0); } }
     if (quick.length) { b.append(section('Quick picks')); for (const p of quick) b.append(item(p)); }
     const groups = {}; for (const p of far) (groups[p.district || 'other'] = groups[p.district || 'other'] || []).push(p);
     for (const d of [...Object.keys(DISTRICT_NAME), 'other']) { const g = groups[d]; if (!g) continue; b.append(section(DISTRICT_NAME[d] || 'Elsewhere')); g.sort((x, y) => (x.name < y.name ? -1 : 1)).forEach(p => b.append(item(p))); }

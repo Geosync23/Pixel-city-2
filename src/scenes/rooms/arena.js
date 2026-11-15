@@ -31,32 +31,32 @@ const W = 46, D = 14, M = mk();
 (function build() {
   const { S } = M, A = M.A.bind(M), WY = M.WY.bind(M), WX = M.WX.bind(M);
   WY('cwall', 0, { w: 6, kind: 'slat', name: 'THE OTTER DEN' }); WY('cwall', 6, { w: 5, kind: 'portal', name: 'SECTIONS 101-104' }, { tags: ['arena_portal'], gateN: 0 }); WY('cwall', 11, { w: 7.5, kind: 'plain', seed: 4 }); WY('cwall', 18.5, { w: 6, kind: 'mural' });
-  WY('cwall', 24.5, { w: 7.5, kind: 'plain', seed: 9 }); WY('cwall', 32, { w: 5, kind: 'portal', name: 'SECTIONS 105-108' }, { tags: ['arena_portal'], gateN: 1 }); WY('cwall', 37, { w: 4, kind: 'plain', name: 'RESTROOMS', seed: 99 }); WY('cwall', 41, { w: 5, kind: 'menu', name: 'DOCKSIDE DOGS', menu: ['DOG 5', 'CHILI 6.5', 'NACHOS 6', 'CORN 4'] });
-  WX('cwall', 0, { w: 5, kind: 'slat', name: 'JERSEYS' }); WX('cwall', 5, { w: 3.5, kind: 'fame' }); WX('cwall', 8.5, { w: 5.5, kind: 'plain', name: 'BOX OFFICE', seed: 99 });
+  WY('cwall', 24.5, { w: 7.5, kind: 'plain', seed: 9 }); WY('cwall', 32, { w: 5, kind: 'portal', name: 'SECTIONS 105-108' }, { tags: ['arena_portal'], gateN: 1 }); WY('cwall', 37, { w: 2, kind: 'plain', seed: 99 }); WY('cwall', 39, { w: 2, kind: 'plain', seed: 99 }); WY('cwall', 41, { w: 5, kind: 'menu', name: 'DOCKSIDE DOGS', menu: ['DOG 5', 'CHILI 7', 'NACHO 6', 'CORN 4'] });
+  WX('cwall', 0, { w: 5, kind: 'slat', name: 'JERSEYS' }); WX('cwall', 5, { w: 2, kind: 'plain', seed: 99 }); WX('cwall', 7, { w: 2, kind: 'fame' }); WX('cwall', 9, { w: 5, kind: 'plain', name: 'BOX OFFICE', seed: 99 });
   // ---- The Otter Den
-  A('backbar', .6, .1, { kind: 'store', w: 4.6 }); A('counter', .9, 1.7, { kind: 'store', w: 3.6 }, { tags: ['arena_shop'], venue: ARENA_VENUES.store, label: 'The Otter Den: team store' }); S(2.7, 1.25, 1, { kind: 'staff', label: 'The Otter Den', lines: LINES.store });
-  A('rack', .8, 4.3, {}, { store: 1 }); A('rack', 2.9, 4.3, { c: '#f4f0e8' }, { store: 1 }); A('gondola', 1.2, 6.6, {}, { store: 1 }); A('cardtable', 4.4, 6.3, {});
-  S(1.6, 5.4, 3, { p: .6 }); S(3.7, 5.4, 3, { busy: 1 }); S(2, 7.9, 3, { p: .5, age: 'kid', lines: LINES.kid }); S(5.1, 7.5, 3, { p: .6, age: 'kid', lines: LINES.kid }); S(3.4, 2.9, 3, { p: .5 });
+  A('backbar', .5, 0, { kind: 'store', w: 5 }); A('counter', 1, 1.5, { kind: 'store', w: 3.5 }, { tags: ['arena_shop'], venue: ARENA_VENUES.store, label: 'The Otter Den: team store' }); S(2.7, 1.05, 1, { kind: 'staff', label: 'The Otter Den', lines: LINES.store });
+  A('rack', 1, 4.5, {}, { store: 1 }); A('rack', 3, 4.5, { c: '#f4f0e8' }, { store: 1 }); A('gondola', 3.5, 7, {}, { store: 1 }); A('cardtable', 4.5, 3, {});
+  S(1.8, 5.6, 3, { p: .6 }); S(3.8, 5.6, 3, { busy: 1 }); S(4.3, 8.3, 3, { p: .5, age: 'kid', lines: LINES.kid }); S(5.2, 4.2, 3, { p: .6, age: 'kid', lines: LINES.kid }); S(2.6, 2.7, 3, { p: .5 });
   // ---- left wall: TEAM ONLY door, box office
-  A('teamdoor', .05, 5.6, {}, { flip: true, tdoor: 1 }); A('counter', 1, 9, { kind: 'box', w: 3.6 }, { flip: true, tags: ['arena_box'] }); S(.55, 10.8, 0, { kind: 'staff', label: 'Box office', lines: ['Tickets for the next seven days. Big nights sell out, so do not leave it late.', 'Upper bowl, lower bowl or courtside? The view is good from all of them. The price is not.'] });
-  A('queue', 2.4, 9.2, { w: 2.2 }, { flip: true }); S(2.4, 10.2, 2, { busy: 1 }); S(3.2, 10.6, 2, { p: .4 });
+  A('teamdoor', 0, 5, {}, { flip: true, tdoor: 1 }); A('counter', 1, 9, { kind: 'box', w: 3.6 }, { flip: true, tags: ['arena_box'] }); S(.55, 10.8, 0, { kind: 'staff', label: 'Box office', lines: ['Tickets for the next seven days. Big nights sell out, so do not leave it late.', 'Upper bowl, lower bowl or courtside? The view is good from all of them. The price is not.'] });
+  A('queue', 2.5, 9.5, { w: 2.5 }, { flip: true }); S(2.4, 10.2, 2, { busy: 1 }); S(3.2, 10.6, 2, { p: .4 });
   // ---- gates: turnstiles + rails in front of the two portals, an usher at each
-  for (const [gx, n] of [[6, 0], [32, 1]]) { A('turnstile', gx + .7, 1.7, { n: 3 }, { gate: 1, gateN: n, solid: true }); A('rail', gx + .15, .4, { w: 1.4 }, { flip: true }); A('rail', gx + 4.65, .4, { w: 1.4 }, { flip: true }); S(gx + 4.8, 2.9, 1, { kind: 'staff', label: 'Usher', lines: LINES.usher, usher: n }); }
+  for (const [gx, n] of [[6, 0], [32, 1]]) { A('turnstile', gx + .5, 1.5, { n: 3 }, { gate: 1, gateN: n, solid: true }); A('rail', gx, .5, { w: 1.5 }, { flip: true }); A('rail', gx + 4.5, .5, { w: 1.5 }, { flip: true }); S(gx + 4.8, 2.9, 1, { kind: 'staff', label: 'Usher', lines: LINES.usher, usher: n }); }
   // ---- lobby: boards, trophy, statue, banners
-  A('board', 11.3, .25, { w: 7, cols: 2, title: 'BAY COAST LEAGUE', rows: [] }, { which: 'table', board: 'table' }); A('board', 24.8, .25, { w: 7, cols: 1, title: 'WHAT\'S ON', rows: [] }, { which: 'next', board: 'next' });
+  A('board', 11.5, .5, { w: 7, cols: 2, title: 'BAY COAST LEAGUE', rows: [] }, { which: 'table', board: 'table' }); A('board', 25, .5, { w: 7, cols: 1, title: 'WHAT\'S ON', rows: [] }, { which: 'next', board: 'next' });
   A('trophy', 20.5, 5.4, {}, { trophy: 1 }); A('statue', 24.2, 8.6, {}); A('planter', 17.6, 12.6); A('planter', 25, 12.6); A('planter', 11.6, 4.6); A('planter', 30.6, 4.4); A('bin', 10.4, 7.6); A('bin', 31.4, 8.2);
-  for (const [x, y, k] of [[14, 6.5, 0], [18, 10, 1], [26.5, 6, 2], [30, 10.5, 0], [8.6, 10.6, 1], [38.8, 10.4, 2], [43.6, 11.2, 0]]) A('hbanner', x, y, { kind: k }, { z: 1.5, solid: false });
+  for (const [x, y, k] of [[14, 7, 0], [29, 7, 2], [8.5, 11, 1], [39, 12, 0]]) A('hbanner', x, y, { kind: k }, { z: 1.7, solid: false });
   S(13.6, 1.5, 3, { p: .7 }); S(15.6, 1.6, 3, { busy: 1 }); S(27, 1.6, 3, { p: .6 }); S(29.2, 1.5, 3, { busy: 1, anim: 'phone' }); S(21.5, 7, 3, { p: .7 }); S(22.9, 6.3, 2, { busy: 1 }); S(24.9, 10.5, 3, { p: .6, age: 'kid', lines: LINES.kid }); S(25.8, 10.4, 3, { busy: 1, anim: 'phone' });
   S(16.5, 8.5, 0, { busy: 1, anim: 'talk' }); S(17.4, 8.6, 2, { busy: 1, anim: 'talk' }); S(13, 11.4, 1, { busy: 1, anim: 'phone' }); S(28.4, 12, 1, { busy: 1 }); S(20.4, 3.2, 3, { busy: 1 }); S(22.6, 3.4, 3, { p: .5 });
   // ---- restrooms
-  A('wcdoor', 37.3, .1, { kind: 'w' }, { wc: 0 }); A('wcdoor', 39.2, .1, { kind: 'm' }, { wc: 1 });
-  for (let i = 0; i < 5; i++) { S(38.05, 1.9 + i * .62, 3, { q: 'wc', qi: i }); if (i < 4) S(39.95, 1.9 + i * .62, 3, { q: 'wc', qi: i + 5 }); }
+  A('wcdoor', 37, 0, { kind: 'w' }, { wc: 0 }); A('wcdoor', 39, 0, { kind: 'm' }, { wc: 1 });
+  for (let i = 0; i < 5; i++) { S(38, 1.4 + i * .62, 3, { q: 'wc', qi: i }); if (i < 4) S(40, 1.4 + i * .62, 3, { q: 'wc', qi: i + 5 }); }
   // ---- Dockside Dogs (back wall) + Twist & Pop (island)
-  A('backbar', 41.4, .1, { kind: 'grill', w: 4.2 }); A('counter', 41.4, 1.7, { kind: 'grill', w: 4.2 }, { tags: ['arena_shop'], venue: ARENA_VENUES.grill, label: 'Dockside Dogs' }); S(42.4, 1.25, 1, { kind: 'staff', outfit: 'cook', label: 'Dockside Dogs', lines: LINES.grill }); S(44.5, 1.25, 1, { kind: 'staff', outfit: 'cook', label: 'Dockside Dogs', lines: LINES.grill });
-  for (let i = 0; i < 6; i++) S(43.5, 2.9 + i * .62, 3, { q: 'grill', qi: i }); A('queue', 44.2, 3, { w: 3 }, { flip: true });
-  A('backbar', 33.6, 6.2, { kind: 'snacks', w: 3.6 }); A('counter', 33.6, 7.8, { kind: 'snacks', w: 3.6 }, { tags: ['arena_shop'], venue: ARENA_VENUES.snacks, label: 'Twist & Pop' }); S(35.4, 7.35, 1, { kind: 'staff', outfit: 'cook', label: 'Twist & Pop', lines: LINES.snacks });
-  for (let i = 0; i < 5; i++) S(35.4, 9 + i * .62, 3, { q: 'snacks', qi: i });
-  for (const [x, y] of [[29.6, 6.6], [31.2, 11.2], [37.6, 11.6], [40.6, 6.4], [42.6, 9], [44.4, 6.2], [40.2, 9.6]]) { A('stable', x, y); S(x + .45, y + 1.2, 3, { busy: 1, anim: Math.round(x) % 2 ? 'eat' : 'drink' }); S(x + 1.25, y + .45, 2, { p: .35, anim: 'eat' }); }
+  A('backbar', 41.5, 0, { kind: 'grill', w: 4 }); A('counter', 41.5, 1.5, { kind: 'grill', w: 4 }, { tags: ['arena_shop'], venue: ARENA_VENUES.grill, label: 'Dockside Dogs' }); S(42.4, 1.05, 1, { kind: 'staff', outfit: 'cook', label: 'Dockside Dogs', lines: LINES.grill }); S(44.5, 1.05, 1, { kind: 'staff', outfit: 'cook', label: 'Dockside Dogs', lines: LINES.grill });
+  for (let i = 0; i < 6; i++) S(43.5, 2.8 + i * .62, 3, { q: 'grill', qi: i }); A('queue', 44.5, 3, { w: 3 }, { flip: true });
+  A('backbar', 33.5, 6, { kind: 'snacks', w: 3.5 }); A('counter', 33.5, 7.5, { kind: 'snacks', w: 3.5 }, { tags: ['arena_shop'], venue: ARENA_VENUES.snacks, label: 'Twist & Pop' }); S(35.2, 7.05, 1, { kind: 'staff', outfit: 'cook', label: 'Twist & Pop', lines: LINES.snacks });
+  for (let i = 0; i < 5; i++) S(35.2, 8.8 + i * .62, 3, { q: 'snacks', qi: i });
+  for (const [x, y] of [[29.5, 6.5], [31, 11], [37.5, 11.5], [40.5, 6.5], [42.5, 9], [44.5, 6], [40, 9.5]]) { A('stable', x, y); S(x + .45, y + 1.2, 3, { busy: 1, anim: Math.round(x) % 2 ? 'eat' : 'drink' }); S(x + 1.25, y + .45, 2, { p: .35, anim: 'eat' }); }
   A('bin', 39.4, 4.2); A('planter', 45, 12.6);
 })();
 
@@ -80,7 +80,7 @@ defineRoom({ id: 'arena', name: 'Maple Bay Arena', w: W, d: D, zoom: 0, music: '
       return { pts: keys.map((k, i) => Object.assign({ x: N[k][0] + O + (Math.random() - .5) * 1.2, y: N[k][1] + O + (Math.random() - .5) * .9 }, stay[i] ? { wait: 4 + Math.random() * 6, pose: Math.random() < .3 ? 'phone' : null } : null)), kind: exitOnly ? 'walk' : Math.random() < .3 ? 'bag' : Math.random() < .5 ? 'stroll' : 'walk' }; };
     const wk = walkers(sc, { n: 30, route: lane, lines: c => cr && LINES.fan, label: 'Fan' }); for (const w of wk.list) { w.ch.hidden = true; w.dead = Math.random() * 3; }
     // ---- Benny, by the TEAM ONLY door
-    const P = specs(), benny = new Char(Object.assign({}, P.staff[2], { top: 'polo', topColor: TEAM.c, bottom: 'slacks', bottomColor: '#33303f', hat: 'cap', hatColor: TEAM.c, beard: true }), O + 1.5, O + 7.9); benny.dir = 0; benny.kind = 'staff'; sc.ents.push(benny);
+    const P = specs(), benny = new Char(Object.assign({}, P.staff[2], { top: 'polo', topColor: TEAM.c, bottom: 'slacks', bottomColor: '#33303f', hat: 'cap', hatColor: TEAM.c, beard: true }), O + 1.6, O + 7.6); benny.dir = 0; benny.kind = 'staff'; sc.ents.push(benny);
     sc.interactables.push({ ent: benny, x: benny.x, y: benny.y, label: 'Benny, equipment manager', h: 1.3, hit: 8, range: 1.8, visible: () => !benny.hidden, use: () => { benny._hold = 6; benny.faceTo(G.player.x, G.player.y); if (AR()) AR().talkBenny(benny); } });
     let tick = 0, key = '';
     function sync() {
@@ -108,20 +108,20 @@ const BW = 20, BD = 9, BM = mk();
   const { S } = BM, A = BM.A.bind(BM), WY = BM.WY.bind(BM), WX = BM.WX.bind(BM);
   WY('cwall', 0, { w: 7, kind: 'lockerwall', name: 'OTTERS' }); WY('cwall', 7, { w: 7, kind: 'lockerwall', name: 'EST 1961' }); WY('cwall', 14, { w: 6, kind: 'lockerwall', name: 'KIT ROOM' });
   WX('cwall', 0, { w: 4.5, kind: 'portal', name: 'TO THE COURT' }, { tags: ['arena_tunnel'] }); WX('cwall', 4.5, { w: 4.5, kind: 'lockerwall', name: '1998' });
-  A('lockers', 1.2, .1, { n: 5, names: ROSTER.slice(0, 5).map(p => p.last), nums: ROSTER.slice(0, 5).map(p => p.num) }, { ids: ROSTER.slice(0, 5).map(p => p.id) });
-  A('lockers', 7.4, .1, { n: 5, names: ROSTER.slice(5).map(p => p.last), nums: ROSTER.slice(5).map(p => p.num) }, { ids: ROSTER.slice(5).map(p => p.id) });
-  A('lbench', 2, 2.5, { w: 3 }); A('lbench', 8.4, 2.5, { w: 3 }); A('whiteboard', 13.4, .2); A('cage', 16.6, .2); A('suit', 17.4, 4.6, {}, { suit: 1 }); A('ttable', 12.4, 5.6); A('cooler', 6.4, 6.4); A('laundry', 3, 6.2);
+  A('lockers', 1, 0, { n: 5, names: ROSTER.slice(0, 5).map(p => p.last), nums: ROSTER.slice(0, 5).map(p => p.num) }, { ids: ROSTER.slice(0, 5).map(p => p.id) });
+  A('lockers', 8, 0, { n: 5, names: ROSTER.slice(5).map(p => p.last), nums: ROSTER.slice(5).map(p => p.num) }, { ids: ROSTER.slice(5).map(p => p.id) });
+  A('lbench', 2, 2.5, { w: 3 }); A('lbench', 9, 2.5, { w: 3 }); A('whiteboard', 14, .5); A('cage', 17, .5); A('suit', 17.5, 4.5, {}, { suit: 1 }); A('ttable', 12.5, 5.5); A('cooler', 6.5, 6.5); A('laundry', 3, 6);
 })();
 defineRoom({ id: 'arena:backstage', name: 'Otters Locker Corridor', w: BW, d: BD, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'arena', venue: ARENA_VENUES.place,
   floor: GT.f_stone, bg: '#14161e', edge: '#30343f', wall: { color: '#d8d2c4', trim: '#6a4226', h: 4.4 },
-  exits: [{ x: 10, y: 8.5, label: 'Back to the concourse', use: () => G.go('int:arena', { x: O + 1.9, y: O + 6.5, dir: 0 }) }], spawn: { x: 10, y: 7.8, dir: 3 }, items: BM.items, npcSpots: [],
+  exits: [{ x: 10, y: 8.5, label: 'Back to the concourse', use: () => G.go('int:arena', { x: O + 1.9, y: O + 6, dir: 0 }) }], spawn: { x: 10, y: 7.8, dir: 3 }, items: BM.items, npcSpots: [],
   setup(sc) {
     const Wd = sc.world; Wd.zmax = 6; const suit = by(Wd, 'suit')[0];
     Wd.decal({ x0: O, y0: O, x1: O + BW, y1: O + BD, draw(Rr) { const h2 = Rr.hash2; Rr.qz(O, O + BW, O, O + BD, 0, (x, y) => { x -= O; y -= O; if (Math.abs(y - 4.4) < 1) { if (Math.abs(Math.abs(y - 4.4) - .9) < .08) return '#f4f0e8'; return h2(Math.floor(x * 16), Math.floor(y * 16), 3) > .93 ? '#b8322a' : '#d2392f'; } const k = h2(Math.floor(x * 16), Math.floor(y * 16), 7); return k < .08 ? '#565c6c' : k > .94 ? '#6a7080' : '#606676'; }); } }); Wd.version++;
     const P = specs(), mkc = (spec, x, y, dir, label, use) => { const c = new Char(spec, O + x, O + y); c.dir = dir; c.kind = 'staff'; c.hdir = dir; sc.ents.push(c); sc.interactables.push({ ent: c, x: c.x, y: c.y, label, h: 1.3, hit: 8, range: 1.8, visible: () => !c.hidden, use: () => { c._hold = 6; if (!(c.poseOpts && c.poseOpts.seated)) c.faceTo(G.player.x, G.player.y); use(c); } }); return c; };
-    const coach = mkc(Object.assign({}, P.staff[4], { top: 'suit', topColor: '#33303f', innerColor: '#f4f0e8', accent: TEAM.c, hat: null, hair: 'bob', hairColor: '#a9a9b4' }), 14.6, 2, 3, 'Coach Delacroix', c => AR() && AR().talkCoach(c)); coach.pose = 'read';
+    const coach = mkc(Object.assign({}, P.staff[4], { top: 'suit', topColor: '#33303f', innerColor: '#f4f0e8', accent: TEAM.c, hat: null, hair: 'bob', hairColor: '#a9a9b4' }), 15.2, 2.4, 3, 'Coach Delacroix', c => AR() && AR().talkCoach(c)); coach.pose = 'read';
     const priya = mkc(Object.assign({}, P.adult[9], { top: 'hoodie', topColor: TEAM.c, hat: null }), 16.4, 5.3, 0, 'Priya (usually Ollie)', c => AR() && AR().talkPriya(c));
-    const seats = [[2.5, 2.75], [4.5, 2.75], [8.9, 2.75], [10.9, 2.75]], players = [];
+    const seats = [[2.5, 2.75], [4.5, 2.75], [9.5, 2.75], [11.5, 2.75]], players = [];
     const pspec = p => { const A = AR(); return A ? A.playerSpec(p, true) : P.adult[0]; };
     ROSTER.forEach((p, i) => { const s = i < 4 ? seats[i] : null, c = mkc(pspec(p), s ? s[0] : 5.6 + (i - 4) * 1.3, s ? s[1] : 4.6 + (i % 2) * .6, s ? 1 : i % 2 ? 3 : 1, '#' + p.num + ' ' + p.name, ch => AR() && AR().talkPlayer(p, ch, sc)); if (s) { c.z = .48; c.poseOpts = { seated: true }; c.pose = 'sit'; } c.pid = p.id; players.push(c); });
     let tick = 0;

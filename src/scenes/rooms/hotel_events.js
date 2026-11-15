@@ -26,7 +26,7 @@ const LINES = {
 function build() {
   Wl('drape', 'y', 8, { w: 10 }, { drape: 1 }); for (const at of [1.4, 4.7, 19.2, 22.6]) Wl('window', 'y', at, { w: 2.8, c: '#22304e' }, { win: 1 }); for (const at of [2, 7.4, 12.8]) Wl('window', 'x', at, { w: 3, c: '#22304e', seed: 6 }, { win: 1 });
   for (const at of [.4, 18.3, 25.4]) Wl('furn.lobby.sconce', 'y', at, {}); for (const at of [.6, 5.6, 11, 16.6]) Wl('furn.lobby.sconce', 'x', at, {});
-  H('chandelier', 8.2, 6.6, { r: 1 }, { z: 2.3 }); H('chandelier', 15.8, 6.6, { r: 1 }, { z: 2.3 }); H('chandelier', 12, 10.6, { r: .7 }, { z: 2.8 });
+  H('chandelier', 8.2, 6.6, { r: 1 }, { z: 3.2 }); H('chandelier', 15.8, 6.6, { r: 1 }, { z: 3.2 }); H('chandelier', 12, 10.6, { r: .7 }, { z: 3.6 });
   H('carpet', 8.4, .7, { w: 9.4, d: 2.8, c: '#5a1826' }); H('furn.perf.piano', 8.8, .9, {}, { piano: 1 }); H('bass', 12.2, 1.1, {}); H('drums', 13.6, .8, {}); H('mic', 15.8, 2.5, {});
   [[1.2, 3.6], [1.2, 8.2], [1.2, 12.8], [21, 3.4], [21, 8]].forEach(([x, y], i) => H('dtable', x, y, { n: 6, centre: 'none' }, { table: 1, ti: i }));
   H('arch', 11.8, 3.5, {}, { ev: 'wedding' }); H('cake', 4.8, 15, {}, { ev: 'wedding', cake: 1 }); H('guestbook', 12.6, 15.8, {}, { ev: 'wedding' }); H('auction', 8, 15.9, {}, { ev: 'gala' });
@@ -38,7 +38,7 @@ function build() {
 build();
 const FLOOR = { x0: 7, y0: 4.8, x1: 19, y1: 13.4 }, FC = [13, 9.1];
 
-defineRoom({ id: HR.ball, name: BALL_NAME, w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', floor: GT.f_wood, bg: '#14121c', edge: '#4a3c34', wall: { color: '#e6dcc8', trim: '#8a6a3a', h: 4.6, rail: 1.1 },
+defineRoom({ id: HR.ball, name: BALL_NAME, w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', floor: GT.f_wood, bg: '#14121c', edge: '#4a3c34', wall: { color: '#e6dcc8', trim: '#8a6a3a', h: 4.6 },
   exits: [{ x: 24.4, y: 16.9, label: 'Back to the lobby', to: 'int:' + HR.lobby, use: () => G.go('int:' + HR.lobby, LOBBY_AT.ball) }], spawn: { x: 23.4, y: 15.6, dir: 2 }, items, npcSpots: spots,
   setup(sc) {
     const Wd = sc.world, by = k => Wd.objs.filter(o => o.data && o.data[k]), P = people(), AP = specs(), wins = by('win'), drape = by('drape')[0], evObs = Wd.objs.filter(o => o.data && o.data.ev), cake = by('cake')[0], tabs = by('table'), piano = sc.fixtures.find(f => f.item.piano);

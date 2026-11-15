@@ -58,3 +58,4 @@
 43. (msg 81) Wander's 'Take me there' must offer the same travel options as the Map (foot, cab, bus, train). Done (Stage 16b) for Wander, Bay Basics tips and the need chooser via G.phone.routeTo.
 44. (msg 82) Whatever the arrow points at must show on the Map when you open it. Done (Stage 16c): dashed red route, ring on the next target, labelled destination flag, Map opens framed on you + the next target.
 45. (msg 83) Asked for status and which wave we are in — answered: Wave A done; in the signature-showpiece track (S1-S3 done, S4-S5 running), Wave B not started.
+46. (msg 84) MapleCab 'Where to?' should start with what you are likely to want: upcoming planner items and the current arrow/objective. Done (Stage 22b): 'For you now' section.

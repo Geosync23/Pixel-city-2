@@ -41,7 +41,7 @@ const fmt = n => G.money && G.money.fmt ? G.money.fmt(n) : '$' + n;
 const hasPass = () => !!(G.inv && G.inv.hasAccess && G.inv.hasAccess('transit'));
 const sfx = n => { try { G.audio && G.audio.sfx && G.audio.sfx(n); } catch (e) { } };
 // nav hooks (sim/navigator.js trips; the guide arrow + "This is your stop" banner are ui/navarrow.js): the active bus trip, if any. NAV_HOLD = extra real seconds the bus waits at your stop.
-const BUS_RIDE_V = 10, NAV_HOLD = 9, navTrip = () => { try { const t = G.nav && G.nav.trip && G.nav.trip(); return t && t.mode === 'bus' && t.alight ? t : null; } catch (e) { return null; } };
+const BUS_RIDE_V = 10, BUS_CLOCK = .35, NAV_HOLD = 9, navTrip = () => { try { const t = G.nav && G.nav.trip && G.nav.trip(); return t && t.mode === 'bus' && t.alight ? t : null; } catch (e) { return null; } };
 
 function placeOf(id) {
   if (!id) return null; if (typeof id === 'object') return id; let p = G.places && G.places.get && G.places.get(id); if (p) return p;
@@ -82,12 +82,12 @@ function begin(r) {
 }
 function finish(sp, ok = true) {
   const r = ride, p = G.player; if (!r) return; ride = null; p.x = sp.x; p.y = sp.y; p.z = W().heightAt(sp.x, sp.y); p.hidden = false; p.path = null;
-  if (r.bus) { r.bus.hold = false; if (r.vehicle && r.vehicle.vbase) r.vehicle.vmax = r.vehicle.vbase; } if (r.vehicle) r.vehicle.ghost = false; G.camTarget = null; G.cutscene = null; hideHud(); if (S && S.rides) S.rides[r.kind] = (S.rides[r.kind] || 0) + 1;
+  if (r.bus) { r.bus.hold = false; if (r.vehicle && r.vehicle.vbase) r.vehicle.vmax = r.vehicle.vbase; if (G.state.speed === BUS_CLOCK) G.state.speed = r.prevSpeed || 1; } if (r.vehicle) r.vehicle.ghost = false; G.camTarget = null; G.cutscene = null; hideHud(); if (S && S.rides) S.rides[r.kind] = (S.rides[r.kind] || 0) + 1;
   G.emit('ride:end', r.kind, r.destination); for (const f of arriveFns.slice()) { try { f(r); } catch (e) { console.error(e); } } if (r.resolve) r.resolve(ok);
 }
 function rideTick(dt) {
   const r = ride; if (!r) { G.cutscene = null; return; } const v = r.vehicle, p = G.player; p.x = v.x; p.y = v.y; p.z = v.z; r.t += dt;
-  const extra = (r.kind === 'bus' ? 1 : 1.5) - G.state.speed; if (extra > 0) G.advance(dt * extra); // cab rides pass at 1.5 game-min per second; bus rides at 1 (a bus stops and waits at lights: at 1.5 it was slower than walking)
+  const extra = r.kind === 'bus' ? 0 : 1.5 - G.state.speed; if (extra > 0) G.advance(dt * extra); // cab rides pass at 1.5 game-min per second; bus rides run the clock at BUS_CLOCK (see boardNow)
   if (!v.active) return finish(curbSpot(p.x, p.y, p.x, p.y), false);
   if (r.holdT > 0 && (r.holdT -= dt) <= 0 && r.bus) r.bus.hold = false;
   if (r.kind === 'taxi') { r.done += v.v * dt; r.progress = Math.min(1, r.done / r.total); if (r.t > r.total / 4 + 90 && !r.skipping) skipRide(); }
@@ -187,7 +187,8 @@ function boardNow(b, stop, dest, resolve) {
   const l = b.loop, n = l.stops.length, i0 = l.stops.findIndex(s => s.id === stop.id), cnt = id => { const i = l.stops.findIndex(s => s.id === id); return i < 0 ? 0 : ((i - i0 + n) % n) || n; };
   b.hold = false; b.veh.vmax = BUS_RIDE_V;   // the bus you ride drives at cab-ride pace (rides are compressed like taxi rides; restored in finish)
   begin({ kind: 'bus', vehicle: b.veh, bus: b, destination: dest || null, from: stop.id, progress: 0, offNext: false, n0: dest ? cnt(dest) : 1, left: dest ? cnt(dest) : 1, cnt, resolve });
-  const r = ride, setDest = id => { r.destination = id; r.offNext = false; const cur = l.stops[b.nsi].id, i = l.stops.findIndex(s => s.id === id), j = l.stops.findIndex(s => s.id === cur); r.left = r.n0 = ((i - j + n) % n) + 1; r.progress = 0; };
+  const r = ride; r.prevSpeed = G.state.speed === BUS_CLOCK ? 1 : G.state.speed || 1; G.state.speed = BUS_CLOCK;   // QA round 3: a bus ride is a compressed cut like a cab ride: the clock runs at 0.35x so the ridden bus (10 u/s top, ~4 u/s with lights) covers ~11 u per game minute, ~3.5x walking
+  const setDest = id => { r.destination = id; r.offNext = false; const cur = l.stops[b.nsi].id, i = l.stops.findIndex(s => s.id === id), j = l.stops.findIndex(s => s.id === cur); r.left = r.n0 = ((i - j + n) % n) + 1; r.progress = 0; };
   showHud('Bus ' + l.num + ' - ' + l.route.name.replace(/^\s*\w+\s*/, ''), '', [
     r.offBtn = el('button', { text: 'Get off at next stop', onclick: () => { r.offNext = true; if (b.atStop && b.atStop !== r.from) alight(b.atStop); } }),
     el('button', { text: 'Choose stop', onclick: () => { const cur = b.nsi, opts = []; for (let k = b.atStop ? 1 : 0; k < n; k++) { const s = l.stops[(cur + k) % n]; opts.push({ label: s.poi.name, sub: k + 1 - (b.atStop ? 1 : 0) + (k ? ' stops' : ' stop - next'), value: s.id }); } choose('Get off at...', opts).then(id => { if (id && ride === r) setDest(id); }); } })]);
@@ -256,7 +257,7 @@ export function init() {
   };
   G.addSystem({ name: 'transit', update });
   G.on('bus:arrive', onBusArrive);
-  G.on('load', () => { S = G.state.transit; if (ride) { G.cutscene = null; G.camTarget = null; G.player.hidden = false; hideHud(); ride = null; } pend = null; wait = null; });
+  G.on('load', () => { S = G.state.transit; if (G.state.speed === BUS_CLOCK) G.state.speed = 1; if (ride) { G.cutscene = null; G.camTarget = null; G.player.hidden = false; hideHud(); ride = null; } pend = null; wait = null; });
   let built = false;
   G.on('scene', s => {
     if (!s || s.id !== 'city' || built || !TX() || !TX().ensure()) return; built = true;

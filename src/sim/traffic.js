@@ -26,8 +26,9 @@ export function roadGraph() { if (!graph) { world = getCity(); graph = buildGrap
 /** lane waypoint route between two points {x,y}: { edges, offs, len, pts:[[x,y]..] } | null */
 export function route(from, to) { return roadGraph().routePts(from, to); }
 
-const CAP = 40, DWELL = 5;
-export const BUS_SPEED = 6; // abstract (off-screen) bus speed, world units per game minute
+const CAP = 40, DWELL = 2;   // DWELL: game minutes at a stop off screen, real seconds on screen (QA round 3: was 5 -> a bus every ~90 min)
+export const BUS_SPEED = 9; // abstract (off-screen) bus speed, world units per game minute (QA round 3: was 6)
+export const BUS_HEADWAY = 10, BUS_REAL_V = 5.5;   // target minutes between buses of one route in the daytime (buses per route = lap time / headway); measured pace of an on-screen bus nobody rides (u per game min at 1x, lights incl.)
 const KD = { sedan: ['veh.car.sedan', 6.6, 1], hatch: ['veh.car.hatch', 6.4, 1], suv: ['veh.car.suv', 6.4, 1], sports: ['veh.car.sports', 7.6, 1], beetle: ['veh.car.beetle', 6, 1], pickup: ['veh.car.pickup', 6.2, 1],
   van: ['veh.van', 6, 1], delivery: ['veh.van.delivery', 6, 0], icecream: ['veh.van.icecream', 3.6, 0], scooter: ['veh.scooter', 5.4, 1], motorbike: ['veh.motorbike', 7.4, 1], taxi: ['veh.taxi', 6.8, 0],
   police: ['veh.police', 7, 0], ambulance: ['veh.ambulance', 7, 0], truck: ['veh.truck.box', 5.6, 0], garbage: ['veh.truck.garbage', 4, 0], fire: ['veh.truck.fire', 6.5, 0], bus: ['veh.bus', 6.4, 0] };
@@ -113,7 +114,8 @@ function buildLoops() {
     for (const s of stops) s.u = cum[s.k] + Math.max(0, (s.s - sA[s.k]) * edges[s.k].d);
     const num = (r.name.match(/^\s*(\w+)/) || [0, r.id])[1], dest = r.name.replace(/^\s*\w+\s*/, '').split(' - ')[0].toUpperCase().slice(0, 12);
     const loop = loops[r.id] = { route: r, edges, offs, sA, cum, L, stops, num, dest };
-    for (let b = 0; b < 2; b++) { const u = (L * (b / 2 + .13 * buses.length)) % L; let nsi = 0; while (nsi < stops.length && stops[nsi].u < u) nsi++; buses.push({ id: r.id + ':' + b, route: r.id, loop, u, veh: null, atStop: null, dwell: 0, hold: false, nsi: nsi % stops.length }); }
+    const nb = Math.max(2, Math.round((L / BUS_SPEED + stops.length * DWELL) / BUS_HEADWAY));
+    for (let b = 0; b < nb; b++) { const u = (L * (b / nb + .013 * buses.length)) % L; let nsi = 0; while (nsi < stops.length && stops[nsi].u < u) nsi++; buses.push({ id: r.id + ':' + b, route: r.id, loop, u, veh: null, atStop: null, dwell: 0, hold: false, nsi: nsi % stops.length }); }
   }
 }
 function loopAt(loop, u, out) { let k = loop.cum.length - 1; while (k > 0 && loop.cum[k] > u) k--; const e = loop.edges[k], q = graph.lanePos(e, loop.offs[k], loop.sA[k] + e.d * (u - loop.cum[k]), out); q.k = k; return q; }
@@ -135,7 +137,7 @@ function nextBuses(stopId) {
   const out = [];
   for (const b of buses) {
     const l = b.loop, si = l.stops.findIndex(s => s.id === stopId); if (si < 0) continue; const u = busU(b); let min;
-    if (b.atStop === stopId) min = 0; else { const du = (l.stops[si].u - u + l.L) % l.L; let between = 0; for (const s of l.stops) { const d2 = (s.u - u + l.L) % l.L; if (d2 < du - .5 && s.id !== b.atStop) between++; } min = du / BUS_SPEED + between * DWELL + (b.atStop ? Math.max(0, b.dwell) : 0); }
+    if (b.atStop === stopId) min = 0; else { const du = (l.stops[si].u - u + l.L) % l.L; let between = 0; for (const s of l.stops) { const d2 = (s.u - u + l.L) % l.L; if (d2 < du - .5 && s.id !== b.atStop) between++; } min = du / (b.veh ? BUS_REAL_V : BUS_SPEED) + between * DWELL + (b.atStop ? Math.max(0, b.dwell) : 0); }
     out.push({ bus: b, route: b.route, num: l.num, name: l.route.name, color: l.route.color, minutes: Math.ceil(min) });
   }
   return out.sort((a, b) => a.minutes - b.minutes);

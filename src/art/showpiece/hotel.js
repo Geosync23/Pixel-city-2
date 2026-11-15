@@ -154,6 +154,7 @@ function board(p) {
   box(0, .1, .5, w, .12, 1.45, BRASS, { l: BRASS, ol: true }); qy(.08, w - .08, .225, .58, 1.87, c);
   ln.slice(0, 3).forEach((t, i) => { const s = String(t).slice(0, Math.floor(w * 4 - 1)), x = w / 2 - (s.length * 4 - 1) / 32; const d = () => textY(s, x, .23, 1.8 - i * .44, i === 0 ? '#ffd060' : LINEN); if (i === 0 && p.lit) lit(d); else d(); });
 }
+function column(p) { const h = p.h || 5; box(0, 0, 0, .8, .8, .3, MARBLE_D); cyl(.4, .4, .3, .27, h - .8, MARBLE, { ol: false, l: MARBLE, r: MARBLE_D }); for (const dx of [-4, -1, 2, 5]) { const a = S2(.4, .4, .34), b = S2(.4, .4, h - .52); R.line([a[0] + dx, a[1] + 2], [b[0] + dx, b[1] + 2], dx > 0 ? '#c2b8a6' : '#d8cfc0'); } for (const z of [.3, h - .56]) cyl(.4, .4, z, .31, .06, BRASS, { ol: false }); box(.04, .04, h - .5, .72, .72, .16, MARBLE, { ol: false }); box(0, 0, h - .34, .8, .8, .34, MARBLE, { l: marble(MARBLE, 3) }); }
 function carpet(p) { const w = p.w || 4, d = p.d || 2, c = p.c || RED, c2 = p.c2 || BRASS; qz(0, w, 0, d, .012, (x, y) => { const e = Math.min(x, y, w - x, d - y); if (e < .08) return dk(c, .3); if (e < .2) return c2; if (e < .28) return dk(c, .2); const k = (Math.floor(x * 2) + Math.floor(y * 2)) & 1, fx = x * 2 - Math.floor(x * 2), fy = y * 2 - Math.floor(y * 2); return Math.abs(fx - .5) + Math.abs(fy - .5) < .18 ? c2 : k ? c : dk(c, .08); }); }
 
 const T = ['hotel'];
@@ -179,5 +180,6 @@ export default [
   A('window', ['window'], p => [p.w || 2, .12, 3], windowArt, Object.assign({ vb: p => [-.1, 0, 0, (p.w || 2) + .1, .3, 3.2], variants: [{ time: 'day' }, { time: 'dusk', view: 'bay', w: 3 }, { time: 'night', w: 3 }, { time: 'night', view: 'bay', w: 4, c: '#22304e' }] }, WALL, { mount: .4 })),
   A('palm', ['plant'], [.8, .8, 2.4], palm, { vb: [-.8, -.8, 0, 1.6, 1.6, 3.2], variants: [{ seed: 1 }, { seed: 4 }] }),
   A('board', ['hotel_board'], p => [p.w || 2.6, .35, 1.95], board, { use: p => ({ x: (p.w || 2.6) / 2, y: .9 }), variants: [{ lines: ['TODAY', 'WEDDING', '17 - 23'] }, { lines: ['COCKTAILS', 'THE ALEX', 'GOLDEN HOUR'], w: 3, lit: 1 }] }),
+  A('column', ['column'], p => [.8, .8, p.h || 5], column, { variants: [{ h: 5 }, { h: 3.4 }] }),
   A('carpet', ['rug'], p => [p.w || 4, p.d || 2, .02], carpet, { solid: false, flat: true, variants: [{}, { w: 6, d: 2, c: '#22304e' }] }),
 ];

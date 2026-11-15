@@ -18,15 +18,15 @@ const ledX = (s, x, y0, y1, z, c) => lit(() => textX(s, x, (y0 + y1) / 2 + textW
 
 function tier(p) {
   const len = p.len || 8, z = p.z || .5, c = p.c || RED, rev = !!p.rev, xs = seatXs(len, p.aisles || []), rise = p.rise || .5;
-  box(0, 0, 0, len, .75, z, CONC, { t: (x, y) => (y > .66 ? CONC_L : hash2(Math.floor(x * 16), Math.floor(y * 16), 3) > .95 ? CONC_D : CONC), l: (u, v, w, h) => (v > h - rise * 16 ? (v === h - 1 ? CONC_L : u % 32 === 0 ? CONC_D : dk(CONC, .16)) : dk(CONC, .3)), ol: false });
-  lw([0, .75, z], [len, .75, z], CONC_L); lw([len, 0, z], [len, .75, z], CONC_L); lw([len, .75, 0], [len, .75, z], CONC_D);
-  for (const a of p.aisles || []) { qz(a[0], a[1], 0, .75, z + .005, '#565b68'); lit(() => lw([a[0], .74, z + .01], [a[1], .74, z + .01], GOLD)); if (!rev) qy(a[0], a[1], .75, z - rise, z, dk(CONC, .34)); }
-  const by = rev ? .62 : .06, py = rev ? .3 : .14;
+  box(0, 0, 0, len, .5, z, CONC, { t: (x, y) => (y > .43 ? CONC_L : hash2(Math.floor(x * 16), Math.floor(y * 16), 3) > .95 ? CONC_D : CONC), l: (u, v, w, h) => (v > h - rise * 16 ? (v === h - 1 ? CONC_L : u % 32 === 0 ? CONC_D : dk(CONC, .16)) : dk(CONC, .3)), ol: false });
+  lw([0, .5, z], [len, .5, z], CONC_L); lw([len, 0, z], [len, .5, z], CONC_L); lw([len, .5, 0], [len, .5, z], CONC_D);
+  for (const a of p.aisles || []) { qz(a[0], a[1], 0, .5, z + .005, '#565b68'); lit(() => lw([a[0], .49, z + .01], [a[1], .49, z + .01], GOLD)); if (!rev) qy(a[0], a[1], .5, z - rise, z, dk(CONC, .34)); }
+  const by = rev ? .38 : .03, py = rev ? .1 : .1;
   for (const x of xs) { const cc = p.alt && Math.round(x / .6) % 7 === 3 ? CREAM : c;
-    if (!rev) { qy(x - .22, x + .22, by + .06, z + .1, z + .52, cc); lw([x - .22, by + .06, z + .52], [x + .22, by + .06, z + .52], lt(cc, .35)); qz(x - .2, x + .2, py, py + .3, z + .17, lt(cc, .15)); qy(x - .2, x + .2, py + .3, z + .05, z + .17, dk(cc, .3)); }
-    else { qz(x - .2, x + .2, py, py + .3, z + .17, lt(cc, .15)); qy(x - .22, x + .22, by + .08, z + .08, z + .56, dk(cc, .12)); lw([x - .22, by + .08, z + .56], [x + .22, by + .08, z + .56], lt(cc, .3)); } }
-  if (p.sec) { qx(len, .1, .7, Math.max(0, z - .45), Math.max(.3, z - .1), DARK); }
-  if (p.last) { qy(0, len, .75, 0, z, DARK, undefined); qy(0, len, .75, z - .5, z - .12, RED); ledY(p.text || 'LET\'S GO OTTERS', 0, len, .76, z - .2, CREAM); box(0, .7, z, len, .05, .5, STEEL, { ol: false, l: (u, v) => (u % 16 === 0 || v % 7 === 0 ? STEEL : null), t: STEEL }); }
+    if (!rev) { qy(x - .22, x + .22, by + .06, z + .1, z + .52, cc); lw([x - .22, by + .06, z + .52], [x + .22, by + .06, z + .52], lt(cc, .35)); qz(x - .2, x + .2, py, py + .28, z + .17, lt(cc, .15)); qy(x - .2, x + .2, py + .28, z + .05, z + .17, dk(cc, .3)); }
+    else { qz(x - .2, x + .2, py, py + .28, z + .17, lt(cc, .15)); qy(x - .22, x + .22, by + .08, z + .08, z + .56, dk(cc, .12)); lw([x - .22, by + .08, z + .56], [x + .22, by + .08, z + .56], lt(cc, .3)); } }
+  if (p.sec) { qx(len, .08, .42, Math.max(0, z - .4), Math.max(.3, z - .1), DARK); }
+  if (p.last) { qy(0, len, .5, 0, z, DARK, undefined); qy(0, len, .5, z - .5, z - .12, RED); ledY(p.text || 'LET\'S GO OTTERS', 0, len, .51, z - .2, CREAM); box(0, .46, z, len, .04, .5, STEEL, { ol: false, l: (u, v) => (u % 16 === 0 || v % 7 === 0 ? STEEL : null), t: STEEL }); }
 }
 
 const UW = 9.5;
@@ -49,7 +49,8 @@ function bowlwall(p) {
   else if (k === 'press') { qy(.5, w - .5, y + .01, 6.1, 7.3, '#3a4868', '#445478'); glow(() => qy(.5, w - .5, y + .02, 6.1, 7.3, '#9ac8ff', '#c8e0ff')); ledY('PRESS', .5, w - .5, y + .03, 7.75, STEEL); }
 }
 
-function hoop(p) {
+function hoop(p) { R.at(0, -.1, 0, () => hoop_(p)); }
+function hoop_(p) {
   const e = !!p.e, pad = RED;
   if (!e) {
     box(0, .1, 0, 1, 1, .95, pad); qx(1, .2, 1, .15, .8, RED_L); box(.36, .48, .95, .28, .24, 1.7, DARK, { ol: false }); box(.5, .52, 2.5, 1.55, .16, .16, DARK, { ol: false }); lw([.5, .6, 2.1], [1.6, .6, 2.55], '#3a4050');
@@ -116,9 +117,9 @@ function minitruck(p) {
 }
 
 export default [
-  A('tier', [], p => [p.len || 8, .75, p.z || .5], tier, { vb: p => [0, 0, 0, (p.len || 8) + .05, .8, (p.z || .5) + .7], variants: [{ len: 8, z: .5, aisles: [[3, 4]] }, { len: 8, z: 2, alt: 1 }, { len: 6, z: 1.2, rev: 1, last: 1 }] }),
+  A('tier', [], p => [p.len || 8, .5, p.z || .5], tier, { vb: p => [0, 0, 0, (p.len || 8) + .05, .55, (p.z || .5) + .7], variants: [{ len: 8, z: .5, aisles: [[3, 4]] }, { len: 8, z: 2, alt: 1 }, { len: 6, z: 1.2, rev: 1, last: 1 }] }),
   { id: 'furn.arena.bowlwall', kind: 'furniture', tags: ['arena', 'wall'], wall: true, mount: 0, solid: false, size: p => [p.w || 6, .1, UW], vb: p => [0, 0, 0, p.w || 6, .2, UW + .1], draw: bowlwall, variants: [{ w: 9, kind: 'banners', name: 'Alex' }, { w: 8, kind: 'suite' }, { w: 5, kind: 'tunnel' }, { w: 6, kind: 'press' }] },
-  A('hoop', [], [1, 1.2, .95], hoop, { vb: p => (p.e ? [-1.8, -.1, 0, 1.1, 1.3, 3.5] : [0, -.1, 0, 2.9, 1.3, 3.5]), variants: [{}, { e: 1 }] }),
+  A('hoop', [], [1, 1, .95], hoop, { vb: p => (p.e ? [-1.8, -.2, 0, 1.1, 1.2, 3.5] : [0, -.2, 0, 2.9, 1.2, 3.5]), variants: [{}, { e: 1 }] }),
   A('bench', ['arena_bench'], p => [(p.n || 5) * .6, .56, .5], p => seatRow(p.n || 5, p.c || RED, false), { seats: p => seatList(p.n || 5, false), vb: p => [0, 0, 0, (p.n || 5) * .6 + .05, .6, 1], variants: [{ n: 5 }, { n: 4, c: BLUE }] }),
   A('chairs', ['arena_seat'], p => [(p.n || 5) * .6, .56, .5], p => seatRow(p.n || 5, p.c || '#30343f', !!p.rev), { seats: p => seatList(p.n || 5, !!p.rev), vb: p => [0, 0, 0, (p.n || 5) * .6 + .05, .6, 1], variants: [{ n: 6, rev: 1 }, { n: 4 }] }),
   A('table', [], p => [p.w || 5, .6, .82], table, { vb: p => [0, 0, 0, (p.w || 5) + .05, .65, 1.2], variants: [{ w: 5 }, { w: 5, f: 1, text: 'DOCKSIDE DOGS' }] }),

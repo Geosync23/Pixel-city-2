@@ -145,6 +145,7 @@ export function wallTank(o) {
   // cast
   const fish = [], cast = CAST[kind] || [], fl = H * .88;
   cast.forEach(([sp, n, mode, lvl], si) => { const F = flat(sp), sc = { cx: rnd(20, W - 20), cy: lvl * H, vx: rnd(-1, 1) > 0 ? 6 : -6, vy: 0, t: rnd(0, 9) }; for (let i = 0; i < n; i++) fish.push({ sp, F, mode, sc, x: rnd(12, W - 12), y: mode === 3 ? fl - 2 : lvl * H + rnd(-8, 8), vx: (Math.random() < .5 ? -1 : 1) * rnd(4, 9) * (sp === 'seal' ? 2.4 : 1), vy: 0, t: rnd(0, 9), lvl: lvl * H, ox: rnd(-16, 16), oy: rnd(-9, 9), hw: F[0][0].width >> 1, hh: F[0][0].height >> 1, hx: rnd(20, W - 20) }); });
+  const schools = [...new Set(fish.filter(f => f.mode === 1).map(f => f.sc))];
   const kelp = kind === 'kelp' ? Array.from({ length: Math.round(W / 16) }, (_, i) => ({ x: 6 + i * 16 + rnd(-4, 4), h: H * rnd(.5, .85), ph: rnd(0, 6) })) : [];
   const jel = kind === 'jelly' ? Array.from({ length: Math.round(W / 10) }, (_, i) => { const k = JELLY[i % 4]; return { k, x: rnd(8, W - 8), y: rnd(8, H - 14), ph: rnd(0, 6), sp: rnd(.6, 1.2), dx: rnd(-1.5, 1.5) }; }) : [];
   const bub = Array.from({ length: kind === 'abyss' ? 14 : 7 }, () => ({ x: rnd(4, W - 4), y: rnd(0, H), s: rnd(5, 12) }));
@@ -162,7 +163,7 @@ export function wallTank(o) {
         bx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},.7)`; for (let k = -2; k <= 2; k++) { const len = r + 3 + (k & 1) * 3; for (let yy = 1; yy < len; yy += 1) bx.fillRect(X + k * Math.max(1, Math.round(rw / 2.6)) + Math.round(Math.sin(yy / 2.5 + T * 3 + k + j.ph) * 1.2), Y + yy, 1, 1); } } }
     for (const k of kelp) { for (let y = 0; y < k.h; y += 1) { const sw = Math.sin(y / 9 + T * 1.3 + k.ph) * (2 + y / k.h * 4); bx.fillStyle = (y >> 2) & 1 ? '#5f8a3a' : '#4a7a34'; bx.fillRect(Math.round(k.x + sw), Math.round(fl - y), 2, 1); if (y % 8 === 3) { bx.fillStyle = '#7aa848'; bx.fillRect(Math.round(k.x + sw) + ((y >> 3) & 1 ? 2 : -3), Math.round(fl - y) - 1, 3, 2); } } }
     // schools drift
-    for (const f of fish) { const sc = f.sc; if (f.mode === 1 && f === fish.find(q => q.sc === sc)) { sc.t += dt; sc.cx += sc.vx * dt; sc.cy += Math.sin(sc.t * .7) * 3 * dt; if (sc.cx < 22) sc.vx = Math.abs(sc.vx); if (sc.cx > W - 22) sc.vx = -Math.abs(sc.vx); if (feedT > 0) { sc.cx += (W / 2 - sc.cx) * dt * .8; } } }
+    for (const sc of schools) { { sc.t += dt; sc.cx += sc.vx * dt; sc.cy += Math.sin(sc.t * .7) * 3 * dt; if (sc.cx < 22) sc.vx = Math.abs(sc.vx); if (sc.cx > W - 22) sc.vx = -Math.abs(sc.vx); if (feedT > 0) { sc.cx += (W / 2 - sc.cx) * dt * .8; } } }
     for (const f of fish) { f.t += dt;
       if (f.mode === 1) { const tx = f.sc.cx + f.ox + Math.sin(f.t * .8) * 4, ty = f.sc.cy + f.oy + Math.cos(f.t * 1.1) * 3; f.vx += ((tx - f.x) * 1.4 + f.sc.vx * .6 - f.vx) * dt * 2; f.vy += ((ty - f.y) * 1.2 - f.vy) * dt * 2; }
       else if (f.mode === 0) { f.vy += ((f.lvl + Math.sin(f.t * .5) * 6 - f.y) * .8 - f.vy) * dt; if (feedT > 0) f.vx += Math.sign(W / 2 - f.x) * dt * 6; if (f.x < 14) f.vx = Math.abs(f.vx); if (f.x > W - 14) f.vx = -Math.abs(f.vx); if (Math.random() < dt * .04) f.vx = -f.vx; }

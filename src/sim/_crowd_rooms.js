@@ -5,7 +5,7 @@ import { findPath, followPath, nearestFree } from '../engine/nav.js';
 import { VENUE_BY_ID, isOpen } from '../data/venues.js';
 import { JOBS } from '../data/jobs.js';
 import { EVENTS, eventOnDay } from '../data/calendar.js';
-import { X, Cit, rnd, ri, pick, rr, dirOf, getSpec, registerTalk, ambientLine, speak, talkTo } from './_crowd_core.js';
+import { X, Cit, rnd, ri, pick, rr, dirOf, getSpec, registerTalk, ambientLine, speak, talkTo, bubbleOk } from './_crowd_core.js';
 
 const NP = 18, STAY = 1, IN = 2, OUT = 3;
 const pool = []; let scene = null, spots = [], exitPt = null, venueId = '', vtype = '', churn = 4, checkT = 0, bubT = 6, uniform = null, desired = 0, inited = false;
@@ -142,5 +142,12 @@ export function updateRooms(dt) {
     else if (n < desired || (n <= desired && rnd() < .35)) { for (let k = 0; k < 10; k++) { const s = cs[ri(cs.length)]; if (s && usableNow(s) && !onShiftHere(s)) { spawn(s, false); break; } } }
     else if (n > desired) { const c = pool[ri(pool.length)]; if (c.active && c.kind !== 'staff' && c.st === STAY) leave(c); }
   }
-  if ((bubT -= dt) <= 0) { bubT = rr(7, 15); if (!G.cutscene && !G.player.hidden) { const c = pool[ri(pool.length)]; if (c.active && c.st === STAY && c.alpha >= 1) speak(c, ambientLine(c, { venue: (c.spot && c.spot.kind === 'queue' ? 'queue' : LINEKEY[venueId]) })); } }
+  // QA round 3: the speaker used to be ONE random slot of the 18-slot pool, so with 4-6 people in a room most ticks picked an empty slot (~1 bubble a minute);
+  // now it picks among the people actually settled AND visible on screen (not under the HUD), and retries in 2 s when nobody qualifies or both bubble slots are busy.
+  if ((bubT -= dt) <= 0) {
+    bubT = 2; if (!G.cutscene && !G.player.hidden && G.modal <= 0) {
+      const can = []; for (const c of pool) if (c.active && c.st === STAY && c.alpha >= 1 && c.hold <= 0 && bubbleOk(c)) can.push(c);
+      if (can.length) { const c = pick(can); if (speak(c, ambientLine(c, { venue: (c.spot && c.spot.kind === 'queue' ? 'queue' : LINEKEY[venueId]) }))) bubT = rr(7, 15); }
+    }
+  }
 }

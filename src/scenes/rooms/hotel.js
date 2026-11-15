@@ -26,7 +26,7 @@ export const O = 1, HS = () => G.hotel, pick = a => a[Math.floor(Math.random() *
 export const setP = (o, q) => { if (!o) return; for (const k in q) if (JSON.stringify(o.p[k]) !== JSON.stringify(q[k])) { o.p = Object.assign({}, o.p, q); o._key = null; return; } };
 export const viewNow = () => { const a = ambient(G.state.t, 'clear'); return a.dark >= .8 ? 'night' : a.dark > .02 || a.amb !== '#ffffff' ? 'dusk' : 'day'; };
 export const only = fn => (fx, scene) => (scene.def && scene.def.showpiece === 'hotel' ? fn(fx, scene) : null);
-export const LOBBY_AT = { door: { x: O + 15, y: O + 16.8 }, rest: { x: O + 2.2, y: O + 7.2 }, ball: { x: O + 2.2, y: O + 16.3 }, stairs: { x: O + 23, y: O + 6.4 }, lift: { x: O + 16.1, y: O + 2.2 } };
+export const LOBBY_AT = { door: { x: O + 15, y: O + 16.8 }, rest: { x: O + 2.2, y: O + 7.2 }, ball: { x: O + 2.2, y: O + 16.3 }, stairs: { x: O + 23, y: O + 7 }, lift: { x: O + 16.1, y: O + 2.2 } };
 let POOL = null;
 /** dressed-up guests, staff uniforms, swimmers and bathrobes */
 export function people() {
@@ -71,23 +71,23 @@ const LINES = {
   bellhop: ['Mind your ankles, coming through!', 'Seventh floor? I will have it there before you are.', 'Eleven bags, one cart. It is all in how you stack them.'],
 };
 function build() {
-  Wl('gallery', 'y', 0, { w: 30 }, { mount: 3.25 }); Wl('gallery', 'x', 0, { w: 20 }, { mount: 3.25 });
+  Wl('gallery', 'y', 0, { w: 30 }, { mount: 3.5 }); Wl('gallery', 'x', 0, { w: 20 }, { mount: 3.5 });
   Wl('keyrack', 'y', 6.5, { w: 5 }); Wl('furn.lobby.restroom', 'y', 12.4, { c: '#5a4030', dc: '#7a2030' }); Wl('furn.lobby.restroom', 'y', 13.55, { c: '#5a4030', dc: '#22304e' });
   Wl('lift', 'y', 14.9, {}, { lift: 1, n: 0 }); Wl('lift', 'y', 17.5, {}, { lift: 1, n: 1 });
   for (const at of [1.4, 4.4, 20.6, 29]) Wl('furn.lobby.sconce', 'y', at, {}); for (const at of [1.6, 9.6, 18.6]) Wl('furn.lobby.sconce', 'x', at, {});
   Wl('doorway', 'x', 5, { name: 'THE GILDED MAPLE', w: 4.4, lit: 1 }); Wl('staffwall', 'x', 10.4, {}, { staffwall: 1 }); Wl('doorway', 'x', 14.6, { name: 'BAY BALLROOM', c: '#22304e', w: 3.4, lit: 1 });
   H('reception', 6, 2.3, { w: 6 }); H('bell', 11.25, 2.75, {}, { z: 1.13, bell: 1 }); S(7.5, 1.85, 1, { kind: 'staff', label: 'Reception', lines: LINES.reception }); S(10.3, 1.85, 1, { kind: 'staff', label: 'Reception', lines: LINES.reception });
   H('desk', 7.2, 10.2, { kind: 'concierge' }, { concierge: 1 });
-  H('flowers', 14.1, 8.1, {}, { flowers: 1 }); H('chandelier', 13.8, 7.8, { r: 1.1 }, { z: 2.9 }); H('chandelier', 5.6, 5.6, { r: .7 }, { z: 3.3 }); H('chandelier', 23.4, 10.4, { r: .7 }, { z: 3.3 });
-  for (const [x, y] of [[10.6, 5.6], [19, 5.6], [10.6, 13.4], [19, 13.4]]) H('furn.lobby.column', x, y, { kind: 'marble', h: 5.2 });
-  H('grandstair', 21.5, .3, { n: 13 }); H('shopcase', 25.4, .15, { w: 3 }); H('desk', 25.8, 2.4, { kind: 'shop', w: 2.2 }, { venue: HV.gifts }); S(26.9, 1.9, 1, { kind: 'staff', label: SHOP_NAME, lines: LINES.shop });
+  H('flowers', 14.1, 8.1, {}, { flowers: 1 }); H('chandelier', 13.8, 7.8, { r: 1.2 }, { z: 3.7 }); H('chandelier', 5.6, 5.6, { r: .7 }, { z: 4 }); H('chandelier', 23.4, 10.4, { r: .7 }, { z: 4 });
+  for (const [x, y] of [[10.5, 5.5], [19, 5.5], [10.5, 13.5], [19, 13.5]]) H('column', x, y, { h: 5.55 });
+  H('grandstair', 21.5, .3, { n: 14 }); H('shopcase', 25.4, .15, { w: 3 }); H('desk', 25.8, 2.4, { kind: 'shop', w: 2.2 }, { venue: HV.gifts }); S(26.9, 1.9, 1, { kind: 'staff', label: SHOP_NAME, lines: LINES.shop });
   H('carpet', 13.5, 10.4, { w: 3, d: 6.8 }); H('carpet', 21.6, 9, { w: 7.4, d: 6.6, c: '#22304e' });
   H('furn.perf.piano', 24.4, 13, {}, { piano: 1 }); H('easel', 27.4, 14.2, {}, { easel: 1 });
   H('furn.lobby.settee', 22.4, 9.5, { c: '#7a2030', a: '#e8c06a' }, { listen: 1 }); H('furn.lobby.settee', 25.4, 9.5, { c: '#7a2030', a: '#e8c06a' }, { listen: 1 }); H('furn.cafe.lowtable', 24.3, 11.2, {});
   H('furn.cafe.armchair', 21.9, 11.6, { c: '#2f5a4a' }, { flip: true, listen: 1 }); H('furn.cafe.armchair', 21.9, 13.2, { c: '#2f5a4a' }, { flip: true, listen: 1 });
   H('furn.lobby.settee', 1.6, 1.1, { c: '#2f5a4a', w: 3 }); H('furn.cafe.lowtable', 2.6, 2.4, {}); H('furn.cafe.armchair', 4.9, 1.2, { c: '#7a2030' });
   for (const [x, y, s] of [[.6, .6, 1], [28.9, .7, 2], [.7, 18.6, 3], [28.8, 18.6, 4], [20.4, 16.6, 5], [12.2, 1, 6]]) H('palm', x, y, { seed: s });
-  H('board', 3, 11.4, { lines: ['TODAY', 'WELCOME'] }, { board: 1 }); H('cart', 18.2, 16.3, { n: 0 }, { solid: true });
+  H('board', 2.8, 11.4, { w: 3.2, lines: ['TODAY', 'WELCOME'] }, { board: 1 }); H('cart', 18.2, 16.3, { n: 0 }, { solid: true });
   H('prop.hotel.suitcase', 8.2, 4.5, { c: '#2f5a4a' }); H('prop.hotel.suitcase', 8.8, 4.6, { c: '#8a3a2e', flat: 1 });
   H('revdoor', 13.7, 17.3, {}, { rev: 1 });
   S(7.6, 4, 3, { p: .75 }); S(10.2, 4.05, 3, { busy: 1 }); S(18.7, 2.5, 3, { p: .5, anim: 'phone' }); S(16.9, 10.6, 2, { p: .5, anim: 'phone' }); S(4.4, 13, 3, { p: .55 }); S(27.4, 3.9, 3, { p: .6 }); S(28.2, 3.6, 3, { busy: 1 });
@@ -98,10 +98,10 @@ const N = { d0: [15, 16.7], d1: [16.9, 14.6], m: [17.2, 8.4], r1: [12.6, 4.5], r
 const ROUTES = [['d0', 'd1', 'm', 'r1', 'rcp*', 'r1', 'l1'], ['l1', 'm', 'd1', 'd0'], ['d0', 'c1', 'c2', 'c3', 'rd'], ['rd', 'c3', 'c2', 'c1', 'd0'], ['l1', 'sv', 'sh*', 'sv', 'l1'], ['d0', 'b1', 'b2', 'bd'], ['l1', 'm', 'lg*', 'm', 'l1'], ['d0', 'd1', 'm', 's0', 'st'], ['st', 's0', 'm', 'l1'], ['rd', 'c3', 'c2', 'm', 'l1'], ['bd', 'b2', 'b1', 'd0']];
 
 defineRoom({ id: HR.lobby, name: NAME + ' — Grand Lobby', w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', venue: HV.place, floor: GT.f_stone, bg: '#181420', edge: '#4a3c34',
-  wall: { color: '#ead9bd', trim: '#7a5a34', h: 5.3, rail: 3.2 },
+  wall: { color: '#ead9bd', trim: '#7a5a34', h: 5.6, rail: 3.45 },
   exits: [{ x: 15, y: 19.4, label: 'Exit to Harbor Street', poi: 'door:hotel' },
     { x: 1.2, y: 7.2, label: REST_NAME + ' (restaurant)', to: 'int:' + HR.rest, use: () => G.go('int:' + HR.rest) }, { x: 1.2, y: 16.3, label: BALL_NAME, to: 'int:' + HR.ball, use: () => G.go('int:' + HR.ball) },
-    { x: 23, y: 5.9, label: 'Stairs up to ' + SPA_NAME, to: 'int:' + HR.spa, use: () => HS() && HS().toSpa('stairs') }, { x: 16.1, y: 1.3, label: 'Lift', to: 'int:' + HR.floor, use: () => HS() && HS().lift() }, { x: 18.7, y: 1.3, label: 'Lift', to: 'int:' + HR.floor, use: () => HS() && HS().lift() }],
+    { x: 23, y: 6.3, label: 'Stairs up to ' + SPA_NAME, to: 'int:' + HR.spa, use: () => HS() && HS().toSpa('stairs') }, { x: 16.1, y: 1.3, label: 'Lift', to: 'int:' + HR.floor, use: () => HS() && HS().lift() }, { x: 18.7, y: 1.3, label: 'Lift', to: 'int:' + HR.floor, use: () => HS() && HS().lift() }],
   spawn: { x: 15, y: 16.8, dir: 3 }, items, npcSpots: spots,
   setup(sc) {
     const Wd = sc.world, objs = Wd.objs, by = k => objs.filter(o => o.data && o.data[k]), P = people(), AP = specs();

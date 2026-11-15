@@ -36,9 +36,9 @@ const DLINES = {
   H('bstation', 15.4, 2.6, { k: 'mimosa' }, { k: 'mimosa', station: 1 });
   let ti = 0; for (const y of [3.5, 7.5, 11.5]) for (const x of [1, 5, 9, 13]) { const mine = x === 9 && y === 7.5; H('dtable', x, y, { n: mine ? 2 : (ti % 3 === 1 ? 2 : 4), centre: 'candle' }, { table: 1, mine: mine ? 1 : 0, ti: ti++ }); }
   H('desk', 18.6, 11.6, { kind: 'host', w: 1.8 }, { host: 1 }); H('board', 19.4, 14.3, { w: 3, lines: ['THE GILDED', 'MAPLE'] }, { board: 1 });
-  H('chandelier', 5.8, 5, { r: .8 }, { z: 2.2 }); H('chandelier', 13, 9, { r: .8 }, { z: 2.2 }); H('palm', .6, 15, { seed: 2 }); H('palm', 22.8, .8, { seed: 7 }); H('palm', 17.2, 15, { seed: 3 });
+  H('chandelier', 5.8, 5, { r: .8 }, { z: 3 }); H('chandelier', 13, 9, { r: .8 }, { z: 3 }); H('palm', .6, 15, { seed: 2 }); H('palm', 22.8, .8, { seed: 7 }); H('palm', 17.2, 15, { seed: 3 });
   S(19.5, 11.15, 1, { kind: 'staff', label: 'Laurent, the maitre d\'', lines: DLINES.host });
-  defineRoom({ id: HR.rest, name: REST_NAME, w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', floor: GT.f_darkwood, bg: '#181420', edge: '#4a3c34', wall: { color: '#e4d2b4', trim: '#6a4430', h: 4, rail: 1.1 },
+  defineRoom({ id: HR.rest, name: REST_NAME, w: W, d: D, zoom: 0, music: 'quiet', noCrowd: true, showpiece: 'hotel', floor: GT.f_darkwood, bg: '#181420', edge: '#4a3c34', wall: { color: '#e4d2b4', trim: '#6a4430', h: 4 },
     exits: [{ x: 22.6, y: 14.9, label: 'Back to the lobby', to: 'int:' + HR.lobby, use: () => G.go('int:' + HR.lobby, LOBBY_AT.rest) }], spawn: { x: 21.8, y: 13.6, dir: 2 }, items, npcSpots: spots,
     setup(sc) {
       const Wd = sc.world, by = k => Wd.objs.filter(o => o.data && o.data[k]), P = people(), AP = specs(), wins = by('win'), stations = by('station'), board = by('board')[0];
@@ -57,7 +57,7 @@ const DLINES = {
       const sync = () => {
         const n = G.now(), m = meal(n), v = viewNow(); if (v !== view) { view = v; for (const o of wins) setP(o, { time: v }); }
         if (m !== M) { M = m; const buf = m === 'breakfast' || m === 'brunch';
-          for (const o of stations) { const b = BUFFET.find(q => q.id === o.data.k), on = buf && (m === 'brunch' || !b.brunch); if (o.data.k === 'mimosa') showOb(Wd, o, on); else setP(o, { k: on ? o.data.k : 'closed' }); o.data.on = on; }
+          for (const o of stations) { const b = BUFFET.find(q => q.id === o.data.k), on = buf && (m === 'brunch' || !b.brunch); const si = stations.indexOf(o); if (o.data.k === 'mimosa' || b.brunch || si % 2) showOb(Wd, o, on); if (!o.hidden) setP(o, { k: on ? o.data.k : 'closed' }); o.data.on = on; }
           setP(board, { lines: m === 'breakfast' ? ['BREAKFAST', 'BUFFET', 'TILL 10:30'] : m === 'brunch' ? ['SUNDAY', 'BRUNCH', 'TILL 2'] : m === 'tea' ? ['AFTERNOON', 'TEA', '2 - 5'] : m === 'dinner' ? ['DINNER', 'IS SERVED', 'TILL 10:30'] : ['THE GILDED', 'MAPLE', n.hf < 6.5 || n.hf >= 22.5 ? 'OPENS 6:30' : n.hf < 14 ? 'TEA AT 2' : 'DINNER AT 6'], lit: m ? 1 : 0 });
           for (const t of tables) { t.phase = 'wait'; t.t = 2 + Math.random() * 16; t.serve = []; if (!t.mine || !myJob) setP(t.ob, { serve: [], centre: m === 'dinner' ? 'candle' : m === 'tea' ? 'none' : 'flowers' }); }
           dress(cr, (s, c) => (s.kind === 'staff' ? null : m === 'dinner' ? P.formal[Math.floor(c.roll * 997) % P.formal.length] : m === 'breakfast' && c.roll < .12 ? P.robe[Math.floor(c.roll * 60) % P.robe.length] : AP.adult[Math.floor(c.roll * 991) % AP.adult.length]));
@@ -133,7 +133,7 @@ const DLINES = {
       };
       sc.life = { crowd: cr, count: () => cr.count() + (jz ? 3 : 0) + (bartender.hidden ? 0 : 1) };
       sc.hot = { sync, open, golden, jazz, heatersOn, bartender, band, view: () => view };
-      sc.env = t => { const o = ambient(t, G.state.weather); return { amb: o.amb, dark: Math.min(.82, (o.dark || 0) * .85), bg: Wd.bg, night: o.night }; };
+      sc.env = t => { const o = ambient(t, G.state.weather); return { amb: o.amb, dark: Math.min(.72, (o.dark || 0) * .75), bg: Wd.bg, night: o.night }; };
       sync();
       const u0 = sc.update; sc.update = (dt, gm) => {
         u0(dt, gm); cr.update(dt); if ((tick -= dt) <= 0) { tick = 1.5; sync(); }
