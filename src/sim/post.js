@@ -5,14 +5,16 @@
 // City (once per city world, all runtime): door pois `door:post_main` on the existing bld.civic.postoffice (Old Town) and `door:post_maplewood` (a cottage), `door:post_hillcrest` (a gabled house),
 //   `door:post_harbor` (the quay boathouse), `door:post_downtown` (the Visitor Info pavilion); scene ENTITIES (not world objects): a blue pillar box + a hanging sign at every office, five mail carriers who walk
 //   a round of the nearest street mailboxes 07:30 - 11:30 on delivery days, Ada and the Captain on the quay after the chain. Every existing `prop.street.mailbox` (110) becomes "Mailbox: post a letter".
-//   Home: a mail basket by your own front door (placed when the home room is built). Lobbies: the mailbox wall gets "Post your letters" while you carry any.
+//   Home (Direction update 23): NO basket in the home any more. Apartments: your own box in the lobby's mailbox wall; houses: a mailbox at the curb (sim/mailboxes.js places both and
+//   calls homeMail()). Other lobbies: the mailbox wall gets "Post your letters" while you carry any. Writing at home: any desk or table (sim/mailboxes.js), with Writing Paper.
 // Hours: General Post Office Mon - Fri 08 - 18 (Thu until 20), Sat 09 - 14; branches Mon - Fri 09 - 17, Sat 09 - 12:30 (harbor 08 - 16 / 08 - 12; downtown counter Mon - Sat 09 - 18). Sundays + holidays closed, no delivery.
 // THE MAIL MODEL
-//   Letters / postcards: write at any post-office desk (free) or at your mail basket (Writing Paper) -> a Sealed Letter in the bag -> one stamp each -> post in ANY box (street, pillar, counter, lobby, home basket).
+//   Letters / postcards: write at any post-office desk (free) or at a desk / table at home (Writing Paper) -> a Sealed Letter in the bag -> one stamp each -> post in ANY box (street, pillar, counter, lobby, your own mailbox).
 //     Collected 17:00. In town: delivered next morning. Home town: two mornings later. The answer comes 3 - 4 days after that, written by that person about what you said and sent.
 //   Parcels: packing table (pick things from the backpack; box S 2 / M 5 / L 9 units; wrap it: three strips of tape) -> a Wrapped Parcel -> the counter (take a number at the G.P.O., stand in line at a branch)
 //     -> weighed on the scale -> Standard 3 days / Express 2 / Overnight 1 (in town: next morning / same day). Price = (box base + 1.50 per started kg) x speed (x 0.6 in town). To family, to friends, or to yourself.
-//   Incoming: the round is 09:30 Mon - Sat. Post lands in the basket by your door (or your rented P.O. box); small parcels arrive at home as delivery boxes (housing flow) at 11:00,
+//   Incoming: the round is 09:30 Mon - Sat. Post lands in your mailbox (lobby wall or curb; or your rented P.O. box); small parcels wait on the lobby's parcel shelf / on the doorstep (st 'wait') and become
+//     a delivery box in the home (housing flow) when you take them or walk in (11:00; handed over at once when you are in),
 //     big ones need you in: if you are out you get a pink Collection Slip for your nearest office. Junk, flyers with real coupons, the weekly paper bill and catalogues come too.
 // G.post = {
 //   offices() -> [{ key, room, name, short, x, y, open, hours, master }], office(keyOrRoom), nearest(x?, y?) -> office, isOpen(key), enter(key), arrived(key, scene, prev), look() -> { box, boxMail, wall, comm },
@@ -22,7 +24,7 @@
 //   postLetters(where) -> n posted, desk(fx, scene), pack(fx, scene) (UI), packItems([{ id, qty }], wrap 0-3) -> packed | null, packed(), unpack() (take the things out again), wrapGame() -> Promise<0-3>,
 //   sendParcel({ to, speed }, scene?) -> out | null, quote(to, speed) -> $, out() -> [..], track(id),
 //   mail() -> [..] (everything delivered), inbox() -> collected mail, waiting(where = 'home' | 'pobox') -> uncollected, collect(where) -> [mail], read(id) (paper view), text(id) -> { hand, greet, paras, sign, .. }, unseen(), seen(),
-//   homeMail() (the basket menu), poBox(scene), rentBox(key) -> bool, box() -> { office, no, until } | null,
+//   homeMail() (the mailbox menu), whereText(short?) -> 'in your mailbox in the lobby' | 'in the mailbox at your curb', waitingParcels(), takeParcels() -> n, poBox(scene), rentBox(key) -> bool, box() -> { office, no, until } | null,
 //   round(force?) (the morning delivery), deliverNow() (land everything in transit: debug), parcels() -> incoming, collectParcel(id) -> bool, coupons(),
 //   telegram(scene), teleOn(), bottle(scene), keeper(scene), cards(scene), photoCard(scene), cityMap(scene), tide(scene), board(scene), fair(scene), fairOn(), eventOn(key), glass(scene), watchSort(scene), wall(scene),
 //   master(scene, char) / talkMaster(key, scene, char), chain() -> { st 0..6, day }, deadCabinet(scene), homeAsk() -> 0 | 1 | 2, carriers(), city(), stats(), debug: { stay, setChain(n), mail(letterId), parcelIn(label, gives, big) } }
@@ -120,7 +122,7 @@ function ensure(w) {
   }
   C.boxes = w.objs.filter(q => q.id === 'prop.street.mailbox' && !q.hidden);
 }
-const CLINES = { carrier: ['Morning! Second house on the left gets all the catalogues. I have a theory about her.', 'Rain, snow, gulls. Mostly gulls.', 'I know every dog on this round by name and by temperament.', 'Nothing for you in THIS bag. Try the basket by your door.', 'Forty boxes before eleven. Good for the knees, they tell me.'],
+const CLINES = { carrier: ['Morning! Second house on the left gets all the catalogues. I have a theory about her.', 'Rain, snow, gulls. Mostly gulls.', 'I know every dog on this round by name and by temperament.', 'Nothing for you in THIS bag. Try your mailbox.', 'Forty boxes before eleven. Good for the knees, they tell me.'],
   ada: ['He takes his cap off every time. Every single time. I had forgotten men did that.', 'Fifty-eight years. And it was a perfectly good letter.', 'We are making up for lost conversation. There is a great deal of it.'], cap: ['I wrote that letter by a hurricane lamp. Took me four tries to spell "Lindqvist".', 'I thought the door was shut. The door was shut because she was asleep. Imagine a whole life hanging on a lie-in.', 'You carried it the last mile. I will not forget that.'] };
 function wire(s) {
   ensure(s.world); if (!C || s._postWired) return; s._postWired = true; const w = s.world, U = uniforms();
@@ -131,7 +133,7 @@ function wire(s) {
     // the carrier of this office: a round of the nearest street mailboxes
     const near = C.boxes.map(q => ({ x: (q.B[0] + q.B[3]) / 2, y: (q.B[1] + q.B[4]) / 2, d: Math.hypot(q.x - p.x, q.y - p.y) })).filter(q => q.d < 80).sort((a, b) => a.d - b.d).slice(0, 5).map(q => freeNear(w, q.x, q.y + .9, 2)).filter(Boolean);
     const c = new Char(U.carrier[OFFICES.indexOf(o) % U.carrier.length], p.x, p.y + .6); c.z = w.heightAt(c.x, c.y); c.speed = 2.1; c.label = 'Mail carrier'; c.hidden = true; c.stops = [{ x: p.x, y: p.y + .8 }].concat(near); c.leg = 0; c.wait = 2 + OFFICES.indexOf(o); c.key = k; s.ents.push(c);
-    s.interactables.push({ ent: c, x: c.x, y: c.y, label: 'Mail carrier', h: 1.3, hit: 8, range: 1.9, visible: () => !c.hidden, use: () => { c._hold = 4; c.path = null; c.faceTo(G.player.x, G.player.y); const nw = waiting('home').length; bubble(c, nw ? `There ${nw === 1 ? 'is one thing' : 'are ' + nw + ' things'} in the basket by your door. I put ${nw === 1 ? 'it' : 'them'} there myself.` : pick(CLINES.carrier), 4200); add('social', 1); } });
+    s.interactables.push({ ent: c, x: c.x, y: c.y, label: 'Mail carrier', h: 1.3, hit: 8, range: 1.9, visible: () => !c.hidden, use: () => { c._hold = 4; c.path = null; c.faceTo(G.player.x, G.player.y); const nw = waiting('home').length; bubble(c, nw ? `There ${nw === 1 ? 'is one thing' : 'are ' + nw + ' things'} ${whereText()}. I put ${nw === 1 ? 'it' : 'them'} there myself.` : pick(CLINES.carrier), 4200); add('social', 1); } });
     const bag = propEnt('prop.postoffice.satchel', {}, s); bag.hidden = true; c.bag = bag; C.car.push(c);
   }
   for (const q of C.boxes) { const x = (q.B[0] + q.B[3]) / 2, y = (q.B[1] + q.B[4]) / 2; s.interactables.push({ x, y, label: 'Mailbox: post a letter', h: 1.1, hit: 7, range: 1.5, use: () => postLetters('street') }); }
@@ -312,7 +314,7 @@ function round(force) {
   if (S.chain.st === 4 && n.day > (S.chain.day || 0) && !S.mail.some(m => m.key === 'ada1')) got.push(addMail({ type: 'letter', from: 'ada', key: 'ada1', c: ctx('ada') }));
   if (S.bill) { S.bill = 0; const b = safe(() => G.money.bills()); if (b && b.total) got.push(addMail({ type: 'bill', from: 'bill', data: { items: b.items.slice(0, 8), total: b.total, arrears: b.arrears || 0 } })); }
   if (n.day % TUNE.JUNK_EVERY === 1 || force === 'junk') { const pool = JUNK.filter(j => S.junk[j.id] === undefined || n.day - S.junk[j.id] > 20), j = pool[(n.day * 5 + 3) % Math.max(1, pool.length)]; if (j) { S.junk[j.id] = n.day; got.push(addMail({ type: 'junk', from: 'junk', key: j.id })); } }
-  if (got.length) { S.unseen += got.length; const lt = got.filter(m => m.type === 'letter' || m.type === 'reply'), first = lt[0] || got[0], wh = first.where === 'pobox' ? `in your P.O. box at ${officeOf(S.pobox.office).short}` : 'in the basket by your door';
+  if (got.length) { S.unseen += got.length; const lt = got.filter(m => m.type === 'letter' || m.type === 'reply'), first = lt[0] || got[0], wh = first.where === 'pobox' ? `in your P.O. box at ${officeOf(S.pobox.office).short}` : whereText();
     notify(lt.length ? `A letter from ${SENDERS[first.from].name}${got.length > 1 ? ' and ' + (got.length - 1) + ' more' : ''}: waiting ${wh}.` : `The post has come: ${got.length} item${got.length > 1 ? 's' : ''} ${wh}.`, { tab: 'inbox' }, 'post_letter'); G.emit('post:mail', got); syncHome(); trim(); }
   return got;
 }
@@ -343,22 +345,19 @@ function read(id) {
 }
 function collect(wh) { const L = waiting(wh); if (!L.length) return L; for (const m of L) { m.got = 1; if (m.type === 'slip') give('post_slip', 1); } S.stats.got += L.length; S.unseen = Math.max(0, S.unseen - L.length); safe(() => G.phone.syncBadge()); G.emit('post:collected', L); syncHome(); return L; }
 function showCollected(L) { if (!L.length) return; const first = L.find(m => m.type === 'letter' || m.type === 'reply') || L[0], rest = L.filter(m => m !== first); const w = read(first.id); if (rest.length && w) w.body.append(el('p', { text: `Also in the post: ${rest.map(mailTitle).join('; ')}. Everything is in Maple Post on your phone.`, style: 'margin:8px 6px;opacity:.8' })); }
-/* the basket by your own door */
-let homeOb = null;
-function syncHome() { const sc = G.scene; if (!homeOb || !sc || !sc.world || !sc.world.objs.includes(homeOb)) return; const L = waiting('home'), n = Math.min(4, L.length), slip = L.some(m => m.type === 'slip') ? 1 : 0; if (homeOb.p.n !== n || homeOb.p.slip !== slip) { homeOb.p = { n, slip }; homeOb._key = null; } }
-function homeBuild(sc) {
-  const h = safe(() => G.housing.current()); if (!h || !sc || sc.roomId !== h.roomId || !sc.world) return; const ex = sc.interactables.find(i => i.exit); if (!ex) return; const W = sc.world; let at = null;
-  for (const [dx, dy] of [[-1.7, .1], [1.1, .1], [-1.7, -.3], [1.1, -.3], [-2.5, .1], [1.9, .1], [-1.7, .9], [1.1, .9], [-2.5, .9], [1.9, .9]]) { const x = Math.round((ex.x + dx) * 2) / 2, y = Math.round((ex.y + dy) * 2) / 2; if (x < 1.1 || y < 1.15 || x > W.w - 1.8 || y > W.h - 1.6) continue;
-    if (W.isBlocked(x + .3, y + .2) || W.isBlocked(x + .3, y + .7)) continue; if (sc.interactables.some(i => i !== ex && Math.hypot(i.x - x - .3, i.y - y - .2) < 1.05)) continue;
-    if (W.objs.some(o => o.B && x + .6 > o.B[0] && x < o.B[3] && y + .4 > o.B[1] && y < o.B[4] && o.B[5] - o.B[2] > .12 && o.solid !== false)) continue; at = { x, y }; break; }
-  if (!at) at = { x: Math.max(1.2, ex.x - 1.7), y: Math.max(1.2, ex.y + .1) }; homeOb = safe(() => W.place('furn.postoffice.basket', at.x, at.y, { p: { n: 0, slip: 0 }, solid: false })); if (!homeOb) return;
-  sc.interactables.push({ x: at.x + .3, y: at.y + .2, label: 'Mail basket', h: .5, hit: 7,   /* QA10: it sits by the doors: a 12 px hit took two floor taps meant for walking */ range: 1.5, guestOk: true, use: () => homeMail() }); syncHome();
-}
+/* your own mailbox (Direction update 23): the box in the lobby wall of your building, or the mailbox at the curb of your house. sim/mailboxes.js owns the places; the menu is here. */
+const MB = () => G.mailboxes || null;
+const whereText = short => safe(() => MB().whereText(short)) || (short ? 'your mailbox' : 'in your mailbox');
+function syncHome() { safe(() => MB().sync()); }
+const waitingParcels = () => S.parcels.filter(p => p.st === 'wait');
+/** carry in every small parcel that waits on the lobby shelf / the doorstep: it becomes a delivery box in the home */
+function takeParcels(quiet) { const L = waitingParcels(); if (!L.length) return 0; for (const p of L) landParcel(p, 'home'); if (!quiet) toast(`${L.length === 1 ? L[0].label : L.length + ' parcels'}: you take ${L.length === 1 ? 'it' : 'them'} ${atHome() ? 'in' : 'home with you'}. Unpack ${L.length === 1 ? 'it' : 'them'} at home.`, 'good', 4600); syncHome(); return L.length; }
 function homeMail() {
-  const L = waiting('home'), opts = []; if (L.length) opts.push({ label: `Pick up the post (${L.length})`, sub: L.slice(0, 3).map(mailTitle).join('; '), value: 'get' });
-  if (S.held.length) opts.push({ label: `Leave ${S.held.length === 1 ? 'my letter' : 'my ' + S.held.length + ' letters'} for the carrier`, sub: 'Collected on the morning round', value: 'post' });
-  opts.push({ label: 'Write a letter here', sub: has('post_paper') ? `Writing paper: ${has('post_paper')} left` : 'Needs Writing Paper & Envelopes', value: 'write' }); opts.push({ label: 'Open Maple Post', value: 'app' });
-  return choose('The basket by your door', opts, { text: L.length ? 'There is post.' : 'Nothing today. The carrier comes at half past nine, every day but Sunday.' }).then(v => { if (v === 'get') showCollected(collect('home')); else if (v === 'post') postLetters('home'); else if (v === 'write') desk(null, G.scene, true); else if (v === 'app') safe(() => G.phone.open('post')); });
+  const L = waiting('home'), opts = [], apt = safe(() => MB().kind()) !== 'house', P = apt ? waitingParcels() : []; if (L.length) opts.push({ label: `Take out the post (${L.length})`, sub: L.slice(0, 3).map(mailTitle).join('; '), value: 'get' });
+  if (P.length) opts.push({ label: P.length === 1 ? 'Take your parcel from the shelf' : `Take your ${P.length} parcels from the shelf`, sub: P.slice(0, 2).map(p => p.label).join('; '), value: 'parcel' });
+  if (S.held.length) opts.push({ label: apt ? `Post ${S.held.length === 1 ? 'my letter' : 'my ' + S.held.length + ' letters'} in the slot` : `Leave ${S.held.length === 1 ? 'my letter' : 'my ' + S.held.length + ' letters'} and put the flag up`, sub: apt ? 'Collected at 17:00' : 'The carrier takes them on the morning round', value: 'post' });
+  opts.push({ label: 'Open Maple Post', sub: 'Everything you have collected, to read again', value: 'app' });
+  return choose(safe(() => MB().title()) || 'Your mailbox', opts, { text: L.length ? 'There is post.' : 'Nothing today. The carrier comes at half past nine, every day but Sunday.' + (S.held.length ? '' : ' To write a letter: any desk or table at home, or a post office.') }).then(v => { if (v === 'get') showCollected(collect('home')); else if (v === 'parcel') takeParcels(); else if (v === 'post') postLetters(apt ? 'lobby' : 'home'); else if (v === 'app') safe(() => G.phone.open('post')); });
 }
 /* P.O. boxes */
 function rentBox(k) { const o = officeOf(k); if (!o || o.key === 'down') return false; if (S.pobox && S.pobox.until >= G.now().day && S.pobox.office !== o.key) { toast(`You already rent a box at ${officeOf(S.pobox.office).short}.`, 'info'); return false; } if (!pay(PRICE.pobox, 'P.O. box, ' + o.short, o.room)) return false;
@@ -390,8 +389,10 @@ function landParcel(p, how) {
 function parcelStep() {
   const t = G.state.t, n = G.now(); if (!deliveryDay(n) || n.hf < 8 || n.hf >= 19) return;
   for (const p of S.parcels) { if (p.st !== 'due' || p.t > t) continue; const fromN = SENDERS[p.from] ? SENDERS[p.from].name : 'you';
-    if (!p.big || atHome()) { const ok = landParcel(p, 'home'); if (ok) { if (atHome()) toast(`A knock at the door: ${p.label.toLowerCase()}. It is by the door; unpack it.`, 'good', 5200); else notify(`${p.label} has been left at your home. Unpack it there.`, { tab: 'inbox' }, 'post_parcel'); } }
-    else { p.st = 'slip'; p.office = (homeOffice() || { key: 'main' }).key; S.unseen++; addMail({ type: 'slip', from: 'slip', data: p.id, where: 'home' }); notify(`Sorry we missed you: a parcel from ${fromN} is waiting at ${officeOf(p.office).short}. The slip is in your basket.`, { tab: 'inbox' }, 'post_slip'); G.emit('post:parcel', p, 'slip'); syncHome(); } }
+    if (atHome()) { const ok = landParcel(p, 'home'); if (ok) toast(`A knock at the door: ${p.label.toLowerCase()}. It is by the door; unpack it.`, 'good', 5200); }
+    else if (!p.big && safe(() => G.housing.current())) { p.st = 'wait'; const apt = safe(() => MB().kind()) !== 'house'; notify(`${p.label} has come. It is ${apt ? 'on the parcel shelf in your lobby' : 'on your doorstep'}.`, { tab: 'inbox' }, 'post_parcel'); G.emit('post:parcel', p, 'wait'); syncHome(); }
+    else if (!p.big) landParcel(p, 'home');
+    else { p.st = 'slip'; p.office = (homeOffice() || { key: 'main' }).key; S.unseen++; addMail({ type: 'slip', from: 'slip', data: p.id, where: 'home' }); notify(`Sorry we missed you: a parcel from ${fromN} is waiting at ${officeOf(p.office).short}. The slip is in your mailbox.`, { tab: 'inbox' }, 'post_slip'); G.emit('post:parcel', p, 'slip'); syncHome(); } }
   if (S.parcels.length > 14) S.parcels = S.parcels.filter(p => p.st !== 'done').concat(S.parcels.filter(p => p.st === 'done').slice(-6));
 }
 function collectParcel(id) { const p = S.parcels.find(q => q.id === id && q.st === 'slip'); if (!p) return false; take('post_slip', 1); landParcel(p, 'counter'); return true; }
@@ -439,7 +440,7 @@ function wall(sc) { say([{ who: 'Friends of the Post', text: S.wall ? `Five phot
 
 /* ---------- the chain: the letter that waited ---------- */
 const GTEXT = ['', 'The undelivered letter: look up "Tannery Steps" in the City Hall archive', 'The undelivered letter: ask the old-timer at the harbor whose handwriting it is', 'The undelivered letter: take it to Mr. Vance at Hillcrest Post & Telegraph', 'The undelivered letter: it goes out on the Hillcrest round tomorrow morning', 'The undelivered letter: tell Postmaster Fairweather'],
-  GHINT = ['', 'Tannery Steps is on no modern map. The City Archive (basement of City Hall) keeps the old street index; so does Mr. Vance at the Hillcrest post office.', 'Blue ink, a ship\'s hand, "E.T." The Captain is usually on the pier; Skipper Dolly at the Harbor Mail Boat Office knows every hand on the quay.', 'Miss Lindqvist lives at Elm House now. The Hillcrest round delivers there.', 'Check the basket by your door after the morning round (09:30).', 'He is by the philately counter in the General Post Office.'];
+  GHINT = ['', 'Tannery Steps is on no modern map. The City Archive (basement of City Hall) keeps the old street index; so does Mr. Vance at the Hillcrest post office.', 'Blue ink, a ship\'s hand, "E.T." The Captain is usually on the pier; Skipper Dolly at the Harbor Mail Boat Office knows every hand on the quay.', 'Miss Lindqvist lives at Elm House now. The Hillcrest round delivers there.', 'Check your mailbox after the morning round (09:30).', 'He is by the philately counter in the General Post Office.'];
 function setGoal() { if (!G.goals) return; safe(() => { const c = S.chain, g = G.goals.get(G1); if (c.st >= 1 && c.st <= 5) { const text = c.st === 1 && !G.cityhall ? 'The undelivered letter: ask Mr. Vance at Hillcrest about "Tannery Steps"' : GTEXT[c.st], placeId = c.st === 1 ? (G.cityhall ? 'cityhall' : PR.hill) : c.st === 2 ? PR.harbor : c.st === 3 ? PR.hill : c.st === 5 ? PR.main : undefined; if (g) { g.text = text; g.hint = GHINT[c.st]; g.placeId = placeId; G.emit('goals:change'); } else G.goals.add({ id: G1, text, group: 'opportunity', placeId, hint: GHINT[c.st] }); } else if (c.st >= 6 && g && !G.goals.isDone(G1)) G.goals.complete(G1); }); }
 function setGoal2() { if (!G.goals || S.homeAsk !== 1) return; safe(() => { if (!G.goals.get(G2)) G.goals.add({ id: G2, text: 'Send a parcel of Maple Bay things back home', group: 'opportunity', placeId: PR.main, hint: 'Dad asked: a postcard of the lighthouse, something to eat, anything with the town\'s name on it. Pack it at a packing table, wrap it, and take it to a counter. It must hold at least one thing from Maple Bay.' }); }); }
 function setChain(n) { S.chain.st = n; if (n === 4) S.chain.day = G.now().day; setGoal(); G.emit('post:chain', n); const sc = G.scene; if (sc && sc.hot && sc.hot.sync) sc.hot.sync(); return n; }
@@ -480,7 +481,7 @@ export function init() {
     queue: { state: qState, take: qTake, canServe }, takeNumber, wait, window: windowUse, counter, service,
     stamps: { owned: () => Object.assign({}, S.stamps), count: stampCount, album: () => Object.assign({}, S.album), onSale, buy: buyStamp, use: useStamp, all: () => STAMPS, sets: () => STAMP_SETS }, philately, stampShop, covers: () => Object.assign({}, S.covers), postcards: () => Object.assign({}, S.cards), coverToday,
     compose, write, held: () => S.held.slice(), recipients, letterParts, postLetters, desk, pack, packItems, packed: () => S.packed, unpack, wrapGame, sendParcel, sendFlow, quote, out: () => S.out.slice(), track: id => S.out.find(o => o.id === id) || null, toName,
-    mail: () => S.mail.slice(), inbox: () => S.mail.filter(m => m.got), waiting, collect, read, text, title: mailTitle, unseen: () => S.unseen, seen: () => { S.unseen = 0; safe(() => G.phone.syncBadge()); }, homeMail, poBox, rentBox, box: () => S.pobox,
+    mail: () => S.mail.slice(), inbox: () => S.mail.filter(m => m.got), waiting, collect, read, text, title: mailTitle, unseen: () => S.unseen, seen: () => { S.unseen = 0; safe(() => G.phone.syncBadge()); }, homeMail, whereText, waitingParcels, takeParcels, showCollected, poBox, rentBox, box: () => S.pobox,
     round, deliverNow: () => { for (const o of S.out) if (o.st === 'transit') { o.due = G.state.t; delivered(o); } }, parcels: () => S.parcels.slice(), collectParcel, coupons: () => Object.assign({}, S.coupons),
     telegram, bottle, keeper, cards, photoCard, cityMap, tide, board, fair, glass, watchSort, wall, master, talkMaster, chain: () => S.chain, chainStart, deadCabinet, homeAsk: () => S.homeAsk, carriers: () => (C ? C.car : []), city: () => C, sender: id => SENDERS[id],
     stats: () => Object.assign({ stamps: Object.keys(S.album).length, held: S.held.length, transit: S.out.filter(o => o.st === 'transit').length, chain: S.chain.st }, S.stats),
@@ -488,14 +489,14 @@ export function init() {
   };
   G.addSystem({ name: 'post', update(dt) { cityTick(dt); if (teleBusy > 0) teleBusy -= dt; } });
   G.on('minutes', () => { try { minutes(); } catch (e) { console.warn('post', e); } });
-  G.on('room:build', sc => { if (inPost(sc) && !built) safe(() => ensure(getCity())); try { homeBuild(sc); } catch (e) { console.warn('post home', e); } if (inPost(sc)) setTimeout(syncBoxes, 0); });
+  G.on('room:build', sc => { if (inPost(sc) && !built) safe(() => ensure(getCity())); if (inPost(sc)) setTimeout(syncBoxes, 0); });
   G.on('scene', (s, prev) => { if (s && s.id === 'city' && s.world) { try { wire(s); } catch (e) { console.warn('post', e); } setGoal(); setGoal2(); } if (prev && prev.roomId === PR.main && !(s && inPost(s)) && S.q.served) S.q = {}; if ((inPost(s) || inPost(prev)) && G.state.nav && G.state.nav.edges) for (const k of [PR.main, PR.sort]) delete G.state.nav.edges['int:' + k]; syncHome(); if (inPost(s)) syncBoxes(); });
   G.on('places:built', () => { for (const o of OFFICES) { const pl = G.places && G.places.get(o.room); if (pl) { pl.open = () => officeOpen(o, G.now()); if (!pl.blurb) pl.blurb = o.blurb; } } });
   G.on('guide:rebuilt', patchGuide); G.on('bills:soon', () => { S.bill = 1; }); G.on('shop:buy', onBuy); G.on('wardrobe:buy', onClothes);
   G.on('social:talk', id => { if (id === 'captain') setTimeout(chainCaptain, 600); });
   G.on('home:unpack', b => { if (b && b.gives && b.gives.some(g => g.item === 'post_scarf')) { const sc = Object.values(ITEM_BY_ID).find(i => /scarf/i.test(i.id) && i.id !== 'post_scarf' && i.category !== 'gift' && i.category !== 'misc'); if (sc) safe(() => G.wardrobe.add(sc.id, true)); } });
   // the mailbox walls of the apartment lobbies take your letters too; the City Archive's shelves and map case hold the old street index
-  registerFixture('lobby_mail', (fx, sc) => ({ label: 'Post your letters', visible: () => S.held.length > 0, use: () => postLetters('lobby') }));
+  registerFixture('lobby_mail', (fx, sc) => ({ label: 'Post your letters', postSlot: true, visible: () => S.held.length > 0 && !safe(() => MB().livesIn(sc)), use: () => postLetters('lobby') }));   /* in YOUR lobby the wall is your own mailbox (sim/mailboxes.js) */
   for (const t of ['ch_mapcase']) registerFixture(t, (fx, sc) => (sc.roomId === 'cityhall_archive' ? { label: 'Old street index: look up "Tannery Steps"', visible: () => S.chain.st === 1, use: () => chainArchive() } : null));
   setGoal(); setGoal2();
 }

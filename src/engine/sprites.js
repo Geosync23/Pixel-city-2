@@ -80,8 +80,8 @@ export function pixSprite(key, sb, draw) { return cached(key, () => toSpritePool
 // Tunables. msMax / msMin: the most / least the queue may spend per frame (bakeTick adapts in between: it backs off while frames come late and
 // creeps back up while they are on time). small: banded jobs up to this many pixels are still drawn in one pass.
 // ring / look / lookMax: how far around the screen the renderer looks for things to queue (px around the screen; frames of camera travel ahead; cap in px).
-// worker: use the bake worker when it can start. flying: sprites handed to the worker at a time.
-export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 32, look: 150, lookMax: 300, worker: true, flying: 4 };
+// worker: use the bake worker when it can start. flying: sprites handed to the worker at a time. patience: ms without an answer before the worker is given up (and twice that for it to start).
+export const BAKE = { on: true, msMax: 5, msMin: 1.2, small: 9000, maxQueue: 400, ring: 32, look: 150, lookMax: 300, worker: true, flying: 4, patience: 15000 };
 const jobs = new Map(), queue = [];   // key -> job; queue = the same jobs, most urgent first (the renderer re-sorts by distance to the screen)
 /**
  * Queue a sprite for baking ahead of need. start() -> a raster.renderJob, or null for "nothing to draw" (called when the job first runs).
@@ -164,10 +164,10 @@ function workerStart() {
 /* hand queued jobs to the worker (at most BAKE.flying at a time, most urgent first) and turn finished ones into canvases (inside the frame's allowance) */
 function workerPump(t0, allow) {
   if (wstate === 0) { if (BAKE.worker && typeof Worker === 'function' && typeof Blob === 'function' && typeof document !== 'undefined') workerStart(); else wstate = -1; }
-  if (wstate === 1 && performance.now() - wlast > 30000) workerOff('did not start');
+  if (wstate === 1 && performance.now() - wlast > BAKE.patience * 2) workerOff('did not start');
   if (wstate !== 2) return;
   if (!BAKE.worker) return workerOff('switched off');
-  if (flying.size && performance.now() - wlast > 15000) return workerOff('stopped answering');
+  if (flying.size && performance.now() - wlast > BAKE.patience) return workerOff('stopped answering');
   while (landed.length && performance.now() - t0 < allow) {
     const m = landed.shift(); let key = null, f = null; for (const [k, v] of flying) if (v.n === m.n) { key = k; f = v; break; }
     if (!f) continue; flying.delete(key); if (f.ep !== epoch || cache.has(key)) continue;   // baked meanwhile on the main thread, or the season changed

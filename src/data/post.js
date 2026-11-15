@@ -81,7 +81,7 @@ const frame = (id, name, price, icon, soldAt) => ({ id, name, category: 'homegoo
 export const POSTCARDS = [['light', 'The Light at Dusk'], ['cityhall', 'City Hall Clock'], ['harbor', 'Boats at the Quay'], ['otters', 'Go Otters!'], ['market', 'Old Town Market'], ['park', 'The Pond in Central Park'], ['skyline', 'Downtown from the River'], ['tram', 'The Loop Line']];
 const NEW = [
   misc('post_paper', 'Writing Paper & Envelopes', PRICE.paper, 'cream sheets, blue envelope', 'Five sheets and five envelopes, for writing letters at home. The desks at any post office are free.', ALL, { stack: 5, uses: 5 }),
-  misc('post_letter', 'Sealed Letter', 0, 'white envelope, red stamp corner', 'Written, folded, sealed. It needs a stamp and a mailbox: any street box, any post office, the slot in a lobby, or the basket by your own door.', [], { stack: 9 }),
+  misc('post_letter', 'Sealed Letter', 0, 'white envelope, red stamp corner', 'Written, folded, sealed. It needs a stamp and a mailbox: any street box, any post office, the slot in a lobby, or your own mailbox.', [], { stack: 9 }),
   misc('post_parcel', 'Wrapped Parcel', 0, 'brown paper parcel, string', 'Packed and wrapped by you. Take it to a post office counter to be weighed and sent.'),
   misc('post_slip', 'Collection Slip', 0, 'pink card, sorry we missed you', '"SORRY WE MISSED YOU." A parcel is waiting for you at the counter of the post office named on the card.', [], { stack: 5 }),
   misc('post_deadletter', 'The Undelivered Letter', 0, 'yellowed envelope, blue ink, old stamp', '"Miss Ada Lindqvist, The Blue Door, Tannery Steps, Maple Bay." Postmarked fifty-eight years ago. Stamped NO SUCH STREET. Never opened.'),
