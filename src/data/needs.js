@@ -116,6 +116,104 @@ export const NEEDS = [
     atZero: { type: 'status', moodlet: 'bursting',
       message: 'You cannot think about anything else. Any restroom will do: tap the Bladder bar to find the nearest one.' },
   },
+  // ---- the three GENTLE needs (Wave C; BIBLE direction update 2: "Needs drive errands") --------------------------------------
+  // `soft: true`: no clock decay here (decayAwake / decayAsleep stay 0) — src/sim/needs_extra.js moves them from where you are and what you do
+  // (tuning: SOFT below). Three bands only, never 'critical', nothing happens at 0, not part of MOOD.weights: they colour the day through
+  // their band moodlets and small bonuses. `lowText` is the one friendly line shown when the need first drops into its low band.
+  {
+    id: 'comfort', name: 'Comfort', icon: 'armchair, warm red', soft: true,
+    start: 58, decayAwake: 0, decayAsleep: 0,
+    bands: [
+      { id: 'full', min: 80, label: 'Snug', moodlet: 'snug' },
+      { id: 'ok', min: 32, label: 'Fine', moodlet: null },
+      { id: 'low', min: 0, label: 'Unsettled', moodlet: 'unsettled' },
+    ],
+    atZero: { type: 'soft' },
+    lowText: 'Home feels a little unloved. A tidy-up or something cosy would help.',
+  },
+  {
+    id: 'outdoors', name: 'Outdoors', icon: 'green tree, blue sky', soft: true,
+    start: 72, decayAwake: 0, decayAsleep: 0,
+    bands: [
+      { id: 'full', min: 80, label: 'Full of fresh air', moodlet: 'aired_out' },
+      { id: 'ok', min: 30, label: 'Fine', moodlet: null },
+      { id: 'low', min: 0, label: 'Cooped up', moodlet: 'cooped_up' },
+    ],
+    atZero: { type: 'soft' },
+    lowText: 'You have been indoors a long while. A walk in the park would feel good.',
+  },
+  {
+    id: 'inspiration', name: 'Inspiration', icon: 'lit lightbulb, violet', soft: true,
+    start: 55, decayAwake: 0, decayAsleep: 0,
+    bands: [
+      { id: 'full', min: 80, label: 'Brimming with ideas', moodlet: 'brimming' },
+      { id: 'ok', min: 30, label: 'Fine', moodlet: null },
+      { id: 'low', min: 0, label: 'In a rut', moodlet: 'in_a_rut' },
+    ],
+    atZero: { type: 'soft' },
+    lowText: 'The days are starting to look alike. Go and see something new.',
+  },
+];
+
+// ---------------------------------------------------------------------------------------------
+// SOFT — tuning of the three gentle needs (used by src/sim/needs_extra.js). All rates are points per GAME HOUR.
+//   A normal day: Outdoors loses ~45 over 14 waking hours indoors + ~5 asleep and wins it back with about two hours outside (a commute on
+//   foot and a park bench); Inspiration loses ~24 a day and one film, an hour with a novel plus a new place or two refill it; Comfort follows
+//   your home (clean + cosy) while you are in it and fades slowly while you are out.
+// ---------------------------------------------------------------------------------------------
+export const SOFT = {
+  outdoors: {
+    indoors: -3.2, asleep: -0.6,          // per hour in any indoor scene (trains and stations included)
+    terraceHomeMult: 0.5,                 // homes with the `homeViewpoint` perk (terrace / penthouse): the indoor drain is halved ("balcony a little")
+    outside: 15, park: 26,                // per hour in the street / within `parkRadius` of a park, pier, beach, lookout, river walk or garden
+    parkRadius: 15,
+    weather: { clear: 1.25, cloudy: 1, fog: 0.8, snow: 0.9, rain: 0.45, storm: 0.15 },
+    night: 0.8,
+    energyTrickle: 0.3,                   // energy per waking hour given back while the need is in its full band
+  },
+  inspiration: {
+    awake: -1.5, asleep: 0,
+    discover: 6, discoverDayCap: 24,      // a place seen for the first time
+    recipe: 8, newCook: 6, newDish: 5,    // learning a recipe / cooking one for the first time / tasting a dish for the first time
+    show: 28,                             // a full show (concert, play, film at a hall)
+    read: 6, book: 10, film: 8,           // Pages short read / a finished book / a film on Reel
+    lesson: 8,                            // a coach lesson
+    detail: 2, detailDayCap: 30,          // small "looked closely at something" moments inside the showpieces (exhibits, plaques, tanks...)
+    visit: { museum: 12, aquarium: 10, observatory: 10, skydeck: 12, conservatory: 8, lighthouse: 8, cityhall: 5, arena: 6, fishmarket: 4, hotel: 3, mall: 2, natatorium: 2 },   // first visit of the day
+  },
+  comfort: {
+    away: -0.9, asleepAway: 0,            // per hour while not at home
+    toward: 14,                           // per hour, towards the home's comfort level, while at home
+    base: 16, cleanShare: 0.42, cosyPer: 1.6, cosyMax: 36,   // home comfort = base + cleanliness x cleanShare + min(cosyMax, ambience x cosyPer)
+    hotelRoom: 85, friendHome: 62,        // comfort level of a hotel room / a family or friend's home
+    soundSleep: 80, soundSleepEnergy: 5,  // sleeping 4 h+ at home with Comfort at or above this: 'slept_soundly' + this much energy on waking
+  },
+  // home cleanliness 0..100 (state G.state.supplies.clean; shown as Tidy / Lived-in / Dusty / Messy)
+  clean: {
+    start: 76, perHour: -0.3, atHomeAwake: -0.22, cook: -2.5,    // ~ -9 a day when you live in it: about one proper clean every five or six days
+    spot: 10, spotMinutes: 4,             // tidying one visible bit of mess (no supplies needed)
+    quick: 16, quickMinutes: 10, quickCap: 70,   // a quick tidy without supplies cannot take the home past `quickCap`
+    full: 55, fullMinutes: 30,            // a proper clean: one use of cleaner + one of sponges
+    messAt: [68, 54, 40, 26, 14],         // one more visible bit of mess for each threshold the cleanliness is under
+    labels: [{ min: 80, label: 'Sparkling' }, { min: 60, label: 'Tidy' }, { min: 40, label: 'Lived-in' }, { min: 20, label: 'Dusty' }, { min: 0, label: 'Messy' }],
+  },
+};
+// What activities do to the gentle needs, in points per hour while they run (ids from data/activities.js and the runtime-registered ones).
+// Unknown activities fall back to SOFT_ACT_RULES (first matching rule wins).
+export const SOFT_ACT = {
+  watch_movie: { inspiration: 13 }, contemplate_art: { inspiration: 30 }, read_novel: { inspiration: 10, comfort: 4 }, read_skill_book: { inspiration: 4 }, library_read: { inspiration: 10 },
+  browse_books: { inspiration: 8 }, listen_music: { inspiration: 6, comfort: 3 }, dance_home: { inspiration: 4 }, watch_live_music: { inspiration: 18 }, open_mic: { inspiration: 24 },
+  practice_instrument: { inspiration: 9 }, paint: { inspiration: 10 }, sketch_outdoors: { inspiration: 14, outdoors: 8 }, listen_busker: { inspiration: 16, outdoors: 6 }, enjoy_view: { inspiration: 14, outdoors: 10 },
+  stargaze: { inspiration: 16, outdoors: 8 }, dig_crates: { inspiration: 8 }, listen_station: { inspiration: 8 }, computer_write: { inspiration: 6 }, watch_tv: { inspiration: 2, comfort: 3 }, watch_cooking_show: { inspiration: 5, comfort: 3 },
+  ride_ferris_wheel: { inspiration: 20, outdoors: 10 }, watch_fish: { inspiration: 8 }, smell_flowers: { inspiration: 6 }, flip_flash: { inspiration: 6 }, play_jukebox: { inspiration: 6 }, test_pens: { inspiration: 4 },
+  lounge: { comfort: 10 }, nap_sofa: { comfort: 6 }, bath: { comfort: 14 }, linger: { comfort: 6 }, nap: { comfort: 4 },
+  people_watch: { outdoors: 8, inspiration: 3 }, feed_ducks: { outdoors: 12 }, fish_pier: { outdoors: 10 }, jog: { outdoors: 12 }, garden: { outdoors: 14 }, swing: { outdoors: 10 }, picnic: { outdoors: 14, comfort: 3 },
+  pet_cat: { outdoors: 4 }, watch_planes: { outdoors: 8, inspiration: 4 }, tend_plants: { comfort: 6 },
+};
+export const SOFT_ACT_RULES = [
+  { re: /museum|gallery|exhibit|sketch|paint|photo|concert|music|song|busk|poem|write|read|book|film|movie|show|planetar|telescope|star|comedy|dance/i, fx: { inspiration: 8 } },
+  { re: /garden|weed|swim|beach|hoop|chess|picnic|fish|jog|run|walk|bench/i, fx: { outdoors: 8 } },
+  { re: /spa|sauna|massage|soak|lounge|sofa/i, fx: { comfort: 10 } },
 ];
 
 // Bladder tuning (used by src/sim/bladder.js). `drink` = points taken off the bladder need by one drink, by kind.
