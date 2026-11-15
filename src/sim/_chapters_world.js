@@ -98,7 +98,8 @@ export function init(hooks) {
   G.on('load', () => { M = null; if (mkOff) { mkOff(); mkOff = null; } light = null; props = []; propKey = ''; setTimeout(() => safe(sync), 400); });
   /* a tap ON the marker always means the marker, whoever is standing next to it (passers-by and doors must not win the tap) */
   addEventListener('pointerdown', e => {
-    if (!M || !M.it || e.target !== G.cv || !G.scene || G.scene.id !== 'city' || G.modal || G.cutscene || G.busy) return;
+    const onWorld = e.target === G.cv || (e.target && e.target.classList && e.target.classList.contains('bubble'));   /* speech bubbles sit over the canvas and take taps */
+    if (!M || !M.it || !onWorld || !G.scene || G.scene.id !== 'city' || G.modal || G.cutscene || G.busy) return;
     const r = G.cv.getBoundingClientRect(), z = safe(() => G.world.heightAt(M.x, M.y), 0), s = G.toScreen(M.x, M.y, z), k = G.cssScale || 1;
     const dx = e.clientX - (r.left + s.x), dy = e.clientY - (r.top + s.y);
     if (Math.abs(dx) > 13 * k + 8 || dy < -36 * k - 8 || dy > 7 * k + 6) return;
