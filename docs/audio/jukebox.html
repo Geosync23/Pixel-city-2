@@ -109,7 +109,7 @@ class Synth {
   /** drum hit. k kick, s snare, r rim, b brush, h hat, m shaker, c clap, g ride "ting" (three sines, no noise), w woodblock, t / T low / high conga, o tom */
   drum(n, t, vel = 1) {
     const d = this.chan('kit');
-    if (n === 'k') { this.ping(t, 'sine', 118, 46, .2, .5 * vel, d); this.ping(t, 'triangle', 170, 70, .07, .16 * vel, d); }
+    if (n === 'k') { this.ping(t, 'sine', 118, 46, .2, .3 * vel, d); this.ping(t, 'triangle', 170, 70, .07, .13 * vel, d); }
     else if (n === 's') { this.ping(t, 'triangle', 196, 160, .09, .16 * vel, d); this.burst(t, 'bandpass', 1900, .8, .13, .1 * vel, d); }
     else if (n === 'r') { this.ping(t, 'sine', 1680, 0, .028, .09 * vel, d); this.ping(t, 'triangle', 520, 0, .03, .07 * vel, d); this.burst(t, 'bandpass', 3000, 3, .02, .035 * vel, d); }
     else if (n === 'b') this.burst(t, 'bandpass', 2300, .6, .09, .045 * vel, d);
@@ -137,24 +137,24 @@ const SONGS_A = [
       C: { c: 'C Am7 FM7 G7sus,G7 Em7 A7 Dm7,G7 C6', m: "5-35'1--7 6--53--- 4-346--5 5--42--- 5-35'2--'1 '3--'2#1-6- 4-567-'2- '1-------" },
       O: { c: 'FM7 Fm6 C69 %', m: "6-'1-'3--- b6-'1-'4--- '3------- -" } },
     form: 'I-d A A& B C~ B! C O?', end: 'C69' },
-  { id: 'postcard', title: 'Postcard From the Pier', feel: 'jazz waltz', pl: 'title', bpm: 138, tr: 5, mo: 60, style: 'jwaltz', mt: '3/4', ins: { m: 'vibes', m2: 'clarinet', h: 'clarinet', c: 'ep', b: 'upright' },
+  { id: 'postcard', title: 'Postcard From the Pier', feel: 'jazz waltz', pl: 'title cafe', bpm: 138, tr: 5, mo: 60, style: 'jwaltz', mt: '3/4', ins: { m: 'vibes', m2: 'clarinet', h: 'clarinet', c: 'ep', b: 'upright' },
     P: { I: { c: 'CM7 % Dm7 G7 CM7 % Dm7 G7' },
       A: { c: 'CM7 % Dm7 G7 Em7 A7 Dm7 G7 CM7 % Gm7 C7 FM7 Bb7 Dm7 G7', m: "357 6 46'1 7 57'2 '3'2'#1 '264 5-4 357 '1 '2b75 b7-5 6'1'3 '2-b6 '164 5", h: '5 3 4 4 5 5 4 2 3 5 4 3 3 2 1 ,7' },
       B: { c: 'Am7 % D7 % Dm7 % G7 % Am7 % D7 % FM7 Em7 Dm7 G7', m: "3.35'1- 765 #4.#46'1- '2'16 4.46'1- '4'2'1 7'2'4 '3'27 '3.'3'16- 5-3 #4.#46'1- '2'3'#4 '3'16 '275 '164 57'2" },
       O: { c: 'CM7 % FM7 Fm6 CM7 A7 Dm7,G7 C6', m: "357 '1 6'1'3 '4-b6 '3'25 '3-'#1 '2-7 '1" } },
     form: 'I=cb A A& B A~ B A! O', end: 'C69' },
-  { id: 'first_ferry', title: 'First Ferry Home', feel: 'folk fingerpicking', out: 'dawn morning|harbor oldtown', pl: 'title', bpm: 96, tr: -5, style: 'folk', st: { d: { b: '..o...o.' } }, mt: '4/4', ins: { m: 'whistle', m2: 'clarinet', h: 'clarinet', c: 'steel', b: 'steel' },
+  { id: 'first_ferry', title: 'First Ferry Home', feel: 'folk fingerpicking', out: 'dawn morning|harbor oldtown', pl: 'title home', bpm: 96, tr: -5, style: 'folk', st: { d: { b: '..o...o.' } }, mt: '4/4', ins: { m: 'whistle', m2: 'clarinet', h: 'clarinet', c: 'steel', b: 'steel' },
     P: { I: { c: 'C F C G7sus' },
       A: { c: 'C Cadd9 F C/E Am7 F G7sus G7', m: "1-235-3- 5-653-2- 4-56'1-6- 5---3--- 6-'176-5- 4-564--- 5-4-2--- 2---,7---" },
       B: { c: 'F C/E Dm7 C F C/E D7 G7', m: "6-'1-'2-'1- 5---3-5- 4-6-'1-6- 5------- 6-'1-'2-'3- '3-'2-'1-5- 6-#4-6-'1- '2---7---", h: "4 3 2 3 4 5 #4 5" },
       C: { c: 'C Cadd9 F C/E Am7 Dm7 G7 C', m: "1-235-3- 5-653-2- 4-56'1-6- 5---3--- 6-'176-5- 4-6-'1-6- 5-4-2-,7- 1-------" },
       O: { c: 'F C/E Dm7,G7 C', m: "6-'1-6--- 5-3-5--- 4-6-7-'2- '1-------" } },
     form: 'I-d A-d A~ B C B& C! O', end: 'Cadd9' },
-  { id: 'dew', title: 'Dew on the Tramlines', feel: 'ambient pads', out: 'dawn|*', pl: 'fog', bpm: 66, tr: 2, style: 'ambient', mt: '4/4', ins: { m: 'vibes', h: 'flute', c: 'celesta', b: 'upright', p: 'pad' }, mix: { b: .6 },
+  { id: 'dew', title: 'Dew on the Tramlines', feel: 'ambient pads', out: 'dawn|*', pl: 'fog library museum plane', bpm: 66, tr: 2, style: 'ambient', mt: '4/4', ins: { m: 'vibes', h: 'flute', c: 'celesta', b: 'upright', p: 'pad' }, mix: { b: .6 },
     P: { A: { c: 'CM9 % FM7 % Am9 % FM7 Gsus', m: "5-'2- '1 6-'3- '2 7-'3- '1 6-5- 5", h: "3 5 6 '1 '1 7 6 5" },
       B: { c: 'Dm9 % Am7 % BbM7 % Gsus G', m: "4-6- '1 5-'1- 7 '2-6- 4 5-'1- 7" } },
     form: 'A=cp A B A& B A?', end: 'CM9' },
-  { id: 'milk_round', title: 'Milk Round', feel: 'music-box waltz', out: 'dawn morning|suburb oldtown park market', pl: 'snow', bpm: 108, tr: -3, style: 'box3', st: { b: 'R-----', bl: 45 }, mt: '3/4', ins: { m: 'musicbox', c: 'celesta', b: 'harp' }, mix: { c: .4 },
+  { id: 'milk_round', title: 'Milk Round', feel: 'music-box waltz', out: 'dawn morning|suburb oldtown park market', pl: 'snow home_am', bpm: 108, tr: -3, style: 'box3', st: { b: 'R-----', bl: 45 }, mt: '3/4', ins: { m: 'musicbox', c: 'celesta', b: 'harp' }, mix: { c: .4 },
     P: { A: { c: 'C % G7 % G7 % C % C C7 F Fm C/G G7 C %', m: "135 '1-5 '2'17 5 457 '2-7 '153 3 135 '1-b7 6'1'4 '4-b6 5'1'3 '2-7 '1 '1" },
       B: { c: 'Am Em F C Dm7 G7 C G7', m: "6'1'3 '2-7 6'1'4 '3-'1 '2'16 7-'2 '153 2-5" } },
     form: 'A-b A B A B A?' },
@@ -164,23 +164,23 @@ const SONGS_A = [
       B: { c: 'F G/F Em7 Am Dm7 G7 Am7,D7 G7', m: "6-'1'4-- '2-74-- 5-7'2-- '1--6-- 4-6'1-- 7-'2'4-- '1--'2-- 7-----" },
       O: { c: 'F Fm6 C %', m: "6--'1-- b6--'1-- '1----- -" } },
     form: 'I-p A A B A~ B A& O' },
-  { id: 'open_shutters', title: 'Open Shutters', feel: 'bossa nova', out: 'morning midday|oldtown arts market harbor', bpm: 126, tr: -7, style: 'bossa', mt: '4/4', ins: { m: 'flute', m2: 'vibes', c: 'nylon', b: 'upright' },
+  { id: 'open_shutters', title: 'Open Shutters', feel: 'bossa nova', pl: 'shop cafe', out: 'morning midday|oldtown arts market harbor', bpm: 126, tr: -7, style: 'bossa', mt: '4/4', ins: { m: 'flute', m2: 'vibes', c: 'nylon', b: 'upright' },
     P: { I: { c: 'C69 % Dm9 G13' },
       A: { c: 'C69 % Am7 % Dm9 G13 Em7 A7 Dm9 % G13 % Em7 A7 Dm7 G7', m: "5--3-5-- 6--5-3-- '1--7-5-- 3------- 4--6-'1-- '3--'2-7-- '2--7-5-- #1--3-5-6 '2--'1-6-- 4------- 7--'2-'4-- '3------- '2--7-5-- 6--5-3-#1 2--4-6-- 5--4-2--" },
       B: { c: 'Fm7 Bb7 EbM7 % Dm7b5 G7b9 CM7 Dm7,G7', m: "'1--b6-4-- '2--b7-b6-- 5--b7-'2-- b7------- b6--4-2-- b6--5-4-- 3--5-7-- 6--4-5--" },
       O: { c: 'C69 % Dm9,G13 C69', m: "5--3-5-- 6--5-3-- 4--6-7-- '1-------" } },
     form: 'I A B A~ B A! O', end: 'C69' },
-  { id: 'bakery_run', title: 'Bakery Run', feel: 'ragtime stride', out: 'morning midday afternoon|oldtown suburb market downtown', bpm: 104, tr: 0, style: 'stride', st: { sw: .15, d: {} }, mt: '4/4', ins: { m: 'piano', m2: 'clarinet', c: 'piano', b: 'piano' }, mix: { b: .7 },
+  { id: 'bakery_run', title: 'Bakery Run', feel: 'ragtime stride', pl: 'home_am bus', out: 'morning midday afternoon|oldtown suburb market downtown', bpm: 104, tr: 0, style: 'stride', st: { sw: .15, d: {} }, mt: '4/4', ins: { m: 'piano', m2: 'clarinet', c: 'piano', b: 'piano' }, mix: { b: .7 },
     P: { I: { c: 'C G7 C G7', m: "5-'1-'3-'1- 7-'2-'4-'2- '3-'1-5-'1- 5---.567" },
       A: { c: 'C % G7 % G7 % C % C C7 F F#o7 C/G A7 D7,G7 C', m: "35'1-5'13- 56535-3- 247-572- 45424-2- ,7245-42- 5-4-2-,7- 135-351- 3---.567 '15'1-535- b7-5-3-b7- 6'16-4'16- #4-6-'1-'b3- '3'15'3-'15- '3-'#1-6-5- #4-6-7-'2- '1-------" },
       B: { c: 'F % C7 % C7 % F % F F7 Bb Bbm F/C D7 Gm7,C7 F,G7', m: "6'1'4-'16'1- '4-'1-6-'1- b7'1'3-'1b7'1- '3-'1-b7-5- 5b7'1-b75b7- '1-b7-5-3- 46'1-646- 4------- 6'1'4-'16'1- 'b3-'1-6-'b3- '2-b7-'2-'4- 'b2-b7-'b2-'4- '4-'1-6-'1- '1-6-#4-6- b7-'2-'1-b7- 6---5---" } },
     form: 'I A A~ B B A!' },
-  { id: 'crosswalk', title: 'Crosswalk Shuffle', feel: 'city pop', out: 'morning midday afternoon|downtown airport arts', bpm: 108, tr: -8, style: 'citypop', mt: '4/4', ins: { m: 'lead', m2: 'vibes', c: 'ep', b: 'ebass', p: 'strings' }, mix: { p: .35 },
+  { id: 'crosswalk', title: 'Crosswalk Shuffle', feel: 'city pop', pl: 'shop cab', out: 'morning midday afternoon|downtown airport arts', bpm: 108, tr: -8, style: 'citypop', mt: '4/4', ins: { m: 'lead', m2: 'vibes', c: 'ep', b: 'ebass', p: 'strings' }, mix: { p: .35 },
     P: { A: { c: 'FM7 G7 Em7 Am7 FM7 G7 CM7 C7', m: "6-'1'3-'16- 7-'2'4-'27- '2-75-7'2- '1---.6'1'2 '3-'16-'1'3- '4-'27-'2'4- '3-'2'1-75- b7-------" },
       B: { c: 'Dm7 G7 CM7 Am7 Dm7 E7 Am7 D7,G7', m: "4-6-'1-'2- '2--7--5- 3-5-7-'1- 6--'1--6- 4-6-'1-'4- '3-'2-7-#5- 6-'1-'3-'1- '2-#4-5-7-" },
       C: { c: 'FM7 Em7 Dm7 G7sus' } },
     form: 'C-d A A B A~ C=cbd B! A! A^1!', end: 'CM9' },
-  { id: 'paper_boats', title: 'Paper Boats', feel: 'folk fingerpicking', out: 'morning afternoon golden|park suburb harbor', bpm: 84, tr: 2, mo: 60, ho: 60, style: 'folk', mt: '4/4', ins: { m: 'clarinet', m2: 'flute', h: 'flute', c: 'nylon', b: 'nylon' },
+  { id: 'paper_boats', title: 'Paper Boats', feel: 'folk fingerpicking', pl: 'home bus family', out: 'morning afternoon golden|park suburb harbor', bpm: 84, tr: 2, mo: 60, ho: 60, style: 'folk', mt: '4/4', ins: { m: 'clarinet', m2: 'flute', h: 'flute', c: 'nylon', b: 'nylon' },
     P: { I: { c: 'C G/B Am F' },
       A: { c: 'C G/B Am Am/G F C/E Dm7 G7', m: "'1---5-'1- '2---7--- '3--'2'1-6- '1---5--- 6-'1-'4--'3 '3---'1--- '2-'1-6-'1- '2---.567" },
       B: { c: 'Am Em F C Am Em F,G C', m: "'3-'3-'2-'1- 7---5--- 6-'1-'4-'1- '3------- '3-'3-'5-'3- '2---7--- '1-6-7-'2- '1-------", h: '1 ,7 ,6 ,5 1 ,7 ,6,7 3' },
@@ -193,36 +193,36 @@ const SONGS_A = [
       C: { c: 'F % C7 % C7 % F % F F7 Bb % C7 % F G7', m: "'1-6- '1'4'16 b7-5- b7'3b75 '1-b7- 5b7'1'3 '4-'1- 6-.. '1-6- '1'b3'16 '2-b7- '2'4'2b7 '3-'1- b7'1'3'5 '4-'1- 7-'2-" },
       O: { c: 'F C/G G7 C', m: "'4'16'1 '3'15'3 '2757 '1-.." } },
     form: 'I A A~ B A C~ C A! O' },
-  { id: 'noon_whistle', title: 'Noon Whistle', feel: 'chiptune march', out: 'midday afternoon|downtown market airport', bpm: 120, tr: 0, style: 'march', mt: '4/4', ins: { m: 'chip', h: 'pulse', c: 'pulse', b: 'sbass' },
+  { id: 'noon_whistle', title: 'Noon Whistle', feel: 'chiptune march', pl: 'festival', out: 'midday afternoon|downtown market airport', bpm: 120, tr: 0, style: 'march', mt: '4/4', ins: { m: 'chip', h: 'pulse', c: 'pulse', b: 'sbass' },
     P: { I: { c: 'C G7', m: '1-1-1.11 5-5-5---' },
       A: { c: 'C % F C G7 % C G7', m: "1-35'1-5- 3-5-'1--- 6-'1'4'1-6- 5-'1-'3--- '2-757-'2- '4-'2-7--- '3-'15'1-'3- '2---.567", h: '35 53 46 53 ,72 42 53 ,72' },
       B: { c: 'Am Em F C Dm G7 C %', m: "6-'1-'3-'1- 7-'2-5--- 6-'1-'4-'1- '3------- '2-'4'26-'2- 7-'2'4'2-7- '1-5-3-5- '1---...." } },
     form: 'I A A& B A B^2 A^2&! A^2!' },
-  { id: 'high_tide', title: 'High Tide Reel', feel: 'harbor shanty lilt', out: 'midday afternoon golden|harbor market', bpm: 92, tr: 2, mo: 60, style: 'shanty', mt: '6/8', ins: { m: 'accordion', m2: 'whistle', h: 'clarinet', c: 'nylon', b: 'upright' }, mix: { m: 1.5 },
+  { id: 'high_tide', title: 'High Tide Reel', feel: 'harbor shanty lilt', pl: 'heat festival', out: 'midday afternoon golden|harbor market', bpm: 92, tr: 2, mo: 60, style: 'shanty', mt: '6/8', ins: { m: 'accordion', m2: 'whistle', h: 'clarinet', c: 'nylon', b: 'upright' }, mix: { m: 1.5 },
     P: { I: { c: 'C F C G7' },
       A: { c: 'C % F C C Am Dm7,G7 C', m: "'1-'1'3-'5 '5-'3'1-5 6-'1'4-'1 '3--'1-- '1-'1'3-'5 '6-'5'3-'1 '2-'4'2-7 '1-----" },
       B: { c: 'Bb % C % Bb % G7sus G7', m: "'2-b7'2-'4 '4-'2b7-- '3-'1'3-'5 '5--'3-- '4-'2'4-'b7 '4--'2-- '1-'2'1-5 7--'2--", h: "b7--'2-- '2--b7-- '1--'3-- '3--'1-- '2--'4-- '2--b7-- '1----- 7-----" },
       O: { c: 'F C/E Dm7,G7 C', m: "'4-'16-- '3-'15-- '2-'17-'2 '1-----" } },
     form: 'I A A B A~ B A! I=cbd A~ B&! A! A O' },
-  { id: 'five_corners', title: 'Five Corners', feel: 'jazz in 5/4', out: 'midday afternoon evening|arts downtown', bpm: 152, tr: -5, min: 1, style: 'five', mt: '5/4', ins: { m: 'vibes', m2: 'clarinet', c: 'ep', b: 'upright' },
+  { id: 'five_corners', title: 'Five Corners', feel: 'jazz in 5/4', pl: 'cafe', out: 'midday afternoon evening|arts downtown', bpm: 152, tr: -5, min: 1, style: 'five', mt: '5/4', ins: { m: 'vibes', m2: 'clarinet', c: 'ep', b: 'upright' },
     P: { I: { c: 'Cm7 Gm7 Cm7 Gm7' },
       A: { c: 'Cm7 Gm7 Cm7 Gm7 Fm7 Bb7 EbM7 G7', m: "1--3-57-5- '2--7-54-5- 1--3-57-'1- '2--'4-'27-5- 6--'1-'3'1-6- 7--'2-'4'2-7- '3--'2-75-7- '2--#7-54-2-" },
       B: { c: 'AbM7 % Fm7 % Dm7b5 % G7 %', m: "'1-6-5 '3-'1-6 '1-6-4 6-'1-'4 '2-6-4 '4-'2-6 '2-#7-5 4-2-5" },
       O: { c: 'Cm7 Gm7 Fm7 Cm69', m: "1--3-57-5- '2--7-54-5- 6--4-31-3- 1" } },
     form: 'I A A B A~ B A! O?', end: 'Cm69' },
-  { id: 'sprinkler', title: 'Sprinkler Sunday', feel: 'lazy shuffle', out: 'midday afternoon|suburb park harbor', pl: 'heat', bpm: 92, tr: -3, style: 'shuffle', mt: '4/4', ins: { m: 'whistle', m2: 'eguitar', c: 'steel', b: 'upright' },
+  { id: 'sprinkler', title: 'Sprinkler Sunday', feel: 'lazy shuffle', out: 'midday afternoon|suburb park harbor', pl: 'heat diner bus', bpm: 92, tr: -3, style: 'shuffle', mt: '4/4', ins: { m: 'whistle', m2: 'eguitar', c: 'steel', b: 'upright' },
     P: { I: { c: 'C F C G7' },
       A: { c: 'C % F C C Am D7 G7', m: "5-35-65- 3---.123 4-46-'16- 5------- 5-35-'16- '1--6-3-- #4-6-'1-6- '2---7-5-" },
       B: { c: 'F % C % F % D7 G7', m: "6-'1-'4-'1- '1---6--- 5-'1-'3-'1- '3---5--- '4-'1-6-'1- '4---'1--- '2-'1-6-#4- 5-6-7-'2-" },
       C: { c: 'C % F C C Am Dm7,G7 C', m: "5-35-65- 3---.123 4-46-'16- 5------- 5-35-'16- '1--6-3-- 4-6-7-'2- '1-------" } },
     form: 'I A C B C~ B! A C' },
-  { id: 'glass_towers', title: 'Glass Towers', feel: 'synth-pop', out: 'afternoon evening|downtown airport arts', bpm: 116, tr: 6, min: 1, mo: 60, style: 'synthpop', mt: '4/4', ins: { m: 'lead', m2: 'vibes', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+  { id: 'glass_towers', title: 'Glass Towers', feel: 'synth-pop', pl: 'gym cab train', out: 'afternoon evening|downtown airport arts', bpm: 116, tr: 6, min: 1, mo: 60, style: 'synthpop', mt: '4/4', ins: { m: 'lead', m2: 'vibes', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
     P: { I: { c: 'Cm AbM7 Eb Bb' },
       A: { c: 'Cm AbM7 Eb Bb Cm AbM7 Fm7 G7sus,G7', m: "'1--5-'1'3- '3--'1-6-- 7--5-7'2- '2--7-'4-- '3--'1-'3'5- '5--'3-'1-- '4--'1-6'1- '1---#7---" },
       B: { c: 'Fm7 Bb EbM7 AbM7 Fm7 G7 Cm %', m: "'4---'3--- '2---'4--- '5---'3--- '1------- '4---'3--- '2---#7--- '1-----5- '1-------" },
       D: { c: 'AbM7 Bb Cm7 %' } },
     form: 'I-d I A A B A~ B D-d B! A D', end: 'Cm' },
-  { id: 'mural', title: 'Mural Alley', feel: 'lo-fi hip-hop', out: 'afternoon golden|arts oldtown downtown', bpm: 78, tr: 1, style: 'lofi', mt: '4/4', ins: { m: 'vibes', m2: 'nylon', h: 'clarinet', c: 'ep', b: 'ebass' },
+  { id: 'mural', title: 'Mural Alley', feel: 'lo-fi hip-hop', pl: 'work office rain', out: 'afternoon golden|arts oldtown downtown', bpm: 78, tr: 1, style: 'lofi', mt: '4/4', ins: { m: 'vibes', m2: 'nylon', h: 'clarinet', c: 'ep', b: 'ebass' },
     P: { A: { c: 'FM7 Em7 Dm9 CM7 FM7 Em7 Am9 G13', m: "..'3-'1-6- 5---..7'2 '3-'1-6-4- 3---5-7- ..6-'1-'3- '2---..75 6-'1-7-5- '3---'2---", h: "6 5 4 3 6 7 '1 7" },
       B: { c: 'Dm9 G13 CM9 A7b9 Dm9 Db7 CM9 %', m: "4-6-'1-'3- '2--7--5- '2-7-5-3- #1--3-5-b7 6-'1-'3-'4- '4--'b2--7- '3---'2--- 5-------" } },
     form: 'A=c A A& B A~ B A?', end: 'CM9' },
@@ -231,7 +231,7 @@ const SONGS_A = [
 /* ---- src/sim/_music_songs_b.js ---- */
 // Private songbook, part B: outdoors in the afternoon, evening and night, the weather tunes and the four seasonal tunes. Format: see _music_engine.js.
 const SONGS_B = [
-  { id: 'kite', title: 'Kite Weather', feel: 'light waltz', out: 'afternoon golden|park suburb harbor', bpm: 144, tr: -2, style: 'waltz', mt: '3/4', ins: { m: 'flute', m2: 'clarinet', c: 'harp', b: 'upright', p: 'strings' },
+  { id: 'kite', title: 'Kite Weather', feel: 'light waltz', pl: 'family', out: 'afternoon golden|park suburb harbor', bpm: 144, tr: -2, style: 'waltz', mt: '3/4', ins: { m: 'flute', m2: 'clarinet', c: 'harp', b: 'upright', p: 'strings' },
     P: { I: { c: 'C Am F G7' },
       A: { c: 'C % Em % F % G7 % C % Am % Dm7 G7 C %', m: "5-3 '1-- 7-5 '2-- '1-6 '4-- '2-7 5-- 5-3 '1-- '3-'1 6-- 4-6 7-'2 '1-- '1--" },
       B: { c: 'F % C % G7 % C C7 F % C A7 Dm7 G7 C %', m: "6'1'4 '4-'1 5'1'3 '3-'1 7'2'4 '4-'2 '3'2'1 b7-- 6'1'4 '6-'4 '5'3'1 '3-'#1 '2'16 7-'2 '1-- '1--" },
@@ -247,7 +247,7 @@ const SONGS_B = [
     P: { A: { c: 'CM7 Em7 FM7 Fm6 Em7 Am7 Dm7 G7sus', m: "'3---'2-'1- 7---5--- 6-'1-'3-'2- '1------- '2---7-5- '1---6--- 4-6-'1-'2- '1-------" },
       B: { c: 'FM7 G/F Em7 Am7 Dm7 G7 CM7 C7', m: "6-'1-'3--- '2-7-'2--- 5-7-'2-'3- '3---'1--- 4-6-'1-'4- '3-'2-7-'2- '3------- b7-------" } },
     form: 'A=cp A A~+ B A B~+ A!', end: 'CM9' },
-  { id: 'neon', title: 'Neon Laundry', feel: 'night funk', out: 'evening late|downtown arts airport', bpm: 104, tr: -1, min: 1, mo: 60, style: 'citypop', mt: '4/4', ins: { m: 'lead', m2: 'brass', c: 'ep', b: 'ebass' },
+  { id: 'neon', title: 'Neon Laundry', feel: 'night funk', pl: 'gym bar cab', out: 'evening late|downtown arts airport', bpm: 104, tr: -1, min: 1, mo: 60, style: 'citypop', mt: '4/4', ins: { m: 'lead', m2: 'brass', c: 'ep', b: 'ebass' },
     P: { I: { c: 'Cm7 F9 Cm7 F9' },
       A: { c: 'Cm7 F9 BbM7 EbM7 Cm7 F9 Dm7b5 G7#5', m: "'1-'3-'5--'3 '4---'3-'1- '2-'4-'#6--'4 '5---'3-7- '1-'3-'5--'7 '5---'4-'3- '2-'4-'6--'4 '3---#7---" },
       B: { c: 'AbM7 Bb7 Gm7 Cm7 AbM7 Bb7 Cm7 %', m: "'1--'3--'5- '4--'2--7- '2--7--5- '3--'1--5- '1--'3--'5- '6--'4--'2- '3------- '1-------" } },
@@ -257,21 +257,21 @@ const SONGS_B = [
       A: { c: 'C6 A7 Dm7 G7 Em7 A7 Dm7,G7 C6', m: ".5356-5- #1-3-5-3- .4246-4- 2-,7-5-4- .5357-5- 6-5-3-#1- 2-4-5-7- '1-----..", h: '5 5 4 4 5 5 44 3' },
       B: { c: 'Gm7 C7 FM7 % Am7 D7 Dm7 G7', m: "b7-'2-'4-'2- '3-'1-b7-5- 6-'1-'3-'1- 6------- '1-'3-'5-'3- '2-'1-6-#4- 6-'1-'2-'1- 7-'2-5---" } },
     form: 'I A A B A A~ A~& B A!', end: 'C69' },
-  { id: 'porch', title: 'Porch Light', feel: 'slow blues in 12/8', out: 'evening late|suburb park harbor oldtown', bpm: 66, tr: -5, style: 'blues', st: { d: { b: '..o..o..o..o', k: 'x.....o.....' } }, mt: '12/8', ins: { m: 'accordion', m2: 'eguitar', c: 'steel', b: 'upright' }, mix: { m: 1.5 },
+  { id: 'porch', title: 'Porch Light', feel: 'slow blues in 12/8', pl: 'bar', out: 'evening late|suburb park harbor oldtown', bpm: 66, tr: -5, style: 'blues', st: { d: { b: '..o..o..o..o', k: 'x.....o.....' } }, mt: '12/8', ins: { m: 'accordion', m2: 'eguitar', c: 'steel', b: 'upright' }, mix: { m: 1.5 },
     P: { I: { c: 'C7 F7 C7 G7' },
       A: { c: 'C7 F7 C7 % F7 % C7 A7 Dm7 G7 C7,F7 C7,G7', m: "5--b7--'1--b7-- b3--4--b3--1-- 3--5--'1----- b7--5--b3-3--- 4--6--'1--'b3-- '1--6--4----- 5--3--1--3-- #1--3--5----- 4--6--'1--6-- 7--'2--'4--'2-- '3--'1--'1--6-- 5-----7-----" },
       B: { c: 'C7 F7 C7 % F7 % C7 A7 Dm7 G7 C7,F7 C7,G7', m: "'1-----b7--5-- '1--6--'b3--'1-- 5--b7--'1--'3-- '3-----'1----- 6--'1--'b3--'1-- 6--4--b3--4-- 5--3--5--'1-- '3--'#1--6----- '2--'1--6--4-- 5--7--'2--'4-- '3-----'1----- 5-----7-----" },
       E: { c: 'C7 F7 C7,F7 C7', m: "5--b7--'1--b7-- b3--4--b3--1-- '3--'1--'1--6-- '1-----------" } },
     form: 'I A B A~ E', end: 'C9' },
-  { id: 'blue_tram', title: 'Blue Hour Tram', feel: 'lo-fi night', out: 'evening late|downtown arts airport', pl: 'rain', bpm: 70, tr: 0, min: 1, style: 'lofi', mt: '4/4', ins: { m: 'ep', m2: 'vibes', c: 'nylon', b: 'ebass', p: 'pad' },
+  { id: 'blue_tram', title: 'Blue Hour Tram', feel: 'lo-fi night', out: 'evening late|downtown arts airport', pl: 'rain home_late home_rain plane storm', bpm: 70, tr: 0, min: 1, style: 'lofi', mt: '4/4', ins: { m: 'ep', m2: 'vibes', c: 'nylon', b: 'ebass', p: 'pad' },
     P: { A: { c: 'Cm9 AbM7 Fm9 G7#5 Cm9 AbM7 Dm7b5 G7', m: "..5-'2-'3- '1---..56 '1-6-5-4- 3---#7--- ..'3-'2-'5- '3---..'16 4-6-'1-'2- #7-------" },
       B: { c: 'Fm9 Bb13 EbM9 AbM7 Fm9 G7 Cm9 %', m: "'1-6-4--- '2-7-5--- 7-5-3--- 5---'1--- 6-'1-'3-'4- '2---#7--- '1---5--- 2-------" } },
     form: 'A=cp A B A~ B A?', end: 'Cm9' },
-  { id: 'moon_slip', title: 'Moon Over the Slipway', feel: 'nocturne', out: 'late|harbor oldtown market park', bpm: 58, tr: 2, min: 1, mo: 60, style: 'solo', mt: '4/4', ins: { m: 'clarinet', m2: 'vibes', c: 'nylon', b: 'upright', p: 'pad' },
+  { id: 'moon_slip', title: 'Moon Over the Slipway', feel: 'nocturne', pl: 'library home_late fog', out: 'late|harbor oldtown market park', bpm: 58, tr: 2, min: 1, mo: 60, style: 'solo', mt: '4/4', ins: { m: 'clarinet', m2: 'vibes', c: 'nylon', b: 'upright', p: 'pad' },
     P: { A: { c: 'Cm % Ab % Fm % G7sus G7', m: "5-'1- '3--- '1-6- '3--- '1-6- 4--- 5-'1- #7---" },
       B: { c: 'Eb % Bb % Ab % G7 %', m: "'3-'5- '7--- '2-'4- '2--- '1-'3- '1--- #7-'2- 5---" } },
     form: 'A=cp A B A~ B A?' },
-  { id: 'turns_over', title: 'The City Turns Over', feel: 'music-box lullaby', out: 'late dawn|suburb park downtown airport arts', pl: 'home_late', bpm: 76, tr: 2, style: 'box', st: { b: 'R-------', bl: 48 }, mt: '4/4', ins: { m: 'musicbox', c: 'celesta', b: 'harp', p: 'pad' }, mix: { c: .4 },
+  { id: 'turns_over', title: 'The City Turns Over', feel: 'music-box lullaby', out: 'late dawn|suburb park downtown airport arts', pl: 'home_late snow', bpm: 76, tr: 2, style: 'box', st: { b: 'R-------', bl: 48 }, mt: '4/4', ins: { m: 'musicbox', c: 'celesta', b: 'harp', p: 'pad' }, mix: { c: .4 },
     P: { A: { c: 'C Am F G C Am F,G C', m: "3-5-'1-5- 3-1-3--- 4-6-'1-6- 5-2-5--- 3-5-'1-'3- '1-6-'1--- 6-4-7-5- '1-------" },
       B: { c: 'F C/E Dm C F C/E Dm7 G7', m: "6-'1-'4-'1- 5-'1-'3--- 4-6-'2-6- 5-3-5--- 6-'1-'4-'1- '3-'1-5--- 4-6-'1-6- 5-7-'2---" } },
     form: 'A-b A B A B A?' },
@@ -279,7 +279,7 @@ const SONGS_B = [
     P: { A: { c: 'Cm7 Gm7 AbM7 Eb/G Fm7 Cm/Eb Dm7b5 G7', m: "'1-5-3-5- 7-5-2--- '1-6-3-6- 5-3-,7--- 6-4-1-4- 5-3-1--- 4-2-,6-2- ,#7---2---" },
       B: { c: 'AbM7 Bb Cm7 % AbM7 Bb Gsus G', m: "'3--'1--6- '2--7--4- '3--'1--5- '1------- '3--'1--6- '4--'2--7- '1---'2--- #7-------" } },
     form: 'A=c A A~ B A B~ A?', end: 'Cm9' },
-  { id: 'umbrellas', title: 'A Street of Umbrellas', feel: 'slow jazz waltz', pl: 'rain storm', bpm: 104, tr: 4, min: 1, mo: 60, style: 'jwaltz', mt: '3/4', ins: { m: 'vibes', m2: 'clarinet', c: 'nylon', b: 'upright' },
+  { id: 'umbrellas', title: 'A Street of Umbrellas', feel: 'slow jazz waltz', pl: 'rain storm home_rain', bpm: 104, tr: 4, min: 1, mo: 60, style: 'jwaltz', mt: '3/4', ins: { m: 'vibes', m2: 'clarinet', c: 'nylon', b: 'upright' },
     P: { I: { c: 'Cm7 Fm7 Cm7 G7' },
       A: { c: 'Cm7 % Fm7 % Bb7 % EbM7 % AbM7 % Dm7b5 % G7 % Cm7 G7', m: "5'1'3 '2-- '1'3'1 6-- 7'2'4 '2-- '2'37 5-- '1-6 '3-- '2-'1 6-- 5#7'2 '4-- '3-- '2--" },
       B: { c: 'Fm7 % Cm7 % Fm7 % G7 % AbM7 % EbM7 % Dm7b5 G7 Cm7 %', m: "6'1'4 '3-- 5'1'3 '2-- 6'1'4 '5-- '4'2#7 5-- '3'16 '5-- '275 '3-- '2'16 #7-'2 '1-- '1--" } },
@@ -294,21 +294,21 @@ const SONGS_B = [
     P: { A: { c: 'C % Am % F % G % C % Am % Dm7 G7 C %', m: "5-- 3-5 '1-- 6-- 6-'1 '4-'3 '2-- 7-- 5-- 3-5 '1-- '3-- '2-'1 7-'2 '1-- ---" },
       B: { c: 'F % C/E % Dm7 % G7sus G7', m: "'4-'1 6-- '3-'1 5-- '2-6 4-- 5-'1 7--" } },
     form: 'A-b A B A~ B A?' },
-  { id: 'fog_bells', title: 'Harbor in the Fog', feel: 'ambient vibes', pl: 'fog', bpm: 58, tr: -1, min: 1, ho: 60, style: 'ambient', st: { c: '1...2...' }, mt: '4/4', ins: { m: 'vibes', h: 'clarinet', c: 'celesta', b: 'upright', p: 'pad' }, mix: { b: .6 },
+  { id: 'fog_bells', title: 'Harbor in the Fog', feel: 'ambient vibes', pl: 'fog museum', bpm: 58, tr: -1, min: 1, ho: 60, style: 'ambient', st: { c: '1...2...' }, mt: '4/4', ins: { m: 'vibes', h: 'clarinet', c: 'celesta', b: 'upright', p: 'pad' }, mix: { b: .6 },
     P: { A: { c: 'Cm9 % Bb/C % AbM7 % Bb %', m: "5-2- 3--- 4-2- '1--- '1-5- 3--- 4-7- 2---", h: '3 2 2 1 1 ,7 ,7 ,7' },
       B: { c: 'Fm9 % Cm/Eb % Dm7b5 % Gsus G', m: "6-'1- 5--- 5-3- 1--- 4-6- '1--- '1-'2- #7---" } },
     form: 'A=cp A B A& B A?', end: 'Cm9' },
-  { id: 'heat_haze', title: 'Heat Haze', feel: 'calypso', out: 'midday afternoon golden|*', sea: 1, pl: 'heat', bpm: 104, tr: 0, style: 'calypso', mt: '4/4', ins: { m: 'steelpan', m2: 'marimba', c: 'nylon', b: 'ebass' },
+  { id: 'heat_haze', title: 'Heat Haze', feel: 'calypso', out: 'midday afternoon golden|*', sea: 1, pl: 'heat festival', bpm: 104, tr: 0, style: 'calypso', mt: '4/4', ins: { m: 'steelpan', m2: 'marimba', c: 'nylon', b: 'ebass' },
     P: { I: { c: 'C F G7 C' },
       A: { c: 'C % F G7 C Am F,G7 C', m: "5-35-'1-5 3-5-'1--- 6-46-'1-6 7-5-'2--- '3-'1'3-'5-'3 '1-5-3--- 4-6-7-'2- '1-------" },
       B: { c: 'F C G7 C F C D7 G7', m: "6-'1'4-'1-6 5-'1-'3--- 7-'2'4-'2-7 '1-5-3--- 6-'1'4-'1-6 '3-'1-5--- #4-6'2-6-#4 5-7-'2---" } },
     form: 'I A A~ B A B~ A! I' },
-  { id: 'blossom', title: 'Blossom Confetti', feel: 'spring gavotte', out: 'dawn morning midday afternoon golden|*', sea: 0, bpm: 112, tr: -5, style: 'shuffle', st: { sw: 0, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'flute', m2: 'marimba', c: 'harp', b: 'upright' },
+  { id: 'blossom', title: 'Blossom Confetti', feel: 'spring gavotte', pl: 'home_am', out: 'dawn morning midday afternoon golden|*', sea: 0, bpm: 112, tr: -5, style: 'shuffle', st: { sw: 0, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'flute', m2: 'marimba', c: 'harp', b: 'upright' },
     P: { A: { c: 'C G/B Am Em F C Dm7 G7', m: "'3'2'1-5-'1- '2'17-5-7- '176-3-6- 5---3-5- 6'1'4-'1-6- 5'1'3-'1-5- 46'2-'1-6- 7---'2---" },
       B: { c: 'Am Em F C Am Em Dm7 G7', m: "6-'1-'3-'1- 7-'2-5--- 6-'1-'4-'1- '3---5--- '3-'1-6-'1- '2-7-5--- 4-6-'1-6- 5-7-'2---" },
       C: { c: 'C G/B Am Em F C Dm7,G7 C', m: "'3'2'1-5-'1- '2'17-5-7- '176-3-6- 5---3-5- 6'1'4-'1-6- 5'1'3-'1-5- 4-6-7-'2- '1-------" } },
     form: 'A-d C B C~ B A~ C!' },
-  { id: 'ice_pop', title: 'Ice Pop Parade', feel: 'surf', out: 'morning midday afternoon golden|*', sea: 1, pl: 'heat', bpm: 152, tr: 4, mo: 60, style: 'surf', mt: '4/4', ins: { m: 'eguitar', c: 'eguitar', b: 'ebass' }, mix: { m: 1.3, c: .4 },
+  { id: 'ice_pop', title: 'Ice Pop Parade', feel: 'surf', out: 'morning midday afternoon golden|*', sea: 1, pl: 'heat diner', bpm: 152, tr: 4, mo: 60, style: 'surf', mt: '4/4', ins: { m: 'eguitar', c: 'eguitar', b: 'ebass' }, mix: { m: 1.3, c: .4 },
     P: { I: { c: 'C Am F G7' },
       A: { c: 'C % Am % F % G7 %', m: "1-135-3- 5-6-5-3- ,6-,613-1- 3-5-3-1- 4-46'1-6- '1-6-4--- 5-57'2-7- '2-7-5---" },
       B: { c: 'Am % F % C % Dm7 G7', m: "6-'1-'3-'1- 6------- 4-6-'1-6- 4------- 5-'1-'3-'1- 5------- 6-'2-'4-'2- 7-5-2---" } },
@@ -361,12 +361,12 @@ const SONGS_C = [
       A: { c: 'Cm7 % Fm7 % Cm7 % Ab7 G7', m: "1-34-5-7 5---..57 '1-64-6-'1 6---..'16 5-7-'1-'3- '1---7-5- '3-'1-6-b5- 5-#7-'2---" },
       B: { c: 'Fm7 % Cm7 % Dm7b5 % G7 %', m: "6-'1-'4--- '3-'1-6--- 5-7-'3--- '1-7-5--- 4-6-'2--- '1-6-4--- 5-#7-'2-'4- '3-'2-#7-5-" } },
     form: 'I A A B A~ B A! I', end: 'Cm9' },
-  { id: 'aisle_seven', title: 'Aisle Seven', feel: 'shop-floor bossa', out: 'midday golden|market downtown airport', pl: 'shop', bpm: 116, tr: -5, style: 'bossa', mt: '4/4', ins: { m: 'marimba', m2: 'flute', c: 'ep', b: 'ebass', p: 'strings' },
+  { id: 'aisle_seven', title: 'Aisle Seven', feel: 'shop-floor bossa', out: 'midday golden|market downtown airport', pl: 'shop office', bpm: 116, tr: -5, style: 'bossa', mt: '4/4', ins: { m: 'marimba', m2: 'flute', c: 'ep', b: 'ebass', p: 'strings' },
     P: { I: { c: 'CM7 Dm7 CM7 G7sus' },
       A: { c: 'CM7 Dm7 Em7 Dm7 CM7 Dm7 G7sus G7', m: "3--5-'1-- '2--'1-6-- 7--5-'2-- '1--6-4-- 3--5-'1-- '4--'2-6-- '1--5-'2-- 7-------" },
       B: { c: 'FM7 Em7 Dm7 CM7 FM7 Em7 Am7,D7 G7', m: "'3--'1-6-- '2--7-5-- '1--6-4-- 7--5-3-- '3--'1-6-- '2--7-'2-- '1--'3-'2-- 5--7-'2--" } },
     form: 'I A A B A~ B A I?', end: 'C69' },
-  { id: 'escalator', title: 'Escalator Up', feel: 'mall disco, softly', out: 'midday afternoon golden|airport downtown market', pl: 'shop', bpm: 118, tr: -9, style: 'disco', st: { d: { k: 'x...x...x...x...', h: '..o...o...o...o.', c: '....o.......o...' } }, mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'ep', b: 'ebass', p: 'strings' },
+  { id: 'escalator', title: 'Escalator Up', feel: 'mall disco, softly', out: 'midday afternoon golden|airport downtown market', pl: 'shop cab', bpm: 118, tr: -9, style: 'disco', st: { d: { k: 'x...x...x...x...', h: '..o...o...o...o.', c: '....o.......o...' } }, mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'ep', b: 'ebass', p: 'strings' },
     P: { I: { c: 'CM7 Am7 FM7 G7' },
       A: { c: 'CM7 Am7 FM7 G7 Em7 Am7 Dm7 G7', m: "5-'1-7-5- 6-'1-'3--- '3-'1-6-'1- '2-7-5--- '2-7-5-7- '1-6-3--- 4-6-'1-'2- 7---'2---" },
       B: { c: 'FM7 G7 Em7 A7 Dm7 G7 C69 %', m: "6-'1-'3-'4- '2-7-5--- 5-7-'2-'3- '3-'#1-6--- 4-6-'1-'2- 7-'2-'4--- '3-'2-'1-6- 5-------" } },
@@ -376,13 +376,13 @@ const SONGS_C = [
       A: { c: 'Cm7 % Bb % AbM7 % G7sus G7', m: "'1-'1-'3-'1- 7-5-7--- '2-'2-'4-'2- 7-5-4--- '1-'1-'3-'5- '3-'1-6--- '1-'1-'2-'1- #7-'2-5---" },
       B: { c: 'AbM7 Bb Cm7 % AbM7 Bb G7sus G7', m: "'3---'1--- '4---'2--- '5-'3-'1-'3- '5------- '3---'1--- '4---'2--- '1---'2--- #7-------" } },
     form: 'I=bd I A A B A~ I=cbd B! A! B!', end: 'Cm7' },
-  { id: 'laps', title: 'Laps', feel: 'motorik pulse', pl: 'gym', bpm: 132, tr: 2, style: 'motorik', mt: '4/4', ins: { m: 'chip', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+  { id: 'laps', title: 'Laps', feel: 'motorik pulse', pl: 'gym train', bpm: 132, tr: 2, style: 'motorik', mt: '4/4', ins: { m: 'chip', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
     P: { I: { c: 'C % Am %' },
       A: { c: 'C % Am % F % G %', m: "5---3-5- '1------- '1---6-'1- '3------- '4---'1-6- '1------- '2---7-5- 7---'2---" },
       B: { c: 'Am % F % C % G %', m: "'3-'3-'2-'1- 6------- '1-'1-6-4- 6------- '3-'3-'1-5- '3------- '2-'2-7-5- '2---'4---" },
       C: { c: 'Dm % Am % Bb % G %', m: "4-6-'2--- '4------- 3-6-'1--- '3------- 4-b7-'2--- '4---'2--- '2-7-5--- 7-------" } },
     form: 'I=cb A A B A~ C I=cbd B A!' },
-  { id: 'whisper_shelf', title: 'Whisper Shelf', feel: 'harp and celesta, hushed', out: 'dawn|oldtown arts market harbor', pl: 'library museum', bpm: 72, tr: -3, style: 'solo', st: { bl: 45 }, mt: '4/4', ins: { m: 'celesta', c: 'harp', b: 'harp' }, mix: { b: .5 },
+  { id: 'whisper_shelf', title: 'Whisper Shelf', feel: 'harp and celesta, hushed', out: 'dawn|oldtown arts market harbor', pl: 'library museum fog room', bpm: 72, tr: -3, style: 'solo', st: { bl: 45 }, mt: '4/4', ins: { m: 'celesta', c: 'harp', b: 'harp' }, mix: { b: .5 },
     P: { A: { c: 'CM7 % FM7 % Dm7 G7 CM7 %', m: "3-5- 7--- 6-'1- '3--- '2-'1- 7-5- 5--- ----" },
       B: { c: 'Am7 % Em7 % FM7 % G7sus G7', m: "'1-6- 3--- 7-5- 2--- 6-'1- '3--- '2-'1- 7---" } },
     form: 'A-b A B A B A?', end: 'CM9' },
@@ -390,7 +390,7 @@ const SONGS_C = [
     P: { A: { c: 'Cm Fm G7 Cm Eb Bb G7 Cm', m: "'1-'3--'2 '1-'4--'3 '2-#7--'2 '3----- '3-'5--'4 '2-'4--'3 5-#7--'2 '1-----" },
       B: { c: 'Ab Eb Fm Cm Ab Bb G7sus G7', m: "'1-'3--'1 7-'3--5 6-'1--'4 '3----- '3-'1--6 '4-'2--7 '1----- #7-----" } },
     form: 'A=cp A B A~+ B A! A?' },
-  { id: 'lobby_piano', title: "Lobby Piano, Four O'Clock", feel: 'solo piano ballad', pl: 'hotel date', bpm: 68, tr: 1, style: 'solo', st: { bl: 37 }, mt: '4/4', ins: { m: 'piano', c: 'piano', b: 'piano' }, mix: { c: .45, b: .6 },
+  { id: 'lobby_piano', title: "Lobby Piano, Four O'Clock", feel: 'solo piano ballad', pl: 'hotel date home_late', bpm: 68, tr: 1, style: 'solo', st: { bl: 37 }, mt: '4/4', ins: { m: 'piano', c: 'piano', b: 'piano' }, mix: { c: .45, b: .6 },
     P: { A: { c: 'CM7 A7b9 Dm9 G13 Em7 Ebo7 Dm7 G7', m: "3---5-7- '3--'2'#1-6- 4---6-'1- '3--'2-7-- 5---7-'2- '1--6-b5-- 4-6-'1-'2- 7---5---" },
       B: { c: 'FM7 Fm6 Em7 A7 Dm7 G7 CM7 Dm7,G7', m: "6-'1-'3--- b6-'1-'4--- 5-7-'2--- #1-3-6--- 4-6-'1-'4- '3-'2-7--- '3---'1--- 6---5---" },
       C: { c: 'CM7 A7b9 Dm9 G13 Em7 A7 Dm7,G7 C6', m: "3---5-7- '3--'2'#1-6- 4---6-'1- '3--'2-7-- 5---7-'2- '3---'#1--- '2-6-7--- '1-------" } },
@@ -400,7 +400,7 @@ const SONGS_C = [
       A: { c: 'C % % G7 Dm7 G7 C % C C7 F Fm C/G G7 C %', m: "3-5 '1-- '3'2'1 7-- 6-4 2-5 '1-5 3-- 3-5 b7-- 6'1'4 '4-b6 5'1'3 '2-7 '1-- ---" },
       B: { c: 'Am % Em % F % C % Am % Em % Dm7 % G7 %', m: "6'1'3 '3-'1 57'3 '3-7 6'1'4 '4-'1 5'1'3 '3-- '3'16 6-- '275 5-- 46'1 '2-'1 7'2'4 '2--" } },
     form: 'I A B A~ B A! A?' },
-  { id: 'kettle_on', title: 'Kettle On', feel: 'cosy shuffle', pl: 'home room', bpm: 88, tr: 0, style: 'shuffle', st: { sw: .5, d: { b: '..o...o.' } }, mt: '4/4', ins: { m: 'ep', m2: 'clarinet', c: 'nylon', b: 'upright' },
+  { id: 'kettle_on', title: 'Kettle On', feel: 'cosy shuffle', pl: 'home room family', bpm: 88, tr: 0, style: 'shuffle', st: { sw: .5, d: { b: '..o...o.' } }, mt: '4/4', ins: { m: 'ep', m2: 'clarinet', c: 'nylon', b: 'upright' },
     P: { A: { c: 'C6 Am7 Dm7 G7 C6 Am7 D7 G7', m: "5-6-'1-6- 5-3-5--- 4-5-6-'1- 7-5-2--- 5-6-'1-'3- '1-6-'1--- '2-'1-6-#4- 5---.567" },
       B: { c: 'F F#o7 C/G A7 Dm7 G7 C G7', m: "'1-6-'1-'4- '1-6-#4--- 5-'1-'3-'1- '3-'#1-6--- 4-6-'1-'2- 7-'2-'4--- '3-'1-5-3- 2-------" },
       C: { c: 'C6 Am7 Dm7 G7 C6 A7 Dm7,G7 C6', m: "5-6-'1-6- 5-3-5--- 4-5-6-'1- 7-5-2--- 5-6-'1-'3- '3-'#1-6--- 4-6-7-'2- '1-------" } },
@@ -414,11 +414,11 @@ const SONGS_C = [
     P: { A: { c: 'CM9 Am9 FM7 G13 CM9 Am9 Dm9 G7sus', m: "'3---'2--- '1---7--- 6-'1-'3--- '2------- '3---'5--- '3---'1--- '2-'1-6--- '1-------" },
       B: { c: 'FM7 Em7 Dm7 CM7 FM7 Em7 Dm7 G7', m: "6---'1--- 7---5--- 4-6-'1--- 7------- '1---'3--- '2---7--- '1-6-4--- 5-------" } },
     form: 'A=cp A B A~ B A?', end: 'CM9' },
-  { id: 'pane', title: 'Rain on the Pane', feel: 'piano waltz, minor', pl: 'home_rain rain', bpm: 96, tr: -1, min: 1, style: 'box3', st: { b: 'R-----' }, mt: '3/4', ins: { m: 'piano', m2: 'celesta', c: 'harp', b: 'upright', p: 'strings' },
+  { id: 'pane', title: 'Rain on the Pane', feel: 'piano waltz, minor', pl: 'home_rain rain snow', bpm: 96, tr: -1, min: 1, style: 'box3', st: { b: 'R-----' }, mt: '3/4', ins: { m: 'piano', m2: 'celesta', c: 'harp', b: 'upright', p: 'strings' },
     P: { A: { c: 'Cm % Ab % Eb % G7 % Cm % Ab % Fm G7 Cm %', m: "5-- 3-5 '1-- 6-- 7-- 5-7 '2-- #7-- '3-- '1-'3 '1-- 6-- '1-6 #7-'2 '1-- ---" },
       B: { c: 'Fm % Cm % Dm7b5 % G7 %', m: "6-'1 '4-- 5-'1 '3-- 4-6 '2-- #7-'2 5--" } },
     form: 'A-b A B A~ B A?' },
-  { id: 'plants', title: 'Watering the Plants', feel: 'habanera, lightly', out: 'morning midday|park suburb', pl: 'home home_am', bpm: 100, tr: -3, style: 'habanera', mt: '4/4', ins: { m: 'marimba', m2: 'flute', c: 'nylon', b: 'upright' },
+  { id: 'plants', title: 'Watering the Plants', feel: 'habanera, lightly', out: 'morning midday|park suburb', pl: 'home home_am work heat room', bpm: 100, tr: -3, style: 'habanera', mt: '4/4', ins: { m: 'marimba', m2: 'flute', c: 'nylon', b: 'upright' },
     P: { I: { c: 'C G7 C G7' },
       A: { c: 'C % G7 % Dm7 G7 C %', m: "3-5-'1--5 3-5-'1--- 2-5-7--5 2-5-7--- 4-6-'2--'1 7-5-4--- 3-5-'1--5 3-------" },
       B: { c: 'F % C % D7 % G7 %', m: "6-'1-'4--'1 6------- 5-'1-'3--'1 5------- #4-6-'2--6 #4------- 5-7-'2-'4- '2-7-5---" } },
@@ -428,7 +428,7 @@ const SONGS_C = [
 /* ---- src/sim/_music_songs_d.js ---- */
 // Private songbook, part D: rides (cab, bus, train, plane), work shifts and the special moods (date night, family, festival days). Format: see _music_engine.js.
 const SONGS_D = [
-  { id: 'cab_radio', title: 'Cab Radio, Channel Two', feel: 'radio funk-pop', out: 'morning midday|downtown airport', pl: 'cab', bpm: 116, tr: -5, style: 'citypop', mt: '4/4', ins: { m: 'brass', m2: 'vibes', c: 'ep', b: 'ebass' },
+  { id: 'cab_radio', title: 'Cab Radio, Channel Two', feel: 'radio funk-pop', out: 'morning midday|downtown airport', pl: 'cab gym', bpm: 116, tr: -5, style: 'citypop', mt: '4/4', ins: { m: 'brass', m2: 'vibes', c: 'ep', b: 'ebass' },
     P: { I: { c: 'CM7 Am7 Dm7 G7' },
       A: { c: 'CM7 % Am7 % Dm7 % G7sus G7', m: "5-'1-'3--'1 '2-'1-5--- 6-'1-'3--'1 '2-'1-6--- 4-6-'1--6 '2-'1-6--- '1-'1-'2-'1- 7---.567" },
       B: { c: 'Am7 D9 Am7 D9 FM7 Em7 Dm7 G7', m: "'3-'3-'1-6- '2---6-#4- '3-'3-'5-'3- '2------- 6-'1-'3-'1- 5-7-'2-7- 4-6-'1-'2- 7-'2-5---" } },
@@ -448,7 +448,7 @@ const SONGS_D = [
       B: { c: 'F % C % D7 G7 C C7', m: "'4-'6-''1-'6- '4------- '3-'5-''1-'5- '3------- '2-'#4-'6-'#4- '2---7--- '1-'3-'5-'3- 'b7-------" },
       C: { c: 'C % % C7 F % C,G7 C', m: "'1-'1'2'3-'5- '3-'1-5--- '1-'1'2'3-'5- 'b7---'5--- '6-'6'5'4-'6- ''1-'6-'4--- '5-'3-'2-7- '1-------" } },
     form: 'I A C B C~+ B A~+ C!' },
-  { id: 'bay_express', title: 'Bay Express', feel: 'motorik in minor', out: 'evening late|airport downtown harbor', pl: 'train', bpm: 126, tr: 1, min: 1, style: 'motorik', mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+  { id: 'bay_express', title: 'Bay Express', feel: 'motorik in minor', out: 'evening late|airport downtown harbor', pl: 'train plane', bpm: 126, tr: 1, min: 1, style: 'motorik', mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
     P: { I: { c: 'Cm % Ab %' },
       A: { c: 'Cm % Ab % Eb % Bb %', m: "5-----'1- '3---'2--- '1-----'3- '5---'3--- 7-----'3- '5---'4--- '2-----'4- '2---7---" },
       B: { c: 'Fm % Cm % Ab % G7sus G7', m: "'4-'3-'1-6- '1------- '3-'2-'1-5- 3------- '1-6-'1-'3- '5---'3--- '1---'2--- #7-------" } },
@@ -457,7 +457,7 @@ const SONGS_D = [
     P: { A: { c: 'FM7 % CM7 % FM7 % G7sus %', m: "6---'3--- '2---'1--- 5---'2--- 7------- 6---'3--- '5---'3--- '2---'1--- '2-------" },
       B: { c: 'Am7 % Em7 % FM7 % G %', m: "'1---'3--- '5------- 7---'2--- '5---'2--- 6---'1--- '3------- '2---7--- 5-------" } },
     form: 'A=cp A B A~ B A?', end: 'CM9' },
-  { id: 'inbox_zero', title: 'Inbox Zero', feel: 'marimba ostinato', out: 'dawn morning|downtown arts', pl: 'work office', bpm: 100, tr: -2, style: 'box', st: { cl: 1, b: 'R---5---', bl: 36, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'celesta', m2: 'flute', c: 'marimba', b: 'upright' },
+  { id: 'inbox_zero', title: 'Inbox Zero', feel: 'marimba ostinato', out: 'dawn morning|downtown arts', pl: 'work office room', bpm: 100, tr: -2, style: 'box', st: { cl: 1, b: 'R---5---', bl: 36, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'celesta', m2: 'flute', c: 'marimba', b: 'upright' },
     P: { A: { c: 'C69 % Dm7 % Em7 % Dm7 G7', m: "5---3--- ....5-6- 4---2--- ....4-6- 5---7--- ....'2-7- 6---4--- 5-------" },
       B: { c: 'FM7 % Em7 % Dm7 % G7sus G7', m: "6---'1--- '3------- 5---7--- '2------- 4---6--- '1------- '1---'2--- 7-------" } },
     form: 'A=cb A B A~ B A A?', end: 'C69' },
@@ -499,7 +499,7 @@ const SONG = {}; for (const s of SONGS) SONG[s.id] = s;
 
 /* ---- src/sim/_music_levels.js ---- */
 // GENERATED by tools/music_check.mjs --write: the trim (dB) that brings each tune to the same integrated loudness (-17 LUFS at the music bus, before the Music slider). Do not edit by hand.
-const LEVELS = {"gulls":0.5, "dew":4.9};
+const LEVELS = {"bay_hello":-3.1, "postcard":-1.6, "first_ferry":-2.3, "dew":3.2, "milk_round":2.5, "gulls":-2.7, "open_shutters":-3.2, "bakery_run":0.7, "crosswalk":-1, "paper_boats":-1.5, "stall_polka":-1.3, "noon_whistle":3.3, "high_tide":-2.3, "five_corners":-1.8, "sprinkler":-1.4, "glass_towers":1.3, "mural":1.2, "kite":-3.4, "amber":-0.9, "last_light":-1, "neon":-0.7, "lanterns":-2.1, "porch":1.7, "blue_tram":1.2, "moon_slip":0.3, "turns_over":2.6, "gutter":2, "umbrellas":0.7, "wait_out":1.6, "first_snow":2.5, "fog_bells":3.5, "heat_haze":1.5, "blossom":-2.2, "ice_pop":-0.7, "leaf_pile":-1.6, "mittens":1.4, "cafe_steam":0.5, "cortado":-1.4, "fries":-2, "malted":-0.7, "last_call":0.3, "back_booth":2, "aisle_seven":-0.8, "escalator":-1.7, "one_more_rep":-0.4, "laps":1, "whisper_shelf":7.5, "marble_hall":-1.3, "lobby_piano":6.2, "revolving":0.7, "kettle_on":1.2, "toast":-1.2, "one_lamp":2.9, "pane":4.5, "plants":-0.2, "cab_radio":-1.4, "meter_running":-1.5, "window_seat":-1.5, "clickety":-0.8, "bay_express":1.3, "above_weather":2.7, "inbox_zero":3.3, "steady_hands":1.6, "candle":-2.1, "walk_home":-0.6, "nana_table":-0.8, "confetti":-0.9, "ferris":-1.4};
 
 /* ---- src/sim/_music_engine.js ---- */
 // Private: turns a song from the songbook (_music_songs_*.js) into timed notes and plays them on a Synth (_music_synth.js).
@@ -549,7 +549,7 @@ const STYLES = {
   calypso: { n: 16, c: '..x...x...x...x.', cl: 1.4, b: 'R.....5.3...5...', d: { k: 'x.....x.x.....x.', r: '....x.......x...', m: 'o.oxo.oxo.oxo.ox', T: '..x..x....x..x..' } },
   disco: { n: 16, c: '..x.x..x..x.x..x', cl: 1, b: 'R.O.R.O.R.O.R.O.', d: { k: 'x...x...x...x...', c: '....x.......x...', h: '..x...x...x...x.' }, f: { o: '..........x.x.xx' } },
   five: { bar: 5, n: 10, sw: .7, c: 'x..x..x.x.', cl: 1.4, b: 'R--5--R-5-', d: { g: 'x.xx.xx.x.', k: 'o.....o...', b: '...o....o.' } },
-  samba: { n: 16, c: 'x..x.x..x.x..x.x', cl: 1, b: 'R..5..R.R..5..R.', d: { k: 'x.......x.......', t: '....x..x....x..x', m: 'xoxoxoxoxoxoxoxo', w: 'x.x..x.x..x.x.x.' } },
+  samba: { n: 16, c: 'x..x.x..x.x..x.x', cl: 1, b: 'R..5..R.R..5..R.', d: { k: 'x.......x.......', t: '....x..x....x..x', m: 'x.o.x.o.x.o.x.o.', w: 'x.x..x.x..x.x.x.' } },
   doowop: { n: 12, c: 'xooxooxooxoo', cl: .9, b: 'R-----5----a', d: { k: 'x.....x.....', s: '...x.....x..', h: 'o.oo.oo.oo.o' } },
   shuffle: { n: 8, sw: .7, c: '..x...x.', cl: 1.2, b: 'R-..5-..', d: { b: 'xoxoxoxo', k: 'x...x...' } },
   habanera: { n: 8, c: '..x.x.x.', cl: .9, b: 'R--5R-5-', d: { r: 'x..xx.x.' } },
@@ -557,7 +557,7 @@ const STYLES = {
   hymn: { n: 8, c: 'x---x---', b: 'R-------', d: {} },
   solo: { n: 8, c: '1.3.2.3.', cl: 3, b: 'R-------', bl: 40, d: {} },
 };
-const LG = { m: 1, h: .62, c: .55, b: .8, p: .5, d: .75 };
+const LG = { m: 1, h: .62, c: .55, b: .62, p: .5, d: .75 };
 
 function chord(name) {
   const m = /^([A-G])([#b]?)([^/]*)(?:\/([A-G])([#b]?))?$/.exec(name), iv = m && Q[m[3]]; if (!iv) throw new Error('chord? ' + name);
@@ -662,7 +662,9 @@ function compile(S) {
 /** One playing tune. schedule(until) is called often (the game: every frame) and creates the notes that start before `until` (context time). */
 class Player {
   constructor(ctx, song, dest, send, opts = {}) {
-    this.ctx = ctx; this.song = song; this.id = song.id; this.c = compile(song); this.out = ctx.createGain(); this.out.gain.value = Math.pow(10, ((opts.db || 0)) / 20); this.out.connect(dest);
+    this.ctx = ctx; this.song = song; this.id = song.id; this.c = compile(song); this.out = ctx.createGain(); this.out.gain.value = Math.pow(10, ((opts.db || 0)) / 20);
+    /* a peak limiter per tune: the trim (opts.db, from _music_levels.js) brings every tune to the same loudness INTO it, so it only catches the tops of drum and chord attacks */
+    let lim = null; try { lim = ctx.createDynamicsCompressor(); lim.threshold.value = -9; lim.knee.value = 6; lim.ratio.value = 6; lim.attack.value = .003; lim.release.value = .15; this.out.connect(lim); lim.connect(dest); } catch (e) { lim = null; this.out.connect(dest); } this.lim = lim;
     this.syn = new Synth(ctx, this.out, send); this.t0 = (opts.at !== undefined ? opts.at : ctx.currentTime + .15); this.i = 0; this.done = false; this.cut = Infinity; this.next = this.t0 + this.c.dur; this.started = this.t0;
   }
   schedule(until) {
@@ -676,11 +678,14 @@ class Player {
   wind(fade = 1.6) { const now = this.ctx.currentTime, el = now - this.t0, bs = this.c.barS; let tb = this.t0 + Math.ceil((el + .05) / bs) * bs; if (tb - now > 2.5 || el < 0) tb = now + .1; return this.stop(fade, tb); }
   stop(fade = 1.5, at) { const ctx = this.ctx, g = this.out.gain, t = Math.max(ctx.currentTime, at || 0); if (this.cut !== Infinity) return this.next; this.cut = t + fade; this.next = t + fade;
     try { g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(.0001, t + fade); } catch (e) { /* closed context */ }
-    const out = this.out; if (typeof setTimeout !== 'undefined') setTimeout(() => { try { out.disconnect(); } catch (e) { /* gone */ } }, (t - ctx.currentTime + fade + 4) * 1000); return this.next; }
+    const out = this.out, lim = this.lim; if (typeof setTimeout !== 'undefined') setTimeout(() => { try { out.disconnect(); if (lim) lim.disconnect(); } catch (e) { /* gone */ } }, (t - ctx.currentTime + fade + 4) * 1000); return this.next; }
 }
-/** render a whole tune offline -> Promise<AudioBuffer> (stereo). OAC: the OfflineAudioContext constructor */
+/** render a whole tune offline -> Promise<AudioBuffer> (stereo). OAC: the OfflineAudioContext constructor.
+ *  The notes are created two seconds at a time (the context is paused at each step), as in the game: creating them all at once makes the render many times slower. */
 function renderSong(song, sr = 48000, db = 0, OAC = (typeof OfflineAudioContext !== 'undefined' ? OfflineAudioContext : webkitOfflineAudioContext)) {
-  const c = compile(song), ctx = new OAC(2, Math.ceil((c.dur + .5) * sr), sr), p = new Player(ctx, song, ctx.destination, echo(ctx, ctx.destination), { db, at: .05 }); p.schedule(Infinity); return ctx.startRendering();
+  const c = compile(song), ctx = new OAC(2, Math.ceil((c.dur + .5) * sr), sr), p = new Player(ctx, song, ctx.destination, echo(ctx, ctx.destination), { db, at: .05 }), step = 2;
+  if (!ctx.suspend) p.schedule(Infinity); else { p.schedule(step + .6); for (let t = step; t < c.dur + .5; t += step) ctx.suspend(t).then(() => { p.schedule(t + step + .6); ctx.resume(); }); }
+  return ctx.startRendering();
 }
 
 /* ---- src/sim/_music_pools.js ---- */

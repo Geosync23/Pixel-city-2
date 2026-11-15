@@ -37,7 +37,7 @@ function staticChecks() {
   const thinOut = []; let minOut = 99; for (const t of PO.TIMES) for (const d of PO.DISTRICTS) for (let s = 0; s < 4; s++) { const exact = SONGS.filter(x => x.out && (x.sea === undefined || x.sea === s) && (x.out.split('|')[0] === '*' || x.out.split('|')[0].split(' ').includes(t)) && (x.out.split('|')[1] === '*' || x.out.split('|')[1].split(' ').includes(d))).length; minOut = Math.min(minOut, exact); if (exact < 3) thinOut.push(`${t}/${d}/${PO.SEASONS[s]}: ${exact}`); }
   check('outdoors: every time of day x district x season has at least 3 tunes of its own', !thinOut.length, thinOut.slice(0, 12).join(', ') + (thinOut.length > 12 ? ` ... (${thinOut.length})` : '') || 'smallest pool ' + minOut);
   const named = PO.namedPools().map(k => [k, SONGS.filter(s => (' ' + (s.pl || '') + ' ').includes(' ' + k + ' ')).length, PO.pool(k).length]); report.pools = Object.fromEntries(named.map(([k, own, n]) => [k, { own, plays: PO.pool(k) }]));
-  check('every named pool has at least 2 tunes to draw from', named.every(x => x[2] >= 2), named.map(([k, own, n]) => k + ' ' + own + (n !== own ? '(' + n + ')' : '')).join(', '));
+  check('every named pool has at least 3 tunes to draw from', named.every(x => x[2] >= 3), named.map(([k, own, n]) => k + ' ' + own + (n !== own ? '(' + n + ')' : '')).join(', '));
   const lone = SONGS.filter(s => !s.pl && !s.out).map(s => s.id); check('every tune is in a pool', !lone.length, lone.join(', '));
   /* contour similarity: the first 40 lead intervals + rhythm of each tune, longest common subsequence */
   const sig = {}; for (const S of SONGS) { const m = info[S.id] ? info[S.id].info.mel : [], a = []; for (let i = 1; i < Math.min(m.length, 41); i++) a.push(Math.max(-7, Math.min(7, m[i][1] - m[i - 1][1])) + ':' + Math.round(Math.log2((m[i][0] - m[i - 1][0]) / (m[1][0] - m[0][0] || 1)) * 2)); sig[S.id] = a; }
@@ -153,7 +153,7 @@ async function live(br) {
   C.push({ name: 'in a cab', kind: 'ride', ride: 'taxi', key: 'cab' }, { name: 'on the bus', kind: 'ride', ride: 'bus', key: 'bus' }, { name: 'on the train', kind: 'ride', ride: 'train', key: 'train' }, { name: 'a work shift', kind: 'work', key: 'work' }, { name: 'date night (mood)', kind: 'mood', mood: 'date', key: 'date' }, { name: 'with the family (mood)', kind: 'mood', mood: 'family', key: 'family' }, { name: 'festival day (mood)', kind: 'mood', mood: 'festival', key: 'festival' });
   let okN = 0; R.contexts = [];
   for (const c of C) {
-    const r = await pg.evaluate(async c => { const home = G.state.housing && G.state.housing.id;
+    const r = await pg.evaluate(async c => { const home = (G.housing.current() || {}).id;
       try {
         if (c.kind === 'city') await toCity(c.at[0], c.at[1], c.h, c.wx); else { try { G.weather.setWeather('clear', 12); } catch (e) { } }
         if (c.kind === 'room') { setHour(c.h); await G.go(c.room === 'HOME' ? 'int:home:' + home : 'int:' + c.room, { fade: false }); await sleep(300); await closeUi(); }
@@ -167,19 +167,19 @@ async function live(br) {
   }
   check('at least 20 contexts walked', C.length >= 20, C.length + ' contexts, ' + okN + ' right');
   /* the controller itself: 14 real starts in one place, never the same tune twice in a row */
-  { const r = await pg.evaluate(async at => { await toCity(at[0], at[1], 12); await sleep(600); const seq = [], ms = []; __mus.frames = []; __mus.rec = true; for (let i = 0; i < 14; i++) { const t = await tune(); seq.push(t.id); ms.push(t.startMs); await sleep(500); } __mus.rec = false; const f = __mus.frames.slice(); return { seq, ms, maxFrame: Math.max(...f), over: f.filter(x => x > 100).length, frames: f.length, p99: f.slice().sort((a, b) => a - b)[Math.floor(f.length * .99)], errors: G.audio.info().errors, last: G.audio.info().lastError }; }, sp.downtown);
+  { const r = await pg.evaluate(async at => { await toCity(at[0], at[1], 12); await sleep(600); const seq = [], ms = []; __mus.frames = []; __mus.rec = true; let n = 0; for (let i = 0; i < 14; i++) { const t = await tune(); seq.push(t.id); ms.push(t.startMs); n = t.n; await sleep(500); } __mus.rec = false; const f = __mus.frames.slice(); return { seq, ms, n, maxFrame: Math.max(...f), over: f.filter(x => x > 100).length, frames: f.length, p99: f.slice().sort((a, b) => a - b)[Math.floor(f.length * .99)], errors: G.audio.info().errors, last: G.audio.info().lastError }; }, sp.downtown);
     const rep = r.seq.filter((x, i) => i && x === r.seq[i - 1]).length; R.starts = r;
-    check('14 real starts downtown at noon: never the same tune twice in a row', rep === 0 && r.seq.every(Boolean), r.seq.join(' > '));
+    const n8 = new Set(r.seq.slice(0, Math.min(r.n, 14))).size; check('14 real starts downtown at noon: never the same tune twice in a row, and none again before the others of the pool', rep === 0 && r.seq.every(Boolean) && n8 === Math.min(r.n, 14), `pool of ${r.n}: ` + r.seq.join(' > '));
     check('starting a tune never costs a frame over 100 ms', r.over === 0, `longest frame ${r.maxFrame} ms, 99th percentile ${r.p99} ms over ${r.frames} frames; picking + first notes took ${Math.max(...r.ms)} ms at most`);
     check('the audio system logged no error', r.errors === 0, r.last || ''); }
   /* 200 picks through the bag, walking contexts like a day in the city */
   { const r = await pg.evaluate(() => { const K = G.audio.debug.musicKit(), st = { bags: {}, recent: [], last: null }, keys = ['out:morning:downtown:0', 'cafe', 'out:midday:oldtown:0', 'work', 'out:afternoon:market:0', 'shop', 'out:golden:harbor:0', 'home', 'out:evening:arts:0', 'bar', 'out:late:suburb:0', 'home_late', 'rain', 'train', 'cab'];
-      const seq = [], per = {}; let k = 0; for (let i = 0; i < 200; i++) { if (i % 3 === 0) k = (k + 1 + ((i * 7) % 4)) % keys.length; const key = keys[k], id = K.draw(st, key); K.played(st, id); seq.push(id); (per[key] = per[key] || []).push(id); }
+      const seq = [], per = {}; let k = 0, broke = 0, refills = 0; for (let i = 0; i < 200; i++) { if (i % 3 === 0) k = (k + 1 + ((i * 7) % 4)) % keys.length; const key = keys[k], left = (st.bags[key] || []).filter(x => K.pool(key).includes(x)), id = K.draw(st, key); if (left.length && !left.includes(id)) broke++; if (!left.length) refills++; K.played(st, id); seq.push(id); (per[key] = per[key] || []).push(id); }
       let rep = 0, near = 0; for (let i = 1; i < seq.length; i++) { if (seq[i] === seq[i - 1]) rep++; if (i > 1 && seq[i] === seq[i - 2]) near++; }
-      const unfair = []; for (const key in per) { const n = {}, ids = K.pool(key); for (const id of ids) n[id] = 0; for (const id of per[key]) n[id]++; const v = Object.values(n), d = Math.max(...v) - Math.min(...v); if (d > 2) unfair.push(key + ' ' + d); }
-      return { rep, near, unfair, distinct: new Set(seq).size, pools: Object.keys(per).length }; });
+      let spread = 0; for (const key in per) { const n = {}, ids = K.pool(key); for (const id of ids) n[id] = 0; for (const id of per[key]) n[id]++; const v = Object.values(n); spread = Math.max(spread, Math.max(...v) - Math.min(...v)); }
+      return { rep, near, broke, refills, spread, distinct: new Set(seq).size, pools: Object.keys(per).length }; });
     check('200 picks across 15 pools: no immediate repeat', r.rep === 0, `${r.distinct} different tunes heard, ${r.near} came back after only one other tune`);
-    check('inside each pool every tune gets its turn before one comes again (plays differ by 2 at most)', !r.unfair.length, r.unfair.join(', ')); R.bag = r; }
+    check('the bag rule held on every pick: a tune comes from what is left of its pool; the bag is refilled only when it is empty', r.broke === 0, `${r.refills} refills in 200 picks; largest difference in plays between two tunes of one pool: ${r.spread} (a tune just heard in another pool waits a round)`); R.bag = r; }
   /* watching a show / the TV: the music stays out */
   { const r = await pg.evaluate(async at => { await toCity(at[0], at[1], 12); await tune(); await sleep(800); const before = !!G.audio.debug.music().playing; const K = G.audio.debug.musicKit();
       G.emit('show:start'); let during = 0; for (let i = 0; i < 40; i++) { await sleep(200); if (i > 12 && G.audio.debug.music().playing) during++; } G.emit('show:end');

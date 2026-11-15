@@ -1,6 +1,6 @@
 // Private songbook, part D: rides (cab, bus, train, plane), work shifts and the special moods (date night, family, festival days). Format: see _music_engine.js.
 export const SONGS_D = [
-  { id: 'cab_radio', title: 'Cab Radio, Channel Two', feel: 'radio funk-pop', out: 'morning midday|downtown airport', pl: 'cab', bpm: 116, tr: -5, style: 'citypop', mt: '4/4', ins: { m: 'brass', m2: 'vibes', c: 'ep', b: 'ebass' },
+  { id: 'cab_radio', title: 'Cab Radio, Channel Two', feel: 'radio funk-pop', out: 'morning midday|downtown airport', pl: 'cab gym', bpm: 116, tr: -5, style: 'citypop', mt: '4/4', ins: { m: 'brass', m2: 'vibes', c: 'ep', b: 'ebass' },
     P: { I: { c: 'CM7 Am7 Dm7 G7' },
       A: { c: 'CM7 % Am7 % Dm7 % G7sus G7', m: "5-'1-'3--'1 '2-'1-5--- 6-'1-'3--'1 '2-'1-6--- 4-6-'1--6 '2-'1-6--- '1-'1-'2-'1- 7---.567" },
       B: { c: 'Am7 D9 Am7 D9 FM7 Em7 Dm7 G7', m: "'3-'3-'1-6- '2---6-#4- '3-'3-'5-'3- '2------- 6-'1-'3-'1- 5-7-'2-7- 4-6-'1-'2- 7-'2-5---" } },
@@ -20,7 +20,7 @@ export const SONGS_D = [
       B: { c: 'F % C % D7 G7 C C7', m: "'4-'6-''1-'6- '4------- '3-'5-''1-'5- '3------- '2-'#4-'6-'#4- '2---7--- '1-'3-'5-'3- 'b7-------" },
       C: { c: 'C % % C7 F % C,G7 C', m: "'1-'1'2'3-'5- '3-'1-5--- '1-'1'2'3-'5- 'b7---'5--- '6-'6'5'4-'6- ''1-'6-'4--- '5-'3-'2-7- '1-------" } },
     form: 'I A C B C~+ B A~+ C!' },
-  { id: 'bay_express', title: 'Bay Express', feel: 'motorik in minor', out: 'evening late|airport downtown harbor', pl: 'train', bpm: 126, tr: 1, min: 1, style: 'motorik', mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
+  { id: 'bay_express', title: 'Bay Express', feel: 'motorik in minor', out: 'evening late|airport downtown harbor', pl: 'train plane', bpm: 126, tr: 1, min: 1, style: 'motorik', mt: '4/4', ins: { m: 'vibes', m2: 'lead', c: 'pulse', b: 'sbass', p: 'pad' }, mix: { c: .7 },
     P: { I: { c: 'Cm % Ab %' },
       A: { c: 'Cm % Ab % Eb % Bb %', m: "5-----'1- '3---'2--- '1-----'3- '5---'3--- 7-----'3- '5---'4--- '2-----'4- '2---7---" },
       B: { c: 'Fm % Cm % Ab % G7sus G7', m: "'4-'3-'1-6- '1------- '3-'2-'1-5- 3------- '1-6-'1-'3- '5---'3--- '1---'2--- #7-------" } },
@@ -29,7 +29,7 @@ export const SONGS_D = [
     P: { A: { c: 'FM7 % CM7 % FM7 % G7sus %', m: "6---'3--- '2---'1--- 5---'2--- 7------- 6---'3--- '5---'3--- '2---'1--- '2-------" },
       B: { c: 'Am7 % Em7 % FM7 % G %', m: "'1---'3--- '5------- 7---'2--- '5---'2--- 6---'1--- '3------- '2---7--- 5-------" } },
     form: 'A=cp A B A~ B A?', end: 'CM9' },
-  { id: 'inbox_zero', title: 'Inbox Zero', feel: 'marimba ostinato', out: 'dawn morning|downtown arts', pl: 'work office', bpm: 100, tr: -2, style: 'box', st: { cl: 1, b: 'R---5---', bl: 36, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'celesta', m2: 'flute', c: 'marimba', b: 'upright' },
+  { id: 'inbox_zero', title: 'Inbox Zero', feel: 'marimba ostinato', out: 'dawn morning|downtown arts', pl: 'work office room', bpm: 100, tr: -2, style: 'box', st: { cl: 1, b: 'R---5---', bl: 36, d: { w: '..o...o.' } }, mt: '4/4', ins: { m: 'celesta', m2: 'flute', c: 'marimba', b: 'upright' },
     P: { A: { c: 'C69 % Dm7 % Em7 % Dm7 G7', m: "5---3--- ....5-6- 4---2--- ....4-6- 5---7--- ....'2-7- 6---4--- 5-------" },
       B: { c: 'FM7 % Em7 % Dm7 % G7sus G7', m: "6---'1--- '3------- 5---7--- '2------- 4---6--- '1------- '1---'2--- 7-------" } },
     form: 'A=cb A B A~ B A A?', end: 'C69' },

@@ -179,8 +179,9 @@ function musicCtx() {
   if ((time === 'midday' || time === 'afternoon') && safe(() => G.weather.current().tempC, 0) >= 29) return { g: 'out', key: 'heat' };
   return { g: 'out', key: 'out:' + time + ':' + fl + ':' + ti.season };
 }
-function endTune(fade, musical) { if (!player) return; try { if (cur && !wound && A.ctx.currentTime - player.started < 20 && cur.key !== 'forced') bagPutBack(mus(), cur.key, cur.id); wound = true; if (musical) player.wind(fade); else player.stop(fade); } catch (e) { fail(e); } }
-function stopMusic(fade) { if (player) { endTune(fade, false); player = null; cur = null; track = null; wound = false; } }
+/* giveBack: a tune that was cut off in its first 20 s (you walked through a door, a show began) has not had its turn: it goes back into its bag. A tune you Skip does not. */
+function endTune(fade, musical, giveBack) { if (!player) return; try { if (giveBack && cur && !wound && A.ctx.currentTime - player.started < 20 && cur.key !== 'forced') bagPutBack(mus(), cur.key, cur.id); wound = true; if (musical) player.wind(fade); else player.stop(fade); } catch (e) { fail(e); } }
+function stopMusic(fade, giveBack) { if (player) { endTune(fade, false, giveBack); player = null; cur = null; track = null; wound = false; } }
 function unhold() { if (held) { bagPutBack(mus(), held.key, held.id); held = null; } }
 function startTune(want) {
   const st = mus(), t0 = typeof performance !== 'undefined' ? performance.now() : 0; let id, key = want.key;
@@ -194,7 +195,7 @@ function musicTick(dt, c) {
   const want = mwant || (mwant = musicCtx());
   if (player) {
     player.schedule(c.currentTime + .45);
-    if (!wound && !forced && want.g !== 'keep' && want.g !== cur.g) endTune(1.6, true);   /* another kind of place: finish the bar, fade */
+    if (!wound && !forced && want.g !== 'keep' && want.g !== cur.g) endTune(1.6, true, true);   /* another kind of place: finish the bar, fade */
     if (player.done && c.currentTime > player.next + .2) { const natural = !wound; player = null; cur = null; track = null; wound = false; forced = null; musicGap = natural ? (want.g === 'title' ? 5 : 20 + Math.random() * 30) : 2.5 + Math.random() * 2.5; }
   } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced) { if (!held || held.key !== want.key) { unhold(); held = { key: want.key, id: bagDraw(mus(), want.key) }; } if (SONG[held.id]) compile(SONG[held.id]); } }
 }
@@ -217,7 +218,7 @@ function tick(dt) {
     const reel = safe(() => { const m = G.media && G.media.session && G.media.session(); return !!(m && m.app === 'reel'); }, false);
     if ((AU.live && AU.live.length > 0) || watch.show || watch.tv || reel) watchT = c.currentTime + 12;
     const showOn = c.currentTime < watchT, L = levels();
-    if (showOn || L.music <= 0 || L.master <= 0) { if (player) { stopMusic(1.5); musicGap = 8; } return; }
+    if (showOn || L.music <= 0 || L.master <= 0) { if (player) { stopMusic(1.5, true); musicGap = 8; } return; }
     musicTick(dt, c);
   } catch (e) { fail(e); stopMusic(0); musicGap = 30; }
 }

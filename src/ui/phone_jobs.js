@@ -37,7 +37,8 @@ function mineTab(b, ctx) {
     if (safe(() => G.jobStory.hasPlay(j.id), false)) c.append(kv(safe(() => G.jobStory.playName(j.id), 'Your part'), A.plays ? `played ${A.plays}x · best ${'★'.repeat(A.best >= .85 ? 3 : A.best >= .55 ? 2 : 1)}` : 'look for the pink marker on a shift'));
     for (const k of keeps) c.append(el('small', { text: 'Keepsake: ' + k.name + '. ' + k.desc }));
     b.append(c); }
-  const p = place(j.venue); b.append(el('div.ph-btns', null, p ? btn('Workplace on map', () => ctx.open('map', { place: p.id }), '', 'ui.pin') : null, J().quit ? btn('Quit', () => { if (ctx._q) { safe(() => J().quit(), 0); ctx.refresh(); } else { ctx._q = 1; ctx.tip('Tap Quit again to confirm.'); } }) : null));
+  const p = place(j.venue); b.append(el('div.ph-btns', null, p ? btn('Workplace on map', () => ctx.open('map', { place: p.id }), '', 'ui.pin') : null, J().requestDayOff && !(J().onShift && J().onShift()) ? btn('Next shift off', () => { if (ctx._off) { ctx._off = 0; if (!safe(() => J().requestDayOff(), false)) ctx.tip('You have had your day off this week.'); ctx.refresh(); } else { ctx._off = 1; ctx.tip('Ask for your next shift off? One day a week. Tap again to ask.'); } }) : null,   /* QA14: the hire toast says "Ask for a day off"; nothing let you */
+    J().quit ? btn('Quit', () => { if (ctx._q) { safe(() => J().quit(), 0); ctx.refresh(); } else { ctx._q = 1; ctx.tip('Tap Quit again to confirm.'); } }) : null));
 }
 function boardTab(b, ctx) {
   const cur = safe(() => J().current(), null); let L = safe(() => J().listings('phone'), null); if (L && !Array.isArray(L)) L = L.jobs || null;
