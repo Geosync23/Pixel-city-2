@@ -84,7 +84,7 @@
 #reel-fs.hide .md-fs-bar{opacity:0;pointer-events:none}
 #reel-fs button{min-height:40px;min-width:64px}
 .md-fs-scrub{flex:1;height:26px;position:relative;cursor:pointer}.md-fs-scrub::before{content:"";position:absolute;left:0;right:0;top:10px;height:6px;background:#5e6676}.md-fs-scrub i{position:absolute;left:0;top:10px;height:6px;background:var(--accent)}
-#ui>#reel-tv{position:absolute;left:50%;top:92px;transform:translateX(-50%);z-index:30;background:var(--ink);border:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);padding:4px;display:flex;flex-direction:column;gap:4px;width:232px;pointer-events:auto}
+#ui>#reel-tv{position:absolute;left:50%;top:190px;transform:translateX(-50%);z-index:30;background:var(--ink);border:2px solid var(--edge);box-shadow:0 4px 0 var(--edge);padding:4px;display:flex;flex-direction:column;gap:4px;width:232px;pointer-events:auto}
 #reel-tv canvas{width:224px;height:128px;display:block}
 .md-tv-head{display:flex;align-items:center;gap:6px;color:#fff4dc;padding:0 2px}.md-tv-head b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
 #reel-tv button{min-height:30px;padding:0 8px;font-size:12.5px;box-shadow:none}

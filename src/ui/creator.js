@@ -224,7 +224,7 @@ export function openCreator(opts = {}) {
     const left = el('div.cc-left', null, stage, nameRow, presets.length ? el('div.cc-presets-wrap', null, el('div.cc-lab', { text: 'Presets' }), presetBox) : null);
     const right = el('div.cc-right', null, tabBar, opts_);
     const panel = el('div.cc-panel.tt-pop', { role: 'dialog', 'aria-label': title },
-      el('div.cc-head', null, el('span.cc-title', { text: title }), mode === 'new' ? el('span.cc-step', { text: 'Step 1 of 2' }) : null),
+      el('div.cc-head', null, el('span.cc-title', { text: title }), mode === 'new' ? el('span.cc-step', { text: 'Step 1 of 3' }) : null),
       el('div.cc-body', null, left, right), el('div.cc-foot', null, backBtn, el('div.cc-spacer'), okBtn));
     const wrap = el('div.cc-wrap' + (mode === 'edit' ? '.cc-modal' : ''), null, panel);
     (opts.parent || root()).append(wrap);

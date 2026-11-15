@@ -36,6 +36,7 @@ import { G } from '../core/game.js';
 import { toast, el } from '../ui/kit.js';
 import { ROOMS } from '../scenes/interior.js';
 import { cur as workCur, city as workCity } from './_jobs_work.js';
+import { SHOWS as AQ_SHOWS } from '../data/aquarium.js';
 
 export const order = 136;   /* right after ui/navarrow.js (135) */
 const DAY = 1440, NEAR_IN = 2.2;
@@ -126,7 +127,7 @@ function syncHandover() {
   if (hand && (hand.st !== want || hand.scene !== G.scene)) { const a = hand.scene.interactables, i = a.indexOf(hand.it); if (i >= 0) a.splice(i, 1); hand = null; }
   if (!want || hand) return;
   const sc = G.scene, p = locate1(sc, RECIPIENT) || (sc.spawn ? { x: sc.spawn.x, y: sc.spawn.y - 1.2 } : null); if (!p) return;
-  const it = { x: p.x, y: p.y, h: 1.4, hit: 14, range: 2.4, spot: p.it && p.it.spot ? p.it.spot : p.fx && p.fx.use ? p.fx.use : undefined, label: 'Hand over the parcel', navgoal: true, use: () => { const c = workCity.get('shift'); if (c && c.use) c.use(); } };
+  const it = { x: p.x, y: p.y, h: 1.4, hit: 14, range: 2.4, spot: p.it && p.it.spot ? p.it.spot : p.fx && p.fx.use ? p.fx.use : undefined, label: 'Hand over the parcel', navgoal: true, use: () => { const c = workCity.get('shift'); if (c && c.use && hand && courierStep() === hand.st) c.use(); } };
   sc.interactables.unshift(it); hand = { it, st: want, scene: sc, at: p.it ? 'at the counter' : p.fx ? 'at the counter' : 'here' };
 }
 define('shift', 'strong', 90, ctx => {
@@ -170,15 +171,229 @@ define('show', 'commit', 80, ctx => {
 });
 
 /* -- default: a plain waypoint to a place with a room -> the counter / till / desk where you are served. Homes: nothing further. */
-const SERVE = { label: /^(Order|Shop|Front desk|Reception|Box office|Tickets[ ,&]|Ticket desk|SkyDeck tickets|Information desk|Front office|Host stand|The Weathervane bar|Splash & Dash: the till)/ };
+const SERVE = { label: /^(Order|Shop|Front desk|Reception|Box office|Tickets[ ,&]|Ticket desk|SkyDeck tickets|Information desk|Front office|Host stand|The Weathervane bar|Ballroom steward|The Tidewater Spa desk|Splash & Dash: the till)/ };
 define('default', 'default', 0, ctx => {
   const root = ctx.root; if (!root || /^home/.test(root) || (ctx.pt.id && /^mall:/.test(ctx.pt.id))) return null;
-  if (ctx.pt.room && ctx.pt.room !== root && ROOMS.has(ctx.pt.room)) return inRoom(ctx.pt.room) ? { done: true } : { room: ctx.pt.room, find: null, label: ctx.pt.name, short: ctx.pt.name };
+  const rid = ctx.pt.room && ROOMS.has(ctx.pt.room) && rootOf(ctx.pt.room) === root ? ctx.pt.room : root, name = ctx.pt.name || placeName(root);
   const pl = place(root); if (pl && pl.open && !safe(() => pl.open(), true) && !ctx.here) return null;   /* closed: the old arrival at the door */
-  if (!inRoom(root)) return ctx.here === root ? { done: true, quiet: 1 } : { room: root, find: SERVE, label: ctx.pt.name || placeName(root), short: ctx.pt.name || placeName(root) };
-  const p = locate1(G.scene, SERVE); if (!p) return { done: true };
-  return { room: root, find: { x: p.x, y: p.y, h: p.h }, label: `${p.it.label}${/^(Order|Shop)$/.test(p.it.label) ? ' at the counter' : ''}`, near: NEAR_IN, name: ctx.pt.name || placeName(root) };
+  if (!inRoom(rid)) return { room: rid, find: SERVE, label: name, short: name };
+  const p = locate1(G.scene, SERVE); if (!p) return { done: true, name };
+  return { room: rid, find: { x: p.x, y: p.y, h: p.h }, label: `${p.it.label}${/^(Order|Shop)$/.test(p.it.label) ? ' at the counter' : ''}`, near: NEAR_IN, name };
 });
+
+/* ---------- shared helpers for the showpiece resolvers ---------- */
+const hf = () => G.now().hf;
+const soon = (hours, lead, dur) => { const h = hf(); return (hours || []).find(q => h >= q - lead && h < q + dur); };
+const want = ctx => ctx.attached || apptsAt(ctx.root).length > 0;   /* you asked to be taken there, or it is in your planner right now */
+const goalOpen = id => { const g = safe(() => G.goals.get(id), null); return !!g && !g.done; };
+const EV = {};   /* event flags: EV[name] / EV[name + ':' + firstArg] = game minute it last fired (init() subscribes to EVENTS) */
+const EVENTS = ['cityhall:served', 'cityhall:chain', 'conservatory:chain', 'museum:chain', 'hotel:chain', 'natatorium:chain', 'observatory:chain', 'aquarium:chain', 'lighthouse:chain', 'arena:chain', 'lighthouse:lamp', 'social:talk', 'social:hangout', 'story:beat', 'show:ticket', 'arena:ticket', 'job:task', 'job:shift:start', 'cityhall:number', 'hotel:meal', 'natatorium:swimwear', 'conservatory:ticket', 'museum:ticket', 'observatory:ticket', 'aquarium:ticket'];
+const since = (name, mins = 3) => EV[name] !== undefined && now() - EV[name] <= mins && now() >= EV[name];
+let lastUse = null;   /* { label, t } of the last interactable the player used */
+const usedLately = re => !!lastUse && now() - lastUse.t <= 2 && now() >= lastUse.t && re.test(lastUse.label);
+const desk = (room, re, label, short) => ({ room, find: { label: re }, label, short });
+const citySpots = (list, label, name) => { const q = (list || []).filter(c => c && !c.got && isFinite(c.x)); if (!q.length) return null; const c = nearestCity(q); return { room: 'city', find: { x: c.x, y: c.y, h: 2.4 }, label, far: label, close: label, near: 2.2, name: name || label, quiet: 1 }; };
+const nearestCity = list => { const p = safe(() => G.state.phone.cityPos, null) || G.player; let b = list[0], bd = 1e9; for (const q of list) { const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; b = q; } } return b; };
+/** a showpiece opportunity ("chain"): with a waypoint to one of its buildings, the arrow goes to the person / fixture of the current step. fn(ctx, picked) -> step */
+const chain = (id, roots, goal, ev, fn) => define(id, 'default', 5, ctx => {
+  if (!goalOpen(goal)) return null; const picked = selGoal(ctx, goal); if (!(ctx.root && roots.includes(ctx.root)) && !picked) return null;
+  if (since(ev, 2)) return { done: true, quiet: 1 }; return fn(ctx, picked);
+}, (ctx, s) => s.goal === goal);
+
+/* -- City Hall: council meeting (gallery seat / speakers' list / podium), weddings, the mayor, the Permits & Records queue, the fountain chain */
+const CH = () => G.cityhall, chS = () => G.state.cityhall || {};
+define('council', 'commit', 75, ctx => {
+  if (ctx.root !== 'cityhall' || !CH()) return null;
+  const cs = safe(() => CH().council.state(), null) || {}, S = chS(), sg = (S.council || {}).sign, n = G.now(), nx = safe(() => CH().council.next(), null);
+  const pre = !cs.on && nx && nx.day === n.day && n.hf >= nx.from - 1 && n.hf < nx.from; if (!cs.on && !pre) return null;
+  const signed = !!(sg && !sg.done && sg.day === (cs.on ? cs.day : nx.day)); if (!ctx.attached && !signed && !apptsAt('cityhall').length) return null;
+  const R = 'cityhall_council';
+  if (busyIs(/^(Watching the council|Speaking to the council)/) || (inRoom(R) && busyIs(/^Sitting$/))) return { done: true, name: 'the council meeting' };
+  if (cs.on && cs.you && cs.phase === 'comment') return desk(R, /^The podium$/, 'The chair is calling you: speak at the podium', 'the podium');
+  const ch = S.chain || {}; if (ch.st === 3 && ch.clerk && !signed && !(sg && sg.done)) return desk(R, /^Sign up to speak$/, 'Sign up to speak for Work Order 62-F', 'the speakers\' list');
+  return desk(R, /^Sit in the public gallery$/, cs.on ? (signed ? 'Take a gallery seat until the chair calls you' : 'Council in session: take a seat in the gallery') : `Council meets at ${clock(nx.from * 60)}: take a seat in the gallery`, 'the Council Chamber');
+});
+define('wedding', 'commit', 74, ctx => {
+  if (ctx.root !== 'cityhall' || !CH()) return null; const on = safe(() => CH().wedding.isOn(), false), mine = safe(() => CH().wedding.mine(), null), R = 'cityhall_clerk';
+  const mineSoon = !mine && apptsAt('cityhall').some(a => /wedding/i.test(a.title || ''));
+  if (!on && !mineSoon) return null; if (!ctx.attached && !mine && !mineSoon) return null;
+  if (busyIs(/^At the wedding/)) return { done: true, name: 'the wedding' };
+  const ph = inRoom(R) ? safe(() => G.scene.hot.phase(), null) : null;
+  if (mine || mineSoon) return ph === 'kiss' || ph === 'exit' ? { done: true, name: 'your wedding' } : Object.assign(desk(R, /^The register$/, 'Your wedding: the Wedding Room, by the register', 'the Wedding Room'), { near: ph ? 0 : 2.4, name: 'the Wedding Room' });
+  return desk(R, /^Sit with the wedding guests$/, 'A wedding is on: sit with the guests', 'the Wedding Room');
+});
+define('mayor', 'commit', 73, ctx => {
+  if (ctx.root !== 'cityhall') return null; const a = chS().appt; if (!a || now() < a.t - 90 || now() > a.t + 75) return null;
+  if (now() < a.t - 15) return Object.assign(desk('cityhall_clerk', /^Priscilla/, `The mayor sees you at ${clock(a.t)}: wait by her secretary`, 'the mayor\'s office'), { near: 2.4, name: 'the mayor\'s secretary' });
+  return Object.assign(desk('cityhall_mayor', /^Mayor Winnie/, 'Your ten minutes: talk to Mayor Castellanos', 'the mayor'), { near: 2, name: 'the mayor' });
+});
+function queueStep(win, what) {
+  const q = safe(() => CH().queue.state(), null), R = 'cityhall_records'; if (!q) return null;
+  if (since('cityhall:served', 3)) return { done: true, name: what || 'the window' };
+  if (!q.ticket || q.expired) return desk(R, /^Take a number$/, 'Take a number from the red machine', 'Permits & Records');
+  if (!q.called) return G.busy ? { room: R, find: null, label: `Ticket ${q.ticket}: ${q.ahead} ahead of you` } : desk(R, /^Sit and wait for your number$/, `Ticket ${q.ticket}: sit and wait, ${q.ahead} ahead of you`, 'Permits & Records');
+  return desk(R, win ? new RegExp('^Window ' + win) : /^Window \d/, win ? `Your number is up: window ${win}${what ? ', ' + what : ''}` : 'Your number is up: any window', 'the windows');
+}
+define('records', 'commit', 72, ctx => {
+  if (ctx.root !== 'cityhall' || !CH()) return null; const q = safe(() => CH().queue.state(), null), S = chS(); if (!q || !q.ticket || q.expired || (S.q && S.q.served)) return null;
+  const st = (S.chain || {}).st; return queueStep(st === 1 ? 4 : st === 5 ? 5 : 0, st === 1 ? 'Property Records' : st === 5 ? 'Lost & Found' : '');
+});
+chain('ch_chain', ['cityhall'], 'ch_fountain', 'cityhall:chain', (ctx, picked) => {
+  const c = chS().chain || {}, st = c.st;
+  if (st === 1) return queueStep(4, 'ask about the fountain work order');
+  if (st === 2) return desk('cityhall_archive', c.drawer ? /^Map drawers$/ : /^Microfilm reader$/, c.drawer ? 'Open drawer 62-F in the map cabinet' : 'Wind the microfilm to June 1962', 'the Archive');
+  if (st === 3 && !c.clerk) return desk('cityhall_clerk', /Bell, City Clerk$/, 'Show Work Order 62-F to Mr. Bell', 'the City Clerk');
+  if (st === 3) { const sg = (chS().council || {}).sign; return sg && !sg.done ? null : desk('cityhall_council', /^Sign up to speak$/, 'Sign up to speak for Work Order 62-F', 'the speakers\' list'); }
+  if (st === 5) return queueStep(5, 'ask for valve key V-7');
+  if ((st === 4 || st === 6) && picked) { const m = safe(() => CH().plumber(), null); return m ? { room: 'city', find: { x: m.x, y: m.y, h: 2.4 }, label: 'Marta Kowalski, the plumber', close: 'Talk to Marta', near: 2.2, name: 'Marta, the plumber' } : null; }
+  return null;
+});
+
+/* -- Arena: box office -> turnstiles -> "Your seat" in the bowl; the lucky-ball chain */
+define('arena', 'commit', 78, ctx => {
+  if (ctx.root !== 'arena' || !G.arena) return null; const A = G.arena, s = A.now(), on = s.ph !== 'none' && s.ph !== 'exit', live = on ? safe(() => A.ticketFor(s.ev), null) : null;
+  if (live) { const B = safe(() => A.state(), null); if (B && B.seated) return { done: true, name: 'your seat' };
+    if (!live.seat) return inRoom('arena:bowl') ? { done: true, name: 'the standing floor' } : { room: 'arena:bowl', find: null, label: 'Standing floor: in through the turnstiles', short: 'the floor' };
+    return desk('arena:bowl', /^Your seat/, 'Your seat: tap it to sit down', 'your seat'); }
+  const nx = safe(() => A.tickets(), []).filter(k => k.T0 > now() && k.T0 - now() < 180).sort((a, b) => a.T0 - b.T0)[0];
+  if (nx) return desk('arena', /^Turnstiles$/, `${nx.title}: doors open ${clock(nx.T0 - 60)}`, nx.title);
+  if (ctx.attached && on) return desk('arena', /^Box office: tickets$/, `${s.ev.title} is on: tickets at the box office`, 'the box office');
+  return null;
+});
+chain('arena_chain', ['arena'], 'arena_ball', 'arena:chain', (ctx, picked) => {
+  const c = safe(() => G.arena.chain(), {}), st = c.st;
+  if (st === 1) return picked ? citySpots(safe(() => cityScene().world.pois, []).filter(p => /^arenaball:/.test(p.id || '')).map(p => ({ x: p.x, y: p.y, got: (c.found || []).includes(+p.id.split(':')[1]) })), 'Look for the lucky ball here') : null;
+  if (st === 2) return desk('arena', /^Benny, equipment manager$/, 'Give the lucky ball back to Benny', 'Benny');
+  if (st === 3) return desk('arena:backstage', /^Coach Delacroix$/, 'Say hello to Coach Delacroix', 'the locker corridor');
+  if (st === 4) return desk('arena:backstage', /^The Ollie suit$/, 'Put on the Ollie suit (home game, before half-time)', 'the Ollie suit');
+  return null;
+});
+
+/* -- Conservatory + Museum: guided tours (meet the docent), the cuttings / lost-objects chains */
+const tourRes = (id, root, api, docent, deskRe, what) => define(id, 'commit', 70, ctx => {
+  const C = api(); if (ctx.root !== root || !C) return null; const t = safe(() => C.tour.state(), null), h = soon(C.tour.times, .75, .25);
+  if (t && t.on && t.joined) return { done: true, name: 'the guided tour' };
+  if (!(t && t.on) && h === undefined) return null; if (!want(ctx)) return null;
+  if (!safe(() => C.hasTicket(), true)) return desk(root, deskRe, `${what} ticket first: the ticket desk`, 'the tour');
+  return Object.assign(desk(root, docent, t && t.on ? 'The tour is leaving: tap the docent to join' : `Guided tour at ${clock(h * 60)}: meet the docent here`, 'the tour'), { near: t && t.on ? 0 : 2.4, name: 'the tour meeting point' });
+});
+tourRes('cons_tour', 'conservatory', () => G.conservatory, /^Wendell, the docent$/, /^Tickets & tours$/, 'Garden');
+tourRes('mus_tour', 'museum', () => G.museum, /^Ines, the docent$/, /^Tickets, audio guide & tours$/, 'Museum');
+chain('cons_chain', ['conservatory'], 'cons_cuttings', 'conservatory:chain', (ctx, picked) => { const st = safe(() => G.conservatory.chain().st, 0);
+  return st === 1 ? (picked ? citySpots(safe(() => G.conservatory.cuttings(), []), 'A curious plant: take a cutting') : null) : st === 2 ? desk('conservatory', /^Hattie, head gardener$/, 'Bring the cuttings to Hattie', 'Hattie') : null; });
+chain('mus_chain', ['museum'], 'mus_lost', 'museum:chain', (ctx, picked) => { const st = safe(() => G.museum.chain().st, 0);
+  return st === 1 ? (picked ? citySpots(safe(() => G.museum.lost(), []), 'A lost object: have a look') : null) : st === 2 ? desk('museum', /^Dr\. Okafor, the curator$/, 'Bring the finds to Dr. Okafor', 'the curator') : null; });
+
+/* -- Observatory: planetarium show (ticket desk -> Star Theatre -> a seat), the comet chain */
+define('obs_show', 'commit', 70, ctx => {
+  if (ctx.root !== 'observatory' || !G.observatory) return null; const O = G.observatory, star = inRoom('observatory:planetarium') ? G.scene.star : null;
+  if (star && star.mine) return { done: true, name: 'your seat in the Star Theatre' };
+  const cur = safe(() => O.shows.current(), null), nx = cur || safe(() => O.shows.next(true), null), live = star && star.phase !== 'idle' && star.phase !== 'exit';
+  if (!live && !(nx && nx.T - now() < 45)) return null; if (!live && !want(ctx)) return null;
+  if (!safe(() => O.hasTicket(), true)) return desk('observatory', /^Tickets & showtimes$/, 'Day ticket first: the ticket desk', 'the planetarium');
+  return desk('observatory:planetarium', /^Sit$/, live || cur ? 'Take any seat: tap it' : `${(nx.prog || {}).title || 'The show'} at ${clock(nx.T)}: take a seat`, 'the Star Theatre');
+});
+chain('obs_chain', ['observatory'], 'obs_comet', 'observatory:chain', () => { const st = safe(() => G.observatory.chain().st, 0);
+  return st === 1 ? desk('observatory:roof', /^Look through the Great Telescope$/, 'Sweep the sky with the Great Telescope (clear nights)', 'the dome') : st === 2 ? desk('observatory', /^Dr\. Halvorsen, astronomer$/, 'Tell Dr. Halvorsen what you found', 'Dr. Halvorsen') : null; });
+
+/* -- Aquarium: feedings + keeper talks at the spot where they happen, the turtle chain */
+const AQ_AT = { penguin: [/^Sit and watch the penguins$/, 'Penguin feeding: watch from the benches'], rays: [/^Feed the rays$/, 'Ray Bay feeding: feed the rays here'], otter: [/^Sit in the stand$/, 'Otter feeding: sit in the stand'],
+  dive: [/^Sit and watch the Big Blue$/, 'Dive show: sit by the Big Blue'], turtle: [/^Hold out a lettuce leaf$/, 'Turtle feeding: hold out a lettuce leaf'], octo: [/^Spot: Giant Pacific octopus$/, 'Meet the octopus: at the den'] };
+define('aqua_show', 'commit', 70, ctx => {
+  if (ctx.root !== 'aquarium' || !G.aquarium || !want(ctx)) return null; const h = hf();
+  const sh = AQ_SHOWS.map(s => ({ s, at: s.at.find(q => h >= q - .6 && h < q + s.dur) })).filter(q => q.at !== undefined && AQ_AT[q.s.id]).sort((a, b) => a.at - b.at)[0]; if (!sh) return null;
+  if (!safe(() => G.aquarium.hasTicket(), true)) return desk('aquarium', /^Tickets, passes & shows$/, 'Day ticket first: the ticket desk', sh.s.name);
+  const a = AQ_AT[sh.s.id]; return Object.assign(desk(sh.s.room, a[0], a[1] + (h < sh.at ? ` (${clock(sh.at * 60)})` : ''), sh.s.name), { near: 1.9, name: sh.s.name });
+});
+chain('aqua_chain', ['aquarium'], 'aqua_turtle', 'aquarium:chain', (ctx, picked) => { const st = safe(() => G.aquarium.chain().st, 0);
+  if (st === 1) return desk('aquarium:lab', /^The rehab pool$/, 'Look after the turtle: the rehab pool', 'Behind the Scenes');
+  if (st === 2) return desk('aquarium', /^Dr\. Reyes, the head aquarist$/, 'Tell Dr. Reyes the turtle is ready', 'Dr. Reyes');
+  if (st === 3 && picked) { const r = safe(() => G.aquarium.releaseSpot(), null); return r ? { room: 'city', find: { x: r.x, y: r.y, h: 2.4 }, label: 'The release: Gull Point Beach', near: 2.4, name: 'the release spot' } : null; }
+  return null; });
+
+/* -- Grand Maple Hotel: your table in the restaurant, ballroom events, your room, the suitcase chain */
+define('hotel_dine', 'commit', 66, ctx => {
+  if (ctx.root !== 'hotel' || !G.hotel || !ctx.attached) return null;
+  const pick = ctx.pt.room === 'hotel_restaurant' || (ctx.sel && ctx.sel.need === 'hunger') || apptsAt('hotel').some(a => /dinner|tea|brunch|breakfast|gilded/i.test(a.title || '')); if (!pick) return null;
+  if (safe(() => G.hotel.service(), null) || busyIs(/dinner|tea|eating|buffet|course|breakfast|brunch/i)) return { done: true, name: 'your table' };
+  const R = 'hotel_restaurant'; if (!inRoom(R)) return { room: R, find: null, label: 'The Gilded Maple', short: 'your table' };
+  const p = locate1(G.scene, [{ label: /^Your table$/ }, { label: /^Host stand$/ }]); if (!p) return { done: true, name: 'The Gilded Maple' };
+  return { room: R, find: { x: p.x, y: p.y, h: p.h }, label: p.it.label === 'Your table' ? 'Your table: tap it to sit down' : 'Host stand: ask Laurent for a table', short: 'your table' };
+});
+define('hotel_event', 'commit', 64, ctx => {
+  if (ctx.root !== 'hotel' || !G.hotel || !want(ctx)) return null; const n = G.now(), e = safe(() => G.hotel.events(1), []).find(q => q.day === n.day && n.hf >= q.from - .75 && n.hf < q.to); if (!e) return null;
+  return Object.assign(desk('hotel_ballroom', /^Ballroom steward$/, `${e.name}: see the ballroom steward`, e.name), { near: 2.2, name: e.name });
+});
+define('hotel_room', 'commit', 62, ctx => {
+  if (ctx.root !== 'hotel' || !G.hotel || !ctx.attached || !(ctx.sel && ctx.sel.need === 'energy')) return null; if (!safe(() => G.hotel.stay(), null)) return null;
+  return Object.assign(desk('hotel_room', /^The bed$/, 'Your room: the bed', 'your room'), { near: 1.8, name: 'your room' });
+});
+chain('hotel_chain', ['hotel'], 'hotel_cases', 'hotel:chain', (ctx, picked) => { const st = safe(() => G.hotel.chain().st, 0);
+  return st === 1 ? (picked ? citySpots(safe(() => G.hotel.cases(), []), 'A burgundy suitcase: pick it up') : null) : st === 2 ? desk('hotel', /^Odile, the concierge$/, 'Tell Odile you found all three suitcases', 'the concierge') : null; });
+
+/* -- Bay Fish Hall: the dawn auction.  Lighthouse: lighting the lamp + Silas's chain.  Natatorium: desk -> lockers -> rinse -> the pool / your lesson */
+define('fish_auction', 'commit', 70, ctx => {
+  if (ctx.root !== 'fishmarket' || !want(ctx)) return null; const h = hf(); if (h < 5 || h >= 7.5) return null;
+  return Object.assign(desk('fishmarket', /^The auction rostrum$/, h < 5.5 ? 'Fish auction at 05:30: by the rostrum' : 'Fish auction: bid at the rostrum', 'the fish auction'), { near: 2.6, name: 'the fish auction' });
+});
+define('lh_lamp', 'commit', 70, ctx => {
+  if (ctx.root !== 'lighthouse' || !G.lighthouse) return null; const L = G.lighthouse, d = hf() - L.lampTime(), st = safe(() => L.chain().st, 0);
+  if (d < -1 || d > .5) return null; if (!want(ctx) && st !== 5) return null;
+  if ((G.state.lighthouse || {}).litDay === G.now().day || since('lighthouse:lamp', 20)) return { done: true, name: 'the lantern room' };
+  return desk('lighthouse_lantern', /^The great lens$/, d < -.5 ? `Lamp-lighting at ${clock(L.lampTime() * 60 - 30)}: up to the lantern` : 'Light the lamp: the great lens', 'the lantern room');
+});
+chain('lh_chain', ['lighthouse', 'fishmarket'], 'lh_lamp', 'lighthouse:chain', ctx => { const L = G.lighthouse, st = safe(() => L.chain().st, 0);
+  if (st === 1) return desk('fishmarket', /^Old Halvorsen/, 'Ask Old Halvorsen at the smokery', 'Halvorsen Smokery');
+  if (st === 2) return desk('fishmarket', /^The auction rostrum$/, 'Win a lot at the dawn auction (05:30 to 07:30)', 'the auction');
+  if (st === 3 || st === 4) { const at = safe(() => L.keeperAt(), 'cottage'), R = at === 'watch' ? 'lighthouse_watch' : at === 'lantern' ? 'lighthouse_lantern' : 'lighthouse'; return at === 'bed' ? null : desk(R, /^Silas Marrow/, 'Bring it to Silas, the keeper', 'Silas'); }
+  return null; });
+define('nat_swim', 'default', 4, ctx => {
+  if (ctx.root !== 'natatorium' || !G.natatorium) return null; const N = G.natatorium, S = G.state.natatorium || {}, d = G.now().day;
+  if (ctx.pt.room && ctx.pt.room !== 'natatorium:pool' && ctx.pt.room !== 'natatorium') return null;
+  if (!safe(() => N.entryOk(), false)) return desk('natatorium', /^Front desk$/, 'Front desk: buy a swim', 'the pool');
+  if (!S.swim) return desk('natatorium:change', /^Lockers$/, 'Lockers: change into your swimwear', 'the lockers');
+  if (S.rinsed !== d) return desk('natatorium:change', /^Shower$/, 'Quick rinse first: the showers', 'the showers');
+  const lesson = S.lessonDay !== d && (S.level || 1) < 5;
+  return Object.assign(desk('natatorium:pool', lesson ? /^Coach Midge Okafor$/ : /^Lane 4/, lesson ? 'Swim lesson: talk to Coach Midge' : 'The lanes: pick one and swim', 'the pool'), { near: 2.4, name: lesson ? 'your swim lesson' : 'the pool' });
+});
+chain('nat_chain', ['natatorium'], 'nat_record', 'natatorium:chain', (ctx, picked) => { const st = safe(() => G.natatorium.chain().st, 0);
+  return st === 1 ? (picked ? citySpots(safe(() => G.natatorium.clues(), []), 'A clue about the 1974 record') : null) : st === 4 ? desk('natatorium:pool', /^Walt Brennan, lifeguard$/, 'Tell Walt about the record', 'Walt') : null; });
+
+/* -- people: story beats (the scene starts when you are there) and meetings with a friend -> that NPC, wherever they are in the building */
+const npcShort = id => safe(() => G.social.npc(id).short, null) || safe(() => G.planner.npcShort(id), id);
+const apptsFor = ctx => safe(() => G.planner.list(now() - 600, now() + 90, { events: false }), []).filter(a => !a.event && a.s !== 3 && a.s !== 4 && a.placeId && a.t - 90 <= now() && a.t + (a.dur || 60) > now()
+  && (a.placeId === ctx.placeId || (ctx.root && rootOf(safe(() => place(a.placeId).roomId, a.placeId)) === ctx.root)));
+function npcStep(npc, title, verb) {
+  const c = safe(() => G.social.char(npc), null), who = npcShort(npc), rid = roomId() || 'city';
+  if (c && !c.hidden) return { room: rid, find: { npc }, label: `${title}: ${verb} ${who}`, short: who, name: who };
+  const w = safe(() => G.social.whereIs(npc), null);
+  if (w && w.sceneId && w.sceneId !== G.scene.id) return { room: w.sceneId === 'city' ? 'city' : w.sceneId.slice(4), find: isFinite(w.x) ? { x: w.x, y: w.y, h: 2.3 } : null, label: `${title}: ${who} is at ${w.label || 'the place'}`, short: who, name: who };
+  return { room: rid, find: null, label: `${title}: ${who} is on the way, wait here`, short: who };
+}
+define('story', 'commit', 69, ctx => {
+  const a = apptsFor(ctx).find(q => q.data && q.data.beat); if (!a) return null; const b = safe(() => G.story.beat(a.data.beat), null); if (!b) return null;
+  if (b.st === 'active' || b.st === 'done' || since('story:beat:' + a.data.beat, 5)) return { done: true, quiet: 1, name: a.title };
+  const ap = safe(() => b.def.delivery.appointment, null) || {}, npc = (ap.with || [])[0]; if (b.t0 !== undefined && now() < b.t0) return { room: roomId() || 'city', find: npc ? { npc } : null, label: `${a.title}: from ${clock(b.t0)}`, short: a.title };
+  return npc ? npcStep(npc, a.title, 'go up to') : null;
+}, (ctx, s) => !!s.appt);
+define('meet', 'commit', 68, ctx => {
+  const a = apptsFor(ctx).find(q => q.withNpc && q.kind !== 'work' && !(q.data && q.data.beat)); if (!a) return null; const npc = a.withNpc;
+  if (since('social:talk:' + npc, 4) || since('social:hangout:' + npc, 30)) return { done: true, name: npcShort(npc) };
+  return npcStep(npc, a.title, 'say hello to');
+}, (ctx, s) => !!s.appt);
+
+/* -- needs: the need chooser picked a place -> the thing inside that fixes it (at home: the right room too) */
+const NEED = { hunger: { home: ['', /^(Cook|Open fridge)$/, 'Cook something: the kitchen'], venue: [/^(Order|Shop|.*: order|.*Cafe.*|Comet Cocoa|Dockside Dogs|Noodle bar|Bay Brew coffee bar)$/, 'Eat here: order'] },
+  energy: { home: ['', /^Bed$/, 'Your bed: sleep'], venue: [/^(Order|.*Cafe.*|Comet Cocoa|Bay Brew coffee bar|Meridian Espresso)$/, 'A coffee: order here'] },
+  bladder: { home: [':bath', /^Toilet$/, 'The toilet'], venue: [/^(Restroom|Toilet)$/, 'The restroom'] },
+  hygiene: { home: [':bath', /^Shower$/, 'The shower'], venue: [/^(Use the Locker-Room Shower|Shower|Rain shower|Wash hands)$/, 'Freshen up here'] } };
+define('need', 'default', 30, ctx => {
+  const s = ctx.sel, N = s && s.need && NEED[s.need]; if (!N || !ctx.root) return null; if (s.place && s.place !== 'pos' && ctx.pt.id && s.place !== ctx.pt.id) return null;
+  const home = /^home/.test(ctx.root), d = home ? N.home : N.venue, rid = home && ROOMS.has(ctx.root + d[0]) ? ctx.root + d[0] : ctx.root, re = home ? d[1] : d[0], label = home ? d[2] : d[1];
+  if (usedLately(re) || busyIs(/toilet|restroom|shower|sleep|eat|cook|nap/i)) return { done: true, quiet: 1 };
+  if (inRoom(rid) && !locate1(G.scene, { label: re })) return home ? { done: true } : null;   /* nothing of that kind here: fall back to the counter */
+  return { room: rid, find: { label: re }, label, short: label.toLowerCase(), near: 1.3, name: ctx.pt.name || placeName(ctx.root) };
+}, (ctx, s) => !!s.need);
 
 /* ---------- picking + following ---------- */
 let OFF = false;   /* debug: `?ngoff` or G.navGoals.off = true switches the whole module off (the arrow behaves as before; used for before/after tests) */
@@ -271,7 +486,10 @@ export function init() {
   document.head.append(el('style', { text: CSS }));
   G.on('scene', (s, prev) => { lastEval = 0; locC = null; if (!s || !prev || rootOf(roomOfScene(s)) !== rootOf(roomOfScene(prev))) muted = {}; });
   G.on('waypoint', p => { lastEval = 0; if (p) muted = {}; else if (!trip()) SS().sel = null; });
-  G.on('load', () => { cur = null; hand = null; muted = {}; pinFn = null; SS().pin = null; lastEval = 0; });
+  G.on('load', () => { cur = null; hand = null; muted = {}; pinFn = null; SS().pin = null; lastEval = 0; lastUse = null; for (const k in EV) delete EV[k]; });
+  for (const name of EVENTS) G.on(name, a => { EV[name] = now(); if (typeof a === 'string' || typeof a === 'number') EV[name + ':' + a] = now(); lastEval = 0; });
+  G.on('use', it => { if (it && it.label) lastUse = { label: it.label, t: now() }; lastEval = 0; });
+  G.on('jobs:hud', () => { lastEval = 0; }); G.on('activityEnd', () => { lastEval = 0; });
   /* what the player picked: goal / appointment rows of the goals widget, need-chooser rows (read from the click; no hook in those files) */
   document.addEventListener('click', e => {
     const b = e.target && e.target.closest ? e.target.closest('[data-g],[data-a],[data-fix]') : null; if (!b) return;

@@ -70,6 +70,8 @@ Last updated: stage 15 (Wave A: unique interiors, lobbies, homes, bladder, conse
 
 - clothes / hair / laundry: 1,366 pieces, 95 hairstyles, shops with racks, hamper + laundromat loop, hair services, Closet app (docs/reports/clothes.md).
 
+- traits (42), 21 skills, 26 in-world mini-games, coaches, Me app (docs/reports/traits_skills.md).
+
 ## Known issues / debts
 generic eateries reuse the pizza counter art (a taqueria shows "PIZZA"): needs a neutral or per-cuisine counter sign; weather setWeather('clear') doesn't clear isWet(); item icons missing; MapleCab shows fare on free first ride; story recipes/discounts/keepsakes not wired into cooking/shop/home; seated player may sort behind flipped sofa;
 duplicate "Discovered" toast; bus headways long; terminal has no glass roof; cabin passengers hidden by seat backs; no full human playthrough/QA pass yet; mobile layout only spot-checked.

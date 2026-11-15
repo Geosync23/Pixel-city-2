@@ -108,9 +108,16 @@ function spend(kind, gm, o = {}) {
   if (S.pool >= TUNE.SCREEN.tired && S.tired !== S.day) { S.tired = S.day; safe(() => N.addMoodlet('eyes_tired'), 0); G.emit('media:tired'); toast('Your eyes are tired. Maybe look at the actual bay for a bit.', 'info', 3600); }
   return fun;
 }
-function begin(app, what) { if (sess) end(); roll(); sess = { app, what: what || null, minutes: 0, fun: 0 }; G.emit('media:session', app, what || null); return sess; }
+// while you sit somewhere (bench, sofa, train seat) and use a media app, the character looks at the phone instead of staring ahead
+let posed = null;
+function pose(on) {
+  const p = G.player; if (!p) return;
+  if (on && !posed && G.busy && !G.cutscene && p.pose === 'sit') { posed = { pose: p.pose, opts: p.poseOpts }; p.pose = 'phone'; p.poseOpts = { seated: true }; }
+  else if (!on && posed) { if (p.pose === 'phone' && G.busy) { p.pose = posed.pose; p.poseOpts = posed.opts; } posed = null; }
+}
+function begin(app, what) { if (sess) end(); roll(); sess = { app, what: what || null, minutes: 0, fun: 0 }; pose(true); G.emit('media:session', app, what || null); return sess; }
 function end() {
-  const s = sess; if (!s) return null; sess = null; roll();
+  const s = sess; if (!s) return null; sess = null; roll(); pose(false);
   if (s.minutes >= TUNE.niceBreakMin && S.pool <= TUNE.SCREEN.full + 5 && S.nb !== S.day) { S.nb = S.day; safe(() => G.needs.addMoodlet('nice_break'), 0); G.emit('media:break'); }
   if (s.minutes > 0) G.emit('media:session:end', { app: s.app, what: s.what, minutes: s.minutes, fun: s.fun });
   return s;

@@ -19,6 +19,7 @@
 //   slice re-created, then 'load' is emitted so systems re-read their slices), then G.state.player.name / .spec and
 //   G.state.home.id (defining the 'home' slice as { id } only if no other module owns it).
 // While the title is open G.save() is a no-op, so the live city running behind it never overwrites the real save.
+import { traitStep } from '../sim/traits.js';
 import { G } from '../core/game.js';
 import { ENV } from '../engine/raster.js';
 import { el, root, modal } from './kit.js';
@@ -171,6 +172,7 @@ async function newGame(step) {
     else {
       who = await openCreator({ mode: 'new', spec: who && who.spec, name: who && who.name });
       if (!who) { buildTitle(); return; }
+      if (!(await traitStep())) continue;   /* pick 3 traits (src/sim/traits.js); Back returns to the creator */
     }
     step = null;
     homeId = await pickHome();
@@ -212,7 +214,7 @@ function pickHome() {
       card.style.setProperty('--d', (0.05 + i * 0.06) + 's'); cards.append(card);
     });
     const w = el('div.cc-wrap', null, el('div.cc-panel.hp-panel.tt-pop', { role: 'dialog', 'aria-label': 'Choose your first home' },
-      el('div.cc-head', null, el('span.cc-title', { text: 'Pick your first place' }), el('span.cc-step', { text: 'Step 2 of 2' })),
+      el('div.cc-head', null, el('span.cc-title', { text: 'Pick your first place' }), el('span.cc-step', { text: 'Step 3 of 3' })),
       el('div.hp-body', null, el('p.hp-intro', { text: 'Four little studios are up for rent. You can always move later.' }), cards),
       el('div.cc-foot', null, el('button.cc-back', { onclick: () => fin(null) }, '◀ Back'), el('div.cc-spacer'), ok)));
     addEventListener('keydown', key, true); root().append(w);
