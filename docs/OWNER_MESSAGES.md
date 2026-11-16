@@ -686,3 +686,10 @@ Which of the original songs is your favourite, once the classics are back in the
 Bike bell and buoy sounds: keep or cut? Keep
 
 Anyway to expand past the 16 mb limit?
+
+## 181 (2026-11-16)
+Will that fils structure mean i could no longer download as a single html file from claude?
+
+Add the trailer to the todo at the end.
+
+Its indoors, and daytime streets songs I like the most. But just bring all of these back as alll the songs for the first day then put them back in rotation weighted to appear a bit more then others but not an absolute ton.
