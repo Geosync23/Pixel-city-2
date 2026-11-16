@@ -157,7 +157,7 @@ function scan() {
   else list = [];   // walking about: nothing is focused (D-pad up steps onto the HUD)
   /* decorations */
   back = findBack(); skip = null; keysMap = {}; tabsEl = null;
-  for (const c of list) { const e = c.e; if (!skip && (e.hasAttribute('data-pad-skip') || /^skip\b/i.test(label(e)))) skip = e; const k = e.getAttribute('data-pad-key'); if (k) keysMap[k] = e; }
+  for (const c of list) { const e = c.e; if (!skip && (e.hasAttribute('data-pad-skip') || (/^skip\b/i.test(label(e)) && !e.closest('[data-set]')))) skip = e;   // not Settings' "Skip" (the tune) const k = e.getAttribute('data-pad-key'); if (k) keysMap[k] = e; }
   tabsEl = findTabs(); mainScroll = null;
 }
 function rectOf(c) { if (c.virt) { const q = c.virt.rect(); return { left: q.left, top: q.top, right: q.right, bottom: q.bottom, width: q.right - q.left, height: q.bottom - q.top }; } return c.e.getBoundingClientRect(); }
@@ -184,7 +184,9 @@ function setFocus(c, quiet) {
   if (!c) { focus = null; return; }
   if (focus && focus !== c.e && focus.isConnected && c.root !== froot) { hist.push(focus); if (hist.length > 8) hist.shift(); }
   focus = c.e; froot = c.root; frect = rectOf(c); flabel = label(c.e).slice(0, 40); lost = null;
-  if (!c.virt) { const sc = scCache && scroller(c.e); if (sc) try { c.e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { c.e.scrollIntoView(false); } }
+  if (!c.virt) { const sc = scCache && scroller(c.e); if (sc) { try { c.e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { c.e.scrollIntoView(false); }
+    const r = c.e.getBoundingClientRect(), q = sc.getBoundingClientRect(), m = Math.min(26, Math.max(0, (q.height - r.height) / 2));   // not flush against the list's edge: the ring and the next row stay in view
+    if (r.bottom > q.bottom - m) sc.scrollTop += r.bottom - (q.bottom - m); else if (r.top < q.top + m) sc.scrollTop -= q.top + m - r.top; frect = c.e.getBoundingClientRect(); } }
   back = findBack(); tabsEl = findTabs();
 }
 function defaultFocus(any, strict) {
