@@ -75,4 +75,5 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 - Nothing added: no caps raised, nothing spawned, no event forced. The see-through effect for things in front of the ridden cab is still switched off in the cab shot. The cab is partly overlapped by the van and a lamp post for ~0.3 s.
 - LEAD looked at six frames (out/shots/trailer_b_lead6.png): opening + title, four frames across the cab shot: clearly busier, cab visible throughout.
 - POSSIBLE GAME BUG to check: the worker's Saturday measurements FROZE from 10:00 when the Blossom Festival starts ('the world froze in my measurements from then on'): unknown whether that is its harness (a festival card / modal pausing the game) or a real freeze. LEAD TODO.
+- CHECKED by the lead (clean build of the current tree, out/shots/s112_fest.png): on the first Saturday the clock runs straight through 10:00 (09:50 -> 10:24 over ~40 real seconds), no modal, no pause, zero page errors. The 'freeze' in the worker's Saturday measurements was its own harness, not the game.
 
