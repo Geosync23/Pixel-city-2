@@ -1,11 +1,12 @@
 // Traffic health check: runs the REAL built game (dist/index.html or --html file) in headless Chromium and measures the street traffic.
 // See docs/reports/traffic2.md for what the numbers mean and the before / after tables.
 //
-//   node tools/traffic_check.mjs [--plan base|quick|soak|survey|rides] [--html file] [--out name] [--hz 60] [--jobs 3] [--days N] [--sites a,b] [--shots] [--w 390 --h 844]
+//   node tools/traffic_check.mjs [--plan base|quick|soak|survey|rides|shots] [--html file] [--out name] [--hz 60] [--jobs 3] [--days N] [--sites a,b] [--shots] [--w 390 --h 844]
 //
 //   --plan     base   = survey + soak + rain + event + desktop (the full table; ~15-25 min)      quick = 4 sites, 1 game day each (a few minutes)
 //              survey = every site, 1 game day, clear          soak = the 3 worst-known sites + the walking tour, 3 game days
 //              rides  = a player cab ride and a bus ride (with Skip) driven through G.transit in real time
+//              shots  = 390x844 pictures of the three worst baseline spots at the morning rush (out/shots/<name>_spot1..3.png)
 //   --html     the single-file build to measure (default dist/index.html; build first). --out names out/traffic/<name>.json + .md + out/shots/<name>_heat.png
 //   --hz       simulated frames per second (default 60). --jobs pages run in parallel.
 //

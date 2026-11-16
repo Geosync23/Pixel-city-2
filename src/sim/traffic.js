@@ -10,7 +10,8 @@
 //   buses: [{ id, route, loop, u, veh|null, atStop, dwell, hold, nsi }], loops: { busN: { route, edges, offs, L, stops:[{id, poi, k, s, u}] } }
 //   nextBuses(stopId) -> [{ bus, route (id), num, name, color, minutes }] sorted;  busStopName(id);  BUS_SPEED
 //   stands: [{ poi, ref, cabs }]   count() -> active vehicles   offroad() -> vehicles whose centre is not on asphalt (debug)   simR, target (debug)
-//   stats: counters since load { ghost, ghostPre, unstick, replan, reroute, laneChange, pass, claim, squeeze, despawn }   TUNE: the driving tunables (_traffic_veh.js; docs/reports/traffic2.md)
+//   stats: counters since load { ghost, ghostPre, unstick, replan, reroute, laneChange, pass, claim, squeeze, busSkip, despawn, rightOnRed }   TUNE: the driving tunables (_traffic_veh.js; docs/reports/traffic2.md)
+//   reroute(veh) -> bool   a vehicle with a destination (setPlan with a route) plans again from where it is, treating its next street as blocked
 // TRAFFIC ROUND 2 (owner msg 145, BIBLE direction update 27; measurements and tunables in docs/reports/traffic2.md; the driving rules are at the top of _traffic_veh.js):
 //   lights follow demand (signals(), SIG) | buses: no timetable hold on screen, pace control (gaps()), they skip a stop whose berths are full (busSkip), appear only on
 //   the open street and wait at the edge of the simulated area when it is full (housekeeping) | cabs that wait pull in to the kerb (kerbIn) | cabs re-route round a
@@ -291,7 +292,7 @@ function update(dt, gm) {
 
 export function init() {
   G.traffic = {
-    get graph() { return roadGraph(); }, vehicles: T.list, spawn: (k, ref, o) => (ensure(), spawn(k, ref, o)), release, place, setPlan, buses, loops, stands, nextBuses, busU, BUS_SPEED, ensure, stats: T.stats, TUNE,
+    get graph() { return roadGraph(); }, vehicles: T.list, spawn: (k, ref, o) => (ensure(), spawn(k, ref, o)), release, place, setPlan, buses, loops, stands, nextBuses, busU, BUS_SPEED, ensure, stats: T.stats, TUNE, reroute,
     busStopName: id => { const p = world && world.pois.find(q => q.id === id); return p ? p.name : id; },
     /** a lane position out of view, `minD..maxD` units (straight line) from the lane ref `nearRef`, preferably heading toward it */
     offscreenLane(nearRef, minD = 24, maxD = 60) {
