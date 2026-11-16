@@ -11,6 +11,12 @@
 //   nextBuses(stopId) -> [{ bus, route (id), num, name, color, minutes }] sorted;  busStopName(id);  BUS_SPEED
 //   stands: [{ poi, ref, cabs }]   count() -> active vehicles   offroad() -> vehicles whose centre is not on asphalt (debug)   simR, target (debug)
 //   stats: counters since load { ghost, ghostPre, unstick, replan, reroute, laneChange, pass, claim, squeeze, despawn }   TUNE: the driving tunables (_traffic_veh.js; docs/reports/traffic2.md)
+// TRAFFIC ROUND 2 (owner msg 145, BIBLE direction update 27; measurements and tunables in docs/reports/traffic2.md; the driving rules are at the top of _traffic_veh.js):
+//   lights follow demand (signals(), SIG) | buses: no timetable hold on screen, pace control (gaps()), they skip a stop whose berths are full (busSkip), appear only on
+//   the open street and wait at the edge of the simulated area when it is full (housekeeping) | cabs that wait pull in to the kerb (kerbIn) | cabs re-route round a
+//   full street (reroute) | traffic leaves town at dead ends | FLOW keeps the number of vehicles on the street where it was | stuck removal is a counted last resort
+//   (stats.despawn) | perf: vehicles out of view are stepped every other time, lights every third step, off-street buses every fourth.
+//   tools/traffic_check.mjs measures all of it in the built game (node tools/traffic_check.mjs --plan base).
 // Events: 'bus:arrive'(bus, stopId) when a real (on-screen-range) bus starts its dwell, 'bus:depart'(bus, stopId).
 // Exports: roadGraph() and route(fromPoint, toPoint) -> { edges, offs, len, pts } (DOM-free; usable by the train/minimap programmers).
 import { G } from '../core/game.js';
@@ -32,7 +38,7 @@ const CAP = 40, DWELL = 2;   // DWELL: game minutes at a stop off screen, real s
 export const BUS_SPEED = 9; // abstract (off-screen) bus speed, world units per game minute (QA round 3: was 6)
 const BUS_WAIT = 8;   // seconds a bus waits at the edge of the simulated area for room to appear
 export const BERTH = 0;   // how far past the stop sign a bus's centre halts. 0 = centred in the painted bay (the yellow box is 9 long, a bus 8). A second bus loads right behind it where the block is long enough (second berth, _traffic_veh.js); tried 5 to make room for one everywhere: the bus then stood outside its bay
-export const BUS_HEADWAY = 10, BUS_REAL_V = 5.5;   // target minutes between buses of one route in the daytime (buses per route = lap time / headway); measured pace of an on-screen bus nobody rides (u per game min at 1x, lights incl.)
+export const BUS_HEADWAY = 10, BUS_REAL_V = 3.1;   // target minutes between buses of one route in the daytime (buses per route = lap time / headway); measured pace of an on-screen bus nobody rides, world units per real second with stops and lights (traffic round 2: 2.8-3.4 at three sites; it was 1.5-2.3 before, while this constant said 5.5, so a stop's "1 min" was optimistic)
 const KD = { sedan: ['veh.car.sedan', 6.6, 1], hatch: ['veh.car.hatch', 6.4, 1], suv: ['veh.car.suv', 6.4, 1], sports: ['veh.car.sports', 7.6, 1], beetle: ['veh.car.beetle', 6, 1], pickup: ['veh.car.pickup', 6.2, 1],
   van: ['veh.van', 6, 1], delivery: ['veh.van.delivery', 6, 0], icecream: ['veh.van.icecream', 3.6, 0], scooter: ['veh.scooter', 5.4, 1], motorbike: ['veh.motorbike', 7.4, 1], taxi: ['veh.taxi', 6.8, 0],
   police: ['veh.police', 7, 0], ambulance: ['veh.ambulance', 7, 0], truck: ['veh.truck.box', 5.6, 0], garbage: ['veh.truck.garbage', 4, 0], fire: ['veh.truck.fire', 6.5, 0], bus: ['veh.bus', 6.4, 0] };
@@ -201,6 +207,7 @@ function housekeeping() {
     if (v.stand) { if (d2 > (simR + 12) * (simR + 12)) release(v); continue; }
     if (v.keep) continue;
     if (Math.abs(dx - dy) > mx + 7 || Math.abs(dx + dy) > my + 7) release(v);
+    else if (v.e.to.dead && (v.e.s1 - v.s) * v.e.d < 9 && !v.byPlayer && !onScreen(v.x, v.y, 40)) release(v);   /* at the end of a street that leaves town, out of view: gone (in view it turns round as before) */
     else if (v.unstick && !v.byPlayer && !onScreen(v.x, v.y, 60)) { T.stats.despawn++; release(v); }   /* last resort (was: anything standing 12 s out of sight, ~30-45 an hour): only what has not moved for TUNE.unstickAfter s; counted, tools/traffic_check.mjs drives it toward 0 */
   }
   let amb = 0; for (const v of T.list) if (!v.keep) amb++;

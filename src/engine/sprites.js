@@ -44,7 +44,7 @@ export function toSprite(r) {
   if (!r) return null; const n = r.w * r.h * 4;   // (buffers from the raster pool can be views into a larger ArrayBuffer)
   const c = mk(r.w, r.h); c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.buf.buffer, r.buf.byteOffset, n), r.w, r.h), 0, 0);
   let l = null; if (r.hasLight) { l = mk(r.w, r.h); l.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.lb.buffer, r.lb.byteOffset, n), r.w, r.h), 0, 0); }
-  return { c, l, x: r.x, y: r.y, w: r.w, h: r.h };
+  return { c, l, x: r.x, y: r.y, w: r.w, h: r.h, im: 1 };   /* im: this sprite's canvases are never drawn on again (the renderer keeps flat-colour copies of such sprites for the night light) */
 }
 /** toSprite for a result this module rendered itself with pooled buffers: the buffers go back to the raster pool */
 export function toSpritePooled(r) { if (!r) return null; const s = toSprite(r); R.recycle(r); return s; }
