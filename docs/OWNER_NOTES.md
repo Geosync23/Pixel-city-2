@@ -165,3 +165,4 @@
 145. (msg 186) Pull the NEW MINI-GAME CATEGORIES up to run together with the mini-game audit (+ gym + cooking): one mini-game programme, right after the night light.
 146. (msg 187) Traffic took long: when it finishes, give a full report on all of its work.
 147. (msg 188) Night lighting also seems to take long (noted; worker still running). YES: run the mini-game programme on BOTH Fable slots when they free (audit + gym + cooking on one, new categories on the other).
+148. (msg 191) TEAM FOR THE NIGHT (EST): once the two-slot mini-game programme has finished, wind down ONE Fable worker: overnight = 1 Fable worker + 1 Opus + the lead. Do not refill the second Fable slot until the owner says so.

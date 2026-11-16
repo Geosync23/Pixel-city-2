@@ -722,3 +722,6 @@ Ok understood thanks for the explanation
 
 ## 190 (2026-11-16)
 How many lines of code are we at
+
+## 191 (2026-11-16)
+Great thanks. After the mini game parallel Fable collaboration, wind down one Fable worker for the night (est timezone). One opis, one Fable and you (fable)
