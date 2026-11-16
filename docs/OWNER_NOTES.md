@@ -139,3 +139,4 @@
 119. (msg 159) CENTRAL STATION: the player must be able to walk onto and see train platforms 1 and 2, like at the other stations. Fable docket (BIBLE update 31).
 120. (msg 160) When the Central Station platforms exist, the TRAIN JOB must be changed to use them (part of the same work item).
 121. (msg 161) FLOWER SHOPS must also sell houseplants (for the home); some home-goods stores should stock them too.
+122. (msg 162) MINI-GAME VARIETY: like cooking, the GYM needs a fitting mini-game per machine (treadmill must not be a lifting game): 3-4 games or one per machine. Then a Fable AUDIT of every existing mini-game (does it fit the activity? where is variety missing?) AND of whole categories with no mini-games that should have them. Do not overdo it (no door-opening games). IDEAS FIRST: the lead told him its ideas before acting; waiting for his picks.

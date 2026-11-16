@@ -284,3 +284,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 ## Direction update 31 (owner msg 159, 2026-11-16) — Central Station platforms
 - Central Station must have its train platforms 1 and 2 visible and walkable, the way the other stations do (add to the station, do not rework it).
 - (owner msg 160) Once the platforms are built, the train job (station / rail job play) must take place on them.
+
+## Direction update 32 (owner msg 162, 2026-11-16) — mini-games fit the activity; audit + new categories
+- Every mini-game must fit what the character is doing (gym: a game per machine or 3-4 fitting ones: running for the treadmill, lifting for weights ...; cooking as in update 30). A Fable agent audits ALL existing mini-games for fit and variety, and proposes whole new categories where a quick, functional mini-game makes sense. Not overdone: nothing trivial (no door opening). The owner wants the ideas BEFORE any action.
