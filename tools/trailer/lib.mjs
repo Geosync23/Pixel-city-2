@@ -8,6 +8,7 @@ import http from 'node:http'; import fs from 'node:fs'; import path from 'node:p
 const require = createRequire(import.meta.url); const { chromium } = require('playwright');
 export const SCRATCH = process.env.TRAILER_SCRATCH || '/tmp/claude-0/-home-user-Pixel-city-2/ab4bf52b-889a-5288-a866-29c2e55d0472/scratchpad/trailer';
 export const CLEAN = process.env.TRAILER_CLEAN || path.join(SCRATCH, 'tb');   // git archive 268bafc (Stage 98) + node tools/build.mjs
+export const BUILD = process.env.TRAILER_BUILD || path.join(SCRATCH, 's99');   // the lead's clean single-file build of the published Stage 99 (stage99_index.html copied to s99/index.html)
 export const FPS = 30, W = 1280, H = 720;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.json': 'application/json', '.mp3': 'audio/mpeg' };
 
@@ -23,7 +24,7 @@ body.tr-ui #ui > .modal, body.tr-ui #ui > .mg, body.tr-ui #ui > .say { display: 
 `;
 
 export async function open({ url = '?scene=city&t=7', dist = true, hide = true, w = W, h = H, extraCss = '' } = {}) {
-  const srv = await serve(dist ? path.join(CLEAN, 'dist') : CLEAN); const port = srv.address().port;
+  const srv = await serve(dist ? BUILD : CLEAN); const port = srv.address().port;
   const br = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
   const page = await br.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   const errs = []; page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); }); page.on('pageerror', e => errs.push('EXC ' + (e.stack || e.message)));
