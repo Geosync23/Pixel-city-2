@@ -65,3 +65,6 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 - trailer_b.mp4 = 61.2 s, 13.31 MB; previous = trailer_b_v3.mp4. The four 'fully explorable' shots hold one bar each: on foot 7.02-9.33 (re-recorded longer, City Hall plaza), bus 9.33-11.64, train 11.64-13.95 (second train passing), cab 13.95-16.25; caption on 7.02-15.45 s. Everything after is v3 shifted three bars; music +3 bars at the end in one render (layer changes now fall three bars earlier relative to the picture). Video cap 1.65 Mbit/s.
 - LEAD looked at six frames (out/shots/trailer_b_lead4.png): walk, bus, train fine; CAB shows only as a see-through outline under the viaduct in the last second of its hold: worker resumed to re-shoot the cab on a clear route (will deliver as trailer_b.mp4 with this cut kept as trailer_b_v4.mp4).
 
+## Trailer B round 5: cab re-shoot (lead's call)
+- trailer_b.mp4 (61.2 s, 13.31 MB): cab shot 13.95-16.25 s is now a real cab ride along the brick river road in Old Town (no viaduct, no tower; the game's 'fade things in front of your cab' effect was switched off for the recording, so trees / lamps stay solid). Previous cut = trailer_b_v4.mp4. Worker checked all 69 frames; lead looked at three (out/shots/trailer_b_lead5.png): cab clear throughout. Quiet street (4-5 pedestrians). This is the CURRENT FINAL unless the owner asks for more.
+

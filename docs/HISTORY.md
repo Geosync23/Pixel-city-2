@@ -194,3 +194,5 @@
 - 2026-11-16: TRAILER 2 REVISION published (https://claude.ai/artifact/3ugMHKYMhkK8mjqwCNHhLd, version id 1794855009-897d): dense zoomed-in downtown opening with the title card 'MAPLE BAY / an open-world life sim' (4.2 s), plane with '1 city', 'fully explorable' over a one-bar travel run, rest unchanged; previous cut alongside for comparison (docs/reports/trailers.md).
 - 2026-11-16: TRAILER 2 ROUND 3 published (https://claude.ai/artifact/3ugMHKYMhkK8mjqwCNHhLd, version id 1794857754-51df): 54.2 s; 'your life, your pace' at the week; new job + activity close-up sections with '25 jobs to work', 'over 90 things to do', 'so much to see'; harbour boardwalk replaces the lighthouse; ending unchanged (docs/reports/trailers.md).
 - 2026-11-16: TRAILER 2 ROUND 4 published (version id 1794860537-3e2b; 61.2 s): each 'fully explorable' travel shot held a full bar (owner msg 213). Known flaw: cab under the viaduct is a ghost outline for ~1 s: worker re-shooting the cab shot.
+
+- 2026-11-16: TRAILER 2 cab re-shoot published (version id 1794861005-208b): cab on the Old Town river road, clear for the whole hold; current final cut 61.2 s.

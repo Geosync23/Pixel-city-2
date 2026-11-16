@@ -96,6 +96,24 @@ export const SHOTS = {
   b_fest: { url: city(19), sec: 4.2, setup: c => c.ev(() => { G.cityEvents.debug.start('lantern_parade'); G.cityEvents.debug.parade(.35); TR.free(109, 277, 2); }), settle: 6, frame: pan([109, 277], [104, 280], 4.2) },
   b_home: { url: city(20.5), sec: 3.2, setup: c => c.ev(async () => { await G.go('int:home:villa_belvedere', { fade: false }); const p = G.player; p.hidden = false; G.camTarget = null; G.setZoom(3); const it = G.scene.interactables.find(q => /^Sit/.test(q.label || '')); window._sit = it ? it.label : null; if (it) G.useInteractable(it); G.snapCam(); return window._sit; }).then(r => console.log('sit', r)), settle: 6, ready: c => c.ev(() => { const p = G.player; window._h = [p.x, p.y]; TR.cam.x = p.x; TR.cam.y = p.y; TR.cam.z = p.z; G.camTarget = TR.cam; G.snapCam(); }), frame: (c, t) => c.ev(u => { TR.move(window._h[0] - 1.5 + 6 * u, window._h[1], false); }, t / 3.2) },   // polish pass: a slow drift toward the fireplace instead of a locked-off still
   b_sunset: { url: city(19.2), setup: free(40.75, 350.75, 2), settle: 6, sec: 3.2, frame: pan([40.75, 350.75], [36.25, 352.25], 3.2, { mins: 20 }) },
+  /* round 5: a cab ride on low-rise streets inside the rail loop (no viaduct, no tower in front of the cab): Old Town to the clinic / to the bakery. The game's own ride and ride camera. */
+  b_cab2: { url: city(13.3), sec: 18,
+    setup: async c => { c.ev(async () => { await G.go('city', { x: 96, y: 278, fade: false }); G.player.hidden = false; G.camTarget = null; G.setZoom(3); G.snapCam(); window._p = G.transit.callTaxi('clinic', { silent: true }); }); await wait(1200); }, settle: 2,
+    ready: async c => { for (let k = 0; k < 80; k++) { if (await c.ev(() => !!G.transit.ride)) break; await c.settle(.5); } },
+    frame: (c, t, i) => c.ev(i => { if (!G.transit.ride && !window._e) { window._e = i; return i; } return null; }, i).then(r => { if (r) { console.log('rideEnd@' + r); c.meta({ end: r }); } }) },
+  b_cab4: { url: city(13.3), sec: 18,
+    setup: async c => { c.ev(async () => { await G.go('city', { x: 130, y: 196, fade: false }); G.player.hidden = false; G.camTarget = null; G.setZoom(3); G.snapCam(); window._p = G.transit.callTaxi('grocery', { silent: true }); }); await wait(1200); }, settle: 2,
+    ready: async c => { for (let k = 0; k < 80; k++) { if (await c.ev(() => !!G.transit.ride)) break; await c.settle(.5); } },
+    /* the game fades whatever stands in front of the ridden cab; switched off for this shot (ghost = false every frame) so nothing on screen turns see-through */
+    frame: (c, t, i) => c.ev(i => { for (const e of G.scene.ents) if (e.ghost && e !== G.player) { e.ghost = false; window._gh = (window._gh || 0) + 1; } G.player.ghost = false; if (!G.transit.ride && !window._e) { window._e = i; return i; } return null; }, i).then(r => { if (r) { console.log('rideEnd@' + r); c.meta({ end: r }); } }) },
+  b_cab5: { url: city(13.3), sec: 18,
+    setup: async c => { c.ev(async () => { await G.go('city', { x: 282, y: 183, fade: false }); G.player.hidden = false; G.camTarget = null; G.setZoom(3); G.snapCam(); window._p = G.transit.callTaxi('clinic', { silent: true }); }); await wait(1200); }, settle: 2,
+    ready: async c => { for (let k = 0; k < 80; k++) { if (await c.ev(() => !!G.transit.ride)) break; await c.settle(.5); } },
+    frame: (c, t, i) => c.ev(i => { if (!G.transit.ride && !window._e) { window._e = i; return i; } return null; }, i).then(r => { if (r) { console.log('rideEnd@' + r); c.meta({ end: r }); } }) },
+  b_cab3: { url: city(13.3), sec: 18,
+    setup: async c => { c.ev(async () => { await G.go('city', { x: 130, y: 196, fade: false }); G.player.hidden = false; G.camTarget = null; G.setZoom(3); G.snapCam(); window._p = G.transit.callTaxi('bakery', { silent: true }); }); await wait(1200); }, settle: 2,
+    ready: async c => { for (let k = 0; k < 80; k++) { if (await c.ev(() => !!G.transit.ride)) break; await c.settle(.5); } },
+    frame: (c, t, i) => c.ev(i => { if (!G.transit.ride && !window._e) { window._e = i; return i; } return null; }, i).then(r => { if (r) { console.log('rideEnd@' + r); c.meta({ end: r }); } }) },
   b_city2: { url: city(18.6), setup: free(98, 344.5, 2), settle: 12, sec: 3, frame: pan([98, 344.5], [98 + 5.6 / 2, 344.5], 3) },
   /* round 3 candidates */
   x_barista: job('barista', 4), x_station: job('station_agent', 4), x_cook: job('line_cook', 4), x_fire: job('firefighter', 4), x_dj: job('radio_dj'), x_aqua: job('aquarist', 4), x_florist: job('florist'),

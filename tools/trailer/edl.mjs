@@ -54,7 +54,7 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   // revision (owner msg 211): opens on a dense, close downtown corner under the title card (2 bars so the title can be read); the plane follows; the on-foot / bus / train / cab run is trimmed from 2 beats each to 1 beat each (one bar) to pay for it
   v.push({ clip: 'b00_c3', t0: 0, t1: bb(3), note: 'OPENING: a busy downtown street corner, close (zoom 3): shopfronts, traffic lights, cab, bus, people, trees; title card over it' });
   v.push({ clip: 'a08_plane', in: tdB - 1.2, t0: bb(3), t1: bb(4), note: 'The airport: a plane touches down' });
-  const ways = [['b03_foot', .5, 'On foot across the plaza'], ['b04_bus', 0, 'Bus'], ['b05_train', .2, 'Train on the viaduct, a second train passing'], ['a13_cabtown', 12.47, 'Cab at the crossing']];
+  const ways = [['b03_foot', .5, 'On foot across the plaza'], ['b04_bus', 0, 'Bus'], ['b05_train', .2, 'Train on the viaduct, a second train passing'], ['b_cab4', 10.4, 'Cab along the river road and onto the bridge']];
   ways.forEach((w, i) => v.push({ clip: w[0], in: w[1], t0: bar(4 + i), t1: bar(5 + i), note: 'Fully explorable: ' + w[2] }));
   const steps = []; let k = 0; const total = DOORS1.length + DOORS2.length, num = i => Math.max(1, Math.round(N * Math.pow((i + 1) / total, 1.35)));
   DOORS1.forEach((r, i) => { const t = bb(5, i); v.push({ clip: 'room_' + r, in: 0, t0: t, t1: bb(5, i + 1), note: 'Door ' + (i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .1 }); steps.push([t, num(k++)]); });
