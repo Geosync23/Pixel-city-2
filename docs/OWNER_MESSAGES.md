@@ -672,3 +672,17 @@ All stores should also have some preset outfits.  Make then from exitisting item
 
 ## 179 (2026-11-16)
 Status, also mention parked items
+
+## 180 (2026-11-16)
+Nana's chair: oak chair or rocking chair? Rocking 
+
+
+A small hop when sitting down and standing up, or keep the instant cut? Hop
+
+
+Which of the original songs is your favourite, once the classics are back in the jukebox. Not sure lay them all out in an artifact and ill tell you
+
+
+Bike bell and buoy sounds: keep or cut? Keep
+
+Anyway to expand past the 16 mb limit?

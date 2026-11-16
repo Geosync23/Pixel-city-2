@@ -44,7 +44,7 @@ export function pickAlarm(opts = {}) {
     const step = d => { const n = (w + d + DAY) % DAY; w = ok(n) ? n : d < 0 ? lo : hi; draw(); };
     const btn = (txt, d, lab) => el('button.al-btn', { text: txt, 'aria-label': lab, onclick: () => step(d) });
     const hUp = btn('+', 60, 'One hour later'), hDn = btn('−', -60, 'One hour earlier'), mUp = btn('+', 5, 'Five minutes later'), mDn = btn('−', -5, 'Five minutes earlier');
-    const go = el('button.al-go', { text: 'Sleep', onclick: () => { done = true; safe(() => G.planner.setAlarm(w / 60)); m.close(); res({ minutes: dur(w), hour: w / 60 }); } });
+    const go = el('button.al-go', { text: 'Sleep', onclick: () => { done = true; safe(() => G.planner.setAlarm(w / 60)); m.close(); res({ minutes: dur(w) + .001, hour: w / 60 }); } });   /* QA16: + 0.06 s so float drift cannot end the sleep at 05:49.9999 (the card read 05:49 for a 05:50 alarm) */
     function draw() {
       const d = dur(w); hh.textContent = pad(Math.floor(w / 60)); mm.textContent = pad(w % 60);
       line.textContent = `Wake at ${clock(w)} · sleeps ${len(d)}`;

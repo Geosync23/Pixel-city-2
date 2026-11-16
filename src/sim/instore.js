@@ -64,6 +64,8 @@ export function take(placeId, name) {
 }
 export function plan(r) {
   if (!r || !G.planner) return null; const t = r.opensT || Math.floor(G.state.t) + 60;
+  const had = safe(() => G.planner.list(t - 1, t + 1).find(a => a && a.placeId === r.place && a.t === t && (a.s || 0) < 2), null);   /* QA16: a second tap added the same stop twice */
+  if (had) { toast(`Already on My Day: ${r.name}, ${r.opens ? r.opens.replace(/^Opens /, '') : 'in an hour'}.`, 'info', 2600); return had.id; }
   const id = safe(() => G.planner.add({ title: `Shopping: ${r.name}`, placeId: r.place, t, dur: 45, kind: 'personal' }), null);
   if (id) toast(`Added to My Day: ${r.name}, ${r.opens ? r.opens.replace(/^Opens /, '') : 'in an hour'}.`, 'good', 3200); return id;
 }
