@@ -1,4 +1,4 @@
-# Real bathrooms (owner msgs 151 + 192, BIBLE Direction update 28) — trial batch of three
+# Real bathrooms (owner msgs 151 + 192, BIBLE Direction update 28) - trial batch of three
 
 Owner's rule: a bathroom is always a real, drawn room: walk in, use a toilet, wash hands at a sink. Every place's bathroom is its own (size, tiles,
 fixtures, mood), no copies, no "tap the Restroom door and you are relieved". This batch = the shared mechanism + three finished rooms, so the lead
@@ -318,3 +318,27 @@ Survey of every room in the build (each room built, every restroom door / sign l
 restroom, 0 still fade out.** (Before batch 4: 71 real, 88 fading.) Rooms with no restroom door at all (homes have bathrooms; residential lobbies,
 street stations, the plane, the Arena bowl and backstage) were not given one: adding a door there would mean editing a venue file. Later, if wanted:
 signature rooms for some of the 48 pub venues / 20 lobbies (the plan table above keeps the one-line ideas), and city folk in restrooms.
+
+### Checks (batch 4, by the worker; dist built after the last source edit, 15,201,814 B)
+- validate exit 0; build OK; lookbehind grep 0; no em dashes in my files (I also replaced the one old em dash in a comment of `src/scenes/rooms/restrooms.js`).
+- `node tools/restrooms_check.mjs --shots bath4`, run once from start to finish AFTER the last edit to the script: **531 PASS, 0 FAIL, 0 page errors**.
+  It covers: the airport restroom during the intro's baggage step (in and out before the bag, the bag still comes out on carousel 2, in and out again
+  after it, still on the step heading for the exit); 74 entry points by play (door, toilet with the door shut and the player hidden, wash, no-need,
+  the way out to the door used, night, in use at night): all earlier ones, every batch 4 one-off, the five post offices, the five newly linked inner
+  rooms and 15 plain-room venues of both layouts (cs_nightjar, cs_tidepool, goods:timber, goods:nord, pub:1, 12, 40, 61, grocery, bookstore,
+  rel_flat_tav, lobby:1, lobby:20, bank, gazette_newsroom); **a programmatic round trip of EVERY restroom door: 158 rooms, 165 doors, each into
+  its restroom (a toilet and a basin there) and back** (lobby:4, City Hall's old alias id, is skipped: same room as cityhall); the park pavilion from
+  the city (in, toilet, wash, read the notice, out at the pavilion door, night); the guide; Stop + save/reload; a home bathroom.
+  Script fixes on the way: other needs are topped up per venue (a long run starved the player and a faint ended one visit); a crash in one venue is
+  now a FAIL line instead of ending the run; evaluate calls no longer return the scene object (Playwright could not serialise it late in the run).
+- navcheck --rooms all: all passed, 0 page errors (435 rooms, 848 doors used for real, 0 rooms with problems). nightcheck: all checks passed.
+  perf --verify: VERIFY OK (same pixels), 0 page errors.
+- Pictures looked at full size: `out/shots/bath4_<room>_wide.png` for all 11 one-offs + 5 post offices + the plain layouts (cs_nightjar, pub:12,
+  goods:copper, lobby:7, bank, rel_flat_tav), `bath4_airport_wc_close.png`, the post office doors in the venues (`bath4_post_<branch>_door.png`),
+  and samples of `bath4_<venue>_{2_inuse,5_room_night,6_inuse_night}.png`; asset sheet `out/gallery/b4_art.png`.
+
+Size: the current tree with the a112248 (Stage 103) versions of my files 15,173,557 B; with batch 4 15,201,814 B = **+27.6 KB** (budget 90 KB;
+the per-brand shop rooms I first drew were +41 KB before the owner's ruling made them plain). All bathroom work: 23.8 + 19.1 + 28.0 + 27.6 = **about 98.5 KB**.
+
+Not done / known gaps: no city folk in restrooms; night interiors look like day (as in earlier batches); plain rooms entered straight after a reload
+get their venue's colour from the 'ready' pass (checked by the round trip only for doors, not by eye after reload).
