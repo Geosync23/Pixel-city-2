@@ -64,7 +64,7 @@ const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(locati
  * max: most bands (pools add up). hyst: a band only changes when the light is this far (in bands) past the edge. rate: frames between two band steps (a change of several bands is walked through, never jumped).
  * big: an entity whose sprite is larger than this many px keeps the pattern like the static world (train cars, airliners, parade floats, stage screens); vehicles are always lit as a whole.
  * budget / slots: the cache of flat-colour sprite shapes: at most `budget` px in total (x4 bytes), at most `slots` colours per sprite. */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, budget: 3e6, slots: 4 };
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000, budget: 3e6, slots: 4 };
 let LB = new Float32Array(7 * 64), nLB = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 function addLight(cx, cy, c, a, owner) {
   if (!c._rgb || !(a > 0)) return; if ((nLB + 1) * 7 > LB.length) { const n = new Float32Array(LB.length * 2); n.set(LB); LB = n; }
@@ -86,7 +86,9 @@ let sR = 0, sG = 0, sB = 0, sT = false;
 function sample(px, py, x0, y0, x1, y1, skip) {
   sR = sG = sB = 0; sT = false;
   for (let i = 0, o = 0; i < nLB; i++, o += 7) {
-    if (skip && LO[i] === skip) continue; const cx = LB[o], cy = LB[o + 1], rx = LB[o + 2], ry = LB[o + 3]; if (x0 >= cx + rx || x1 <= cx - rx || y0 >= cy + ry || y1 <= cy - ry) continue; sT = true;
+    if (skip && LO[i] === skip) continue; const cx = LB[o], cy = LB[o + 1], rx = LB[o + 2], ry = LB[o + 3]; if (x0 >= cx + rx || x1 <= cx - rx || y0 >= cy + ry || y1 <= cy - ry) continue;
+    { const nx = cx < x0 ? x0 : cx > x1 ? x1 : cx, ny = cy < y0 ? y0 : cy > y1 ? y1 : cy, ex = (nx - cx) / rx, ey = (ny - cy) / ry; if (ex * ex + ey * ey >= 1) continue; }   // (the rectangle's nearest point is outside the ellipse)
+    sT = true;
     const dx = (px - cx) / rx, dy = (py - cy) / ry, q2 = dx * dx + dy * dy; if (q2 >= 1) continue;
     const q = Math.sqrt(q2), s = q < .3 ? 1 : q < .65 ? 1 - (q - .3) * (.3 / .35) : q < .9 ? .7 - (q - .65) * 1.4 : .35 - (q - .9) * 3.5;
     sR += LB[o + 4] * s; sG += LB[o + 5] * s; sB += LB[o + 6] * s;
@@ -116,7 +118,7 @@ function isWhole(e, sp) {
  * Buildings, walls and other large pieces keep the pools on them (a wall takes a pool like the ground does); so does anything flat. An asset or an object can say nl: 'whole' | 'ground'. Cached on the object. */
 function wholeOb(ob, sp) {
   const n = ob.nl || (ob.a && ob.a.nl), B = ob.B; let w;
-  if (n) w = n === 'whole'; else w = B[5] - B[2] > .12 && B[3] - B[0] <= NL.propFoot && B[4] - B[1] <= NL.propFoot && sp.w * sp.h <= NL.propBig && sp.l !== sp.c;
+  if (n) w = n === 'whole'; else { const fx = B[3] - B[0], fy = B[4] - B[1], px = sp.w * sp.h; w = B[5] - B[2] > .12 && sp.l !== sp.c && (fx <= 1.5 && fy <= 1.5 ? px <= NL.propTall : fx <= NL.propFoot && fy <= NL.propFoot && px <= NL.propBig); }   // (thin things: trees, posts, poles, however tall; wider things up to a kiosk)
   return ob._nw = w;
 }
 /* flat-colour copies of sprite shapes. Sprites out of the sprite cache never change (sp.im), so their copies are kept: up to NL.slots colours per sprite, NL.budget px in all (least recently drawn go first). Anything else is tinted on a scratch canvas each time it is drawn. */

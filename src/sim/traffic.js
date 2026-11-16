@@ -33,7 +33,7 @@ export function roadGraph() { if (!graph) { world = getCity(); graph = buildGrap
 /** lane waypoint route between two points {x,y}: { edges, offs, len, pts:[[x,y]..] } | null */
 export function route(from, to) { return roadGraph().routePts(from, to); }
 
-const FLOW = 1, FLOW_BUS = .35;   // traffic round 2: cars added to the ambient target: FLOW x (1 + the district's density factor), i.e. 1.3 (Hillcrest) to 2 (Downtown), + FLOW_BUS per bus on the street (the bus corridors are where the old pile-ups held the most vehicles); scaled down at night and in bad weather like the rest of the traffic. Traffic that flows leaves the simulated area sooner and buses no longer pile up, so without this the street would hold ~10% fewer vehicles than before (measured: docs/reports/traffic2.md)
+const FLOW = 1, FLOW_BUS = .7;   // traffic round 2: cars added to the ambient target: FLOW x (1 + the district's density factor), i.e. 1.3 (Hillcrest) to 2 (Downtown), + FLOW_BUS per bus on the street (the bus corridors are where the old pile-ups held the most vehicles); scaled down at night and in bad weather like the rest of the traffic. Traffic that flows leaves the simulated area sooner and buses no longer pile up, so without this the street would hold ~10% fewer vehicles than before (measured: docs/reports/traffic2.md)
 const CAP = 40, DWELL = 2;   // DWELL: game minutes at a stop off screen, real seconds on screen (QA round 3: was 5 -> a bus every ~90 min)
 export const BUS_SPEED = 9; // abstract (off-screen) bus speed, world units per game minute (QA round 3: was 6)
 const BUS_WAIT = 8;   // seconds a bus waits at the edge of the simulated area for room to appear

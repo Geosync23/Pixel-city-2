@@ -626,3 +626,6 @@ What do you mean warn you before? One of your questions is sleep before a 7-day 
 
 ## 166 (2026-11-16)
 Okay, I understood you couldn't identify the exact song I was talking about, but do this. Why don't you have us start off with the same set of songs that we start off with before? So, you know, from landing, came to the apartment, maybe the first 5 minutes. Whatever songs were playing in the old versions of the soundtrack, that should be playing in the new one as well. Those songs should lead us off the same way.
+
+## 167 (2026-11-16)
+You shouldn't be able to buy everything. Like for example, the Roomy app, it has every single furniture item in there. That should not be the case. There should be a reason to have to go to the stores. There should be a limited selection. Or maybe you still can see everything, but it says only available in store for some items. Man, let's just do it that way. And then it'll also tell you where it's available and it'll take me there Option will appear.

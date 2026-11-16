@@ -23,6 +23,11 @@ export function modal(opts = {}) {
   const close = () => { if (!open) return; open = false; wrap.remove(); if (pause) G.modal--; opts.onClose && opts.onClose(); };
   const win = el('div.win' + (opts.cls ? '.' + opts.cls : ''), null, (opts.title || opts.closable !== false) && el('div.win-head', null, el('span.win-title', { text: opts.title || '' }), opts.closable !== false && el('button.x', { text: 'x', 'aria-label': 'Close', onclick: close })), body);
   const wrap = el('div.modal', { onpointerdown: e => { if (e.target === wrap && opts.closable !== false) close(); } }, win);
+  /* ghost tap (alarm worker, 2026-11-16): a tap on a bed / counter the player stands next to opens this window on the canvas's pointerup, and the browser's click for that
+     same tap then lands on whatever button is now under the finger (seen: "Sleep 8 hours" chosen by itself). A real, mouse or touch click that did not start inside this
+     window within its first 600 ms is dropped; clicks from code (pad, keyboard: untrusted or detail 0) are never touched */
+  const born = performance.now(); let downIn = false; wrap.addEventListener('pointerdown', () => { downIn = true; }, true);
+  wrap.addEventListener('click', e => { if (!downIn && e.isTrusted && e.detail > 0 && performance.now() - born < 600) { e.preventDefault(); e.stopPropagation(); } }, true);
   root().append(wrap); if (pause) G.modal++; return { el: win, body, close, wrap };
 }
 /** simple choice menu. options: [{label, sub?, disabled?, icon?: HTMLElement, value}] -> Promise<value|null> */
