@@ -858,3 +858,6 @@ Status of woekers
 
 ## 210 (2026-11-16)
 No workers currently going?
+
+## 211 (2026-11-16)
+Teiler 2 is good but lets open on a dense zoomed in coty shot with a title card. Then the plane lands like before.  Also dont mention 4 way to get around. Just say fully exploration. Also some text about being an open world life sim.
