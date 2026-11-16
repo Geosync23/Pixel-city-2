@@ -8,7 +8,7 @@ import http from 'node:http'; import fs from 'node:fs'; import path from 'node:p
 const require = createRequire(import.meta.url); const { chromium } = require('playwright');
 export const SCRATCH = process.env.TRAILER_SCRATCH || '/tmp/claude-0/-home-user-Pixel-city-2/ab4bf52b-889a-5288-a866-29c2e55d0472/scratchpad/trailer';
 export const CLEAN = process.env.TRAILER_CLEAN || path.join(SCRATCH, 'tb');   // git archive 268bafc (Stage 98) + node tools/build.mjs
-export const BUILD = process.env.TRAILER_BUILD || path.join(SCRATCH, 's99');   // the lead's clean single-file build of the published Stage 99 (stage99_index.html copied to s99/index.html)
+export const BUILD = process.env.TRAILER_BUILD || path.join(SCRATCH, 's104');   // the lead's clean single-file build of the published Stage 104 (rough cuts: s99)
 export const FPS = 30, W = 1280, H = 720;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.json': 'application/json', '.mp3': 'audio/mpeg' };
 

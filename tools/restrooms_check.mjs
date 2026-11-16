@@ -172,7 +172,7 @@ if (!o.only || o.only.split(',').includes('park')) {
 // the need chooser's guide: from inside the diner the arrow points at the Restroom door, inside at a stall, and the goal ends on the seat
 if (!o.only || o.only.includes('diner')) {
   console.log('--- guide');
-  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 13 * 60; G.state.flags.lastDoor = 'door:diner'; G.needs.set('bladder', 15); return G.go('int:diner'); }); await pg.waitForTimeout(1200);
+  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 13 * 60; G.state.flags.lastDoor = 'door:diner'; G.needs.set('bladder', 15); return G.go('int:diner').then(() => 1); }); await pg.waitForTimeout(1200);
   const g = await pg.evaluate(() => { const p = G.places && G.places.get('diner'); G.navGoals.select({ need: 'bladder', place: 'diner' }); if (G.phone && G.phone.setWaypoint) { try { G.phone.setWaypoint({ id: 'diner', x: p.x, y: p.y, name: p.name }); } catch (e) { } } else G.state.phone.waypoint = { id: 'diner', x: p.x, y: p.y, name: p.name }; return true; });
   await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom), s = it.spot; G.player.x = s.x - .5; G.player.y = s.y + 1.8; G.snapCam(); });
   await pg.waitForTimeout(1500); const c1 = await pg.evaluate(() => { const c = G.navGoals.current(); return c && { id: c.id, room: c.step.room, label: c.step.label }; });
@@ -188,7 +188,7 @@ if (!o.only || o.only.includes('diner')) {
 // Stop in the middle of a toilet visit, then save + reload while standing inside a restroom
 if (!o.only || o.only.includes('library')) {
   console.log('--- stop + reload');
-  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 14 * 60; G.state.flags.lastDoor = 'door:library'; G.needs.set('bladder', 10); return G.go('int:library'); }); await pg.waitForTimeout(1200); await closeUi();
+  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 14 * 60; G.state.flags.lastDoor = 'door:library'; G.needs.set('bladder', 10); return G.go('int:library').then(() => 1); }); await pg.waitForTimeout(1200); await closeUi();
   await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom), s = it.spot; G.player.x = s.x + 1.5; G.player.y = s.y + 1; G.snapCam(); });
   await tapIt(/^Restroom$/); const inL = await waitFor(() => G.scene.id === 'int:library:wc', null, 15000); await pg.waitForTimeout(800);
   await tapIt(/^Toilet$/, 300); await waitFor(() => !!G.busy, null, 12000); await pg.waitForTimeout(700);

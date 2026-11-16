@@ -19,7 +19,7 @@ for (let i = 0; i < NF; i++) if (!fs.existsSync(path.join(seq, f5(i) + '.jpg')))
 const out = path.join(ROOT, 'docs/trailer', name + '.mp4'); fs.mkdirSync(path.dirname(out), { recursive: true });
 execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(seq, '%05d.jpg'), '-framerate', String(FPS), '-i', path.join(SCRATCH, 'overlay_' + k, '%05d.png'), '-i', path.join(SCRATCH, E.music),
   '-filter_complex', '[0:v][1:v]overlay=format=auto,format=yuv420p[v]', '-map', '[v]', '-map', '2:a', '-t', String(E.len), '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.0', '-preset', 'slow', '-crf', '19', '-maxrate', '1900k', '-bufsize', '3800k', '-g', '60',
-  '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', out], { stdio: 'inherit' });
+  '-af', 'volume=-1dB', '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', out], { stdio: 'inherit' });
 console.log(out, (fs.statSync(out).size / 1048576).toFixed(2) + ' MB', warn ? `(${warn} warnings)` : '');
 // contact sheet: one composited frame per shot with its time code
 const tmp = path.join(SCRATCH, 'sheet_' + k); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });

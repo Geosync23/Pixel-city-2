@@ -21,9 +21,10 @@ for (const spec of rooms) {
       /* nearest free tile to the wanted target, searching back toward the spawn */
       let tx = sp[0] + d[0], ty = sp[1] + d[1], ok = false; for (let k = 0; k < 12 && !ok; k++) { for (const [ox, oy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1.5, 0], [-1.5, 0]]) if (!G.world.isBlocked(tx + ox, ty + oy)) { tx += ox; ty += oy; ok = true; break; } if (!ok) { tx -= d[0] / 12; ty -= d[1] / 12; } }
       p.goTo(G.world, tx, ty); const L = Math.hypot(d[0], d[1]) || 1, lead = { x: 0, y: 0, z: 0 }; TR.lead = lead; TR.ld = [d[0] / L * 3.2, d[1] / L * 3.2]; G.camTarget = lead;
-      TR.follow = () => { lead.x = p.x + TR.ld[0]; lead.y = p.y + TR.ld[1]; lead.z = p.z; G.snapCam(); }; TR.follow();
-      return { path: p.path ? p.path.length : 0, to: [tx, ty], ents: G.scene.ents.length };
+      TR.follow = () => { if (G.modal) { TR.sawModal = (document.querySelector('#ui .ftw, #ui .modal') || {}).className || 'modal'; for (const w of document.querySelectorAll('#ui .ftw, #ui .modal')) w.remove(); G.modal = 0; if (!p.path) p.goTo(G.world, tx, ty); } lead.x = p.x + TR.ld[0]; lead.y = p.y + TR.ld[1]; lead.z = p.z; G.snapCam(); }; TR.follow();
+      return { path: p.path ? p.path.length : 0, to: [tx, ty], ents: G.scene.ents.length, modal: G.modal, saw: TR.sawModal || null };
     }, [sp, d, opt.zoom]);
+    for (let q = 0; q < Math.round((opt.pre === undefined ? .5 : opt.pre) * 30); q++) { await page.evaluate(() => TR.follow()); await page.clock.runFor(1000 / 30); }   /* polish pass: the player is a couple of steps inside when the clip starts */
     const dir = await record(page, name, Math.round(opt.sec * FPS), () => page.evaluate(() => TR.follow()));
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(dir, '%05d.jpg'), '-c:v', 'libx264', '-crf', '10', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', path.join(SCRATCH, 'clips', name + '.mp4')]);
     picks.push(path.join(dir, '00014.jpg')); console.log(r, JSON.stringify(sp), JSON.stringify(info));
