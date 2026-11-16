@@ -60,7 +60,8 @@ const HARNESS = () => {
   }
   function analyse() {
     const S = G.renderer._S, cam = G.cam, n = S.length; R.frames++; if (n > R.maxItems) R.maxItems = n; cur = new Map();
-    if (G.renderer.sortCycles) { const C = G.renderer.sortCycles(); for (const g of C) { if (!g.some(it => isLong(it.e))) continue; R.cycN++; if (R.cyc.length < 30) R.cyc.push({ f: frames, n: g.length, items: g.slice(0, 8).map(nameOf), boxes: g.slice(0, 8).map(it => Array.from(it.B, v => +v.toFixed(2))) }); } }
+    if (G.renderer.resorts !== undefined) { if (R.rs0 === undefined) R.rs0 = G.renderer.resorts; R.resorts = G.renderer.resorts - R.rs0; }
+    if (G.renderer.sortCycles) { const C = G.renderer.sortCycles(true); for (const g of C) { if (!g.some(it => isLong(it.e))) continue; R.cycN++; if (R.cyc.length < 30) R.cyc.push({ f: frames, n: g.length, items: g.slice(0, 8).map(nameOf), boxes: g.slice(0, 8).map(it => Array.from(it.B, v => +v.toFixed(2))) }); } }
     for (let i = 0; i < n; i++) if (S[i].h) { const o = outside(S[i]); if (o) { R.outN += o; if (R.out.length < 20) R.out.push(nameOf(S[i]) + ': ' + o + ' px outside its outline'); } }
     const bx = new Float32Array(n * 4);
     for (let i = 0; i < n; i++) { const it = S[i], sp = it.spr, q = sp.bx, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; bx[i * 4] = q ? x + q[0] : x; bx[i * 4 + 1] = q ? y + q[1] : y; bx[i * 4 + 2] = q ? x + q[2] : x + sp.w; bx[i * 4 + 3] = q ? y + q[3] : y + sp.h; }
@@ -93,7 +94,7 @@ const HARNESS = () => {
   const api = window.OC = {
     R, strips, frames: () => frames,
     run(n, opt = {}) { for (let i = 0; i < n; i++) { drawOn = !opt.fast; tick(); if (!opt.fast) { if (!opt.noCheck) analyse(); capture(); } if (opt.until && opt.until()) return i; } drawOn = true; return n; },
-    reset() { R.frames = R.pairs = R.popN = R.popPx = R.wrongN = R.maxItems = R.cycN = 0; R.cyc.length = 0; R.pops.length = 0; R.wrong.length = 0; R.popKinds = {}; R.wrongKinds = {}; prev.clear(); strips.length = 0; saveQ = []; },
+    reset() { R.frames = R.pairs = R.popN = R.popPx = R.wrongN = R.maxItems = R.cycN = 0; R.cyc.length = 0; R.rs0 = undefined; R.resorts = 0; R.pops.length = 0; R.wrong.length = 0; R.popKinds = {}; R.wrongKinds = {}; prev.clear(); strips.length = 0; saveQ = []; },
     startStrip(subj, { every = 4, max = 48, cols = 8, cw = 200, ch = 150 } = {}) { const cv = document.createElement('canvas'); cv.width = cols * (cw + 2); cv.height = Math.ceil(max / cols) * (ch + 2); const x = cv.getContext('2d'); x.fillStyle = '#ff2a6d'; x.fillRect(0, 0, cv.width, cv.height); cap = { subj, every, max, cols, cw, ch, cv, n: 0, i: 0 }; },
     endStrip() { const c = cap; cap = null; if (!c || !c.n) return null; const rows = Math.ceil(c.n / c.cols), cv = document.createElement('canvas'); cv.width = c.cv.width; cv.height = rows * (c.ch + 2); cv.getContext('2d').drawImage(c.cv, 0, 0); return cv.toDataURL(); },
     setHour(h) { const d = Math.floor(G.state.t / 1440); G.state.t = d * 1440 + h * 60; G.advance(1); },
@@ -207,7 +208,7 @@ async function runCase(id) {
   if (res.strip && o.strips) fs.writeFileSync(path.join(OUT, tag + '.png'), Buffer.from(res.strip.split(',')[1], 'base64')); delete res.strip;
   (res.strips || []).forEach((s, i) => { fs.writeFileSync(path.join(OUT, tag + '_pop' + i + '.png'), Buffer.from(s.url.split(',')[1], 'base64')); s.file = tag + '_pop' + i + '.png'; delete s.url; });
   res.errors = errs; pageErrors += errs.length; res.secs = Math.round((Date.now() - t0) / 1000); results[tag] = res; await ctx.close();
-  const R = res.R || {}; console.log(`${tag.padEnd(24)} frames ${String(R.frames || 0).padStart(5)}  pairs ${String(R.pairs || 0).padStart(7)}  POPS ${String(R.popN || 0).padStart(4)} (${String(R.popPx || 0).padStart(6)} px)  WRONG ${String(R.wrongN || 0).padStart(5)}  CYCLES ${String(R.cycN || 0).padStart(4)}  OUTSIDE ${R.outN || 0}  errors ${errs.length}  ${res.secs}s  ${res.note}`);
+  const R = res.R || {}; console.log(`${tag.padEnd(24)} frames ${String(R.frames || 0).padStart(5)}  pairs ${String(R.pairs || 0).padStart(7)}  POPS ${String(R.popN || 0).padStart(4)} (${String(R.popPx || 0).padStart(6)} px)  WRONG ${String(R.wrongN || 0).padStart(5)}  CYCLES ${String(R.cycN || 0).padStart(4)}  RESORT ${String(R.resorts || 0).padStart(4)}  OUTSIDE ${R.outN || 0}  errors ${errs.length}  ${res.secs}s  ${res.note}`);
   if (R.popN) console.log('    pops by kind: ' + JSON.stringify(R.popKinds)); if (R.wrongN) console.log('    wrong by kind: ' + JSON.stringify(R.wrongKinds)); for (const e of errs.slice(0, 3)) console.log('    ! ' + e);
 }
 const queue = ids.slice(); await Promise.all(Array.from({ length: Math.min(o.jobs, queue.length) }, async () => { while (queue.length) await runCase(queue.shift()); }));

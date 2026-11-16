@@ -244,3 +244,15 @@ All bathroom work so far: batch 1 +23.8 KB, batch 2 +19.1 KB, batch 3 +28.0 KB =
 What remains after batch 3: of the 133 venue entrance rooms that had a fade-out restroom (survey), 22 now lead into real rooms (plus City Hall's
 floors, the hotel ballroom and spa, the SkyDeck deck); **111 entrance rooms remain**, plus the park pavilion and a few inner rooms (airport, post office, lobbies' upper floors).
 Biggest groups left: 50 pub venues (shops and small restaurants), 20 office lobbies, 13 home-goods stores, 10 clothing stores.
+
+Checks (batch 3, by the worker; the dist built after the last source edit, 15,168,821 B):
+- validate exit 0; build OK; lookbehind grep 0.
+- `node tools/restrooms_check.mjs --shots bath3`, run once from start to finish AFTER the last edit to the script: **240 PASS, 0 FAIL, 0 page errors**
+  (all 29 restroom entry points incl. the hotel ballroom and the five small cafes, the guide, Stop (bladder 10 -> 48), save + reload inside a restroom, a home bathroom).
+  Found and fixed on the way: the Aquarium's door first stood inside the ticketed Tropical Reef (a visitor without a ticket was pushed back);
+  it is now in the gift shop. The script takes a per-venue hour (the Observatory opens at 13:00).
+- navcheck --rooms all: all passed, 0 page errors (315 rooms, 0 with problems). nightcheck: all checks passed. perf --verify: VERIFY OK (same pixels), 0 page errors.
+- Pictures looked at full size: `out/shots/bath3_<room>_wide.png` (all 16 venues, plus central_station and gym for the calmer floors),
+  `bath3_<venue>_{0_door,1_room_day,2_inuse,3_wash,4_back,5_room_night,6_inuse_night}.png`; asset sheets `out/gallery/b3_*.png`.
+- Not done: the sign-stand venues (cafe, ramen, cinema, observatory, four of the five small cafes) still show bladder.js's blue sign stand as the way in
+  (no free wall I could place a door on without editing the venue); no city folk in restrooms.

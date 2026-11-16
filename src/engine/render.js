@@ -8,8 +8,11 @@ const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; 
 
 /* test switch (tools/occl_check.mjs --query "?occl=old"): the draw order as it was before the occlusion pass */
 const OCCL = !(typeof location !== 'undefined' && /[?&]occl=old\b/.test(location.search || ''));
+/* SOFT: set by behind(): its last answer was for two boxes NEITHER of which can cover the other (beside each other on screen, or one above and beside): an order for what hangs over the boxes only.
+ * The sort keeps such a link when it can and drops it first when links contradict each other (sortItems). */
+let SOFT = false;
 function behind(p, q, m) {
-  const A = p.B, B = q.B;
+  const A = p.B, B = q.B; SOFT = false;
   // separation along x and along y (-1: A is behind, 1: A is in front, 0: ranges overlap)
   const sx = A[3] <= B[0] + 1e-6 ? -1 : B[3] <= A[0] + 1e-6 ? 1 : 0, sy = A[4] <= B[1] + 1e-6 ? -1 : B[4] <= A[1] + 1e-6 ? 1 : 0;
   if (m === 2) return behindLong(p, q, sx, sy);
@@ -17,7 +20,7 @@ function behind(p, q, m) {
   // Two placed objects: one consistent order (centre depth), as ever (m = 0: the static world is drawn exactly as before the occlusion pass).
   // With somebody who moves (m = 1): the axis with the LARGER gap decides (= compare the two corners that face each other). That is what is true for the parts that can overlap, and it goes over into
   // the one-axis rule below without a jump when one walks past the end of a long thing (a counter, a fence); the centre depth said "in front" until the middle of it and "behind" after.
-  if (sx && sy && sx !== sy) { if (m === 1) { const gx = sx < 0 ? B[0] - A[3] : A[0] - B[3], gy = sy < 0 ? B[1] - A[4] : A[1] - B[4]; if (gx !== gy) return gx > gy ? sx < 0 : sy < 0; } return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4]; }
+  if (sx && sy && sx !== sy) { SOFT = OCCL; if (m === 1) { const gx = sx < 0 ? B[0] - A[3] : A[0] - B[3], gy = sy < 0 ? B[1] - A[4] : A[1] - B[4]; if (gx !== gy) return gx > gy ? sx < 0 : sy < 0; } return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4]; }
   if (sx) return sx < 0; if (sy) return sy < 0;
   if (A[5] <= B[2] + 1e-6) return true; if (B[5] <= A[2] + 1e-6) return false;
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
@@ -43,11 +46,11 @@ function behindLong(p, q, sx, sy) {
   if (sx || sy) {
     const gx = sx < 0 ? B[0] - A[3] : sx > 0 ? A[0] - B[3] : 0, gy = sy < 0 ? B[1] - A[4] : sy > 0 ? A[1] - B[4] : 0; let s, g;
     if (sx && sy && sx !== sy) {
-      let r = 0, ax = gx > gy;   // ax: x is the axis "along" (two vehicles: the larger gap)
+      SOFT = true; let r = 0, ax = gx > gy;   // ax: x is the axis "along" (two vehicles: the larger gap)
       if (p.m !== 2 || q.m !== 2) { const L = p.m === 2 ? A : B, o = p.m === 2 ? q : p, ob = o.ob; ax = L[3] - L[0] >= L[4] - L[1]; r = OVR * (ob !== null ? (ob._ov !== undefined ? ob._ov : ovOf(ob)) : .35); }
       const ga = (ax ? gx : gy) - r, gc = ax ? gy : gx; if (ga > gc) { s = ax ? sx : sy; g = ga; } else { s = ax ? sy : sx; g = gc; }
     } else if (sx && (!sy || gx >= gy)) { s = sx; g = gx; } else { s = sy; g = gy; }
-    if (sz && sz !== s) { const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; if (gz >= ZM || gz > g) return sz < 0; }
+    if (sz && sz !== s) { SOFT = true; const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; if (gz >= ZM || gz > g) return sz < 0; }
     return s < 0;
   }
   if (sz) return sz < 0;
@@ -74,30 +77,49 @@ function obHex(ob) { const v = ob.vbl, x = ob.x, y = ob.y, z = ob.z; return ob._
  * (Glow that reaches out of a long entity's box, a train's headlight beam, is not part of this: what the beam falls on is not "in front of" or "behind" the train.) */
 function pairMiss(p, q) { const hp = p.h, hq = q.h; return hp !== null ? (hq !== null ? hexHex(hp, hq) : hexMiss(hp, q.t)) : hexMiss(hq, p.t); }
 function hexMiss(h, r) { return r[0] >= h[1] || r[2] <= h[0] || r[1] + r[0] * .5 >= h[3] || r[3] + r[2] * .5 <= h[2] || r[1] - r[2] * .5 >= h[5] || r[3] - r[0] * .5 <= h[4]; }
-/** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint}. n: only the first n items of L; out: array to fill (perf: the renderer reuses its lists; the scratch arrays below are reused too, so a frame allocates nothing here) */
-let sDeps = [], sCnt = new Int32Array(256), sOrder = new Int32Array(256), sStack = new Int32Array(1024), sSt = new Uint8Array(256);
+/** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint}. n: only the first n items of L; out: array to fill (perf: the renderer reuses its lists; the scratch arrays below are reused too, so a frame allocates nothing here)
+ * Links that contradict each other (A behind B behind C behind A): the walk below drops whichever link it meets last. Occlusion pass: if the dropped one was a HARD link (one box really covers
+ * the other: a deck and the train on it) while SOFT ones (see behind()) are in the loop, the frame is sorted again with the hard links first (resort): no soft link may undo a hard one. Frames
+ * without such a loop (nearly all) are sorted exactly as before. */
+let sDeps = [], sCnt = new Int32Array(256), sOrder = new Int32Array(256), sStack = new Int32Array(1024), sSt = new Uint8Array(256), sPos = new Int32Array(256);
+const SB = 1 << 24, SM = SB - 1; export const SORT = { resorts: 0 };
 export function sortItems(L, n = L.length, out = []) {
-  if (sCnt.length < n) { sCnt = new Int32Array(n * 2); sOrder = new Int32Array(n * 2); sSt = new Uint8Array(n * 2); sStack = new Int32Array(n * 8); }
+  if (sCnt.length < n) { sCnt = new Int32Array(n * 2); sOrder = new Int32Array(n * 2); sSt = new Uint8Array(n * 2); sStack = new Int32Array(n * 8); sPos = new Int32Array(n * 2); }
   const deps = sDeps, cnt = sCnt, st = sSt, order = sOrder, stack = sStack; while (deps.length < n) deps.push([]);
   cnt.fill(0, 0, n); st.fill(0, 0, n);
-  for (let i = 0; i < n; i++) { const p = L[i], a = p.r, ma = p.m, ha = p.h; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; const q = L[j], mj = q.m; if ((ha !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, ma > mj ? ma : mj)) deps[j][cnt[j]++] = i; else deps[i][cnt[i]++] = j; } }
+  for (let i = 0; i < n; i++) { const p = L[i], a = p.r, ma = p.m, ha = p.h; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; const q = L[j], mj = q.m; if ((ha !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, ma > mj ? ma : mj)) deps[j][cnt[j]++] = SOFT ? i | SB : i; else deps[i][cnt[i]++] = SOFT ? j | SB : j; } }
   /* order = indices by sort hint k, stable (an insertion sort: the same order as the Array.sort((p, q) => L[p].k - L[q].k) it replaces, without its temporary arrays) */
   for (let i = 0; i < n; i++) { const k = L[i].k; let j = i - 1; while (j >= 0 && L[order[j]].k > k) { order[j + 1] = order[j]; j--; } order[j + 1] = i; }
-  let sp = 0, m = 0;
-  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const c = deps[i][idx]; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } } else { sp -= 2; out[m++] = L[i]; } } }
+  let sp = 0, m = 0, bad = false;   // (st: 1 = being walked, 2 = drawn; bad: a hard link was dropped)
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB) bad = true; } else { sp -= 2; st[i] = 2; out[m++] = L[i]; } } }
+  if (bad) { SORT.resorts++; m = resort(L, n, out); }
   if (out.length !== m) out.length = m;
   return out;
 }
+/* the second try: (1) walk the hard links only -> an order that honours every hard link that can be honoured (sPos); (2) walk all links again, without the soft ones that go against (1). */
+function resort(L, n, out) {
+  const deps = sDeps, cnt = sCnt, st = sSt, order = sOrder, stack = sStack, pos = sPos; let sp = 0, m = 0;
+  st.fill(0, 0, n);
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx]; if (d < SB && !st[d]) { st[d] = 1; stack[sp++] = d; stack[sp++] = 0; } } else { sp -= 2; pos[i] = m++; } } }
+  st.fill(0, 0, n); m = 0;
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c] && (d < SB || pos[c] < pos[i])) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } } else { sp -= 2; out[m++] = L[i]; } } }
+  return m;
+}
 
-/* the depth sort as it was before the perf pass, kept word for word for the test hook Renderer.sortCheck (tools/perf.mjs --verify): both must give the same order */
+/* the depth sort in plain form, for the test hook Renderer.sortCheck (tools/perf.mjs --verify): both must give the same order. (Until the occlusion pass this was the sort as it was before the perf pass,
+ * word for word; it now has the outline test and the second try of sortItems, written out the slow way.) */
 function sortItemsRef(L) {
-  const n = L.length, deps = new Array(n);
-  for (let i = 0; i < n; i++) deps[i] = null;
-  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue;   /* (the outline test of the occlusion pass, see pairMiss: part of what is sorted, not of how) */ if (behind(L[i], L[j], Math.max(L[i].m, L[j].m))) (deps[j] || (deps[j] = [])).push(i); else (deps[i] || (deps[i] = [])).push(j); } }
-  const out = [], st = new Uint8Array(n), order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
-  const stack = [];
-  for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (d && idx < d.length) { stack[stack.length - 1]++; const c = d[idx]; if (!st[c]) { st[c] = 1; stack.push(c, 0); } } else { stack.length -= 2; out.push(L[i]); } } }
-  return out;
+  const n = L.length, deps = new Array(n), soft = new Array(n);
+  for (let i = 0; i < n; i++) { deps[i] = []; soft[i] = []; }
+  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue; if (behind(L[i], L[j], Math.max(L[i].m, L[j].m))) { deps[j].push(i); soft[j].push(SOFT); } else { deps[i].push(j); soft[i].push(SOFT); } } }
+  const order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
+  /* walk(use(i, x) -> follow link number x of item i?) -> { out: indices in draw order, bad: a hard link was dropped } */
+  const walk = use => { const out = [], st = new Uint8Array(n), stack = []; let bad = false;
+    for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (idx < d.length) { stack[stack.length - 1]++; const c = d[idx]; if (!use(i, idx)) continue; if (!st[c]) { st[c] = 1; stack.push(c, 0); } else if (st[c] === 1 && !soft[i][idx]) bad = true; } else { stack.length -= 2; st[i] = 2; out.push(i); } } }
+    return { out, bad }; };
+  let w = walk(() => true);
+  if (w.bad) { const pos = new Array(n); walk((i, x) => !soft[i][x]).out.forEach((i, at) => { pos[i] = at; }); w = walk((i, x) => !soft[i][x] || pos[deps[i][x]] < pos[i]); }
+  return w.out.map(i => L[i]);
 }
 let WID = 0;
 const pools = new Map();
@@ -358,14 +380,17 @@ export class Renderer {
   }
   /** test hook: is the draw order of the frame just drawn the same as the old depth sort gives? { items, same } */
   sortCheck() { const L = this._L.filter(it => it.spr), ref = sortItemsRef(L), S = this._S; let same = ref.length === S.length; for (let i = 0; same && i < ref.length; i++) if (ref[i] !== S[i]) same = false; return { items: S.length, same }; }
-  /** test hook (tools/occl_check.mjs): contradictions in the order of the frame just drawn = groups of items that are each "behind" the next all the way round (the sort has to drop a link of each). Returns [[item...]...]. Expect [] wherever something long moves. */
-  sortCycles() {
+  /** test hook (tools/occl_check.mjs): contradictions in the order of the frame just drawn = groups of items that are each "behind" the next all the way round (the sort has to drop a link of each).
+   * hard: only the links where one box really covers the other (what the sort cannot settle by dropping a soft link). Returns [[item...]...]. */
+  sortCycles(hard = true) {
     const L = this._L.filter(it => it.spr), n = L.length, adj = L.map(() => []), idx = new Int32Array(n).fill(-1), low = new Int32Array(n), on = new Uint8Array(n), st = [], out = []; let c = 0;
-    for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue; if (behind(L[i], L[j], Math.max(L[i].m, L[j].m))) adj[j].push(i); else adj[i].push(j); } }
+    for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue; const bh = behind(L[i], L[j], Math.max(L[i].m, L[j].m)); if (hard && SOFT) continue; if (bh) adj[j].push(i); else adj[i].push(j); } }
     const go = v => { idx[v] = low[v] = c++; st.push(v); on[v] = 1; for (const w of adj[v]) { if (idx[w] < 0) { go(w); if (low[w] < low[v]) low[v] = low[w]; } else if (on[w] && idx[w] < low[v]) low[v] = idx[w]; } if (low[v] === idx[v]) { const g = []; let w; do { w = st.pop(); on[w] = 0; g.push(L[w]); } while (w !== v); if (g.length > 1) out.push(g); } };
     for (let i = 0; i < n; i++) if (idx[i] < 0) go(i);
     return out;
   }
+  /** how many frames had to be sorted a second time (sortItems) since the page loaded */
+  get resorts() { return SORT.resorts; }
   /** test hook (async): citizens' sprites (every direction, two frames of stand / walk) drawn by the bake worker vs. here; { tested, bad } */
   async charCheck(ents, max = 12) {
     const bad = [], seen = new Set(); let tested = 0;
