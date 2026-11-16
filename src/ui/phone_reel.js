@@ -81,7 +81,7 @@ let live = null;   // the phone player that is running (for G.reel and the fulls
 function openFilm(ctx, id) { const f = M().film(id); if (!f) return; if (!M().canPlay(id)) return toast(M().filmState(id) === 'buy' ? 'Buy it first: it is under Now available to own.' : 'Not on Reel yet. See it at the Orpheum first.'); ctx.push(f.title, (b, c) => player(b, c, id), 'film:' + id); }
 function player(b, ctx, id) {
   injectMediaCss(); const f = M().film(id); if (!f || !M().canPlay(id)) { b.append(empty('ui.lock', 'Not available', 'This one is not in your Reel library.')); return; }
-  b.classList.add('md-body', 'md-player'); const mine = M().begin('reel', id);
+  b.classList.add('md-body', 'md-player'); const mine = M().begin('reel', id); safe(() => ctx.partScreen && ctx.partScreen('video'), 0);   // PART-SCREEN (phone.js): the world goes on above the player
   const st = safe(() => M().films().find(x => x.film.id === id), null) || { pos: 0 }; let t = st.pos > 1 && st.pos < f.dur - 2 ? st.pos : 0, playing = true, ended = false, saved = 0, full = null, lastFrame = -1;
   const cv = el('canvas.pix.md-cv', { width: FW, height: FH }), g = cv.getContext('2d'), tr = track(f);
   const stage = el('div.md-stage', null, cv), over = el('div.md-over'), fill = el('i'), knob = el('u'), scrub = el('div.md-scrub', { role: 'slider', 'aria-label': 'Seek' }, fill, knob), time = el('span.md-time');
@@ -92,7 +92,7 @@ function player(b, ctx, id) {
   function seek(nt, play) { t = Math.max(0, Math.min(f.dur - .05, nt)); if (ended) { ended = false; over.replaceChildren(); over.classList.remove('on'); } if (play) playing = true; if (playing) tr.start(); tr.seek(t); draw(); ui(); }
   function finish() {
     ended = true; playing = false; tr.stop(); M().watched(id, f.dur, f.dur, 'phone'); const s = M().session(), nx = M().next(id);
-    over.classList.add('on'); over.replaceChildren(el('b', { text: 'The end' }), el('small', { text: s ? `Fun +${s.fun.toFixed(1)} · ${Math.round(s.minutes)} min` : '' }),
+    over.classList.add('on'); over.replaceChildren(el('b', { text: 'The end' }), el('small', { text: s ? `Fun +${s.fun.toFixed(1)} · ${Math.round(s.minutes)} min of screen time` : '' }),
       el('div.md-acts', null, btn('Replay', () => seek(0, true)), nx && nx.id !== id ? btn('Next: ' + (nx.serial ? `Episode ${nx.serial.ep}` : nx.title), () => { exitFull(); ctx.back(); setTimeout(() => openFilm(ctx, nx.id), 30); }, 'pri') : null));
     ui();
   }
@@ -115,8 +115,11 @@ function player(b, ctx, id) {
     ...(f.teaches && !safe(() => G.cooking.knows(f.teaches), true) ? [el('p.md-note', { text: 'Watch to the end to learn the recipe.' })] : []));
   tr.start(); tr.seek(t); draw(); ui(); live = { id, state: () => ({ id, t, playing, ended, full: !!full }), toggle, seek, goFull, exitFull };
   onTick(b, dt => {
-    if (playing && !ended) {
-      const d = Math.min(dt, f.dur - t); t += d; M().spend('watch', TUNE.FILM_MINUTES / f.dur * d); tr.pump(t);
+    /* part-screen: the clock runs by itself (normal rate, 1x / 2x / 4x), so the film only pays its fun / screen time (noAdvance): per second of film, the same
+       total for a whole episode as full-screen. Anything that pauses the game over it (the HUD's pause, a dialog, a sheet) holds the film too. */
+    const ps = !!(G.phone && G.phone.part), held = ps && G.modal > 0;
+    if (playing && !ended && !held) {
+      const d = Math.min(dt, f.dur - t); t += d; M().spend('watch', TUNE.FILM_MINUTES / f.dur * d, ps ? { noAdvance: true } : undefined); tr.pump(t);
       if (t >= f.dur - .02) finish(); else if (t - saved > 2 || t < saved) { saved = t; M().watched(id, t, f.dur); }
     }
     const fr = Math.floor(t * 20); if (fr !== lastFrame) { lastFrame = fr; draw(); } ui();
@@ -149,5 +152,7 @@ export function init() {
   G.on('activity:start', (id, ctx) => { if (id === 'stream_reel') tvStart(ctx); });
   G.on('activityEnd', (a, completed) => { if (tv && a === tv.act) { const f = tv.f; tvStop(); if (completed) M().watched(f.id, f.dur, f.dur, 'tv'); } });
   G.on('frame', tvTick); G.on('scene', () => tvStop());
+  /* a long film must not swallow a shift: "Leave now" pauses the phone player (the My Day banner shows over it, full or part-screen) */
+  G.on('appt:leave', () => { if (!live) return; const s = live.state(); if (s.playing && !s.ended) { live.toggle(); safe(() => G.phone.tip('Paused: time to leave.'), 0); } });
   safe(() => G.tips.register({ id: 'reel', topic: 'phone', title: 'Reel: shows in your pocket', text: 'Reel has small-screen shows you can watch anywhere, and on your TV at home (tap the TV, Stream on Reel). Cinema films are different: see one at the Orpheum first, and about two days later it turns up in Reel to buy. The big screen is still the better night out.', go: { app: 'reel' }, goLabel: 'Open Reel' }), 0);
 }

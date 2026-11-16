@@ -244,6 +244,7 @@ function districtPage(b, ctx, d) {
 
 /* ---------- entry page ---------- */
 function entryPage(b, ctx, e) {
+  safe(() => ctx.partScreen && ctx.partScreen('read', { start: 'full', rate: .1 }), 0);   /* PART-SCREEN (phone.js, owner msg 173): an entry can be read docked with time running at reading pace ("Smaller"); it opens full, as browsing the guide does */
   b.classList.add('wg'); St().seen[e.id] = 1; const G_ = g(), o = G_.openNow(e), m = walkMin(e), ch = CHAPTER_BY_ID[e.chapter] || {}, pos = G_.pos(e);
   const hero = thumb(e, 192, 120, 'wg-hero'); if (hero._lazy) setTimeout(() => safe(() => drawThumb(hero, e), 0), 30);
   const fav = el('button.wg-fav' + (G_.isFav(e.id) ? '.on' : ''), { 'aria-label': 'Bookmark', 'aria-pressed': String(G_.isFav(e.id)), onclick: () => { const on = G_.fav(e.id); fav.classList.toggle('on', on); fav.setAttribute('aria-pressed', String(on)); ctx.tip(on ? 'Bookmarked. It is on the Wander cover page.' : 'Bookmark removed.'); } });

@@ -72,10 +72,17 @@
 .md-scrub::before{content:"";position:absolute;left:0;right:0;top:10px;height:8px;background:#d9c9a6;border:2px solid var(--edge)}
 .md-scrub i{position:absolute;left:2px;top:12px;height:4px;background:var(--accent);max-width:calc(100% - 4px)}
 .md-scrub u{position:absolute;top:5px;width:8px;height:18px;margin-left:-4px;background:#fffdf4;border:2px solid var(--edge)}
-.md-time{font-size:12.5px;font-weight:700;white-space:nowrap}
+.md-time{font-size:12.5px;font-weight:700;white-space:nowrap;flex:none}.md-ctrls .md-time{width:auto;display:block;line-height:1.3}   /* myday.css also has a .md-time (width 50px): the Reel clock was cut off */
 .md-over{display:none;margin:0 10px;padding:9px 10px;background:#2a2733;color:#fff4dc;flex-direction:column;gap:6px;align-items:flex-start}.md-over.on{display:flex}.md-over b{font-size:17px}.md-over small{opacity:.85}
 .md-about{padding:0 12px;display:flex;flex-direction:column;gap:3px}.md-about b{font-size:17px;line-height:1.2}.md-about small{opacity:.7;font-size:12.5px}.md-about p{margin:3px 0 0;font-size:14px;line-height:1.35}
 .md-player .md-note{padding:0 12px}
+/* Reel part-screen (phone.js PART-SCREEN): only the picture and the controls; "The end" sits over the picture */
+#phone-layer.part .ph-body.md-player{overflow:hidden;padding:0 0 6px;gap:6px;position:relative}
+#phone-layer.part .md-stage{padding:4px 0}
+#phone-layer.part .md-cv{width:100%}
+.ph .md-ctrls .md-ctl{padding:2px 5px}.md-ctrls .md-scrub{min-width:28px}
+#phone-layer.part .md-about,#phone-layer.part .md-player .md-note{display:none}
+#phone-layer.part .md-over.on{position:absolute;left:8px;right:8px;top:8px;z-index:2;margin:0;border:2px solid #fff4dc}
 #reel-fs{position:fixed;inset:0;background:#000;z-index:9000;display:grid;place-items:center;overflow:hidden;touch-action:none}
 #reel-fs .md-fs-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center}
 #reel-fs.rot .md-fs-box{transform:translate(-50%,-50%) rotate(90deg)}

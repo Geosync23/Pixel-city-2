@@ -118,22 +118,33 @@ function paginate(text, fontPx, width, height) {
   flush(); return pages.length ? pages : [['']];
 }
 function openRead(ctx, id, page) { const r = M().read(id); if (!r || !r.released) return toast('That one is not out yet.'); ctx.push(r.serial ? `${r.serial.name} ${r.serial.part}/${r.serial.of}` : r.title, (b, c) => reading(b, c, id, page), 'read:' + id); }
+/* the reading position as a word count, so a new pagination (Aa, Bigger / Smaller) opens on the page that holds the same words */
+let refitAt = null;
+const wordsIn = pg => pg.join(' ').split(/\s+/).filter(Boolean).length;
 function reading(b, ctx, id, startPage) {
   injectMediaCss(); const r = M().read(id), P = M().prefs(); if (!r) { b.append(empty('novel_lighthouse', 'Not found', '')); return; }
+  /* PART-SCREEN (phone.js): reading docks the phone (a taller sheet than video) before the page is measured; time runs above it */
+  /* the clock above runs at READING pace (TUNE.CLOCK.read game minutes per real second, x the 1x / 2x / 4x speed): read at a normal speed, a piece costs the
+     minutes the Library lists for it (a 500-word piece ~13 min), as full-screen does. At the normal walking-world rate it would cost about two game hours. */
+  safe(() => ctx.partScreen && ctx.partScreen('read', { refit: () => remember(), rate: TUNE.CLOCK.read }), 0);
   const view = document.querySelector('#phone-layer .ph-view'), vw = (view && view.clientWidth) || 340, vh = (view && view.clientHeight) || 560;
   const fontPx = FONT[P.font] || FONT[1], pages = paginate(r.text, fontPx, vw - 44, vh - 52 - 46 - 64 - 30);
+  if (refitAt && refitAt.id === id && startPage === undefined) { let w = 0, k = 0; while (k < pages.length - 1 && w + wordsIn(pages[k]) <= refitAt.word) { w += wordsIn(pages[k]); k++; } startPage = k; }
+  refitAt = null;
   let page = Math.max(0, Math.min(pages.length - 1, startPage !== undefined ? startPage : (r.page || 0))), acc = 0, shown = false, finished = false;
   if (page >= pages.length) page = 0;
+  function remember() { if (finished) return; settle(); let w = 0; for (let k = 0; k < page; k++) w += wordsIn(pages[k]); refitAt = { id, word: w }; M().readProgress(id, page); }
   const mine = M().begin('pages', id);
   b.classList.add('md-page'); if (P.night) b.classList.add('night');
   const words = () => pages[page].join(' ').split(/\s+/).filter(Boolean).length, expect = () => Math.max(3, words() / TUNE.READ_WPM * 60);
   const txt = el('div.md-text', { style: { fontSize: fontPx + 'px', lineHeight: String(LH) } }), prog = el('span.md-pg'), clock = el('span.md-clock');
   const marked = () => M().marks().some(m => m.id === id && m.page === page), bm = el('button.md-tool', { 'aria-label': 'Bookmark this page', onclick: () => { if (marked()) M().unmark(id, page); else { M().bookmark(id, page); ctx.tip('Bookmarked. Find it on the Library page.'); } paint(); } });
   const tools = el('div.md-tools', null,
-    el('button.md-tool', { 'aria-label': 'Text size', text: 'Aa', onclick: () => { settle(); P.font = ((P.font || 0) + 1) % FONT.length; M().readProgress(id, page); ctx.refresh(); } }),
+    el('button.md-tool', { 'aria-label': 'Text size', text: 'Aa', onclick: () => { remember(); P.font = ((P.font || 0) + 1) % FONT.length; ctx.refresh(); } }),
     el('button.md-tool', { 'aria-label': 'Night mode', onclick: () => { settle(); P.night = P.night ? 0 : 1; M().readProgress(id, page); ctx.refresh(); } }, iconEl(P.night ? 'weather.sun' : 'weather.moon', 1)), bm, prog, clock);
   /** charge the reading time of the page so far (never more than 1.6x a normal read of it) */
-  const settle = full => { const e = expect(), sec = full ? Math.max(0, e - Math.min(acc, e)) : 0; if (sec > 0) M().spend('read', sec * TUNE.CLOCK.read); if (full) acc = e * 1.6; };
+  const ps = () => !!(G.phone && G.phone.part), noAdv = () => (ps() ? { noAdvance: true } : undefined);   // part-screen: the clock runs by itself
+  const settle = full => { const e = expect(), sec = full ? Math.max(0, e - Math.min(acc, e)) : 0; if (sec > 0) M().spend('read', sec * TUNE.CLOCK.read, noAdv()); if (full) acc = e * 1.6; };
   function paint() {
     txt.replaceChildren(...(page === 0 ? [el('h3.md-h', { text: r.title }), el('p.md-by', { text: r.by })] : []), ...pages[page].map(p => el('p' + (p.includes('\n') ? '.verse' : ''), { text: p })));
     txt.scrollTop = 0; prog.textContent = `${page + 1} / ${pages.length}`; clock.textContent = G.now().clock;
@@ -158,7 +169,9 @@ function reading(b, ctx, id, startPage) {
   const prev = btn('Back', () => go(-1), '', 'ui.arrow_left'), skim = btn('Skim', () => { if (finished) return; settle(true); go(1); }, 'md-skim'), next = btn('Next', () => { if (!finished) go(1); }, 'pri');
   txt.addEventListener('click', e => { if (finished || e.target.closest('button')) return; const q = txt.getBoundingClientRect(); if (e.clientX > q.left + q.width * .6) go(1); else if (e.clientX < q.left + q.width * .3) go(-1); });
   b.append(tools, txt); ctx.foot.append(el('div.md-nav', null, prev, skim, next)); paint();
-  onTick(b, dt => { if (finished) return; shown = true; const e = expect(); if (acc < e * 1.6) { const d = Math.min(dt, e * 1.6 - acc); acc += d; M().spend('read', d * TUNE.CLOCK.read); } if (Math.floor(G.time * 2) % 4 === 0) clock.textContent = G.now().clock; },
+  /* the page pays its reading time (fun, screen time) as you read it, never more than 1.6x a normal read of it, full or part-screen alike; part-screen: nothing
+     is paid while something pauses the game over the sheet */
+  onTick(b, dt => { if (finished) return; shown = true; if (ps() && G.modal > 0) return; const e = expect(); if (acc < e * 1.6) { const d = Math.min(dt, e * 1.6 - acc); acc += d; M().spend('read', d * TUNE.CLOCK.read, noAdv()); } if (Math.floor(G.time * 2) % 4 === 0) clock.textContent = G.now().clock; },
     () => { if (!finished && shown) M().readProgress(id, page); if (M().session() === mine) M().end(); });
 }
 
@@ -166,7 +179,7 @@ function reading(b, ctx, id, startPage) {
 function sitting(b, ctx, id, minutes) {
   injectMediaCss(); const k0 = M().books().find(k => k.id === id); if (!k0) { b.append(empty('novel_lighthouse', 'Not in your bag', 'The book has to be in your backpack.')); return; }
   const it = k0.item, rate = minutes / TUNE.bookSecondsPerSitting; let left = minutes, fun = 0, xp = 0, done = false, cancelled = false;
-  const mine = M().begin('pages', id); b.classList.add('md-sitting');
+  const mine = M().begin('pages', id); b.classList.add('md-sitting'); safe(() => ctx.partScreen && ctx.partScreen('read'), 0);   // PART-SCREEN (phone.js)
   const pg = el('div.md-flip', null, el('i'), el('i'), el('i')), pbar = el('div.md-book-bar', null, bar(k0.pct * 100, 100, it.kind === 'skill' ? '#3b5bdb' : '#e0703a'), el('small', { text: Math.round(k0.pct * 100) + '%' })), status = el('p.md-sit-st'), out = el('div.md-sit-out');
   b.append(el('div.md-sit-hero', null, iconEl(it.id, 5, 'book'), pg), el('b.md-sit-t', { text: it.name }), status, pbar, out,
     el('p.md-note', { text: it.kind === 'skill' ? 'Same book, same progress as on your shelf. Studying on a small screen is a little slower than at a desk.' : 'Same bookmark as on your shelf at home. An armchair is nicer, but this is the bus.' }));
@@ -179,7 +192,13 @@ function sitting(b, ctx, id, minutes) {
     ctx.foot.replaceChildren(el('div.md-nav', null, btn('Read on', () => { ctx.back(); setTimeout(() => ctx.push(it.name, (bb, c) => sitting(bb, c, id, minutes), 'sit'), 30); }, 'pri'), btn('Done', () => ctx.back())));
   }
   upd();
-  onTick(b, dt => { if (done) return; const gm = Math.min(left, rate * dt); left -= gm; const res = M().readBook(id, gm); fun += res.fun; xp += res.xp; upd(); if (res.finished && it.kind === 'novel') return finish(true); if (left <= 1e-6) finish(); },
+  /* full-screen: the sitting runs its minutes in TUNE.bookSecondsPerSitting real seconds (the clock jumps with it, as before). Part-screen: the minutes are the
+     game minutes that really pass on the clock above (1x / 2x / 4x), paid as they pass; the same totals either way. */
+  let lastT = G.state.t;
+  onTick(b, dt => {
+    if (done) return; const ps = !!(G.phone && G.phone.part); if (ps && G.modal > 0) { lastT = G.state.t; return; }
+    const gm = Math.min(left, ps ? Math.max(0, G.state.t - lastT) : rate * dt); left -= gm; const res = M().readBook(id, gm, ps ? { noAdvance: true } : undefined); lastT = G.state.t;
+    fun += res.fun; xp += res.xp; upd(); if (res.finished && it.kind === 'novel') return finish(true); if (left <= 1e-6) finish(); },
     () => { if (!done) { done = true; if (M().session() === mine) M().end(); } });
 }
 

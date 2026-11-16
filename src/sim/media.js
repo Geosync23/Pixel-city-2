@@ -13,7 +13,9 @@
 //                                    fills the pool, late-night energy, xp (play: logic). o: { rate (override fun/h), noAdvance }
 //   -- Pages
 //   reads() -> [{ ...read, words, minutes, released, isNew, done, page }]      read(id)      readProgress(id, page, pages)      finishRead(id)
-//   books() -> [{ id, item, kind, pct, left (minutes or xp), blocked? }]  every book in the backpack      readBook(id, gameMinutes) -> { fun, xp, finished }
+//   books() -> [{ id, item, kind, pct, left (minutes or xp), blocked? }]  every book in the backpack      readBook(id, gameMinutes, o?) -> { fun, xp, finished }  (o as spend)
+//   PART-SCREEN (owner msg 173, ui/phone.js): while the phone is docked the clock runs by itself, so the apps call spend(..., { noAdvance: true }): the same
+//   fun / screen time / xp per film-second, page or game minute as full-screen, without moving the clock a second time.
 //   bookmark(id, page, note?) / unmark(id, page) / marks()      streak() -> { n, best, today }
 //   -- Reel
 //   films() -> [{ film, tv, state: 'free' | 'soon' | 'cinema' | 'wait' | 'buy' | 'owned', canPlay, day?, buyT?, next? (next Orpheum showing), pos, done }]
@@ -145,9 +147,9 @@ function books() {
   return out;
 }
 /** read an owned book for gm game minutes: the same progress, xp and moodlet as at a bookshelf (G.state.inv.books), a little slower, less fun */
-function readBook(id, gm) {
+function readBook(id, gm, o) {
   const it = ITEM_BY_ID[id], B = safe(() => G.state.inv.books, null); if (!it || it.category !== 'book' || !B || !(gm > 0)) return { fun: 0, xp: 0, finished: false };
-  let xp = 0, finished = false; const fun = spend(it.kind === 'skill' ? 'book_skill' : 'book_novel', gm);
+  let xp = 0, finished = false; const fun = spend(it.kind === 'skill' ? 'book_skill' : 'book_novel', gm, o);
   if (it.kind === 'skill' && G.skills) {
     const l = G.skills.level(it.skill), paid = B[id] || 0; let x = TUNE.xp.skillBook * gm / 60; if (l < it.minLevel || l > it.maxLevel) x = 0; x = Math.min(x, Math.max(0, it.xpTotal - paid)); B[id] = paid + x;
     if (x > 0) xp = safe(() => G.skills.addXp(it.skill, x), 0); if (x > 0 && B[id] >= it.xpTotal) finished = true;

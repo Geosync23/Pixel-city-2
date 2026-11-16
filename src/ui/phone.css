@@ -150,4 +150,20 @@ div.ph-row{box-shadow:none}
   .ph-ear{top:2px}
 }
 @media (prefers-reduced-motion:reduce){.ph,.ph-banner,.ph-scrim,.ph-tip{transition:none}.ph-anim{animation:none}}
+/* PART-SCREEN (owner msg 173, BIBLE update 37; ui/phone.js setPart): watching / reading, the phone docks at the bottom and the world, the HUD and the clock
+   go on above it. Video ~43% of the height, reading ~60%. The status bar and the nav bar go (the header has Back, Bigger and Stop). */
+#ui>#phone-layer.open.part{pointer-events:none}
+#phone-layer.part .ph-scrim{display:none}
+#phone-layer.part .ph{pointer-events:auto;height:43%;min-height:280px;padding-top:6px}
+#phone-layer.part-read .ph{height:60%}
+#phone-layer.part .ph-ear,#phone-layer.part .ph-status,#phone-layer.part .ph-nav{display:none}
+#phone-layer.part .ph-tip{top:50px;bottom:auto}
+#phone-layer.part .ph-head{padding:4px 6px;gap:6px}#phone-layer.part .ph-head-t small{display:none}#phone-layer.part .ph-head-t b{font-size:16px}
+.ph-sz{display:none;margin-left:auto;gap:6px;flex:none}.ph-app .ph-sz:not(:empty){display:flex}
+.ph .ph-szb{min-height:38px;min-width:0;padding:0 9px;font-size:14px;font-weight:700;box-shadow:0 2px 0 var(--edge)}
+.ph .ph-szb.x{background:#ffd9d2}
+#ui.ph-part #hud .hud-br{bottom:calc(var(--phh,0px) + 10px)}
+#ui.ph-part #hud .hud-bc{bottom:calc(var(--phh,0px) + 10px)}#ui.ph-part #hud .hud-act{display:none}   /* the sheet has its own Stop */
+#ui.ph-part>.ride-hud{bottom:calc(var(--phh,0px) + 8px)}   /* a bus / cab ride's strip (Skip ride, Get off) stays above the sheet */
+
 .ph-hero .ph-bar{flex:none}

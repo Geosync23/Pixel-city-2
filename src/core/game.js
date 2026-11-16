@@ -180,7 +180,7 @@ function frame(now) {
     { const ss = G._sub; G._sub = null; if (G.scene.update) G.scene.update(ss ? ss[0] : dt, ss ? ss[1] : gm); for (const s of G.systems) if (s.update) s.update(ss ? ss[0] : dt, ss ? ss[1] : gm); }
   }
   // camera
-  const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), k = Math.min(1, dt * 7), lk = G.camLook /* PAD HOOK: the right stick looks around ({x, y} in canvas px; null without a pad) */; G.cam.fx += (a[0] + (lk ? lk.x : 0) - G.cam.fx) * k; G.cam.fy += (a[1] - 14 + (lk ? lk.y : 0) - G.cam.fy) * k; placeCam();
+  const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), k = Math.min(1, dt * 7), lk = G.camLook /* PAD HOOK: the right stick looks around ({x, y} in canvas px; null without a pad) */; G.cam.fx += (a[0] + (lk ? lk.x : 0) - G.cam.fx) * k; G.cam.fy += (a[1] - 14 + (lk ? lk.y : 0) + (G.camDY || 0) /* PART-SCREEN HOOK (ui/phone.js): the player stays in view above the docked phone */ - G.cam.fy) * k; placeCam();
   const env = G.scene.env ? G.scene.env(G.state.t) : G.scene.indoor ? ambientIndoor(G.state.t) : ambient(G.state.t, G.state.weather); G.env = env;
   const ents = G.scene.ents; if (!ents.includes(G.player)) ents.push(G.player);
   G.renderer.draw(G.world, G.cam, ents, env, {
