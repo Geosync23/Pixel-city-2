@@ -95,7 +95,7 @@ function panelX(s, x, y0, y1, z0, z1, c) {
   else lw([x, y0, z1 - .02], [x, y1, z1 - .02], lt(c, .2));
 }
 function stall(p) {
-  const s = ST[p.style] || ST.diner, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner || s.zb > .15 && s.deco ? .06 : .1, dTop = s.dTop || (s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H), occ = !!p.occ, cy = D * .45;
+  const s = ST[p.style] || ST.diner, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner ? .05 : s.zb > .15 && s.deco ? .06 : .1, dTop = s.dTop || (s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H), occ = !!p.occ, cy = D * .45;
   const red = (q, pts, c) => { const X = Math.round(q[0]), Y = Math.round(q[1]); for (const [a, b] of pts) px(X + a, Y + b, C(c)); };
   if (s.back) qy(0, W, .01, 0, Math.min(H, 2.2), s === ST.hall ? (u, v) => (v % 10 === 0 ? '#d6cfc0' : (u + (v / 10 | 0) * 7) % 14 === 0 ? '#d6cfc0' : s.back) : s.back);   // the wall inside the stall
   shadow(.04, W - .04, .2, D - .1);
@@ -129,7 +129,7 @@ function stall(p) {
     lw([xb - .1, D - .02, 1.0], [xb - .1, D - .02, 1.14], s.m); qy(xb - .3, xb - .14, D - .03, 1.2, 1.27, '#c8233a');
     if (s === ST.diner) heartY(xa + .3, D - .025, 1.4, '#c8233a');
     if (s.deco) decoY(s, p, xa, xb, D - .025);
-  } else { qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a'); if (s.deco === 'coin' || s.deco === 'number' || s.deco === 'numeral') decoY(s, p, -.1, .5, D); }   // vacant (the number / lock shows on the post side)
+  } else qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a');   // vacant
   if (s === ST.sky) lit(() => { dot(W - pw / 2, D, 1.5, occ ? '#ff5a5a' : '#7df0a0'); dot(W - pw / 2, D, 1.53, occ ? '#ff8a8a' : '#b8ffcc'); });
 }
 
@@ -204,10 +204,23 @@ function sign(p) {
   const k = p.kind || 'wash';
   if (k === 'wash') { qy(0, 1.5, .02, .1, .92, '#f8f5ee'); frameY(0, 1.5, .02, .1, .92, '#2a2733'); label('WASH', 0, 1.5, .02, .8, '#c8233a'); label('HANDS', 0, 1.5, .02, .44, '#c8233a'); dot(.08, .02, .86, '#8a9098'); dot(1.42, .02, .86, '#8a9098'); }
   else if (k === 'level') { lit(() => label('LEVEL 52', 0, 2, .02, .32, BRASS)); lw([0, .02, .04], [2, .02, .04], dk(BRASS, .2)); }
+  else if (k === 'quiet') { qy(0, 1.6, .02, .1, .56, '#2f4a3a'); frameY(0, 1.6, .02, .1, .56, BRASS); label('QUIET', 0, 1.6, .02, .46, '#e9e0cc'); }
+  else if (k === 'toilets') { qy(0, 2.2, .02, .1, .58, '#2f5a46'); frameY(0, 2.2, .02, .1, .58, '#f4f0e8'); label('TOILETS', 0, 2.2, .02, .48, '#f4f0e8'); }
+  else if (k === 'otters') { qy(0, 2.2, .02, .1, .6, '#d2392f'); qy(0, 2.2, .02, .1, .18, '#f4f0e8'); label('OTTERS', 0, 2.2, .02, .52, '#f4f0e8'); }
   else { box(0, 0, 0, 2.3, .05, 1.2, BRASS, { ol: true }); qy(.08, 2.22, .05, .08, 1.12, '#b88f48'); label('PUBLIC', 0, 2.3, .05, .98, '#3a2a14'); label('WASHROOM', 0, 2.3, .05, .56, '#3a2a14'); lw([.3, .05, .62], [2.0, .05, .62], '#8a6a34'); for (const [x, z] of [[.14, .14], [2.16, .14], [.14, 1.06], [2.16, 1.06]]) dot(x, .05, z, '#f2dca0'); }
 }
+const DOORS = { service: ['#8e979d', '#5e666c', '#c2c8cc', 'WC'], library: ['#6a4a30', '#e9e0cc', BRASS, 'WC'], museum: ['#f4f2ee', '#2a2a2e', '#2a2a2e', 'WC'], gym: ['#e2572e', '#3a3f4c', '#c2c8cc', 'WC'], bar: ['#2a2430', '#1e1a22', '#8a8f98', 'WC'] };
 function door(p) {
-  const sky = p.style === 'sky', c = sky ? '#4a3326' : '#c8233a';
+  const sky = p.style === 'sky', c = sky ? '#4a3326' : '#c8233a', D2 = DOORS[p.style];
+  if (D2) {   // batch 2 doors: [leaf, frame, metal, plate text]
+    const [lc, fc, m, t] = D2; qy(-.06, 1.06, .02, 0, 2.12, fc); qy(.03, .97, .05, 0, 2.04, lc); frameY(.03, .97, .05, 0, 2.04, dk(lc, .4));
+    if (p.style === 'library') { frameY(.14, .86, .055, .2, .95, dk(lc, .3)); frameY(.14, .86, .055, 1.08, 1.9, dk(lc, .3)); dot(.82, .06, 1.0, BRASS); dot(.82, .06, 1.0, BRASS, 1, 0); qy(.3, .7, .06, 1.42, 1.62, BRASS); label(t, .3, .7, .06, 1.6, '#3a2a14'); }
+    else if (p.style === 'museum') { lw([.86, .06, .9], [.86, .06, 1.3], m); label(t, .3, .7, .06, 1.62, m); lw([.3, .06, 1.24], [.7, .06, 1.24], '#c9c4ba'); }
+    else if (p.style === 'gym') { qy(.03, .97, .055, .02, .22, '#3a3f4c'); lw([.12, .06, 1.1], [.5, .06, 1.1], m); qy(.3, .7, .06, 1.5, 1.74, '#f4f0e8'); label(t, .3, .7, .06, 1.7, '#3a3f4c'); }
+    else if (p.style === 'bar') { for (let i = 0; i < 9; i++) { const x = .1 + (i * 37 % 80) / 100, z = .3 + (i * 53 % 150) / 100; qy(x, x + .12, .055, z, z + .1, STICK[i % STICK.length]); } lit(() => label(t, .3, .7, .06, 1.98, '#ff4a8a')); glow(() => qy(.25, .75, .07, 1.8, 2.04, '#ff4a8a40')); lw([.8, .06, .95], [.8, .06, 1.2], m); }
+    else { qy(.08, .92, .055, .02, .24, m); qy(.74, .9, .06, .95, 1.3, m); qy(.32, .68, .06, 1.5, 1.72, '#3a5a8a'); label(t, .32, .68, .06, 1.68, '#f4f0e8'); }   // service: steel kick + push plate, blue WC plate
+    return;
+  }
   if (sky) {
     qy(-.06, 1.06, .02, 0, 2.36, '#26272c'); qy(.02, .98, .05, 0, 2.28, c); for (let x = .1; x < .95; x += .11) lw([x, .05, .04], [x, .05, 2.24], dk(c, .14));
     lw([.82, .06, .8], [.82, .06, 1.5], BRASS); lw([.83, .06, .8], [.83, .06, 1.5], dk(BRASS, .3));
@@ -247,6 +260,12 @@ function mints() { cyl(.15, .15, 0, .13, .03, '#c2c8ce', { ol: false, t: '#e6eae
 function bin(p) {
   if (p.style === 'sky') { cyl(.2, .2, 0, .17, .6, '#9aa0a8', { l: '#b0b6be', r: '#80868e' }); cyl(.2, .2, .6, .17, .04, '#26272c'); }
   else if (p.style === 'hall') { cyl(.2, .2, 0, .12, .08, dk(BRASS, .2), { ol: false }); cyl(.2, .2, .08, .17, .5, BRASS, { l: '#d8b46a', r: '#a8844a' }); cyl(.2, .2, .58, .18, .04, dk(BRASS, .25)); ball(.2, .2, .66, .07, BRASS); }
+  else if (p.style === 'station') { cyl(.2, .2, 0, .17, .62, '#2f5a46', { l: '#3a6a54', r: '#244a3a' }); cyl(.2, .2, .62, .18, .05, '#b8943a'); qy(.1, .3, .37, .3, .42, '#f4f0e8'); }
+  else if (p.style === 'mall' || p.style === 'museum') { const c = p.style === 'mall' ? '#e8e4f0' : '#2a2a2e'; cyl(.2, .2, 0, .15, .5, c, {}); cyl(.2, .2, .5, .16, .03, p.style === 'mall' ? CHROME : '#4a4a50'); }
+  else if (p.style === 'library') { cyl(.2, .2, 0, .16, .42, '#b08a5a', { l: (u, v) => (v % 3 === 0 ? '#8a6a40' : '#c09a68'), r: '#8a6a40' }); }
+  else if (p.style === 'bar' || p.style === 'service') { cyl(.2, .2, 0, .17, .55, '#8a9098', { l: '#9aa0a8', r: '#6a7078' }); lw([.06, .37, .3], [.12, .37, .38], '#5a6068'); if (p.style === 'bar') qy(.12, .24, .37, .2, .28, '#ff4a8a'); }
+  else if (p.style === 'arena') { cyl(.2, .2, 0, .17, .6, '#d2392f', { l: (u, v) => (v > 3 && v < 6 ? '#f4f0e8' : '#d2392f') }); cyl(.2, .2, .6, .18, .04, '#3a3f4c'); }
+  else if (p.style === 'gym') { box(0, .05, 0, .4, .32, .5, '#3a3f4c', { t: '#2a2e38' }); }
   else { cyl(.2, .2, 0, .16, .46, '#efe6cf', { l: '#f4ecd8', r: '#d6ccb4' }); cyl(.2, .2, .46, .17, .04, CHROME); bx(.12, .36, 0, .16, .06, .03, CHROME); dot(.3, .3, .26, '#c8bea6'); dot(.31, .3, .24, '#c8bea6'); }
 }
 function mop() {
@@ -265,18 +284,18 @@ function suggest() {
 const S3 = ['sky', 'diner', 'hall'];
 export default [
   F('wc.stall', ['wc', 'wcstall', 'restroom'], stSize, stall, { use: p => ({ x: (ST[p.style] || ST.diner).w / 2, y: (ST[p.style] || ST.diner).d + .4 }), seatsFor: p => { const s = ST[p.style] || ST.diner; return [{ x: s.t + .5, y: s.d * .45, z: .42, dir: 0 }]; },
-    variants: [{ style: 'sky', left: true }, { style: 'sky', occ: 1 }, { style: 'diner', tag: 1 }, { style: 'diner', occ: 1 }, { style: 'hall', left: true }, { style: 'hall', occ: 1 }] }),
+    variants: [{ style: 'sky', left: true }, { style: 'sky', occ: 1 }, { style: 'diner', tag: 1 }, { style: 'diner', occ: 1 }, { style: 'hall', left: true }, { style: 'hall', occ: 1 }].concat(['service', 'station', 'mall', 'library', 'museum', 'gym', 'bar', 'arena'].flatMap(style => [{ style, left: true }, { style, occ: 1, n: 2 }])) }),
   F('wc.vanity', ['wc', 'sink'], p => [p.w || (p.style === 'hall' ? 4.2 : 2.6), p.style === 'hall' ? .62 : .56, .9], vanity, { vb: p => [-.3, -.3, 0, (p.w || (p.style === 'hall' ? 4.2 : 2.6)) + .3, .9, 1.6], use: p => ({ x: (p.w || (p.style === 'hall' ? 4.2 : 2.6)) / 2, y: 1.0 }), light: { x: 1, y: .8, z: 0, r: 1.6 }, variants: [{ style: 'sky' }, { style: 'hall' }] }),
   F('wc.sink', ['wc', 'sink'], [.8, .5, .85], dinerSink, { vb: [-.3, -.3, 0, 1.1, .8, 1.8], use: { x: .4, y: .9 }, variants: [{ style: 'diner' }] }),
   F('wc.mirror', ['wc', 'mirror', 'decor'], p => (p.style === 'hall' ? [.9, .08, 1.4] : [.85, .08, .85]), mirror, { wall: true, mount: 1.2, solid: false, light: { x: .4, y: .5, z: 0, r: 1.2 }, variants: [{ style: 'sky' }, { style: 'hall' }] }),
   F('wc.dryer', ['wc', 'decor'], [.7, .25, .5], dryer, { wall: true, mount: 1.0, solid: false, variants: [{}] }),
   F('wc.pendant', ['wc', 'lamp', 'overhead'], [.4, .4, 1.6], pendant, { solid: false, overhead: true, vb: [-.1, -.1, 0, .5, .5, 1.7], light: { x: .2, y: .2, z: 0, r: 2.4 }, variants: [{}] }),
   F('wc.tube', ['wc', 'lamp'], [1.2, .2, .16], tube, { wall: true, mount: 2.1, solid: false, vb: [-.1, -.1, -.2, 1.3, .3, .3], light: { x: .6, y: 1.2, z: 0, r: 2.6 }, variants: [{}] }),
-  F('wc.sign', ['wc', 'sign', 'decor'], p => (p.kind === 'civic' ? [2.3, .06, 1.2] : p.kind === 'level' ? [2, .04, .4] : [1.5, .04, .95]), sign, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'wash' }, { kind: 'level' }, { kind: 'civic' }] }),
-  F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.7], variants: [{ style: 'sky' }, { style: 'diner' }] }),
+  F('wc.sign', ['wc', 'sign', 'decor'], p => (p.kind === 'civic' ? [2.3, .06, 1.2] : p.kind === 'level' ? [2, .04, .4] : p.kind === 'quiet' ? [1.6, .04, .6] : p.kind === 'toilets' || p.kind === 'otters' ? [2.2, .04, .62] : [1.5, .04, .95]), sign, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'wash' }, { kind: 'level' }, { kind: 'civic' }, { kind: 'quiet' }, { kind: 'toilets' }, { kind: 'otters' }] }),
+  F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.7], variants: ['sky', 'diner', 'service', 'library', 'museum', 'gym', 'bar'].map(style => ({ style })) }),
   F('wc.floor', ['wc', 'floor'], p => [p.w || 5, p.d || 4, .01], floor, { solid: false, flat: true, variants: S3.map(style => ({ style, w: 5, d: 4 })) }),
   F('wc.mints', ['wc', 'wcmints'], [.3, .3, .06], mints, { solid: false, variants: [{}] }),
-  F('wc.bin', ['wc', 'bin'], [.4, .4, .72], bin, { variants: S3.map(style => ({ style })) }),
+  F('wc.bin', ['wc', 'bin'], [.4, .4, .72], bin, { variants: S3.concat(['station', 'mall', 'museum', 'library', 'bar', 'arena', 'gym']).map(style => ({ style })) }),
   F('wc.mop', ['wc', 'decor'], [.9, .5, 1.3], mop, { variants: [{}] }),
   F('wc.suggest', ['wc', 'wcsuggest'], [.5, .4, 1.2], suggest, { use: { x: .25, y: .8 }, variants: [{}] }),
 ];
