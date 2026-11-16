@@ -375,7 +375,7 @@ const ch02 = {
         s('dez', 'Stops every few blocks. The sign tells you the number, the Map tells you which number. Done.')]),
       iff('went:walk', [s('dez', "We WALKED. All of it. Okay, I take back the legs thing. Your side got some legs.")]),
       iff('went:cab', [s('dez', 'A cab. I said not the cab.'), s('dez', "...It was Manny, though. Fine. Manny's allowed.")]),
-      s('dez', "Took us long enough. On the bike I'd have dropped two parcels and had a pretzel by now."),
+      s('dez', "Here we are. On the bike I'd have dropped two parcels and had a pretzel by now. Not a complaint."),
       s('dez', "I deliver here every day, so I know a guy. The guy is the ticket machine. I'm paying. Get in the lift."),
       give('ticket', 'skydeck', { text: "Dez buys your SkyDeck ticket. He makes a show of it." }),
       go('skydeck', { with: ['dez'], by: 'walk', label: 'Take the lift to the top' }),

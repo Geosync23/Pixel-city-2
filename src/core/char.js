@@ -14,7 +14,7 @@ export function charArt() {
 }
 let SID = 0; const specIds = new WeakMap();
 const specId = s => { let i = specIds.get(s); if (!i) specIds.set(s, i = ++SID); return i; };
-const FPS = { walk: 7, run: 10, stand: 1.2, talk: 4, type: 5, work: 4, lift: 3, treadmill: 10, dance: 6, eat: 3, drink: 2, wave: 5, cheer: 5, carry: 7, sleep: .6, read: .5, phone: .8, sit: .5 };
+const FPS = { walk: 7, run: 10, stand: 1.2, talk: 4, type: 5, work: 4, lift: 3, treadmill: 10, dance: 6, eat: 3, drink: 2, wave: 5, cheer: 5, carry: 7, sleep: .6, read: .5, phone: .8, sit: .5, cycle: 6, row: 2.4, punch: 5, yoga: .5 };
 
 export class Char {
   constructor(spec, x = 0, y = 0) {

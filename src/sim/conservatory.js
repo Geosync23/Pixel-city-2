@@ -164,7 +164,7 @@ function photograph(sc) {
   if (photoRun || G.busy) return Promise.resolve(null); const S = st();
   // rarer species come up less often
   const wts = BUTTERFLIES.map((b, i) => (i < 4 ? 4 : i < 6 ? 2 : 1)), tot = wts.reduce((a, b) => a + b, 0); let k = Math.random() * tot, bi = 0; for (; bi < wts.length; bi++) if ((k -= wts[bi]) <= 0) break; const sp = BUTTERFLIES[Math.min(bi, BUTTERFLIES.length - 1)];
-  const CW = 160, CH = 110, cv = el('canvas', { width: CW, height: CH }); cv.className = 'cons-photo';
+  const CW = 160, CH = 110, cv = el('canvas', { width: CW, height: CH }); cv.className = 'cons-photo'; cv.setAttribute('data-pad-surface', 'cursor');   /* QA16: a controller can step onto it (A) and shoot (A); before, nothing could be focused */
   Object.assign(cv.style, { position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: 'min(92vw, 640px)', imageRendering: 'pixelated', zIndex: 55, border: '4px solid #2a2733', boxShadow: '6px 6px 0 #0006', background: '#1f3a30', cursor: 'pointer', touchAction: 'none' });
   const tip = el('div', { text: 'Tap when the butterfly is in the ring with its wings open' }); Object.assign(tip.style, { position: 'fixed', left: '50%', bottom: '12%', transform: 'translateX(-50%)', zIndex: 56, background: '#f4ead0', color: '#2a2733', border: '2px solid #2a2733', padding: '6px 10px', fontSize: '14px', boxShadow: '3px 3px 0 #0006', textAlign: 'center', maxWidth: '90vw' });
   root().append(cv, tip); G.modal++; const ctx = cv.getContext('2d'), t0 = performance.now(); let done = false, frozen = null;

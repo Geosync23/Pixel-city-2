@@ -15,6 +15,16 @@
 //   MG.cur = { def, kind, state() -> { t, done, score, paused, want }, auto(), quit(), pause(on), canvas, toClient(x, y) -> page coords } while a game is open (tests + keys).
 //   abort() closes an open game without a result (the activity it belonged to was cancelled).   sheetRect() -> DOMRect | null.
 //   stars(score) -> 0..3.   Keys: Space / Enter = tap at the hinted spot, Esc = pause.
+// MORE KINDS (cooking + gym, 2026-11-16): 'hold' (hold to run it, let go before it overflows: the blender), 'cadence' (tap to keep a speed in the band while hills come and go: the bike),
+//   'stir' (draw circles at a steady speed; keys / pad: hold and release), 'targets' (tap the spot that lights: the punching bag; o.spots), 'sequence' (place the pieces in the order on the
+//   card; o.pieces [[label, colour, icon?]]), 'sweep' (tap as the blade crosses each mark: chopping), 'golden' (take it out in the golden window: oven, o.style 'fry' = fryer),
+//   'stroke' (press at the catch, hold, let go at the finish: rowing). Filling to a line is the old 'aim' kind with o.mode 'pour'.
+// ADDING A KIND FROM ANOTHER FILE (mini-games worker B: src/ui/minigame_b.js):
+//   import { registerKind, draw, W, H } from './minigame.js';     registerKind('scrub', E => ({ update(dt) {}, draw(g) {}, down(x, y) {}, done: false, score: 0, want: () => ({ type: 'tap', ready: false }) }));
+//   (or at run time: G.minigame.registerKind(name, impl) -> false when the name is taken; G.minigame.kinds lists them; G.minigame.draw = the pixel helpers R, box, disc, ring, line, icon, spark ...)
+//   E is the env described above. Then play({ kind: 'scrub', ... }) works everywhere (skillplay GAMES, job plays, festivals). A game object may set `snap: true`: a gamepad Confirm press then
+//   lands on want().x / y (for games where you tap a particular spot). want().type 'hold' makes Space / Enter a held key; 'tap' a tap at want().x / y; 'bin' presses the i-th bin button.
+// THE "TURN THEM OFF" HINT: play() itself shows "You can turn mini-games off in Settings" the 2nd, 3rd and 4th time any kit game opens in a save (see offTip), so every caller gets it for free.
 import { G } from '../core/game.js';
 import { el, root } from './kit.js';
 import { iconCanvas, iconEl } from './_icons.js';
@@ -293,6 +303,259 @@ KINDS.quickdraw = E => {
   return g;
 };
 
+/* ====================================================================== kinds added for cooking + the gym (owner msgs 158, 162-164) ======================================================================
+   All are one-thumb. Pad / keys: 'hold', 'stroke', 'stir' = Confirm / Space HELD (stir also follows the stick or a finger drawn in circles); 'cadence', 'sweep', 'golden' = Confirm / Space pressed;
+   'targets', 'sequence' = Confirm / Space hits the lit one (game.snap), or point at it. */
+
+/* ---- hold: hold to run the machine, let go before the froth reaches the lid; done when the bar is full (o.need secs of holding, o.rise) ---- */
+KINDS.hold = E => {
+  const o = E.def.o || {}, need = o.need || 6.5, rise = (o.rise || .62) + .4 * E.d, T = o.secs || 24, parts = [], col = E.theme.color || '#e0527a', col2 = E.theme.color2 || '#fff0f4', bits = Array.from({ length: 9 }, (_, i) => ({ a: i * 2.3, r: 4 + (i * 7) % 11, s: 2 + i % 3 }));
+  let sm = 0, fr = .15, hold = false, t = 0, spills = 0, cool = 0, spin = 0, lastBeat = 0;
+  const g = { done: false, score: 0,
+    update(dt) {
+      t += dt; stepParts(parts, dt); if (cool > 0) { cool -= dt; hold = false; }
+      if (hold) { sm = clamp(sm + dt / need); fr += rise * dt; spin += dt * 14; if (t - lastBeat > .5) { lastBeat = t; E.beat(.6, 'whirr'); } } else fr = Math.max(.12, fr - 1.1 * dt);
+      if (fr >= 1) { spills++; fr = .35; sm = Math.max(0, sm - .1); cool = .8; spark(parts, 90, 14, col, 14); E.beat(0, 'spill'); E.cap('Over the top! Let go sooner.'); }
+      E.prog(Math.round(sm * 10), 10);
+      if (sm >= 1) { g.done = true; g.score = clamp(1.02 - .2 * spills - Math.max(0, t - need * 2.1) * .05); spark(parts, 90, 50, GOLD, 12); E.beat(1, 'done'); } else if (t >= T) { g.done = true; g.score = sm * .6; }
+    },
+    down() { if (cool <= 0) hold = true; }, up() { hold = false; },
+    draw(c) {
+      const jx = 66, jy = 12, jw = 48, jh = 70; box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#dfeef5');
+      R(c, jx - 8, jy + jh, jw + 16, 14, INK); R(c, jx - 7, jy + jh + 1, jw + 14, 12, '#55505f'); disc(c, jx + jw / 2, jy + jh + 7, 3, hold ? GOOD : '#d9d9e0');   // base + button
+      R(c, jx - 2, jy, 2, jh, INK); R(c, jx + jw, jy, 2, jh, INK); R(c, jx, jy, jw, jh, '#ffffff'); R(c, jx + jw + 2, jy + 16, 8, 3, INK); R(c, jx + jw + 8, jy + 16, 3, 30, INK);                    // jar + handle
+      const top = jy + jh - fr * (jh - 6), lq = jy + jh - Math.min(fr, .55 + .1 * Math.sin(spin)) * (jh - 6); R(c, jx, top, jw, jy + jh - top, col2); R(c, jx, lq, jw, jy + jh - lq, col);
+      for (const b of bits) { if (b.s / 4 < sm * 1.1) continue; const a = b.a + spin * (hold ? 1 : .15), x = jx + jw / 2 + Math.cos(a) * b.r * 1.6, y = Math.min(jy + jh - 4, lq + 6 + b.r * 1.4 + Math.sin(a) * 4); R(c, x - 2, y - 2, b.s + 2, b.s + 2, E.theme.bit || mixCol(col)); }
+      R(c, jx, jy, jw, 6, fr > .8 ? BAD : '#f2c23066'); R(c, jx - 4, jy - 4, jw + 8, 4, INK);                                                                                                       // danger band + lid
+      if (cool > 0) for (let k = 0; k < 5; k++) R(c, jx - 6 + k * 14, jy - 8 - (k % 2) * 4, 4, 4, col);
+      drawIcon(c, E.theme.icon, 18, 18, 2); box(c, 136, 12, 12, 70, SKY); R(c, 137, 13 + 68 * (1 - sm), 10, 68 * sm, GOLD); drawIcon(c, 'ui.star', 134, 84, 1, sm >= 1 ? 1 : .4);
+      drawParts(c, parts);
+    },
+    want: () => ({ type: 'hold', on: cool <= 0 && fr < (hold ? .74 : .3), ready: true }),
+    stats: () => ({ spills, secs: Math.round(t) }),
+  };
+  return g;
+};
+const mixCol = c => { const n = parseInt(c.slice(1, 7), 16), f = v => Math.max(0, Math.round(v * .72)); return '#' + [n >> 16, n >> 8 & 255, n & 255].map(v => f(v).toString(16).padStart(2, '0')).join(''); };
+
+/* ---- cadence: every tap is a push; keep the speed in the green band while the hills come and go ---- */
+KINDS.cadence = E => {
+  const o = E.def.o || {}, hw = (o.zone || .16) - .06 * E.d, T = o.secs || 26, need = o.need || 11, parts = [], ph = Math.random() * 6;
+  let v = .2, t = 0, prog = 0, inz = false, c0 = .5, hill = 0, crank = 0, lastBeat = 0;
+  const g = { done: false, score: 0,
+    update(dt) {
+      t += dt; stepParts(parts, dt); hill = .5 + .5 * Math.sin(t * (.5 + .25 * E.d) + ph); v = clamp(v - (.16 + .16 * hill + .08 * E.d) * dt * (.4 + v)); crank += v * dt * 16;
+      c0 = clamp(.52 + .16 * Math.sin(t * .8 + ph * 2), hw + .04, 1 - hw - .04); inz = Math.abs(v - c0) <= hw;
+      prog = clamp(prog + (inz ? dt / need : -dt / 30)); if (inz && t - lastBeat > .9) { lastBeat = t; E.beat(.7, 'hold'); } E.prog(Math.round(prog * 10), 10);
+      if (prog >= 1) { g.done = true; g.score = clamp(.8 + .5 * (1 - t / T)); spark(parts, W / 2, 40, GOLD, 14); E.beat(1, 'land'); } else if (t >= T) { g.done = true; g.score = prog * .75; }
+    },
+    down() { v = clamp(v + .1); },
+    draw(c) {
+      const gx = 12, gy = 8, gh = 92; box(c, gx - 2, gy - 2, 18, gh + 4, SKY); R(c, gx, gy + (1 - c0 - hw) * gh, 14, hw * 2 * gh, inz ? '#8fe07a' : GOOD); R(c, gx - 4, gy + (1 - v) * gh - 2, 22, 5, INK); R(c, gx - 3, gy + (1 - v) * gh - 1, 20, 3, inz ? GOLD : BAD);
+      box(c, 40, 6, W - 48, 80, E.theme.paper || '#bfe3f2');
+      if (E.def.scene) E.def.scene(c, 41, 7, W - 50, 78, { v, c0, inz, prog, t, hill, crank });
+      else { for (let x = 0; x < W - 50; x += 2) { const hh = 14 + 16 * (.5 + .5 * Math.sin((t * (.5 + .25 * E.d) + ph) + (x - 60) * .05)); R(c, 41 + x, 85 - hh, 2, hh, x % 12 < 6 ? '#6fae7a' : '#62a06e'); }
+        const bx = 41 + 60, by = 85 - (14 + 16 * hill) - 9; ring(c, bx - 9, by + 3, 6, INK, 2); ring(c, bx + 9, by + 3, 6, INK, 2); line(c, bx - 9, by + 3, bx, by - 4, col1(E), 2); line(c, bx, by - 4, bx + 9, by + 3, col1(E), 2); line(c, bx, by + 3, bx + Math.cos(crank) * 4, by + 3 + Math.sin(crank) * 4, INK, 2); disc(c, bx - 1, by - 12, 3, INK); R(c, bx - 3, by - 9, 5, 6, col1(E)); }
+      box(c, 40, 90, W - 48, 10, '#e9dcc0'); R(c, 41, 91, (W - 50) * prog, 8, GOLD); R(c, 41 + (W - 50) * clamp(t / T), 89, 1, 12, BAD);
+      drawParts(c, parts);
+    },
+    want: () => ({ type: 'tap', x: W / 2, y: 50, ready: v < c0 - hw * .1 }),
+    stats: () => ({ secs: Math.round(t), prog }),
+  };
+  return g;
+};
+const col1 = E => E.theme.color || '#e0527a';
+
+/* ---- stir: draw circles round the pot (or hold Space / Confirm) to keep the spoon speed in the band: too slow sticks, too fast splashes ---- */
+KINDS.stir = E => {
+  const o = E.def.o || {}, hw = (o.zone || .17) - .06 * E.d, c0 = .52, T = o.secs || 26, need = o.need || 10, parts = [], cx = W / 2, cy = 50, rad = 32, col = E.theme.color || '#d9a441';
+  let w = 0, ang = 0, t = 0, prog = 0, stuck = 0, splash = 0, inz = false, down = false, auto = false, la = null, moved = 0, lastBeat = 0, splT = 0;
+  const g = { done: false, score: 0,
+    update(dt) {
+      t += dt; stepParts(parts, dt); splT = Math.max(0, splT - dt);
+      if (auto) w = clamp(w + (down ? .62 : -.5) * dt, 0, 1.2); else { const inst = clamp(moved / dt / 9.5, 0, 1.3); w += (inst - w) * Math.min(1, dt * 5); moved = 0; }
+      ang += w * dt * 9; inz = Math.abs(w - c0) <= hw;
+      if (w < c0 - hw) { if (t > 1.6) stuck = clamp(stuck + dt * .11 * (1 + E.d)); } else if (w > c0 + hw + .08 && splT <= 0) { splash++; splT = .7; spark(parts, cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad * .6, col, 8); E.beat(0, 'splash'); E.cap('Easy! It is splashing.'); }
+      prog = clamp(prog + (inz ? dt / need : 0)); if (inz && t - lastBeat > .8) { lastBeat = t; E.beat(.7, 'stir'); E.cap(''); } E.prog(Math.round(prog * 10), 10);
+      if (prog >= 1) { g.done = true; g.score = clamp(1.04 - stuck * .9 - splash * .07 - Math.max(0, t - need * 1.7) * .03); spark(parts, cx, cy, GOLD, 12); E.beat(1, 'done'); } else if (t >= T) { g.done = true; g.score = clamp(prog * .7 - stuck * .3); }
+    },
+    down(x, y) { down = true; auto = Math.hypot(x - cx, y - cy) < 7; la = auto ? null : Math.atan2(y - cy, x - cx); },
+    move(x, y) { if (!down || auto || Math.hypot(x - cx, y - cy) < 6) return; const a = Math.atan2(y - cy, x - cx); if (la !== null) { let d = a - la; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; moved += Math.abs(d); } la = a; },
+    up() { down = false; la = null; },
+    draw(c) {
+      const gx = 12, gy = 8, gh = 92; box(c, gx - 2, gy - 2, 18, gh + 4, SKY); R(c, gx, gy + (1 - (c0 + hw) / 1.2) * gh, 14, hw * 2 / 1.2 * gh, inz ? '#8fe07a' : GOOD); const my = gy + (1 - Math.min(1.2, w) / 1.2) * gh; R(c, gx - 4, my - 2, 22, 5, INK); R(c, gx - 3, my - 1, 20, 3, inz ? GOLD : BAD);
+      box(c, 36, 4, W - 44, 92, E.theme.paper || '#e9dcc0'); R(c, cx - rad - 16, cy - 3, 12, 6, INK); R(c, cx + rad + 4, cy - 3, 12, 6, INK);                                                           // pot handles
+      disc(c, cx, cy, rad + 4, INK); disc(c, cx, cy, rad + 3, '#77707f'); disc(c, cx, cy, rad, mixCol(col)); disc(c, cx, cy, rad - Math.round(stuck * 10) - 1, col);
+      for (let k = 0; k < 3; k++) { const a = ang - k * .5 - .4, r = rad * (.45 + k * .14); R(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, 3, 2, '#ffffff77'); }
+      if (E.theme.icon) drawIcon(c, E.theme.icon, cx - 8 + Math.cos(ang + 2) * 9, cy - 8 + Math.sin(ang + 2) * 9, 1, .9);
+      const sx = cx + Math.cos(ang) * (rad - 8), sy = cy + Math.sin(ang) * (rad - 8); line(c, sx, sy, sx + 16, sy - 22, INK, 4); line(c, sx, sy, sx + 16, sy - 22, '#b8794a', 2); disc(c, sx, sy, 4, INK); disc(c, sx, sy, 3, '#b8794a');
+      if (!down && w < .1 && t % 1 < .6) { ring(c, cx, cy, rad - 12, '#ffffff', 2); R(c, cx + rad - 12, cy - 5, 5, 5, '#ffffff'); }                                                                 // "circle here"
+      box(c, 150, 12, 12, 70, SKY); R(c, 151, 13 + 68 * (1 - prog), 10, 68 * prog, GOLD); drawIcon(c, 'ui.star', 148, 84, 1, prog >= 1 ? 1 : .4);
+      drawParts(c, parts);
+    },
+    want: () => ({ type: 'hold', on: w < c0 - .02, ready: true, x: cx, y: cy }),
+    stats: () => ({ stuck: +stuck.toFixed(2), splash, secs: Math.round(t) }),
+  };
+  return g;
+};
+
+/* ---- targets: spots light up one at a time; tap each before it fades (o.spots [[x, y]], o.n, o.life) ---- */
+KINDS.targets = E => {
+  const o = E.def.o || {}, spots = o.spots || [[90, 22], [74, 42], [106, 42], [82, 64], [100, 66]], n = Math.round((o.n || 12) + 6 * E.d), life = (o.life || 1.25) - .5 * E.d, parts = [], got = [], rr = o.r || 11;
+  let i = 0, cur = -1, age = 0, gap = .5, hitT = 0, hitAt = -1, combo = 0, best = 0; E.prog(0, n);
+  const g = { done: false, score: 0, snap: true,
+    update(dt) {
+      stepParts(parts, dt); hitT = Math.max(0, hitT - dt);
+      if (cur < 0) { gap -= dt; if (gap <= 0) { if (i >= n) { g.done = true; g.score = got.reduce((a, b) => a + b, 0) / n; return; } let k = Math.floor(Math.random() * spots.length); if (k === hitAt) k = (k + 1) % spots.length; cur = k; age = 0; } return; }
+      age += dt; if (age >= life) { got.push(0); i++; E.prog(i, n); cur = -1; gap = .25; combo = 0; E.beat(0, 'miss'); }
+    },
+    down(x, y) {
+      if (cur < 0 || g.done) return; const s = spots[cur]; if (Math.hypot(x - s[0], y - s[1]) > rr + 5) { combo = 0; return; }
+      const q = age < life * .45 ? 1 : age < life * .75 ? .8 : .55; got.push(q); i++; E.prog(i, n); hitAt = cur; hitT = .22; cur = -1; gap = .22 + Math.random() * .3 * (1 - E.d); combo++; best = Math.max(best, combo);
+      spark(parts, s[0], s[1], q >= 1 ? GOLD : '#ffffff', q >= 1 ? 9 : 5); E.beat(q, 'hit'); if (combo > 2 && combo % 4 === 0) E.cap('Combo x' + combo);
+    },
+    draw(c) {
+      box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#d8d4c8'); const sw = hitT > 0 ? Math.round(Math.sin(hitT * 40) * 2) : 0;
+      if (E.def.scene) E.def.scene(c, 9, 5, W - 18, H - 12, { hitT, hitAt, cur, spots });
+      else { R(c, 89, 5, 2, 8, INK); R(c, 70 + sw, 12, 40, 70, INK); R(c, 71 + sw, 13, 38, 68, E.theme.color || '#c0392b'); R(c, 71 + sw, 13, 6, 68, '#ffffff33'); R(c, 71 + sw, 30, 38, 2, '#2a273355'); R(c, 71 + sw, 60, 38, 2, '#2a273355'); R(c, 60, 96, 60, 3, '#2a273333'); }
+      spots.forEach((s, k) => { const on = k === cur, x = s[0] + (E.def.scene ? 0 : sw), y = s[1]; if (on) { const u = clamp(1 - age / life); disc(c, x, y, rr, INK); disc(c, x, y, rr - 1, GOLD); disc(c, x, y, Math.max(1, Math.round((rr - 3) * u)), '#fff8b0'); ring(c, x, y, rr + 2 + Math.round((1 - u) * 3), '#ffffff', 1); } else if (k === hitAt && hitT > 0) { disc(c, x, y, rr, '#ffffff'); } else ring(c, x, y, rr - 3, '#2a273344', 1); });
+      drawParts(c, parts);
+    },
+    want: () => (cur >= 0 ? { type: 'tap', x: spots[cur][0], y: spots[cur][1], ready: age > .1 } : { type: 'tap', ready: false }),
+    stats: () => ({ hits: got.filter(v => v > 0).length, of: n, combo: best }),
+  };
+  return g;
+};
+
+/* ---- sequence: the card shows the stack; tap the pieces on the tray in that order, bottom first (o.pieces [[label, colour, icon?]], o.rounds) ---- */
+KINDS.sequence = E => {
+  const o = E.def.o || {}, pool = o.pieces || [['Bread', '#e0b46a'], ['Lettuce', '#5fb84f'], ['Tomato', '#d8342e'], ['Cheese', '#f2c230'], ['Ham', '#e89aa0'], ['Bread', '#e0b46a']], rounds = o.rounds || 2, k = Math.min(pool.length, (o.len || 4) + (E.lvl >= 5 ? 1 : 0)), tl = (o.secs || 11) - 4 * E.d, parts = [], got = [];
+  let r = 0, want = [], tray = [], placed = 0, wrong = 0, t = 0, wait = .2, shake = 0, shakeI = -1;
+  const tw = Math.min(30, Math.floor((W - 20) / k)), tx = j => (W - k * tw) / 2 + j * tw;
+  function deal() { const mid = pool.slice(1, -1).sort(() => Math.random() - .5).slice(0, k - 2); want = [pool[0], ...mid, pool[pool.length - 1]].slice(0, k); tray = want.map((p, j) => ({ p, j, used: false })).sort(() => Math.random() - .5); placed = 0; wrong = 0; t = 0; E.cap('Next: ' + want[0][0]); }
+  deal(); E.prog(0, rounds);
+  const g = { done: false, score: 0, snap: true,
+    update(dt) {
+      stepParts(parts, dt); shake = Math.max(0, shake - dt);
+      if (wait > 0) { wait -= dt; if (wait <= 0 && placed >= k) { r++; E.prog(r, rounds); if (r >= rounds) { g.done = true; g.score = got.reduce((a, b) => a + b, 0) / rounds; E.cap(''); } else deal(); } return; }
+      t += dt; if (t >= tl) { got.push(placed / k * .5); placed = k; wait = .6; E.beat(0, 'miss'); E.cap('Too slow'); }
+    },
+    down(x, y) {
+      if (wait > 0 || g.done || y < 78) return; const j = Math.floor((x - tx(0)) / tw); if (j < 0 || j >= k) return; const it = tray[j]; if (it.used) return;
+      if (it.p[0] === want[placed][0] && it.p[1] === want[placed][1]) { it.used = true; placed++; spark(parts, 100, 70 - placed * 8, it.p[1], 5); E.beat(.8, 'place'); if (placed >= k) { got.push(clamp((1 - wrong * .22) * (.75 + .25 * clamp(1 - t / tl)))); wait = .7; E.cap('Done!'); E.beat(1, 'round'); } else E.cap('Next: ' + want[placed][0]); }
+      else { wrong++; shake = .3; shakeI = j; E.beat(0, 'miss'); }
+    },
+    draw(c) {
+      box(c, 8, 4, W - 16, 70, E.theme.paper || '#fffdf4'); box(c, 14, 8, 44, 62, '#fff4dc'); R(c, 18, 11, 36, 2, '#2a273355');                               // the order card
+      for (let j = 0; j < k; j++) { const y = 62 - j * 9, p = want[j]; R(c, 20, y, 32, 7, INK); R(c, 21, y + 1, 30, 5, j < placed ? '#cfc6b4' : p[1]); if (j === placed && wait <= 0 && Math.floor(t * 4) % 2 === 0) { R(c, 16, y + 2, 3, 3, BAD); R(c, 53, y + 2, 3, 3, BAD); } }
+      R(c, 76, 66, 56, 4, INK); R(c, 78, 64, 52, 3, '#dfeef5');                                                                                         // the plate, and what is on it
+      for (let j = 0; j < placed && j < k; j++) { const y = 56 - j * 8, p = want[j]; R(c, 82, y, 44, 8, INK); R(c, 83, y + 1, 42, 6, p[1]); R(c, 84, y + 1, 40, 1, '#ffffff66'); if (p[2]) drawIcon(c, p[2], 96, y - 5, 1); }
+      if (E.theme.icon) drawIcon(c, E.theme.icon, 140, 12, 2, placed >= k ? 1 : .35);
+      box(c, 136, 52, 30, 8, '#e9dcc0'); if (wait <= 0) R(c, 137, 53, 28 * clamp(1 - t / tl), 6, t / tl > .7 ? BAD : GOLD);
+      for (let j = 0; j < k; j++) { const it = tray[j], x = tx(j) + (shake > 0 && shakeI === j ? Math.round(Math.sin(shake * 60) * 2) : 0); box(c, x + 1, 80, tw - 2, 26, it.used ? '#cfc6b4' : '#fffdf4'); if (it.used) continue; R(c, x + 4, 86, tw - 8, 14, INK); R(c, x + 5, 87, tw - 10, 12, it.p[1]); R(c, x + 5, 87, tw - 10, 2, '#ffffff66'); if (it.p[2]) drawIcon(c, it.p[2], x + tw / 2 - 8, 85, 1); }
+      drawParts(c, parts);
+    },
+    want() { if (wait > 0 || g.done || placed >= k) return { type: 'tap', ready: false }; const j = tray.findIndex(it => !it.used && it.p[0] === want[placed][0] && it.p[1] === want[placed][1]); return { type: 'tap', x: tx(j) + tw / 2, y: 93, ready: true }; },
+    stats: () => ({ rounds, wrong }),
+  };
+  return g;
+};
+
+/* ---- sweep: the blade runs along the thing at an even pace; tap as it crosses each mark (o.rounds, o.marks) ---- */
+KINDS.sweep = E => {
+  const o = E.def.o || {}, rounds = o.rounds || 3, parts = [], got = [], x0 = 26, x1 = 154, cols = E.theme.pal || [E.theme.color || '#f08a2c', '#5fb84f', '#d8342e'];
+  let r = 0, marks = [], x = 0, spd = 0, wait = .3, chop = 0, bad = 0, sum = 0, perfect = 0;
+  function gen() { const m = (o.marks || 5) + Math.min(3, r) + (E.lvl >= 6 ? 1 : 0); marks = []; for (let j = 1; j <= m; j++) marks.push({ x: x0 + (x1 - x0) * j / (m + 1), q: -1 }); x = x0 - 14; spd = (o.speed || 40) * (1 + .5 * E.d) * (1 + .12 * r); sum = 0; }
+  gen(); E.prog(0, rounds);
+  const g = { done: false, score: 0,
+    update(dt) {
+      stepParts(parts, dt); chop = Math.max(0, chop - dt); if (wait > 0) { wait -= dt; return; }
+      x += spd * dt; for (const m of marks) if (m.q < 0 && x - m.x > 9) { m.q = 0; E.beat(0, 'miss'); }
+      if (x > x1 + 10) { got.push(clamp((sum - bad * .3) / marks.length)); bad = 0; r++; E.prog(r, rounds); wait = .5; if (r >= rounds) { g.done = true; g.score = got.reduce((a, b) => a + b, 0) / rounds; } else gen(); }
+    },
+    down() {
+      if (wait > 0 || g.done) return; chop = .14; let m = null, bd = 9; for (const k of marks) if (k.q < 0 && Math.abs(k.x - x) < bd) { bd = Math.abs(k.x - x); m = k; }
+      if (!m) { if (x > x0 && x < x1) { bad++; E.beat(0, 'miss'); } return; } const q = bd < 2.6 ? 1 : bd < 5.5 ? .75 : .45; m.q = q; m.at = x; sum += q; if (q >= 1) perfect++; spark(parts, x, 58, q >= 1 ? GOLD : '#ffffff', q >= 1 ? 7 : 3); E.beat(q, 'chop');
+    },
+    draw(c) {
+      box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#e9dcc0'); box(c, 16, 40, W - 32, 46, '#b8794a'); R(c, 18, 42, W - 36, 3, '#ffffff33'); R(c, 20, 80, W - 40, 3, '#2a273333');   // the board
+      const col = cols[r % cols.length], cuts = marks.filter(m => m.q > 0).map(m => m.at).sort((a, b) => a - b); let px = x0, n = 0;
+      for (const e of cuts.concat([x1])) { const off = n * 2 - cuts.length; R(c, px + off, 52, e - px - 1, 18, INK); R(c, px + off + 1, 53, e - px - 3, 16, col); R(c, px + off + 1, 53, e - px - 3, 3, '#ffffff55'); px = e; n++; }
+      for (const m of marks) if (m.q < 0) { for (let y = 48; y < 74; y += 4) R(c, m.x, y, 1, 2, '#ffffff'); R(c, m.x - 1, 45, 3, 3, INK); } else if (m.q === 0) R(c, m.x - 1, 45, 3, 3, BAD);
+      if (E.theme.icons && E.theme.icons[r % E.theme.icons.length]) drawIcon(c, E.theme.icons[r % E.theme.icons.length], 12, 8, 2); else if (E.theme.icon) drawIcon(c, E.theme.icon, 12, 8, 2);
+      const ky = chop > 0 ? 44 : 26; R(c, x - 1, ky, 3, 30, INK); R(c, x, ky, 1, 29, '#d9d9e0'); R(c, x - 3, ky - 12, 7, 13, INK); R(c, x - 2, ky - 11, 5, 11, '#8a5a2c'); if (wait <= 0) R(c, x, 76, 1, 6, BAD);
+      drawParts(c, parts);
+    },
+    want() { const m = marks.find(k => k.q < 0); return { type: 'tap', x: W / 2, y: 60, ready: wait <= 0 && !!m && Math.abs(m.x - x) < 2.2 }; },
+    stats: () => ({ perfect, rounds }),
+  };
+  return g;
+};
+
+/* ---- golden: it colours as it cooks; tap to take it out in the golden window (o.rounds, o.style 'oven' | 'fry') ---- */
+KINDS.golden = E => {
+  const o = E.def.o || {}, n = o.rounds || 3, fry = o.style === 'fry', parts = [], got = [], zw = (o.zone || .2) - .08 * E.d;
+  let i = 0, h = 0, spd = 0, z0 = .7, wait = .3, q = 0, out = 0, surge = 0, perfect = 0;
+  function next() { h = 0; spd = (.2 + Math.random() * .12) * (1 + .5 * E.d); z0 = .6 + Math.random() * .2; surge = 1.5 + Math.random() * 2; out = 0; }
+  next(); E.prog(0, n);
+  function judge(v) { q = v; got.push(v); i++; E.prog(i, n); out = 1; wait = .9; if (v >= 1) perfect++; if (v > .5) spark(parts, 90, 40, GOLD, v >= 1 ? 10 : 5); E.beat(v, 'out'); E.cap(v >= 1 ? 'Golden!' : v > .5 ? 'Good' : h < z0 ? 'Still pale' : 'Burnt'); }
+  const tone = v => (v < z0 - zw / 2 ? 0 : v <= z0 + zw / 2 ? 1 : 2), tint = document.createElement('canvas'); tint.height = 48;
+  const g = { done: false, score: 0,
+    update(dt) {
+      stepParts(parts, dt); if (wait > 0) { wait -= dt; if (wait <= 0 && out) { if (i >= n) { g.done = true; g.score = got.reduce((a, b) => a + b, 0) / n; E.cap(''); } else { next(); E.cap(''); } } return; }
+      surge -= dt; h += spd * dt * (surge < 0 && surge > -.8 ? 2.1 : 1); if (h >= 1.15) judge(0);
+    },
+    down() { if (wait > 0 || g.done) return; const dz = h - z0; judge(Math.abs(dz) <= zw * .2 ? 1 : Math.abs(dz) <= zw / 2 ? .8 : dz < 0 ? Math.max(0, .55 + (dz + zw / 2) * 2.2) : Math.max(0, .45 - (dz - zw / 2) * 5)); },
+    draw(c) {
+      box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#55505f'); const t3 = tone(h), ox = 46, oy = 8, ow = 88, oh = 62, lift = out ? Math.min(14, (.9 - wait) * 40) : 0;
+      if (fry) { box(c, ox, oy + 16, ow, oh - 16, '#8a8f9a'); R(c, ox + 2, oy + 26, ow - 4, oh - 28, '#e8b63a'); for (let k = 0; k < 7; k++) R(c, ox + 6 + k * 12, oy + 28 + Math.floor((h * 30 + k * 3) % 6), 2, 2, '#fff8b0'); R(c, ox + 10, oy + 20 - lift, ow - 20, 2, INK); R(c, ox + ow - 12, oy + 4 - lift, 2, 18, INK); }
+      else { box(c, ox, oy, ow, oh, '#3a3644'); box(c, ox + 6, oy + 6, ow - 12, oh - 14, t3 === 2 ? '#5a2a1c' : '#f0a04a'); R(c, ox + 8, oy + oh - 20 + 0, ow - 16, 2, '#2a2733'); for (let k = 0; k < 3; k++) disc(c, ox + 14 + k * 30, oy + oh - 4, 2, '#d9d9e0'); }
+      const dx = ox + ow / 2 - 24, dy = oy + (fry ? 14 : 8) - lift, al = h < z0 - zw / 2 ? clamp(.6 * (1 - h / (z0 - zw / 2))) : clamp((h - z0 - zw / 2) * 2.4, 0, .85);
+      tint.width = 48; const tc = tint.getContext('2d'); drawIcon(tc, E.theme.icon || 'skill.cooking', 0, 0, 3); if (al > .02) { tc.globalCompositeOperation = 'source-atop'; tc.globalAlpha = al; tc.fillStyle = h < z0 ? '#fff4dc' : '#1e1410'; tc.fillRect(0, 0, 48, 48); } c.drawImage(tint, Math.round(dx), Math.round(dy));
+      if (t3 === 2 && !out) for (let k = 0; k < 3; k++) R(c, ox + 20 + k * 22, oy - 2 - Math.floor((h * 40 + k * 5) % 8), 3, 3, '#77707f');
+      const bx = 16, bw = 148, by = 80; box(c, bx - 2, by - 2, bw + 4, 14, '#fff4dc'); R(c, bx, by, bw * clamp(z0 - zw / 2) / 1.15, 10, '#f6e7c0'); R(c, bx + bw * (z0 - zw / 2) / 1.15, by, bw * zw / 1.15, 10, GOLD); R(c, bx + bw * (z0 - zw * .2) / 1.15, by, bw * zw * .4 / 1.15, 10, '#ffd95a'); R(c, bx + bw * (z0 + zw / 2) / 1.15, by, bw * (1.15 - z0 - zw / 2) / 1.15, 10, '#5a2a1c');
+      const mx = bx + bw * clamp(h / 1.15); R(c, mx - 2, by - 5, 5, 20, INK); R(c, mx - 1, by - 4, 3, 18, out ? (q > .5 ? GOOD : BAD) : '#ffffff');
+      drawParts(c, parts);
+    },
+    want: () => ({ type: 'tap', x: W / 2, y: 50, ready: wait <= 0 && Math.abs(h - z0) < zw * .18 }),
+    stats: () => ({ perfect, rounds: n }),
+  };
+  return g;
+};
+
+/* ---- stroke: press as the handle reaches the left green (the catch), hold through the pull, let go in the right green (the finish) ---- */
+KINDS.stroke = E => {
+  const o = E.def.o || {}, n = o.strokes || 8, per = (o.period || 2.3) - .7 * E.d, zw = (o.zone || .17) - .06 * E.d, parts = [], got = [], fin = .55;
+  let p = .8, i = 0, hold = false, qa = -1, t = 0, dist = 0, flash = 0, flashQ = 0, perfect = 0, did = true, early = false; E.prog(0, n);
+  const pos = () => (p < fin ? p / fin : 1 - (p - fin) / (1 - fin));                    // 0 = at the catch (left), 1 = at the finish (right)
+  const qOf = d => (d <= zw * .35 ? 1 : d <= zw ? .75 : d <= zw * 1.8 ? .4 : 0);
+  function score(v) { got.push(v); i++; E.prog(i, n); flash = .4; flashQ = v; if (v >= .9) perfect++; dist += 6 + 10 * v; if (v > .5) spark(parts, 150, 70, v >= .9 ? GOLD : '#ffffff', 6); E.beat(v, 'stroke'); qa = -1; if (i >= n) { g.done = true; g.score = got.reduce((a, b) => a + b, 0) / n; } }
+  const g = { done: false, score: 0,
+    update(dt) {
+      t += dt; stepParts(parts, dt); flash = Math.max(0, flash - dt); const p0 = p; p += dt / per;
+      if (p >= 1) { p -= 1; if (!did) score(0); did = early; early = false; }                                   // a whole cycle with no pull
+      if (hold && p0 < fin + zw * 1.8 * (1 - fin) && p >= fin + zw * 1.8 * (1 - fin) && qa >= 0) { hold = false; score(qa * .5); }   // held on far too long
+    },
+    down() { if (hold || g.done || qa >= 0) return; const d = p > .5 ? (1 - p) / (1 - fin) : p / fin; hold = true; qa = qOf(d); if (qa <= 0) { hold = false; qa = -1; E.beat(0, 'miss'); flash = .3; flashQ = 0; } else if (p > .5) early = true; else did = true; },
+    up() { if (!hold) return; hold = false; const d = Math.abs(p - fin) / (p < fin ? fin : 1 - fin); score((qa + qOf(d)) / 2); },
+    draw(c) {
+      box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#bfe3f2'); const u = pos();
+      if (E.def.scene) E.def.scene(c, 9, 5, W - 18, 62, { u, hold, t, dist });
+      else { R(c, 9, 46, W - 18, 22, '#3b82d6'); for (let k = 0; k < 7; k++) R(c, 9 + ((k * 27 + 200 - dist * 2) % (W - 26) + (W - 26)) % (W - 26), 50 + (k % 3) * 6, 9, 1, '#9fd0f0');
+        const sx = 70 + u * 22; R(c, 40, 40, 100, 6, INK); R(c, 41, 41, 98, 4, '#b8794a'); R(c, 36, 38, 8, 6, INK);                                 // the boat / rail
+        disc(c, sx, 24, 5, INK); disc(c, sx, 24, 4, '#e8b890'); R(c, sx - 4, 29, 9, 11, INK); R(c, sx - 3, 30, 7, 9, col1(E)); line(c, sx + 3, 32, 118 - u * 26, 34, INK, 2);   // rower + arms
+        const a = -.9 + u * 1.5; line(c, 120, 38, 120 + Math.cos(a) * 26, 38 + Math.sin(a) * 26 + 8, INK, 3); line(c, 120, 38, 120 - Math.cos(a) * 12, 38 - Math.sin(a) * 12 - 3, INK, 3); if (hold) R(c, 118 + Math.cos(a) * 26, 52 + Math.sin(a) * 20, 6, 2, '#ffffff'); }
+      const bx = 20, bw = 140, by = 78; box(c, bx - 2, by - 2, bw + 4, 16, SKY); R(c, bx, by, bw * zw * .9, 12, GOOD); R(c, bx + bw * (1 - zw * .9), by, bw * zw * .9, 12, GOOD);
+      R(c, bx + 2, by + 14, 3, 5, INK); R(c, bx + bw - 5, by + 14, 3, 5, INK); if (hold) R(c, bx, by + 4, bw * u, 4, GOLD);
+      const mx = bx + u * (bw - 1); R(c, mx - 2, by - 5, 5, 22, INK); R(c, mx - 1, by - 4, 3, 20, flash > 0 ? (flashQ > .5 ? GOLD : BAD) : hold ? GOLD : '#ffffff');
+      drawParts(c, parts);
+    },
+    want: () => ({ type: 'hold', on: hold ? p < fin - .01 : (p < .02 || p > 1 - .012) && qa < 0, ready: true }),
+    stats: () => ({ perfect, strokes: n }),
+  };
+  return g;
+};
+
 /* ====================================================================== the shell ====================================================================== */
 let open = null;
 function injectCss() { if (typeof document === 'undefined' || !document.querySelector('link[href="src/ui/style.css"]') || document.querySelector('link[href="src/ui/minigame.css"]')) return; document.head.append(el('link', { rel: 'stylesheet', href: 'src/ui/minigame.css' })); }
@@ -300,6 +563,13 @@ export function sheetRect() { return open ? open.sheet.getBoundingClientRect() :
 export function abort() { if (open) open.finish({ score: 0, stars: 0, quit: true, aborted: true }); }
 export const isOpen = () => !!open;
 
+/* "You can turn mini-games off in Settings": when a game comes up for the 2nd, 3rd and 4th time in a save, then never again (owner msg 164). It sits above the sheet and blocks nothing.
+   Counters live in the save: G.state.skillplay.n.mgSeen (games opened) / mgTip (hints shown). */
+function offTip(sheet) {
+  let n = null; try { const s = G.state && G.state.skillplay; n = s && (s.n || (s.n = {})); } catch (e) { n = null; } if (!n) return;
+  n.mgSeen = (n.mgSeen || 0) + 1; if (n.mgSeen < 2 || (n.mgTip || 0) >= 3) return; n.mgTip = (n.mgTip || 0) + 1;
+  const tip = el('button.mg-tip', { 'data-pad': 'aside', title: 'Hide this tip', onclick: () => tip.remove() }, iconEl('ui.settings', 1), el('span', { text: 'Tip: you can turn mini-games off in Settings.' })); sheet.prepend(tip); setTimeout(() => tip.classList.add('out'), 7000); setTimeout(() => tip.remove(), 7400);
+}
 export function play(def) {
   injectCss(); if (open) abort();
   return new Promise(resolve => {
@@ -309,7 +579,7 @@ export function play(def) {
     const veil = el('div.mg-veil'), stage = el('div.mg-stage', null, cv, veil);
     const sheet = el('div.mg' + (innerWidth > innerHeight * 1.15 ? '.side' : ''), { role: 'dialog', 'aria-label': def.title || 'Mini-game' },
       el('div.mg-head', null, def.icon ? iconEl(def.icon, 2) : null, el('div.mg-tt', null, el('b', { text: def.title || '' }), el('small', { text: def.sub || `Level ${lvl}` })), autoBtn, pauseBtn, quitBtn), hint, stage, cap, binsEl, pips);
-    root().append(sheet);
+    root().append(sheet); offTip(sheet);
     let paused = false, done = false, raf = 0, last = performance.now(), t = 0, count = def.count === 0 ? 0 : .9, pipN = 0, held = false;
     const env = { W, H, lvl, d, def, theme, rnd: Math.random, icon: drawIcon,
       beat: (q, tag) => { try { def.onBeat && def.onBeat(q, tag); } catch (e) { /* cosmetic */ } },
@@ -319,7 +589,7 @@ export function play(def) {
     };
     let game; try { game = def.kind === 'custom' ? def.custom(env) : (KINDS[def.kind] || KINDS.timing)(env); } catch (e) { console.error(e); sheet.remove(); return resolve({ score: -1, auto: true, stars: 0, error: true }); }
     const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; };
-    cv.addEventListener('pointerdown', e => { e.preventDefault(); if (paused || done || count > 0) return; held = true; try { cv.setPointerCapture(e.pointerId); } catch (x) { /* synthetic */ } const [x, y] = pt(e); game.down && game.down(x, y); });
+    cv.addEventListener('pointerdown', e => { e.preventDefault(); if (paused || done || count > 0) return; held = true; try { cv.setPointerCapture(e.pointerId); } catch (x) { /* synthetic */ } let [x, y] = pt(e); if (!e.isTrusted && game.snap) { const w = game.want && game.want(); if (w && w.ready && w.x !== undefined) { x = w.x; y = w.y; } }   /* PAD HOOK: a Confirm press (ui/padnav.js sends an untrusted pointer) hits the lit spot */ game.down && game.down(x, y); });
     cv.addEventListener('pointermove', e => { if (paused || done || !held) return; const [x, y] = pt(e); game.move && game.move(x, y); });
     const upFn = e => { if (!held) return; held = false; if (done) return; const [x, y] = pt(e); game.up && game.up(x, y); };
     cv.addEventListener('pointerup', upFn); cv.addEventListener('pointercancel', upFn);
@@ -351,4 +621,7 @@ export function play(def) {
     raf = requestAnimationFrame(frame);
   });
 }
-export function init() { injectCss(); G.minigame = { play, abort, isOpen, sheetRect, stars, MG, kinds: Object.keys(KINDS) }; }
+/** add a kind from another file (see the header): impl = env => game object. Returns false when the name is taken. */
+export function registerKind(name, impl) { if (!name || typeof impl !== 'function' || KINDS[name]) return false; KINDS[name] = impl; return true; }
+export const hasKind = name => !!KINDS[name];
+export function init() { injectCss(); G.minigame = { play, abort, isOpen, sheetRect, stars, MG, registerKind, hasKind, draw, W, H, get kinds() { return Object.keys(KINDS); } }; }

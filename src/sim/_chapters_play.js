@@ -90,7 +90,7 @@ const A = {
   },
   async 'minigame:flip'(st, c) {
     const r = await c.doAt([{ tag: 'stove' }, { label: /stove|range|cook/i }], st.label, { go: 'To the stove', hint: st.hint }); if (r !== 'done') return r;
-    return kit('flip', c, { skill: 'cooking', title: "Bea's Maple Oat Pancakes", sub: "At Nana's stove" });
+    return kit('flip', c, { skill: 'cooking', title: "Bea's Maple Oat Pancakes", sub: "At Nana's stove", opts: { ctx: { recipe: 'maple_pancakes' } } });
   },
   /* --- Chapter 2 --- */
   async 'ui:map_pick'(st, c, arg) {
@@ -256,7 +256,7 @@ const A = {
   /* --- Chapter 13 --- */
   async 'minigame:cook'(st, c) {
     const r = await c.doAt([{ tag: 'stove' }, { label: /stove|range|cook/i }], st.label, { go: 'To the table', hint: st.hint }); if (r !== 'done') return r;
-    return kit('flip', c, { skill: 'cooking', title: 'The apple-maple pie', sub: "With Nana, in her kitchen", hint: 'Tap when the marker is in the green: apples in the pan, a turn at just the right moment. Nana is watching the crust, and you.' });
+    return kit('ck_oven', c, { skill: 'cooking', title: 'The apple-maple pie', sub: "With Nana, in her kitchen", hint: 'Watch it colour and tap to take it out in the gold. Nana is watching the crust, and you.', opts: { ctx: { recipe: 'apple_maple_pie' } } });   /* a pie is baked, not flipped (mini-games audit, owner msg 162) */
   },
   /* --- Chapter 14 / 15 --- */
   async 'minigame:pour'(st, c) {

@@ -28,6 +28,7 @@ import { registerFixture } from '../scenes/interior.js';
 import { U } from '../engine/raster.js';
 import { nearestFree } from '../engine/nav.js';
 import { choose, toast, bubble, modal, el } from '../ui/kit.js';
+import { MACHINE_ACTS, machineAnim, machineId } from '../data/cookgames.js';
 import { iconEl, weatherIcon } from '../ui/_icons.js';
 import { pickAlarm, commitNote, ALARM_LABEL, ALARM_SUB } from '../ui/alarm.js';
 
@@ -63,7 +64,7 @@ function tagsFor(fx, scene) {
     if (T.has('fitting')) out.add('fitting_room');
     if (/bar\.pool/.test(id)) out.add('pool'); if (/dartboard/.test(id)) out.add('darts'); if (/jukebox/.test(id)) out.add('jukebox');
     if (/(^|\.)(pf\.tv)$/.test(id) && ((fx.item && fx.item.p) || {}).kind === 'sport') out.add('screen');
-    if (rid === 'gym') { if (T.has('cardio')) out.add('treadmill'); if (T.has('yoga') && !T.has('decor')) out.add('yoga_studio'); if (T.has('lockers')) out.add('locker_shower'); }
+    if (rid === 'gym') { if (T.has('cardio')) out.add(/bike/.test(id) ? 'exbike' : /rower/.test(id) ? 'rower' : 'treadmill') /* each machine its own activity + mini-game (owner msg 162) */; if (T.has('boxing')) out.add('punchbag'); if (T.has('yoga') && !T.has('decor')) { out.add('yoga_studio'); out.add('yoga_mat'); } if (T.has('lockers')) out.add('locker_shower'); }
     if (rid === 'library') { if (T.has('reading')) out.add('study_desk'); if (T.has('armchair')) out.add('reading_nook'); if (T.has('computer')) out.add('public_computer'); }
     if ((rid === 'library' || rid === 'bookstore') && T.has('bookshelf')) out.add('book_browse');
   }
@@ -128,9 +129,9 @@ function start(id, ctx = {}) {
   let minutes = ctx.minutes || a.minutes.default;
   if (c && c.amount && !(c.optional && G.money && !G.money.canAfford(c.amount))) { const amt = c.per === 'hour' ? c.amount * minutes / 60 : c.amount; if (G.money && !G.money.pay(amt, a.name, { category: 'fun' })) return null; }
   if (c && c.item && !(id === 'paint' && S.canvas)) { const it = [].concat(c.item).find(i => invCount(i) > 0); if (it) { if (!G.inv.remove(it, 1)) G.inv.fridge.remove(it, 1); if (id === 'paint') S.canvas = 1; } }
-  const book = ctx.book ? ITEM_BY_ID[ctx.book] : null, seat = ctx.at || seatOf(fx, a), p = G.player;
+  const book = ctx.book ? ITEM_BY_ID[ctx.book] : null, seat = ctx.at || seatOf(fx, a) || (MACHINE_ACTS.includes(id) && fx && fx.pose && machineAnim(machineId(fx)) && !seatTaken(fx.pose) ? fx.pose : null) /* on the treadmill belt, on the mat, squared up to the bag */, p = G.player;
   let anim = a.anim; const aid = (fx && fx.asset.id) || '';
-  if (/treadmill/.test(aid)) anim = 'treadmill'; else if (/bike|rower|yogamat/.test(aid)) anim = 'sit'; if (seat && seat.lie) anim = 'sleep';
+  if (MACHINE_ACTS.includes(id)) anim = machineAnim(machineId(fx)) || anim /* the animation matches the machine and its mini-game (owner msg 162) */; else if (/treadmill/.test(aid)) anim = 'treadmill'; else if (/bike|rower|yogamat/.test(aid)) anim = 'sit'; if (seat && seat.lie) anim = 'sleep';
   if (book && book.kind === 'skill' && G.skills) { const l = G.skills.level(book.skill); if (l < book.minLevel || l > book.maxLevel) toast(l > book.maxLevel ? 'You already know everything in this book.' : 'This book is a bit advanced for you right now.', 'info'); }
   const st = run = { id, def: a, ctx, minutes, elapsed: 0, tot: {}, xp: {}, got: {}, yAcc: 0, t0: G.state.t, e0: G.needs ? G.needs.get('energy') : 0 };
   const sleepy = anim === 'sleep'; if (G.needs) G.needs.sleeping = sleepy;
@@ -354,7 +355,7 @@ async function cookMenu(fx, appliance = 'stove') {
   };
   const cook = (r, min) => {
     m.close(); takeIngredients(r);
-    const ok = start(atStove && r.appliance === 'stove' ? 'cook' : 'prep_cold', { fx, minutes: min, full: true, label: (r.appliance === 'none' ? 'Making ' : r.oven ? 'Baking ' : 'Cooking ') + r.name, noSummary: true, noOpen: true,
+    const ok = start(atStove && r.appliance === 'stove' ? 'cook' : 'prep_cold', { fx, recipe: r.id /* the mini-game fits the dish: data/cookgames.js */, minutes: min, full: true, label: (r.appliance === 'none' ? 'Making ' : r.oven ? 'Baking ' : 'Cooking ') + r.name, noSummary: true, noOpen: true,
       onCancel: () => { takeIngredients(r, true); toast('You stopped and put the ingredients back.', 'info'); },
       onDone: async () => {
         const id = 'meal_' + r.id, q = r.appliance === 'stove' ? sb.mealEffectMult : 1, first = !CK().made[r.id], xp = Math.round(r.xp * (first ? 1.5 : 1));

@@ -11,7 +11,7 @@
 import { DIGITS_REGULAR, DIGITS_BOLD } from './_numfont_data.js';
 
 export const order = 5;
-const MODES = ['', 'a', 'b', 'c', 'd'], KEY = 'maplebay.num', DIG = 'U+0030-0039', DIGB = 'U+0030-0039,U+0042';   /* mode d also redraws the capital B (owner msg 172: Pixelify's B reads as a G) */
+const MODES = ['', 'a', 'b', 'c', 'd'], KEY = 'maplebay.num', DIG = 'U+0030-0039', DIGB = 'U+0030-0039,U+0042-0044,U+0047,U+005A';   /* mode d also redraws the capital B (owner msg 172: Pixelify's B reads as a G) */
 const STACK = '"Pixelify Sans",ui-rounded,"Trebuchet MS",system-ui,sans-serif';
 const FAM = { a: 'MB Digits A', b: 'MB Digits A', c: 'MB Digits C', d: 'MB Digits D' };
 const MONEY = ['.hud-money b', '.hud-clock', '.ph-st-clock', '.ph-st-money', '.ph-big', '.ph-kv b', '.ph-row-r', '.shop-price', '.ph-w-clock', '.ph-nowline b'];

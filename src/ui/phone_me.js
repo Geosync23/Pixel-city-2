@@ -69,7 +69,7 @@ function skillPage(b, ctx, k) {
   b.append(c2);
   const co = COACHES.find(x => x.skill === k), live = co && safe(() => sp.coaches().find(x => x.id === co.id), null);
   if (co) b.append(card(el('b', { text: 'Coach: ' + co.name }), el('p', { text: `${co.role}. ${hh(co.hours[0])} to ${hh(co.hours[1])}, ${money(co.fee)} a lesson${co.favour ? ' or a small favour' : ''}. One lesson a day.` }), live && live.x !== null ? btn('Take me there', () => safe(() => G.phone.routeTo({ x: live.x, y: live.y, name: co.short }), 0), '', 'ui.pin') : null));
-  const keys = [...new Set(Object.keys(GAME_FOR).filter(id => safe(() => sp.GAMES[GAME_FOR[id]].skill, null) === k).map(id => GAME_FOR[id]))];
+  const keys = sp ? Object.keys(sp.GAMES).filter(key => sp.GAMES[key].skill === k) : [];   /* every game of the skill (cooking and the gym pick theirs by dish / machine: data/cookgames.js) */
   if (sp && keys.length) { b.append(section('Mini-games')); for (const key of keys) { const best = sp.best(key), g = sp.GAMES[key]; b.append(card(kv(safe(() => g.title(lvl, {}, null, {}), key), best && best.n ? `${'★'.repeat(Math.max(1, Math.round(best.q * 3)))} · played ${best.n}x` : 'not played yet'),
     btn('Practise (no rewards)', () => { ctx.close(); setTimeout(() => safe(() => sp.demo(key), 0), 250); }, ''))); } }
 }

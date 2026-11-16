@@ -14,7 +14,7 @@ const EAT = ['cafe', 'bakery', 'diner', 'ramen', 'pizza', 'restaurant'];
 const SEAT_ANIMS = { eat: ['eat', 'drink', 'talk', 'eat', 'sit', 'phone'], bar: ['drink', 'talk', 'drink', 'sit'], library: ['read', 'read', 'read', 'sit'], bookstore: ['read', 'sit'], office: ['type'], cinema: ['sit', 'sit', 'eat'], clinic: ['sit', 'read', 'phone'], other: ['sit', 'phone', 'read'] };
 const LINEKEY = { cafe: 'cafe', bakery: 'cafe', diner: 'eating', ramen: 'eating', pizza: 'eating', restaurant: 'eating', gym: 'workout', grocery: 'shopping', cornerstore: 'shopping', clothing: 'shopping', homegoods: 'shopping', bookstore: 'shopping', library: 'library', bar: 'bar', cinema: 'cinema' };
 const BROWSE = /shelf|rack|produce|display|case|magazine|catalog|freezer|cooler|bin|table_display|mannequin/, COUNTER = /^(checkout|till|reception|host|host_stand|front_desk|bar_counter|ticket|teller|pickup_counter)$/;
-const AMAP = { run: 'treadmill', cycle: 'treadmill', punch: 'lift', squat: 'lift', press: 'lift', yoga: 'stand', sing: 'talk', serve: 'work', browse: 'stand', watch: 'sit' };
+const AMAP = { run: 'treadmill', cycle: 'cycle', punch: 'punch', squat: 'lift', press: 'lift', yoga: 'yoga', sing: 'talk', serve: 'work', browse: 'stand', watch: 'sit' };
 const key = s => (s.x * 4 | 0) + ',' + (s.y * 4 | 0);
 const baseVenue = id => VENUE_BY_ID[id] ? id : VENUE_BY_ID[id.split(/[_:.]/)[0]] ? id.split(/[_:.]/)[0] : '';
 

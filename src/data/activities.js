@@ -47,7 +47,7 @@
 //   flavour       short line shown in the activity bubble.
 
 export const ANIMS = ['stand', 'walk', 'sit', 'sleep', 'eat', 'drink', 'phone', 'talk', 'wave', 'type', 'work',
-  'lift', 'treadmill', 'carry', 'dance', 'read', 'shower', 'cheer'];
+  'lift', 'treadmill', 'carry', 'dance', 'read', 'shower', 'cheer', 'cycle', 'row', 'punch', 'yoga'];
 
 // Function tags. `home` tags match the home goods catalogue in items.js exactly.
 export const FUNCTION_TAGS = {
@@ -55,7 +55,7 @@ export const FUNCTION_TAGS = {
     'exercise', 'instrument', 'easel', 'plant', 'rug', 'decor'],
   homeFixed: ['moving_box', 'delivery_box', 'front_door', 'wardrobe', 'toilet', 'sink'], // props placed by the game, not sold
   venue: ['till', 'shelf', 'seat', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'fitting_room', 'book_browse',
-    'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'study_desk', 'reading_nook', 'public_computer',
+    'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'exbike', 'rower', 'punchbag', 'yoga_mat', 'study_desk', 'reading_nook', 'public_computer',
     'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen', 'record_bin', 'listening_station', 'pet_pen', 'fish_tank', 'toy_demo', 'flower_display', 'tasting_board', 'artwork', 'pen_tester', 'flash_wall', 'browse', 'noticeboard', 'coffee_kiosk'],
   world: ['bench', 'duck_pond', 'fishing_spot', 'ferris_wheel', 'jog_path', 'viewpoint', 'garden_plot', 'swing',
     'picnic_spot', 'busker', 'street_cat'],
@@ -200,6 +200,22 @@ export const ACTIVITIES = [
     perHour: { energy: -11, hygiene: -12, fun: 3, hunger: -4 }, xpPerHour: { fitness: 45 }, fitnessPerHour: 2.6,
     requires: { access: 'gym', venueOpen: true }, anim: 'treadmill', onComplete: { moodlet: 'pumped' },
     flavour: 'Going nowhere, fast, and loving it.' },
+  // every machine has its own activity and its own mini-game (owner msg 162; games: src/data/cookgames.js machineGameOf)
+  { id: 'gym_bike', name: 'Ride the Exercise Bike', tag: 'exbike', where: 'venue', venues: ['gym'], minutes: { min: 15, default: 45, max: 90 },
+    perHour: { energy: -11, hygiene: -11, fun: 3, hunger: -4 }, xpPerHour: { fitness: 45 }, fitnessPerHour: 2.5,
+    requires: { access: 'gym', venueOpen: true }, anim: 'cycle', onComplete: { moodlet: 'pumped' },
+    flavour: 'Uphill both ways, and never leaving the room.' },
+  { id: 'gym_row', name: 'Row', tag: 'rower', where: 'venue', venues: ['gym'], minutes: { min: 15, default: 45, max: 90 },
+    perHour: { energy: -12, hygiene: -11, fun: 3, hunger: -5 }, xpPerHour: { fitness: 48 }, fitnessPerHour: 2.6,
+    requires: { access: 'gym', venueOpen: true }, anim: 'row', onComplete: { moodlet: 'pumped' },
+    flavour: 'Legs, back, arms. Arms, back, legs.' },
+  { id: 'gym_bag', name: 'Hit the Bag', tag: 'punchbag', where: 'venue', venues: ['gym'], minutes: { min: 10, default: 30, max: 60 },
+    perHour: { energy: -13, hygiene: -12, fun: 8, hunger: -5 }, xpPerHour: { fitness: 48 }, fitnessPerHour: 2.4,
+    requires: { access: 'gym', venueOpen: true }, anim: 'punch', onComplete: { moodlet: 'pumped' },
+    flavour: 'Jab, jab, cross. The bag does not hold a grudge.' },
+  { id: 'gym_stretch', name: 'Stretch on a Mat', tag: 'yoga_mat', where: 'venue', venues: ['gym'], minutes: { min: 10, default: 20, max: 45 },
+    perHour: { energy: -3, hygiene: -3, fun: 8 }, xpPerHour: { fitness: 26 }, fitnessPerHour: 1.2,
+    requires: { access: 'gym', venueOpen: true }, anim: 'yoga', flavour: 'Breathe in. Hold. And out.' },
   { id: 'gym_weights', name: 'Lift Weights', tag: 'weights', where: 'venue', venues: ['gym'], minutes: { min: 15, default: 45, max: 90 },
     perHour: { energy: -13, hygiene: -10, fun: 2, hunger: -5 }, xpPerHour: { fitness: 50 }, fitnessPerHour: 2.4,
     requires: { access: 'gym', venueOpen: true }, anim: 'lift', onComplete: { moodlet: 'pumped' },

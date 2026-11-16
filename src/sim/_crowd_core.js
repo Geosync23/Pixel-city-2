@@ -21,7 +21,7 @@ export function okCell(x, y) { const w = X.world; return !w.isBlocked(x, y) && !
 export const isRoad = (x, y) => X.world.tileType(x, y) === GT.asphalt;
 export const dirOf = (dx, dy) => Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 0 : 2) : (dy > 0 ? 1 : 3);
 
-const FPS = { walk: 7, run: 10, stand: 1.2, talk: 4, type: 5, work: 4, lift: 3, treadmill: 10, dance: 6, eat: 3, drink: 2, wave: 5, cheer: 5, carry: 7, sleep: .6, read: .5, phone: .8, sit: .5 };
+const FPS = { walk: 7, run: 10, stand: 1.2, talk: 4, type: 5, work: 4, lift: 3, treadmill: 10, dance: 6, eat: 3, drink: 2, wave: 5, cheer: 5, carry: 7, sleep: .6, read: .5, phone: .8, sit: .5, cycle: 6, row: 2.4, punch: 5, yoga: .5 };
 const AI = {}; let AIN = 0, CID = 0; const cids = new WeakMap();
 export class Cit extends Char {
   constructor() { super(null, 0, 0); this.isCitizen = true; this.active = false; this.hidden = true; this.alpha = 1; this.sid = 0; this.clear(); }

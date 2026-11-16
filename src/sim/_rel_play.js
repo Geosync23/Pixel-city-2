@@ -30,7 +30,7 @@ export function prompt(label, go, canSkip = true, sub) {
 }
 async function kit(key, c, o = {}) {
   if (!G.skillplay || !G.skillplay.demo) return 'ok';
-  const pr = G.skillplay.demo(key, o.level || Math.min(3, safe(() => G.skills.level(o.skill || 'cooking'), 1)), {});
+  const pr = G.skillplay.demo(key, o.level || Math.min(3, safe(() => G.skills.level(o.skill || 'cooking'), 1)), o.opts || {});
   if (o.title) { const name = () => { const b = document.querySelector('.mg .mg-tt b'), sm = document.querySelector('.mg .mg-tt small'); if (b) b.textContent = o.title; if (sm && o.sub) sm.textContent = o.sub; return !!b; }; if (!name()) { let k = 0; const iv = setInterval(() => { if (name() || ++k > 20) clearInterval(iv); }, 50); } }
   const r = await pr; return c.alive() ? grade(r) : 'dead';
 }
@@ -115,7 +115,7 @@ async function cook(id, st, c) {
     return 'skip';
   }
   const name = r ? r.name : 'Supper';
-  const res = await kit('flip', c, { skill: 'cooking', title: name, sub: 'Two people, one stove' }); if (res !== 'dead' && r) c.cooked = id; return res;
+  const res = await kit(safe(() => G.skillplay.gameFor('cook', { recipe: id }), 'flip'), c, { skill: 'cooking', title: name, sub: 'Two people, one stove', opts: { ctx: { recipe: id } } });   /* the dish's own game (data/cookgames.js) */ if (res !== 'dead' && r) c.cooked = id; return res;
 }
 
 /* ---------- walking together ---------- */

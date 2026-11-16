@@ -17,6 +17,10 @@ const REG = { // 5 x 7, one-pixel strokes
   8: ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'],
   9: ['.###.', '#...#', '#...#', '.####', '....#', '...#.', '.##..'],
   B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'], // owner msg 172: Pixelify's capital B reads as a G / 6; square-cornered B, same advance (586)
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'], // QA round 16: C read as O ("OAB", "OLOSED"), D as O / 0, G as 6, Z as 2
+  D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+  G: ['.####', '#....', '#....', '#.###', '#...#', '#...#', '.####'],
+  Z: ['#####', '....#', '...#.', '..#..', '.#...', '#....', '#####'],
 };
 const BOLD = { // 6 x 7, two-pixel vertical strokes
   0: ['.####.', '##..##', '##..##', '##..##', '##..##', '##..##', '.####.'],
@@ -30,6 +34,10 @@ const BOLD = { // 6 x 7, two-pixel vertical strokes
   8: ['.####.', '##..##', '##..##', '.####.', '##..##', '##..##', '.####.'],
   9: ['.####.', '##..##', '##..##', '.#####', '....##', '...##.', '.###..'],
   B: ['#####.', '##..##', '##..##', '#####.', '##..##', '##..##', '#####.'],
+  C: ['.#####', '##....', '##....', '##....', '##....', '##....', '.#####'],
+  D: ['#####.', '##..##', '##..##', '##..##', '##..##', '##..##', '#####.'],
+  G: ['.#####', '##....', '##....', '##.###', '##..##', '##..##', '.#####'],
+  Z: ['######', '....##', '...##.', '..##..', '.##...', '##....', '######'],
 };
 const PH = 92; // pixel height in units (7 rows = 644, the height of Pixelify's digits)
 
@@ -57,10 +65,11 @@ function font(set, { pw, lsb, adv, lsb1, adv1, weight, sub, os2 }) {
   const maxp = B(); maxp.u32(0x00010000); maxp.u16(ng); maxp.u16(Math.max(...glyphs.map(g => g.pts))); maxp.u16(Math.max(...glyphs.map(g => g.cts))); maxp.u16(0); maxp.u16(0); maxp.u16(2); for (let i = 0; i < 8; i++) maxp.u16(0); T.maxp = maxp;
   const hmtx = B(); for (const g of glyphs) { hmtx.u16(g.adv); hmtx.i16(g.xMin); } T.hmtx = hmtx;
   const cmap = B(); cmap.u16(0); cmap.u16(1); cmap.u16(3); cmap.u16(1); cmap.u32(12);
-  const sub4 = B(); sub4.u16(4); sub4.u16(40); sub4.u16(0); sub4.u16(6); sub4.u16(4); sub4.u16(1); sub4.u16(2);   // three segments: 0-9, B, end
-  sub4.u16(0x39); sub4.u16(0x42); sub4.u16(0xffff); sub4.u16(0); sub4.u16(0x30); sub4.u16(0x42); sub4.u16(0xffff); sub4.i16(1 - 0x30); sub4.i16(11 - 0x42); sub4.i16(1); sub4.u16(0); sub4.u16(0); sub4.u16(0);
+  const sub4 = B(); sub4.u16(4); sub4.u16(56); sub4.u16(0); sub4.u16(10); sub4.u16(8); sub4.u16(2); sub4.u16(2);   // five segments: 0-9, B-D, G, Z, end (glyphs 1-10, 11-13, 14, 15)
+  for (const e of [0x39, 0x44, 0x47, 0x5A, 0xffff]) sub4.u16(e); sub4.u16(0); for (const st of [0x30, 0x42, 0x47, 0x5A, 0xffff]) sub4.u16(st);
+  for (const d of [1 - 0x30, 11 - 0x42, 14 - 0x47, 15 - 0x5A, 1]) sub4.i16(d); for (let i = 0; i < 5; i++) sub4.u16(0);
   cmap.push(...sub4); T.cmap = cmap;
-  const o = Buffer.from(os2); o.writeUInt16BE(weight, 4); o.writeUInt16BE(0x30, 64); o.writeUInt16BE(0x42, 66); o.writeInt16BE(adv, 2);
+  const o = Buffer.from(os2); o.writeUInt16BE(weight, 4); o.writeUInt16BE(0x30, 64); o.writeUInt16BE(0x5A, 66); o.writeInt16BE(adv, 2);
   o.writeUInt16BE(weight >= 600 ? 0x20 : 0x40, 62); T['OS/2'] = [...o];
   const fam = 'MB Digits', names = [[1, fam], [2, sub], [4, fam + ' ' + sub], [6, 'MBDigits-' + sub]];
   const name = B(); name.u16(0); name.u16(names.length); name.u16(6 + 12 * names.length); const strs = []; let off = 0;

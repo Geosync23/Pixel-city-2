@@ -96,7 +96,7 @@ export const VENUES = [
   { id: 'gym', name: 'Iron Maple Gym', type: 'leisure', district: 'downtown', where: 'Downtown, second floor with big windows',
     station: 'st_central', interior: true,
     hours: [[6, 22], [6, 22], [6, 22], [6, 22], [6, 22], [7, 20], [8, 18]],
-    offers: { shop: ['misc', 'snack', 'drink', 'outfit'], services: ['gym_day_entry'], functions: ['till', 'treadmill', 'weights', 'yoga_studio', 'locker_shower'] },
+    offers: { shop: ['misc', 'snack', 'drink', 'outfit'], services: ['gym_day_entry'], functions: ['till', 'treadmill', 'exbike', 'rower', 'punchbag', 'weights', 'yoga_studio', 'yoga_mat', 'locker_shower'] },
     priceMult: 1, jobId: 'fitness_trainer', blurb: 'Treadmills, free weights, yoga at 8, 12 and 18.' },
   { id: 'library', name: 'Maple Bay Public Library', type: 'leisure', district: 'arts', where: 'Arts Quarter, on the campus green',
     station: 'st_arts', interior: true,

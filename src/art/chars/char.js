@@ -14,6 +14,7 @@ export const CHAR_SB = [-16, -36, 16, 12];
 export const ANIMS = {
   stand: 2, walk: 6, run: 6, sit: 2, sleep: 2, eat: 2, drink: 2, phone: 2, talk: 3, wave: 4, type: 2, work: 4,
   lift: 4, treadmill: 6, carry: 6, dance: 4, read: 2, shower: 2, cheer: 2,
+  cycle: 4, row: 4, punch: 4, yoga: 2,   // exercise machines (owner msg 162: the animation matches the machine and its mini-game)
 };
 /** px the feet hang below the anchor in seated poses (anchor = seat surface under the bum). ~0.45 world units */
 export const SEAT_H = 7;
@@ -240,6 +241,10 @@ function poseOf(anim, f, front, pose) {
       P.arms = [[UPA, [1, 1, 3, 1]], [[-1, 2, -2, 1], [1, 2, 2, 1]], [[-1, 1, -3, 1], UPB], [[-1, 2, -2, 1], [1, 2, 2, 1]]][f];
       P.bob = f & 1; P.hdx = f === 0 ? -1 : f === 2 ? 1 : 0; P.legs = f === 0 ? [[-1, 0, 0], [0, 0, 1]] : f === 2 ? [[0, 0, 1], [1, 0, 0]] : P.legs; P.mouth = f === 0 || f === 2 ? 1 : 2; P.hold = false; break;
     case 'read': P.arms = [[2, 2, 4, 2], [0, 2, 1, f ? 1 : 2]]; P.prop = 'book'; P.eyes = 3; P.hold = false; break;
+    case 'cycle': P.seated = true; P.lean = 1; P.arms = [[2, 2, 4, 2], [1, 2, 3, 2]]; P.pedal = f < 2 ? 1 : -1; P.bob = f & 1; P.hold = false; break;
+    case 'row': P.seated = true; P.lean = f === 0 ? 1 : f === 2 ? -1 : 0; P.arms = f === 0 ? [[2, 2, 5, 2], [1, 2, 4, 2]] : f === 2 ? [[0, 2, 1, 2], [-1, 2, 0, 2]] : [[1, 2, 3, 2], [0, 2, 2, 2]]; P.eyes = f === 2 ? 2 : 1; P.hold = false; break;
+    case 'punch': P.arms = f === 1 ? [[1, 1, 1, -1], [2, 0, 5, 0]] : f === 3 ? [[2, 0, 4, 0], [1, 1, 2, -1]] : [[1, 1, 1, -1], [1, 1, 2, -1]]; P.lean = f & 1; P.bob = f & 1; P.legs = [[-1, 0, 0], [1, 0, 0]]; P.hold = false; break;
+    case 'yoga': P.arms = [UPA, UPB]; P.legs = [[0, 0, 0], [1, 0, 4]]; P.bob = f; P.eyes = 2; P.hold = false; break;
     case 'cheer': P.arms = f ? [[-2, -2, -2, -6], [2, -2, 2, -6]] : [UPA, UPB]; P.jump = f ? 2 : 0; P.mouth = 1; P.eyes = f ? 2 : 1; P.hold = false; break;
   }
   if (pose.mood === 'happy' && !P.mouth) P.mouth = 2;
@@ -318,7 +323,7 @@ function seatedLegs(k, P, front) {
     const hx = (near === front) ? -2 : 1, ty = front ? (near ? -2 : -3) : (near ? -2 : -3);
     let kx = hx, ky = ty;
     for (let i = 0; i <= tl; i++) { kx = hx + i; ky = ty + s * (i >> 1); p(kx, ky, sd(lt(thighC, front ? .1 : 0))); p(kx, ky + 1, sd(thighC)); }
-    const foot = ky + sh + (front ? 0 : 1);
+    const foot = ky + sh + (front ? 0 : 1) - (P.pedal && (P.pedal > 0) === near ? 2 : 0);   // pedalling: the legs take turns to come up
     for (let y = ky + (front ? 2 : 1); y < foot - 1; y++) { const c = sd(y === foot - 2 ? cuffC : shinC); p(kx - 1, y, c); p(kx, y, c); }
     { const S = shoeCols(k, near); shoeDraw(k, kx - 1, foot, near, 4, S); }
   }

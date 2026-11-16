@@ -19,6 +19,9 @@ export default {
     b.append(section('Game'));
     b.append(el('div.ph-btns', null, btn('Save now', () => { const ok = safe(() => G.save(), null); ctx.tip(ok ? 'Game saved.' : 'Could not save right now.'); if (ok && G.hud && G.hud.saved) safe(() => G.hud.saved(), 0); }, 'pri', 'ui.check'), btn('Photo mode (5 s)', () => photoMode(ctx), '', 'ui.sparkle')));
     b.append(card(el('b', { text: 'Game speed' }), el('div.ph-chips', null, [1, 2, 4].map(s => chip(s + 'x', G.state.speed === s ? 'on' : '', () => { G.state.speed = s; safe(() => G.hud.refresh(), 0); ctx.refresh(); })))));
+    /* Mini-games (owner msg 164): the switch, easy to find. Same switch as the one in the Me app (G.skillplay.setAuto: true = off). One add-only card. */
+    if (G.skillplay && G.skillplay.setAuto) { const on = !G.skillplay.auto(); b.append(card(el('b', { text: 'Mini-games' }), el('div.ph-chips', { 'data-set': 'minigames' }, chip('On', on ? 'on' : '', () => { G.skillplay.setAuto(false); ctx.refresh(); }), chip('Off', on ? '' : 'on', () => { G.skillplay.setAuto(true); ctx.tip('Mini-games are off: activities run by themselves and give the usual result.'); ctx.refresh(); })),
+      el('p.ph-note', { text: on ? 'Cooking, the gym, music, fishing and more open a short game every time. Auto in any game skips just that one.' : 'Off: activities run by themselves and give the usual result. Nothing is lost.' }))); }
     b.append(section('Sound'));
     const A = G.state.audio && typeof G.state.audio === 'object' ? G.state.audio : (st.audio = st.audio || { master: .8, music: .6, sfx: .8 }), c = card();
     for (const [k, name] of [['master', 'Master'], ['music', 'Music'], ['sfx', 'Effects']]) { if (A[k] === undefined) A[k] = k === 'music' ? .6 : .8; const out = el('span', { text: Math.round(A[k] * 100) });

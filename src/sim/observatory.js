@@ -212,7 +212,7 @@ function lookBoard() { const n = st().sketches; toast(n ? `Moon sketches by visi
 
 /* ---------- overlays: the eyepiece and the constellation finder ---------- */
 function overlay(CW, CH, tipText, round) {
-  const cv = el('canvas', { width: CW, height: CH }); cv.className = 'obs-view';
+  const cv = el('canvas', { width: CW, height: CH }); cv.className = 'obs-view'; cv.setAttribute('data-pad-surface', 'cursor');   /* QA16: controller: A steps onto the eyepiece / star field, the stick aims, A taps */
   Object.assign(cv.style, { position: 'fixed', left: '50%', top: '48%', transform: 'translate(-50%,-50%)', width: round ? 'min(84vw, 62vh, 460px)' : 'min(94vw, 680px)', imageRendering: 'pixelated', zIndex: 55, border: '4px solid ' + (round ? '#a8762a' : '#2a2733'), borderRadius: round ? '50%' : '0', boxShadow: round ? '0 0 0 6px #2a2733, 6px 8px 0 6px #0008' : '6px 6px 0 #0006', background: '#04050f', cursor: 'pointer', touchAction: 'none' });
   const tip = el('div', { text: tipText }); Object.assign(tip.style, { position: 'fixed', left: '50%', bottom: '9%', transform: 'translateX(-50%)', zIndex: 56, background: '#f4ead0', color: '#2a2733', border: '2px solid #2a2733', padding: '6px 10px', fontSize: '14px', boxShadow: '3px 3px 0 #0006', textAlign: 'center', maxWidth: '90vw' });
   root().append(cv, tip); G.modal++; let open = true;

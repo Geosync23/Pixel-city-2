@@ -6,6 +6,7 @@ import { VENUES, VENUE_BY_ID, SERVICES, POIS, STATIONS, DISTRICTS, isOpen } from
 import { ITEMS, ITEM_BY_ID, RECIPES, HOMEGOODS, DISHES, INGREDIENTS, COOKBOOKS, RECIPE_CATS, LEARN_FROM, LEGACY_RECIPES } from './items.js';
 import './venues_extra.js'; // registers the generic venue types (gen_bodega, gen_retail_cheese ...) that items may list in soldAt
 import { ACTIVITIES, ANIMS, FUNCTION_TAGS } from './activities.js';
+import { cookGameOf, COOK_GAMES, COOK_OVERRIDE } from './cookgames.js';
 import { JOBS, GIGS, WORK_RULES, shiftHours, weeklyBasePay } from './jobs.js';
 import { HOMES, SIZE_CLASSES, STARTER_KIT, MOVING_BOXES, AMBIENCE_TIERS, MOVING_BOXES_DONE_MOODLET } from './homes.js';
 import { START, OVERDRAFT, TIPPING, DISCOUNTS, FARES } from './economy.js';
@@ -64,6 +65,9 @@ ITEMS.forEach((i) => {
   (i.seasons || []).forEach((s) => ok(seasonIds.includes(s), `item ${i.id}: season`));
 });
 unique(RECIPES.map((r) => r.id), 'RECIPES');
+// every recipe has ONE fitting mini-game (owner msg 158; data/cookgames.js) and every override names a real recipe and a real game
+RECIPES.forEach((r) => { const k = cookGameOf(r); ok(!!k && !!COOK_GAMES[k], `recipe ${r.id}: no cooking mini-game (add it to BY_GAME in src/data/cookgames.js)`); });
+Object.keys(COOK_OVERRIDE).forEach((id) => { ok(RECIPES.some((r) => r.id === id), `cookgames BY_GAME: '${id}' is not a recipe`); ok(!!COOK_GAMES[COOK_OVERRIDE[id]], `cookgames BY_GAME: '${id}' -> unknown game`); });
 const catIds = RECIPE_CATS.map((c) => c.id), CORE_SHOPS = ['grocery', 'cornerstore', 'market_stalls', 'bakery'];
 const recipeCost = (r) => Object.entries(r.ingredients).reduce((s, [i, q]) => s + (ITEM_BY_ID[i]?.price || 0) * q, 0) / r.servings;
 RECIPES.forEach((r) => {

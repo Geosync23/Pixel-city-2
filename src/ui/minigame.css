@@ -19,6 +19,9 @@
 .mg-bins{display:flex;gap:6px}.mg-bins:empty{display:none}.mg-bin{flex:1;min-height:46px;padding:2px 4px;font-size:14px;background:#fffdf4}.mg-bin.ok{background:var(--good);color:#fff}.mg-bin.no{background:var(--bad);color:#fff}
 .mg-pips{display:flex;gap:2px;justify-content:center;min-height:8px}.mg-pips i{flex:1;max-width:16px;height:6px;background:#d9c9a6;border:1px solid var(--edge)}.mg-pips i.on{background:var(--good)}
 @media (max-height:620px){.mg:not(.side) .mg-hint{min-height:22px;font-size:12px}.mg:not(.side) .mg-stage{max-width:300px}}
+.mg-tip{position:absolute;left:6px;right:6px;bottom:100%;margin-bottom:6px;min-height:36px;display:flex;align-items:center;gap:8px;padding:4px 10px;background:#fff0b8;border:2px solid var(--edge);box-shadow:0 2px 0 var(--edge);font-size:13px;font-weight:700;text-align:left;line-height:1.2;animation:mg-in2 .2s steps(3)}
+.mg-tip.out{opacity:0;transition:opacity .35s}.mg.side .mg-tip{bottom:auto;top:100%;margin:6px 0 0}
+@keyframes mg-in2{from{opacity:0}to{opacity:1}}
 /* Me app (src/ui/phone_me.js) */
 .me-trait{display:grid;grid-template-columns:36px 1fr;gap:2px 8px;align-items:start}.me-trait canvas{grid-row:1/4}.me-trait b{font-size:15px}.me-trait small{font-size:12.5px;line-height:1.25;opacity:.85}
 .me-trait .pl{color:#1f6b2e;opacity:1;font-weight:600}.me-trait .dn{color:#a3401f;opacity:1;font-weight:600}

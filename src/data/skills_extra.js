@@ -129,8 +129,9 @@ export const NEW_ACTIVITIES = [
 ];
 
 // Which mini-game an activity opens (game keys are defined in src/sim/skillplay.js GAMES).
+// COOKING and the EXERCISE MACHINES are decided by what is being made / used: src/data/cookgames.js gameFor(id, ctx) (recipe -> game, machine -> game); the entries here are their fallbacks.
 export const GAME_FOR = {
-  cook: 'flip', prep_cold: 'flip', gym_weights: 'reps', exercise_home: 'reps', gym_treadmill: 'stride', jog: 'stride', gym_yoga_class: 'pose',
+  cook: 'flip', prep_cold: 'flip', gym_weights: 'reps', exercise_home: 'reps', gym_treadmill: 'stride', jog: 'stride', gym_yoga_class: 'pose', gym_bike: 'spin', gym_row: 'row', gym_bag: 'punch', gym_stretch: 'pose',
   library_study: 'study', computer_study: 'study', sketch_outdoors: 'sketch', assemble_furniture: 'fixit', sk_tune_stove: 'fixit', sk_tune_shower: 'fixit', sk_tune_tv: 'fixit', sk_tune_computer: 'fixit',
   practice_instrument: 'song', sk_busk: 'busk', paint: 'paint', computer_write: 'write', sk_photo: 'photo', sk_snap: 'photo', garden: 'weed', tend_plants: 'weed',
   dance: 'dance', sk_dance_home: 'dance', sk_bay_swim: 'swim', fish_pier: 'fish', play_games: 'arcade', computer_games: 'arcade', play_arcade: 'arcade',

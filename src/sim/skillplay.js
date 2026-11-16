@@ -25,7 +25,8 @@
 import { G } from '../core/game.js';
 import { SKILLS, SKILL_MAX_LEVEL } from '../data/needs.js';
 import { ACTIVITY_BY_ID } from '../data/activities.js';
-import { ITEM_BY_ID, RECIPES } from '../data/items.js';
+import { ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../data/items.js';
+import { gameFor, dishTheme, COOK_GAMES } from '../data/cookgames.js';
 import { JOBS } from '../data/jobs.js';
 import { NEW_SKILLS, FAMILIES, FAMILY_OF, INTEREST, TUNE, LADDER, GATES, XP_MAP, GAME_FOR, COACHES, SMALLTALK, OUTFIT, FIXIT, FISH_SIZE, CROPS, ARCADE, GUIDE_X, TIPS_X, SKILL_IDS } from '../data/skills_extra.js';
 import { EXPERIENCES } from './_guide_data.js';
@@ -161,13 +162,42 @@ const viewScene = (seed, hour) => (c, x, y, w, h, focus) => drawView(c, x, y, w,
 const gardenScene = (c, x, y, w, h) => { for (let r = 0; r < 3; r++) D.R(c, x + 2, y + 24 + r * 30, w - 4, 3, '#6f5236'); };
 const ideaScene = (c, x, y, w, h) => { D.R(c, x, y, w, h, '#fffdf4'); for (let r = 0; r < 8; r++) D.R(c, x + 6, y + 8 + r * 11, w - 12, 1, '#cfd8e6'); D.R(c, x + 14, y, 1, h, '#f0b0b0'); };
 
+const liftScene = (c, x, y, w, h, q, bounce) => { const cx = x + w / 2, up = bounce > 0 && q > .5 ? Math.round(Math.sin((1 - bounce / .35) * Math.PI) * 14) : 0, sag = bounce > 0 && q <= .5 ? 3 : 0, by = y + 30 - up + sag; D.R(c, cx - 30, y + 58, 60, 3, '#2a273333'); D.disc(c, cx, y + 26 - up / 3, 6, D.INK); D.disc(c, cx, y + 26 - up / 3, 5, '#e8b890'); D.R(c, cx - 7, y + 33 - up / 3, 15, 16, D.INK); D.R(c, cx - 6, y + 34 - up / 3, 13, 14, '#e0527a'); D.R(c, cx - 6, y + 49, 5, 9, D.INK); D.R(c, cx + 2, y + 49, 5, 9, D.INK); D.line(c, cx - 7, y + 36 - up / 3, cx - 14, by + 2, D.INK, 3); D.line(c, cx + 7, y + 36 - up / 3, cx + 14, by + 2, D.INK, 3); D.R(c, cx - 34, by, 68, 3, D.INK); for (const s of [-1, 1]) { D.R(c, cx + s * 30 - 3, by - 7, 6, 17, D.INK); D.R(c, cx + s * 30 - 2, by - 6, 4, 15, '#55505f'); D.R(c, cx + s * 37 - 2, by - 5, 4, 13, D.INK); } };
+const wallScene = (c, x, y, w, h, s) => { D.R(c, x, y, w, h, '#c9b8a0'); for (let k = 0; k < 6; k++) D.R(c, x + k * 30 + 4, y, 1, h, '#b8a68c'); s.spots.forEach((p, k) => { if (k !== s.cur) { D.disc(c, p[0], p[1], 5, D.INK); D.disc(c, p[0], p[1], 4, ['#d8342e', '#3b82d6', '#f2c230', '#5fb84f'][k % 4]); } }); };
+const rec = ctx => RECIPE_BY_ID[ctx && ctx.recipe] || null, dish = ctx => dishTheme(rec(ctx));
+/** a cooking game: title "<Verb>: <dish>", the dish's own look, and the same result as the flip (bonus xp by score; 3 stars = an extra serving through the 'cooked' hook) */
+function cookGame(verb, word, kit) {
+  return { quietAuto: true, skill: 'cooking', fxc: PAL.good, title: (l, ctx) => verb + (rec(ctx) ? ': ' + rec(ctx).name : ' it'), kit: (l, ctx) => Object.assign({ icon: 'skill.cooking' }, kit(l, ctx)),
+    result: R => ({ icon: 'skill.cooking', title: R.played ? word(R) : 'Cooked the usual way', lines: [R.bonusServing ? 'Chef\'s touch: one extra serving!' : R.played && R.q < .3 ? 'Not your best. Still edible.' : null] }) };
+}
+/** a fitness game: Fitness +score x mult when played, +base on Auto (as the reps and stride games do) */
+function fitGame(title, mult, base, word, kit) {
+  return { quietAuto: true, skill: 'fitness', fxc: PAL.heart, title: () => title, kit: l => Object.assign({ icon: 'skill.fitness' }, kit(l)),
+    result: R => { const g = R.played ? +(R.q * mult).toFixed(1) : base; safe(() => G.needs.addFitness(g), 0); return { icon: 'skill.fitness', title: R.played ? word(R) : 'A steady workout', lines: [`Fitness +${g}`] }; } };
+}
 /** key -> { skill (primary), also [skills that get the play bonus], title(l, ctx), kit(l, ctx) -> play() def fields, result(R) -> { title, lines, icon } } */
 const GAMES = {
-  flip: { quietAuto: true, skill: 'cooking', title: () => 'Flip it!', fxc: PAL.good,
+  flip: { quietAuto: true, skill: 'cooking', title: (l, ctx) => 'Flip it!' + (rec(ctx) ? ' ' + rec(ctx).name : ''), fxc: PAL.good,
     kit: () => ({ kind: 'timing', icon: 'skill.cooking', hint: 'Tap when the marker is in the green to flip at just the right moment.', o: { rounds: 5 }, scene: panScene, verdicts: ['A bit burnt', 'Edible', 'Tasty', 'Chef\'s kiss!'] }),
     result: R => ({ icon: 'skill.cooking', title: R.played ? `${R.stats.perfect || 0} perfect flips` : 'Cooked the usual way', lines: [R.bonusServing ? 'Chef\'s touch: one extra serving!' : R.played && R.q < .3 ? 'A little scorched. Still edible.' : null] }) },
+  /* ---- cooking: the game fits the dish (data/cookgames.js). Results work like the flip: bonus xp by score, 3 stars = one extra serving ---- */
+  ck_blend: cookGame('Blend', R => (R.stats.spills ? `Blended, ${R.stats.spills} spill${R.stats.spills > 1 ? 's' : ''}` : 'Blended smooth, not a drop lost'), (l, ctx) => { const T = dish(ctx); return { kind: 'hold', hint: 'Hold to blend. Let go before the froth reaches the lid, then go again until it is smooth.', theme: { icon: T.icons[0] || T.icon, color: T.color, color2: '#fff8f0', paper: '#dfeef5' }, verdicts: ['On the ceiling', 'A bit lumpy', 'Smooth', 'Silky!'] }; }),
+  ck_chop: cookGame('Chop', R => `${R.stats.perfect || 0} perfect slices`, (l, ctx) => { const T = dish(ctx); return { kind: 'sweep', hint: 'Tap as the knife crosses each white mark. Even slices.', theme: { icons: T.icons, pal: T.pal, icon: T.icon }, verdicts: ['Chunky', 'Rustic', 'Even slices', 'Knife skills!'] }; }),
+  ck_stir: cookGame('Stir', R => (R.stats.stuck > .25 ? 'Stirred. Some of it caught.' : 'Stirred and nothing stuck'), (l, ctx) => { const T = dish(ctx); return { kind: 'stir', hint: 'Draw circles round the pot at a steady speed. Too slow and it sticks; too fast and it splashes.', theme: { color: T.color, icon: T.icons[0] }, verdicts: ['Stuck to the pot', 'A few lumps', 'Nicely stirred', 'Velvet!'] }; }),
+  ck_oven: cookGame('Bake', R => `${R.stats.perfect || 0} of ${R.stats.rounds || 3} out at the perfect moment`, (l, ctx) => ({ kind: 'golden', hint: 'Watch it colour. Tap to take it out while the marker is in the gold. Three trays.', theme: { icon: dish(ctx).icon }, verdicts: ['Charcoal', 'A bit pale', 'Golden', 'Bakery window!'] })),
+  ck_fry: cookGame('Fry', R => `${R.stats.perfect || 0} of ${R.stats.rounds || 3} batches perfectly crisp`, (l, ctx) => ({ kind: 'golden', hint: 'Tap to lift the basket while the marker is in the gold. Three batches.', o: { style: 'fry' }, theme: { icon: dish(ctx).icon }, verdicts: ['Burnt offerings', 'A bit greasy', 'Crisp', 'Shatteringly crisp!'] })),
+  ck_boil: cookGame('Boil', R => `${R.stats.perfect || 0} of ${R.stats.rounds || 3} lifted out just right`, (l, ctx) => ({ kind: 'golden', hint: 'Tap to lift it out while the marker is in the gold: not under, not over.', o: { style: 'fry' }, theme: { icon: dish(ctx).icon, color2: '#8fd8f0' }, verdicts: ['Boiled to bits', 'A bit under', 'Just right', 'To the second!'] })),
+  ck_build: cookGame('Build', R => (R.stats.wrong ? `Built, ${R.stats.wrong} slip${R.stats.wrong > 1 ? 's' : ''}` : 'Built in order, not one slip'), (l, ctx) => { const T = dish(ctx); return { kind: 'sequence', hint: 'Build it like the card: tap the pieces in order, bottom first.', o: { pieces: T.pieces || undefined, rounds: 2 }, theme: { icon: T.icon }, verdicts: ['It fell apart', 'It holds together', 'Neatly built', 'Deli counter grade!'] }; }),
+  ck_pour: cookGame('Pour', R => `${R.stats.made || 0} of ${R.stats.shots || 3} poured to the line`, (l, ctx) => ({ kind: 'aim', hint: 'Hold to pour, let go at the green line. Three cups.', o: { mode: 'pour', shots: 3 }, theme: { pal: [dish(ctx).color, dish(ctx).color, dish(ctx).color] }, verdicts: ['On the counter', 'Drinkable', 'Well poured', 'Not a drop spilled!'] })),
+  ck_knead: cookGame('Knead', R => `Best run of folds: ${R.stats.combo || 0}`, () => ({ kind: 'rhythm', hint: 'Push, fold, push, fold: tap each side as the dough reaches the line.', o: { lanes: 2, alt: true, notes: 13, bpm: 78 }, theme: { bg: '#f6efdc' }, verdicts: ['A brick', 'A bit tough', 'Springy', 'Windowpane!'] })),
+  /* ---- the gym and home exercise kit: one game per machine (data/cookgames.js machineGameOf) ---- */
+  spin: fitGame('Spin: hold the cadence', 1.3, .45, R => (R.q >= .55 ? 'You held the cadence over the hills' : 'A hilly ride'), () => ({ kind: 'cadence', hint: 'Tap to pedal. Keep the speed in the green: push harder when the hill comes.', theme: { color: '#e0527a' }, verdicts: ['Coasting', 'Rolling', 'Good cadence', 'King of the hill!'] })),
+  row: fitGame('Row: long strokes', 1.4, .45, R => `${R.stats.perfect || 0} clean strokes of ${R.stats.strokes || 8}`, () => ({ kind: 'stroke', hint: 'Press as the handle reaches the left green, hold the pull, let go in the right green.', theme: { color: '#3b82d6' }, verdicts: ['Catching crabs', 'Finding the rhythm', 'Long strokes', 'Like a racing eight!'] })),
+  punch: fitGame('Bag work', 1.4, .45, R => `${R.stats.hits || 0} of ${R.stats.of || 12} landed, best combo x${R.stats.combo || 0}`, () => ({ kind: 'targets', hint: 'Hit each spot on the bag as it lights up.', theme: { color: '#c0392b' }, verdicts: ['Swinging at air', 'Landing some', 'Sharp hands', 'Float like a butterfly!'] })),
+  climb: fitGame('Climbing wall', 1.3, .45, R => `${R.stats.hits || 0} of ${R.stats.of || 12} holds reached`, () => ({ kind: 'targets', hint: 'Reach for each hold as it lights up.', o: { spots: [[40, 80], [66, 62], [44, 40], [78, 30], [104, 50], [128, 30], [112, 76], [142, 60]], r: 9, life: 1.5 }, scene: wallScene, theme: { paper: '#c9b8a0' }, verdicts: ['Still on the mat', 'Halfway up', 'To the top', 'Flashed it!'] })),
+  rally: fitGame('Ping-pong rally', 1.0, .35, R => `Longest rally: ${R.stats.combo || 0}`, () => ({ kind: 'rhythm', hint: 'Forehand, backhand: tap the side the ball comes to as it reaches the line.', o: { lanes: 2, notes: 16, bpm: 92 }, theme: { bg: '#2f7f5f' }, verdicts: ['Into the net', 'Back and forth', 'Good rally', 'Unreturnable!'] })),
   reps: { quietAuto: true, skill: 'fitness', title: l => 'Clean reps: ' + LADDER.fitness.rungs[l - 1], fxc: PAL.heart,
-    kit: () => ({ kind: 'timing', icon: 'skill.fitness', hint: 'Tap at the top of each rep, inside the green.', o: { rounds: 6, zone: .32 }, theme: { icon: 'skill.fitness' }, verdicts: ['Sloppy set', 'Decent set', 'Strong set', 'Perfect form!'] }),
+    kit: () => ({ kind: 'timing', icon: 'skill.fitness', hint: 'Tap at the top of each rep, inside the green.', o: { rounds: 6, zone: .32 }, scene: liftScene, theme: { icon: 'skill.fitness' }, verdicts: ['Sloppy set', 'Decent set', 'Strong set', 'Perfect form!'] }),
     result: R => { const g = R.played ? +(R.q * 1.5).toFixed(1) : .5; safe(() => G.needs.addFitness(g), 0); return { icon: 'skill.fitness', title: R.played ? `${R.stats.perfect || 0} clean reps of ${R.stats.rounds || 6}` : 'A steady workout', lines: [`Fitness +${g}`] }; } },
   stride: { quietAuto: true, skill: 'fitness', title: () => 'Find your stride', fxc: PAL.heart,
     kit: () => ({ kind: 'rhythm', icon: 'skill.fitness', hint: 'Left, right, left: tap each side as the step reaches the line.', o: { lanes: 2, alt: true, notes: 16, bpm: 96 }, verdicts: ['Out of step', 'Jogging along', 'Good pace', 'Flying!'] }),
@@ -292,10 +322,10 @@ function refreshTuned() { const s = st(), sc = G.scene, d = day(); tunedHere = [
 const tuned = f => { const u = f && st().tuned[fxKey(f)]; return !!u && u >= day(); };
 
 async function begin(id, ctx, o = {}) {
-  const key = o.key || GAME_FOR[id], gm = GAMES[key], a = G.busy; if (!gm || !a) return;
+  const key = o.key || gameFor(id, ctx), gm = GAMES[key], a = G.busy; if (!gm || !a) return;
   const me = sess = { id, key, ctx: ctx || {}, act: a, q: null, played: false, auto: false, stats: {}, coach: o.coach || null, rate0: a.rate, paint0: id === 'paint' ? safe(() => G.inv.count('painting'), 0) : 0, minutes0: a.minutes };
   if (st().auto || (ctx && ctx.noMini)) { me.auto = true; return; }
-  if (id === 'tend_plants') { if (st().n.plantDay === day()) { me.auto = true; return; } st().n.plantDay = day(); }   // one watering game a day, the other plants water themselves
+  /* owner msg 164: mini-games appear EVERY time, daily chores included (the old 'one watering game a day' rule is gone); the Settings switch turns them off */
   a.rate = Math.min(a.rate, Math.max(.1, a.minutes / TUNE.slowSecs));
   if (key === 'arcade') {
     const l = lvl('gaming'), home = id !== 'play_arcade' && !o.mall, list = ARCADE.filter(g => !home || l >= g.level);
@@ -442,7 +472,7 @@ export function init() {
   for (const x of GUIDE_X) if (!EXPERIENCES.some(e => e.id === x.id)) EXPERIENCES.push(Object.assign({ group: 'Skills & hobbies' }, x));
   const on = (ev, fn) => G.on(ev, (...a) => { try { return fn(...a); } catch (e) { console.warn('skillplay: ' + e.message); } });
   on('load', () => { st(); sess = null; noteFirst = {}; if (MG.cur) abort(); camBack(); const xp = safe(() => G.state.needs.xp, null); if (xp) for (const k of SKILL_IDS) if (xp[k] === undefined) xp[k] = 0; setTimeout(refreshTuned, 0); });
-  on('activity:start', (id, ctx) => { swim = null; if (id === 'sk_bay_swim') startSwim(ctx); if (GAME_FOR[id]) begin(id, ctx || {}).catch(e => console.warn('skillplay: ' + e.message)); });
+  on('activity:start', (id, ctx) => { swim = null; if (id === 'sk_bay_swim') startSwim(ctx); if (gameFor(id, ctx)) begin(id, ctx || {}).catch(e => console.warn('skillplay: ' + e.message)); });
   on('activity', a => mallArcade(a));
   on('activityEnd', a => { if (sess && sess.act === a && !sess.id) return; if (sess && sess.act === a && MG.cur) { abort(); camBack(); } swim = null; });
   on('activity:done', onDone);
@@ -461,7 +491,7 @@ export function init() {
   G.overlays.push((ctx, cam, dt) => { try { drawFx(ctx, cam, dt); } catch (e) { /* cosmetic */ } });
   G.skillplay = { state: st, games: () => Object.keys(GAMES).map(k => ({ key: k, skill: GAMES[k].skill, title: GAMES[k].title(lvl(GAMES[k].skill), {}, null, {}), best: st().best[k] || null })), best: k => st().best[k] || null,
     setAuto: v => { st().auto = v ? 1 : 0; }, auto: () => !!st().auto, demo, works, thumb, coaches, lesson, sellables, sell: () => sell(safe(() => G.sceneCache.get('city')._skMarket, null)), tuned, chess: () => st().chess, current: () => sess,
-    gameFor: id => GAME_FOR[id] || null, playerStates: () => { const o = []; if (sess && sess.key === 'photo') o.push('taking_photo'); if (sess && (sess.key === 'busk' || sess.key === 'punchline')) o.push('performing'); if (sess && sess.key === 'smalltalk') o.push('sitting_bench'); return o; }, GAMES, arcade: ARCADE, families: FAMILIES, xpMap: XP_MAP, newSkills: NEW_SKILLS.map(s => s.id), drawView };
+    gameFor: (id, ctx) => gameFor(id, ctx), cookGames: COOK_GAMES, playerStates: () => { const o = []; if (sess && sess.key === 'photo') o.push('taking_photo'); if (sess && (sess.key === 'busk' || sess.key === 'punchline')) o.push('performing'); if (sess && sess.key === 'smalltalk') o.push('sitting_bench'); return o; }, GAMES, arcade: ARCADE, families: FAMILIES, xpMap: XP_MAP, newSkills: NEW_SKILLS.map(s => s.id), drawView };
 }
 function startSwim(ctx) {
   const p = G.player, w = G.world, poi = ctx && ctx.poi; if (!p || !w || !poi) return; let best = null;
