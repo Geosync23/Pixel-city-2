@@ -811,3 +811,6 @@ Questionnaire answers
 Get rid of bigger. We need to show the world keeps going. And I changed my mind about the slower clock when reading keep it normal.
 
 Also this all seems like opus capable work no?
+
+## 200 (2026-11-16)
+Great and so both Fable workers are parked? If so you can hire one additional opus to help finish all work
