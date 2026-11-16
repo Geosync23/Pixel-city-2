@@ -123,7 +123,7 @@ function wholeOb(ob, sp) {
 }
 /* flat-colour copies of sprite shapes. Sprites out of the sprite cache never change (sp.im), so their copies are kept: up to NL.slots colours per sprite, NL.budget px in all (least recently drawn go first). Anything else is tinted on a scratch canvas each time it is drawn. */
 const SILS = []; let silPx = 0, scratch = null, scratchX = null;
-function tintInto(x, sp, col) { x.globalCompositeOperation = 'copy'; x.drawImage(sp.c, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, sp.w, sp.h); }
+let nTint = 0; function tintInto(x, sp, col) { nTint++; x.globalCompositeOperation = 'copy'; x.drawImage(sp.c, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, sp.w, sp.h); }
 function silFor(sp, col, ci, fr) {
   if (!sp.im) { if (!scratch || scratch.width < sp.w || scratch.height < sp.h) { scratch = mk(Math.max(sp.w, scratch ? scratch.width : 64), Math.max(sp.h, scratch ? scratch.height : 64)); scratchX = scratch.getContext('2d'); } tintInto(scratchX, sp, col); return scratch; }
   const L = sp._nl || (sp._nl = []); let old = null;
@@ -246,7 +246,7 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlPx: silPx, nlCount: SILS.length }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlPx: silPx, nlCount: SILS.length, nlTint: nTint }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; return NL.mode; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this._eb[0] = this._eb[1] = this._eb[2] = this._eb[3] = 0; this.ctx.imageSmoothingEnabled = false; }

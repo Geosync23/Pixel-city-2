@@ -221,12 +221,12 @@ if (o.plan === 'rides') {
   say('page errors', errs.length ? errs : 'none'); await ctx.close();
   fs.writeFileSync(path.join(OUT, NAME + '.md'), `# traffic_check ${NAME}: player rides, real time, build ${path.basename(o.html)}\n\n` + out.map(l => '- ' + l).join('\n') + '\n'); console.log(`-> out/traffic/${NAME}.md`); await br.close(); srv.close(); process.exit(errs.length ? 1 : 0);
 }
-/* ---------- plan shots: the three worst baseline spots at the morning rush, 390x844: the first moment (after 2.5 sim minutes, within 9) when two or more vehicles
-   in view have stood for > 20 s, else the end of the 9 minutes. Speech bubbles and toasts are hidden for the picture (fast-forward piles them up). ---------- */
+/* ---------- plan shots: the three worst baseline spots at the morning rush, 390x844: the first moment (after 45 sim seconds, within 160: 07:50 - 09:28) when two or more vehicles
+   in view have stood for > 20 s, else the end of that stretch. Speech bubbles and toasts are hidden for the picture (fast-forward piles them up). ---------- */
 if (o.plan === 'shots') {
   const spots = (o.sites ? o.sites.split(',') : ['at_234_296', 'at_266_296', 'at_178_296']).map(SITE); let k = 0;
-  for (const s of spots) { k++; const { ctx, pg, errs } = await open(`?scene=city&x=${s.x + s.hx + 1.6}&y=${s.y + s.hy + 1.6}&t=8`, 40 + k); await pg.evaluate(HARNESS); await pg.evaluate(([x, y]) => window.__TC.focus(x, y), [s.x, s.y]);
-    await pg.evaluate(hz => window.__TC.run(150, hz), o.hz); const r = await pg.evaluate(hz => window.__TC.run(390, hz, { stopJam: 2 }), o.hz); const st = await pg.evaluate(() => window.__TC.stuckNow());
+  for (const s of spots) { k++; const { ctx, pg, errs } = await open(`?scene=city&x=${s.x + s.hx + 1.6}&y=${s.y + s.hy + 1.6}&t=7.2`, 40 + k); await pg.evaluate(HARNESS); await pg.evaluate(([x, y]) => window.__TC.focus(x, y), [s.x, s.y]);
+    await pg.evaluate(hz => window.__TC.run(45, hz), o.hz); const r = await pg.evaluate(hz => window.__TC.run(115, hz, { stopJam: 2 }), o.hz);   // 07:12 + 160 sim s = 09:28: inside the morning rush (a game day is 28 real minutes) const st = await pg.evaluate(() => window.__TC.stuckNow());
     await pg.addStyleTag({ content: '.bubble,.toast,.toasts,.say,.tip,.ph-banner,.banner{display:none!important}' }); await pg.evaluate(() => window.__TC.render(5)); await pg.screenshot({ path: path.join(SHOTS, `${NAME}_spot${k}.png`) });
     const res = await pg.evaluate(() => window.__TC.result()); console.log(`  spot ${k} ${s.id}: shot at ${r.clock} (${r.sim} sim s), ${r.veh} vehicles around, standing > 20 s in the whole area: ${JSON.stringify(st)}; overlap pair-s so far ${res.bands.reduce((a, b) => a + b.ovS, 0).toFixed(1)}; errors ${errs.length} -> out/shots/${NAME}_spot${k}.png`); await ctx.close(); }
   await br.close(); srv.close(); process.exit(0);
