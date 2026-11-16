@@ -223,7 +223,7 @@ export function step(v, dt) {
   /* blocked by something that is not going anywhere: change lane (two lanes each way) or overtake (one lane each way) */
   /* a bus that finds both berths of its stop taken (it is the third in line) does not queue for it: it skips that stop, unless the player is there (T.busSkip) */
   if (v.bus && lead && lead.bus && adv < 1 && lead.v < .5 && v.stuck > 1.2 && v.stop && v.stop.e === e && (v.stop.s - v.s) * d >= 12 && v.stop.id && (lead.bus.atStop === v.stop.id || (lead.stop && lead.stop.id === v.stop.id)) && T.busSkip) T.busSkip(v);
-  if (lead && adv < 8 && !v.cornerOn && v.lcT <= 0 && lead.e.axis === e.axis && !(v.stop && v.stop.e === e) && (!v.bus || ((lead.parked || lead.halt) && lead.v < .1))) {
+  if (lead && adv < 8 && !v.cornerOn && v.lcT <= 0 && lead.e.axis === e.axis && !(v.stop && v.stop.e === e) && (!v.bus || lead.byPlayer || ((lead.parked || lead.halt) && lead.v < .1))) {
     const still = (lead.parked || lead.halt) && lead.v < .1, dead = still || (lead.v < .5 && lead.stuck > 1.5), slow = !dead && adv < 4 && lead.v < v.vmax * .55 && v.v <= lead.v + .6;
     if (multi) { if ((dead || slow) && v.inNode !== e.to && v.ln > 11 && (v.s - e.s0) * d > 8) { if (laneFree(v, 4 - v.off, adv)) { v.off = 4 - v.off; v.lcT = 2.5; if (v.ne && v.ne.axis === e.axis && v.ne.lanes > 1 && !v.plan) v.noff = v.off; setMk(v); T.stats.laneChange++; } else v.lcT = .35; } }
     else if (still && !v.pass && lead.stuck > TUNE.passAfter && adv < 3 && e.rev) { const al = ((ax ? lead.x - v.x : lead.y - v.y)) * d; if (canPass(v, lead, al)) { v.pass = lead; v.lcT = 1; T.stats.pass++; } else v.lcT = .35; }
@@ -237,6 +237,8 @@ export function step(v, dt) {
     if (la > .98) continue;
     if (p.isPlayer) byPlayer = true; else if (v.pedWait > 5) continue; const a2 = al - hl - 1.1; if (a2 < adv) { adv = a2; lead = null; }
   }
+  /* the player is standing in the lane: on a road with two lanes each way drive round them in the other lane (on a one-lane street the driver waits and honks, as before) */
+  if (byPlayer && multi && v.v < .3 && v.stuck > 2 && v.lcT <= 0 && !v.cornerOn && v.inNode !== e.to) { if (laneFree(v, 4 - v.off, -99)) { v.off = 4 - v.off; v.lcT = 2.5; if (v.ne && v.ne.axis === e.axis && v.ne.lanes > 1 && !v.plan) v.noff = v.off; setMk(v); T.stats.laneChange++; } else v.lcT = .35; }
   /* a bus in the other lane on the street with its stop moves over to the kerb lane as soon as there is a gap; if it cannot get in before the stop it leaves the stop out */
   if (v.bus && multi && v.stop && v.stop.e === e && v.plan && v.plan[v.planI] === e && v.offs && v.off !== v.offs[v.planI] && !v.cornerOn && v.inNode !== e.to) {
     const want = v.offs[v.planI]; if (v.lcT <= 0) { if (laneFree(v, want, -99)) { v.off = want; v.lcT = 1.5; setMk(v); T.stats.laneChange++; } else v.lcT = .25; }

@@ -55,9 +55,9 @@ function poolSprite(r, col) { // banded, dithered ellipse of light
  * The light mask (ambient colour + dithered pools) is multiplied over the finished frame. Until now that put the dither pattern across
  * everybody who stood in a pool. Now the pools stay what they are for the ground and the static world, and everything that moves (people,
  * pets, vehicles) and every upright thing at their scale (posts, trees, bins, benches, parked cars) is put into the mask as ONE flat colour:
- * the light at its feet (the pools that reach it, summed, in a few bands). Their shapes are collected in draw order, and whatever stands in
- * front and keeps the pattern (a building, a wall, the front of a big piece somebody sits on) is cut out again, so the pools still show
- * on those. The result is laid over the mask before the multiply. Nothing is drawn twice on the frame itself and the static world is untouched.
+ * the light at its feet (the pools that reach it, summed, in a few bands). Their shapes are put into the mask in draw order, and wherever
+ * something that keeps the pattern stands in front (a building, a wall, the front of a big piece somebody sits on) the pattern is put
+ * back, so the pools still show on those. Then the mask is multiplied over the frame as before. Nothing is drawn twice on the frame itself and the static world is untouched.
  */
 const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(location.search || '') : null;
 /* mode: 'new' | 'old' (the mask over everything, as before; ?nightlight=old or G.renderer.nightLight('old')). step: one band = this much of a pool's full strength (the pool's own rings are 1 / .7 / .35 with dithered halves in between, so .175 = one ring).
@@ -125,28 +125,21 @@ function wholeOb(ob, sp) {
   if (n) w = n === 'whole'; else { const fx = B[3] - B[0], fy = B[4] - B[1], px = sp.w * sp.h; w = B[5] - B[2] > .12 && sp.l !== sp.c && (fx <= 1.5 && fy <= 1.5 ? px <= NL.propTall : fx <= NL.propFoot && fy <= NL.propFoot && px <= NL.propBig); }   // (thin things: trees, posts, poles, however tall; wider things up to a kiosk)
   return ob._nw = w;
 }
-/* The two layers (see Renderer._nightE). A = coverage: the shapes of everything lit as a whole, minus what stands in front of them. C = colour: each such thing's flat mask colour.
- * C is filled by rectangle (the sprite's box): cheap, and right wherever A covers, because a thing drawn later either has the same colour, or (hitDiff) first punches its own shape out of C and then fills only
- * what is empty in its box. No sprite is ever copied or tinted, so there is nothing to cache.
- * ER = this frame's boxes with their colour (a thing in front only has to be cut out of A where it overlaps one). */
-let XA = null, XC = null, nlLit = 0, nlCut = 0, nlPunch = 0;
-let ER = new Float32Array(5 * 128), nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;
-function addE(x0, y0, x1, y1, ci) { if ((nER + 1) * 5 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 5; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; ER[o + 4] = ci; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
-function hitE(x0, y0, x1, y1) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 5) if (x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
-function hitDiff(x0, y0, x1, y1, ci) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 5) if (ER[o + 4] !== ci && x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
-/* rows sy .. sy + sh of sprite sp (drawn at dx, dy; a = its alpha or undefined) are lit as a whole in colour col (ci as a number) */
-function litDraw(sp, sy, sh, dx, dy, ci, col, a) {
-  const w = sp.w, y = dy + sy, part = sh !== sp.h; nlLit++; if (a !== undefined) XA.globalAlpha = a;
-  if (part) XA.drawImage(sp.c, 0, sy, w, sh, dx, y, w, sh); else XA.drawImage(sp.c, dx, dy);
-  if (a !== undefined) XA.globalAlpha = 1; XC.fillStyle = col;
-  if (nER && hitDiff(dx, y, dx + w, y + sh, ci)) {
-    nlPunch++; XC.globalCompositeOperation = 'destination-out'; if (a !== undefined) XC.globalAlpha = a; if (part) XC.drawImage(sp.c, 0, sy, w, sh, dx, y, w, sh); else XC.drawImage(sp.c, dx, dy);
-    if (a !== undefined) XC.globalAlpha = 1; XC.globalCompositeOperation = 'destination-over'; XC.fillRect(dx, y, w, sh); XC.globalCompositeOperation = 'source-over';
-  } else XC.fillRect(dx, y, w, sh);
-  addE(dx, y, dx + w, y + sh, ci);
-}
-/* the same rows of a sprite that keeps the pattern and stands in front of lit things: out of the coverage */
-function cutDraw(sp, sy, sh, dx, dy, a) { nlCut++; XA.globalCompositeOperation = 'destination-out'; if (a !== undefined) XA.globalAlpha = a; if (sh !== sp.h) XA.drawImage(sp.c, 0, sy, sp.w, sh, dx, dy + sy, sp.w, sh); else XA.drawImage(sp.c, dx, dy); if (a !== undefined) XA.globalAlpha = 1; XA.globalCompositeOperation = 'source-over'; }
+/* How the flat colours get into the mask (see Renderer._nightE). The mask is opaque. For a thing that is lit as a whole, its sprite is punched out of the mask (destination-out) and the hole is
+ * filled with its colour (a destination-over fill of its box only reaches the hole). For a thing that keeps the pattern and stands in front of lit things, its sprite is punched out the same way and the
+ * hole is filled from a copy of the mask as it was before any of this (ambient + pools). Done in draw order, that is exactly "who is in front wins", with fades and see-through objects blending
+ * for free; no sprite is ever copied or tinted, so there is nothing to cache.
+ * The steps are collected first (OS / ON / OC) and then run in one go: the copy of the mask is only made when something has to be put back.
+ * ER = this frame's boxes of lit things (something in front is only put back where it overlaps one). */
+let OS = [], OC = [], ON = new Float32Array(6 * 128), nOP = 0, nPut = 0, nlLit = 0, nlCut = 0;
+function pushOp(type, sp, sy, sh, dx, dy, a, col) { if ((nOP + 1) * 6 > ON.length) { const n = new Float32Array(ON.length * 2); n.set(ON); ON = n; } const o = nOP * 6; OS[nOP] = sp; OC[nOP] = col; nOP++; ON[o] = type; ON[o + 1] = sy; ON[o + 2] = sh; ON[o + 3] = dx; ON[o + 4] = dy; ON[o + 5] = a === undefined ? -1 : a; }
+let ER = new Float32Array(4 * 128), nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;
+function addE(x0, y0, x1, y1) { if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
+function hitE(x0, y0, x1, y1) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 4) if (x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
+/* rows sy .. sy + sh of sprite sp (drawn at dx, dy; a = its alpha or undefined) are lit as a whole in colour col */
+function litDraw(sp, sy, sh, dx, dy, col, a) { nlLit++; pushOp(0, sp, sy, sh, dx, dy, a, col); addE(dx, dy + sy, dx + sp.w, dy + sy + sh); }
+/* the same rows of a sprite that keeps the pattern and stands in front of lit things: the mask's own pattern is put back there */
+function cutDraw(sp, sy, sh, dx, dy, a) { nlCut++; nPut++; pushOp(1, sp, sy, sh, dx, dy, a, null); }
 
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 /** the trees of one outskirts chunk as one canvas {c, x, y} (world px), thinned by the same distance dither as the ground; null if none */
@@ -217,7 +210,7 @@ function seatOverlay(ob, base, e) {
 }
 
 export class Renderer {
-  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.E = mk(8, 8); this.Ex = this.E.getContext('2d'); this.C = mk(8, 8); this.Cx = this.C.getContext('2d'); this._eb = [0, 0, 0, 0]; this._tap = new LightTap(); this.nl = NL;   /* night light: E / C = the coverage and colour layers of what is lit as a whole (see _nightE), _eb = the part of them used last frame */ this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0, frames: 0, tGround: 0, tUnder: 0, tItems: 0, tAmb: 0, tGlow: 0, tOver: 0, tNl: 0 };   /* t*: total ms per part of draw() (tools/perf.mjs divides by frames) */ this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
+  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.E = mk(8, 8); this.Ex = this.E.getContext('2d'); this._tap = new LightTap(); this.nl = NL;   /* night light: E = a copy of the light mask before the things that are lit as a whole were put into it (see _nightE) */ this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0, frames: 0, tGround: 0, tUnder: 0, tItems: 0, tAmb: 0, tGlow: 0, tOver: 0, tNl: 0 };   /* t*: total ms per part of draw() (tools/perf.mjs divides by frames) */ this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
   /** test hook (tools/perf.mjs --verify): paint objects [from, from + n) of the world and every chunk both ways (whole / in bands); returns { tested, bad: [ids...] }. Expect bad = []. */
   sliceCheck(world, from = 0, n = 1e9, rows = 23) {
     const bad = [], seen = new Set(); let tested = 0;
@@ -252,10 +245,10 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlPunch }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; return NL.mode; }
-  resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this.C.width = W; this.C.height = H; this._eb[0] = this._eb[1] = this._eb[2] = this._eb[3] = 0; this.ctx.imageSmoothingEnabled = false; }
+  resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this.ctx.imageSmoothingEnabled = false; }
   _chunk(world, cx, cy, budget) {
     const cache = world._chunks || (world._chunks = new Map()); const key = cx * 4096 + cy; let e = cache.get(key);
     if (e && e.ver === world.version) { e.t = this.frameNo; return e.spr; }
@@ -331,14 +324,12 @@ export class Renderer {
     this.stats.chunks = n;
   }
   /**
-   * night light: for every thing that is lit as a whole, put its shape into the coverage layer A and its flat mask colour into the colour
-   * layer C, in draw order; things that keep the pattern are cut out of A where they stand in front. Then C, kept only where A covers, goes
-   * over the mask m. S = this frame's sorted items (as drawn), al = the strength the pools were drawn with. Mirrors the item loop of
-   * draw() step by step (sitters, see-through objects, the focus ghost).
+   * night light: for every thing that is lit as a whole, put its shape into the mask m in its flat colour, in draw order; where a thing that
+   * keeps the pattern stands in front, the mask's own pattern is put back. S = this frame's sorted items (as drawn), al = the strength the
+   * pools were drawn with. Mirrors the item loop of draw() step by step (sitters, see-through objects, the focus ghost).
    */
   _nightE(S, cam, amb, al, m) {
-    const fr = this.frameNo, eb = this._eb, W = this.W, H = this.H; XA = this.Ex; XC = this.Cx;
-    if (eb[2] > eb[0]) { XA.clearRect(eb[0], eb[1], eb[2] - eb[0], eb[3] - eb[1]); XC.clearRect(eb[0], eb[1], eb[2] - eb[0], eb[3] - eb[1]); } nER = 0;
+    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; nPut = 0;
     if (amb !== AMB) { AMB = amb; const n = parseInt(amb.slice(1), 16); aR = n >> 16; aG = n >> 8 & 255; aB = n & 255; }
     for (let i = 0; i < S.length; i++) {
       const it = S[i], sp = it.spr, dx = sp.x + it.ax - cam.x, dy = sp.y + it.ay - cam.y, e = it.e, ob = it.ob, oa = ob ? ob._a : undefined;
@@ -353,25 +344,32 @@ export class Renderer {
         if (who === ob && ob) { qe._ni = ob._ni; qe._ns = ob._ns; qe._nb = ob._nb; qe._nf = fr; qe._nt = fr; qe._nhr = ob._nhr; qe._nhg = ob._nhg; qe._nhb = ob._nhb; q.lit = lit; }
         else { sample(q.ax - cam.x, Math.round((qe.x + qe.y) * U / 2 - (ob ? ob.z : qe.z) * U) - cam.y, qx, qy, qx + qs.w, qy + qs.h, null); q.lit = band(qe, fr, al) > 0 || sT; }
         if (qe.dir < 2) continue; const r0 = Math.min(qs.h, 1 - qs.y); if (r0 >= qs.h) continue;
-        if (q.lit) litDraw(qs, r0, qs.h - r0, qx, qy, qe._ni, qe._ns, qe.alpha); else if (nER && hitE(qx, qy + r0, qx + qs.w, qy + qs.h)) cutDraw(qs, r0, qs.h - r0, qx, qy, qe.alpha);
+        if (q.lit) litDraw(qs, r0, qs.h - r0, qx, qy, qe._ns, qe.alpha); else if (nER && hitE(qx, qy + r0, qx + qs.w, qy + qs.h)) cutDraw(qs, r0, qs.h - r0, qx, qy, qe.alpha);
       }
-      if (lit) { who._nd = fr; litDraw(sp, 0, sp.h, dx, dy, who._ni, who._ns, e ? e.alpha : oa); }
+      if (lit) { who._nd = fr; litDraw(sp, 0, sp.h, dx, dy, who._ns, e ? e.alpha : oa); }
       else if (nER && hitE(dx, dy, dx + sp.w, dy + sp.h) && !(oa !== undefined && oa < .05)) cutDraw(sp, 0, sp.h, dx, dy, oa !== undefined ? oa : e ? e.alpha : undefined);
       /* the piece's sitters (far to near), each followed by the part of the piece in front of it */
       if (it.ns) for (let q = it.sit; q; q = q.next) {
         const qs = q.spr, qe = q.e, qx = qs.x + q.ax - cam.x, qy = qs.y + q.ay - cam.y, rows = qe.dir < 2 ? qs.h : Math.min(qs.h, 1 - qs.y);
-        if (rows > 0) { if (q.lit) litDraw(qs, 0, rows, qx, qy, qe._ni, qe._ns, qe.alpha); else if (nER && hitE(qx, qy, qx + qs.w, qy + rows)) cutDraw(qs, 0, rows, qx, qy, qe.alpha); }
+        if (rows > 0) { if (q.lit) litDraw(qs, 0, rows, qx, qy, qe._ns, qe.alpha); else if (nER && hitE(qx, qy, qx + qs.w, qy + rows)) cutDraw(qs, 0, rows, qx, qy, qe.alpha); }
         const ov = q.ov; if (ov && oa === undefined && nER && !(lit && who === ob)) { const ox = ov.x + it.ax - cam.x, oy = ov.y + it.ay - cam.y; if (hitE(ox, oy, ox + ov.w, oy + ov.h)) cutDraw(ov, 0, ov.h, ox, oy, undefined); }
       }
     }
-    if (!nER) { eb[0] = eb[1] = eb[2] = eb[3] = 0; return; }
+    if (!nER) { for (let i = 0; i < nOP; i++) OS[i] = null; return; }
     /* the focus entity shows through what stands in front of it at 30% (draw()): so does its light */
-    for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ni, e._ns, .3); }
-    const x0 = Math.max(0, Math.floor(eX0)), y0 = Math.max(0, Math.floor(eY0)), x1 = Math.min(W, Math.ceil(eX1)), y1 = Math.min(H, Math.ceil(eY1)); eb[0] = x0; eb[1] = y0; eb[2] = x1; eb[3] = y1;
-    if (x1 > x0 && y1 > y0) {
-      const w = x1 - x0, h = y1 - y0; XC.globalCompositeOperation = 'destination-in'; XC.drawImage(this.E, x0, y0, w, h, x0, y0, w, h); XC.globalCompositeOperation = 'source-over';
-      m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.drawImage(this.C, x0, y0, w, h, x0, y0, w, h);
+    for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ns, .3); }
+    /* run the steps */
+    if (nPut) { const x = this.Ex; x.globalCompositeOperation = 'copy'; x.drawImage(this.M, 0, 0); }   // the mask as it is now (ambient + pools), for what has to be put back
+    m.globalAlpha = 1;
+    for (let i = 0, o = 0; i < nOP; i++, o += 6) {
+      const sp = OS[i], sy = ON[o + 1], sh = ON[o + 2], dx = ON[o + 3], dy = ON[o + 4], a = ON[o + 5], w = sp.w, y = dy + sy; OS[i] = null;
+      m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a;
+      if (sh !== sp.h) m.drawImage(sp.c, 0, sy, w, sh, dx, y, w, sh); else m.drawImage(sp.c, dx, dy);
+      if (a >= 0) m.globalAlpha = 1; m.globalCompositeOperation = 'destination-over';
+      if (ON[o] === 0) { m.fillStyle = OC[i]; m.fillRect(dx, y, w, sh); }
+      else { const x0 = dx < 0 ? 0 : dx, y0 = y < 0 ? 0 : y, x1 = dx + w > W ? W : dx + w, y1 = y + sh > H ? H : y + sh; if (x1 > x0 && y1 > y0) m.drawImage(this.E, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); }
     }
+    m.globalCompositeOperation = 'source-over';
   }
   /**
    * world: World. cam: {x,y} top-left in world px (integers). ents: dynamic entities, each
