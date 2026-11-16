@@ -55,7 +55,7 @@ const HARNESS = () => {
     const e = v.e, ax = e.axis === 'x', d = e.d, hl = v.len / 2; let best = null, ba = 1e9;
     for (let i = 0; i < V.length; i++) { const o = V[i]; if (o === v) continue; const rx = o.x - v.x, ry = o.y - v.y, al = (ax ? rx : ry) * d, la = Math.abs(ax ? ry : rx); if (al <= .01 || la > 1.15) continue; const gap = al - hl - halfAlong(o, e.axis); if (gap < v.gap + 1.2 && gap < ba) { ba = gap; best = o; } }
     if (best) return best;
-    const n = e.to; if (!n.dead && v.inNode !== n) { const line = (e.s1 - d * ((ax ? n.hx : n.hy) + 1.4) - v.s) * d - hl; if (line < 3.5) { const sg = !n.signal ? 2 : ax ? n.gx : n.gy; if (sg !== 2) return 'signal'; for (let i = 0; i < V.length; i++) if (V[i] !== v && V[i].inNode === n) return V[i]; if (n.occ > 0) return 'junction'; return 'junction?'; } }
+    const n = e.to; if (!n.dead && v.inNode !== n) { const line = (e.s1 - d * ((ax ? n.hx : n.hy) + 1.4) - v.s) * d - hl; if (line < 3.5) { const sg = !n.signal ? 2 : ax ? n.gx : n.gy; if (sg !== 2) return 'signal'; if (v.why > 0 && v.why < 5) return ['', 'junction held by crossing traffic', 'giving way to a claim', 'no room on the exit', 'giving way'][v.why];   /* the new build says why it is held (v.why) */ for (let i = 0; i < V.length; i++) if (V[i] !== v && V[i].inNode === n) return V[i]; if (n.occ > 0) return 'junction'; return 'junction?'; } }
     const E = G.scene.ents; for (let i = 0; i < E.length; i++) { const p = E[i]; if (p.isVehicle || !p.spec || p.hidden) continue; const rx = p.x - v.x, ry = p.y - v.y, al = (ax ? rx : ry) * d; if (al > 0 && al < hl + 6.5 && Math.abs(ax ? ry : rx) < 1) return p.isPlayer ? 'player' : 'ped'; }
     return 'other';
   }
