@@ -59,6 +59,7 @@ function buy(id, qty, venueId, o = {}) {
   const it = ITEM_BY_ID[id]; if (!it || qty < 1) return false; if (ownedBook(id)) { toast('That one is already on your kitchen shelf.', 'info'); return false; } const cost = price(it, venueId) * qty + (o.online ? DELIVERY.onlineOrderFee : 0), payO = { category: it.category, venue: venueId };
   const done = () => { bought[venueId] = true; G.emit('shop:buy', id, qty, venueId); G.audio && G.audio.sfx && G.audio.sfx('buy'); return true; };
   if (it.category === 'homegood') {
+    if (!o.online && qty === 1 && G.houseplants && G.houseplants.carryHome) { const r = G.houseplants.carryHome(id, venueId); if (r !== null) { if (r) bought[venueId] = true; return r; } }   // houseplants: small plants from a flower shop go home in your shopping bag
     if (!G.money.pay(cost, it.name, payO)) return false;
     for (let i = 0; i < qty; i++) { if (G.housing && G.housing.addFurniture) G.housing.addFurniture(id); else G.state.owned.furniture.push({ id, day: G.now().day, t: Math.floor(G.state.t) }); }
     toast(`${it.name} ordered — delivered to your home tomorrow at ${DELIVERY.homegoodsNextMorningHour}:00.`, 'good', 3600); return done();
@@ -107,7 +108,7 @@ function open(venueId, o = {}) {
   if (!o.online && !dressOk(venueId)) return false;
   const items = stock(venueId), svcs = o.online ? [] : SERVICES.filter(s => s.venue === venueId && services[s.id]);
   if (!items.length && !svcs.length) { toast(`${v.name} has nothing for sale.`, 'info'); return false; }
-  const tabs = TABS.filter(([c]) => items.some(i => i.category === c && !(o.online && c === 'dish'))); if (svcs.length) tabs.push(['service', 'Services']);
+  const tabs = TABS.filter(([c]) => items.some(i => i.category === c && !(o.online && c === 'dish'))).map(([c, nm]) => [c, c === 'homegood' && items.every(i => i.category !== 'homegood' || i.tag === 'plant') ? 'Houseplants' : nm]); if (svcs.length) tabs.push(['service', 'Services']);
   let tab = o.tab && tabs.some(t => t[0] === o.tab) ? o.tab : tabs[0][0]; const qty = {};
   const canSit = !o.online && !!G.scene && !!G.scene.roomId && ((v.interior && G.scene.roomId === venueId) || String(venueId).startsWith(G.scene.roomId + ':'));   // QA round 3: also a cafe counter inside a bigger room (museum:cafe, observatory:cocoa)
   const m = modal({ title: v.name + (o.online ? ' — online' : ''), cls: 'shop-win', onClose: () => { if (win === m) win = null; } }); win = m;
@@ -118,10 +119,10 @@ function open(venueId, o = {}) {
     tabBar.textContent = ''; if (tabs.length > 1) for (const [c, name] of tabs) tabBar.append(el('button.shop-tab' + (c === tab ? '.on' : ''), { onclick: () => { tab = c; listEl.scrollTop = 0; render(); } }, name)); tabBar.style.display = tabs.length > 1 ? '' : 'none';
     listEl.textContent = '';
     if (tab === 'service') { for (const s of svcs) listEl.append(el('div.shop-row', null, iconEl('ui.heart', 2), el('div.shop-info', null, el('b', { text: s.name }), el('span', { text: s.desc })), el('div.shop-buy', null, el('span.shop-price', { text: s.price ? fmt(s.price) : 'Free' }), el('button.go', { onclick: () => { close(); G.emit('service', s.id, venueId); services[s.id](s, venueId); } }, 'Go')))); return; }
-    const rows = items.filter(i => i.category === tab).sort((a, b) => tab === 'dish' ? (COURSE[a.course] ?? 9) - (COURSE[b.course] ?? 9) || a.price - b.price : tab === 'homegood' ? a.tag.localeCompare(b.tag) || a.tier - b.tier : a.price - b.price);
+    const rows = items.filter(i => i.category === tab).sort((a, b) => tab === 'dish' ? (COURSE[a.course] ?? 9) - (COURSE[b.course] ?? 9) || a.price - b.price : tab === 'homegood' ? a.tag.localeCompare(b.tag) || (a.tag === 'plant' ? a.price - b.price : a.tier - b.tier) : a.price - b.price);
     let lastTag = null;
     for (const it of rows) {
-      if (tab === 'homegood' && it.tag !== lastTag) { lastTag = it.tag; listEl.append(el('div.shop-sep', { text: it.tag[0].toUpperCase() + it.tag.slice(1) })); }
+      if (tab === 'homegood' && it.tag !== lastTag) { lastTag = it.tag; listEl.append(el('div.shop-sep', { text: it.tag === 'plant' ? 'Houseplants' : it.tag[0].toUpperCase() + it.tag.slice(1) })); }
       const p = price(it, venueId), sale = p < q25(it.price * (v.priceMult || 1)), single = it.category === 'homegood' || it.category === 'outfit' || it.category === 'dish' || it.stack === 1 || !!it.grants, n = single ? 1 : qty[it.id] || 1;
       const owned = (it.category === 'outfit' && ownedOutfit(it.id)) || ownedBook(it.id), blockedWant = bal < 0 && OVERDRAFT.blockedWhileNegative.includes(it.category), poor = !G.money.canAfford(p * n, { category: it.category, venue: venueId });
       const acts = el('div.shop-buy');

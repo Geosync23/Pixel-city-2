@@ -27,7 +27,7 @@ export function roadGraph() { if (!graph) { world = getCity(); graph = buildGrap
 /** lane waypoint route between two points {x,y}: { edges, offs, len, pts:[[x,y]..] } | null */
 export function route(from, to) { return roadGraph().routePts(from, to); }
 
-const FLOW = 1, FLOW_BUS = .35;   // traffic round 2: cars added to the ambient target: FLOW x (1 + the district's density factor), i.e. 1.3 (Hillcrest) to 2 (Downtown), + FLOW_BUS per bus on the street (the bus corridors are where the old pile-ups held the most vehicles). Traffic that flows leaves the simulated area sooner and buses no longer pile up, so without this the street would hold ~10% fewer vehicles than before (measured: docs/reports/traffic2.md)
+const FLOW = 1, FLOW_BUS = .35;   // traffic round 2: cars added to the ambient target: FLOW x (1 + the district's density factor), i.e. 1.3 (Hillcrest) to 2 (Downtown), + FLOW_BUS per bus on the street (the bus corridors are where the old pile-ups held the most vehicles); scaled down at night and in bad weather like the rest of the traffic. Traffic that flows leaves the simulated area sooner and buses no longer pile up, so without this the street would hold ~10% fewer vehicles than before (measured: docs/reports/traffic2.md)
 const CAP = 40, DWELL = 2;   // DWELL: game minutes at a stop off screen, real seconds on screen (QA round 3: was 5 -> a bus every ~90 min)
 export const BUS_SPEED = 9; // abstract (off-screen) bus speed, world units per game minute (QA round 3: was 6)
 const BUS_WAIT = 8;   // seconds a bus waits at the edge of the simulated area for room to appear
@@ -188,7 +188,8 @@ function rebuildNear() {
   near.length = 0; nearW = 0;
   for (const e of graph.edges) { const ax = e.axis === 'x', lo = Math.min(e.s0, e.s1), hi = Math.max(e.s0, e.s1), a = ax ? fx : fy, dA = a < lo ? lo - a : a > hi ? a - hi : 0, dC = Math.abs((ax ? fy : fx) - e.c); if (dA * dA + dC * dC < simR * simR) { near.push(e); nearW += e.w * Math.min(e.len, 60); } }
   const h = G.now().hf, cf = G.weather && G.weather.crowdFactor ? G.weather.crowdFactor() : undefined, dk = world.districtAt(fx, fy); let nb = 0; for (const b of buses) if (b.veh) nb++;
-  target = Math.min(CAP, Math.round(22 * (mx * my / 725) * (DDENS[dk] || .5) * timeF(h) * (cf === undefined ? 1 : .5 + .6 * cf) + FLOW * (1 + (DDENS[dk] || .5)) + FLOW_BUS * nb));
+  const wf = cf === undefined ? 1 : .5 + .6 * cf, tf = timeF(h);
+  target = Math.min(CAP, Math.round(22 * (mx * my / 725) * (DDENS[dk] || .5) * tf * wf + (FLOW * (1 + (DDENS[dk] || .5)) + FLOW_BUS * nb) * Math.max(.35, Math.min(1, tf * 1.4)) * Math.min(1, wf)));
   if (target < 1 && timeF(h) > .05 && Math.random() < .5) target = 1;
 }
 function housekeeping() {

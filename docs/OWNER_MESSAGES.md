@@ -617,3 +617,6 @@ So what I was saying for cooking, then we need a variety of mini games. We need 
 
 ## 163 (2026-11-16)
 I think your entire list is good. Let's go ahead and plan on executing it. I think this, I'm looking through it now. Yeah, everything. And the rules you keep, yep, agreed with all of them. And should daily chores, laundries, get the game every time, only now to then again. That was your second question. Yep, just keep it as it is now. And I think the order, you decided the order, whatever you think makes sense the most in terms of the work order. Thanks.
+
+## 164 (2026-11-16)
+Let's keep it so that the minigames appear every time, but that there's a setting in the menu to be able to turn off minigames every time, so you have the choice. And have a tooltip explain that once a minigame appears for the second time. The first time a minigame appears for the second time. Not every single time it appears for a second time, but maybe the first few, just to let people know. And then they have the ability to turn it off in the menu. Separately, please remind me, what is the order of operations now? Where are things now? And what's being handled in what order?

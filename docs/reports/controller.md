@@ -250,6 +250,87 @@ Also worth a real try: pointer speed (`TW.cursorSpeed` 640 px/s x the Settings s
 .34 s, `TUNE.repeatNext` .105 s), rumble strengths (`FX` in `pad.js`), the 0.28 s `TW.mashGuard` (Confirm is ignored right after the ring jumps by itself, so
 mashing through answers cannot press a Close button that slid under the ring), and the 30 px legend strip (is giving up that much of a phone screen right?).
 
+## 10. What was checked, and the results (2026-11-16, final build)
+
+Everything here ran in headless Chromium with a FAKE pad. No real controller, no real phone, no Safari.
+
+**`node tools/pad_check.mjs`** plays one continuous session from the title screen with nothing but the fake pad (no taps, no clicks, no game calls to make
+things happen; the script only looks at the page to decide what to press): title -> New Game -> creator (preset, tabs, hair, skin, a typed name) -> traits ->
+home -> the arrival cutscene (X) -> "Skip intro" -> the flat (stick, fridge, bed, Stop) -> lobby -> street (stick, a passer-by, a conversation) -> the cafe
+(order, eat) -> phone (Messages: read + reply) -> My Day (add an idea) -> Map (place list, route card, WALK; the map canvas: pan + zoom) -> a cab (Skip
+ride) -> a shop purchase -> a skill mini-game -> developer mode -> a job play -> next morning -> a cab -> Chapter 1 (start card, 8 lines, a choice, step
+out) -> a cab home -> Decorate (drag a piece, undo, tabs, Done) -> Settings (a slider, the Controller section, Save) -> reload -> Continue -> walk.
+
+| Run | Result | Needed |
+|---|---|---|
+| 390 x 844, Xbox-style pad | **68 passed, 0 failed**, 0 page errors | focus layer 53x, free-pointer fallback 0x, 34 rumbles |
+| 844 x 390 (phone on its side), PlayStation-style pad | **61 passed, 0 failed, 6 skipped**, 0 page errors | focus 50x, pointer fallback 0x |
+| 1280 x 720, Switch-style pad (confirm = right button) | **68 passed, 0 failed**, 0 page errors | focus 52x, pointer fallback 1x |
+
+- The 6 skips at 844 x 390 are LAYOUT limits of the game on a screen that low, not controller limits, and a finger has (nearly) the same trouble: the phone's
+  Map has 14 px for its place list and 84 px for the map itself (the controller's hint strip costs 20 px of that; with touch it would be 34 px and 104 px),
+  and Decorate's two panels leave 40 px of room between them. Also seen there: the creator's preset row is covered by its footer (with touch too; the
+  check says so and carries on). Worth a look by whoever owns those layouts; nothing was changed.
+- The one pointer fallback at 1280 x 720 was the SCRIPT's route-finding, not the game: its greedy "press toward the target" walked into a loop between the
+  creator's two columns on the way to "Next". By hand the path exists (down the left column to Back, then right). It is the kind of focus-order surprise
+  section 9.3 warns about, and it showed the fallback working.
+- What each step needed is printed per step: `[focus]` the generic layer, `[target]` / `[cycle]` the world target, `[stick]`, `[osk]` the pad keyboard,
+  `[bespoke(...)]` a mapping made for that screen (tabs, X = Skip, B = Stop, Start / Y / Select, the map's pan surface, the mini-game surface, Decorate's
+  room, sliders). Full logs: `out/pad_check.json`, `out/pad_check_land_.json`, `out/pad_check_desk_.json`.
+- Things the play-through found and that were fixed on the way (all in `padnav.js` / `pad.js` unless said): the door behind you was offered again right
+  after coming through it; passers-by stole the target from the door you walked up to; the focus started on "Show me" (first-time cards), on "Auto" (job
+  plays) and jumped to Close / x after an answer vanished (mashing Confirm then closed the play); the focus did not return to the app icon after leaving a
+  phone app; Tab closed the phone before it could move the focus; on a Switch-style pad choosing another glyph set flipped the confirm button; a hat-type
+  D-pad was read from the wrong axes; "right" from an arrow went to a swatch below instead of the arrow at the other end of the row; "down" skipped a row;
+  the map's own buttons were hard to get on and off; hold-to-fill buttons could not be held (Confirm is now down = pointerdown, up = pointerup + click).
+- Script lessons that are also player facts: a cab cannot be called from indoors (the game says "Step outside to meet your cab") and did not come to the
+  market square in front of Bean & Gone in one run (the script now walks to the kerb and asks again if no cab comes); first-time cards slide in at any
+  moment and take the focus (Confirm = "Got it").
+
+**`node tools/pad_extra.mjs`** (side cases): 20 / 20 pass. Keyboard: arrows still walk in the world; in the phone an arrow shows the ring (no glyphs, no
+strip), arrows and Tab move it, Enter opens Settings, Esc Esc closes the phone, the ring is gone back in the world. A real click hides ring, glyphs and
+strip at once and the game is full height again; the next pad button brings them back. The free pointer walks the player (Confirm on the floor far away).
+Right stick leans the camera and it springs back. RT / LT zoom one step. D-pad speed and pause. Unplugging returns to touch. Switch-style pad: right
+button confirms, bottom goes back. A non-standard pad (`mapping: ''`, 12 buttons, D-pad on a hat axis): dots glyphs, Start, hat navigation, confirm. Two
+pads: the last one used drives and the glyphs follow. Glyph sheet: `out/shots/pad_glyphs.png`.
+
+**Touch is untouched: `node tools/pad_touch_check.mjs <build without controller support>`**. No git commands were allowed, so "the previous build" is a copy
+of today's tree with the five new files removed and every `PAD HOOK` reversed (a script did it; 0 leftovers), built the same way. The same tap session in
+both builds (title, creator, a room: HUD, a tap-walk, a tap on the counter, shop, phone home, Settings, Map, My Day): the DOM of `#ui` is identical at all
+8 moments (116 to 217 elements each; clock, toasts, bubbles, badges, banners and the Now-playing line left out as they vary run to run), the pixels of the
+opaque windows are identical (shop 0.00%, HUD 0.00 to 0.40%, phone home 0.00 to 0.38% = the clock, Settings 0.27% = the tune's name), a tap walks and a
+tap on the counter opens the shop in both, 0 page errors in both. In the new build with no pad: no `#padnav`, no strip, no class on `<body>`, the four
+glyph slots empty and `display:none`, `G.padSteer` / `G.camLook` unset, the poll not running. Ran three times, identical each time.
+
+**Performance** (`tools/perf.mjs --html before,after`, interleaved, CPU 4x slower, dpr 2, 3 runs each; the machine was shared with other workers, so the
+spread is wide):
+
+| scene | fps before | fps after | 1% low before / after | worst frame before / after |
+|---|---|---|---|---|
+| walk | 53.4 (52.4-54.1) | 52.2 (49.1-55.5) | 13.7 / 13.7 | 117 ms / 100 ms |
+| phone | 54.8 (52.2-56.1) | 53.4 (52.7-55.3) | 9.4 / 8.0 | 300 ms / 300 ms |
+
+Inside the spread: no slowdown without a pad. (A first comparison showed 450 ms hitches in "after": that was my comparison build, which lacked the ambience
+recordings' folder, not the controller code. Aside for whoever uses `--no-audio`: a build whose manifest lists the recordings but which was built with
+`--no-audio` hitches like that.) The controller code adds about 51 KB to the single file. `node tools/perf.mjs --verify`: VERIFY OK, same pixels.
+
+**The rest**: `node src/data/validate.mjs` OK · `node tools/build.mjs` OK (14473 KB) · `grep -c '(?<[=!]' dist/index.html` = 0 ·
+`node tools/navcheck.mjs --rooms all`: all passed, 0 page errors · `node tools/ambience_check.mjs`: 138 / 138 · zero page errors in every run above.
+Screenshots (looked at): `out/shots/pad_*.png` (390 x 844), `pad_land_*.png` (844 x 390), `pad_desk_*.png` (1280 x 720), `pad_glyphs.png`,
+`pad_kb_settings.png`, `pad_cursor_world.png`, `pad_switch_phone.png`, `pad_generic_phone.png`, `pad_paused.png`. The ring (dark / gold-to-orange / dark) reads
+on the cream panels, the dark phone, the blue creator and the world; nothing overlaps the HUD because the strip has its own 30 px (20 px on a low screen).
+
+**Not verified, because it cannot be here**:
+- a real controller in a real hand; iPhone / iPad Safari; Android Chrome; Firefox;
+- **whether the claude.ai artifact page lets the game see a controller at all.** The game runs inside that page's frame; browsers only give a frame gamepad
+  access if the embedding page allows it, and the frame must have the focus (tap the game once). If a paired pad does nothing in the artifact, that is the
+  first suspect: try the same `dist/index.html` opened directly. The game cannot detect or fix this from inside;
+- rumble strength (the fake pad only counts calls: 34 in a 10-minute session);
+- very fast taps: the Gamepad API is polled once per frame, so a press shorter than one frame can be missed when the frame rate drops. Normal presses
+  (60 ms and more) are fine at 20 fps and up.
+
+One behaviour change for keyboard players: **Tab no longer closes the phone** (it moves the focus now; M, Q, P and Esc still close it).
+
 ## 11. Questions for the owner (after he has held a pad)
 
 1. Does "up" feel right? Try Settings > Controller > Walking stick both ways and say which one should be the default.
