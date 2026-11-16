@@ -583,3 +583,6 @@ Dont worry abou iphone13 for now.
 
 ## 153 (2026-11-16)
 What is each worker doing now / status
+
+## 154 (2026-11-16)
+Show me the ligjt nigjt change

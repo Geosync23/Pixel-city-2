@@ -127,7 +127,9 @@ stage('phone', async () => {
   const mapH = await P.ev(() => Math.round(document.querySelector('.ph-map').getBoundingClientRect().height));
   if (mapH < 110) { skip('Map: step onto the map, drag it with the stick, zoom', `the map itself is ${mapH} px tall on a screen this low (a layout limit, the same with touch)`); await backOut(); }
   else {
-  how = await P.choose(() => document.querySelector('.ph-map'), null, { after: 400, noCursor: true }); i = await P.info();
+  /* down from the chips lands on the map or on one of the buttons that sit on it (then left goes onto the map itself) */
+  how = null; for (let k = 0; k < 10 && !how; k++) { const w = await P.ev(() => { const f = G.padnav.focusEl(), m = document.querySelector('.ph-map'); return !f ? 'none' : f === m ? 'map' : m.contains(f) ? 'in' : 'out'; }); if (w === 'map') how = 'focus'; else await P.press(w === 'in' ? 'left' : 'down', 70, 200); }
+  if (how) { await sleep(320); await P.press('ok', 70, 400); } i = await P.info();
   const v0 = await P.ev(() => { const c = document.querySelector('.ph-map canvas'); return c.toDataURL().length; });
   await P.stick(.9, .3); await sleep(700); await P.stick(0, 0); await P.down('r2'); await sleep(500); await P.up('r2'); await sleep(300); await shot('21_map_pan');
   const v1 = await P.ev(() => { const c = document.querySelector('.ph-map canvas'); return c.toDataURL().length; });
