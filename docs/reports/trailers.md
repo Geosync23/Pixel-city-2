@@ -30,3 +30,10 @@ buildings to walk into, 90 of them one of a kind".
 
 LEAD looked at both contact sheets at full size (shot order and captions match the brief); has NOT watched the videos in motion or heard the audio. WAITING FOR THE OWNER'S FEEDBACK on the
 rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
+
+## Owner decisions for the polish pass (msgs 206-207)
+- Finish TRAILER 2 (B) only. First the occlusion fix (buses vs trees, trains passing) is published; then re-record the SAME shots on the fixed build; then polish.
+- Count caption: 'nearly 200 enterable buildings' (not 'over 190 buildings to walk into'); the counter may still climb to 190.
+- Keep the MON-SUN tags. Shot order and everything else stay as they are.
+- Lead's call on weak shots: re-stage the rainy evening (player visible, under lamps) and the date (companion in frame); tighten gym / cooking / home framing only if cheap; fix the items on the worker's own polish list that do not change the cut (title leaf, wipe flicker, caption not covering the aquarium tank, interiors with the player two steps in).
+

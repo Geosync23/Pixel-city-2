@@ -840,3 +840,12 @@ The hop is 4 pixels over about a fifth of a second. Right size? Yes
 Lets go with Trailer 2. But it brings up an issue I've been meaning to bring up- trees and busses dont play nice it creates weird clipping and occlusion errors.  Same thing with two trains passing eachother.
 
 We nees to fix these issues. Then recapture footage exactly as it is for Trailer 2 and then polish it.
+
+## 207 (2026-11-16)
+Keep "over 190 buildings to walk into". Make it " nearly 200 enterable buildings"
+
+Keep the MON to SUN tags. Yes
+
+Re-stage the weak activity shots (rainy evening, the date, gym, cooking, home) so they read better. The shot order and everything else stay exactly as they are. If yiu tbink so they seemed ok. You make the call
+
+Reading time is fine
