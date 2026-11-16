@@ -24,7 +24,7 @@ const RIDERS = { 'veh.scooter': [.62, .52], 'veh.motorbike': [.8, .6], 'veh.bicy
 import { ASSETS, assetSize } from '../art/registry.js';
 
 /** shared sim context. stats: counters since the page loaded (tools/traffic_check.mjs reads them) */
-export const T = { list: [], peds: [], time: 0, lit: false, world: null, honkAt: 0, sfx: null, edges: null, reroute: null, onScreen: null,
+export const T = { list: [], peds: [], time: 0, tick: 0, lit: false, world: null, honkAt: 0, sfx: null, edges: null, reroute: null, onScreen: null,
   stats: { ghost: 0, ghostPre: 0, unstick: 0, replan: 0, reroute: 0, laneChange: 0, pass: 0, claim: 0, squeeze: 0, busSkip: 0, despawn: 0, rightOnRed: 0 }, busSkip: null };
 /** tunables (docs/reports/traffic2.md) */
 export const TUNE = { claimAfter: 2.5, replanAfter: 3, rerouteAfter: 5, passAfter: 2.5, ghostPre: 8, ghostAfter: 60, unstickAfter: 40, clearBox: 1.6, yieldTime: 1.8, rightOnRed: true, busKerb: .3, cabKerb: .6 };
@@ -143,7 +143,7 @@ function boxConflict(v, n, mk) { const I = n.inn; for (let i = 0; i < I.length; 
 /** once a frame, before the vehicles are stepped: distance of every vehicle to its stop line, and who is approaching which junction */
 const touched = [];
 export function prepass(dt) {
-  for (let i = 0; i < touched.length; i++) touched[i].ap.length = 0; touched.length = 0; const L = T.list;
+  for (let i = 0; i < touched.length; i++) touched[i].ap.length = 0; touched.length = 0; const L = T.list; T.tick++;
   for (let i = 0; i < L.length; i++) {
     const v = L[i], e = v.e, n = e.to; if (v.parked) { v.ln = 99; v.stuck += dt; continue; } if (n.dead || v.inNode === n) { v.ln = 99; continue; }
     const ax = e.axis === 'x'; v.ln = (e.s1 - e.d * ((ax ? n.hx : n.hy) + 1.4) - v.s) * e.d - v.len / 2;
@@ -260,8 +260,9 @@ export function step(v, dt) {
     else if (line < 16 && dStop >= line + hl) {
       if (v.pre && n.signal) { n.pre = e.axis; n.preT = T.time + 1.2; }
       const sg = !n.signal ? 2 : ax ? n.gx : n.gy; let go = sg === 2 || (sg === 1 && line < 1.2 && v.v > 3), why = 0;
-      if (go && v.gho <= 0) { why = canEnter(v, n, false); go = why === 0; }
-      else if (sg === 0 && TUNE.rightOnRed && v.v < .3 && line < 1 && v.stuck > 1 && v.len < 5 && rank(e, v.ne) === 2 && v.gho <= 0) { go = canEnter(v, n, true) === 0; if (go) T.stats.rightOnRed++; }   /* right turn on red, after a full stop, when nothing is coming */ v.why = go ? 0 : why || (sg === 2 ? 9 : 5);   // debug: why it is held at the line (1 box, 2 claim, 3 no exit room, 4 yield, 5 red light)
+      /* perf: the box is only asked for from where the vehicle has to decide (it can still stop from there), and a vehicle standing at the line that was refused asks again every other frame */
+      if (go && v.gho <= 0 && line < 3 + v.v * v.v / 10) { why = v.v < .3 && v.why > 0 && v.why < 5 && ((T.tick + v.uid) & 1) ? v.why : canEnter(v, n, false); go = why === 0; }
+      else if (sg === 0 && TUNE.rightOnRed && v.v < .3 && line < 1 && v.stuck > 1 && v.len < 5 && rank(e, v.ne) === 2 && v.gho <= 0) { go = canEnter(v, n, true) === 0; if (go && line < .5) T.stats.rightOnRed++; }   /* right turn on red, after a full stop, when nothing is coming */ v.why = go ? 0 : why || (sg === 2 ? 9 : 5);   // debug: why it is held at the line (1 box, 2 claim, 3 no exit room, 4 yield, 5 red light)
       if (!go) {
         if (line - .3 < adv) { adv = line - .3; lead = null; }
         const ca = ax ? 0 : 1; if (v.v < .3 && line < 2.5 && sg !== 2) { if (n.cl[ca] === v) n.clT[ca] = T.time; }   /* a claim is kept through the red: first in when the light changes */

@@ -18,7 +18,7 @@ const st = () => P.ev(() => { const i = G.padnav.info(), p = G.player; return { 
 const until = (fn, arg, ms) => P.until(fn, arg, ms);
 let rumbles = 0; const stages = []; const stage = (name, fn) => stages.push([name, fn]);
 const skip = (name, why) => { P.step(name, null, '', why); };
-const ok = (name, cond, how, note) => { P.step(name, cond, how, (note || '') + (!cond && P.note ? '  (' + P.note + ')' : '')); P.note = ''; return !!cond; };
+const ok = (name, cond, how, note) => { cond = !!cond; P.step(name, cond, how, (note || '') + (!cond && P.note ? '  (' + P.note + ')' : '')); P.note = ''; return !!cond; };
 /** dismiss first-time windows / say boxes that sit on top (each is one A on the default focus) */
 async function clearTips(max = 4) { for (let k = 0; k < max; k++) { const has = await P.ev(() => !!document.getElementById('ftw')); if (!has) return; await P.press('ok', 70, 350); } }
 /* close whatever is open: B (the Back hint's target, else Esc); a card with a single button and nothing to go back to is answered with A */
@@ -123,12 +123,16 @@ stage('phone', async () => {
     how = await P.choose(/^WALK/, null, { after: 900 }); await clearTips(); s = await st(); const trip = await P.ev(() => !!(G.nav && G.nav.trip && G.nav.trip()) || !!(G.phone.waypoint && G.phone.waypoint()));
     ok('Map: WALK starts the route (the arrow leads the way)', how && trip, how); await backOut(); await shot('20_route_arrow'); }
   /* the map itself: step onto it, drag it with the stick, zoom with a trigger, pick with A, B steps out */
-  await P.press('select', 70, 1000); await clearTips(); how = await P.choose(() => document.querySelector('.ph-map'), null, { after: 400 }); i = await P.info();
+  await P.press('select', 70, 1000); await clearTips();
+  const mapH = await P.ev(() => Math.round(document.querySelector('.ph-map').getBoundingClientRect().height));
+  if (mapH < 110) { skip('Map: step onto the map, drag it with the stick, zoom', `the map itself is ${mapH} px tall on a screen this low (a layout limit, the same with touch)`); await backOut(); }
+  else {
+  how = await P.choose(() => document.querySelector('.ph-map'), null, { after: 400, noCursor: true }); i = await P.info();
   const v0 = await P.ev(() => { const c = document.querySelector('.ph-map canvas'); return c.toDataURL().length; });
   await P.stick(.9, .3); await sleep(700); await P.stick(0, 0); await P.down('r2'); await sleep(500); await P.up('r2'); await sleep(300); await shot('21_map_pan');
   const v1 = await P.ev(() => { const c = document.querySelector('.ph-map canvas'); return c.toDataURL().length; });
   ok('Map: step onto the map (A), the stick drags it, RT zooms', how && i.surf && i.surf.kind === 'pan' && v0 !== v1, 'bespoke(pan surface)', `map canvas ${v0} -> ${v1} bytes`);
-  await P.press('back', 70, 300); i = await P.info(); ok('Map: B steps back to the buttons', !i.surf && i.state === 'ui', 'bespoke'); await backOut();
+  await P.press('back', 70, 300); i = await P.info(); ok('Map: B steps back to the buttons', !i.surf && i.state === 'ui', 'bespoke'); await backOut(); }
   /* a cab */
   s = await st(); if (s.sc !== 'city') { const out = await P.useThing(/^(Exit|Leave)/, { after: 2600 }); await until(() => G.scene.id === 'city' && !G.modal, null, 6000); await clearTips(); ok('step outside first (a cab cannot be called from indoors: the game says so)', (await st()).sc === 'city', out); }
   await P.walkTo(83, 240.8, 1.5, 15000);   // off the market square, to the kerb of Cooper St (cabs do not drive onto the square)

@@ -580,3 +580,6 @@ The pixel shading used for streetlights at night is great but it sticks as the t
 
 ## 152 (2026-11-15)
 Dont worry abou iphone13 for now.
+
+## 153 (2026-11-16)
+What is each worker doing now / status

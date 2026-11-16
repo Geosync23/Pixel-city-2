@@ -30,6 +30,7 @@ export function route(from, to) { return roadGraph().routePts(from, to); }
 const FLOW = 1;   // traffic round 2: cars added to the ambient target: FLOW x (1 + the district's density factor), i.e. 1.3 (Hillcrest) to 2 (Downtown). Traffic that flows leaves the simulated area sooner and buses no longer pile up, so without this the street would hold ~10% fewer vehicles than before (measured: docs/reports/traffic2.md)
 const CAP = 40, DWELL = 2;   // DWELL: game minutes at a stop off screen, real seconds on screen (QA round 3: was 5 -> a bus every ~90 min)
 export const BUS_SPEED = 9; // abstract (off-screen) bus speed, world units per game minute (QA round 3: was 6)
+const BUS_WAIT = 8;   // seconds a bus waits at the edge of the simulated area for room to appear
 export const BERTH = 0;   // how far past the stop sign a bus's centre halts. 0 = centred in the painted bay (the yellow box is 9 long, a bus 8). A second bus loads right behind it where the block is long enough (second berth, _traffic_veh.js); tried 5 to make room for one everywhere: the bus then stood outside its bay
 export const BUS_HEADWAY = 10, BUS_REAL_V = 5.5;   // target minutes between buses of one route in the daytime (buses per route = lap time / headway); measured pace of an on-screen bus nobody rides (u per game min at 1x, lights incl.)
 const KD = { sedan: ['veh.car.sedan', 6.6, 1], hatch: ['veh.car.hatch', 6.4, 1], suv: ['veh.car.suv', 6.4, 1], sports: ['veh.car.sports', 7.6, 1], beetle: ['veh.car.beetle', 6, 1], pickup: ['veh.car.pickup', 6.2, 1],
@@ -68,7 +69,7 @@ function release(v) {
 }
 function clearLane(x, y, r) { for (const o of T.list) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r) return false; return true; }
 /** nobody within r along the lane of lane ref q (other lanes and the oncoming side do not count) */
-function laneClear(q, r) { const ax = q.e.axis === 'x'; for (const o of T.list) { if (o.e.axis !== q.e.axis) { if (Math.abs(o.x - q.x) < 5 && Math.abs(o.y - q.y) < 5) return false; continue; } if (Math.abs(ax ? o.y - q.y : o.x - q.x) < 1.4 && Math.abs(ax ? o.x - q.x : o.y - q.y) < r) return false; } return true; }
+function laneClear(q, r) { const ax = q.e.axis === 'x'; for (const o of T.list) { if (o.parked && o.curb >= .5) continue; if (o.e.axis !== q.e.axis) { if (Math.abs(o.x - q.x) < 5 && Math.abs(o.y - q.y) < 5) return false; continue; } if (Math.abs(ax ? o.y - q.y : o.x - q.x) < 1.4 && Math.abs(ax ? o.x - q.x : o.y - q.y) < r) return false; } return true; }
 function trySpawn(prefill, h) {
   if (nearW <= 0) return false; const p = G.player;
   for (let t = 0; t < 40; t++) {
@@ -205,7 +206,7 @@ function housekeeping() {
   for (const b of buses) {
     if (b.veh) continue; const q = loopAt(b.loop, b.u, tmp), dx = q.x - fx, dy = q.y - fy; if (dx * dx + dy * dy >= (simR + 4) * (simR + 4) || T.list.length >= CAP + 6 || !(refill || !onScreen(q.x, q.y, 90))) continue;
     const e = q.e; if ((e.s1 - e.d * (graph.ext(e.to, e.axis) + 1.4) - q.s) * e.d < 5.5 || (q.s - e.s0) * e.d < graph.ext(e.from, e.axis) + 6.1) continue;
-    if (!laneClear(q, 9.5)) { if (!b.atStop) b.waitT = T.time + .5; continue; } busReal(b);
+    if (!laneClear(q, 9.5)) { b.waitS = (b.waitS || 0) + .22; if (!b.atStop && b.waitS < BUS_WAIT) b.waitT = T.time + .5; else if (b.waitS > BUS_WAIT + 6) b.waitS = 0; continue; } b.waitS = 0; busReal(b);   /* BUS_WAIT: after that long it gives up waiting and passes unseen (as every bus used to), so a route can never be cut off by something standing where its buses appear */
   }
   // taxi stands
   for (let i = 0; i < stands.length; i++) {

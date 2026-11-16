@@ -43,6 +43,10 @@ export const TW = {
   cursorSpeed: 640,  // px / s at full deflection (x prefs.cursor)
   scrollSpeed: 900,  // px / s right-stick scrolling
   sideWeight: 2.2,   // focus moves: how much a sideways gap costs against a forward gap
+  inLine: .35,       // focus moves: a thing straight ahead costs this fraction of its distance ...
+  inLineReach: 300,  // ... for the first so many px (beyond that, full price: on the sparse HUD a chip at the far end of the row does not beat a box nearby)
+  diagonal: 70,      // ... and a thing off to the side costs this many px extra (left / right moves)
+  rowTol: 20,        // up / down: things whose near edge is within this many px of the nearest one count as the same row
   mashGuard: .28,    // s: after the focused thing vanishes and the ring jumps elsewhere, Confirm is ignored this long
 };
 const PASSIVE = '#hud,#goalsw,#ph-banners,#toasts,#ph-fab,#nav-arrow,#nav-trip,#nav-stop,.dev-btn,.bubble,[data-pad-passive]';
@@ -234,7 +238,7 @@ function refocus(any) {
 }
 function move(dx, dy) {
   if (!focus || !inList(focus)) { refocus(); return !!focus; }
-  const cur = inList(focus), a = rectOf(cur); frect = a; let best = null, bs = 1e9, wrap = null, ws = -1e9, outer = null, outerA = 0, far = null, fs = 1e9;
+  const cur = inList(focus), a = rectOf(cur); frect = a; let best = null, bs = 1e9, wrap = null, ws = -1e9, outer = null, outerA = 0, far = null, fs = 1e9; const cands = [];
   const acx = (a.left + a.right) / 2, acy = (a.top + a.bottom) / 2;
   for (const c of list) {
     if (c.e === focus) continue; const q = rectOf(c), qx = (q.left + q.right) / 2, qy = (q.top + q.bottom) / 2;
@@ -245,11 +249,23 @@ function move(dx, dy) {
     if (q.left >= a.left - 1 && q.right <= a.right + 1 && q.top >= a.top - 1 && q.bottom <= a.bottom + 1) {   // it is inside the focused thing (a button on the map): in, toward it
       if (ctr > 2) { const s = Math.hypot(qx - acx, qy - acy) * .6; if (s < bs) { bs = s; best = c; } } continue; }
     if (a.left >= q.left - 1 && a.right <= q.right + 1 && a.top >= q.top - 1 && a.bottom <= q.bottom + 1) { if (!outer || q.width * q.height < outerA) { outer = c; outerA = q.width * q.height; } continue; }   // the thing the focus is inside: where a move ends up when nothing else lies that way
-    if (ctr > 2 && fwd > -Math.min(dx ? a.width : a.height, dx ? q.width : q.height) * .6) {
-      const s = Math.max(0, fwd) + side * TW.sideWeight + off * .25 + (c.box ? 140 : 0);   // a box with things in it (the map): its contents first
-      if (side > 0 && side > (fwd + 40) * 2.5) { if (fwd >= 0 && s < fs) { fs = s; far = c; } continue; }   // far off to the side: not "that way", unless nothing else is (a footer's buttons under a wide panel)
-      if (s < bs) { bs = s; best = c; }
-    } else if (side <= 0 && ctr < -2) { const s = -ctr; if (s > ws) { ws = s; wrap = c; } }   // same row / column, the far end: where a wrap lands
+    /* "that way" = its middle lies that way and it is past the focus's edge (a thing in the same row / column may overlap a little) */
+    if (ctr > 2 && (side <= 0 ? fwd > -Math.min(dx ? a.width : a.height, dx ? q.width : q.height) * .6 : fwd >= 0)) {
+      const g = Math.max(0, fwd) + (c.box ? 140 : 0);   // a box with things in it (the map): its contents first
+      if (side > 0 && side > (fwd + 40) * 2.5) { if (dy) { const fsc = g + side * TW.sideWeight; if (fsc < fs) { fs = fsc; far = c; } } continue; }   // far off to the side: not "that way" (up / down: unless nothing else is: a footer's buttons under a wide panel)
+      cands.push({ c, g, side, off });
+    } else if (side <= 0 && ctr < -2) { const sw = -ctr; if (sw > ws) { ws = sw; wrap = c; } }   // same row / column, the far end: where a wrap lands
+  }
+  if (!best && cands.length) {
+    if (dx) {
+      /* LEFT / RIGHT stay in the row: a thing in line with the focus is cheap even when far (the arrow at the other end of the row beats a swatch just below);
+         a diagonal neighbour pays for its sideways gap plus a flat fee */
+      for (const q of cands) { const sc2 = (q.side <= 0 ? Math.min(q.g, TW.inLineReach) * TW.inLine + Math.max(0, q.g - TW.inLineReach) : q.g + q.side * TW.sideWeight + TW.diagonal) + q.off * .25; if (sc2 < bs) { bs = sc2; best = q.c; } }
+    } else {
+      /* UP / DOWN go to the NEAREST ROW first (never skip a row because something further down happens to be in line), then to the nearest thing in that row */
+      let gmin = 1e9; for (const q of cands) if (q.g < gmin) gmin = q.g;
+      for (const q of cands) if (q.g <= gmin + TW.rowTol) { const sc2 = q.side + q.off * .25 + (q.g - gmin) * .5; if (sc2 < bs) { bs = sc2; best = q.c; } }
+    }
   }
   if (!best) {
     /* nothing further that way: scroll the list if it can, else wrap along the row / column */

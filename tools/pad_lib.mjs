@@ -69,7 +69,7 @@ export function pad(pg) {
         if (q.on) return true;
         if (!q.f) { await P.press('down', 60, 160); continue; }
         const dx = q.t[0] - q.f[0], dy = q.t[1] - q.f[1], gx = Math.abs(dx) - (q.t[2] + q.f[2]) / 2, gy = Math.abs(dy) - (q.t[3] + q.f[3]) / 2;
-        let dir = gy > 0 || (gx <= 0 && Math.abs(dy) > 3) ? (dy > 0 ? 'down' : 'up') : (dx > 0 ? 'right' : 'left');
+        let dir = (gy > 0 && (gx <= 0 || gy >= gx * .6)) || (gx <= 0 && Math.abs(dy) > 3) ? (dy > 0 ? 'down' : 'up') : (dx > 0 ? 'right' : 'left');   // the bigger gap first (up / down a little more readily: most screens are columns)
         if (gx <= 0 && gy <= 0) dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');   // one inside the other: toward its middle
         const key = q.f.join(',') + q.fl + dir; if (key === lastKey) { stuck++; dir = dir === 'down' || dir === 'up' ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (stuck > 6) return false; } lastKey = key;
         await P.press(dir, 60, 130);
