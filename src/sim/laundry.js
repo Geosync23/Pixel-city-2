@@ -56,7 +56,7 @@ function startWash(where, o = {}) {
 function startDry(load, kind, minutes) { load.stage = 'dry'; load.kind = kind; load.t = now() + minutes; delete load.basket; G.emit('laundry:dry', load); }
 function collect(load, fold) {
   S.loads = S.loads.filter(l => l !== load); W().setState(load.ids, CLEAN, true); S.done = (S.done || 0) + 1;
-  safe(() => G.needs.addMoodlet('fresh_clothes', fold ? 5 : 3)); if (fold) safe(() => G.needs.add('fun', 3));
+  safe(() => G.needs.addMoodlet('fresh_clothes', (fold ? 5 : 3) + (load.mgb || 0) /* MG-B HOOK: a well sorted / folded load stays fresh longer (sim/_mg_games.js) */)); if (fold) safe(() => G.needs.add('fun', 3));
   stamp('x:laundry'); if (!load.home) stamp('x:laundromat'); G.emit('laundry:clean', load.ids); G.emit('laundry:done', load);
   toast(`${plural(load.ids.length, 'clean piece')}${fold ? ', folded in a neat stack' : ''}. Back in your drawers.`, 'good', 3600);
 }
@@ -90,11 +90,11 @@ async function machine(fx, scene) {
   if (!opts.length) return toast(S.bag ? (w.length ? 'That is a dryer. Start with a washer.' : delicates().length ? 'Only delicates left in your bag: the front desk does dry cleaning.' : 'Your laundry bag is empty.') : hamper().length ? 'Your dirty clothes are in the hamper at home. Bring the laundry bag.' : 'Nothing to wash. Clothes need a wash after a few days of wear.', 'info', 3600);
   const v = await choose(dryer ? 'Dryer' : `Washer ${no || ''}`.trim(), opts.concat([{ label: 'Never mind', value: null }])); if (!v) return;
   const l = v[1];
-  if (v[0] === 'wash') { if (!safe(() => G.money.pay(WASH_PRICE, 'Laundromat wash', { category: 'service', venue: where }), false)) return; const load = startWash(where, { no }); if (load) { toast(`In it goes. ${WASH_MIN} minutes. Wait, or wander off: your phone will ping.`, 'good', 3800); safe(() => G.audio.sfx('coin')); } }
+  if (v[0] === 'wash') { if (!safe(() => G.money.pay(WASH_PRICE, 'Laundromat wash', { category: 'service', venue: where }), false)) return; const load = startWash(where, { no }); if (load) { toast(`In it goes. ${WASH_MIN} minutes. Wait, or wander off: your phone will ping.`, 'good', 3800); safe(() => G.audio.sfx('coin')); safe(() => G.mgB.wash(load)); /* MG-B HOOK: the sorting game */ } }
   else if (v[0] === 'dry') { if (!safe(() => G.money.pay(DRY_PRICE, 'Laundromat dryer', { category: 'service', venue: where }), false)) return; startDry(l, null, DRY_MIN); toast(`Tumbling. ${DRY_MIN} minutes.`, 'good'); }
   else if (v[0] === 'wait') wait(l);
   else if (v[0] === 'take') collect(l, false);
-  else if (v[0] === 'fold') G.startActivity({ label: 'Folding laundry', anim: 'work', minutes: 6, done: () => collect(l, true), cancel: () => collect(l, false) });
+  else if (v[0] === 'fold') G.startActivity({ label: 'Folding laundry', anim: 'work', minutes: 6, mgb: 'fold', mgbCtx: { load: l } /* MG-B HOOK: the folding game */, done: () => collect(l, true), cancel: () => collect(l, false) });
 }
 async function desk(orig) {
   const where = roomId(), ready = mine(where).filter(l => l.kind && l.stage === 'done'), pending = mine(where).filter(l => l.kind && l.stage !== 'done'), d = delicates(), w = washables(), opts = [];
@@ -134,7 +134,7 @@ async function homeWasher(fx, scene) {
   if (w.length && !ls.some(l => l.stage === 'wash')) opts.push({ label: 'Wash what is in the hamper', sub: `${plural(Math.min(w.length, cap), 'piece')} · ${HOME_WASH[tier] || 60} min · free${delicates().length ? ' · delicates need the cleaner' : ''}`, value: ['wash'] });
   if (!opts.length) return toast(delicates().length ? 'Only delicates in the hamper. The laundromat counter dry-cleans those.' : 'Nothing to wash. Dirty clothes land in the hamper when you change.', 'info', 3400);
   const v = await choose('Washing machine', opts.concat([{ label: 'Close', value: null }])); if (!v) return;
-  if (v[0] === 'wash') { const load = startWash('home', { home: 1, minutes: HOME_WASH[tier] || 60, max: cap }); if (load) toast(`The drum starts to turn. ${left(load.t)}.`, 'good'); }
+  if (v[0] === 'wash') { const load = startWash('home', { home: 1, minutes: HOME_WASH[tier] || 60, max: cap }); if (load) { toast(`The drum starts to turn. ${left(load.t)}.`, 'good'); safe(() => G.mgB.wash(load)); /* MG-B HOOK: the sorting game */ } }
   else if (v[0] === 'dry') { startDry(v[1], v[2], v[3]); toast(v[2] === 'dryer' ? 'Tumbling.' : v[2] === 'rack' ? 'Pegged out on the rack.' : 'Shirts on chair backs, socks on doorknobs. It will dry.', 'good'); }
 }
 async function hamperUse() {

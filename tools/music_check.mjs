@@ -272,7 +272,7 @@ async function live(br) {
       /* the watch silence with a classic */
       await tune(); const before = !!G.audio.nowPlaying(); G.emit('show:start'); let during = 0; for (let i = 0; i < 25; i++) { await sleep(200); if (i > 10 && G.audio.nowPlaying()) during++; } G.emit('show:end');
       /* day two: 05:00 the next morning */
-      await toCity(sp.downtown[0], sp.downtown[1], 12); G.state.t = (day0 + 1) * 1440 + 12 * 60; G.advance(1); await sleep(700); const two = await tune(), d2 = G.audio.debug.music();
+      await toCity(sp.downtown[0], sp.downtown[1], 12); G.state.t = (day0 + 1) * 1440 + 12 * 60; G.advance(1); await sleep(13000); /* the show's 12 s of quiet */ const two = await tune(), d2 = G.audio.debug.music();
       return { o, skip, forced: f && f.id, before, during, two, d1After: K.state().d1, dayOneAfter: d2.dayOne, errors: G.audio.info().errors }; }, sp);
     R.dayOne = r; const bad = r.o.filter(x => x.id !== x.want || !/^Classic: /.test(x.title || ''));
     check('day one: only the classics, each in its old place (' + r.o.length + ' places)', !bad.length, (bad.length ? 'WRONG: ' + bad.map(x => `${x.name}: ${x.id} (want ${x.want})`).join(', ') + ' | ' : '') + r.o.map(x => `${x.name} -> ${x.title}`).join('; '));

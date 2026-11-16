@@ -159,10 +159,10 @@ function hitBox(R, n, x0, y0, x1, y1, hx) {
   return hit;
 }
 /* rows sy .. sy + sh of sprite sp (drawn at dx, dy; a = its alpha or undefined) are lit as a whole in colour col. Only the box of the sprite's own pixels is worked on (sp.bx), and of that,
- * when the thing stands in the dark (dim: its colour is the ambient colour), only the part the pools reach (kx0..ky1, canvas px): the rest of the mask has that colour already. */
+ * when the thing stands in the dark (dim: its colour is the ambient colour) and nothing lit is behind it, only the part the pools reach (kx0..ky1, canvas px): the rest of the mask has that colour already. */
 function litDraw(sp, sy, sh, dx, dy, ci, col, a, fr, dim, kx0, ky0, kx1, ky1) {
   const q = sp.bx; let x0 = q ? q[0] : 0, y0 = q ? q[1] : 0, x1 = q ? q[2] : sp.w, y1 = q ? q[3] : sp.h; if (y0 < sy) y0 = sy; if (y1 > sy + sh) y1 = sy + sh;
-  if (dim) { if (x0 < kx0 - dx) x0 = kx0 - dx; if (y0 < ky0 - dy) y0 = ky0 - dy; if (x1 > kx1 - dx) x1 = kx1 - dx; if (y1 > ky1 - dy) y1 = ky1 - dy; }
+  if (dim && !(nER && hitBox(ER, nER, dx + x0, dy + y0, dx + x1, dy + y1, null))) { if (x0 < kx0 - dx) x0 = kx0 - dx; if (y0 < ky0 - dy) y0 = ky0 - dy; if (x1 > kx1 - dx) x1 = kx1 - dx; if (y1 > ky1 - dy) y1 = ky1 - dy; }   // (not when something lit stands behind it: that has to be covered whole)
   if (x1 <= x0 || y1 <= y0) return; nlLit++; const c = sp.im && q ? silGet(sp, ci, col, fr) : null;
   if (c) { nlSil++; pushOp(2, c, x0 - q[0], y0 - q[1], x1 - x0, y1 - y0, dx + x0, dy + y0, a, null); } else pushOp(0, sp, x0, y0, x1 - x0, y1 - y0, dx + x0, dy + y0, a, col);
   addE(dx + x0, dy + y0, dx + x1, dy + y1);
@@ -457,11 +457,11 @@ export class Renderer {
     if (nPut && !copy && nHP) for (let i = 0, o = 0; i < nOP && !copy; i++, o += 8) { if (ON[o] !== 1) continue; const x0 = ON[o + 5], y0 = ON[o + 6], x1 = x0 + ON[o + 3], y1 = y0 + ON[o + 4];
       for (let j = 0, q = 0; j < nHP; j++, q += 3) { const im = HP[j], rx = im._rx, ry = im._ry, cx = HN[q] + rx, cy = HN[q + 1] + ry; if (x0 >= cx + rx || x1 <= cx - rx || y0 >= cy + ry || y1 <= cy - ry) continue; const nx = cx < x0 ? x0 : cx > x1 ? x1 : cx, ny = cy < y0 ? y0 : cy > y1 ? y1 : cy, ex = (nx - cx) / rx, ey = (ny - cy) / ry; if (ex * ex + ey * ey < 1) { copy = true; break; } } }
     if (copy) { const x = this.Ex; x.globalAlpha = 1; x.globalCompositeOperation = 'copy'; x.drawImage(this.M, 0, 0); nlCopy++; }
-    m.globalAlpha = 1; let op = 0;   // (op: the mask's composite operation right now, 0 source-over / 1 destination-out / 2 destination-over: it is only set when it changes)
+    m.globalAlpha = 1; let op = -1;   // (op: the mask's composite operation as far as this loop knows, 0 source-over / 2 destination-over, -1 not known: the pools left it at 'lighter'. It is only set when it has to change.)
     for (let i = 0, o = 0; i < nOP; i++, o += 8) {
       const src = OS[i], t = ON[o], sx = ON[o + 1], sy = ON[o + 2], sw = ON[o + 3], sh = ON[o + 4], dx = ON[o + 5], dy = ON[o + 6], a = ON[o + 7]; OS[i] = null;
       if (t === 2) { if (op !== 0) { m.globalCompositeOperation = 'source-over'; op = 0; } if (a >= 0) m.globalAlpha = a; m.drawImage(src, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; continue; }   // a flat-colour copy: just drawn
-      if (op !== 1) m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1;
+      m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1;
       m.globalCompositeOperation = 'destination-over'; op = 2;
       if (t === 0) { m.fillStyle = OC[i]; m.fillRect(dx, dy, sw, sh); }
       else { const x0 = dx < 0 ? 0 : dx, y0 = dy < 0 ? 0 : dy, x1 = dx + sw > W ? W : dx + sw, y1 = dy + sh > H ? H : dy + sh; if (x1 <= x0 || y1 <= y0) continue;

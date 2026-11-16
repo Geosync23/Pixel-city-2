@@ -93,7 +93,7 @@ function tidy(kind, it) {
   if (kind === 'full' && (left('cleaner') < 1 || left('sponge') < 1)) { toast(`A proper clean needs ${left('cleaner') < 1 ? 'all-purpose cleaner' : 'sponges and cloths'}. Any grocery or corner shop has them.`, 'info', 4200); return null; }
   if (kind === 'quick' && S.clean >= C.quickCap) { toast('It is already tidy. Only a proper clean would make it sparkle.', 'info', 3600); return null; }
   const minutes = kind === 'full' ? C.fullMinutes : kind === 'quick' ? C.quickMinutes : C.spotMinutes;
-  return G.startActivity({ label: kind === 'full' ? 'Cleaning the place properly' : kind === 'quick' ? 'A quick tidy' : 'Tidying up', anim: 'work', minutes, rate: kind === 'spot' ? 6 : 10,
+  return G.startActivity({ label: kind === 'full' ? 'Cleaning the place properly' : kind === 'quick' ? 'A quick tidy' : 'Tidying up', anim: 'work', minutes, rate: kind === 'spot' ? 6 : 10, mgb: kind === 'full' ? 'scrub' : kind === 'quick' ? 'dishes' : null /* MG-B HOOK: the scrubbing games (sim/_mg_games.js) */,
     done() {
       if (kind === 'full') { use('clean'); addClean(C.full); safe(() => G.needs.add('comfort', 8)); safe(() => G.needs.addMoodlet('spick_and_span')); safe(() => G.skills.addXp('handiness', 6)); toast(`All clean. Home is ${cleanLabel().toLowerCase()}.`, 'good', 3600); }
       else if (kind === 'quick') { S.clean = clamp(Math.min(Math.max(S.clean, C.quickCap), S.clean + C.quick)); syncMess(); safe(() => G.needs.add('comfort', 3)); toast(`That looks better. Home is ${cleanLabel().toLowerCase()}.`, 'good', 3200); }

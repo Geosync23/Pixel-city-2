@@ -365,7 +365,7 @@ function swimwear(on) { const S = st(); if (!!S.swim === !!on) return; S.swim = 
 function locker(sc) { if (!spaOpen()) return toast('The lockers are shut for the night.', 'info'); const S = st(); swimwear(!S.swim); toast(S.swim ? 'Swimwear on, clothes in locker 12. The key goes round your wrist.' : 'Dry, dressed, and your hair will do what it likes for the rest of the day.', 'good', 3600); }
 function swim(sc) {
   sc = sc || scn(HR.spa); if (!sc || G.busy || !needSpa()) return false; const S = st(), L = sc.hot.lane(), p = G.player; swimwear(true); sc.hot.me._laps = 0; sc.hot.swimMe(true);
-  G.startActivity({ label: 'Swimming laps', anim: 'stand', hide: true, minutes: SWIM_MIN, rate: 2.5, tick: gm => { add('energy', -gm * .3); add('fun', gm * .28); add('hygiene', gm * .5); safe(() => G.needs.addFitness(gm * .03)); xp('fitness', gm * .5); },
+  G.startActivity({ label: 'Swimming laps', anim: 'stand', hide: true, minutes: SWIM_MIN, rate: 2.5, mgb: 'laps' /* MG-B HOOK: the stroke game (sim/_mg_games.js) */, tick: gm => { add('energy', -gm * .3); add('fun', gm * .28); add('hygiene', gm * .5); safe(() => G.needs.addFitness(gm * .03)); xp('fitness', gm * .5); },
     done: () => { const laps = sc.hot.laps() + 1; sc.hot.swimMe(false); S.swims++; S.laps += laps * 2; moodlet('pumped'); stamp('x:hotel_swim'); G.emit('hotel:swim', laps * 2); toast(`${laps * 2} lengths. You hang on the rail with your heart going and the water flat as glass behind you.`, 'good', 4600); }, cancel: () => { sc.hot.swimMe(false); } });
   return true;
 }
