@@ -80,6 +80,7 @@ function notify(o) {
   if (T) S.cool[o.type] = t;
   const app = o.app || (T && T.app) || null, e = { id: ++S.seq, app, type: o.type || null, title: String(o.title || (defOf(app) || {}).name || 'Maple Bay'), text: String(o.text || ''), icon: o.icon || null, t, read: 0, pri: o.priority || (T && T.priority) || 'normal' };
   if (o.data) e.data = o.data; if (o.face) e.face = o.face; if (o.appIcon) e.appIcon = o.appIcon;
+  if (typeof o.onTap === 'function') Object.defineProperty(e, 'onTap', { value: o.onTap });   /* wish-list reminder (sim/wishnudge.js): the banner's tap runs this instead of opening the app; not saved, so the history entry opens the app */
   /* QA9: the same news twice within half an hour ('New app: Circle' from the store AND the unlock) is logged once; in the first three days at most ONE 'New app' banner a day, the rest arrive quietly in the phone */
   if (S.log.some(q => q.title === e.title && q.text === e.text && t - q.t < 30 && t >= q.t)) return null;
   if (/^New app: /.test(e.title) && e.pri !== 'high') { const d0 = safe(() => G.state.intro.day0, null), dd = Math.floor(t / 1440); if (d0 != null && dd - d0 < 3) { if (S.appBanner === dd) e.pri = 'low'; else S.appBanner = dd; } }
@@ -117,7 +118,7 @@ function pump() {
   const ic = e.face ? portrait(e.face, 40) : e.icon ? el('span.ph-ico', { style: { width: '40px', height: '40px', background: '#fff4dc' } }, iconEl(e.icon, 2)) : appIcon(e.appIcon || e.app || 'notifications', 40, defOf(e.app));
   const done = () => { if (showing !== b) return; showing = null; b.classList.remove('in'); setTimeout(() => { b.remove(); pump(); }, 220); };
   const b = el('div.ph-banner' + (sticky ? '.sticky' : ''), { role: 'status' },
-    el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
+    el('button.ph-banner-main', { 'aria-label': `${e.title}: ${e.text}. Open`, onclick: () => { done(); e.read = 1; syncBadge(); if (e.onTap && safe(() => e.onTap(), false)) return; open(e.app, e.data); } }, ic, el('span.ph-banner-t', null, el('b', { text: e.title }), el('span', { text: e.text }))),
     el('button.ph-banner-x', { 'aria-label': 'Dismiss', text: 'x', onclick: done }));
   showing = b; const shownAt = performance.now(); bannerBox.append(b); placeBanners(); const pl = setInterval(() => { if (showing !== b) clearInterval(pl); else if (sticky && stale(e)) done(); else if (G.modal > (isOpen ? depth : 0)) { if (performance.now() - shownAt < 3000 && (e.back = (e.back || 0) + 1) <= 2 && G.state.t - (e.t || 0) < 30) queue.unshift(e); done(); }   /* QA9: only a banner that was barely seen comes back (seen ones were shown twice) */ /* a menu opened over it: take it back, show it again after */ else if (sticky && G.state.t - (e.t || G.state.t) > 45 && performance.now() - shownAt > 20000) done(); /* QA8: a sticky banner does not outlive its news */ else placeBanners(); }, 400);   // the trip strip / stop banner may appear while it shows
   requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('in')));

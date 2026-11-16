@@ -1,6 +1,6 @@
 // Central Station hall kit (room 'central_station', src/scenes/rooms/stations.js). Ids furn.station.*:
 //   arch {w,h,sky}   wall bay: stone piers + tall arched steel-and-glass window (wall item)        sky: 0 day | 1 dusk | 2 night
-//   portal {sky}     6-wide wall bay: stairs/escalators up to the platforms, lit PLATFORMS sign, big LED departures board
+//   portal {sky, live}  (live: the board's rows are left empty; the room draws them from the timetable)   6-wide wall bay: stairs/escalators up to the platforms, lit PLATFORMS sign, big LED departures board
 //   dome {w,d,sky}   the far half of the glass vault/dome springing from the two back walls (overhead; place at z = wall height)
 //   gates            glass fare-gate line with side wings (use)        counter  ticket office (staff, use)
 //   kiosk {kind: coffee|news|flowers|bakery}  (staff, use)             info     information desk (staff, use)
@@ -54,7 +54,7 @@ const portal = {
     qy(.35, 5.65, Y, 2.72, h - .28, '#16141c'); lw([.35, Y, 2.72], [5.65, Y, 2.72], BRASS); lw([.35, Y, h - .28], [5.65, Y, h - .28], BRASS); lw([.35, Y, 2.72], [.35, Y, h - .28], BRASS); lw([5.65, Y, 2.72], [5.65, Y, h - .28], BRASS);
     lit(() => {
       textY('DEPARTURES', .55, Y, h - .36, '#ffffff'); textY('PLAT MIN', 3.75, Y, h - .36, '#8fb0e8');
-      ROWS.forEach((r, i) => { const z = h - .36 - (i + 1) * .27; if (z < 2.95) return; textY(r[0], .55, Y, z, '#ffb347'); textY(r[1], 4.0, Y, z, '#7ee08a'); textY(r[2], 4.85, Y, z, '#ffb347'); });
+      if (!p.live) ROWS.forEach((r, i) => { const z = h - .36 - (i + 1) * .27; if (z < 2.95) return; textY(r[0], .55, Y, z, '#ffb347'); textY(r[1], 4.0, Y, z, '#7ee08a'); textY(r[2], 4.85, Y, z, '#ffb347'); });
     });
   },
 };
