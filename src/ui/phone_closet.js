@@ -6,7 +6,8 @@ import { G } from '../core/game.js';
 import { el, section, chip, kv, empty, safe, money, btn } from './phone_util.js';
 import { regDef, goTo, injectCss as storeCss } from './phone_store.js';
 import { toast } from './kit.js';
-import { PIECE_BY_ID, BRANDS, SHOPS, HAIR_BY_ID } from '../data/clothes.js';
+import { PIECE_BY_ID, BRANDS, SHOPS, HAIR_BY_ID, CATALOG } from '../data/clothes.js';
+import { storePanel, storeButton, availBar, css as storeCss2 } from './phone_instore.js';   /* in-store-only pieces (owner msgs 167-168) */
 import { grid, filterBar, applyFilter, stage, thumb, injectCss, put } from './phone_closet_kit.js';
 
 export const order = 126;
@@ -24,18 +25,20 @@ function pieceView(b, ctx, p, shop) {
     own ? el('div', { text: STATE[W().state(p.id)] + (W().washable(p.id) ? ` · worn ${W().wears(p.id)}/${W().washable(p.id)}` : '') }) : null, W().delicate(p.id) ? el('div', { text: 'Dry clean only' }) : null)));
   const row = el('div.nl-acts');
   if (own) { put(row, btn(W().isFav(p.id) ? '♥ Favourite' : '♡ Favourite', () => { W().fav(p.id); ctx.refresh(); })); const sl = p.slot === 'acc' ? p.kind : p.slot, on = W().on()[sl] === p.id; put(row, btn(on ? 'Take off' : 'Put on', () => { if (on) W().takeOff(sl); else W().wearPiece(p.id); ctx.refresh(); }, 'pri')); }
-  else { put(row, btn(W().isWish(p.id) ? '♥ On your wish list' : '♡ Wish list', () => { W().wish(p.id); ctx.refresh(); })); if (p.shops.includes('online')) put(row, btn(`Order ${money(C().priceAt(p, 'online') + 4)} · 2 days`, () => { if (C().order([p.id])) ctx.refresh(); }, 'pri')); }
+  else { put(row, btn(W().isWish(p.id) ? '♥ On your wish list' : '♡ Wish list', () => { W().wish(p.id); ctx.refresh(); })); if (p.shops.includes('online')) put(row, btn(`Order ${money(C().priceAt(p, 'online') + 4)} · 2 days`, () => { if (C().order([p.id])) ctx.refresh(); }, 'pri')); else put(row, storeButton(p.id, { cls: 'pri' })); }
   put(b, row);
+  if (!own && !p.shops.includes('online')) { put(b, storePanel(p.id, { price: r => money(C().priceAt(p, r.shop)) })); return; }
   if (!own) { put(b, section('Where to buy it this week')); const phys = where.filter(s => s !== 'online');
     if (!phys.length) put(b, el('p.as-note', { text: p.shops.includes('online') ? 'Only in this catalogue right now.' : 'Out of stock everywhere this week. Stock changes on Monday.' }));
     for (const s of phys) { const sh = C().shops().find(x => x.id === s); put(b, el('div.ph-card', null, kv(sh.name, money(C().priceAt(p, s))), btn('Take me there', () => take(sh.place, ctx, sh.name), '', 'ui.pin'))); } }
 }
 function shopView(b, ctx, shop) {
-  const sh = C().shops().find(x => x.id === shop), list = C().stock(shop), st = fs[shop] || (fs[shop] = { slot: '', style: '', brand: '', q: '', sort: '', fav: false }), holder = el('div');
-  put(b, btn('Back', () => { V.sub = null; ctx.refresh(); }), el('div.ph-card', null, el('b', { text: sh.name }), el('small', { text: shop === 'online' ? 'Delivered to your door in 2 days, $4 a parcel.' : `${list.length} pieces this week · ${price$(sh.level)} · ${sh.taste.join(', ')}` }),
+  const sh = C().shops().find(x => x.id === shop), all = shop === 'online', list = all ? CATALOG : C().stock(shop), st = fs[shop] || (fs[shop] = { slot: '', style: '', brand: '', q: '', sort: '', fav: false, avail: '' }), holder = el('div');   /* the catalogue lists every piece; in-store-only ones are tagged */
+  put(b, btn('Back', () => { V.sub = null; ctx.refresh(); }), el('div.ph-card', null, el('b', { text: sh.name }), el('small', { text: shop === 'online' ? `Every piece in town. ${C().stock('online').length} can be delivered in 2 days ($4 a parcel); the ones marked In store are only sold in the shops.` : `${list.length} pieces this week · ${price$(sh.level)} · ${sh.taste.join(', ')}` }),
     shop !== 'online' ? btn('Take me there', () => take(sh.place, ctx, sh.name), 'pri', 'ui.pin') : null));
-  const draw = () => { holder.textContent = ''; const out = applyFilter(list, st, { isFav: id => W().isWish(id) });
-    put(holder, el('p.as-note', { text: `${out.length} pieces` }), grid(out, { cell: p => ({ sub: money(C().priceAt(p, shop)), tag: W().owns(p.id) ? 'own' : C().isNew(p, shop) ? 'new' : '', tagCls: W().owns(p.id) ? 'own' : 'new', fav: W().isWish(p.id) }), onPick: p => { V.sub = { piece: p.id, shop, from: V.sub }; ctx.refresh(); } })); };
+  const draw = () => { holder.textContent = ''; const out = applyFilter(list, st, { isFav: id => W().isWish(id) }).filter(p => !all || !st.avail || (st.avail === 'online') === p.shops.includes('online'));
+    if (all) { put(holder, availBar(st, () => { ctx.refresh(); })); storeCss2(); }
+    put(holder, el('p.as-note', { text: `${out.length} pieces` }), grid(out, { cell: p => { const off = all && !p.shops.includes('online'); return { sub: money(C().priceAt(p, off ? (p.shops.find(s => s !== 'online') || shop) : shop)), tag: W().owns(p.id) ? 'own' : off ? 'In store' : C().isNew(p, shop) ? 'new' : '', tagCls: W().owns(p.id) ? 'own' : off ? 'store' : 'new', fav: W().isWish(p.id) }; }, onPick: p => { V.sub = { piece: p.id, shop, from: V.sub }; ctx.refresh(); } })); };
   put(b, filterBar(st, draw), holder); draw();
 }
 function laundry(b, ctx) {
@@ -49,7 +52,7 @@ function laundry(b, ctx) {
 }
 function shopsTab(b, ctx) {
   const orders = safe(() => C().orders(), []);
-  put(b, el('div.ph-card', null, el('b', { text: 'The Closet catalogue' }), el('small', { text: `${C().stock('online').length} pieces to order · parcel in 2 days` + (orders.length ? ` · ${orders.reduce((n, o) => n + o.ids.length, 0)} on the way, due ${left(orders[0].t)}` : '') }), btn('Open the catalogue', () => { V.sub = { shop: 'online' }; ctx.refresh(); }, 'pri')));
+  put(b, el('div.ph-card', null, el('b', { text: 'The Closet catalogue' }), el('small', { text: `${CATALOG.length} pieces · ${C().stock('online').length} to order, parcel in 2 days · the rest only in the shops` + (orders.length ? ` · ${orders.reduce((n, o) => n + o.ids.length, 0)} on the way, due ${left(orders[0].t)}` : '') }), btn('Open the catalogue', () => { V.sub = { shop: 'online' }; ctx.refresh(); }, 'pri')));
   put(b, section('Shops in town'));
   for (const sh of C().shops()) { if (sh.id === 'online') continue; put(b, el('div.ph-card', null, el('b', { text: sh.name }), el('small', { text: `${sh.count} pieces this week · ${price$(sh.level)} · ${sh.taste.join(', ')}` }),
     el('div.nl-acts', null, btn('This week\'s stock', () => { V.sub = { shop: sh.id }; ctx.refresh(); }), btn('Take me there', () => take(sh.place, ctx, sh.name), 'pri', 'ui.pin')))); }

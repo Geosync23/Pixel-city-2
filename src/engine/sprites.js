@@ -44,7 +44,7 @@ export function toSprite(r) {
   if (!r) return null; const n = r.w * r.h * 4;   // (buffers from the raster pool can be views into a larger ArrayBuffer)
   const c = mk(r.w, r.h); c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.buf.buffer, r.buf.byteOffset, n), r.w, r.h), 0, 0);
   let l = null, lb = null; if (r.hasLight) { l = mk(r.w, r.h); l.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.lb.buffer, r.lb.byteOffset, n), r.w, r.h), 0, 0); lb = lightBox(r.lb, r.w, r.h); }
-  return { c, l, x: r.x, y: r.y, w: r.w, h: r.h, lb };   /* lb: the box around the pixels that glow, [x0, y0, x1, y1] in sprite px (the renderer's night pass only cuts things out of the glow where there is glow) */
+  return { c, l, x: r.x, y: r.y, w: r.w, h: r.h, lb, im: 1 };   /* im: a sprite of this cache: its canvases are never drawn on again (the night light keeps flat-colour copies of such sprites). lb: the box around the pixels that glow, [x0, y0, x1, y1] in sprite px (the renderer's night pass only cuts things out of the glow where there is glow) */
 }
 /* the box around the non-empty pixels of a light layer */
 function lightBox(d, w, h) {

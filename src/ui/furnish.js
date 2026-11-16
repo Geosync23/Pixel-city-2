@@ -22,6 +22,7 @@ import { ITEM_BY_ID } from '../data/items.js';
 import { SIZE_CLASSES, HOME_BY_ID } from '../data/homes.js';
 import { MORTGAGE } from '../data/economy.js';
 import { GOODS, GOOD_BY_ID, CATS, STORE_BY_ID, familyOf } from '../data/goods.js';
+import { itemOnline } from '../data/instore.js';   /* in-store-only pieces can be tried here but not carted (owner msgs 167-168) */
 import { searchText, dayText } from '../data/shipping.js';
 import { GT } from '../engine/world.js';
 import { asset, assetSize } from '../art/registry.js';
@@ -236,7 +237,7 @@ function more() {
   const t = M.tray, list = M.list || []; const end = Math.min(list.length, M.shown + PAGE);
   for (let i = M.shown; i < end; i++) { const r = list[i], it = ITEM_BY_ID[r.id] || { name: r.id };
     t.append(el('button.fz-item', { onclick: () => (M.tab === 'mine' ? addOwned(r.id) : addTry(r.id)), title: it.name }, thumb(r.id), el('span.fz-n', { text: r.colours ? short(r.id) : it.name }),
-      r.price !== undefined ? el('span.fz-p', { text: fmt(r.price) }) : null, r.n > 1 ? el('span.fz-c', { text: 'x' + r.n }) : null, r.colours > 1 ? el('span.fz-c.col', { text: r.colours + ' col.' }) : null)); }
+      r.price !== undefined ? el('span.fz-p', { text: fmt(r.price) }) : null, r.price !== undefined && !itemOnline(r.id) ? el('span.fz-c', { text: 'In store', style: { left: '3px', right: 'auto', fontSize: '9px', fontWeight: '700', background: '#3a3644', color: '#fff4dc', padding: '1px 3px' } }) : null, r.n > 1 ? el('span.fz-c', { text: 'x' + r.n }) : null, r.colours > 1 ? el('span.fz-c.col', { text: r.colours + ' col.' }) : null)); }
   M.shown = end;
 }
 function chips() {
@@ -269,9 +270,11 @@ function bar() {
       el('div.fz-btns2', null, B('Turn', turn), fam.length > 1 && !p.inc ? B('Colour', () => { M.colours = !M.colours; bar(); }, M.colours ? 'on' : '') : null, B('Store', storeSel), !p.inc ? B('Sell ' + fmt(H().sellPrice(p.itemId)), sellSel) : null));
   } else {
     const t = p.t, s = safe(() => G.orders.sellers(p.itemId).find(q => q.store === t.store), null), price = s ? s.price : (g || {}).price;
-    a.append(el('span.fz-hint', null, el('b', { text: nameOf(p.itemId) }), el('small', { text: ` ${fmt(price)}` + (s ? ` · ${s.short} · ${dayText(s.days).toLowerCase()}` : '') + (g && g.ambience ? ` · cosy +${g.ambience}` : '') })),
+    const on = itemOnline(p.itemId);
+    a.append(el('span.fz-hint', null, el('b', { text: nameOf(p.itemId) }), el('small', { text: ` ${fmt(price)}` + (s ? ` · ${s.short} · ${on ? dayText(s.days).toLowerCase() : 'only in store'}` : '') + (g && g.ambience ? ` · cosy +${g.ambience}` : '') })),
       el('div.fz-btns2', null, B('Turn', turn), fam.length > 1 ? B('Colour', () => { M.colours = !M.colours; bar(); }, M.colours ? 'on' : '') : null,
-        t.line ? B('In cart: remove', () => { mark(); uncartTry(t); bar(); top(); tags(); }) : B('Add to cart', () => { mark(); cartTry(t); bar(); top(); tags(); }, 'go'), B('Remove', () => { mark(); dropTry(t); M.sel = null; sync(); bar(); top(); })));
+        t.line ? B('In cart: remove', () => { mark(); uncartTry(t); bar(); top(); tags(); }) : on ? B('Add to cart', () => { mark(); cartTry(t); bar(); top(); tags(); }, 'go')
+          : B('Only in store', () => { const w = safe(() => G.orders.wished(p.itemId), true); if (!w) safe(() => G.orders.toggleWish(p.itemId)); toast(safe(() => G.instore.whereText(p.itemId, 3), 'Only available in store.') + '. It is on your Roomy wish list: Take me there is on its page.', 'info', 5200); sfx('click'); }, 'go'), B('Remove', () => { mark(); dropTry(t); M.sel = null; sync(); bar(); top(); })));
   }
   if (M.colours && fam.length > 1) a.append(el('div.fz-sw', null, ...fam.map(q => { const extra = p.uid ? Math.max(0, q.price - g.price) : 0; return el('button' + (q.id === p.itemId ? '.on' : ''), { title: colourName(q), onclick: () => recolour(q.id) }, el('i', { style: 'background:' + swatchOf(q) }), el('span', { text: colourName(q) + (extra ? ` +${fmt(extra)}` : '') })); })));
 }
@@ -342,7 +345,7 @@ function teardown() {
 }
 function close() {
   if (!M) return null; if (M.gob) G.world.remove(M.gob);
-  const loose = M.tries.filter(t => !t.line), carted = M.tries.filter(t => t.line).length; teardown(); const done = H().refresh();
+  const loose = M.tries.filter(t => !t.line && itemOnline(t.itemId)), carted = M.tries.filter(t => t.line).length; teardown(); const done = H().refresh();
   if (loose.length) Promise.resolve(done).then(async () => {
     const total = loose.reduce((a, t) => a + safe(() => G.orders.sellers(t.itemId).find(q => q.store === t.store).price, (GOOD_BY_ID[t.itemId] || {}).price || 0), 0);
     const v = await choose(loose.length === 1 ? `Keep the ${short(loose[0].itemId)} in mind?` : `Keep the ${loose.length} pieces you tried?`, [{ label: 'Add to my cart', sub: `${fmt(total)} · order in the Roomy app`, value: 1 }, { label: 'No, leave ' + (loose.length === 1 ? 'it' : 'them'), value: 0 }], { text: loose.length === 1 ? 'Its place in the room is remembered: after delivery it is unpacked right there.' : 'Their places in the room are remembered: after delivery they are unpacked right there.' });

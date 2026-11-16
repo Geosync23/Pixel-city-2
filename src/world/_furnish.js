@@ -86,7 +86,7 @@ export function build(c) {
 /* owner msg 150 ("this newspaper dispenser bank is in the road"): street furniture placed at a half tile can be wider than the strip of pavement it stands on, so
    ten pieces city-wide hung half a tile over the asphalt. Last world step: every small street piece whose footprint touches asphalt is slid, by the smallest
    step that works, back onto pavement where nothing else stands. Nothing is removed. */
-const OFFROAD = /^prop\.street\.(newsbox|bin|hydrant|mailbox|planter|recycling|bollard|atm|vending|utilitybox|postercolumn|aframe|bikeshare|bench)|^prop\.road\.(meter|bikerack)/;
+const OFFROAD = /^prop\.street\.(newsbox|bin|hydrant|mailbox|planter|recycling|bollard|atm|vending|utilitybox|postercolumn|aframe|bikeshare|bench|cart\.[a-z]+|kiosk|phonebooth|busshelter)|^prop\.road\.(meter|bikerack)/;
 export function offRoad(c) {
   const w = c.world, ASPHALT = 3, onRoad = (x0, y0, x1, y1) => { for (let x = x0 + .1; x < x1; x += .2) for (let y = y0 + .1; y < y1; y += .2) { const t = w.tileType(x, y); if (t === ASPHALT || t === 0 || t === 6) return true; } return false; };
   const hits = (ob, x0, y0, x1, y1) => w.objs.some(o => o !== ob && o.solid && o.B[0] < x1 - .01 && o.B[3] > x0 + .01 && o.B[1] < y1 - .01 && o.B[4] > y0 + .01);

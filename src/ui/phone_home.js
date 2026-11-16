@@ -10,11 +10,12 @@ import { ROOMS, STYLES, FEE, COURIER, SELLER_DAYS, searchText, dayText } from '.
 import { picture, facts, swatchOf, colourName } from '../sim/goods_sheet.js';
 import { el, iconEl, hasIcon, btn, row, section, card, chip, kv, empty, tabs, safe, money, balance, when } from './phone_util.js';
 import { toast } from './kit.js';
+import { storeTag, storePanel, storeButton, availBar, availOk, isOnline } from './phone_instore.js';   /* in-store-only pieces (owner msgs 167-168) */
 
 export const order = 123;
 export const APP = 'roomy';
 const O = () => G.orders, H = () => G.housing;
-const U = { tab: 'shop', sort: 'price', express: {}, q: '' };
+const U = { tab: 'shop', sort: 'price', express: {}, q: '', avail: '' };
 const atHome = () => !!safe(() => H().isHome(), false);
 const short = id => ((ITEM_BY_ID[id] || {}).name || id).split(',')[0];
 const whenLc = t => when(t).replace(/^(Today|Tomorrow|Yesterday)/, m => m.toLowerCase());
@@ -40,14 +41,16 @@ const bestPrice = id => safe(() => O().best(id).price, (GOOD_BY_ID[id] || {}).pr
 function listView(title, has) {
   let shown = 30;
   return (b, ctx) => {
-    css(); let L = fams().filter(f => f.all.some(has));
+    css(); let L = fams().filter(f => f.all.some(has) && availOk(U, f.g.id));
     L = L.map(f => { const g = f.all.filter(has).sort((a, c) => a.price - c.price)[0]; return { f, g, price: bestPrice(g.id) }; });
     L.sort(U.sort === 'cosy' ? (a, c) => c.g.ambience - a.g.ambience || a.price - c.price : U.sort === 'dear' ? (a, c) => c.price - a.price : (a, c) => a.price - c.price);
+    b.append(availBar(U, () => ctx.refresh()));
     b.append(el('div.rm-sort', null, ...[['price', 'Cheapest'], ['dear', 'Dearest'], ['cosy', 'Cosiest']].map(([k, n]) => el('button' + (U.sort === k ? '.on' : ''), { text: n, onclick: () => { U.sort = k; ctx.refresh(); } }))));
     if (!L.length) return b.append(empty('ui.bag', 'Nothing here', 'Try another word or another shelf.'));
     b.append(el('p.ph-note', { text: `${L.length} ${L.length === 1 ? 'piece' : 'pieces'}` }));
-    for (const r of L.slice(0, shown)) { const s = safe(() => O().best(r.g.id), null);
-      b.append(row({ icon: r.g.id, cat: 'homegood', title: r.f.all.length > 1 ? short(r.g.id) : r.g.name, sub: `${r.f.all.length > 1 ? r.f.all.length + ' colours · ' : ''}${s ? s.short + ' · ' + dayText(s.days).toLowerCase() : ''}${r.g.ambience ? ' · cosy +' + r.g.ambience : ''}`, right: money(r.price), onclick: () => ctx.push(short(r.g.id), itemView(r.g.id)) })); }
+    for (const r of L.slice(0, shown)) { const s = safe(() => O().best(r.g.id), null), on = isOnline(r.g.id);
+      b.append(row({ icon: r.g.id, cat: 'homegood', title: r.f.all.length > 1 ? short(r.g.id) : r.g.name, sub: `${r.f.all.length > 1 ? r.f.all.length + ' colours · ' : ''}${s ? s.short + (on ? ' · ' + dayText(s.days).toLowerCase() : '') : ''}${r.g.ambience ? ' · cosy +' + r.g.ambience : ''}`,
+        right: on ? money(r.price) : el('span.is-r', null, el('span.ph-row-r', { text: money(r.price) }), storeTag()), onclick: () => ctx.push(short(r.g.id), itemView(r.g.id)) })); }
     if (L.length > shown) b.append(el('button.rm-more', { text: `Show more (${L.length - shown} left)`, onclick: () => { shown += 40; ctx.refresh(); } }));
   };
 }
@@ -60,20 +63,22 @@ function itemView(id0) {
     b.append(el('div.rm-pic', null, picture(g, 270, 116, 5)), el('b', { text: g.name, style: { fontSize: '16px' } }));
     if (fam.length > 1) b.append(el('div.rm-sw', null, ...fam.map(q => el('button' + (q.id === id ? '.on' : ''), { title: colourName(q), 'aria-label': colourName(q), style: 'background:' + swatchOf(q), onclick: () => { id = q.id; ctx.refresh(); } }))));
     b.append(el('ul.rm-facts', null, ...facts(g, store).filter(t => !/shopping bag|Too big to carry/.test(t)).map(t => el('li', { text: t }))));
-    b.append(section(sellers.length > 1 ? 'Who sells it' : 'Sold by'));
-    b.append(el('div.rm-sell', null, ...sellers.map(q => el('button' + (q.store === store ? '.on' : ''), { onclick: () => { store = q.store; ctx.refresh(); } },
+    const on = isOnline(id);
+    if (!on) b.append(storePanel(id, { close: null, price: r => money(safe(() => sellers.find(q => q.store === r.shop).price, (ITEM_BY_ID[id] || {}).price)) }));   /* the route card replaces this app on the phone */
+    else b.append(section(sellers.length > 1 ? 'Who sells it' : 'Sold by'));
+    if (on) b.append(el('div.rm-sell', null, ...sellers.map(q => el('button' + (q.store === store ? '.on' : ''), { onclick: () => { store = q.store; ctx.refresh(); } },
       el('span', null, el('b', { text: q.name }), el('small', { text: `Arrives in ${dayText(q.days).toLowerCase()}` + (q.flat ? ' · flat-pack, you build it' : '') + (q.size === 's' ? ' · left at your door' : ' · someone must be in') })), el('b', { text: money(q.price) })))));
     ctx.foot.append(el('div.ph-btns', null,
       btn(atHome() ? 'See it in my room' : 'See it in my room (at home)', () => { if (!atHome()) return ctx.tip('Go home first: then you can stand it in your own room before you buy.'); ctx.close(); setTimeout(() => safe(() => G.furnish.open({ tryId: id, store })), 350); }, atHome() ? 'pri' : ''),
       btn(wished ? 'On wish list' : 'Wish list', () => { O().toggleWish(id); ctx.refresh(); })),
-      btn(n ? `Add another · ${money(s.price)} (${n} in cart)` : `Add to cart · ${money(s.price)}`, () => { if (O().add(id, { store })) { ctx.tip(`${short(id)} is in your cart.`); ctx.refresh(); } }, 'pri wide'));
+      on ? btn(n ? `Add another · ${money(s.price)} (${n} in cart)` : `Add to cart · ${money(s.price)}`, () => { if (O().add(id, { store })) { ctx.tip(`${short(id)} is in your cart.`); ctx.refresh(); } }, 'pri wide') : storeButton(id, { cls: 'pri wide' }));
   };
 }
 
 /* ---------- tabs ---------- */
 function shopTab(b, ctx) {
   const boxes = safe(() => H().boxes().filter(x => x.k === 'd').length, 0), act = O().active();
-  b.append(el('div.ph-hero', { style: { background: '#d9703a' } }, iconEl('sofa_t1', 3, 'homegood'), el('div', null, el('b', { text: 'Make it home.', style: { fontSize: '18px' } }), el('small', { text: `${GOODS.length} pieces from ${STORES.length} shops, to your door in 1-4 days.` }))));
+  b.append(el('div.ph-hero', { style: { background: '#d9703a' } }, iconEl('sofa_t1', 3, 'homegood'), el('div', null, el('b', { text: 'Make it home.', style: { fontSize: '18px' } }), el('small', { text: `${GOODS.length} pieces from ${STORES.length} shops. ${GOODS.filter(g => isOnline(g.id)).length} to your door in 1-4 days; the rest only in the shops.` }))));
   b.append(btn(atHome() ? 'Design my home' : 'Design my home (when you are in)', () => { if (!atHome()) return ctx.tip('Design mode opens when you are standing in your own home.'); ctx.close(); setTimeout(() => safe(() => G.furnish.open()), 350); }, 'wide' + (atHome() ? ' pri' : ''), 'sofa_t1'));
   if (boxes) b.append(row({ icon: 'ui.bag', title: `${boxes} ${boxes === 1 ? 'box is' : 'boxes are'} waiting at home`, sub: atHome() ? 'Tap a box in the room to unpack it.' : 'Unpack them when you get in.', cls: 'note' }));
   if (act.length) { const n = act.slice().sort((a, c) => a.eta - c.eta)[0]; b.append(row({ icon: 'ui.clock', title: `${act.length} ${act.length === 1 ? 'parcel' : 'parcels'} on the way`, sub: `Next: ${STORE_BY_ID[n.store].short}, ${whenLc(n.eta)}`, cls: 'note', onclick: () => { U.tab = 'orders'; ctx.refresh(); } })); }
@@ -90,7 +95,7 @@ function shopTab(b, ctx) {
 function wishTab(b, ctx) {
   const W = O().wish(); if (!W.length) return b.append(empty('ui.heart', 'Nothing wished for yet', 'Tap "Wish list" on any piece to keep it here.'));
   for (const id of W) b.append(el('div.rm-line', null, iconEl(id, 2, 'homegood'), el('span', { onclick: () => ctx.push(short(id), itemView(id)) }, GOOD_BY_ID[id].name, el('small', { text: `${money(bestPrice(id))} · ${safe(() => O().best(id).short, '')}` })),
-    el('button', { text: 'Cart', 'aria-label': 'Add to cart', onclick: () => { if (O().add(id)) { ctx.tip(`${short(id)} is in your cart.`); ctx.refresh(); } } }), el('button', { text: 'x', 'aria-label': 'Remove', onclick: () => { O().toggleWish(id); ctx.refresh(); } })));
+    isOnline(id) ? el('button', { text: 'Cart', 'aria-label': 'Add to cart', onclick: () => { if (O().add(id)) { ctx.tip(`${short(id)} is in your cart.`); ctx.refresh(); } } }) : el('button', { text: 'Store', 'aria-label': 'Only in store: see where', onclick: () => ctx.push(short(id), itemView(id)) }), el('button', { text: 'x', 'aria-label': 'Remove', onclick: () => { O().toggleWish(id); ctx.refresh(); } })));
 }
 function cartTab(b, ctx) {
   const q = O().quote(U.express); if (!q.count) return b.append(empty('ui.bag', 'Your cart is empty', 'Find something in the Shop tab, or try pieces in your room with Design my home.'));

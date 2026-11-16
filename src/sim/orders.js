@@ -9,7 +9,7 @@
 //
 // G.orders
 //   sellers(goodId) -> [{ store, name, short, price, days, size 's'|'m'|'l', flat }] cheapest first        best(goodId) -> the cheapest seller
-//   cart() -> [{ id, store, pos?, asm? }]      add(goodId, { store?, pos?, asm? }) -> bool      remove(index)      setAsm(index, on)      clearCart()      inCart(goodId) -> n
+//   cart() -> [{ id, store, pos?, asm? }]      add(goodId, { store?, pos?, asm? }) -> bool (false + a toast for an in-store-only piece: G.instore)      remove(index)      setAsm(index, on)      clearCart()      inCart(goodId) -> n
 //   quote(express = { storeId: true }) -> { parcels: [{ store, name, short, lines: [{ ix, id, name, price, size, flat, asm }], sub, fee, asmFee, days, express, canExpress,
 //                                           expressFee, eta, big, total }], total, count }
 //   checkout(express?) -> [shipment] | null (toast says why)
@@ -54,7 +54,8 @@ const best = goodId => sellers(goodId)[0] || null;
 
 /* ---------- cart + wish list ---------- */
 function add(goodId, o = {}) {
-  const g = GOOD_BY_ID[goodId]; if (!g) return false; if (S.cart.length >= CART_MAX) { toast('Your cart is full. Order what is in it first.', 'bad'); return false; }
+  const g = GOOD_BY_ID[goodId]; if (!g) return false; if (G.instore && G.instore.refuse(goodId)) return false;   /* in store only (data/instore.js); carts from older saves are kept as they are */
+  if (S.cart.length >= CART_MAX) { toast('Your cart is full. Order what is in it first.', 'bad'); return false; }
   const store = o.store && g.stores.includes(o.store) ? o.store : (best(goodId) || {}).store; if (!store) return false;
   const l = { id: goodId, store }; if (o.pos) l.pos = o.pos; if (o.asm && isFlat(g, store)) l.asm = 1; S.cart.push(l); G.emit('order:cart', S.cart.length); return true;
 }

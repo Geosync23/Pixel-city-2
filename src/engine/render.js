@@ -63,8 +63,8 @@ const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(locati
 /* mode: 'new' | 'old' (the mask over everything, as before; ?nightlight=old or G.renderer.nightLight('old')). step: one band = this much of a pool's full strength (the pool's own rings are 1 / .7 / .35 with dithered halves in between, so .175 = one ring).
  * max: most bands (pools add up). hyst: a band only changes when the light is this far (in bands) past the edge. rate: frames between two band steps (a change of several bands is walked through, never jumped).
  * big: an entity whose sprite is larger than this many px keeps the pattern like the static world (train cars, airliners, parade floats, stage screens); vehicles are always lit as a whole.
- * propFoot / propBig / propTall: which placed objects are lit as a whole (wholeOb below). */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000 };
+ * propFoot / propBig / propTall: which placed objects are lit as a whole (wholeOb below). promote / perFrame / slots / budget: the flat-colour copies (silGet below). */
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000, promote: 12, perFrame: 2, slots: 4, budget: 2.5e6 };
 let LB = new Float32Array(7 * 64), nLB = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 function addLight(cx, cy, c, a, owner) {
   if (!c._rgb || !(a > 0)) return; if ((nLB + 1) * 7 > LB.length) { const n = new Float32Array(LB.length * 2); n.set(LB); LB = n; }
@@ -103,14 +103,13 @@ function band(e, fr, al) {
   e._nf = fr; e._nb = b;
   if (mx > 0) { const hr = sR / mx, hg = sG / mx, hb = sB / mx; if (e._nhr === undefined || Math.abs(hr - e._nhr) > .05 || Math.abs(hg - e._nhg) > .05 || Math.abs(hb - e._nhb) > .05 || b !== e._nhk) { e._nhr = hr; e._nhg = hg; e._nhb = hb; e._nhk = b; } }   // the light's colour, kept until it has clearly changed
   else if (e._nhr === undefined) e._nhr = e._nhg = e._nhb = 1;
-  const k = b * NL.step * al * 255, r = Math.min(255, aR + e._nhr * k) | 0, g = Math.min(255, aG + e._nhg * k) | 0, bl = Math.min(255, aB + e._nhb * k) | 0, ci = r << 16 | g << 8 | bl;
+  const k = b * NL.step * al * 255, r = Math.min(255, aR + e._nhr * k) & 252, g = Math.min(255, aG + e._nhg * k) & 252, bl = Math.min(255, aB + e._nhb * k) & 252, ci = r << 16 | g << 8 | bl;   // (6 bits a channel: the same colours come up again and again, which is what the flat-colour copies need)
   if (ci !== e._ni) { e._ni = ci; e._ns = '#' + (0x1000000 + ci).toString(16).slice(1); }
   return b;
 }
 /* the glow pass (Renderer.draw): the boxes that hold glow so far this frame */
 let GR = new Float32Array(4 * 128), nGR = 0, gX0 = 0, gY0 = 0, gX1 = 0, gY1 = 0;
 function addG(x0, y0, x1, y1) { if (x1 <= x0 || y1 <= y0) return; if ((nGR + 1) * 4 > GR.length) { const n = new Float32Array(GR.length * 2); n.set(GR); GR = n; } const o = nGR++ * 4; GR[o] = x0; GR[o + 1] = y0; GR[o + 2] = x1; GR[o + 3] = y1; if (nGR === 1) { gX0 = x0; gY0 = y0; gX1 = x1; gY1 = y1; } else { if (x0 < gX0) gX0 = x0; if (y0 < gY0) gY0 = y0; if (x1 > gX1) gX1 = x1; if (y1 > gY1) gY1 = y1; } }
-function hitG(x0, y0, x1, y1) { if (!nGR || x0 >= gX1 || x1 <= gX0 || y0 >= gY1 || y1 <= gY0) return false; for (let i = 0, o = 0; i < nGR; i++, o += 4) if (x0 < GR[o + 2] && x1 > GR[o] && y0 < GR[o + 3] && y1 > GR[o + 1]) return true; return false; }
 /* is this entity lit as a whole? (the rest keeps the pattern, like the static world, and hides lit things behind it) */
 function isWhole(e, sp) {
   const n = e.nl; if (n !== undefined) return n === 'whole';   // an entity can say so itself: nl = 'whole' | 'ground'
@@ -128,18 +127,49 @@ function wholeOb(ob, sp) {
 /* How the flat colours get into the mask (see Renderer._nightE). The mask is opaque. For a thing that is lit as a whole, its sprite is punched out of the mask (destination-out) and the hole is
  * filled with its colour (a destination-over fill of its box only reaches the hole). For a thing that keeps the pattern and stands in front of lit things, its sprite is punched out the same way and the
  * hole is filled from a copy of the mask as it was before any of this (ambient + pools). Done in draw order, that is exactly "who is in front wins", with fades and see-through objects blending
- * for free; no sprite is ever copied or tinted, so there is nothing to cache.
+ * for free, and needs no copy of any sprite.
+ * Punching costs about three times a plain draw, so for a sprite that keeps being lit in the same colour (everything that stands still: props, trees, people waiting) a flat-colour copy of it
+ * is made after NL.promote frames and from then on simply drawn into the mask (one plain draw; same pixels). See silGet.
  * The steps are collected first (OS / ON / OC) and then run in one go: the copy of the mask is only made when something has to be put back.
  * ER = this frame's boxes of lit things (something in front is only put back where it overlaps one). */
-let OS = [], OC = [], ON = new Float32Array(6 * 128), nOP = 0, nPut = 0, nlLit = 0, nlCut = 0;
-function pushOp(type, sp, sy, sh, dx, dy, a, col) { if ((nOP + 1) * 6 > ON.length) { const n = new Float32Array(ON.length * 2); n.set(ON); ON = n; } const o = nOP * 6; OS[nOP] = sp; OC[nOP] = col; nOP++; ON[o] = type; ON[o + 1] = sy; ON[o + 2] = sh; ON[o + 3] = dx; ON[o + 4] = dy; ON[o + 5] = a === undefined ? -1 : a; }
+let OS = [], OC = [], ON = new Float32Array(8 * 128), nOP = 0, nPut = 0, nlLit = 0, nlCut = 0;
+/* one step: type 0 punch + fill with col / 1 punch + put back / 2 draw a flat-colour copy; src = sprite (0, 1) or canvas (2); the part sx, sy, sw, sh of it, drawn at dx, dy; a = alpha or undefined */
+function pushOp(type, src, sx, sy, sw, sh, dx, dy, a, col) { if ((nOP + 1) * 8 > ON.length) { const n = new Float32Array(ON.length * 2); n.set(ON); ON = n; } const o = nOP * 8; OS[nOP] = src; OC[nOP] = col; nOP++; ON[o] = type; ON[o + 1] = sx; ON[o + 2] = sy; ON[o + 3] = sw; ON[o + 4] = sh; ON[o + 5] = dx; ON[o + 6] = dy; ON[o + 7] = a === undefined ? -1 : a; }
 let ER = new Float32Array(4 * 128), nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;
 function addE(x0, y0, x1, y1) { if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
-function hitE(x0, y0, x1, y1) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 4) if (x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
+/* does the box x0..y1 overlap any of the n boxes in R? If so hX0..hY1 = the box around the overlaps (inside x0..y1): only that part has to be worked on */
+let hX0 = 0, hY0 = 0, hX1 = 0, hY1 = 0;
+function hitBox(R, n, x0, y0, x1, y1) {
+  let hit = false;
+  for (let i = 0, o = 0; i < n; i++, o += 4) { const a = R[o], b = R[o + 1], c = R[o + 2], d = R[o + 3]; if (x0 >= c || x1 <= a || y0 >= d || y1 <= b) continue; const p = a > x0 ? a : x0, q = b > y0 ? b : y0, r = c < x1 ? c : x1, t = d < y1 ? d : y1; if (!hit) { hit = true; hX0 = p; hY0 = q; hX1 = r; hY1 = t; } else { if (p < hX0) hX0 = p; if (q < hY0) hY0 = q; if (r > hX1) hX1 = r; if (t > hY1) hY1 = t; } }
+  return hit;
+}
 /* rows sy .. sy + sh of sprite sp (drawn at dx, dy; a = its alpha or undefined) are lit as a whole in colour col */
-function litDraw(sp, sy, sh, dx, dy, col, a) { nlLit++; pushOp(0, sp, sy, sh, dx, dy, a, col); addE(dx, dy + sy, dx + sp.w, dy + sy + sh); }
+function litDraw(sp, sy, sh, dx, dy, ci, col, a, fr) { nlLit++; const c = sp.im ? silGet(sp, ci, col, fr) : null; if (c) { nlSil++; pushOp(2, c, 0, sy, sp.w, sh, dx, dy + sy, a, null); } else pushOp(0, sp, 0, sy, sp.w, sh, dx, dy + sy, a, col); addE(dx, dy + sy, dx + sp.w, dy + sy + sh); }
+/*
+ * flat-colour copies of sprite shapes ("sils"). Only for sprites out of the sprite cache (sp.im: their canvases never change). A sprite remembers up to NL.slots colours it was lit in
+ * (sp._nl: { ci colour, n frames asked, fr last frame, c the copy or null }); a colour asked for in NL.promote frames gets its copy, at most NL.perFrame new copies a frame (making one costs
+ * about as much as twenty draws). All copies together stay under NL.budget px (x 4 bytes); the ones not drawn for longest go first.
+ */
+const SILS = []; let silPx = 0, silNew = 0, silMade = 0, nlSil = 0;
+function silGet(sp, ci, col, fr) {
+  const L = sp._nl || (sp._nl = []); let s = null, old = null;
+  for (let i = 0; i < L.length; i++) { const q = L[i]; if (q.ci === ci) { s = q; break; } if (!old || q.fr < old.fr) old = q; }
+  if (s) { if (s.c) { s.fr = fr; return s.c; } if (s.fr !== fr) { s.fr = fr; s.n++; } }
+  else if (L.length < NL.slots) { L.push({ ci, n: 1, fr, c: null, k: null, x: null, sp, px: sp.w * sp.h }); return null; }
+  else { if (old.fr === fr) return null; s = old; if (s.c) { s.k = s.c; s.c = null; const i = SILS.indexOf(s); if (i >= 0) { SILS.splice(i, 1); silPx -= s.px; } } s.ci = ci; s.n = 1; s.fr = fr; return null; }   // (the colour it is lit in has changed: the oldest slot starts counting for the new one; its canvas is kept for reuse)
+  if (s.n < NL.promote || silNew >= NL.perFrame) return null;
+  silNew++; silMade++; let c = s.k; s.k = null; if (!c) { c = mk(sp.w, sp.h); s.x = c.getContext('2d'); } const x = s.x;
+  x.globalCompositeOperation = 'copy'; x.drawImage(sp.c, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, sp.w, sp.h);
+  s.c = c; SILS.push(s); silPx += s.px; if (silPx > NL.budget) silTrim(fr); return c;
+}
+function silTrim(fr) {
+  SILS.sort((a, b) => a.fr - b.fr); let n = 0;
+  while (n < SILS.length && silPx > NL.budget * .7 && SILS[n].fr < fr) { const s = SILS[n++], L = s.sp._nl, i = L ? L.indexOf(s) : -1; if (i >= 0) L.splice(i, 1); silPx -= s.px; s.c = s.k = s.x = null; }
+  SILS.splice(0, n);
+}
 /* the same rows of a sprite that keeps the pattern and stands in front of lit things: the mask's own pattern is put back there */
-function cutDraw(sp, sy, sh, dx, dy, a) { nlCut++; nPut++; pushOp(1, sp, sy, sh, dx, dy, a, null); }
+function cutDraw(sp, sy, sh, dx, dy, a) { const y = dy + sy; if (!nER || dx >= eX1 || dx + sp.w <= eX0 || y >= eY1 || y + sh <= eY0 || !hitBox(ER, nER, dx, y, dx + sp.w, y + sh)) return; nlCut++; nPut++; pushOp(1, sp, hX0 - dx, hY0 - dy, hX1 - hX0, hY1 - hY0, hX0, hY0, a, null); }   // (only the part of it that overlaps lit things)
 
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 /** the trees of one outskirts chunk as one canvas {c, x, y} (world px), thinned by the same distance dither as the ground; null if none */
@@ -245,7 +275,7 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; return NL.mode; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this.ctx.imageSmoothingEnabled = false; }
@@ -329,7 +359,7 @@ export class Renderer {
    * pools were drawn with. Mirrors the item loop of draw() step by step (sitters, see-through objects, the focus ghost).
    */
   _nightE(S, cam, amb, al, m) {
-    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; nPut = 0;
+    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; nPut = 0; silNew = 0; if (NL.dbg & 32) return;
     if (amb !== AMB) { AMB = amb; const n = parseInt(amb.slice(1), 16); aR = n >> 16; aG = n >> 8 & 255; aB = n & 255; }
     for (let i = 0; i < S.length; i++) {
       const it = S[i], sp = it.spr, dx = sp.x + it.ax - cam.x, dy = sp.y + it.ay - cam.y, e = it.e, ob = it.ob, oa = ob ? ob._a : undefined;
@@ -344,30 +374,32 @@ export class Renderer {
         if (who === ob && ob) { qe._ni = ob._ni; qe._ns = ob._ns; qe._nb = ob._nb; qe._nf = fr; qe._nt = fr; qe._nhr = ob._nhr; qe._nhg = ob._nhg; qe._nhb = ob._nhb; q.lit = lit; }
         else { sample(q.ax - cam.x, Math.round((qe.x + qe.y) * U / 2 - (ob ? ob.z : qe.z) * U) - cam.y, qx, qy, qx + qs.w, qy + qs.h, null); q.lit = band(qe, fr, al) > 0 || sT; }
         if (qe.dir < 2) continue; const r0 = Math.min(qs.h, 1 - qs.y); if (r0 >= qs.h) continue;
-        if (q.lit) litDraw(qs, r0, qs.h - r0, qx, qy, qe._ns, qe.alpha); else if (nER && hitE(qx, qy + r0, qx + qs.w, qy + qs.h)) cutDraw(qs, r0, qs.h - r0, qx, qy, qe.alpha);
+        if (q.lit) litDraw(qs, r0, qs.h - r0, qx, qy, qe._ni, qe._ns, qe.alpha, fr); else cutDraw(qs, r0, qs.h - r0, qx, qy, qe.alpha);
       }
-      if (lit) { who._nd = fr; litDraw(sp, 0, sp.h, dx, dy, who._ns, e ? e.alpha : oa); }
-      else if (nER && hitE(dx, dy, dx + sp.w, dy + sp.h) && !(oa !== undefined && oa < .05)) cutDraw(sp, 0, sp.h, dx, dy, oa !== undefined ? oa : e ? e.alpha : undefined);
+      if (lit) { who._nd = fr; litDraw(sp, 0, sp.h, dx, dy, who._ni, who._ns, e ? e.alpha : oa, fr); }
+      else if (!(oa !== undefined && oa < .05)) cutDraw(sp, 0, sp.h, dx, dy, oa !== undefined ? oa : e ? e.alpha : undefined);
       /* the piece's sitters (far to near), each followed by the part of the piece in front of it */
       if (it.ns) for (let q = it.sit; q; q = q.next) {
         const qs = q.spr, qe = q.e, qx = qs.x + q.ax - cam.x, qy = qs.y + q.ay - cam.y, rows = qe.dir < 2 ? qs.h : Math.min(qs.h, 1 - qs.y);
-        if (rows > 0) { if (q.lit) litDraw(qs, 0, rows, qx, qy, qe._ns, qe.alpha); else if (nER && hitE(qx, qy, qx + qs.w, qy + rows)) cutDraw(qs, 0, rows, qx, qy, qe.alpha); }
-        const ov = q.ov; if (ov && oa === undefined && nER && !(lit && who === ob)) { const ox = ov.x + it.ax - cam.x, oy = ov.y + it.ay - cam.y; if (hitE(ox, oy, ox + ov.w, oy + ov.h)) cutDraw(ov, 0, ov.h, ox, oy, undefined); }
+        if (rows > 0) { if (q.lit) litDraw(qs, 0, rows, qx, qy, qe._ni, qe._ns, qe.alpha, fr); else cutDraw(qs, 0, rows, qx, qy, qe.alpha); }
+        const ov = q.ov; if (ov && oa === undefined && nER && !(lit && who === ob)) { cutDraw(ov, 0, ov.h, ov.x + it.ax - cam.x, ov.y + it.ay - cam.y, undefined); }
       }
     }
     if (!nER) { for (let i = 0; i < nOP; i++) OS[i] = null; return; }
     /* the focus entity shows through what stands in front of it at 30% (draw()): so does its light */
-    for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ns, .3); }
+    for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ni, e._ns, .3, fr); }
     /* run the steps */
-    if (nPut) { const x = this.Ex; x.globalCompositeOperation = 'copy'; x.drawImage(this.M, 0, 0); }   // the mask as it is now (ambient + pools), for what has to be put back
+    if (NL.dbg & 16) return;
+    if (nPut && !(NL.dbg & 8)) { const x = this.Ex; x.globalCompositeOperation = 'copy'; x.drawImage(this.M, 0, 0); }   // the mask as it is now (ambient + pools), for what has to be put back
     m.globalAlpha = 1;
-    for (let i = 0, o = 0; i < nOP; i++, o += 6) {
-      const sp = OS[i], sy = ON[o + 1], sh = ON[o + 2], dx = ON[o + 3], dy = ON[o + 4], a = ON[o + 5], w = sp.w, y = dy + sy; OS[i] = null;
-      m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a;
-      if (sh !== sp.h) m.drawImage(sp.c, 0, sy, w, sh, dx, y, w, sh); else m.drawImage(sp.c, dx, dy);
-      if (a >= 0) m.globalAlpha = 1; m.globalCompositeOperation = 'destination-over';
-      if (ON[o] === 0) { m.fillStyle = OC[i]; m.fillRect(dx, y, w, sh); }
-      else { const x0 = dx < 0 ? 0 : dx, y0 = y < 0 ? 0 : y, x1 = dx + w > W ? W : dx + w, y1 = y + sh > H ? H : y + sh; if (x1 > x0 && y1 > y0) m.drawImage(this.E, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); }
+    for (let i = 0, o = 0; i < nOP; i++, o += 8) {
+      if (NL.dbg && ((NL.dbg & 1 && ON[o] === 1) || (NL.dbg & 2 && ON[o] === 0) || (NL.dbg & 4 && ON[o] === 2))) continue;
+      const src = OS[i], t = ON[o], sx = ON[o + 1], sy = ON[o + 2], sw = ON[o + 3], sh = ON[o + 4], dx = ON[o + 5], dy = ON[o + 6], a = ON[o + 7]; OS[i] = null;
+      if (t === 2) { m.globalCompositeOperation = 'source-over'; if (a >= 0) m.globalAlpha = a; m.drawImage(src, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; continue; }   // a flat-colour copy: just drawn
+      m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1;
+      m.globalCompositeOperation = 'destination-over';
+      if (t === 0) { m.fillStyle = OC[i]; m.fillRect(dx, dy, sw, sh); }
+      else { const x0 = dx < 0 ? 0 : dx, y0 = dy < 0 ? 0 : dy, x1 = dx + sw > W ? W : dx + sw, y1 = dy + sh > H ? H : dy + sh; if (x1 > x0 && y1 > y0) m.drawImage(this.E, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); }
     }
     m.globalCompositeOperation = 'source-over';
   }
@@ -425,10 +457,10 @@ export class Renderer {
     if (dark > .02) {
       const b = this.Bx; b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
       /* perf: an item only has to be cut out of the light buffer where light has been drawn. The boxes around the glowing pixels of the sprites drawn so far are kept (GR; a sprite knows the box of its glow: sp.lb, engine/sprites.js),
-       * and an item is only cut out where it overlaps one. (It used to be one box around all light sprites, whole sprites: in a street that is soon the whole screen, and nearly every item was cut, one draw call each.) */
+       * and an item is only cut out where it overlaps one, and only that part of it. (It used to be one box around all light sprites, whole sprites: in a street that is soon the whole screen, and nearly every item was cut, one draw call each.) */
       nGR = 0;
-      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && hitG(x, y, x + sp.w, y + sp.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; const q = sp.lb; if (q) addG(x + q[0], y + q[1], x + q[2], y + q[3]); else addG(x, y, x + sp.w, y + sp.h); }
-        if (it.ns && any) { for (let q = it.sit; q; q = q.next) { const qx = q.spr.x + q.ax - cam.x, qy = q.spr.y + q.ay - cam.y; if (hitG(qx, qy, qx + q.spr.w, qy + q.spr.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(q.spr.c, qx, qy); } } } }
+      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && x < gX1 && x + sp.w > gX0 && y < gY1 && y + sp.h > gY0 && hitBox(GR, nGR, x, y, x + sp.w, y + sp.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, hX0 - x, hY0 - y, hX1 - hX0, hY1 - hY0, hX0, hY0, hX1 - hX0, hY1 - hY0); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; const q = sp.lb; if (q) addG(x + q[0], y + q[1], x + q[2], y + q[3]); else addG(x, y, x + sp.w, y + sp.h); }
+        if (it.ns && any) { for (let q = it.sit; q; q = q.next) { const qx = q.spr.x + q.ax - cam.x, qy = q.spr.y + q.ay - cam.y; if (hitBox(GR, nGR, qx, qy, qx + q.spr.w, qy + q.spr.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(q.spr.c, hX0 - qx, hY0 - qy, hX1 - hX0, hY1 - hY0, hX0, hY0, hX1 - hX0, hY1 - hY0); } } } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     tn = performance.now(); ST.tGlow += tn - tm; tm = tn;

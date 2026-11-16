@@ -7,7 +7,7 @@
 //   shops() -> [{ id, name, venue, place, level, taste, count }]      stock(shopId) -> [piece] in stock this week      priceAt(piece, shopId) -> $      isNew(piece, shopId)
 //   whereSold(pieceId) -> [shopId] that stock it this week            browse(shopId, { slot?, rack? })  the rack / catalogue window      detail(piece, shopId)
 //   basket() -> [{ id, shop }]   addToBasket(id, shop)   checkout(shopId) -> bool   buy(id, shopId) -> bool (straight from the menu)   fitting() -> bool (mirror; true when in a shop)
-//   order(ids) -> bool   online order: pay now + DELIVERY_FEE, arrives ORDER_DAYS mornings later   orders() -> [{ ids, t }]   gift(style?) -> piece id | null (a present from a friend)
+//   order(ids) -> bool   online order (in-store-only pieces are refused: data/instore.js): pay now + DELIVERY_FEE, arrives ORDER_DAYS mornings later   orders() -> [{ ids, t }]   gift(style?) -> piece id | null (a present from a friend)
 // How other windows reach it: G.shop.open(venueId) is wrapped (from here, not in ui/shop.js): at a clothes-selling venue it first asks "Clothes" or the classic shop window.
 // Fixtures: clothing racks / round racks / shelves / fold tables / shoe wall / accessories stand get "Browse" interactables (tag `clothing`); the vintage bins and hat wall are re-pointed here.
 // State G.state.clothes = { basket: [{ id, shop }], orders: [{ ids, t }], bought: n }.   Events: 'wardrobe:buy'(ids, shopId, total), 'clothes:order'(ids, t), 'clothes:delivered'(ids).
@@ -18,6 +18,7 @@ import { VENUE_BY_ID, isOpen } from '../data/venues.js';
 import { CATALOG, PIECE_BY_ID, SHOPS, BRANDS, soldAt } from '../data/clothes.js';
 import { EXPERIENCES, STAMP_GROUPS } from './_guide_data.js';
 import { grid, filterBar, applyFilter, stage, thumb, injectCss, put } from '../ui/phone_closet_kit.js';
+import { anchorShop } from '../data/instore.js';   /* in store only (owner msgs 167-168): importing it also settles every piece's 'online' shop */
 
 export const order = 131;
 export const ORDER_DAYS = 2, DELIVERY_FEE = 4, IN_STOCK = 3 / 4;
@@ -41,7 +42,7 @@ const safe = (fn, fb) => { try { const v = fn(); return v === undefined || v ===
 const hash = s => { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const week = () => Math.floor((G.state.t || 0) / 10080), W = () => G.wardrobe, fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 const stamp = id => safe(() => G.guide.stamp(id));
-const inStock = (p, shop, w = week()) => shop === 'online' || (hash(p.id + shop) + w) % 4 !== 0;
+const inStock = (p, shop, w = week()) => shop === 'online' || (hash(p.id + shop) + w) % 4 !== 0 || (!p.shops.includes('online') && shop === anchorShop(p));   /* an in-store-only piece is always on the rails at its first shop */
 const cacheKey = () => week() + ':' + G.now().season; const cache = new Map();
 function stock(shop) { const k = shop + cacheKey(); let v = cache.get(k); if (!v) { if (cache.size > 40) cache.clear(); v = soldAt(shop, G.now().season).filter(p => inStock(p, shop)); cache.set(k, v); } return v; }
 const isNew = (p, shop) => shop !== 'online' && week() > 0 && !inStock(p, shop, week() - 1);
@@ -67,7 +68,9 @@ function buy(id, shop, bin) {
   got([id], shop, sum); toast(`${p.name} is yours.`, 'good'); return true;
 }
 function placeOrder(ids) {
-  ids = ids.filter(id => PIECE_BY_ID[id] && !W().owns(id) && !S.orders.some(o => o.ids.includes(id))); if (!ids.length) return false;
+  ids = ids.filter(id => PIECE_BY_ID[id] && !W().owns(id) && !S.orders.some(o => o.ids.includes(id)));
+  const off = ids.filter(id => !PIECE_BY_ID[id].shops.includes('online')); if (off.length) { safe(() => G.instore.refuse(off[0])); ids = ids.filter(id => !off.includes(id)); }   /* in store only */
+  if (!ids.length) return false;
   const sum = ids.reduce((n, id) => n + priceAt(PIECE_BY_ID[id], 'online'), 0) + DELIVERY_FEE;
   if (!safe(() => G.money.pay(sum, 'Closet app order', { category: 'outfit' }), false)) return false;
   const t = (Math.floor(G.state.t / 1440) + ORDER_DAYS) * 1440 + 9 * 60; S.orders.push({ ids, t }); stamp('x:online_order'); G.emit('clothes:order', ids, t);
@@ -96,7 +99,8 @@ function detail(p, shop, o = {}) {
   const row = el('div.cw-row');
   if (!own && !online && !o.menu && !o.view) put(row, el('button.opt', { disabled: inB, onclick: () => { addToBasket(p.id, shop, o.bin); m.close(); o.after && o.after(); } }, el('span.opt-l', { text: inB ? 'In your basket' : 'Take it (basket)' })));
   if (!own && !online && !o.view) put(row, el('button.opt', { onclick: () => { if (buy(p.id, shop, o.bin)) { S.basket = S.basket.filter(b => b.id !== p.id); m.close(); o.after && o.after(); } } }, el('span.opt-l', { text: 'Buy now ' + fmt(price) })));
-  if (!own && online) put(row, el('button.opt', { onclick: () => { if (placeOrder([p.id])) { m.close(); o.after && o.after(); } } }, el('span.opt-l', { text: `Order ${fmt(price + DELIVERY_FEE)} (2 days)` })));
+  if (!own && online && p.shops.includes('online')) put(row, el('button.opt', { onclick: () => { if (placeOrder([p.id])) { m.close(); o.after && o.after(); } } }, el('span.opt-l', { text: `Order ${fmt(price + DELIVERY_FEE)} (2 days)` })));
+  else if (!own && online) put(row, el('button.opt', { onclick: () => { const w = safe(() => G.instore.where(p.id, 1)[0], null); m.close(); if (w) G.instore.take(w.place, w.name); } }, el('span.opt-l', { text: 'Only in store · Take me there' }), el('span.opt-s', { text: safe(() => G.instore.whereText(p.id, 2), '') })));
   if (!own) put(row, el('button.opt', { onclick: e => { const on = W().wish(p.id); e.currentTarget.lastChild.textContent = on ? '♥ On your wish list' : '♡ Wish list'; } }, el('span.opt-l', { text: W().isWish(p.id) ? '♥ On your wish list' : '♡ Wish list' })));
   put(m.body, row); return m;
 }
