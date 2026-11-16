@@ -27,6 +27,7 @@
 import { GOODS, GOOD_BY_ID, CATS } from './goods.js';
 import { CATALOG, PIECE_BY_ID } from './clothes.js';
 import { ITEM_BY_ID } from './items.js';
+import { NEW_IDS } from './clothing_new.js';
 
 export const ONLINE_SHARE = 0.42, PIECE_SHARE = 0.75;
 export const STORE_BRANDS = ['marigold', 'hollowell', 'nightjar', 'juniper_rye', 'second_wind', 'little_lantern'];
@@ -34,7 +35,7 @@ export const STORE_BRANDS = ['marigold', 'hollowell', 'nightjar', 'juniper_rye',
 export const STORE_GOODS = ['g_xmastree', 'g_pumpkin_carved', 'g_wp_wreath_berry', 'g_d_snowglobe', 'g_wl_star', 'g_lamp_lantern', 'g_egg_white'];
 /** goods that stay orderable whatever the rule says (scripted / tutorial pieces would go here) */
 export const ONLINE_GOODS = [];
-export const STORE_PIECE = [];
+export const STORE_PIECE = NEW_IDS.slice();   /* the new signature pieces (data/clothing_new.js) are only in their shops; listing them here also keeps them out of the price ranking, so no older piece changed sides */
 export const ONLINE_PIECE = [];
 /** ids that a story / tutorial / Opportunity tells the player to order online (none today; keep them online if added) */
 export const SCRIPTED = [];

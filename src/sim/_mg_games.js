@@ -115,7 +115,7 @@ export const BG = {
     result: R => { const n = Math.round(B.showerHyg * R.q); if (n > 0) add('hygiene', n); return { title: R.q >= .55 ? 'Just the right temperature' : 'Hot, cold, hot. Clean anyway.', lines: [n > 0 ? `A proper scrub: Hygiene +${n}` : null] }; } },
   /* ---- 6. more plain timers: the park swing, the duck pond ---- */
   swing: { title: () => 'Swing higher', icon: 'need.fun',
-    kit: () => ({ kind: 'stroke', o: { strokes: 6, period: 2.2 }, sub: 'Higher! Higher!', hint: 'Press as the swing reaches the back (left green), hold through the swing, let go at the front (right green).', scene: swingScene, verdicts: ['Barely moving', 'Swinging', 'Flying', 'Over the bar (nearly)!'] }),
+    kit: () => ({ kind: 'stroke', o: { strokes: 6, period: 2.2 }, sub: 'Higher! Higher!', hint: 'Press as the swing reaches the back (left green), hold through the swing, let go at the front (right green).', scene: swingScene, theme: { paper: '#8fc97a' }, verdicts: ['Barely moving', 'Swinging', 'Flying', 'Over the bar (nearly)!'] }),
     result: R => { const n = fun(R, B.swingFun); return { title: `${R.stats.perfect || 0} perfect swings`, lines: [`Fun +${n}`] }; } },
   ducks: { title: () => 'Feed the ducks', icon: 'need.fun',
     kit: () => ({ kind: 'aim', o: { mode: 'throw', shots: 4 }, sub: 'Fourteen ducks are watching', hint: 'Tap to lock your aim, then tap again for the throw. Land the bread by the ducks.', scene: pondScene, projectile: bread, verdicts: ['Into the reeds', 'A few crumbs', 'Well thrown', 'Duck royalty!'] }),

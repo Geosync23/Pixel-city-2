@@ -274,7 +274,7 @@ const PIG = [[0, 1, 1], [0, 0, 1], [1, .5, 0]], TUBE = ['#d8342e', '#f2c230', '#
 export function mixCol(d) { const n = d[0] + d[1] + d[2]; if (!n) return '#fffdf4'; const cmy = [0, 1, 2].map(k => clamp((d[0] * PIG[0][k] + d[1] * PIG[1][k] + d[2] * PIG[2][k]) / n * 1.4)); return '#' + cmy.map(v => Math.round(235 * (1 - v) + 14).toString(16).padStart(2, '0')).join(''); }
 registerKind('mix', E => {
   const o = E.def.o || {}, rounds = o.rounds || TUNE_B.mix.rounds, pool = shuffle((o.mixes || MIXES).filter(m => m[1][0] + m[1][1] + m[1][2] <= (E.lvl >= 4 ? 4 : E.lvl >= 2 ? 3 : 2))).slice(0, rounds), parts = [], got = [];
-  let r = 0, have = [0, 0, 0], t = 0, wait = .2, ok = false, drip = -1, dripT = 0, tries = 0; const need = () => pool[r][1], tot = d => d[0] + d[1] + d[2];
+  let r = 0, have = [0, 0, 0], t = 0, wait = .2, ok = false, drip = -1, dripT = 0, tries = 0; const need = () => pool[Math.min(r, pool.length - 1)][1], tot = d => d[0] + d[1] + d[2];
   E.prog(0, rounds); E.cap('Mix: ' + pool[0][0]);
   const g = { done: false, score: 0, snap: true,
     update(dt) { stepParts(parts, dt); dripT = Math.max(0, dripT - dt); if (wait > 0) { wait -= dt; if (wait <= 0 && tot(have) >= tot(need())) { if (ok || tries >= 2) { got.push(ok ? (tries ? .6 : 1) * (.8 + .2 * clamp(1.6 - t / TUNE_B.mix.secs)) : .15); r++; E.prog(r, rounds); tries = 0; t = 0; if (r >= rounds) { g.done = true; g.score = avg(got); E.cap(''); return; } E.cap('Mix: ' + pool[r][0]); } else { tries++; E.cap('Not quite. Rinse and try again'); } have = [0, 0, 0]; } return; } t += dt; },

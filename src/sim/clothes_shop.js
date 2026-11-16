@@ -18,11 +18,14 @@ import { VENUE_BY_ID, isOpen } from '../data/venues.js';
 import { CATALOG, PIECE_BY_ID, SHOPS, BRANDS, soldAt } from '../data/clothes.js';
 import { EXPERIENCES, STAMP_GROUPS } from './_guide_data.js';
 import { grid, filterBar, applyFilter, stage, thumb, injectCss, put } from '../ui/phone_closet_kit.js';
+import { STORES } from '../data/clothing_stores.js';   /* the ten brand / speciality stores (owner msgs 177-178) */
+import { lookPiece, looksFor } from '../data/clothing_outfits.js';   /* preset outfits: their pieces never rotate out of the shop */
 import { anchorShop } from '../data/instore.js';   /* in store only (owner msgs 167-168): importing it also settles every piece's 'online' shop */
 
 export const order = 131;
 export const ORDER_DAYS = 2, DELIVERY_FEE = 4, IN_STOCK = 3 / 4;
 export const VENUE = { clothing: 'clothing', 'pub:12': 'pub:12', 'pub:44': 'pub:44', 'mall:thread': 'mall:thread', 'mall:kicks': 'mall:kicks', 'mall:bloom': 'mall:bloom', gym: 'gym', arena: 'arena:store', hotel: 'hotel:gifts', market: 'market_stalls' };
+for (const s of STORES) VENUE[s.id] = s.id;
 const PLACE = { 'mall:thread': 'deptstore', 'mall:kicks': 'deptstore', 'mall:bloom': 'deptstore', arena: 'arena', hotel: 'hotel' };
 const BY_VENUE = Object.fromEntries(Object.entries(VENUE).map(([k, v]) => [v, k]));
 if (!STAMP_GROUPS.includes('Wardrobe')) STAMP_GROUPS.push('Wardrobe');
@@ -42,7 +45,7 @@ const safe = (fn, fb) => { try { const v = fn(); return v === undefined || v ===
 const hash = s => { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const week = () => Math.floor((G.state.t || 0) / 10080), W = () => G.wardrobe, fmt = n => (G.money && G.money.fmt ? G.money.fmt(n) : '$' + n);
 const stamp = id => safe(() => G.guide.stamp(id));
-const inStock = (p, shop, w = week()) => shop === 'online' || (hash(p.id + shop) + w) % 4 !== 0 || (!p.shops.includes('online') && shop === anchorShop(p));   /* an in-store-only piece is always on the rails at its first shop */
+const inStock = (p, shop, w = week()) => shop === 'online' || (hash(p.id + shop) + w) % 4 !== 0 || (!p.shops.includes('online') && shop === anchorShop(p)) || lookPiece(p.id, shop);   /* an in-store-only piece is always on the rails at its first shop */
 const cacheKey = () => week() + ':' + G.now().season; const cache = new Map();
 function stock(shop) { const k = shop + cacheKey(); let v = cache.get(k); if (!v) { if (cache.size > 40) cache.clear(); v = soldAt(shop, G.now().season).filter(p => inStock(p, shop)); cache.set(k, v); } return v; }
 const isNew = (p, shop) => shop !== 'online' && week() > 0 && !inStock(p, shop, week() - 1);
@@ -66,6 +69,12 @@ function buy(id, shop, bin) {
   const p = PIECE_BY_ID[id]; if (!p || W().owns(id)) return false; const sum = priceAt(p, shop, bin);
   if (!safe(() => G.money.pay(sum, `${p.name} — ${shopName(shop)}`, { category: 'outfit', venue: VENUE[shop] }), false)) return false;
   got([id], shop, sum); toast(`${p.name} is yours.`, 'good'); return true;
+}
+/** several pieces in one payment (a preset outfit: sim/clothing_stores.js). ids you own are skipped. */
+function buyMany(ids, shop, label) {
+  ids = ids.filter(id => PIECE_BY_ID[id] && !W().owns(id)); if (!ids.length) return false; const sum = ids.reduce((n, id) => n + priceAt(PIECE_BY_ID[id], shop), 0);
+  if (!safe(() => G.money.pay(sum, `${label || 'Outfit'} — ${shopName(shop)}`, { category: 'outfit', venue: VENUE[shop] }), false)) return false;
+  S.basket = S.basket.filter(b => !ids.includes(b.id)); got(ids, shop, sum); toast(`${label || 'The look'}: ${ids.length} piece${ids.length > 1 ? 's' : ''} for ${fmt(sum)}. In your dresser.`, 'good', 4200); return true;
 }
 function placeOrder(ids) {
   ids = ids.filter(id => PIECE_BY_ID[id] && !W().owns(id) && !S.orders.some(o => o.ids.includes(id)));
@@ -110,7 +119,8 @@ function browse(shop, o = {}) {
   const m = modal({ title: o.title || shopName(shop), cls: 'wardrobe' }), head = el('div'), holder = el('div');
   const drawHead = () => { head.textContent = ''; const b = basketOf(shop); if (shop === 'online') put(head, el('p.cw-note', { text: `Delivery ${fmt(DELIVERY_FEE)}, ${ORDER_DAYS} days. ${S.orders.length ? S.orders.reduce((n, x) => n + x.ids.length, 0) + ' piece(s) on the way.' : ''}` }));
     else if (b.length) put(head, el('div.cw-row', null, el('button.opt', { onclick: () => { m.close(); fitting(); } }, el('span.opt-l', { text: `Basket: ${b.length} · ${fmt(total(shop))}` }), el('span.opt-s', { text: 'look in the mirror' })), el('button.opt', { onclick: () => { if (checkout(shop)) { drawHead(); draw(); } } }, el('span.opt-l', { text: 'Pay ' + fmt(total(shop)) }))));
-    else put(head, el('p.cw-note', { text: o.note || `${list.length} pieces here this week. Stock changes every Monday and with the seasons.` })); };
+    else put(head, el('p.cw-note', { text: o.note || `${list.length} pieces here this week. Stock changes every Monday and with the seasons.` }));
+    const nl = shop === 'online' ? 0 : looksFor(shop, G.now().season).length; if (nl && G.clothingStores) put(head, el('div.cw-row', null, el('button.opt', { onclick: () => G.clothingStores.outfits(shop) }, el('span.opt-l', { text: `Outfits · ${nl} ready-made looks` }), el('span.opt-s', { text: 'buy a whole look in one go' })))); };
   const draw = () => { holder.textContent = ''; const out = applyFilter(list, fs, { isFav: id => W().isWish(id) });
     put(holder, grid(out, { empty: 'Nothing matches. Try another rack, or another shop.', cell: p => ({ sub: fmt(priceAt(p, shop, o.bin)), tag: W().owns(p.id) ? 'own' : S.basket.some(b => b.id === p.id) ? 'basket' : isNew(p, shop) ? 'new' : '', tagCls: W().owns(p.id) ? 'own' : 'new', fav: W().isWish(p.id) }),
       onPick: p => detail(p, shop, { bin: o.bin, menu: o.menu, after: () => { drawHead(); draw(); } }) })); };
@@ -155,7 +165,7 @@ export function init() {
   S = G.defineState('clothes', () => ({ basket: [], orders: [], bought: 0 }));
   const fix = () => { S = G.state.clothes || G.defineState('clothes', () => ({ basket: [], orders: [], bought: 0 })); S.basket = (S.basket || []).filter(b => PIECE_BY_ID[b.id]); S.orders = (S.orders || []).map(o => ({ ids: o.ids.filter(id => PIECE_BY_ID[id]), t: o.t })); cache.clear(); };
   fix(); G.on('load', fix); G.on('game:new', () => { G.state.clothes = { basket: [], orders: [], bought: 0 }; fix(); });
-  G.clothesShop = { shops, stock, priceAt, isNew, whereSold, browse, detail, basket: () => S.basket.slice(), addToBasket, checkout, buy, fitting, order: placeOrder, orders: () => S.orders.slice(), gift, roomShop, shopName, VENUE, placeOf };
+  G.clothesShop = { shops, stock, priceAt, isNew, whereSold, browse, detail, basket: () => S.basket.slice(), addToBasket, checkout, buy, buyMany, fitting, order: placeOrder, orders: () => S.orders.slice(), gift, roomShop, shopName, VENUE, placeOf };
   registerFixture('clothing', (fx, scene) => { const r = rackInfo(fx, scene); if (!r || /thrift|jewel/.test(fx.asset.id)) return null; return { label: r.slot === 'shoes' ? 'Shoe wall' : r.slot === 'hat' || r.slot === 'acc' ? 'Hats and accessories' : 'Browse the ' + SLOT_WORD[r.slot].split(' ')[0], hit: 14, shopRack: r.shop, use: () => useRack(fx, scene) }; });
   G.on('room:build', onRoom); G.on('scene', leaveShop); G.on('hour', deliveries); G.on('load', deliveries);
   G.on('wardrobe:open', () => { if (safe(() => G.wardrobe.looks().length, 0)) stamp('x:look_saved'); });
@@ -168,8 +178,9 @@ export function init() {
       if (!shop || o.classic || o.online || G.modal || (v && !isOpen(v, n.weekday, n.hf))) return orig(venueId, o);
       const b = basketOf(shop), opts = [];
       if (b.length) opts.push({ label: `Pay for your basket · ${fmt(total(shop))}`, sub: `${b.length} piece${b.length > 1 ? 's' : ''}`, value: 'pay' });
+      const nl = looksFor(shop, n.season).length; if (nl && G.clothingStores) opts.push({ label: 'Outfits', sub: `${nl} ready-made looks · buy the look in one go`, value: 'looks' });
       opts.push({ label: 'Clothes', sub: `${stock(shop).length} pieces in stock this week`, value: 'clothes' }, { label: shop === 'gym' ? 'Front desk' : 'Everything else', sub: 'the regular shop window', value: 'classic' });
-      choose(v ? v.name : shopName(shop), opts).then(val => { if (val === 'pay') checkout(shop); else if (val === 'clothes') browse(shop, { menu: !G.scene || !G.scene.indoor }); else if (val === 'classic') orig(venueId, Object.assign({}, o, { classic: true })); });
+      choose(v ? v.name : shopName(shop), opts).then(val => { if (val === 'pay') checkout(shop); else if (val === 'looks') G.clothingStores.outfits(shop); else if (val === 'clothes') browse(shop, { menu: !G.scene || !G.scene.indoor }); else if (val === 'classic') orig(venueId, Object.assign({}, o, { classic: true })); });
       return true;
     };
   }

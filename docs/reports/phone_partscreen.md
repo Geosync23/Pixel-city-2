@@ -81,7 +81,27 @@ for the new size and open the page that holds the same words (word offset), not 
 
 Docked, the player is busy, so the focus layer treats the dock as the window: the ring is on the film's Play / Pause, the header's Bigger and Stop are
 reachable, Back = the header's Back (to Reel's list), Start = put the phone away. Fake-pad run: Start -> Reel -> Play Low Tide -> Bigger -> Smaller -> clock
-runs -> Stop, all five by the focus ring (`{"focus":5,"cursor":0}`); `tools/pad_check.mjs`: see the summary.
+runs -> Stop, all five by the focus ring (`{"focus":5,"cursor":0}`). `node tools/pad_check.mjs` on the final build: 68 passed, 0 failed, 0 page errors.
+
+## 5b. How each thing was checked
+
+| Check | How | Result |
+|---|---|---|
+| one Reel episode docked, start to end, clock / needs / music logged every 5 s, Bigger + Smaller mid-episode, a world tap | played by touch, 390x844 and 375x812 | clock 12:05 -> 12:38, fun +2.166, pool 19.99, music `off` from play until ~17 s after Stop (then a tune), world tap: the player did not move |
+| one short read end to end, Bigger / Smaller on page 3, leave on page 2 and Continue | played by touch, 390x844 and 375x812 | 14.5 game min (listed 14), page 3 kept its first words through both re-paginations, page 2 remembered |
+| Leave now during a 60 s film | played by touch, both sizes | fired at 0:17, film paused, banner on top above the sheet |
+| watching seated on a sofa (residential lobby 1) | played by touch | stays seated (pose `phone` seated), clock 0.851 / s, after Stop still "Sitting" |
+| watching standing on a street | played by touch (the airport forecourt) | pose `phone`, busy "Watching on your phone" |
+| fake gamepad: Start -> Reel -> Play -> Bigger -> Smaller -> Stop | tools/pad_lib.mjs | all by the focus ring |
+| 4x, HUD pause, a dialog (G.modal), HUD phone button, need at floor, an activity ended by something else | script | as in section 2 |
+| novel sitting 15 min docked | played by touch | 15.2 game min in 18 s, same totals |
+| Wander entry Smaller | played by touch at 375 | docks, reading pace, Back -> full |
+| `node src/data/validate.mjs`, `node tools/build.mjs`, `node tools/navcheck.mjs --rooms all`, `node tools/music_check.mjs`, `node tools/pad_check.mjs` | run | all pass (music 77 / 77, pad 68 / 68), 0 page errors; regex lookbehind in dist: 0 |
+
+Screenshots (looked at): `out/shots/pps_watch_part_*`, `pps_watch_mid_*`, `pps_watch_bigger_*`, `pps_watch_end_*`, `pps_read_part_*`, `pps_read_bigger_*`,
+`pps_read_end_*`, `pps_sofa_part_*`, `pps_sofa_after_*`, `pps_leave_*`, `pps_paused`, `pps_pad_part`, `pps_pad_bigger`, `pps_guide_part`, `pps_book_part`
+(`*` = 390x844 / 375x812). In all of them the world is visible above the sheet with the player in it, nothing covers the HUD's clock / needs / speed row,
+and the text reads at 375 px. Transient things (a phone banner, a toast, a speech bubble) can sit over the world for a few seconds, as anywhere.
 
 ## 6. Not done / not verified
 

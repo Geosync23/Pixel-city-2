@@ -157,7 +157,7 @@ function look(spec) {
     bottom: s.bottom, botC: s.bottomColor, shoeC: s.shoes, hat: s.hat, hatC: s.hatColor, hatBand: s.hatBand || null, bag: s.bag, bagC: s.bagColor,
     glasses: s.glasses, beard: s.beard, scarf: s.scarf, accent: s.accent || '#e8546a',
     apron: null, vest: null, hivis: false, tie: null, bow: null, badge: null, belt: null, epaul: null, buttons: false, pjStripe: false,
-    kid: s.age === 'kid', elder: s.age === 'elder',
+    kid: s.age === 'kid', elder: s.age === 'elder', manq: !!s.manq,   /* manq: a shop mannequin (no face); src/art/venue/clothing_stores_art.js */
   };
   const uni = s.outfit && OUTFIT_DEF[s.outfit];
   k.pat = null; k.pat2 = null; k.botPat = null; k.bot2 = null; k.shoeT = s.shoeType || null; k.shoe2 = s.shoeColor2 || null; k.sock = s.socks || null; k.glove = s.gloves || null; k.tights = s.tights || null;
@@ -552,7 +552,8 @@ function beardDraw(k, cx, yb, P) {
 function head(k, cx, yb, front, P) {
   const sk = k.skin;
   for (let rr = 0; rr < 7; rr++) { const hw = (rr === 0 || rr === 6) ? 2 : 3; for (let x = -hw; x <= hw; x++) p(cx + x, yb - rr, rr === 0 ? dk(sk, .1) : (x === -3 ? dk(sk, .06) : sk)); }
-  if (front) {
+  if (front && k.manq) { p(cx + 3, yb - 2, lt(sk, .25)); p(cx + 3, yb - 3, lt(sk, .25)); }
+  else if (front) {
     const bl = mix(sk, '#f0506a', .28), ey = P.eyes, lip = mix(dk(sk, .3), '#c04050', .35), brow = mix(dk(sk, .35), k.hairC, .45);
     p(cx + 3, yb - 1, bl); if (k.kid) p(cx - 1, yb - 1, bl);
     if (!k.kid) { p(cx, yb - 4, brow); p(cx + 2, yb - 4, brow); }

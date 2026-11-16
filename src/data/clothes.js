@@ -9,10 +9,12 @@ import { BOTTOMS, DRESSES, SHOES } from './clothes_bottoms.js';
 import { HATS, ACCS } from './clothes_acc.js';
 import { HAIR_STYLES, FACIAL, HAIR_DYES } from './hair_styles.js';
 import { BRANDS, SHOPS, STYLES, SLOTS, ACC_KINDS, SLOT_NAME, priceOf } from './clothes_brands.js';
+import { reanchor } from './clothing_stores.js';   /* the ten brand / speciality stores (owner msgs 177-178): adds them to SHOPS and to each piece's `shops` */
+import { NEW_PIECES } from './clothing_new.js';     /* the signature pieces of the new stores */
 
 export { BRANDS, SHOPS, STYLES, SLOTS, ACC_KINDS, SLOT_NAME, priceOf, HAIR_STYLES, FACIAL, HAIR_DYES };
 export const MIN_PIECES = 1000, MIN_HAIRS = 60;
-export const CATALOG = [...TOPS, ...OUTERS, ...DRESSES, ...BOTTOMS, ...SHOES, ...HATS, ...ACCS];
+export const CATALOG = reanchor([...TOPS, ...OUTERS, ...DRESSES, ...BOTTOMS, ...SHOES, ...HATS, ...ACCS, ...NEW_PIECES]);
 export const PIECE_BY_ID = Object.fromEntries(CATALOG.map(p => [p.id, p]));
 export const HAIR_BY_ID = Object.fromEntries(HAIR_STYLES.map(h => [h.id, h]));
 export const bySlot = slot => CATALOG.filter(p => p.slot === slot);

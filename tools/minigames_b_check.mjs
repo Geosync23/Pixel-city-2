@@ -86,7 +86,7 @@ async function go(A, o) {
   let how = 'touch'; if (o.find) how = await tapOpen(A, o.find, o.dz, (o.pick || [])[0]);
   for (const re of o.pick || []) { if (await pg.evaluate(() => !!G.minigame.MG.cur)) break; await pg.waitForTimeout(350); if (await pg.evaluate(() => !!document.querySelector('.modal .win'))) { if (process.env.MGB_V) console.log('   menu: ' + await pg.evaluate(() => document.querySelector('.modal .win').textContent.slice(0, 200))); await A.tapText(re, '.modal .opt, .modal button').catch(e => { if (process.env.MGB_V) console.log('   ' + e.message); }); } }
   const opened = await pg.waitForFunction(() => !!G.minigame.MG.cur, null, { timeout: o.wait || 9000 }).then(() => true).catch(() => false);
-  if (!opened) { await pg.screenshot({ path: path.join(OUT, 'mgb_fail_' + (o.name || 'x') + '.png') }); return { opened: false, busy: await pg.evaluate(() => (G.busy ? G.busy.label : null) + ' modal:' + G.modal + ' ' + (document.querySelector('.modal .win') ? document.querySelector('.modal .win').textContent.slice(0, 120) : '')) }; }
+  if (!opened) { if (o.name) await pg.screenshot({ path: path.join(OUT, 'mgb_fail_' + o.name + '.png') }); return { opened: false, busy: await pg.evaluate(() => (G.busy ? G.busy.label : null) + ' modal:' + G.modal + ' ' + (document.querySelector('.modal .win') ? document.querySelector('.modal .win').textContent.slice(0, 120) : '')) }; }
   const anim = await pg.evaluate(() => G.player.pose + (G.player.hidden ? ' (hidden)' : ''));
   if (o.auto) { await pg.waitForTimeout(1300); await A.tapText(/^Auto$/, '.mg-auto'); await pg.waitForFunction(() => !G.busy, null, { timeout: 40000 }).catch(() => {}); await pg.waitForTimeout(400); return { opened: true, auto: true, card: await pg.evaluate(() => [...document.querySelectorAll('.mg-res')].map(e => e.textContent).join(' / ')) }; }
   const r = await A.playTouch(o.name, o.shotAt === undefined ? 3 : o.shotAt);
@@ -204,8 +204,9 @@ if (on2('pad')) {
   const P = await openGame({ url: '?scene=city' }), pg = P.pg; await pg.waitForTimeout(1500); await P.connect(); await P.press('ok'); await pg.waitForTimeout(400);
   const run = async key => {
     await pg.evaluate(k => { window.__r = null; const g = G.mgB.games[k]; (g.skill ? G.skillplay.demo(k, 2, {}) : G.mgB.demo(k, {})).then(r => { window.__r = r; }); }, key); await pg.waitForTimeout(1100);
-    let held = false; const t0 = Date.now();
+    let held = false, shot = false; const t0 = Date.now();
     while (Date.now() - t0 < 70000) {
+      if (key === 'dishes' && !shot && Date.now() - t0 > 2200) { shot = true; await P.shot('mgb_pad_dishes'); }
       const s = await pg.evaluate(() => { const m = G.minigame.MG.cur; if (!m) return null; const st = m.state(), w = st.want || {}; return { type: w.type, ready: !!w.ready, on: !!w.on, done: st.done, counting: st.counting }; }); if (!s) break;
       if (s.done || s.counting) { if (held) { held = false; await P.up('ok'); } await pg.waitForTimeout(50); continue; }
       if (s.type === 'hold') { if (s.on && !held) { held = true; await P.down('ok'); } else if (!s.on && held) { held = false; await P.up('ok'); } await pg.waitForTimeout(16); }
@@ -214,7 +215,7 @@ if (on2('pad')) {
     if (held) await P.up('ok'); await pg.waitForTimeout(400); return pg.evaluate(() => window.__r);
   };
   for (const [key, what] of [['unbox', 'Confirm rips the tape and lifts each thing'], ['dishes', 'scrub: Confirm scrubs the ringed spot'], ['wires', 'Confirm picks the plug, then its socket'], ['fold', 'Confirm folds the glowing flap'], ['water', 'Confirm held to pour']]) {
-    const r = await run(key); if (key === 'dishes') await P.shot('mgb_pad_done');
+    const r = await run(key);
     say(r && !r.quit && !r.auto && r.score >= .5, `fake gamepad, ${key} (${what}): score ${r ? r.score.toFixed(2) : 'none'}, ${r ? r.stars : 0} stars`);
   }
   say(!P.errors.filter(e => /exception|error/i.test(e)).length, `pad: zero page errors ${P.errors.slice(0, 3).join(' | ')}`); await P.close();
