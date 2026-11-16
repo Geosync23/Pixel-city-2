@@ -89,7 +89,7 @@ for (const [v, door] of VENUES) {
   const nn = await st(), nt = (await toasts()).join(' | '); say(!nn.busy && /do not need/i.test(nt), v + ': bladder full -> no visit: ' + nt.slice(-80) + (/do not need/i.test(nt) ? '' : ' ' + await dbg()));
   // out
   await tapIt(/^(Back|Up) to /); const back = await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(700);
-  const at = await st(); const d = Math.hypot(at.x - dr.spot[0], at.y - dr.spot[1]); const tt2 = (await toasts()).join(' | ');
+  const at = await st(); const d = await pg.evaluate(a => Math.min(...G.interactables().filter(i => i.restroom).map(i => { const s = i.spot || i; return Math.hypot(a.x - s.x, a.y - s.y); })), at);   // the door used (a room can have two) const tt2 = (await toasts()).join(' | ');
   say(back && d < .9, v + `: way out -> ${at.scene} at (${at.x}, ${at.y}), ${d.toFixed(2)} from the door spot`); say(!/without washing/i.test(tt2) || v === 'diner', v + ': no nudge after washing');
   await shot(v + '_4_back');
   // night

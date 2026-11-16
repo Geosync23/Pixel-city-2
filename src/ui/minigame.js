@@ -153,22 +153,27 @@ LOOK.knead = {
     if (h && h.q > 0 && h.lane === 0 && a < .6) for (let k = 0; k < 3; k++) R(c, cx + dx + rx - 2 + k * 3, y0 - 2 + k * 2, 2, 1, '#ffffff');   // pushed: a little flour flies off the end
     if (h && h.q <= 0 && a < .8) { c.globalAlpha = .7 * (1 - a); ell(c, cx, y0 - ry - 3, 10 + a * 10, 4 + a * 3, '#ffffff'); c.globalAlpha = 1; }                  // a miss: a puff of flour
     /* the hands: each cue is a floury hand coming down its side; at the line it is on the dough */
+    c.save(); c.beginPath(); c.rect(7, 4, W - 14, H - 8); c.clip();                                       // hands only on the board
     for (const nt of S.notes) {
       if (nt.q > 0) continue; const u = (nt.t - now) / T; if (u > 1.05 || u < -.25) continue; const y = hitY - u * (hitY - topY);
       const lx = S.x0 + nt.lane * S.lw + S.lw / 2, tx = this.at(nt.lane) + (nt.lane ? 10 : -10), x = lx + (tx - lx) * Math.max(0, Math.min(1, 1 - u * 1.4));
       hand(c, x, y - 4, nt.lane, nt.q === 0);
     }
     const hh = lastHit(S); if (hh && hh.q > 0 && now - hh.t < .22) hand(c, this.at(hh.lane) + (hh.lane ? 10 : -10) + (hh.lane ? -3 : 3), hitY - 6, hh.lane, false, true);   // the hand at work
+    c.restore();
   },
 };
 /** a hand seen from above, fingers pointing down the board: lane 0 = the left hand (pink sleeve, flat: push), lane 1 = the right (blue sleeve, curled: fold) */
 function hand(c, x, y, lane, grey, press) {
-  x = Math.round(x); y = Math.round(y); const skin = grey ? '#a8a2ad' : '#f0c39a', dark = grey ? '#77707f' : '#d39a6e', cuff = grey ? '#77707f' : LANE_COL[lane];
-  R(c, x - 6, y - 9, 12, 5, INK); R(c, x - 5, y - 8, 10, 3, cuff); R(c, x - 5, y - 8, 10, 1, '#ffffff55');                                       // sleeve cuff
-  R(c, x - 6, y - 5, 12, press ? 8 : 9, INK); R(c, x - 5, y - 4, 10, press ? 6 : 7, skin); R(c, x - 5, y + 1, 10, 1, dark);                     // palm
-  if (lane === 0) { for (let k = 0; k < 4; k++) { R(c, x - 5 + k * 3, y + 3, 2, press ? 3 : 4, INK); R(c, x - 5 + k * 3, y + 3, 1, press ? 2 : 3, skin); } R(c, x + 5, y - 3, 3, 4, INK); R(c, x + 5, y - 2, 2, 2, skin); }   // flat fingers + thumb
-  else { R(c, x - 6, y + 3, 12, 3, INK); R(c, x - 5, y + 3, 10, 2, dark); for (let k = 1; k < 4; k++) R(c, x - 5 + k * 3 - 1, y + 3, 1, 2, INK); R(c, x - 8, y - 3, 3, 4, INK); R(c, x - 7, y - 2, 2, 2, skin); }   // curled fingers + thumb
-  if (!grey) { R(c, x - 3, y + (lane ? 4 : 6), 1, 1, '#ffffff'); R(c, x + 2, y + (lane ? 4 : 5), 1, 1, '#ffffff'); }                               // flour on the fingertips
+  x = Math.round(x); y = Math.round(y); const skin = grey ? '#a8a2ad' : '#f0c39a', lit = grey ? '#bdb7c2' : '#f8d6b4', dark = grey ? '#77707f' : '#d39a6e', cuff = grey ? '#77707f' : LANE_COL[lane], inner = lane ? -1 : 1;
+  const rr = (x0, y0, w, h, col) => { R(c, x0 + 1, y0, w - 2, h, INK); R(c, x0, y0 + 1, w, h - 2, INK); R(c, x0 + 1, y0 + 1, w - 2, h - 2, col); };   // a rounded block with an ink edge
+  rr(x - 8, y - 13, 16, 6, cuff); R(c, x - 7, y - 12, 14, 1, '#ffffff66'); R(c, x - 7, y - 9, 14, 1, '#00000022');                                    // sleeve cuff
+  const fl = press ? 3 : lane ? 3 : 6;                                                                                                                  // finger length: flat (push) or curled under (fold)
+  for (let k = 0; k < 4; k++) { const fx = x - 7 + k * 3 + (k > 1 ? 1 : 0); rr(fx, y + 1, 4, fl + 2, lane && !press ? dark : skin); if (!grey) R(c, fx + 1, y + fl + 1, 2, 1, '#fffaf0'); }   // fingers, floury tips
+  rr(x - 8, y - 8, 16, 11, skin); R(c, x - 6, y - 7, 9, 2, lit); R(c, x - 7, y + 1, 14, 1, dark);                                                    // the back of the hand
+  if (lane && !press) for (let k = 0; k < 4; k++) R(c, x - 6 + k * 3 + (k > 1 ? 1 : 0), y + 1, 2, 1, lit);                                            // knuckles of the curled hand
+  rr(x + inner * 7 - 2, y - 6, 5, 7, skin); R(c, x + inner * 7 - 1, y - 5, 2, 2, lit);                                                                  // thumb on the side towards the dough
+  if (!grey) { R(c, x - 4, y - 4, 1, 1, '#fffaf0'); R(c, x + 3, y - 2, 1, 1, '#fffaf0'); }                                                            // flour on the back of the hand
 }
 LOOK.pingpong = {
   at: lane => (lane ? 132 : 48),
@@ -182,23 +187,23 @@ LOOK.pingpong = {
     const NETY = 42, nhw = half(NETY);                                                                                                    // the net
     R(c, 90 - nhw - 3, NETY - 8, 2, 9, INK); R(c, 90 + nhw + 1, NETY - 8, 2, 9, INK); R(c, 90 - nhw - 1, NETY - 7, nhw * 2 + 2, 7, '#2a273399');
     for (let x = 90 - nhw; x < 90 + nhw; x += 3) R(c, x, NETY - 7, 1, 7, '#d9d9e055'); for (let y = NETY - 6; y < NETY; y += 2) R(c, 90 - nhw, y, nhw * 2, 1, '#d9d9e033'); R(c, 90 - nhw - 1, NETY - 8, nhw * 2 + 2, 1, '#ffffff');
-    /* the balls: the next one is served when the one before it is due (never shown for less than .45 s), lands on your half, comes up to the line */
+    /* the balls: the next one is served when your return of the one before has crossed (never shown for less than .38 s), lands on your half, comes up to the line */
     let prevT = -9, opp = 90, served = 0;
     for (let i = 0; i < S.notes.length; i++) {
-      const nt = S.notes[i], start = Math.min(nt.t - .45, Math.max(nt.t - T, prevT)); prevT = nt.t;
+      const nt = S.notes[i], start = Math.min(nt.t - .38, Math.max(nt.t - T, prevT + .22)); prevT = nt.t;   // served once your return has reached the far end
       if (nt.q > 0 || now < start || now > nt.t + .25) continue; const u = Math.max(0, (now - start) / (nt.t - start)), side = nt.lane ? .78 : .22;
       if (u <= 1 && !served) { opp = tx(FY, .5 + (side - .5) * .3); served = 1; }
       const gy = FY + 4 + (hitY - FY - 4) * Math.min(1.3, u), gx = tx(Math.min(NY, gy), .5 + (side - .5) * Math.min(1.3, u));
       const B = .62, z = u < B ? Math.sin(u / B * Math.PI) * 14 + (1 - u / B) * 4 : Math.sin((u - B) / (1 - B) * Math.PI / 2) * 9;   // over the net, one bounce on your side, up to the bat
-      if (u < 1.05) ell(c, gx, gy, 3, 1, '#1e4a38'); const r = u > .5 ? 2 : 1.5;
+      if (u < 1.05) ell(c, gx, gy, 3, 1, '#1e4a38'); const r = u > .55 ? 3 : u > .2 ? 2 : 1.5;
       if (u > .45 && u < 1) { c.globalAlpha = .35; ring(c, tx(Math.min(NY, FY + 4 + (hitY - FY - 4) * B), .5 + (side - .5) * B), FY + 4 + (hitY - FY - 4) * B, 3, '#ffffff'); c.globalAlpha = 1; }
       disc(c, gx, gy - z, Math.ceil(r) + 1, INK); disc(c, gx, gy - z, Math.ceil(r), nt.q === 0 ? '#c9c2b8' : '#fff4dc'); R(c, gx - 1, gy - z - 1, 1, 1, '#ffffff');
     }
     R(c, opp - 3, FY - 9, 7, 6, INK); R(c, opp - 2, FY - 8, 5, 4, '#d8342e'); R(c, opp, FY - 3, 1, 3, '#b8794a');                     // the other player's bat at the far end
     /* the return: a good hit flies back over the net */
     const h = lastHit(S);
-    if (h && h.q > 0 && now - h.t < .32) { const u = (now - h.t) / .32, sx = this.at(h.lane), gy = hitY - (hitY - FY - 4) * u, gx = sx + (90 + (h.lane ? -14 : 14) - sx) * u, z = Math.sin(u * Math.PI) * 12 + 6 * (1 - u);
-      disc(c, gx, gy - z, 2, INK); disc(c, gx, gy - z, 1, '#fff4dc'); }
+    if (h && h.q > 0 && now - h.t < .22) { const u = (now - h.t) / .22, sx = this.at(h.lane), gy = hitY - (hitY - FY - 4) * u, gx = sx + (90 + (h.lane ? -14 : 14) - sx) * u, z = Math.sin(u * Math.PI) * 12 + 6 * (1 - u);
+      disc(c, gx, gy - z, 3, INK); disc(c, gx, gy - z, 2, '#fff4dc'); }
     /* the hit line at your end and your bat: it swings to the side you tap (black rubber = backhand on the left, red = forehand on the right) */
     for (let lane = 0; lane < 2; lane++) { const f = S.padFlash[lane]; R(c, S.x0 + lane * S.lw + 4, hitY + 2, S.lw - 8, 1, f > 0 ? (S.padQ[lane] > 0 ? '#ffffff' : BAD) : '#ffffff44'); }
     const nx = S.notes.find(q => q.q < 0), want = nx ? nx.lane : null, idle = h && now - h.t < .5 ? h.lane : want;
