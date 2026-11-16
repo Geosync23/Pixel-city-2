@@ -70,7 +70,7 @@ export const onAdd = () => null;
 let on = null;
 function talkFor(id) { const r = ror(id), L = DATE_TALK[id] || []; return L.find(t => !r.talks.includes(t.id) && test(t.when, id)) || null; }
 async function runDate(d) {
-  if (on || HOOK.isRunning()) return 'busy'; const id = d.id, s = st();
+  if (on || HOOK.isRunning()) return 'busy'; const id = d.id, s = st(); safe(() => G.audio.mood('date', 180));      /* date music; clears itself on 'rel:date' */
   if (d.type === 'first') { on = d; try { safe(() => G.social.place(id)); HOOK.withUs([id], 'date', true); const r = await HOOK.start('fd.' + id, { look: 'date' }); if (r === 'done') { d.done = 1; safe(() => (G.planner.finish || G.planner.done)(d.appt)); } return r; } finally { on = null; } }
   const T = DATE_TYPES[d.type], P = PEOPLE[id], r = ror(id), late = G.state.t - d.t, lines = (DATE_LINES[id] || {})[d.type] || [], nth = (r.types[d.type] || 0) + 1, wet = ['rain', 'storm', 'snow'].includes(B.wx());
   const tk = talkFor(id), after = DATE_TALK_AFTER[id] || [], res = { play: 'ok', mem: false, late };

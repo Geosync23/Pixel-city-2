@@ -1783,7 +1783,7 @@ export const LINES = {
       "There's a lost-property box on the pier. It's mostly hats. Wind takes them.",
     ],
     lighthouse: [
-      "They say one hundred and twelve steps. My legs say a thousand.",
+      "They say ninety-seven steps. My legs say a thousand.",
       "The lighthouse keeper has a cat called Wick. She's seen every storm.",
       "I saw the keeper's cat on the gallery rail. Fearless. Absolutely fearless.",
       "The lighthouse is painted every spring. Same red stripe. Never fades.",
@@ -7169,7 +7169,7 @@ export const LINES = {
     ["I ate the whole cake.", "The whole cake? Was it a small cake? Tell me it was small."],
     ["Did the mail come?", "Just bills. It's always just bills."],
     ["Should we get a cab?", "Manny's on the rank. Bring snacks, it's a chatty ride."],
-    ["I've been reading about lighthouses again.", "Did you know there are a hundred and twelve steps?"],
+    ["I've been reading about lighthouses again.", "Did you know there are ninety-seven steps?"],
     ["Your shoelace is undone.", "It's a style. A very trippy style."],
     ["What did the doctor say?", "Walk more. So we're walking. I'm healing as we speak."],
     ["I'm writing a novel.", "Let me guess. It's set in a bakery."],

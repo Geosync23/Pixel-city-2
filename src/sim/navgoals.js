@@ -399,6 +399,7 @@ chain('nat_chain', ['natatorium'], 'nat_record', 'natatorium:chain', (ctx, picke
 const npcShort = id => safe(() => G.social.npc(id).short, null) || safe(() => G.planner.npcShort(id), id);
 const apptsFor = ctx => safe(() => G.planner.list(now() - 600, now() + 90, { events: false }), []).filter(a => !a.event && a.s !== 3 && a.s !== 4 && a.placeId && a.t - 90 <= now() && a.t + (a.dur || 60) > now()
   && (a.placeId === ctx.placeId || (ctx.root && rootOf(safe(() => place(a.placeId).roomId, a.placeId)) === ctx.root)));
+const farInCity = a => { if (!G.scene || G.scene.id !== 'city') return false; const pp = safe(() => place(a.placeId), null), q = pp && isFinite(pp.x) ? pp : safe(() => a.data && a.data.pos, null); return !!(q && isFinite(q.x) && Math.hypot(q.x - G.player.x, q.y - G.player.y) > 12); };
 function npcStep(npc, title, verb) {
   const c = safe(() => G.social.char(npc), null), who = npcShort(npc), rid = roomId() || 'city';
   if (c && !c.hidden) return { room: rid, find: { npc }, label: `${title}: ${verb} ${who}`, short: who, name: who };
@@ -410,6 +411,7 @@ define('story', 'commit', 69, ctx => {
   const a = apptsFor(ctx).find(q => q.data && q.data.beat); if (!a) return null; const b = safe(() => G.story.beat(a.data.beat), null); if (!b) return null;
   if (b.st === 'active' || b.st === 'done' || since('story:beat:' + a.data.beat, 5)) return { done: true, quiet: 1, name: a.title };
   const ap = safe(() => b.def.delivery.appointment, null) || {}, npc = (ap.with || [])[0]; if (b.t0 !== undefined && now() < b.t0) return { room: roomId() || 'city', find: npc ? { npc } : null, label: `${a.title}: from ${clock(b.t0)}`, short: a.title };
+  if (farInCity(a)) return null;   /* QA14: 430 m from the school at a bus stop it said "Pip is on the way, wait here"; the place arrow leads until you are there */
   return npc ? npcStep(npc, a.title, 'go up to') : null;
 }, (ctx, s) => !!s.appt);
 define('meet', 'commit', 68, ctx => {

@@ -118,7 +118,7 @@ async function serviceMenu(v, scene) {
   const s = pick !== null && pick >= 0 && v.pubServices[pick]; if (!s) return; if (s[1] && G.money && !G.money.pay(s[1], s[0] + ' — ' + v.name, { category: 'service', venue: v.id })) return;
   let at; for (const f of scene.fixtures || []) { if (!f.seats || !f.seats.length || !/armchair|tableset|bench/.test(f.asset.id || '')) continue; const q = f.seats.find(q => !scene.ents.some(e => e !== G.player && Math.hypot(e.x - q.x, e.y - q.y) < .45)); if (q) { at = { x: q.x, y: q.y, z: q.z || 0, dir: q.dir }; break; } }
   G.emit('service', 'pub:' + s[0], v.id);
-  G.startActivity({ label: s[0], anim: at ? 'sit' : 'stand', minutes: s[2], at, done: () => { if (G.needs) for (const k in s[3]) G.needs.add(k, s[3][k]); toast(`${s[0]} at ${v.name}: done. You feel looked after.`, 'good', 3200); } });
+  G.startActivity({ label: s[0], anim: at ? 'sit' : 'stand', minutes: s[2], at, done: () => { if (G.needs) for (const k in s[3]) G.needs.add(k, s[3][k]); if (/\bcut\b/i.test(s[0])) G.emit('hair:cut', G.state.player && G.state.player.spec && G.state.player.spec.hair, v.id);   /* QA14: a trim at the front desk is a haircut too ("New season, new look" never finished) */ toast(`${s[0]} at ${v.name}: done. You feel looked after.`, 'good', 3200); } });
 }
 export function init() {
   G.publicPlaces = api;

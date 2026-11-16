@@ -32,6 +32,7 @@ import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { CAST_BY_ID } from '../story/cast.js';
 import * as TEXTS from '../story/texts.js';
 import { toast } from '../ui/kit.js';
+const safe = (f, d) => { try { const v = f(); return v === undefined ? d : v; } catch (e) { return d; } };
 
 export const order = 61;
 const DAY = 1440;
@@ -126,12 +127,12 @@ function leadCheck(a, t) {
   { let tp = null; try { tp = G.nav && G.nav.trip && G.nav.trip(); } catch (e) { tp = null; } if (tp && tp.dest && a.placeId && tp.dest.id === a.placeId) { a.lv = 1; return; } }   /* QA14: already on a Map trip there (it said "Leave now ... 10 min on foot" to a player sitting on the train to work) */
   const tr = travelTo(a); if (!tr) return; const left = a.t - t;
   if (left > tr.walk + LEAD.buffer) return;   // still time to walk there
-  a.lv = 1; const where = placeName(a.placeId) || 'there', late = left < tr.best;
+  a.lv = 1; const where = placeName(a.placeId) || (a.data && a.data.pos && a.data.pos.name) || 'there', late = left < tr.best;
   const how = tr.best < tr.walk ? `${tr.walk} min on foot, ${tr.best} by ${tr.mode}` : `${tr.walk} min on foot`;
   const text = late ? `${a.title} starts at ${clock(a.t)} and ${where} is ${how} away. Go now, you may be a little late.` : `${a.title} starts at ${clock(a.t)} (in ${Math.round(left)} min). ${where} is ${how} away.`;
   note(a, text, 'high', late ? 'Leave now, running late' : 'Leave now'); G.emit('appt:leave', a, tr);
   /* QA14: a fast leisure activity ("Linger a while, 2 h" runs 20 game min per real second) ran straight through "Leave now": 18 minutes were gone before a player could react. Stop it here (what it gave so far stays). */
-  try { const b = G.busy; if (b && !b.jobTask && !b._uni && !b._uniWait && b.anim !== 'sleep' && b.canCancel !== false && !/^(wait|sleep|nap)/i.test(b.label || '') && (b.rate || 0) >= 4 && (b.left || 0) > 10) { G.endActivity(true); toast(`Time to go: ${a.title} at ${clock(a.t)}.`, 'info', 4200); } } catch (e) { /* no activity layer */ }
+  try { const b = G.busy; if (b && b.actId && !/^(sleep|nap)$/.test(b.actId) && !b.jobTask && !b.jobAuto && !safe(() => G.jobs.onShift(), false) && b.anim !== 'sleep' && b.canCancel !== false && !/^(wait|sleep|nap)/i.test(b.label || '') && (b.rate || 0) >= 4 && (b.left || 0) > 10)   /* only a leisure activity (sim/activities.js actId); never work, auto-work, sleep, a class or a wait for transport */ { G.endActivity(true); toast(`Time to go: ${a.title} at ${clock(a.t)}.`, 'info', 4200); } } catch (e) { /* no activity layer */ }
   try { if (G.navArrow && G.navArrow.banner) G.navArrow.banner(late ? 'Leave now, running late' : 'Time to leave', `${a.title} · ${clock(a.t)} · ${how}`, { ms: 8000, red: late }); } catch (e) { /* no banner layer */ }
 }
 

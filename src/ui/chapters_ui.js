@@ -63,9 +63,9 @@ function build() {
   injectCss();
   const d = { wrap: el('div.chd-wrap'), typing: null, full: '', res: null, mode: null };
   d.face = el('div.chd-face'); d.name = el('b.chd-name'); d.sub = el('small.chd-sub');
-  d.logB = el('button.chd-b', { text: 'Log', onclick: e => { e.stopPropagation(); log(); } });
-  d.outB = el('button.chd-b', { text: '...', 'aria-label': 'More', onclick: e => { e.stopPropagation(); menu(); } });
-  d.text = el('div.chd-text'); d.more = el('div.chd-more', { text: '▼' });
+  d.logB = el('button.chd-b', { text: 'Log', 'data-pad': 'aside' /* PAD HOOK */, onclick: e => { e.stopPropagation(); log(); } });
+  d.outB = el('button.chd-b', { text: '...', 'aria-label': 'More', 'data-pad': 'aside', onclick: e => { e.stopPropagation(); menu(); } });
+  d.text = el('div.chd-text', { 'data-pad': 'line' /* PAD HOOK: A on the line = a tap on the sheet (the click bubbles to d.wrap) */ }); d.more = el('div.chd-more', { text: '▼' });
   d.opts = el('div.chd-opts');
   d.box = el('div.chd', null, el('div.chd-head', null, d.face, el('div.chd-id', null, d.name, d.sub), d.logB, d.outB), d.text, d.more, d.opts);
   d.wrap.append(d.box);

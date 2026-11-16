@@ -3,7 +3,7 @@ import { G } from '../core/game.js';
 /** el('div.cls.cls2', {attrs/onclick/text/html}, ...children) */
 export function el(sel, props, ...kids) {
   const [tag, ...cls] = sel.split('.'); const e = document.createElement(tag || 'div'); if (cls.length) e.className = cls.join(' ');
-  if (props) for (const k in props) { const v = props[k]; if (k === 'text') e.textContent = v; else if (k === 'html') e.innerHTML = v; else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v); else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v); }
+  if (props) for (const k in props) { const v = props[k]; if (k === 'text') e.textContent = v; else if (k === 'html') e.innerHTML = v; else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v); else if (k.startsWith('on')) { if (v) { e.addEventListener(k.slice(2), v); if (k === 'onclick' || k === 'onpointerdown' || k === 'onpointerup') e._pn = 1; /* PAD HOOK (ui/padnav.js): this element can be pressed, so a controller / the arrow keys can focus it */ } } else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v); }
   for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) e.append(c.nodeType ? c : document.createTextNode(String(c)));
   return e;
 }

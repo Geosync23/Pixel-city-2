@@ -47,7 +47,8 @@ export function draw(st, key, rnd = Math.random) {
   const ids = pool(key); st.bags = st.bags || {}; st.recent = st.recent || [];
   let bag = (st.bags[key] || []).filter(id => ids.includes(id));
   if (!bag.length) { bag = ids.filter(id => id !== st.last); if (!bag.length) bag = ids.slice(); }
-  let c = bag.filter(id => id !== st.last); if (!c.length) c = bag; const fresh = c.filter(id => !st.recent.includes(id)); if (fresh.length) c = fresh;
+  let c = bag.filter(id => id !== st.last); if (!c.length) { const rest = ids.filter(id => id !== st.last); if (rest.length) bag = c = rest; else c = bag; }   /* all that is left is the tune heard a moment ago in another pool: start the next round */
+  const fresh = c.filter(id => !st.recent.includes(id)); if (fresh.length) c = fresh;
   const id = c[(rnd() * c.length) | 0]; st.bags[key] = bag.filter(x => x !== id); const keys = Object.keys(st.bags); if (keys.length > 40) delete st.bags[keys[0]];
   return id;
 }

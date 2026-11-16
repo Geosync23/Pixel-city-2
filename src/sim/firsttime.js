@@ -74,7 +74,7 @@ function present(id, now) {
   const card = el('div.ftw-card', { role: 'dialog', 'aria-label': t.title },
     el('div.ftw-head', null, iconEl(t.icon || (sys && sys.icon) || 'sys.first', 2), el('small', { text: sys ? `First time · ${t.head || (WINDOW_BY_ID[id] && WINDOW_BY_ID[id].head) || sys.name}` : 'First time' })),
     el('b.ftw-title', { text: t.title }), el('p', { text: t.text }),
-    el('div.ftw-btns', null, t.go ? el('button.ftw-go', { 'data-ftw': 'go', onclick: () => done('go') }, t.goLabel || 'Show me') : null, el('button.ftw-ok', { 'data-ftw': 'ok', onclick: () => done('ok') }, 'Got it')),
+    el('div.ftw-btns', null, t.go ? el('button.ftw-go', { 'data-ftw': 'go', onclick: () => done('go') }, t.goLabel || 'Show me') : null, el('button.ftw-ok', { 'data-ftw': 'ok', 'data-pad': 'default' /* PAD HOOK: a controller's focus starts on Got it, not on Show me */, onclick: () => done('ok') }, 'Got it')),
     first ? el('small.ftw-foot', { text: 'Each of these comes once. They are all in Bay Basics to read again, and Settings can switch them off.' }) : null);
   const wrap = el('div', { id: 'ftw', onpointerdown: e => { if (e.target === wrap) { e.stopPropagation(); } } }, card);
   injectCss(); root().append(wrap); G.modal++; M = { id, el: wrap, done }; addEventListener('keydown', key, true);

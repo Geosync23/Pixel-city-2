@@ -35,7 +35,7 @@ function build() {
   H.time = el('div.hud-chip.hud-time', { title: 'Time' }, H.wx, el('div.hud-tcol', null, H.clock, H.date));
   /* My Day: the one phone feature with its own HUD button (owner msg 107). The sheet lives in ui/myday.js. */
   H.dayBadge = el('span.hud-badge');
-  H.day = el('button.hud-chip.hud-myday', { 'aria-label': 'My Day: your schedule and ideas', onclick: () => { togglePanel(false); if (G.myDay && G.myDay.open) G.myDay.open(); else if (G.phone && G.phone.open) G.phone.open('planner'); } }, iconEl('myday.btn', 2), el('b', null, 'My', el('br'), 'Day'), H.dayBadge);
+  H.day = el('button.hud-chip.hud-myday', { 'aria-label': 'My Day: your schedule and ideas', onclick: () => { togglePanel(false); if (G.myDay && G.myDay.open) G.myDay.open(); else if (G.phone && G.phone.open) G.phone.open('planner'); } }, iconEl('myday.btn', 2), el('b', null, 'My', el('br'), 'Day'), H.dayBadge, el('i.pg', { 'data-pg': 'y' }) /* PAD HOOK: a glyph slot, empty and hidden unless a controller is in use (ui/padnav.js) */);
   H.face = el('span.hud-face');
   H.needs = el('button.hud-needs', { 'aria-label': 'Needs and mood', onclick: e => {   /* QA8: a low / critical meter opens "where can I fix this?" at once, as the toasts and the first-time window promise */
     const mt = e && e.target && e.target.closest && e.target.closest('.hud-need'), n = mt && NEEDS.find(q => meters[q.id] && meters[q.id].m === mt);
@@ -52,13 +52,13 @@ function build() {
   H.saved = el('span.hud-saved', { text: 'Saved' });
   H.ind = el('div.hud-ind');
   // bottom
-  H.prompt = el('button.hud-prompt', { onclick: () => { const it = !G.busy && !G.cutscene && !G.modal && G.nearestInteractable(); if (it) G.useInteractable(it); } }, el('kbd', { text: 'E' }), H.promptT = el('span'));
+  H.prompt = el('button.hud-prompt', { onclick: () => { const it = !G.busy && !G.cutscene && !G.modal && G.nearestInteractable(); if (it) G.useInteractable(it); } }, el('i.pg', { 'data-pg': 'ok' }), el('kbd', { text: 'E' }), H.promptT = el('span'));   /* PAD HOOK: glyph slot */
   H.actL = el('span.hud-act-l'); H.actT = el('span.hud-act-t'); H.actFill = el('i');
   H.actX = el('button.hud-act-x', { 'aria-label': 'Stop', onclick: () => { if (G.busy && G.busy.canCancel !== false) G.endActivity(false); } }, 'Stop');
   H.act = el('div.hud-act', null, el('div.hud-act-top', null, H.actL, H.actT), el('div.hud-act-bar', null, H.actFill), H.actX);
   H.bagBadge = el('span.hud-badge'); H.phoneBadge = el('span.hud-badge');
-  H.bag = el('button.hud-btn.hud-bag', { 'aria-label': 'Backpack', onclick: () => G.inv && G.inv.open() }, iconEl('ui.backpack', 2), H.bagBadge);
-  H.phone = el('button.hud-btn.hud-phone', { 'aria-label': 'Phone', onclick: () => (G.phone && G.phone.open ? G.phone.open() : toast('No signal yet.', 'info')) }, iconEl('ui.phone', 3), H.phoneBadge);
+  H.bag = el('button.hud-btn.hud-bag', { 'aria-label': 'Backpack', onclick: () => G.inv && G.inv.open() }, iconEl('ui.backpack', 2), H.bagBadge, el('i.pg', { 'data-pg': 'x' }));
+  H.phone = el('button.hud-btn.hud-phone', { 'aria-label': 'Phone', onclick: () => (G.phone && G.phone.open ? G.phone.open() : toast('No signal yet.', 'info')) }, iconEl('ui.phone', 3), H.phoneBadge, el('i.pg', { 'data-pg': 'start' }));
   H.panel = el('div.hud-panel');
   H.paused = el('button.hud-paused', { onclick: () => pause(false) }, el('b', { text: 'Paused' }), el('span', { text: 'tap to continue' }));
   H.root.append(el('div.hud-tl', null, el('div.hud-tlrow', null, H.day, H.time), H.needs), el('div.hud-tr', null, el('div.hud-trrow', null, H.saved, H.money), H.delta, H.speed, H.ind), el('div.hud-bc', null, H.prompt, H.act), el('div.hud-br', null, H.bag, H.phone), H.panel, H.paused);
@@ -139,7 +139,7 @@ function fast() {
   } else H.act.classList.remove('on');
   /* QA8 (perf): the nearest-thing scan walks every interactable of the scene; it runs again only when the player has moved, the scene / state changed, or every 6th frame (people walking into range) */
   const on = !busy && !cut && !G.modal && !!G.scene, p = G.player, key = on ? G.scene.id : '';
-  let it = lastPrompt; if (!on) it = null; else if (key !== pk.s || !p || Math.abs(p.x - pk.x) > .2 || Math.abs(p.y - pk.y) > .2 || ++pk.n >= 6) { pk.s = key; pk.n = 0; if (p) { pk.x = p.x; pk.y = p.y; } it = G.nearestInteractable(); }
+  let it = lastPrompt; if (!on) it = null; else if (key !== pk.s || !p || Math.abs(p.x - pk.x) > .2 || Math.abs(p.y - pk.y) > .2 || ++pk.n >= 6) { pk.s = key; pk.n = 0; if (p) { pk.x = p.x; pk.y = p.y; } it = G.pad && G.pad.active && G.padnav ? G.padnav.target() : G.nearestInteractable(); /* PAD HOOK: with a controller the prompt names the highlighted target */ }
   if (!on) pk.s = '';
   if (it !== lastPrompt) { lastPrompt = it; H.prompt.classList.toggle('on', !!it); if (it) H.promptT.textContent = it.label || 'Use'; }
 }

@@ -27,7 +27,7 @@ export function openTalk(ses) {
     const por = portrait(ses.spec), tierEl = el('span.talk-tier'), fill = el('i'), meter = el('div.talk-meter', null, fill, el('u', { style: { left: '15%' } }), el('u', { style: { left: '40%' } }), el('u', { style: { left: '75%' } }));
     const you = el('div.talk-you'), txt = el('div.talk-txt'), more = el('span.talk-more', { text: '▶' }), verbs = el('div.talk-verbs');
     const face = el('div.talk-face', null, por.cv), head = el('div.talk-head', null, el('div.talk-id', null, el('b', { text: ses.name }), el('small', { text: ses.role || '' })), el('div.talk-rel', null, tierEl, meter));
-    const line = el('div.talk-line', { onclick: () => advance() }, you, txt, more);
+    const line = el('div.talk-line', { 'data-pad': 'line' /* PAD HOOK (ui/padnav.js) */, onclick: () => advance() }, you, txt, more);
     const box = el('div.talk', { role: 'dialog', 'aria-label': 'Conversation with ' + ses.name }, face, el('div.talk-main', null, head, line, verbs));
     const wrap = el('div.talk-wrap', null, box); document.getElementById('ui').append(wrap); G.modal++;
     const setRel = () => { const t = ses.tier(), r = ses.rel(); tierEl.textContent = t.label; tierEl.dataset.t = t.family ? 'family' : t.id; fill.style.width = Math.max(2, Math.min(100, r)) + '%'; if (G.rel && G.rel.talkMeter) try { G.rel.talkMeter(ses, head); } catch (e) { /* REL (add-only): the romance meter */ } };

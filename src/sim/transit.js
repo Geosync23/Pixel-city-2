@@ -114,7 +114,8 @@ function rideTick(dt) {
     if (hud) {
       hud.fill.style.width = Math.round(r.progress * 100) + '%';
       if (r.kind === 'bus') { const b = r.bus, ns = b.loop.stops[b.nsi], d = r.destination && TX().busStopName(r.destination), left = busLeft(r), ob = r.offBtn;
-        if (left !== null) {   /* QA7: on a Map trip the right stop is unmistakable: the stop count is live, and "Get off" is only offered at (or just before) YOUR stop */
+        if (r.missed && hud.s) { hud.s.textContent = 'You missed your stop: get off at the next one, new directions will follow'; if (ob) { ob.style.display = ''; ob.classList.add('primary'); ob.textContent = r.offNext ? 'Getting off at the next stop ✓' : 'Get off at next stop'; } }   /* QA14: the arrow said "get off at the next stop" while this line said "stay on, 8 stops away" */
+        else if (left !== null) {   /* QA7: on a Map trip the right stop is unmistakable: the stop count is live, and "Get off" is only offered at (or just before) YOUR stop */
           const mn = navTrip().alight.name, show = left === 0 || (left === 1 && !b.atStop);
           hud.s.textContent = left === 0 ? 'THIS IS YOUR STOP: ' + mn : left === 1 ? (b.atStop ? 'Stay on: your stop ' + mn + ' is next' : 'Your stop is next: ' + mn) : (b.atStop ? 'At ' : 'Next: ') + ns.poi.name + ' · stay on, your stop ' + mn + ' is ' + left + ' stops away';
           if (ob) { ob.style.display = show ? '' : 'none'; ob.classList.toggle('primary', show); ob.textContent = left === 0 ? 'Get off here: your stop' : r.offNext ? 'Getting off at ' + mn + ' ✓' : 'Get off at ' + mn + ' (next)'; }
@@ -332,6 +333,7 @@ export function init() {
   };
   G.addSystem({ name: 'transit', update });
   G.on('bus:arrive', onBusArrive);
+  G.on('nav:stop', (ph, kind) => { if (ph === 'missed' && kind === 'bus' && ride && ride.kind === 'bus') ride.missed = true; });   /* QA14: ui/navarrow.js decides 'missed'; the ride HUD follows it */
   G.on('load', () => { S = G.state.transit; if (G.state.speed === BUS_CLOCK) G.state.speed = 1; if (ride) { G.cutscene = null; G.camTarget = null; G.player.hidden = false; hideHud(); ride = null; } pend = null; wait = null; });
   let built = false;
   G.on('scene', s => {

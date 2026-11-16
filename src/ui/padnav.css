@@ -1,0 +1,43 @@
+/* Controller support (src/ui/padnav.js). Everything here is invisible until <body> gets .pad-on (a controller is the input in use) or .kb-on (arrow keys). */
+.pg{display:none}
+.pgc{image-rendering:pixelated;image-rendering:crisp-edges;display:block;flex:none}
+#padnav{position:fixed;inset:0;pointer-events:none;z-index:9500;display:none;overflow:hidden}
+body.pad-on #padnav,body.kb-on #padnav{display:block}
+/* the focus ring: dark / gold / dark, so it shows on cream panels, on the dark phone and on the world alike */
+#pad-ring{position:absolute;left:0;top:0;display:none;box-shadow:0 0 0 2px #2a2733,0 0 0 5px #ffd23e,0 0 0 7px #2a2733;animation:padring .9s steps(2,jump-none) infinite alternate}
+#pad-ring.on{display:block}
+#pad-ring.bump{animation:padbump .18s steps(3)}
+@keyframes padring{from{box-shadow:0 0 0 2px #2a2733,0 0 0 5px #ffd23e,0 0 0 7px #2a2733}to{box-shadow:0 0 0 2px #2a2733,0 0 0 5px #fff6c4,0 0 0 7px #2a2733}}
+@keyframes padbump{0%{margin-left:-4px}50%{margin-left:4px}100%{margin-left:0}}
+#pad-cur{position:absolute;left:0;top:0;display:none;filter:drop-shadow(2px 2px 0 #2a273380)}
+#pad-cur.on{display:block}
+#pad-cur.down canvas{transform:translate(1px,2px) scale(.92);transform-origin:0 0}
+#pad-cur.cross canvas{display:none}
+#pad-cur.cross::after{content:"";display:block;width:22px;height:22px;box-sizing:border-box;border:3px solid #ffd23e;outline:2px solid #2a2733;box-shadow:inset 0 0 0 2px #2a2733;background:linear-gradient(#2a2733,#2a2733) center/2px 8px no-repeat,linear-gradient(#2a2733,#2a2733) center/8px 2px no-repeat}
+#pad-deco{display:none}
+body.pad-on #pad-deco{display:block}
+#pad-deco>i{position:absolute;left:0;top:0;display:block;filter:drop-shadow(1px 1px 0 #2a2733)}
+/* the legend strip: the game gives up 30 px at the bottom while a controller is in use, so the strip never covers anything */
+#pad-bar{display:none;position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom,0px);height:30px;z-index:9400;background:#1b1a24;color:#fff4dc;font:700 13px/30px "Pixelify Sans",ui-rounded,"Trebuchet MS",system-ui,sans-serif;align-items:center;justify-content:center;gap:12px;padding:0 8px;white-space:nowrap;overflow:hidden;pointer-events:none;border-top:2px solid #3a3644}
+body.pad-on #pad-bar{display:flex}
+body.pad-on #wrap{height:calc(100% - 30px)}
+#pad-bar>span{display:inline-flex;align-items:center;gap:4px}
+@media (max-width:620px){#pad-bar>span.wide{display:none}#pad-bar{gap:9px;font-size:11px}}
+/* glyph slots inside the game's own UI */
+body.pad-on .pg{display:inline-block;vertical-align:middle;line-height:0}
+body.pad-on .hud-prompt kbd{display:none}
+body.pad-on .hud-prompt .pg{margin-right:2px}
+.hud-btn>.pg{position:absolute;left:-12px;top:-12px;filter:drop-shadow(1px 1px 0 #2a2733)}
+.hud-myday>.pg{position:absolute;right:-12px;bottom:-14px;z-index:2;filter:drop-shadow(1px 1px 0 #2a2733)}
+/* the pad keyboard */
+#pad-osk{position:absolute;inset:0;background:#1b1a2466;display:flex;align-items:flex-end;justify-content:center;z-index:9300}
+.osk{background:var(--panel);border:2px solid var(--edge);box-shadow:0 -3px 0 var(--edge);padding:8px;width:min(520px,100%);display:flex;flex-direction:column;gap:6px}
+.osk-text{min-height:34px;border:2px solid var(--edge);background:#fffdf4;padding:4px 8px;font-size:17px;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.osk-text.empty{opacity:.45;font-weight:500}
+.osk-keys{display:flex;flex-direction:column;gap:5px}
+.osk-row{display:flex;gap:4px;justify-content:center}
+.osk-row button{flex:1 1 0;min-width:0;min-height:34px;padding:2px 0;box-shadow:0 2px 0 var(--edge);font-size:15px}
+.osk-row button.wide{flex:1.6 1 0;font-size:12px}.osk-row button.space{flex:3 1 0;font-size:12px}.osk-row button.go{background:var(--gold)}
+.osk-row button .pg{margin-right:3px}
+.pad-set-glyphs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
+@media (prefers-reduced-motion:reduce){#pad-ring{animation:none}}

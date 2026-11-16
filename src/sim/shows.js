@@ -141,7 +141,7 @@ function walkAud(a, dt) { // straight-line waypoint walking (no pathfinding); re
 function setPhase(r, ph) {
   r.phase = ph; r.pt = 0; const v = r.venue, p = G.player;
   if (ph === 'dim') {
-    if (!r.mine) sitPlayer(r, r.seat0.taken ? r.hall.seats.find(s => !s.taken) : r.seat0); dropTicket(r.ticket); r.used = true; G.pending = null; G.target = null; G.cutscene = { update() { } }; r.cam.x = p.x; r.cam.y = p.y; r.cam.z = p.z; G.camTarget = r.cam;
+    if (!r.mine) sitPlayer(r, r.seat0.taken ? r.hall.seats.find(s => !s.taken) : r.seat0); dropTicket(r.ticket); r.used = true; G.pending = null; G.target = null; G.cutscene = { update() { }, clock: true };   /* QA14: the show owns the clock (the 'show' phase advances prog.minutes); the free clock also ran under it, so a 100-min film cost 157 game minutes */ r.cam.x = p.x; r.cam.y = p.y; r.cam.z = p.z; G.camTarget = r.cam;
     for (const a of r.aud) if (a.st === 2) a.pose = 'sit'; caption(null, 'The house lights dim. Phones away. A hush falls over the room.', 3400); sfx('hush'); log(r, `dim (seated ${r.seated}/${r.aud.length})`);
     if (unSkip) unSkip(); unSkip = skipButton('Leave early', () => api.leave());
   } else if (ph === 'show') { r.dir.start(r.prog, { cue: k => react(r, k), speed: () => api.debugSpeed || 1 }); log(r, 'start'); G.emit('show:start', { venue: v.id, showId: r.ticket.id, prog: r.prog.id }); }

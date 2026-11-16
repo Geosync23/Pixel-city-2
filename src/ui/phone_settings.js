@@ -39,6 +39,8 @@ export default {
       el('b', { text: 'First-time tips' }), el('div.ph-chips', { 'data-set': 'firsttime' }, chip('On', safe(() => G.firstTime.enabled(), true) ? 'on' : '', () => { safe(() => G.firstTime.setEnabled(true), 0); ctx.refresh(); }), chip('Off', safe(() => G.firstTime.enabled(), true) ? '' : 'on', () => { safe(() => G.firstTime.setEnabled(false), 0); ctx.tip('No more first-time windows. They are all still in Bay Basics.'); ctx.refresh(); })),
       el('p.ph-note', { text: 'A short window the first time you try something new. Each comes once; all of them can be read again in Bay Basics.' }),
       kv('Battery', 'Same as yours'), kv('Carrier', 'BayTel 4G')));
+    /* Controller (owner msg 143): its own section, only once a controller has been used (ui/padnav.js builds it) */
+    safe(() => G.padnav.settings(b, ctx), 0);
     b.append(section('More'));
     b.append(card(el('b', { text: 'Developer mode' }), el('div.ph-chips', null, chip('Off', !(G.dev && G.dev.on()) ? 'on' : '', () => { safe(() => G.dev.set(false), 0); ctx.refresh(); }), chip('On', G.dev && G.dev.on() ? 'on' : '', () => { safe(() => G.dev.set(true), 0); ctx.refresh(); })),
       el('p.ph-note', { text: 'Adds a DEV button to the bottom-left corner of the game screen: freeze needs, endless money, unlock everything, time and weather.' })));

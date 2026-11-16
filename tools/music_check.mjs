@@ -4,12 +4,12 @@
 //           time of day x district x season has at least 3); distinct pitches / chords / sections per tune; melodic-contour similarity of every pair.
 //   RENDER  every tune rendered offline by the SHIPPED code (dist/index.html, G.audio.debug.musicKit().renderSong, OfflineAudioContext in headless Chromium)
 //           -> out/music/<id>.wav (deleted afterwards unless --keep), measured: duration, integrated loudness and true peak (EBU R128, ffmpeg), share of
-//           energy above 6 kHz and spectral flatness for the whole tune and for its loudest second (0 = pure tones, ~0.56 = white noise in this measure).
+//           energy above 6 kHz and spectral flatness for the whole tune and for its loudest second (0 = pure tones; white noise measures 0.28, pink noise 0.25, and they have 75 % / 23 % of their energy above 6 kHz).
 //           --write: correct src/sim/_music_levels.js (the trim per tune that brings them all to TARGET LUFS behind the per-tune limiter; run it,
 //           build, run it again until the trims stop moving). Without it: render WITH the trims and assert every tune within +-1.5 LU of the target and no true peak above -1 dBTP.
 //   LIVE    the game by touch: no AudioContext before the first touch; 20+ contexts -> the right pool plays; 200 picks without an immediate repeat and
 //           with fair turns inside each pool; music stays off while a show / the TV is on; no frame over 100 ms when a tune starts; zero page errors.
-// Results: printed, and out/music/report.json. Exit code 1 if an assertion fails.
+// Results: printed, and out/music/report.json (a partial run writes report.part.json). Exit code 1 if an assertion fails.
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module'; import { execFileSync, spawnSync } from 'node:child_process';
 import { ROOT } from './artfiles.mjs';
 const require = createRequire(ROOT + '/'); const { chromium } = require('playwright');
@@ -126,8 +126,8 @@ async function render(br) {
   check(`integrated loudness of every tune within +-1.5 LU of ${TARGET} LUFS`, !off.length, off.map(id => id + ' ' + M[id].lufs).join(', ') || `${Math.min(...lu)} .. ${Math.max(...lu)} LUFS`);
   check('no clipping: true peak of every tune at or under -1 dBTP', !hot.length, hot.map(id => id + ' ' + M[id].peak).join(', ') || 'highest ' + Math.max(...ids.map(id => M[id].peak)) + ' dBTP');
   const worst = (k, n = 3) => ids.slice().sort((a, b) => M[b][k] - M[a][k]).slice(0, n).map(id => `${id} ${M[id][k]}`).join(', ');
-  check('nothing hiss-like: share of energy above 6 kHz under 3 % in every tune, under 8 % in its loudest second', ids.every(id => M[id].hf < 3 && M[id].topHf < 8), 'worst whole tune: ' + worst('hf') + ' %; worst loudest second: ' + worst('topHf') + ' %');
-  check('nothing noise-like: spectral flatness under 0.05 in every tune and in its loudest second (white noise measures 0.56, pink 0.2)', ids.every(id => M[id].flat < .05 && M[id].topFlat < .05), 'worst whole tune: ' + worst('flat') + '; worst loudest second: ' + worst('topFlat'));
+  check('nothing hiss-like: share of energy above 6 kHz under 3 % in every tune, under 8 % in its loudest second (white noise: 75 %, pink: 23 %)', ids.every(id => M[id].hf < 3 && M[id].topHf < 8), 'worst whole tune: ' + worst('hf') + ' %; worst loudest second: ' + worst('topHf') + ' %');
+  check('nothing noise-like: spectral flatness under 0.05 in every tune and in its loudest second (in this measure white noise is 0.28 and pink noise 0.25)', ids.every(id => M[id].flat < .05 && M[id].topFlat < .05), 'worst whole tune: ' + worst('flat') + '; worst loudest second: ' + worst('topFlat'));
   const ph = ids.map(id => M[id].phone - M[id].lufs); check('through a small speaker (nothing under 200 Hz) the tunes stay within +-3 LU of each other', Math.max(...ids.map(id => M[id].phone)) - Math.min(...ids.map(id => M[id].phone)) <= 6, `${Math.min(...ids.map(id => M[id].phone))} .. ${Math.max(...ids.map(id => M[id].phone))} LUFS; the band under 200 Hz carries ${Math.min(...ph.map(x => -x)).toFixed(1)} to ${Math.max(...ph.map(x => -x)).toFixed(1)} LU of a tune`);
   const len = ids.filter(id => M[id].sounding < 88 || M[id].sounding > 215); check('rendered length 1.5 to 3.5 minutes', !len.length, len.map(id => id + ' ' + M[id].sounding).join(', ') || `${mmss(Math.min(...ids.map(id => M[id].sounding)))} .. ${mmss(Math.max(...ids.map(id => M[id].sounding)))}`);
   report.worst = { hf: worst('hf'), topHf: worst('topHf'), flat: worst('flat'), topFlat: worst('topFlat') };
@@ -174,12 +174,12 @@ async function live(br) {
     check('the audio system logged no error', r.errors === 0, r.last || ''); }
   /* 200 picks through the bag, walking contexts like a day in the city */
   { const r = await pg.evaluate(() => { const K = G.audio.debug.musicKit(), st = { bags: {}, recent: [], last: null }, keys = ['out:morning:downtown:0', 'cafe', 'out:midday:oldtown:0', 'work', 'out:afternoon:market:0', 'shop', 'out:golden:harbor:0', 'home', 'out:evening:arts:0', 'bar', 'out:late:suburb:0', 'home_late', 'rain', 'train', 'cab'];
-      const seq = [], per = {}; let k = 0, broke = 0, refills = 0; for (let i = 0; i < 200; i++) { if (i % 3 === 0) k = (k + 1 + ((i * 7) % 4)) % keys.length; const key = keys[k], left = (st.bags[key] || []).filter(x => K.pool(key).includes(x)), id = K.draw(st, key); if (left.length && !left.includes(id)) broke++; if (!left.length) refills++; K.played(st, id); seq.push(id); (per[key] = per[key] || []).push(id); }
+      const seq = [], per = {}; let k = 0, broke = 0, refills = 0; for (let i = 0; i < 200; i++) { if (i % 3 === 0) k = (k + 1 + ((i * 7) % 4)) % keys.length; const key = keys[k], left = (st.bags[key] || []).filter(x => K.pool(key).includes(x)), was = st.last, id = K.draw(st, key); if (left.length && !left.includes(id) && !(left.length === 1 && left[0] === was)) broke++; if (!left.length) refills++; K.played(st, id); seq.push(id); (per[key] = per[key] || []).push(id); }
       let rep = 0, near = 0; for (let i = 1; i < seq.length; i++) { if (seq[i] === seq[i - 1]) rep++; if (i > 1 && seq[i] === seq[i - 2]) near++; }
       let spread = 0; for (const key in per) { const n = {}, ids = K.pool(key); for (const id of ids) n[id] = 0; for (const id of per[key]) n[id]++; const v = Object.values(n); spread = Math.max(spread, Math.max(...v) - Math.min(...v)); }
       return { rep, near, broke, refills, spread, distinct: new Set(seq).size, pools: Object.keys(per).length }; });
     check('200 picks across 15 pools: no immediate repeat', r.rep === 0, `${r.distinct} different tunes heard, ${r.near} came back after only one other tune`);
-    check('the bag rule held on every pick: a tune comes from what is left of its pool; the bag is refilled only when it is empty', r.broke === 0, `${r.refills} refills in 200 picks; largest difference in plays between two tunes of one pool: ${r.spread} (a tune just heard in another pool waits a round)`); R.bag = r; }
+    check('the bag rule held on every pick: a tune comes from what is left of its pool; the bag is refilled only when it is empty (or holds nothing but the tune just heard)', r.broke === 0, `${r.refills} refills in 200 picks; largest difference in plays between two tunes of one pool: ${r.spread} (a tune just heard in another pool waits a round)`); R.bag = r; }
   /* watching a show / the TV: the music stays out */
   { const r = await pg.evaluate(async at => { await toCity(at[0], at[1], 12); await tune(); await sleep(800); const before = !!G.audio.debug.music().playing; const K = G.audio.debug.musicKit();
       G.emit('show:start'); let during = 0; for (let i = 0; i < 40; i++) { await sleep(200); if (i > 12 && G.audio.debug.music().playing) during++; } G.emit('show:end');
@@ -199,6 +199,6 @@ if (!ONLY || ONLY !== 'static') {
   try { if (!ONLY || ONLY === 'render') await render(br); if ((!ONLY || ONLY === 'live') && !WRITE) await live(br); } finally { await br.close(); srv.close(); }
 }
 report.size = { dist: fs.existsSync(path.join(ROOT, 'dist/index.html')) ? fs.statSync(path.join(ROOT, 'dist/index.html')).size : 0, source: fs.readdirSync(path.join(ROOT, 'src/sim')).filter(f => /^_music_|^_audio_music/.test(f)).reduce((a, f) => a + fs.statSync(path.join(ROOT, 'src/sim', f)).size, 0) };
-fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(report, null, 1));
-console.log(`\n${results.length - fails.length} of ${results.length} checks passed` + (fails.length ? '; FAILED: ' + fails.join(' | ') : '') + `. Music source ${(report.size.source / 1024).toFixed(0)} KB, game file ${(report.size.dist / 1024).toFixed(0)} KB. Report: out/music/report.json`);
+const RF = ONLY || TUNES || WRITE ? 'report.part.json' : 'report.json'; fs.writeFileSync(path.join(OUT, RF), JSON.stringify(report, null, 1));   /* a partial run never overwrites the full report */
+console.log(`\n${results.length - fails.length} of ${results.length} checks passed` + (fails.length ? '; FAILED: ' + fails.join(' | ') : '') + `. Music source ${(report.size.source / 1024).toFixed(0)} KB, game file ${(report.size.dist / 1024).toFixed(0)} KB. Report: out/music/${RF}`);
 process.exit(fails.length ? 1 : 0);

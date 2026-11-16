@@ -318,6 +318,8 @@ function open(o = {}) {
   M.bot = el('div', { id: 'fz-bot' }, M.act, M.tabs, M.chips, M.tray);
   M.pill = el('div', { id: 'fz-pill', style: 'display:none' }); M.tags = el('div', { id: 'fz-tags' });
   root().append(M.tags, M.pill, M.top, M.bot); if (G.hud && G.hud.el) G.hud.el.classList.add('fz-hide');
+  /* PAD HOOK (ui/padnav.js): the room between the two panels is a surface a controller can step onto: the stick moves a pointer, hold A on a piece to drag it, Y turns, X undoes */
+  M.padS = G.padnav && G.padnav.addSurface ? G.padnav.addSurface({ el: G.cv, kind: 'cursor', keys: { y: 'r', x: 'u' }, hints: [['y', 'Turn'], ['x', 'Undo']], rect: () => { const t = M ? M.top.getBoundingClientRect().bottom : 0, b = M ? M.bot.getBoundingClientRect().top : innerHeight; return { left: 0, top: t, right: innerWidth, bottom: b }; } }) : null;
   const cv = G.cv; cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointerup', onUp); cv.addEventListener('pointercancel', onUp); cv.addEventListener('pointermove', onMove);
   M.ov = (ctx, cam, dt) => overlay(ctx, cam, dt); G.overlays.push(M.ov);
   M.key = e => { if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) { if (e.key === 'Escape') e.target.blur(); e.stopPropagation(); return; } if (e.key === 'Escape') { e.stopPropagation(); if (M.sel) select(null); else close(); } else if (e.key === 'r' || e.key === 'R') turn(); else if (e.key === 'u' || e.key === 'U' || ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); undo(); } }; addEventListener('keydown', M.key, true);
@@ -332,6 +334,7 @@ function open(o = {}) {
 }
 function teardown() {
   const m = M; if (!m) return; M = null; down = null; G.camTarget = m.prevCam || null;
+  if (m.padS) m.padS();   /* PAD HOOK */
   m.top.remove(); m.bot.remove(); m.pill.remove(); m.tags.remove(); if (G.hud && G.hud.el) G.hud.el.classList.remove('fz-hide');
   const cv = G.cv; cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp); cv.removeEventListener('pointermove', onMove); removeEventListener('keydown', m.key, true);
   const i = G.overlays.indexOf(m.ov); if (i >= 0) G.overlays.splice(i, 1);
