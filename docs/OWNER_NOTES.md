@@ -133,3 +133,4 @@
 113. (msg 153) Asked for the status of each worker; answered (controller: built, proving with its fake-pad run; traffic: baseline measured, now editing the driving; QA lane idle).
 114. (msg 154) Asked to see the night-light change: the two comparison pictures (docs/shots/light_compare_1/2.png) were sent again; still waiting for his go-ahead.
 115. (msg 155) NIGHT LIGHT APPROVED: the trial look (light pools on the ground, people / objects lit as a whole by the nearest light, no pattern over characters) is to be implemented; queued on the Fable docket after bathrooms (docket order kept).
+116. (msg 156) Asked whether an Opus agent could do any of the queued work (e.g. controller support). Answered: controller stays with its running Fable worker; Opus could take the small specified fixes and data-level seating fixes and the controller / traffic test passes; night light / bathrooms stay Fable unless he relaxes his rule (msgs 105/107). Waiting for his answer.

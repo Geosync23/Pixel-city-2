@@ -589,3 +589,6 @@ Show me the ligjt nigjt change
 
 ## 155 (2026-11-16)
 Light approved
+
+## 156 (2026-11-16)
+Can an opus agent do any of this? Like controller support?
