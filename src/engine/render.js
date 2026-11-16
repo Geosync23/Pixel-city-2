@@ -65,7 +65,7 @@ function behindLong(p, q, sx, sy) {
     const gx = sx < 0 ? B[0] - A[3] : sx > 0 ? A[0] - B[3] : 0, gy = sy < 0 ? B[1] - A[4] : sy > 0 ? A[1] - B[4] : 0; let s, g;
     if (sx && sy && sx !== sy) { SOFT = 1; if (gx > gy) { s = sx; g = gx; } else { s = sy; g = gy; } }
     else if (sx && (!sy || gx >= gy)) { s = sx; g = gx; } else { s = sy; g = gy; }
-    if (sz && sz !== s) { const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; if (gz >= ZM) { SOFT = 0; return sz < 0; }   /* (a hard link: the lower one can never cover the upper one) */ SOFT = 1; if (gz > g) return sz < 0; }
+    if (sz && sz !== s) { const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; SOFT = 1; if (gz >= ZM || gz > g) return sz < 0; }
     return s < 0;
   }
   if (sz) return sz < 0;
@@ -100,7 +100,7 @@ function hexMiss(h, r) { return r[0] >= h[1] || r[2] <= h[0] || r[1] + r[0] * .5
 /** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint}. n: only the first n items of L; out: array to fill (perf: the renderer reuses its lists; the scratch arrays below are reused too, so a frame allocates nothing here)
  * Links that contradict each other (A behind B behind C behind A): the walk below drops whichever link it meets last. Occlusion pass: links have a weight (SOFT, see behind()). If the walk dropped a
  * link that is not of the weakest kind, the frame is sorted again without the weakest links, starting from the order just found, and if that still drops a hard link, once more by the hard links alone
- * (resort): a weaker link never undoes a stronger one. Frames without such a loop (nearly all) are sorted exactly as before. */
+ * (resort): a weaker link never undoes a stronger one. Only for loops with somebody who moves in them; all other frames are sorted exactly as before. */
 let sDeps = [], sCnt = new Int32Array(256), sOrder = new Int32Array(256), sStack = new Int32Array(1024), sSt = new Uint8Array(256), sPos = new Int32Array(256);
 const SB = 1 << 24, SB2 = 1 << 25, SM = SB - 1; export const SORT = { resorts: 0 };   // a link = the index of the item behind (+ SB: soft 1, + SB2: soft 2)
 export function sortItems(L, n = L.length, out = []) {
@@ -111,7 +111,7 @@ export function sortItems(L, n = L.length, out = []) {
   /* order = indices by sort hint k, stable (an insertion sort: the same order as the Array.sort((p, q) => L[p].k - L[q].k) it replaces, without its temporary arrays) */
   for (let i = 0; i < n; i++) { const k = L[i].k; let j = i - 1; while (j >= 0 && L[order[j]].k > k) { order[j + 1] = order[j]; j--; } order[j + 1] = i; }
   let sp = 0, m = 0, bad = false;   // (st: 1 = being walked, 2 = drawn; bad: a link that is not of the weakest kind was dropped)
-  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB2) bad = true; } else { sp -= 2; st[i] = 2; const it = L[i]; it._i = i; out[m++] = it; } } }
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB2 && !bad) { for (let k = sp - 2; k >= 0; k -= 2) { const x = stack[k]; if (L[x].m) { bad = true; break; } if (x === c) break; } }   /* (only a loop with somebody who moves in it: loops among placed objects alone are left as they always were) */ } else { sp -= 2; st[i] = 2; const it = L[i]; it._i = i; out[m++] = it; } } }
   if (bad) { SORT.resorts++; if (resort(L, n, out, SB2)) resort(L, n, out, SB); }
   if (out.length !== m) out.length = m;
   return out;
@@ -135,7 +135,7 @@ function sortItemsRef(L) {
   const order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
   /* walk(lim): follow the links whose weight is below lim, drop a link that points back into the walk -> { out: indices in draw order, bad: a link of weight < lim - 1 was dropped, hard: a hard link was } */
   const walk = lim => { const out = [], st = new Uint8Array(n), stack = []; let bad = false, hard = false;
-    for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (idx < d.length) { stack[stack.length - 1]++; const c = d[idx], w = soft[i][idx]; if (w >= lim) continue; if (!st[c]) { st[c] = 1; stack.push(c, 0); } else if (st[c] === 1) { if (w < 2) bad = true; if (!w) hard = true; } } else { stack.length -= 2; st[i] = 2; out.push(i); } } }
+    for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (idx < d.length) { stack[stack.length - 1]++; const c = d[idx], w = soft[i][idx]; if (w >= lim) continue; if (!st[c]) { st[c] = 1; stack.push(c, 0); } else if (st[c] === 1) { if (w < 2 && !bad) for (let k = stack.length - 2; k >= 0; k -= 2) { if (L[stack[k]].m) { bad = true; break; } if (stack[k] === c) break; } if (!w) hard = true; } } else { stack.length -= 2; st[i] = 2; out.push(i); } } }
     return { out, bad, hard }; };
   let w = walk(3);
   if (w.bad) { order.length = 0; for (const i of w.out) order.push(i); w = walk(2); if (w.hard) { order.length = 0; for (const i of w.out) order.push(i); w = walk(1); } }

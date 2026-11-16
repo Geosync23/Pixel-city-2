@@ -849,3 +849,6 @@ Keep the MON to SUN tags. Yes
 Re-stage the weak activity shots (rainy evening, the date, gym, cooking, home) so they read better. The shot order and everything else stay exactly as they are. If yiu tbink so they seemed ok. You make the call
 
 Reading time is fine
+
+## 208 (2026-11-16)
+ bathrooms can be simple lets not good crazy except for signature buildings. All shops bathrooms should be very simple

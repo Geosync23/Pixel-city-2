@@ -134,8 +134,8 @@ function placeCars(set, st) {
     const e = ax ? [q.x - 5.5, q.y, q.x + 5.5, q.y] : [q.x, q.y - 5.5, q.x, q.y + 5.5];
     const zd = Math.ceil(Math.max(N.rail.deckZ(q.x, q.y), N.rail.deckZ(e[0], e[1]), N.rail.deckZ(e[2], e[3])) * 8) / 8 + .0625;
     // footprint slightly inside the deck's and the other track's; sort base above every top that ends below the car body
-    // The sort box is also stretched along the track to the full extent of the deck segments under the car: otherwise a pier / lamp under the far end of
-    // such a segment is "in front" of the car by x while "behind" the deck by z and the deck is "behind" the car -> a cycle the sorter breaks differently each frame.
+    // (Until the occlusion pass the sort box was also stretched along the track over the deck segments under the car, against loops pier -> car -> deck -> pier. The renderer now settles those
+    // itself (engine/render.js behindLong: what is clear above a box is drawn after it), and the stretched boxes made cars of one train reach into each other; kept only for ?occl=old.)
     const x0 = c.x, y0 = c.y, x1 = c.x + (ax ? 12 : 2.2), y1 = c.y + (ax ? 2.2 : 12); let top = zd, lo = ax ? x0 : y0, hi = ax ? x1 : y1; const U = underList(N);
     for (const ob of U) { const B = ob.B; if (B[0] >= x1 || x0 >= B[3] || B[1] >= y1 || y0 >= B[4]) continue; if (B[5] > top && B[5] < zd + .9 && B[2] < zd) top = B[5]; }
     const zs = (top > zd ? Math.ceil((top + .02) * 16) / 16 : zd) + SORT_UP; c.z = zs; c.lift = zs - zd; { const v = c.vb; v[2] = ax ? 12.3 : 2.5; v[3] = ax ? 2.5 : 12.3; v[5] = -c.lift; }

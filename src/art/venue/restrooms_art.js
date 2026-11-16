@@ -120,7 +120,7 @@ function panelX(s, x, y0, y1, z0, z1, c) {
   else lw([x, y0, z1 - .02], [x, y1, z1 - .02], lt(c, .2));
 }
 function stall(p) {
-  const s0 = ST[p.style] || ST.diner, s = p.c ? Object.assign({}, s0, { panel: p.c, door2: lt(p.c, .1), back: p.c2 || s0.back }) : s0;
+  const s0 = ST[p.style] || ST.diner, s = p.c || p.deco || p.m ? Object.assign({}, s0, p.c ? { panel: p.c, door2: lt(p.c, .1), back: p.c2 || s0.back } : {}, p.deco ? { deco: p.deco === 'none' ? null : p.deco } : {}, p.m ? { m: p.m, post: p.post || s0.post } : {}, p.frames ? { frames: true } : {}) : s0;   // batch 4: brand overrides (colour, deco, metal)
   const _x = s, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner ? .05 : s.zb > .15 && s.deco ? .06 : .1, dTop = s.dTop || (s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H), occ = !!p.occ, cy = D * .45;
   const red = (q, pts, c) => { const X = Math.round(q[0]), Y = Math.round(q[1]); for (const [a, b] of pts) px(X + a, Y + b, C(c)); };
   if (s.back) qy(0, W, .01, 0, Math.min(H, 2.2), s === ST.hall ? (u, v) => (v % 10 === 0 ? '#d6cfc0' : (u + (v / 10 | 0) * 7) % 14 === 0 ? '#d6cfc0' : s.back) : s.back);   // the wall inside the stall
@@ -238,7 +238,7 @@ function sign(p) {
 }
 const DOORS = { pizza: ['#3f8a55', '#f4f0e8', CHROME, 'WC'], bakery: ['#a8c8d8', '#f0e0c0', '#c2c8cc', 'WC'], aqua: ['#1f7a8a', '#c9a35a', BRASS, 'WC'], nook: ['#7a5a3a', '#3a3036', '#c2c8cc', 'WC'], service: ['#8e979d', '#5e666c', '#c2c8cc', 'WC'], library: ['#6a4a30', '#e9e0cc', BRASS, 'WC'], museum: ['#f4f2ee', '#2a2a2e', '#2a2a2e', 'WC'], gym: ['#e2572e', '#3a3f4c', '#c2c8cc', 'WC'], bar: ['#2a2430', '#1e1a22', '#8a8f98', 'WC'] };
 function door(p) {
-  const sky = p.style === 'sky', c = sky ? '#4a3326' : '#c8233a', D2 = DOORS[p.style];
+  const sky = p.style === 'sky', c = sky ? '#4a3326' : '#c8233a', D2 = p.c ? [p.c].concat((DOORS[p.style] || DOORS.nook).slice(1)) : DOORS[p.style];   // p.c: a branch's own door colour (post offices)
   if (D2) {   // batch 2 doors: [leaf, frame, metal, plate text]
     const [lc, fc, m, t] = D2; qy(-.06, 1.06, .02, 0, 2.12, fc); qy(.03, .97, .05, 0, 2.04, lc); frameY(.03, .97, .05, 0, 2.04, dk(lc, .4));
     if (p.style === 'library') { frameY(.14, .86, .055, .2, .95, dk(lc, .3)); frameY(.14, .86, .055, 1.08, 1.9, dk(lc, .3)); dot(.82, .06, 1.0, BRASS); dot(.82, .06, 1.0, BRASS, 1, 0); qy(.3, .7, .06, 1.42, 1.62, BRASS); label(t, .3, .7, .06, 1.6, '#3a2a14'); }
