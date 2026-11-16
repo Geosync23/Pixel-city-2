@@ -63,8 +63,9 @@ const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(locati
 /* mode: 'new' | 'old' (the mask over everything, as before; ?nightlight=old or G.renderer.nightLight('old')). props: placed objects can be lit as a whole too (false = only what moves; ?nightlight=noprops or G.renderer.nightLight('noprops' | 'props')); gen: counts changes of `props`. step: one band = this much of a pool's full strength (the pool's own rings are 1 / .7 / .35 with dithered halves in between, so .175 = one ring).
  * max: most bands (pools add up). hyst: a band only changes when the light is this far (in bands) past the edge. rate: frames between two band steps (a change of several bands is walked through, never jumped).
  * big: an entity whose sprite is larger than this many px keeps the pattern like the static world (train cars, airliners, parade floats, stage screens); vehicles are always lit as a whole.
+ * tiles / tile / tileMax / tileWait: the mask tiles (Renderer._maskTiles; ?nightlight=notiles paints the mask directly every frame, as before).
  * propFoot / propBig: which placed objects are lit as a whole (wholeOb below: footprint in tiles, painted box in px). promote / perFrame / slots / budget: the flat-colour copies (silGet below). */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), gen: 1, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 10, promoteBig: 4, perFrame: 2, slots: 4, budget: 2.5e6 };
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 4, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
 let LB = new Float32Array(7 * 64), nLB = 0, lX0 = 0, lY0 = 0, lX1 = 0, lY1 = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 function addLight(cx, cy, c, a, owner) {
   if (!c._rgb || !(a > 0)) return; if ((nLB + 1) * 7 > LB.length) { const n = new Float32Array(LB.length * 2); n.set(LB); LB = n; }
@@ -302,7 +303,7 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length, nlTiles: this._mt ? this._mt.tiles.size : 0, nlTileBakes: this._mt ? this._mt.bakes : 0 }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). nightLight('noprops' | 'props'): only what moves is lit as a whole / upright placed objects too (default). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; else if (mode === 'props' || mode === 'noprops') { NL.props = mode === 'props'; NL.gen++; } return NL.mode; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this.ctx.imageSmoothingEnabled = false; }
@@ -381,6 +382,36 @@ export class Renderer {
     this.stats.chunks = n;
   }
   /**
+   * perf: the light mask of the world's own lights, in tiles. A tile (NL.tile px square, world px) holds exactly what the frame used to paint there every time: the ambient colour, then every pool of
+   * world.lights that reaches it, added with the night's strength al: the same sprites at the same whole-pixel places in the same way, so the same pixels. The tiles are good while the ambient colour, al and
+   * the lights stay as they are (a checksum over world.lights, every frame): all night outdoors, all day indoors. While they change (dusk, dawn, a lamp switched) the mask is painted directly, as before.
+   * One missing tile is painted per frame (that frame is painted directly as well); at most NL.tileMax are kept (least recently drawn first to go; 24 x 256 x 256 x 4 bytes = 6 MB).
+   * Returns true if the mask has been drawn from tiles (the caller then only adds the moving lights). Also notes the pools on screen for the night light (addLight).
+   */
+  _maskTiles(world, cam, amb, al, m, nlOn) {
+    const LL = world.lights, W = this.W, H = this.H, T = NL.tile, fr = this.frameNo, K = this._mt || (this._mt = { world: null, amb: '', al: -1, sig: 0, since: 0, tiles: new Map(), spare: [], bakes: 0 });
+    /* checksum of the lights + (for the night light) the pools on screen */
+    let h = LL.length | 0;
+    for (let i = 0; i < LL.length; i++) {
+      const l = LL[i], c = l.c; h = Math.imul(h ^ ((l.x * 16) | 0), 16777619); h = Math.imul(h ^ ((l.y * 16) | 0), 16777619); h = Math.imul(h ^ ((l.z * 16 + l.r * 4096) | 0), 16777619);
+      if (c !== undefined) { if (l._cs !== c) { l._cs = c; let q = 0; for (let j = 0; j < c.length; j++) q = Math.imul(q ^ c.charCodeAt(j), 16777619); l._ch = q; } h = Math.imul(h ^ l._ch, 16777619); }
+    }
+    if (K.world !== world || K.amb !== amb || K.al !== al || K.sig !== h) { K.world = world; K.amb = amb; K.al = al; K.sig = h; K.since = fr; for (const t of K.tiles.values()) K.spare.push(t.c); K.tiles.clear(); if (K.spare.length > NL.tileMax) K.spare.length = NL.tileMax; }
+    if (fr - K.since < NL.tileWait) return false;   // still changing (dusk): not worth painting tiles that are thrown away next frame
+    const tx0 = Math.floor(cam.x / T), ty0 = Math.floor(cam.y / T), tx1 = Math.floor((cam.x + W - 1) / T), ty1 = Math.floor((cam.y + H - 1) / T); let ok = true, baked = 0;
+    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
+      const key = tx * 65536 + ty; let t = K.tiles.get(key); if (t) { t.t = fr; continue; } ok = false; if (baked) continue; baked = 1; K.bakes++;
+      if (K.tiles.size >= NL.tileMax) { let k0 = 0, t0 = Infinity; for (const [k, v] of K.tiles) if (v.t < t0) { t0 = v.t; k0 = k; } K.spare.push(K.tiles.get(k0).c); K.tiles.delete(k0); }
+      const c = K.spare.pop() || mk(T, T), x = c.getContext('2d'), ox = tx * T, oy = ty * T; x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.fillStyle = amb; x.fillRect(0, 0, T, T); x.globalCompositeOperation = 'lighter'; x.globalAlpha = al;
+      for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), X = Math.round((l.x - l.y) * U) - ox - rx, Y = Math.round((l.x + l.y) * U / 2 - l.z * U) - oy - ry; if (X > T || Y > T || X + rx * 2 + 1 < 0 || Y + ry * 2 + 1 < 0) continue; x.drawImage(poolSprite(l.r, l.c || '#ffd9a0'), X, Y); }
+      K.tiles.set(key, { c, t: fr });
+    }
+    if (!ok) return false;
+    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) m.drawImage(K.tiles.get(tx * 65536 + ty).c, tx * T - cam.x, ty * T - cam.y);
+    if (nlOn) for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue; addLight(x + rx, y + ry, poolSprite(l.r, l.c || '#ffd9a0'), al, l.ob); }
+    return true;
+  }
+  /**
    * night light: for every thing that is lit as a whole, put its shape into the mask m in its flat colour, in draw order; where a thing that
    * keeps the pattern stands in front, the mask's own pattern is put back. S = this frame's sorted items (as drawn), al = the strength the
    * pools were drawn with. Mirrors the item loop of draw() step by step (sitters, see-through objects, the focus ghost).
@@ -392,8 +423,9 @@ export class Renderer {
       const it = S[i], sp = it.spr, dx = sp.x + it.ax - cam.x, dy = sp.y + it.ay - cam.y, e = it.e, ob = it.ob, oa = ob ? ob._a : undefined;
       /* this item: lit as a whole (its light: under its feet / the middle of its footprint, never its own lamp), or part of the patterned world */
       let who = null, lit = false;
-      if (e) { if (isWhole(e, sp)) { who = e; sample(it.ax - cam.x, it.ay - cam.y, dx, dy, dx + sp.w, dy + sp.h, null); } }
-      else if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) { who = ob; const B = ob.B, mx = (B[0] + B[3]) / 2, my = (B[1] + B[4]) / 2; sample(Math.round((mx - my) * U) - cam.x, Math.round((mx + my) * U / 2 - B[2] * U) - cam.y, dx, dy, dx + sp.w, dy + sp.h, ob); }
+      const bq = sp.bx, bx0 = bq ? dx + bq[0] : dx, by0 = bq ? dy + bq[1] : dy, bx1 = bq ? dx + bq[2] : dx + sp.w, by1 = bq ? dy + bq[3] : dy + sp.h;   // the box of its own pixels
+      if (e) { if (isWhole(e, sp)) { who = e; sample(it.ax - cam.x, it.ay - cam.y, bx0, by0, bx1, by1, null); } }
+      else if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) { who = ob; const B = ob.B, mx = (B[0] + B[3]) / 2, my = (B[1] + B[4]) / 2; sample(Math.round((mx - my) * U) - cam.x, Math.round((mx + my) * U / 2 - B[2] * U) - cam.y, bx0, by0, bx1, by1, ob); }
       let dim = false, kx0 = 0, ky0 = 0, kx1 = 0, ky1 = 0;
       if (who) { dim = band(who, fr, al) === 0; lit = !dim || sT; if (dim) { kx0 = tX0; ky0 = tY0; kx1 = tX1; ky1 = tY1; } }
       /* sitters: on a piece that is lit as a whole they take the piece's colour (one thing, no seam); on anything else each is lit by the light on the ground under it. Legs behind the piece first (as in draw()). */
@@ -472,9 +504,14 @@ export class Renderer {
     for (const it of S) if (it.e && it.e.ghost && !(SEATING && isSitter(it.e))) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
-      const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
+      const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
       const nlOn = NL.mode !== 'old' && dark > .05, al = Math.min(1, dark * .5); nLB = 0;
-      if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = al; const LL = world.lights; for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2)   /* half size of its pool sprite (see poolSprite) */, x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue;   /* perf: off-screen lights are rejected before the pool sprite is looked up (every light of the city, every frame) */ const ps = poolSprite(l.r, l.c || '#ffd9a0'); m.drawImage(ps, x, y); if (nlOn) addLight(x + rx, y + ry, ps, al, l.ob); } if (hooks.lights) { if (nlOn) { const tap = this._tap; tap.m = m; hooks.lights(tap, cam, poolSprite); } else hooks.lights(m, cam, poolSprite); } }
+      /* perf: the mask of the world's own lights (ambient + every pool on screen: 20 to 40 draws a frame in town) is kept in tiles while nothing about it changes (all night; indoors all day): see _maskTiles. Same pixels. */
+      if (!(dark > .05 && NL.tiles && this._maskTiles(world, cam, env.amb, al, m, nlOn))) {
+        m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
+        if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = al; const LL = world.lights; for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2)   /* half size of its pool sprite (see poolSprite) */, x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue;   /* perf: off-screen lights are rejected before the pool sprite is looked up (every light of the city, every frame) */ const ps = poolSprite(l.r, l.c || '#ffd9a0'); m.drawImage(ps, x, y); if (nlOn) addLight(x + rx, y + ry, ps, al, l.ob); } }
+      }
+      if (dark > .05 && hooks.lights) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = al; if (nlOn) { const tap = this._tap; tap.m = m; hooks.lights(tap, cam, poolSprite); } else hooks.lights(m, cam, poolSprite); }
       /* night light: the pools stay on the ground; whoever stands on it is put into the mask as one flat colour (see _nightE) */
       if (nlOn && nLB) { const t0 = performance.now(); this._nightE(S, cam, env.amb, al, m); ST.tNl += performance.now() - t0; }
       ctx.globalCompositeOperation = 'multiply'; ctx.drawImage(this.M, 0, 0); ctx.globalCompositeOperation = 'source-over';
