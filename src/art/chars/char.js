@@ -328,6 +328,20 @@ function seatedLegs(k, P, front) {
     { const S = shoeCols(k, near); shoeDraw(k, kx - 1, foot, near, 4, S); }
   }
 }
+/* floor seats (cushions, picnic blankets, tatami, a yoga mat, the classroom carpet): cross-legged, the bum on the anchor row. pose.floor (seating follow-ups, owner msg 180).
+ * Same colour sources as seatedLegs, so every bottom / skirt / shoe layer follows. Seen from the front: the knees out to both sides, the shins crossed in front, a foot tucked under each knee;
+ * from behind: the knees to the left and right of the back. */
+function floorLegs(k, P, front) {
+  const w = k.kid ? 3 : 4, thighC = k.skirtLen ? k.skirtC : legColor(k, 0, 6), shinC = k.skirtLen > 6 ? k.skirtC : legColor(k, 3, 6), Sn = shoeCols(k, true), Sf = shoeCols(k, false);
+  if (front) {
+    for (let x = -w + 2; x <= w - 1; x++) p(x, -3, lt(thighC, .1));
+    for (let x = -w; x <= w + 1; x++) p(x, -2, x <= -w + 1 ? thighC : x >= w ? dk(thighC, .16) : x > 0 ? dk(thighC, .08) : thighC);
+    for (let x = -w + 2; x <= w - 1; x++) p(x, -1, x < 1 ? dk(shinC, .16) : shinC);   /* the far shin lies behind the near one */
+    p(-w, -1, Sf.up); p(-w + 1, -1, Sf.sole); p(w, -1, Sn.sole); p(w + 1, -1, Sn.toe);
+  } else {
+    for (const s of [-1, 1]) { const c = s < 0 ? thighC : dk(thighC, .16), x = s < 0 ? k.x0 - 1 : Math.max(2, k.x1) + 1; p(x, -2, c); p(x + s, -2, c); p(x, -1, dk(c, .1)); p(x + s, -1, dk(c, .1)); p(x + 2 * s, -1, dk(c, .1)); }
+  }
+}
 function skirt(k, hipY) {
   const n = Math.min(k.skirtLen, k.L - 1), c = k.skirtC;
   for (let j = 0; j < n; j++) {
@@ -638,7 +652,7 @@ function figure(k, P, front, pose) {
     if (!seated) { standLegs(k, P, front, hipY); if (k.skirtLen) skirt(k, hipY); }
     const bBehind = P.arms[1][2] < 0; if (bBehind) hB = arm(k, P, 1, P.arms[1], yS);
     torso(k, P, front, yS, hipY);
-    if (seated) seatedLegs(k, P, front);
+    if (seated) (P.floor ? floorLegs : seatedLegs)(k, P, front);
     if (k.top === 'hoodie') { p(k.x0 - 1 + hdx, yS - 1, dk(k.topC, .2)); p(k.x0 - 2 + hdx, yS, dk(k.topC, .2)); }
     if (!bBehind) hB = arm(k, P, 1, P.arms[1], yS); hA = arm(k, P, 0, P.arms[0], yS);
     head(k, hdx, yb, front, P);
@@ -650,7 +664,7 @@ function figure(k, P, front, pose) {
     bagBack(k, front, yS); bagHand(k, P, hA);
     props(k, P, pose, front, yS, hA, hB);
   } else {
-    if (seated) seatedLegs(k, P, front); else { standLegs(k, P, front, hipY); if (k.skirtLen) skirt(k, hipY); }
+    if (seated) (P.floor ? floorLegs : seatedLegs)(k, P, front); else { standLegs(k, P, front, hipY); if (k.skirtLen) skirt(k, hipY); }
     hA = arm(k, P, 0, P.arms[0], yS); hB = arm(k, P, 1, P.arms[1], yS);
     props(k, P, pose, front, yS, hA, hB); bagHand(k, P, hA);
     torso(k, P, front, yS, hipY);
@@ -719,7 +733,8 @@ export function drawChar(spec, pose) {
   gclear();
   if (anim === 'sleep') { lying(k, front, f, pose); flush(ax, ay, mirror); return; }
   const P = poseOf(anim, f, front, pose);
-  if (P.seated) { const sh = P.seatH || (k.kid ? SEAT_H - 2 : SEAT_H); shadow(ax, ay, 2, sh + (front ? 2 : -2), 5, mirror); }
+  if (P.seated && pose.floor) { P.floor = true; shadow(ax, ay, 0, 0, k.kid ? 5 : 6, mirror); }
+  else if (P.seated) { const sh = P.seatH || (k.kid ? SEAT_H - 2 : SEAT_H); shadow(ax, ay, 2, sh + (front ? 2 : -2), 5, mirror); }
   else shadow(ax, ay, 0, 0, P.jump ? 4 : k.kid ? 5 : 6, mirror);
   figure(k, P, front, pose);
   flush(ax, ay, mirror);

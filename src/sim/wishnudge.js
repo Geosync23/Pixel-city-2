@@ -9,7 +9,8 @@
 // Rules: once per piece per game day; at most one reminder per shop visit (a visit ends when you are LEAVE units away; walking out of the shop's own door counts
 // as a visit already); silent while the shop is closed (that visit stays silent); never during a Chapter, a relationship scene / date, a job shift or job story
 // beat, the intro, a ride or a cab on its way (G.transit), a cutscene, an activity (G.busy), design mode, an open phone / window / mini-game, or while another
-// phone banner is showing; never for a piece you own or that left the wish list.
+// phone banner is showing (it waits; the reminder comes once that one has gone, if you are still near); never for a piece you own or that left the wish list;
+// not when the guide arrow already points at that shop. Long lines (over FIT characters) use the store's short name, then drop it, so it stays two lines.
 // Cost: the shop -> wished pieces index is rebuilt only when the wish lists / stock week / season change (signature checked at most once per game minute, plus
 // 'order:wish' / 'goods:buy' / 'wardrobe:add' / 'shop:buy'); the walk check runs twice a real second over the few indexed shops (no scan over the catalogue).
 //
@@ -17,6 +18,7 @@
 //   index() -> [{ place, venue, shop, kind, x, y, ids: [pieceId] }]   the current shop -> wished in-store pieces index (rebuilt if stale)
 //   check() -> null | { place, ids, text }   run the walk check now (what the system does every 0.5 s); returns the reminder it showed
 //   go(placeId) -> bool    the banner's tap action: walk to that shop's door and in
+//   text(name, more, shop, short?) -> the banner line          FIT (66)
 //   state() -> G.state.wishnudge         NEAR, LEAVE
 //   debug: { reset() }   forget today's reminders and the current visits
 // State G.state.wishnudge = { d: game day of `s`, s: [pieceId reminded today] }   (missing in older saves: created on first use; pruned to wished pieces)
@@ -80,9 +82,15 @@ function quiet() {
   if (typeof document !== 'undefined' && document.querySelector('#ph-banners > *')) return false;
   return true;
 }
-const shopName = e => e.kind === 'piece' ? safe(() => G.clothesShop.shopName(e.shop), (SHOPS[e.shop] || {}).name || 'this shop') + (e.place !== e.venue ? safe(() => ', ' + G.places.get(e.place).name, '') : '')   /* a Galleria bay, the arena's team store, the hotel boutique: as G.instore.where names them */
+const shopName = e => e.kind === 'piece' ? safe(() => G.clothesShop.shopName(e.shop), (SHOPS[e.shop] || {}).name || 'this shop')   /* a Galleria bay / the arena's team store / the hotel boutique: shop name only (the banner shows at that building's door; two lines on a phone) */
   : ((STORE_BY_ID[e.shop] || {}).name || (VENUE_BY_ID[e.venue] || {}).name || safe(() => G.places.get(e.place).name, 'this shop'));
-export function text(name, more, shop) { return more > 0 ? `${name} +${more} more: sold here at ${shop}.` : `${name} is sold here at ${shop}.`; }
+export const FIT = 66;   /* the banner shows two lines (about 30 characters each at 390 px): longer lines fall back to the shop's short name, then to no shop name */
+export function text(name, more, shop, short) {
+  const t = at => more > 0 ? `${name} +${more} more: sold here${at}.` : `${name} is sold here${at}.`;
+  for (const v of [t(' at ' + shop), short && short !== shop ? t(' at ' + short) : null]) if (v && v.length <= FIT) return v;
+  return t('');
+}
+const shortName = (e, full) => e.kind === 'piece' ? full.split(',')[0] : ((STORE_BY_ID[e.shop] || {}).short || full);
 
 function check() {
   const ix = index(); if (!ix.length || !G.scene || G.scene.id !== 'city' || !G.player) return null;
@@ -97,7 +105,7 @@ function check() {
     const ids = e.ids.filter(id => !s.s.includes(id) && !owns(id) && (PIECE_BY_ID[id] ? clothesWish() : goodsWish()).includes(id));
     if (!ids.length) continue;
     visit.add(e.place); for (const id of ids) s.s.push(id);
-    const first = ids[0], shop = shopName(e), msg = text(nameOf(first), ids.length - 1, shop), place = e.place;
+    const first = ids[0], shop = shopName(e), msg = text(nameOf(first), ids.length - 1, shop, shortName(e, shop)), place = e.place;
     const piece = !!PIECE_BY_ID[first];
     safe(() => G.phone.notify({ app: piece ? 'closet' : 'roomy', title: 'On your wish list', text: msg, priority: 'normal', data: piece ? { tab: 'wish' } : { good: first }, onTap: () => go(place) }));
     G.emit('wish:nudge', place, ids);

@@ -268,6 +268,26 @@ function seatOverlay(ob, base, e) {
   return e._ov = frontSprite(ob, ax, Math.round(v * 32) / 32);
 }
 
+/**
+ * seating follow-ups: does this sprite (drawn at world px sx, sy) cover a seated character whose seat point is at (fx, fay)? The character's head and chest are a 7 x 15 px box above the seat point; the
+ * answer is yes when the sprite's solid pixels fill half of the head (the top 8 rows) or 40% of the whole box (head = true: the head only, for the piece the character sits on, whose backrest rightly
+ * covers the chest). Looked up once per object and place: the answer is kept on the object until its sprite or the offset changes, so a frame costs a few compares. The box is copied to a small canvas of
+ * its own and read there (no read-back from the sprite's canvas, see frontSprite).
+ */
+let CVC = null, CVX = null;
+function covers(ob, sp, sx, sy, fx, fay, head) {
+  const rx = Math.round(fx - 3 - sx), ry = Math.round(fay - 15 - sy); if (ob._cs === sp && ob._cx === rx && ob._cy === ry && ob._ch === head) return ob._cv;
+  ob._cs = sp; ob._cx = rx; ob._cy = ry; ob._ch = head; ob._cv = false;
+  const x0 = Math.max(0, rx), y0 = Math.max(0, ry), x1 = Math.min(sp.w, rx + 7), y1 = Math.min(sp.h, ry + 15); if (x1 <= x0 || y1 <= y0) return false;
+  try {
+    if (!CVC) { CVC = mk(7, 15); CVX = CVC.getContext('2d', { willReadFrequently: true }); }
+    CVX.clearRect(0, 0, 7, 15); CVX.drawImage(sp.c, x0, y0, x1 - x0, y1 - y0, x0 - rx, y0 - ry, x1 - x0, y1 - y0);
+    const d = CVX.getImageData(0, 0, 7, 15).data; let hd = 0, all = 0; for (let i = 0, q = 3; i < 105; i++, q += 4) if (d[q] > 200) { all++; if (i < 56) hd++; }
+    ob._cv = hd >= 28 || (!head && all >= 42);
+  } catch (e) { }
+  return ob._cv;
+}
+
 export class Renderer {
   constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.E = mk(8, 8); this.Ex = this.E.getContext('2d'); this._tap = new LightTap(); this.nl = NL;   /* night light: E = a copy of the light mask before the things that are lit as a whole were put into it (see _nightE) */ this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0, frames: 0, tGround: 0, tUnder: 0, tItems: 0, tAmb: 0, tGlow: 0, tOver: 0, tNl: 0 };   /* t*: total ms per part of draw() (tools/perf.mjs divides by frames) */ this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
   /** test hook (tools/perf.mjs --verify): paint objects [from, from + n) of the world and every chunk both ways (whole / in bands); returns { tested, bad: [ids...] }. Expect bad = []. */
@@ -450,6 +470,7 @@ export class Renderer {
     if (!nER) { for (let i = 0; i < nOP; i++) OS[i] = null; return; }
     /* the focus entity shows through what stands in front of it at 30% (draw()): so does its light */
     for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ni, e._ns, .3, fr, false, 0, 0, 0, 0); }
+    { const g = this._gs; if (g && (g.lit === true || (g.lit === undefined && g.e._nd === fr))) { const sp = g.spr; litDraw(sp, 0, sp.h, sp.x + g.ax - cam.x, sp.y + g.ay - cam.y, g.e._ni, g.e._ns, .3, fr, false, 0, 0, 0, 0); } }
     /* run the steps */
     /* what has to be put back comes from the mask tiles when the mask was drawn from them. The tiles do not have the moving lights the hooks drew on top (headlights): if one of those reaches a place
      * that is put back, or there are no tiles (dusk, dawn), everything is put back from a copy of the mask as it is now instead. */
@@ -504,7 +525,17 @@ export class Renderer {
     let fi = -1, fo = null; for (let i = 0; i < S.length; i++) if (S[i].e && S[i].e.ghost && !S[i].e.hidden) { fi = i; fo = S[i]; break; }
     if (fi < 0 && gh) { fi = S.indexOf(gh.host); fo = gh; }   /* seated on a piece of furniture: the focus is drawn with that piece */
     const fading = this.fading || (this.fading = new Set()); for (const ob of fading) ob._want = 1;
-    if (fi >= 0) { const f = fo, fx = f.ax, fy = f.ay - 12; for (let i = fo === gh ? fi : fi + 1 /* a seated focus: the piece it sits on can itself be the tall thing in front (a gazebo, a booth) */; i < S.length; i++) { const it = S[i], ob = it.ob; if (!ob || ob.noFade /* never made see-through, e.g. an overlay that must keep covering what is under it */ || ob.B[5] - ob.B[2] < 2.4) continue; const r = it.r; if (fx < r[0] + 6 || fx > r[2] - 6 || fy < r[1] + 4 || fy > r[3] + 6) continue; if (ob.B[3] - ob.B[0] < 1.2 && ob.B[4] - ob.B[1] < 1.2) continue; ob._want = .28; if (ob._a === undefined) ob._a = 1; fading.add(ob); } }
+    /* seating follow-ups (owner msg 180): a seated focus cannot step out from behind things and has no see-through copy, so for it the rule is 'what covers the head and chest fades', whatever its height
+       (a hanging sign, shop shelving, a classroom partition, a lamp shade): see covers(). The piece it sits on fades only when it is tall and its own front part covers the head (a gazebo roof, a booth), no longer
+       because it is tall (the grill table with its flue went see-through under its own guests). A big thing that is not a placed object (the arena's scoreboard faces, a bus) cannot fade: then the 30% copy is drawn after all. */
+    const sf = fi >= 0 && SEATING && (fo === gh || isSitter(fo.e)); this._gs = null;
+    if (fi >= 0) { const f = fo, fx = f.ax, fy = f.ay - 12; for (let i = fo === gh ? fi : fi + 1 /* a seated focus: the piece it sits on can itself be the tall thing in front (a gazebo, a booth) */; i < S.length; i++) { const it = S[i], ob = it.ob, r = it.r;
+      if (!ob) { if (sf && !this._gs && it.e && it !== fo && it.spr.w * it.spr.h > 3000 && fx > r[0] + 4 && fx < r[2] - 4 && fy + 4 > r[1] + 4 && fy + 4 < r[3] - 4) this._gs = fo; continue; }
+      if (ob.noFade /* never made see-through, e.g. an overlay that must keep covering what is under it */) continue;
+      const tall = ob.B[5] - ob.B[2] >= 2.4 && !(fx < r[0] + 6 || fx > r[2] - 6 || fy < r[1] + 4 || fy > r[3] + 6) && !(ob.B[3] - ob.B[0] < 1.2 && ob.B[4] - ob.B[1] < 1.2);
+      if (sf) { if (fo === gh && i === fi) { const ov = gh.ov; if (!tall || !ov || !covers(ob, ov, ov.x + it.ax, ov.y + it.ay, fx, f.ay, true)) continue; } else if (!tall && (fx + 4 < r[0] || fx - 4 > r[2] || f.ay < r[1] || f.ay - 16 > r[3] || !covers(ob, it.spr, it.spr.x + it.ax, it.spr.y + it.ay, fx, f.ay, false))) continue; }
+      else if (!tall) continue;
+      ob._want = .28; if (ob._a === undefined) ob._a = 1; fading.add(ob); } }
     for (const ob of fading) { ob._a += (ob._want - ob._a) * .18; if (ob._want === 1 && ob._a > .97) { ob._a = undefined; fading.delete(ob); } }
     for (const it of S) { const sp = it.spr;
       /* seating: somebody who sits with the back to the camera has the legs on the far side of the piece: the sprite's rows below the seat line go under the piece, the rest over it */
@@ -513,6 +544,7 @@ export class Renderer {
       /* seating: the piece's sitters (far to near), each followed by the parts of the piece in front of it */
       if (it.ns) for (let q = it.sit; q; q = q.next) { const qs = q.spr, ea = q.e.alpha; if (ea !== undefined) ctx.globalAlpha = ea; if (q.e.dir < 2) ctx.drawImage(qs.c, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y); else { const r0 = Math.min(qs.h, 1 - qs.y); ctx.drawImage(qs.c, 0, 0, qs.w, r0, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y, qs.w, r0); } if (ea !== undefined) ctx.globalAlpha = 1; const ov = q.ov; if (ov && it.ob._a === undefined) ctx.drawImage(ov.c, ov.x + it.ax - cam.x, ov.y + it.ay - cam.y);   /* (not while the piece is see-through: its front would be drawn twice) */ } }
     for (const it of S) if (it.e && it.e.ghost && !(SEATING && isSitter(it.e))) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
+    if (this._gs) { const g = this._gs, gs = g.spr; ctx.globalAlpha = .3; ctx.drawImage(gs.c, gs.x + g.ax - cam.x, gs.y + g.ay - cam.y); ctx.globalAlpha = 1; }   /* a seated focus behind something that cannot fade */
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;

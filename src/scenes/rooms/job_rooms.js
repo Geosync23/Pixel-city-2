@@ -61,12 +61,12 @@ function person(sc, id, x, y, dir, o = {}) {
 function place(sc, c, working) {
   const h = c._home, o = c._o || {}, sh = working && o.shift;
   if (sh) { c.x = sh.x + O; c.y = sh.y + O; c.dir = c._dir = sh.dir; c.z = 0; c.zoff = 0; c.poseOpts = null; c.pose = sh.anim || null; }
-  else if (h.seat) { c.x = h.seat.x + O; c.y = h.seat.y + O; c.zoff = h.seat.z || 0; c.z = c.zoff; c.dir = c._dir = h.seat.dir; c.poseOpts = { seated: true }; c.pose = 'sit'; }
+  else if (h.seat) { c.x = h.seat.x + O; c.y = h.seat.y + O; c.zoff = h.seat.z || 0; c.z = c.zoff; c.dir = c._dir = h.seat.dir; c.poseOpts = c.zoff < .15 ? { seated: true, floor: 1 } /* on the carpet: cross-legged */ : { seated: true }; c.pose = 'sit'; }
   else { c.x = h.x; c.y = h.y; c.dir = c._dir = h.dir; c.z = 0; c.zoff = 0; c.poseOpts = null; c.pose = o.anim || null; }
   const it = sc.interactables.find(q => q.ent === c); if (it) { it.x = c.x; it.y = c.y; }
 }
 function kid(sc, i, seat, lines) {
-  const c = new Char(kidSpec(i), seat.x, seat.y); c.zoff = seat.z || 0; c.z = c.zoff; c.dir = seat.dir === undefined ? 1 : seat.dir; c.poseOpts = { seated: true }; c.pose = 'sit'; c.kind = 'customer'; c.named = true; c.t = Math.random() * 5; c.label = 'A second-grader';
+  const c = new Char(kidSpec(i), seat.x, seat.y); c.zoff = seat.z || 0; c.z = c.zoff; c.dir = seat.dir === undefined ? 1 : seat.dir; c.poseOpts = c.zoff < .15 ? { seated: true, floor: 1 } /* on the carpet: cross-legged */ : { seated: true }; c.pose = 'sit'; c.kind = 'customer'; c.named = true; c.t = Math.random() * 5; c.label = 'A second-grader';
   c.update = dt => { c.t += dt; c.moving = false; if (Math.floor(c.t * .7) % 9 === i % 9) c.pose = pick(['sit', 'sit', 'read', 'talk']); };
   sc.ents.push(c); sc.job.kids.push(c);
   sc.interactables.push({ ent: c, x: c.x, y: c.y, h: 1, hit: 8, range: 2, label: c.label, visible: () => !c.hidden, use: () => bubble(c, pick(lines), 2800) });

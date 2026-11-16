@@ -106,6 +106,9 @@ function blocked(id, ctx = {}) {
 const plantKey = fx => ((G.scene && G.scene.id) || '') + ':' + fx.x + ',' + fx.y;
 
 /* ---------- tier / seats ---------- */
+/* seating follow-ups (owner msg 180): on a floor seat (a cushion, a picnic blanket, the classroom carpet, a yoga mat: seat height under 0.15) a sitting character is drawn cross-legged (art/chars/char.js floorLegs) */
+const FLOOR_Z = .15;
+function floorPose(p, seat) { if (!seat || seat.lie || seat.stand || (seat.z || 0) >= FLOOR_Z) return; const po = p.poseOpts; if (p.pose === 'sit' || (po && po.seated)) p.poseOpts = Object.assign({ seated: true }, po, { floor: 1 }); }
 function goodOf(fx, tag) { const it = fx && fx.item; if (!it) return null; if (it.good && ITEM_BY_ID[it.good]) return ITEM_BY_ID[it.good]; const tier = it.p && it.p.tier !== undefined ? it.p.tier : it.tier; return tier === undefined ? null : homegoodsForTag(tag)[tier] || null; }
 /* seating: nobody sits on somebody. The first seat of a piece that no visible character is on (the first one when they are all taken) */
 const seatTaken = s => ((G.scene && G.scene.ents) || []).some(c => c !== G.player && !c.hidden && !c.isVehicle && (c.alpha === undefined || c.alpha > .5) && Math.hypot(c.x - s.x, c.y - s.y) < .3);
@@ -177,6 +180,7 @@ function start(id, ctx = {}) {
     at: seat ? { x: seat.x, y: seat.y, z: seat.z || 0, dir: seat.dir } : undefined, actId: id,
   });
   p.poseOpts = sleepy ? { blanket: ctx.blanket || '#8fa8d8' } : seat && (seat.z || ctx.seated) && anim !== 'sit' && ['eat', 'drink', 'read', 'type', 'phone', 'talk'].includes(anim) ? { seated: true } : null;
+  if (seat && !sleepy) floorPose(p, seat);
   if (!seat && fx) p.faceTo(fx.x, fx.y);
   if (a.flavour && !ctx.quiet) bubble(p, a.flavour, 3200, 'think');
   G.emit('activity:start', id, ctx); return act;
@@ -495,7 +499,9 @@ function buildCity(scene) {
   for (const p of scene.world.pois) {
     if (!p || !isFinite(p.x) || !isFinite(p.y)) continue; const tags = worldTags(p); if (!tags.length) continue;
     const seat = tags.includes('bench') || tags.includes('swing') ? (p.seat || (p.seats && p.seats[0]) || { x: p.x, y: p.y, z: p.seatZ ?? .45, dir: p.dir ?? 1 }) : undefined;
-    const it = { scene: 'city', x: p.x, y: p.y, label: p.label || LABEL[tags[0]] || p.name || 'Spot', h: .8, range: 1.7, spot: p.spot || p.stand, poi: p, use: () => menu({ poi: p, tags, at: seat, title: p.name || LABEL[tags[0]] }) };
+    /* seating follow-ups: a bench poi sits you on the real seats of the bench standing there (the poi only knows the bench's middle, and its dir is the way the bench looks out, which put the sitter on the quay and lake benches facing the backrest) */
+    const pseats = seat && !p.seat && !p.seats && p.type === 'bench' ? benchSeats(scene.world, p) : null;
+    const it = { scene: 'city', x: p.x, y: p.y, label: p.label || LABEL[tags[0]] || p.name || 'Spot', h: .8, range: 1.7, spot: p.spot || p.stand, poi: p, use: () => menu({ poi: p, tags, at: pseats ? onGround(nearSeat(pseats)) || seat : seat, title: p.name || LABEL[tags[0]] }) };
     cityRemovers.push(G.addInteractable(it));
   }
   // bench / chair PROPS that carry seats but have no poi get a Sit spot too
@@ -503,12 +509,25 @@ function buildCity(scene) {
     const taken = scene.world.pois.filter(p => p && worldTags(p).length), FL = [1, 0, 3, 2]; let n = 0;
     for (const ob of scene.world.objs) {
       const a = ob.a; if (!a || !a.seats || n >= 220) continue; let st = typeof a.seats === 'function' ? a.seats(ob.p || {}) : a.seats; if (!Array.isArray(st)) continue; st = st.filter(q => q && !q.lie); if (!st.length) continue;
-      const seats = st.map(q => ob.flip ? { x: ob.x + q.y, y: ob.y + q.x, z: (ob.z || 0) + (q.z || .45), dir: FL[q.dir || 0] } : { x: ob.x + q.x, y: ob.y + q.y, z: (ob.z || 0) + (q.z || .45), dir: q.dir || 0 });
-      const cx = seats.reduce((v, q) => v + q.x, 0) / seats.length, cy = seats.reduce((v, q) => v + q.y, 0) / seats.length; if (taken.some(p => Math.hypot(p.x - cx, p.y - cy) < 1.6)) continue; n++;
+      const seats = propSeats(ob, st);
+      const cx = seats.reduce((v, q) => v + q.x, 0) / seats.length, cy = seats.reduce((v, q) => v + q.y, 0) / seats.length; if (taken.some(p => Math.hypot(p.x - cx, p.y - cy) < 1.6)) continue;
+      if (seats[0].z - scene.world.heightAt(seats[0].x, seats[0].y) > 1.6) continue;   /* a bench up on a rail platform is not reached from the street under it (the sitter was lifted to it, and twice as high: QA round 15 B10) */
+      n++;
       const poi = { type: 'bench', id: 'seat:' + n, name: 'Bench', x: cx, y: cy };
-      cityRemovers.push(G.addInteractable({ scene: 'city', x: cx, y: cy, label: 'Sit', h: .8, range: 1.7, poi, use: () => menu({ poi, tags: ['bench'], at: nearSeat(seats), title: 'Bench' }) }));
+      cityRemovers.push(G.addInteractable({ scene: 'city', x: cx, y: cy, label: 'Sit', h: .8, range: 1.7, poi, use: () => menu({ poi, tags: ['bench'], at: onGround(nearSeat(seats)), title: 'Bench' }) }));
     }
   } catch (e) { console.warn('bench props: ' + e.message); }
+}
+/* seating follow-ups: the seats of a placed prop in world coordinates (z = absolute height of the seat) */
+const FLP = [1, 0, 3, 2];
+const propSeats = (ob, st) => st.map(q => ob.flip ? { x: ob.x + q.y, y: ob.y + q.x, z: (ob.z || 0) + (q.z || .45), dir: FLP[q.dir || 0] } : { x: ob.x + q.x, y: ob.y + q.y, z: (ob.z || 0) + (q.z || .45), dir: q.dir || 0 });
+/* the seated player's height is 'ground under the seat + at.z' (core/game.js), so a seat's absolute height becomes a height over the ground there (it was passed as it was: on any ground that is not at 0 the sitter floated by the ground's height, or sank by it in the harbour) */
+const onGround = s => s && Object.assign({}, s, { z: Math.max(0, s.z - G.world.heightAt(s.x, s.y)) });
+/* the real seats of the bench prop a bench poi stands for (null: no such prop, the poi's own middle is used) */
+function benchSeats(world, p) {
+  let best = null, bd = 1.3;
+  for (const ob of world.objs) { const a = ob.a; if (!a || !Array.isArray(a.seats) || !/bench/.test(ob.id)) continue; const B = ob.B, d = Math.hypot((B[0] + B[3]) / 2 - p.x, (B[1] + B[4]) / 2 - p.y); if (d < bd) { bd = d; best = ob; } }
+  return best ? propSeats(best, best.a.seats.filter(q => q && !q.lie)) : null;
 }
 const nearSeat = seats => { const p = G.player, ents = (G.scene && G.scene.ents) || [], free = seats.filter(q => !ents.some(c => c !== p && !c.hidden && Math.hypot(c.x - q.x, c.y - q.y) < .3)); return (free.length ? free : []).reduce((a, b) => !a || Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a, null); };
 /** generic "Sit": any fixture with a non-lying seat that no other activity claimed */
@@ -516,7 +535,7 @@ function sitOn(fx) {
   const seat = nearSeat(fx.seats.filter(q => !q.lie)); if (!seat) { toast('Every seat here is taken.'); return; } if (G.busy) return;
   const p = G.player, t0 = G.state.t, rest = () => { const m = Math.max(0, Math.min(120, G.state.t - t0)); try { G.needs.add('energy', m * .08); G.needs.add('fun', m * .03); } catch (e) { } };
   G.startActivity({ label: 'Sitting', anim: 'sit', minutes: 90, rate: 5, canCancel: true, done: rest, cancel: rest, at: { x: seat.x, y: seat.y, z: seat.z || 0, dir: seat.dir } });
-  if (seat.z) p.poseOpts = { seated: true };
+  if (seat.z) p.poseOpts = { seated: true }; floorPose(p, seat);
 }
 function addSeats(sc) {
   if (!sc || sc.id === 'city' || !Array.isArray(sc.fixtures) || !Array.isArray(sc.interactables)) return;
@@ -547,7 +566,7 @@ export function init() {
     const sc = G.scene, p = G.player; if (!a || !a.at || a.hide || a.anim === 'sleep' || !sc || !sc.fixtures) return;
     const taken = s => sc.ents.some(c => c !== p && !c.hidden && !c.isVehicle && !(c.isCitizen && sc.indoor) && (c.alpha === undefined || c.alpha > .5) && Math.hypot(c.x - s.x, c.y - s.y) < .3); if (!taken(a.at)) return;
     let best = null, bd = 3; for (const f of sc.fixtures) for (const s of f.seats || []) { if (s.stand || s.staff || s.lie || taken(s)) continue; const d = Math.hypot(s.x - a.at.x, s.y - a.at.y) + (Math.abs(f.x - a.at.x) < 1.6 && Math.abs(f.y - a.at.y) < 1.6 ? 0 : 1); if (d < bd) { bd = d; best = s; } }
-    if (!best) return; a.at.x = p.x = best.x; a.at.y = p.y = best.y; a.at.z = p.zoff = best.z || 0; if (best.dir !== undefined) a.at.dir = p.dir = best.dir; if (best.z && p.pose !== 'sit' && !p.poseOpts) p.poseOpts = { seated: true };
+    if (!best) return; a.at.x = p.x = best.x; a.at.y = p.y = best.y; a.at.z = p.zoff = best.z || 0; if (best.dir !== undefined) a.at.dir = p.dir = best.dir; if (best.z && p.pose !== 'sit' && !p.poseOpts) p.poseOpts = { seated: true }; floorPose(p, best);
   });
   /* a save made while seated restores the player where they sat (only in the lobby of their own building; elsewhere the game resumes at a door): step off the furniture */
   G.on('game:start', () => { const p = G.player, W = G.world; if (!p || !W || G.busy || !W.isBlocked(p.x, p.y)) return; const f = nearestFree(W, Math.floor(p.x * 2), Math.floor(p.y * 2), 6); if (f) { p.x = (f[0] + .5) / 2; p.y = (f[1] + .5) / 2; p.zoff = 0; p.z = W.heightAt(p.x, p.y); } });
