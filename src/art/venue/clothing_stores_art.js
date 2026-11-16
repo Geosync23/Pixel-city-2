@@ -75,6 +75,14 @@ export default [
     posts(.03, .08, w - .06, .36, 0, 1.05, dk(c, .3)); bx(0, .05, 1.02, w, .42, .05, c);
   }, { use: p => ({ x: (p.w || 2) / 2, y: 1 }), variants: [{}] }),
 
+  A('shoewall', ['clothing', 'shoes', 'shelf'], p => [p.w || 2, .3, 2.2], p => {   /* a wall of shoes that also reads on the left wall (flipped): every shoe is a few plotted pixels, no wall pattern */
+    const w = p.w || 2, c = p.c || '#f1ede4', sh = p.shelf || '#d2a26a', cols = p.cols || ['#2a2733', '#8a5a3a', '#d63a3a', '#f1ede4', '#3c64ad', '#c8a070', '#3f8a55', '#e87aa0'];
+    qy(0, w, .03, .3, 2.2, c); frameY(0, w, .03, .3, 2.2, dk(c, .35));
+    for (let i = 0; i < 5; i++) { const z = .45 + i * .34; box(.05, .03, z, w - .1, .22, .03, sh, { ol: false });
+      for (let k = 0; k * .3 < w - .3; k++) { const x = .16 + k * .3, cc = cols[Math.floor(hash2(i, k, p.seed || 1) * cols.length)], hi = hash2(k, i, 7) < .3; spx(x, .2, z + .03, 0, -1, cc); spx(x, .2, z + .03, 1, -1, cc); spx(x, .2, z + .03, 2, -1, dk(cc, .25)); spx(x, .2, z + .03, 0, -2, hi ? cc : lt(cc, .25)); if (hi) { spx(x, .2, z + .03, 0, -3, cc); spx(x, .2, z + .03, 1, -2, cc); } spx(x, .2, z + .03, 3, -1, lt(cc, .3)); } }
+    lit(() => lw([.05, .04, 2.14], [w - .05, .04, 2.14], '#fff2c4'));
+  }, { wall: true, mount: .3, solid: false, use: p => ({ x: (p.w || 2) / 2, y: .8 }), variants: [{ seed: 1 }, { seed: 6, c: '#3a3f4c' }, { seed: 3, w: 3 }] }),
+
   A('accessories.hats', ['clothing', 'decor', 'shelf'], [1, .5, 1.8], p => {
     const cols = p.cols || ['#c0704a', '#2f9a94', '#f2c230', '#7a2a4a', '#f1ede4', '#3a3f4c'], c = p.c || BR;
     cyl(.5, .25, 0, .22, .05, dk(c, .3)); tube([.5, .25, .05], [.5, .25, 1.7], c);

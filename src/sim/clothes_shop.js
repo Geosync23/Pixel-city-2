@@ -3,6 +3,8 @@
 //
 // Shop ids (data/clothes_brands.js SHOPS) -> venues: clothing (Thread & Co.), pub:12 (Marigold & Main), pub:44 (Ink & Ivy Vintage), mall:thread, mall:kicks, mall:bloom (Galleria bays),
 //   gym (Iron Maple), arena -> arena:store (The Otter Den), hotel -> hotel:gifts (The Bellhop's Trunk), market -> market_stalls (street market stalls), online (Closet app).
+//   + the ten brand / speciality stores `cs_<key>` of data/clothing_stores.js (shop id = venue id = room id; city side: sim/clothing_stores.js). Preset OUTFITS (data/clothing_outfits.js):
+//   the till's chooser and every rack window offer "Outfits" (G.clothingStores.outfits); buyMany(ids, shopId, label) pays for several pieces at once; look pieces never rotate out.
 // G.clothesShop
 //   shops() -> [{ id, name, venue, place, level, taste, count }]      stock(shopId) -> [piece] in stock this week      priceAt(piece, shopId) -> $      isNew(piece, shopId)
 //   whereSold(pieceId) -> [shopId] that stock it this week            browse(shopId, { slot?, rack? })  the rack / catalogue window      detail(piece, shopId)

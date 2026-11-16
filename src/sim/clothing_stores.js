@@ -1,6 +1,6 @@
 // The clothing stores in the city (owner msgs 177-178, BIBLE "Direction update 39"). Runtime only, nothing saved, no world file touched.
 //   1. TEN NEW STORES (data/clothing_stores.js STORES) move into EXISTING buildings that had no door of their own, or onto a free stretch of shopfront: a door poi
-//      `door:cs:<key>` (room `cs:<key>`, scenes/rooms/clothing_stores.js), a lit sign board over the door, a venue record with its own hours (so the Map, addresses,
+//      `door:cs_<key>` (room `cs_<key>`, scenes/rooms/clothing_stores.js), a lit sign board over the door, a venue record with its own hours (so the Map, addresses,
 //      the navigator, "Take me there" and the Closet's "Only available in store" box all pick it up). Closed stores refuse entry with their hours.
 //   2. PRESET OUTFITS in every clothing shop, old and new (data/clothing_outfits.js): the Outfits window, the look sheet (the look on YOUR character, buy the look in one
 //      tap, pieces you own are not charged, or buy single pieces).
@@ -137,7 +137,7 @@ function onRoom(scene) {
     fx._csShop = shop;
     if (a === 'furn.clothing.mannequin') {   /* an old painted dummy: the same spot, now dressed by the character renderer */
       const ob = fx.ob; ob.hidden = true; const k = list.filter(f => f._csShop === shop).length;
-      try { fx._csOb = scene.world.place(asset('furn.cs.manq'), ob.x - .05, ob.y - .05, { p: { ids: [], dir: ob.flip ? 0 : 1, tone: k % 2 }, z: ob.z || 0, solid: false }); } catch (e) { ob.hidden = false; continue; }
+      try { fx._csOb = scene.world.place(asset('furn.cs.manq'), ob.x - .05, ob.y - .05, { p: { ids: [], dir: ob.flip ? 0 : 1, tone: k % 2 }, z: ob.z ? ob.z + .0625 : 0 /* a step above the display platform it stands on, so the platform never sorts over it */, solid: false }); } catch (e) { ob.hidden = false; continue; }
       const it = { x: fx.x, y: fx.y, h: 1.5, hit: 12, fx, spot: fx.use || undefined, label: 'Mannequin', use: () => fx._csLook && lookSheet(shop, fx._csLook) }; scene.interactables.push(it); fx._csIt = it;
     } else fx._csIt = scene.interactables.find(it => it.fx === fx && it.csManq) || null;
     list.push(fx);

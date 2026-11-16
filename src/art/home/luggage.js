@@ -6,7 +6,7 @@
 //   L = H + HD from the foot along the case's axis (sim/luggage.js puts the grip in the player's hand).
 import { fq, lw, at, dk, lt } from '../../engine/raster.js';
 
-export const LUG = { D: .17, W: .3, H: .38, HD: .18, WHL: .04, C: '#f2c230', TAG: '#d2412f', RIB: '#2f8f96', ROD: '#5a6270', GRIP: '#3a4250', TYRE: '#2a2733' };
+export const LUG = { D: .22, W: .3, H: .38, HD: .18, WHL: .04, C: '#f2c230', TAG: '#d2412f', RIB: '#2f8f96', ROD: '#5a6270', GRIP: '#3a4250', TYRE: '#2a2733' };
 const R = Math.PI / 180;
 /* the 8 corners: index bits i (a axis), j (l axis), k (u axis) */
 const EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];

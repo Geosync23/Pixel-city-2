@@ -5,10 +5,10 @@
 const L = (id, name, pieces, x) => Object.assign({ id, name, pieces: pieces.split(' ') }, x);
 const SIG = { sig: true }, SUMMER = { season: [1] }, COLD = { season: [2, 3] };
 /** speciality shops sell no full wardrobe: their looks are SETS (shoes with socks and a belt; a hat with a scarf, a bag and glasses) worn with your own clothes */
-export const PARTIAL = { 'cs:sole': 1, 'cs:brim': 1 };
+export const PARTIAL = { 'cs_sole': 1, 'cs_brim': 1 };
 export const OUTFITS = {
   /* ---- the ten new stores ---- */
-  'cs:hollowell': [
+  'cs_hollowell': [
     L('h_morning', 'The Morning Suit', 'ou_morningcoat_dove tp_wingcollar_ivory bt_morningstripe_grey ht_homburg_pearl sh_spectator_tan', Object.assign({ note: 'Cut for the harbour-side wedding season. New this year, and every piece is sold on its own.' }, SIG)),
     L('h_boardroom', 'Boardroom Charcoal', 'ou_suit_charcoal tp_shirt_pinnavy bt_slacks_charcoal sh_oxford_black ac_tie_burgundy ac_briefcase_black'),
     L('h_blacktie', 'Black Tie', 'ou_tux_midnight tp_shirt_butter bt_slacks_navy sh_monk_black ac_bowtie_black ht_tophat_opera'),
@@ -16,33 +16,33 @@ export const OUTFITS = {
     L('h_overcoat', 'The Town Overcoat', 'ou_coat_navy tp_turtle_navy bt_slacks_pin sh_chelsea_black ht_fedora_charcoal ac_gloves_driving', COLD),
     L('h_office', 'Corner Office', 'dr_sheath_black ou_suit_camel sh_pump_black ac_watch_steel ac_briefcase_chestnut'),
   ],
-  'cs:nightjar': [
+  'cs_nightjar': [
     L('n_midnight', 'After Midnight', 'dr_fringe_midnight ou_capelet_plum ht_featherband_gold sh_tstrap_black', Object.assign({ note: 'Fringe that keeps moving after you stop. New this year, and every piece is sold on its own.' }, SIG)),
     L('n_wild', 'Wild Side', 'dr_wrapdress_leopard sh_kneeboot_black ou_bomber_satin ac_earring_hoop_silver'),
     L('n_lbe', 'Little Black Everything', 'dr_babydoll_black sh_heel_black ou_bolero_sequin ac_belt_plum'),
     L('n_encore', 'Second Encore', 'tp_star_nightjar bt_miniskirt_spot sh_derby_black ac_choker_wine'),
     L('n_opening', 'Opening Night', 'tp_offsh_black bt_trumpet_wine sh_stiletto_red ou_cape_sparkle ht_fascinator_black ac_pearls_black'),
   ],
-  'cs:juniper': [
+  'cs_juniper': [
     L('j_hearth', 'Hearthside', 'tp_yoke_rust ou_shawlcardi_oat bt_cords_forest sh_sheepboot_chestnut ht_stripepom_forest', Object.assign({ note: 'Knitted in front of this very fire. New this year, and every piece is sold on its own.' }, SIG)),
     L('j_fireside', 'Fireside Rust', 'tp_turtle_jrust bt_cords_mustard sh_tallboot_taupe ou_wrap_blanket ht_beanie_oat'),
     L('j_sundayin', 'A Sunday In', 'dr_sweaterdress_argyle sh_slipper_red ou_cardi_shawlmust ac_tights_forest'),
     L('j_cottage', 'Cottage Stripes', 'tp_long_cottage bt_chinos_camel ou_cardi_shawlfor sh_tallboot_taupe ht_newsboy_forest'),
     L('j_keeper', 'Lighthouse Keeper', 'tp_cable_oat bt_cords_brown sh_sheepboot_chestnut ac_scarf_long_mustard ac_gloves_fingerless'),
   ],
-  'cs:secondwind': [
+  'cs_secondwind': [
     L('s_sunday', 'Charity-Shop Sunday', 'tp_turtle_mustard bt_jeans_faded sh_brogue_brown ou_coat_hound ht_flatcap_grey'),
     L('s_denim', 'Seventies Denim', 'tp_ringer_mustard bt_flare_indigo ou_denim_classic sh_boot_tan ac_bandana_paisley'),
     L('s_league', 'League Night', 'tp_bowl_black bt_jeans_acid sh_skate_brown ht_trucker_gasstation ac_round_wire'),
     L('s_teadance', 'Tea Dance', 'dr_teadress_dots sh_kneeboot_white ou_cardi_grandpa ht_headscarf_cherry'),
   ],
-  'cs:sole': [
+  'cs_sole': [
     L('so_polish', 'The Sunday Polish', 'sh_oxford_brown ac_socks_argyle ac_belt_brown'),
     L('so_tweed', 'Town and Tweed', 'sh_brogue_tan ac_socks_bottle ac_belt_braided'),
     L('so_autumn', 'Autumn Leaves', 'sh_chelsea_brown ac_socks_mustard ac_belt_suede'),
     L('so_dancing', 'Dancing Shoes', 'sh_maryjane_patent ac_tights_wine ac_belt_cherry'),
   ],
-  'cs:tidepool': [
+  'cs_tidepool': [
     L('t_boardwalk', 'Boardwalk', 'tp_aloha_coral bt_waveshorts_aqua sh_espadrille_navy ac_netbag_sand ht_panama_boardwalk', Object.assign({ note: 'Hibiscus up top, breakers below. New this year, and every piece is sold on its own.' }, SIG)),
     L('t_lifeguard', 'Lifeguard Off Duty', 'tp_retro_lifeguard bt_harem_teal sh_wedge_tan ou_zhood_sand ht_bucket_sandbar'),
     L('t_picnic', 'Picnic Dots', 'dr_sundress_dots sh_wedge_tan ou_cardi_linen ac_bucketbag_straw'),
@@ -50,27 +50,27 @@ export const OUTFITS = {
     L('t_lido', 'Lido Afternoon', 'dr_halter_aqua sh_strappy_coral ht_floppy_sand', SUMMER),
     L('t_promenade', 'Promenade', 'tp_offsh_stripe bt_denimskirt_white sh_espadrille_stripe ou_denim_white ht_boater_coral', SUMMER),
   ],
-  'cs:outfitters': [
+  'cs_outfitters': [
     L('o_squall', 'Squall Line', 'ou_oilskin_yellow tp_guernsey_navy bt_sailor_navy sh_deckboot_navy ht_souwester_yellow', Object.assign({ note: 'Tested in the harbour by Captain Bea in person. New this year, and every piece is sold on its own.' }, SIG)),
     L('o_shift', 'Harbour Shift', 'tp_gansey_yellow bt_carpenter_denim sh_rainboot_navy ht_watchcap_navy'),
     L('o_dockhand', 'Dock Hand', 'tp_tee_teal bt_overalls_khaki sh_workboot_black ou_chore_canvas ht_trucker_dockhand'),
     L('o_ridgeway', 'Ridgeway', 'tp_coll_park bt_cargo_khaki sh_hiking_olive ou_field_olive ht_watchcap_moss'),
     L('o_trailhead', 'Trailhead', 'dr_romper_khaki sh_hiking_grey ht_cap_olive'),
   ],
-  'cs:otterline': [
+  'cs_otterline': [
     L('r_dawn', 'Dawn Row', 'tp_chevron_cream ou_splash_red bt_runshorts_black sh_racer_white ht_visor_court', Object.assign({ note: 'What the six o\'clock eight wears. New this year, and every piece is sold on its own.' }, SIG)),
     L('r_practice', 'Practice Day', 'tp_raglan_navy bt_joggers_navy sh_runner_blue ac_drawstring_otters'),
     L('r_tiebreak', 'Tiebreak', 'dr_tennisdress_mint sh_runner_red ht_headband_otters ac_watch_band'),
     L('r_match', 'Match Day', 'tp_jersey_home bt_track_otters sh_sneaker_otters ou_track_black ht_snapback_otters'),
     L('r_studio', 'Studio Hour', 'tp_bball_away bt_leggings_plum ou_coach_otters sh_slide_otters'),
   ],
-  'cs:brim': [
+  'cs_brim': [
     L('b_derby', 'Derby Day', 'ht_fascinator_derby ac_pearls_white ac_clutch_gold ac_gloves_opera ac_earring_drop_sapphire'),
     L('b_riviera', 'The Riviera', 'ht_panama_riviera ac_oversized_havana ac_bucketbag_tan ac_watch_gold'),
     L('b_gent', 'City Gent', 'ht_fedora_charcoal ac_ascot_claret ac_briefcase_chestnut ac_browline_black ac_gloves_driving'),
     L('b_leftbank', 'Left Bank', 'ht_beret_claret ac_stripescarf_red ac_cateye_tortoise ac_crossbody_tan ac_earring_hoop_gold'),
   ],
-  'cs:lantern': [
+  'cs_lantern': [
     L('l_blockprint', 'Block Print Day', 'dr_patchwork_indigo ht_kerchief_marigold ac_bundle_indigo sh_clog_red', Object.assign({ note: 'Every patch printed at the big table. New this year, and every piece is sold on its own.' }, SIG)),
     L('l_studio', 'Studio Hours', 'tp_tee_splash bt_flare_rust sh_mule_mustard ht_tam_earth ac_tote_marigold'),
     L('l_meadow', 'Meadow Walk', 'dr_prairie_floral sh_clog_green ou_cape_moss ht_sunhat_garden'),
