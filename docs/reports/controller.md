@@ -290,7 +290,8 @@ out) -> a cab home -> Decorate (drag a piece, undo, tabs, Done) -> Settings (a s
   section 9.3 warns about, and it showed the fallback working.
 - What each step needed is printed per step: `[focus]` the generic layer, `[target]` / `[cycle]` the world target, `[stick]`, `[osk]` the pad keyboard,
   `[bespoke(...)]` a mapping made for that screen (tabs, X = Skip, B = Stop, Start / Y / Select, the map's pan surface, the mini-game surface, Decorate's
-  room, sliders). Full logs: `out/pad_check.json`, `out/pad_check_land_.json`, `out/pad_check_desk_.json`.
+  room, sliders). Full logs of the three final runs: `out/pad_check_390x844_xbox.log`, `out/pad_check_844x390_ps.log`,
+  `out/pad_check_1280x720_switch.log` (a run also writes `out/pad_check<tag>.json`); the touch comparison: `out/pad_touch_check.log`.
 - Things the play-through found and that were fixed on the way (all in `padnav.js` / `pad.js` unless said): the door behind you was offered again right
   after coming through it; passers-by stole the target from the door you walked up to; the focus started on "Show me" (first-time cards), on "Auto" (job
   plays) and jumped to Close / x after an answer vanished (mashing Confirm then closed the play); the focus did not return to the app icon after leaving a

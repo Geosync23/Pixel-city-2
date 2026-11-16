@@ -25,6 +25,7 @@
 // Tuning: data/hotel.js PRICE / TIERS / HOURS; LISTEN_MIN 20, SWIM_MIN 30, SAUNA_MIN 15, MASSAGE_MIN 45, DANCE_MIN 25, COURSE rate 2.2 game min / s, room service arrives after ORDER_MIN 12.
 import { G } from '../core/game.js';
 import { el, root, toast, bubble, say, choose, modal } from '../ui/kit.js';
+import { pickAlarm, commitNote, ALARM_LABEL, ALARM_SUB } from '../ui/alarm.js';
 import { ITEM_BY_ID } from '../data/items.js';
 import { HR, HV, NAME, REST_NAME, BAR_NAME, SPA_NAME, BALL_NAME, SHOP_NAME, TIERS, PRICE, HOURS, CHECKOUT, PIANO_SETS, PIECES, JAZZ, SUNSET, FLOWERS, BUFFET, MENU, EXTRA, COCKTAILS, BALL, HOTEL_LOOKS, inH, meal, ballEvent, ballNext } from '../data/hotel.js';
 import { HOTEL_ICONS } from '../art/showpiece/_hotel_icons.js';
@@ -393,9 +394,9 @@ function wash(fx, kind) {
 
 /* ---------- the room ---------- */
 function roomDoor(no, fx, sc) { const s = stayInfo(); if (s && s.no === no) return enterRoom(); const T = TIERS.find(t => t.no === no); if (T) return toast(`Room ${no}: ${T.name}. ${T.blurb} Book it at reception (${fmt(T.price)} a night).`, 'info', 4600); bubble(G.player, '*knock knock*', 1200); toast(pick(['Behind the door a television is laughing at its own jokes.', '"Not today, thank you!"', 'Silence. Then, faintly, a hair dryer.', 'Somebody is practising a best-man speech. It is not going well.', 'A room-service trolley rattles somewhere inside.']), 'info', 3400); }
-function sleep(mode, fx) {
+function sleep(mode, fx, alarmMin) {
   const sc = scn(HR.room); if (!sc || G.busy) return false; if (!stayNow()) { toast('Your stay is over: the bed has already been stripped.', 'info'); return false; } fx = fx || sc.fixtures.find(f => f.item.bedfx); const S = st(), T = TIERS.find(t => t.id === sc.def.tier) || TIERS[0], n = G.now(), b = fx.bed, p = G.player, e0 = safe(() => G.needs.get('energy')) || 0, robed = outfit() === 'robe';
-  const toM = Math.round((((7 - n.hf) % 24) + 24) % 24 * 60) || 1440, cap = Math.max(10, Math.floor(S.stay.until - G.state.t)), mins = Math.min(cap, mode === 'nap' ? 30 : mode === 'morning' ? toM : 600); let el = 0;
+  const toM = Math.round((((7 - n.hf) % 24) + 24) % 24 * 60) || 1440, cap = Math.max(10, Math.floor(S.stay.until - G.state.t)), mins = Math.min(cap, mode === 'nap' ? 30 : mode === 'morning' ? toM : mode === 'alarm' && alarmMin ? alarmMin : 600); let el = 0;
   if (G.needs) G.needs.sleeping = true;
   const end = () => { if (G.needs) G.needs.sleeping = false; p.poseOpts = null; S.sleeps++; G.emit('hotel:sleep', el); if (el >= 240) { moodlet('hotel_rested'); stamp('x:hotel_stay'); toast(`You wake in ${T.name} with the curtains glowing. ${Math.round(el / 60)} hours, and you did not move once.`, 'good', 5200); } else if (el >= 25) { moodlet('power_nap'); toast('A hotel nap: the deepest kind.', 'good', 3200); } };
   G.startActivity({ label: mode === 'nap' ? 'Napping' : 'Sleeping', anim: 'sleep', minutes: mins, rate: Math.max(6, Math.min(48, mins / 6)), at: b ? { x: b.x, y: b.y, z: b.z || .58, dir: b.dir } : undefined, tick: gm => { el += gm; add('energy', T.sleep * (robed ? 1.05 : 1) * gm / 60); if (mode === 'rested' && el >= 60 && (safe(() => G.needs.get('energy')) || 0) >= 99.5) G.endActivity(true); else if ((safe(() => G.needs.get('hunger')) || 50) < 5) G.endActivity(true); }, done: end, cancel: end });
@@ -403,7 +404,8 @@ function sleep(mode, fx) {
 }
 async function bed(fx, sc) {
   if (G.busy) return; if (!stayNow()) return toast('Your stay is over. Reception will be glad to book you another night.', 'info'); const n = G.now(), toM = Math.round((((7 - n.hf) % 24) + 24) % 24 * 60) || 1440, e = safe(() => G.needs.get('energy')) || 50, hm = m => `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}`;
-  const v = await choose('The bed', [{ label: 'Sleep until morning', sub: `Wake at 07:00 · ${hm(toM)}`, value: 'morning', disabled: !(toM >= 150 && toM <= 780 && (n.hf >= 18 || n.hf < 5)) || e > 93 }, { label: 'Sleep until rested', sub: e > 93 ? 'You are wide awake' : 'Pressed sheets, four pillows', value: 'rested', disabled: e > 93 }, { label: 'Take a nap', sub: '30 min', value: 'nap', disabled: e > 97 }, { label: 'Not yet', value: null }], { text: 'Turned down, a chocolate on the pillow.' }); if (v) sleep(v, fx);
+  const v = await choose('The bed', [{ label: 'Sleep until morning', sub: `Wake at 07:00 · ${hm(toM)}` + ((note => note ? ' · ' + note : '')(commitNote(G.state.t, G.state.t + toM + 45))), value: 'morning', disabled: !(toM >= 150 && toM <= 780 && (n.hf >= 18 || n.hf < 5)) || e > 93 }, { label: 'Sleep until rested', sub: e > 93 ? 'You are wide awake' : 'Pressed sheets, four pillows', value: 'rested', disabled: e > 93 }, { label: 'Take a nap', sub: '30 min', value: 'nap', disabled: e > 97 }, { label: ALARM_LABEL, sub: e > 93 ? 'You are wide awake' : ALARM_SUB, value: 'alarm', disabled: e > 93 }, { label: 'Not yet', value: null }], { text: 'Turned down, a chocolate on the pillow.' });
+  if (v === 'alarm') { const r = await pickAlarm({ maxMin: Math.floor(((stayNow() || {}).until || G.state.t + 840) - G.state.t), text: 'The bedside clock-radio, set by a hundred guests before you.' }); if (r && !G.busy) sleep('alarm', fx, r.minutes); } else if (v) sleep(v, fx);
 }
 function orderRS(id) { const it = ITEM_BY_ID[id], S = st(); if (!it || !stayNow() || S.order || S.tray) return false; if (!pay(it.price + 3, 'Room service: ' + it.name, 'dish')) return false; S.order = { id, t: G.state.t + ORDER_MIN }; G.emit('hotel:order', id); toast(`"${it.name}, room ${stayInfo().no}. About ten minutes."`, 'good', 3600); return true; }
 async function phone(sc) {

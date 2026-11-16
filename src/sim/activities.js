@@ -29,6 +29,7 @@ import { U } from '../engine/raster.js';
 import { nearestFree } from '../engine/nav.js';
 import { choose, toast, bubble, modal, el } from '../ui/kit.js';
 import { iconEl, weatherIcon } from '../ui/_icons.js';
+import { pickAlarm, commitNote, ALARM_LABEL, ALARM_SUB } from '../ui/alarm.js';
 
 export const order = 55;
 let S = null, run = null; const opens = {}, cityRemovers = [], seen = new WeakSet();
@@ -463,12 +464,13 @@ async function menu(ctx) {
   if (tags.includes('bed')) {
     const n = G.now(), wake = 7, toMorning = Math.round((((wake - n.hf) % 24) + 24) % 24 * 60) || 1440, e = G.needs ? G.needs.get('energy') : 50, why = e > 92 ? 'You are wide awake' : null;
     const good = goodOf(fx, 'bed'), rate = ACTIVITY_BY_ID.sleep.perHour.energy * ((good && good.bonus.mult) || 1), rested = Math.max(30, Math.round((100 - e) / rate * 60));
-    if (toMorning >= 180 && toMorning <= 780 && (n.hf >= 18 || n.hf < 5)) add('Sleep until morning', `Wake at 07:00 · ${hm(toMorning)}`, () => start('sleep', { fx, minutes: toMorning, untilRested: false }), why);
+    if (toMorning >= 180 && toMorning <= 780 && (n.hf >= 18 || n.hf < 5)) add('Sleep until morning', `Wake at 07:00 · ${hm(toMorning)}` + ((note => note ? ' · ' + note : '')(commitNote(G.state.t, G.state.t + toMorning + 45))), () => start('sleep', { fx, minutes: toMorning, untilRested: false }), why);
     const jb = G.jobs && G.jobs.current && G.jobs.current(), toWork = jb && jb.nextShift ? Math.round(jb.nextShift - G.state.t - 75) : 0;
     if (toWork >= 120 && toWork <= 840) add('Sleep until it is time for work', `Wake at ${clockOf((((n.hf + toWork / 60) % 24) + 24) % 24)}, 75 min before your shift · ${hm(toWork)}`, () => start('sleep', { fx, minutes: toWork, untilRested: false }), why);
     add('Sleep until rested', `About ${hm(rested)}`, () => start('sleep', { fx, minutes: 600, untilRested: true }), why);
     add('Sleep 8 hours', `Wake at ${clockOf((n.hf + 8) % 24)}`, () => start('sleep', { fx, minutes: 480, untilRested: false }), why);
     add('Take a nap', '30 min', () => start('nap', { fx, minutes: 30 }), e > 96 ? 'Not sleepy' : null);
+    add(ALARM_LABEL, ALARM_SUB, async () => { const r = await pickAlarm(); if (r && !G.busy) start('sleep', { fx, minutes: r.minutes, untilRested: false }); }, why);   /* owner: a custom wake-up time (src/ui/alarm.js) */
   }
   const skip = ['sleep', 'nap', 'store_groceries', 'grab_snack', 'cook', 'prep_cold', 'microwave_meal', 'heat_on_stove'];
   for (const a of forTags(tags, G.scene)) { if (skip.includes(a.id)) continue; const c = Object.assign({}, ctx), why = blocked(a.id, c); if (why === 'Not here') continue; const m = a.minutes; add(a.name, why || (a.cost && a.cost.amount ? money(a.cost.amount) + ' · ' : '') + (m.min === m.max ? hm(m.min) : `${hm(m.min)} – ${hm(m.max)}`), () => pickAndStart(a, c), why); }
