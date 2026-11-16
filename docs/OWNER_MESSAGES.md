@@ -867,3 +867,9 @@ This is great but one laat change for the trailer. When it starts counting out t
 
 ## 213 (2026-11-16)
 Tbis is very close. When it says fully explorable  ,  hold on on tht shot and the following ones too. Thats fine if it makes the trailer longer
+
+## 214 (2026-11-16)
+Trailer  is good thanks please make a download able mp4
+
+## 215 (2026-11-16)
+"Weak spot: the street is quiet, with four or five pedestrians and no other traffic." Add density for those new logner city shots. But only as much as there really is on a busy time of day.
