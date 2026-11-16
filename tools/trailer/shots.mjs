@@ -80,7 +80,7 @@ export const SHOTS = {
   b00_c2: { url: city(12.4), setup: free(212, 243, 3), settle: 14, sec: 6, frame: pan([212, 243], [217.6, 243], 6) },
   b00_c3: { url: city(17.2), setup: free(236, 257, 3), settle: 14, sec: 6, frame: pan([236, 257], [241.6, 257], 6) },
   b01_vista: { url: city(13), setup: free(96.6, 357.35, 1), settle: 8, sec: 2.8, frame: pan([96.6, 357.35], [102.4, 352.65], 2.8) },
-  b03_foot: { url: city(13.5), setup: walk([216, 226], [228, 226], 3), settle: 8, sec: 2.2, ready: c => c.ev(() => window._walk()) },
+  b03_foot: { url: city(13.5), setup: walk([216, 226], [238, 226], 3), settle: 8, sec: 3.4, ready: c => c.ev(() => window._walk()) },
   b04_bus: Object.assign({ url: city(13.2), sec: 2.6 }, bus(220, 240, 3)),
   b05_train: Object.assign({ url: city(13), sec: 2.6 }, train('central', 2)),
   b_job: { url: city(10), sec: 3.2, setup: async c => { c.ev(() => { document.body.classList.add('tr-ui'); G.player.hidden = false; G.jobs.debugStart('barista'); }); await wait(2500); await c.ev(() => { G.setZoom(4); G.snapCam(); }); }, settle: 3 },

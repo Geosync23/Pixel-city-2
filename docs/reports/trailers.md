@@ -61,3 +61,7 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 - LEAD looked at twelve frames (out/shots/trailer_b_lead3.png): all sections as described; NOTE the digit 5 in '25 jobs to work' can read like an S at small size (the game font's known weak digit). Nobody has watched it in motion or heard it.
 - Weak spots: close-ups are glimpses; barista partly covered by customers; fishing shows no rod; painting on a bare floor; pace caption crosses the gym's TODAY board.
 
+## Trailer B round 4 (owner msg 213; published version id 1794860537-3e2b)
+- trailer_b.mp4 = 61.2 s, 13.31 MB; previous = trailer_b_v3.mp4. The four 'fully explorable' shots hold one bar each: on foot 7.02-9.33 (re-recorded longer, City Hall plaza), bus 9.33-11.64, train 11.64-13.95 (second train passing), cab 13.95-16.25; caption on 7.02-15.45 s. Everything after is v3 shifted three bars; music +3 bars at the end in one render (layer changes now fall three bars earlier relative to the picture). Video cap 1.65 Mbit/s.
+- LEAD looked at six frames (out/shots/trailer_b_lead4.png): walk, bus, train fine; CAB shows only as a see-through outline under the viaduct in the last second of its hold: worker resumed to re-shoot the cab on a clear route (will deliver as trailer_b.mp4 with this cut kept as trailer_b_v4.mp4).
+

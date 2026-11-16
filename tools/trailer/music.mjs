@@ -18,9 +18,11 @@ export const ARR = {
     L(0, 1, 1, 0), L(1, 1, 1, 0), L(2, 1, 1, 1), L(3, 1, 1, 1), L(4, 1, 1, 0), L(5, 1, 1, 0), L(6, 1, 1, 1), L(7, 1, 1, 1),
     L(0, 1, 1, 1, 1, 12), L(1, 1, 1, 1, 1, 12), L(2, 1, 1, 1, 1, 12), L(3, 1, 1, 1, 1, 12), L(4, 1, 1, 1), L(5, 1, 1, 1), L(6, 1, 1, 1), L(7, 1, 1, 1),
     /* round 3 (owner msg 212): four more bars, the second half of the loop once more with the tune an octave up, then the same final chord */
-    L(4, 1, 1, 1, 1, 12), L(5, 1, 1, 1, 1, 12), L(6, 1, 1, 1, 1, 12), L(7, 1, 1, 1, 1, 12)],
+    L(4, 1, 1, 1, 1, 12), L(5, 1, 1, 1, 1, 12), L(6, 1, 1, 1, 1, 12), L(7, 1, 1, 1, 1, 12),
+    /* round 4 (owner msg 213): three more bars (vi ii V once more, tune back down an octave), then the same final chord */
+    L(5, 1, 1, 1), L(6, 1, 1, 1), L(7, 1, 1, 1)],
 };
-export const LENS = { a: 45, b: 45 + 4 * BAR };
+export const LENS = { a: 45, b: 45 + 7 * BAR };
 if (import.meta.url === `file://${process.argv[1]}`) {
   const srv = await serve(CLEAN); const port = srv.address().port; const br = await chromium.launch(); const page = await br.newPage();
   await page.route('**/trailer_blank.html', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>music</title>' }));
