@@ -24,7 +24,7 @@ const A = {
     { clip: 'a10_hall', t0: bar(13), t1: bar(14), note: 'Baggage hall, carousels turning' },
     { clip: 'a11_bag', in: Math.max(0, grab - 1.5), t0: bar(14), t1: bar(15), note: 'THE PLAYER: takes the yellow suitcase off carousel 2 and tows it away' },
     { clip: 'a12_kerbcab', in: Math.max(0, ride - 1.6), t0: bar(15), t1: bar(16), note: 'Out at the kerb the cab pulls up, player gets in, cab pulls away' },
-    { clip: 'a13_cabtown', in: Math.max(0, rend - 6.2), t0: bar(16), t1: bar(18), note: 'Cab ride through downtown to the diner' },
+    { clip: 'a13_cabtown', in: .5, t0: bar(16), t1: bar(18), note: 'Cab ride through downtown to the diner' },
     { clip: 'a15_door', in: .2, t0: bar(18), t1: bar(18, 2), note: 'Player walks up to the diner door (welcome glow), suitcase in tow' },
     { clip: 'room_diner', in: .1, t0: bar(18, 2), t1: END, note: 'Cut inside: the diner' },
     { clip: 'a16_end', t0: END, t1: LEN, note: 'End card over downtown at night' },
@@ -43,7 +43,7 @@ const A = {
 /* ---------------- B: the mix (Open Every Door x A Week in Maple Bay) ---------------- */
 // the door montage: 16 interiors one per beat (bars 5-8), 24 one per half beat (bars 13-15); [room clip, name shown nowhere, just for the storyboard]
 export const DOORS1 = ['diner', 'cs_hollowell', 'aquarium', 'lighthouse', 'central_station-platforms', 'cityhall', 'natatorium-pool', 'museum', 'observatory', 'skydeck', 'home-villa_belvedere', 'cafe', 'fishmarket', 'conservatory', 'cs_nightjar', 'bookstore'];
-export const DOORS2 = ['bakery', 'cs_juniper', 'library', 'aquarium-deep', 'ramen', 'goods-timber', 'arena', 'post_main', 'cs_secondwind', 'hotel', 'gym', 'pizza', 'university', 'cs_tidepool', 'bar', 'fire_station', 'goods-lumen', 'concerthall', 'cs_sole', 'home-beacon_penthouse', 'radio_studio', 'cs_brim', 'cinema', 'lighthouse_lantern'];
+export const DOORS2 = ['bakery', 'cs_juniper', 'library', 'aquarium-deep', 'ramen', 'bar', 'arena-bowl', 'cs_secondwind', 'hotel', 'gym', 'pizza', 'university', 'cs_tidepool', 'fire_station', 'university-library', 'concerthall', 'cs_sole', 'home-beacon_penthouse', 'radio_studio', 'cs_brim', 'cinema', 'grocery', 'central_station', 'lighthouse_lantern'];
 const WEEK = [['MON', 'b_job', 2, 'A job shift: trainee barista at the cafe (the shift panel is the game’s own)'], ['TUE', 'b_gym', 2, 'The gym: treadmill mini-game'], ['WED', 'b_cook', 2, 'Cooking mini-game at home ("Chop it")'], ['THU', 'b_rain', 2, 'A rainy evening walk downtown'],
   ['FRI', 'b_date', 2, 'A first date on the River Walk (the date scene’s own text sheet)'], ['SAT', 'b_fest', 4, 'Lantern Night festival in Old Town'], ['SUN', 'b_fish', 2, 'Fishing off the river rail']];
 const B = { len: LEN, music: 'music_b.wav', video: [], gfx: [] };
@@ -51,12 +51,12 @@ const B = { len: LEN, music: 'music_b.wav', video: [], gfx: [] };
   const v = B.video, g = B.gfx, tdB = td;
   v.push({ clip: 'b01_vista', t0: 0, t1: bar(2), note: 'The harbour: pier, Ferris wheel, boats' });
   v.push({ clip: 'a08_plane', in: tdB - 1.2, t0: bar(2), t1: bar(3), note: 'The airport: a plane touches down' });
-  const ways = [['b03_foot', 0, 'On foot across the plaza'], ['b04_bus', 0, 'Bus'], ['b05_train', .3, 'Train on the viaduct'], ['a13_cabtown', Math.max(0, rend - 4), 'Cab']];
+  const ways = [['b03_foot', .9, 'On foot across the plaza'], ['b04_bus', 0, 'Bus'], ['b05_train', .3, 'Train on the viaduct'], ['a13_cabtown', 1.5, 'Cab']];
   ways.forEach((w, i) => v.push({ clip: w[0], in: w[1], t0: bar(3, i * 2), t1: bar(3, i * 2 + 2), note: '4 ways: ' + w[2] }));
   const steps = []; let k = 0; const total = DOORS1.length + DOORS2.length, num = i => Math.max(1, Math.round(N * Math.pow((i + 1) / total, 1.35)));
-  DOORS1.forEach((r, i) => { const t = bar(5, i); v.push({ clip: 'room_' + r, in: .1, t0: t, t1: bar(5, i + 1), note: 'Door ' + (i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .2 }); steps.push([t, num(k++)]); });
+  DOORS1.forEach((r, i) => { const t = bar(5, i); v.push({ clip: 'room_' + r, in: .1, t0: t, t1: bar(5, i + 1), note: 'Door ' + (i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .15 }); steps.push([t, num(k++)]); });
   let b = 0; WEEK.forEach(w => { const t = bar(9, b); v.push({ clip: w[1], in: w[1] === 'b_fest' ? 0 : .4, t0: t, t1: bar(9, b + w[2]), note: w[0] + ': ' + w[3] }); g.push({ kind: 'day', t0: t, t1: bar(9, b + w[2]) - .04, text: w[0] }); b += w[2]; });
-  DOORS2.forEach((r, i) => { const t = bar(13, i / 2); v.push({ clip: 'room_' + r, in: .25, t0: t, t1: bar(13, (i + 1) / 2), note: 'Door ' + (DOORS1.length + i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .13 }); steps.push([t, num(k++)]); });
+  DOORS2.forEach((r, i) => { const t = bar(13, i / 2); v.push({ clip: 'room_' + r, in: .25, t0: t, t1: bar(13, (i + 1) / 2), note: 'Door ' + (DOORS1.length + i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .1 }); steps.push([t, num(k++)]); });
   v.push({ clip: 'room_aquarium', in: .3, t0: bar(16), t1: bar(17), slow: 2, note: 'Hold on the aquarium for the count caption' });
   v.push({ clip: 'b_home', t0: bar(17), t1: bar(18), note: 'Evening at home by the fire' });
   v.push({ clip: 'b_sunset', t0: bar(18), t1: END, note: 'Sunset at the lighthouse' });

@@ -9,7 +9,6 @@ for (let i = 0; i < args.length; i++) { if (args[i].startsWith('--')) opt[args[i
 fs.mkdirSync(path.join(SCRATCH, 'clips'), { recursive: true }); fs.mkdirSync(path.join(SCRATCH, 'strips'), { recursive: true });
 const { page, errs, close } = await open({ url: `?scene=city&t=${opt.hour}&debug&weather=clear` });
 await installHelpers(page); await freeze(page);
-await page.evaluate(() => { try { G.dev.set(true); G.state.dev.needs = true; G.state.dev.all = true; } catch (e) { } });
 const picks = [];
 for (const spec of rooms) {
   const [r, off] = spec.split('@'); const name = 'room_' + r.replace(/:/g, '-');

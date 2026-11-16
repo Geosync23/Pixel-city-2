@@ -15,7 +15,7 @@ html,body{margin:0;background:transparent;overflow:hidden}
 .cap{left:0;right:0;text-align:center;letter-spacing:.03em;line-height:1.05}
 .title{left:0;right:0;text-align:center;font-size:150px;letter-spacing:.04em;line-height:1}
 .title b{color:#f2c230;font-weight:700}
-.tag{left:50%;transform:translateX(-50%);white-space:nowrap;background:#2a2733;color:#fff4dc;font-size:34px;padding:6px 18px;box-shadow:0 4px 0 #1b1a24}
+.tag{left:50%;transform:translateX(-50%);white-space:nowrap;background:#2a2733;color:#fff4dc;font-size:46px;padding:8px 22px;box-shadow:0 4px 0 #1b1a24}
 .box{background:#fff4dc;color:#2a2733;border:3px solid #2a2733;box-shadow:4px 4px 0 #2a2733;padding:6px 16px;text-align:center}
 .day{left:40px;top:36px;background:#2a2733;color:#f2c230;font-size:40px;padding:4px 16px;box-shadow:4px 4px 0 #1b1a24;letter-spacing:.06em}
 .leaf{background:#2a2733}
@@ -32,7 +32,7 @@ window.render = t => {
     if (it.kind === 'fadein') h += '<div style="inset:0;background:#1b1a24;opacity:' + (1 - st((t - it.t0) / (it.t1 - it.t0), 12)).toFixed(3) + '"></div>';
     else if (it.kind === 'fadeout') h += '<div style="inset:0;background:#1b1a24;opacity:' + st((t - it.t0) / (it.t1 - it.t0), 12).toFixed(3) + '"></div>';
     else if (it.kind === 'dim') h += '<div style="inset:0;background:#1b1a24;opacity:' + (Math.min(1, st((t - it.t0) / (it.ramp || .3), 4)) * it.a).toFixed(3) + '"></div>';
-    else if (it.kind === 'title') { const p = pop(t, it.t0, it.t1), y = (it.y || 250) + p.y; h += '<div class="title ol" style="top:' + y + 'px;opacity:' + p.a + '">MAPLE <b>BAY</b></div>'; if (it.tag && t >= it.t0 + (it.tagAt || .58)) { const q = pop(t, it.t0 + (it.tagAt || .58), it.t1); h += '<div class="tag" style="top:' + (y + 180 + q.y) + 'px;opacity:' + q.a + '">' + it.tag + '</div>'; } }
+    else if (it.kind === 'title') { const p = pop(t, it.t0, it.t1), y = (it.y || 250) + p.y; h += '<div class="title ol" style="top:' + y + 'px;opacity:' + p.a + '">MAPLE <b>BAY</b></div>'; if (it.tag && t >= it.t0 + (it.tagAt || .58)) { const q = pop(t, it.t0 + (it.tagAt || .58), it.t1); h += '<div class="tag" style="top:' + (y + 190 + q.y) + 'px;opacity:' + q.a + '">' + it.tag + '</div>'; } }
     else if (it.kind === 'cap') { const p = pop(t, it.t0, it.t1), s = it.size || 76, y = it.pos === 'center' ? ${H / 2} - s * .6 : it.pos === 'top' ? 60 : ${H} - 70 - s * (1 + (it.text.split('<br>').length - 1) * 1.05); h += '<div class="cap ol" style="top:' + (y + p.y) + 'px;font-size:' + s + 'px;opacity:' + p.a + '">' + it.text + '</div>'; }
     else if (it.kind === 'day') { const p = pop(t, it.t0, it.t1); h += '<div class="day" style="top:' + (36 - p.y) + 'px;opacity:' + p.a + '">' + it.text + '</div>'; }
     else if (it.kind === 'count') { let n = 0, last = -1; for (const s of it.steps) if (t >= s[0]) { n = s[1]; last = s[0]; } const bump = t - last < .1 ? -6 : 0, p = pop(t, it.t0, it.t1);
