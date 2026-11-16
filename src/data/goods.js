@@ -140,6 +140,10 @@ S('seating', 'armchair', { tag: 'sofa', kind: false, tags: ['seat'], amb: 1 });
 R('arm_mustard', 'Snug Armchair, Mustard', 260, 'armchair', { tier: 1, c: P.mustard, c2: P.teal }, 'BF', 'modern');
 R('arm_rose', 'Snug Armchair, Rose', 260, 'armchair', { tier: 1, c: P.rose }, 'B', 'cottage');
 R('arm_oxblood', 'Library Armchair', 520, 'armchair', { tier: 2, c: '#8a3a3a', c2: P.cream }, 'A', 'classic');
+/* owner msg 205: the rocking chair from Nana's kitchen (art furn.home.rocker, src/art/home/seating.js; it rocks while sat in: src/sim/rocking.js, any room) */
+S('seating', 'rocker', { tag: 'sofa', kind: false, tags: ['seat', 'rocker', 'rocking chair'], amb: 2 });   // ambience as the wingbacks and the porch rocker
+R('rocking_fireside', 'Fireside Rocking Chair', 340, 'rocker', { c: P.red, throw: '#7a9ec8' }, 'AB', 'cottage', { colour: 'Red, blue throw', blurb: 'Slatted back, curved runners, a red cushion and a knitted throw. It rocks while you sit and settles when you get up.' });
+R('rocking_sage', 'Fireside Rocking Chair, Sage', 320, 'rocker', { c: P.sage, wood: '#5e3f30' }, 'AT', 'rustic', { colour: 'Sage, dark oak', blurb: 'Dark oak and a sage cushion. It rocks while you sit and settles when you get up.' });
 S('seating', 'beanbag', { tag: 'sofa', kind: false, tags: ['seat'], amb: 1 });
 R('bean_mustard', 'Beanbag, Mustard', 55, 'beanbag', { tier: 1, c: P.mustard }, 'FV', 'modern', { carry: true });
 R('bean_red', 'Beanbag, Cherry', 55, 'beanbag', { tier: 1, c: P.red }, 'FH', 'modern', { carry: true });

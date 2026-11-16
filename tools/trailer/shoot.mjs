@@ -10,8 +10,8 @@ for (const id of ids) {
   const t0 = Date.now(), { page, errs, close } = await open({ url: S.url || '?scene=city&t=12&debug' });
   try {
     await installHelpers(page);
-    const ctx = { page, ev: (fn, arg) => page.evaluate(fn, arg), settle: s => settle(page, s), freeze: () => freeze(page), frozen: false };
-    if (S.setup) await S.setup(ctx);
+    const ctx = { page, meta: o => { const f = path.join(SCRATCH, 'meta', id + '.json'); fs.mkdirSync(path.dirname(f), { recursive: true }); let m = {}; try { m = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { } fs.writeFileSync(f, JSON.stringify(Object.assign(m, o))); }, ev: (fn, arg) => page.evaluate(fn, arg), settle: s => settle(page, s), freeze: () => freeze(page), frozen: false };
+    fs.rmSync(path.join(SCRATCH, 'meta', id + '.json'), { force: true }); if (S.setup) await S.setup(ctx);
     if (!ctx.frozen) { await freeze(page); ctx.frozen = true; }
     if (S.settle) await settle(page, S.settle);
     if (S.ready) await S.ready(ctx);

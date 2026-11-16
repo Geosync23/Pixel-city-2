@@ -31,18 +31,18 @@ Status: **real** = done in this batch. A = auto door/sign (fade), B = lobby.rest
 | **SkyDeck (skydeck)** | **real** | **DONE: level 52, slate + walnut + brass, the whole bay behind the glass, orchid, dish of mints** |
 | **Dot's Diner (diner)** | **real** | **DONE: tiny pink-tile 50s loo, one teal stall carved "D+J", chrome dryer, mop bucket** |
 | **City Hall rotunda (cityhall)** | **real** | **DONE: 1891 public washroom, marble, oak stalls with high cisterns, maple-leaf medallion, first mayor's portrait** |
-| SkyDeck lobby (skydeck_lobby) | A door | small street-level cloakroom loo behind the ticket desk, or a sign "Restrooms on Level 52" and the lobby door removed (owner?) |
-| City Hall upper / records / council | B | point all City Hall restroom doors to the one washroom (one line per room in WC), or a small clerks' loo with a filing-cabinet towel stack |
+| **SkyDeck lobby (skydeck_lobby)** | **real (batch 2)** | **DONE: plain service loo off the corridor: painted block, concrete with a drain, one grey steel stall, pipes, a hard hat and hi-vis on the hook** |
+| **City Hall council / records / clerk floors** | **real (batch 2)** | **DONE: every City Hall restroom door leads to the one grand washroom; leaving returns you to the door you came from** |
 | Bayside Clinic (clinic) | A sign | clinical white tile, grab rails, sample hatch, hand-sanitiser pump |
 | The Gilded Gull (restaurant) | A sign | dark-red flock wallpaper, gold taps, nautical sconces, a ship-in-a-bottle on the shelf |
 | Pier 7 Freight (warehouse) | A door | staff washroom: concrete, steel trough sink, hi-vis vests on hooks |
 | Hartwell & Finch (office) | A door | corporate grey, motion-sensor taps, a passive-aggressive "please flush" note |
 | Bay Realty & Trust (bank) | A sign | marble-lite, brass, a "for staff and customers" plaque, vault-door styled stall |
 | Thread & Co. (clothing) | A sign | fitting-room-style loo with a full-length mirror and a mannequin torso |
-| Iron Maple Gym (gym) | A door | locker-room loo: benches, rubber floor, protein-shaker on the sink |
-| Maple Bay Galleria (deptstore) | A door | mall restroom block off the corner WC doorway (already drawn), baby-change, long mirror wall |
+| **Iron Maple Gym (gym)** | **real (batch 2)** | **DONE: locker-room loo: rubber floor, two orange stalls, steel basins with pump bottles, lockers, a bench, a scale ("Step on the scale")** |
+| **Maple Bay Galleria (deptstore)** | **real (batch 2)** | **DONE: through the corner WC doorway: lilac stalls to the ceiling, quartz counter with sensor taps, one long mirror, a baby-change table with a forgotten duck** |
 | Grand Maple Hotel (hotel, events, guest floor) | B (2 doors) | Art-deco lobby powder room: velvet stool, attendant's tray, fresh flowers |
-| Central Station (central_station) | A sign | big tiled station loo with turnstile, departure board, tile mosaic of the old steam train (door hook only in stations.js) |
+| **Central Station (central_station)** | **real (batch 2)** | **DONE: railed steps down in the hall; below: white subway tile, green trim, terrazzo, a steel trough, four blue stalls with old 10c locks, a tile mosaic of the steam train** |
 | Rise & Shine Bakery (bakery) | A door | flour-dusted staff loo, a sack in the corner, bread-shaped soap |
 | Dog-Eared Books (bookstore) | A door | tiny loo lined with paperback shelves ("take one, leave one") |
 | Bean & Gone (cafe) | A sign | plant-filled loo, chalkboard wall with customers' doodles |
@@ -51,10 +51,10 @@ Status: **real** = done in this batch. A = auto door/sign (fade), B = lobby.rest
 | FreshWay Market (grocery) | A sign | customer loo past the dairy cold room, rolling bins, recycling posters |
 | The Orpheum (cinema) | A sign | red velvet + film-poster frames, popcorn on the floor, an usher's torch on the hook |
 | Slice of Heaven (pizza) | A door | green-white-red tiles, a flour-sack bin, pizza-peel towel holder |
-| The Blue Heron (bar) | A sign | dim bar loo, band stickers everywhere, a condom machine replaced by a gumball machine |
-| Maple Bay Public Library (library) | A door | "cleanest in the city" (ambient lines say so): silent sign, book-return slot for hand towels, reading lamp |
+| **The Blue Heron (bar)** | **real (batch 2)** | **DONE: one black stall, band stickers everywhere, red bulb, steel bowl, a lipstick heart on the mirror, the gumball machine** |
+| **Maple Bay Public Library (library)** | **real (batch 2)** | **DONE: "the cleanest in the city": sage and cream stripes, oak herringbone, green stalls I and II, pedestal basins, QUIET sign, a swap shelf ("Swap shelf")** |
 | ZipParcel Depot (courier) | A door | staff loo with a parcel-scale, cardboard everywhere |
-| Museum of Maple Bay (museum) | A door | gallery loo with a museum-label next to the hand dryer ("Untitled, 1998") |
+| **Museum of Maple Bay (museum)** | **real (batch 2)** | **DONE: white gallery loo, polished concrete, minimal white stalls with black edges, black stone bowls on plinths, a hand dryer exhibited with a museum label ("Read the label")** |
 | Maple Bay Aquarium (aquarium) | A door | blue tiles, a fish-tank wall over the basins |
 | Symphony Hall (concerthall) | A door | intermission queue, gilt mirrors, programme left on the sink |
 | Lantern Playhouse (playhouse) | A sign | backstage-style: bulb-ringed mirror, costume rail |
@@ -68,7 +68,7 @@ Status: **real** = done in this batch. A = auto door/sign (fade), B = lobby.rest
 | Gull Point Lighthouse (lighthouse) | B | narrow round room under the stair, porthole, ship's lamp |
 | General Post Office (post_main), Downtown Postcard Counter | B | stamp-mosaic tiles, a "first-class" brass plate, letter-rack towel holder |
 | Office lobbies (lobby:1-24, lobby:48, 20 rooms) | B | one line each, by the building's theme: BayJet (aircraft-lav), Harbor Authority (ship's head), Ironside Foundry (cast-iron), Meridian Twin Towers (glass + chrome), Garnet Exchange (red stone), Harbor Trust (banker's marble), Kessler Block (old brick), Tidewater Insurance (beige corporate), Lanternworks (loft industrial), Northgate (municipal green), Carrow & Finch (law-firm walnut), Bayline Telecom (90s teal), Pelican Mutual (pelican tile), Quay Street Labs (lab-white with eyewash), Gas & Light (vintage gas lamps), Silver One (silver mirrors), Hollis Price (chambers oak), Brightwater Health (pastel clinic), Atlas Maritime (map mural), Shed 5 Works (shipping-container loo) |
-| Maple Bay Arena (arena) | C (2) | stadium restroom block: long trough of basins, team colours, a queue at half-time |
+| **Maple Bay Arena (arena)** | **real (batch 2)** | **DONE: Otters-red block: five stalls, a round wash fountain, the score on a TV, an OTTERS sign, a queue rail; the half-time queue (wait) is kept** |
 | City park pavilion (city) | D | park pavilion loo: pine soap, timber walls, wildflower posters (a real room behind the pavilion door) |
 | Maple Bay Natatorium (natatorium, leisure) | B | changing-room loo, tiled benches, chlorine-blue, flip-flops |
 | Maple Bay University Commons (university) | B | student loo, flyers + graffiti equations on the stall doors |
@@ -160,3 +160,43 @@ New: `src/sim/restrooms.js` (mechanism), `src/scenes/rooms/restrooms.js` (the th
 1. SkyDeck lobby: give it its own small street-level restroom (a 4th room), or take its door away and send people up to Level 52?
 2. Should all of City Hall's restroom doors (upper floor, records, council) lead to the one grand washroom, or should the offices upstairs get a plainer one?
 3. Would you like city folk in the restrooms (a queue at the Arena at half-time, someone at the basin), or keep them quiet?
+
+## 9. Batch 2 (eight more rooms, 2026-11-16)
+
+Chosen by how often a player is there: the SkyDeck lobby (lead decision: its own small street-level loo), Central Station's hall (every train trip),
+the Galleria (biggest shop), the library and the museum (daytime regulars), the gym (daily routine), the Blue Heron (nightlife, the busiest
+evening venue) and the Arena (game nights; its two restroom doors existed). The hotel lobby is next in line. Plus, without a new room: City Hall's
+council, records and clerk floors now open into the grand washroom (`also` in the WC entry; leaving returns to the room and door you came from).
+
+| room id | size | look | venue door |
+|---|---|---|---|
+| skydeck_lobby:wc | 4x4, h 2.6 | painted grey block, concrete with a drain, grey steel stall, small steel basin + paper-towel box, copper/grey pipes, hard hat + hi-vis, caged bulb | new grey service door with a blue WC plate, right of the lifts |
+| central_station:wc | 10x6, h 3.2 | white subway tile, green trim + rail, terrazzo with a yellow edge line, steel trough on a tiled plinth (4 taps), 4 blue-grey stalls with brass 10c locks, steel-framed mirrors, tile mosaic of the steam train, green litter bin | railed steps down with a TOILETS sign, standing in the hall by the vending machines (no wall edit in stations.js) |
+| deptstore:wc | 9x6, h 3.0 | beige stone tiles, lilac full-height stalls, quartz counter with sensor taps and a lilac under-glow, long mirror strip, baby-change table with a duck, palm | the Galleria's existing WC doorway (corner, behind the escalator) now leads in |
+| library:wc | 6x5, h 3.0 | sage/cream stripes, green rail, oak herringbone, 2 green panelled stalls (I, II), pedestal basins, oval wood mirrors, green-shade sconce, QUIET sign, swap shelf | new oak panelled door with a brass WC plate, corner of the stacks |
+| museum:wc | 8x5, h 3.6 | gallery white, polished concrete slabs, white stalls with black edges, black stone bowls on white plinths, tall black-framed mirrors, track lights, the exhibited hand dryer + label, a gallery bench | new white door with black WC lettering, in the cafe corner |
+| gym:wc | 7x5, h 2.8 | rubber floor, red trim, 2 orange stalls (numbers), steel counter with pump bottles, big frameless mirror, lockers (existing art), bench, scale | new orange door, by the yoga mats |
+| bar:wc | 4x4, h 2.6 | black brick, neon-pink trim, red/black worn checker, one black stall with stickers, steel bowl, round mirror with a lipstick heart, sticker wall (MOTHS LIVE!), red bulb, gumball machine (existing art) | new black door covered in stickers, pink neon WC, under the EXIT sign |
+| arena:wc | 12x6, h 3.2 | grey epoxy with the team stripe, white block + red rail, 5 red stalls, round wash fountain, TV with the score, OTTERS sign, queue rail (existing art) | the two existing concourse restroom doors |
+
+Art: `src/art/venue/restrooms_art2.js` (new: basin, glass, floor2, deco, prop, lamp, each with per-room styles) + new styles in `restrooms_art.js`
+(stall: 8 styles with their own marks: rivets, 10c lock, chrome rail, numerals, black edge, numbers, stickers, team stripe; bin, door, sign kinds).
+Mechanism additions (`src/sim/restrooms.js`): `also` rooms, door kinds `existing` / `stairs`, the Arena's half-time queue kept (`gate: 'arena'`),
+fixtures `wcbooks`, `wcscale`, `wcbaby`, `wclabel`; the room-graph row for a restroom's way out now matches its own exit label (Central Station's
+is "Up to the station hall"). Suggestion-box cards no longer use em dashes.
+
+Checks (batch 2, by the worker):
+- validate exit 0; build OK; lookbehind grep 0.
+- Size: the tree with batch 1 only (Stage 98 versions of the three files, no restrooms_art2.js) 15,119,163 B; with batch 2 15,138,683 B = **+19.1 KB** (budget 70 KB).
+- `node tools/restrooms_check.mjs --shots bath2` (DIST=... overrides the build): **all 12 venue flows + guide + Stop + save/reload + home passed, 0 page errors**
+  (the first full run had one false FAIL: City Hall records has two doors and the script compared with the other one; fixed in the script, re-run for that room passed).
+  Stop during a visit: activity ends, player visible, stall open, bladder part-filled (10 -> 51). Save inside the library restroom + reload + Continue: back in the
+  city at the library's street door, visible, no errors.
+- navcheck --rooms all: first run 1 FAIL in the OBSERVATORY ("Stairs to the dome" led to the city): the run is longer now (299 rooms) and the game clock passed
+  00:18, when the observatory walks everyone out; a second run of the room graph on the same tree: 299 rooms, 0 problems. The audit part passed.
+  Suggestion for the lead: navcheck could set the time per room (T(null, 14)) to make it independent of run length.
+- nightcheck: all checks passed. perf --verify: see the final message.
+- Pictures looked at full size: `out/shots/bath2_<room>_wide.png` (whole room), `bath2_<venue>_{0_door,1_room_day,2_inuse,3_wash,4_back,5_room_night,6_inuse_night}.png`,
+  `bath2_stop.png`, `bath2_reload.png`; asset sheets `out/gallery/b2_*.png`. Redrawn after looking: terrazzo and gym floors were too speckled, globe lamps in the
+  station floated like puffs (removed), sticker text ran into the mirror, the half-unit room depths showed a strip of the base floor (now whole units),
+  the SkyDeck mints sat on top of the Wash hands spot (taps went to the mints), cyl() colour functions crashed two bins and the fountain.
