@@ -24,6 +24,7 @@ function behind(p, q, m) {
   if (sx && sy && sx !== sy) { SOFT = OCCL ? 2 - m : 0; if (m === 1) { const gx = sx < 0 ? B[0] - A[3] : A[0] - B[3], gy = sy < 0 ? B[1] - A[4] : A[1] - B[4]; if (gx !== gy) return gx > gy ? sx < 0 : sy < 0; } return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4]; }
   if (sx) return sx < 0; if (sy) return sy < 0;
   if (A[5] <= B[2] + 1e-6) return true; if (B[5] <= A[2] + 1e-6) return false;
+  if (m === 1) { const fa = A[5] - A[2] <= .1, fb = B[5] - B[2] <= .1; if (fa !== fb) return fa; }   // somebody flat on the ground (the shadow of a plane that drifts over the street): under whatever stands in it
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
 }
 /*
@@ -35,6 +36,8 @@ function behind(p, q, m) {
  *   far side: behind), all the way along the vehicle and past its ends until the crown (r) has cleared the end by more than the trunk's distance from the side; only then the end decides
  *   (ahead of the nose: in front). By then the two no longer touch, so nothing is seen to change. A trunk that the vehicle's box touches by a hair (a bus pulling in to the kerb) still counts
  *   for its side.
+ * - two vehicles that lie the same way in different lanes: the one in the nearer lane is in front, whoever is further along (lanes are closer together than a car is wide, so the boxes
+ *   of two cars that pass each other overlap sideways: "who is further along" flipped as they passed).
  * - cleanly apart on the ground along one axis, or along both in the same sense: the nearer one is in front, as before.
  * - BESIDE each other on screen (behind along x, in front along y, or the other way round): the larger gap decides = the two corners that face each other are compared. That is what is true for a
  *   thin upright thing (a person, a post), and it goes over into the one-axis rule without a jump.
@@ -61,6 +64,13 @@ function behindLong(p, q, sx, sy) {
       if ((lp ? p.e : q.e).thru) return !lp;   // it stands in the path of something that runs above the street (e.thru: a train car; two trees of the city reach up through the viaduct): the car is drawn over it
     }
   }
+  if (!sz && p.m === 2 && q.m === 2) {   /* two vehicles that lie the same way, in different lanes (their boxes overlap sideways by less than half a car, or not at all): by the lane, not by who is further along */
+    const wa = A[3] - A[0], da = A[4] - A[1], wb = B[3] - B[0], db = B[4] - B[1], ax = wa >= da;
+    if (ax === (wb >= db)) {
+      if (ax) { if (!(sx && sx === sy) && (A[4] < B[4] ? A[4] : B[4]) - (A[1] > B[1] ? A[1] : B[1]) < .5 * (da < db ? da : db)) { SOFT = sx ? 1 : 0; return A[1] + A[4] < B[1] + B[4]; } }
+      else if (!(sx && sx === sy) && (A[3] < B[3] ? A[3] : B[3]) - (A[0] > B[0] ? A[0] : B[0]) < .5 * (wa < wb ? wa : wb)) { SOFT = sy ? 1 : 0; return A[0] + A[3] < B[0] + B[3]; }
+    }
+  }
   if (sx || sy) {
     const gx = sx < 0 ? B[0] - A[3] : sx > 0 ? A[0] - B[3] : 0, gy = sy < 0 ? B[1] - A[4] : sy > 0 ? A[1] - B[4] : 0; let s, g;
     if (sx && sy && sx !== sy) { SOFT = 1; if (gx > gy) { s = sx; g = gx; } else { s = sy; g = gy; } }
@@ -70,8 +80,9 @@ function behindLong(p, q, sx, sy) {
   }
   if (sz) return sz < 0;
   /* in each other */
-  if (p.m === 2 && q.m === 2) { const wa = A[3] - A[0], ha = A[4] - A[1], wb = B[3] - B[0], hb = B[4] - B[1], ax = wa >= ha;
-    if (ax !== (wb >= hb) && (ax ? wa : ha) > 2.5 && (ax ? hb : wb) > 2.5) {   // two long ones at a right angle: X lies along x, Y along y. Y is in front only where X runs away from the camera and Y towards it.
+  { const fa = A[5] - A[2] <= .1, fb = B[5] - B[2] <= .1; if (fa !== fb) return fa; }   // something flat on the ground (a shadow that drifts over the street): under whatever stands on it
+  if (p.m === 2 && q.m === 2) { const wa = A[3] - A[0], da = A[4] - A[1], wb = B[3] - B[0], db = B[4] - B[1], ax = wa >= da;
+    if (ax !== (wb >= db) && (ax ? wa : da) > 2.5 && (ax ? db : wb) > 2.5) {   // two long ones at a right angle (train cars at a corner of the line: the cars are straight, so their boxes cross there): X lies along x, Y along y
       const X = ax ? A : B, Y = ax ? B : A, ox = ((X[0] > Y[0] ? X[0] : Y[0]) + (X[3] < Y[3] ? X[3] : Y[3])) / 2, oy = ((X[1] > Y[1] ? X[1] : Y[1]) + (X[4] < Y[4] ? X[4] : Y[4])) / 2, dx = (X[0] + X[3]) / 2 > ox, dy = (Y[1] + Y[4]) / 2 > oy;
       if (dx !== dy) return ax ? !dx : dx;   // X runs towards the camera from the corner and Y away from it: X is in front; the other way round: Y. (Both towards it, or both away: as below.)
     } }

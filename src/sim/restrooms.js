@@ -9,7 +9,7 @@
 //   Rooms of a venue without a WC entry keep bladder.js's behaviour (the later batches add entries; no other file needs to change).
 //
 // G.restrooms = {
-//   list() -> [{ venue, id, name }]          has(venueRoomId) -> bool          roomOf(venueRoomId) -> wc room id | null
+//   list() -> [{ venue, id, name }]   roomIds() -> every room id   has(venueRoomId) -> bool          roomOf(venueRoomId) -> wc room id | null
 //   enter(venueRoomId, from? {x, y, dir}) -> Promise      leave() -> Promise       (from = where to land on the way back; default: where the player stands)
 // }
 // State G.state.restrooms = { back: { venue, x, y, dir } | null, visits: { [wcId]: n } }.   Events: 'restroom:enter'(wcId), 'restroom:leave'(wcId, { washed })
@@ -36,8 +36,13 @@ let S = null, going = false, visit = null;   // visit = { id, nudged } for the s
 for (const w of WC) defineRoom(Object.assign({ id: w.id, wc: w.venue, noCrowd: true }, w.def, { exits: w.def.exits.map(e => Object.assign({ label: w.back, use: () => leave() }, e)) }));
 
 /* ---------- in and out ---------- */
+/** a plain restroom (owner msg 208) takes its venue's name and wall colour, the first time it is entered (the venue rooms all exist by then) */
+function dress(w) {
+  if (!w.plain || w._dressed) return; const v = ROOMS.get(w.venue), d = ROOMS.get(w.id); if (!v || !d) return; w._dressed = true;
+  d.name = String(v.name || 'The shop').split(/ \u2014 | - /)[0] + ' Restroom'; if (v.wall && v.wall.color) d.wall = Object.assign({}, d.wall, { color: v.wall.color, trim: v.wall.trim || d.wall.trim });
+}
 function enter(venue, from) {
-  const w = BY_VENUE.get(venue); if (!w || going || G.busy) return Promise.resolve(false);
+  const w = BY_VENUE.get(venue); if (!w || going || G.busy) return Promise.resolve(false); dress(w);
   const p = G.player, f = from || { x: p.x, y: p.y, dir: p.dir };
   S.back = { venue, x: f.x, y: f.y, dir: f.dir === undefined ? 1 : f.dir }; S.visits[w.id] = (S.visits[w.id] || 0) + 1; visit = { id: w.id, nudged: false };
   going = true; return G.go('int:' + w.id, { wc: true }).then(() => { G.emit('restroom:enter', w.id); return true; }).finally(() => { going = false; });
@@ -129,6 +134,6 @@ export function init() {
   registerFixture('wclabel', () => ({ label: 'Read the label', hit: 12, use: () => say([{ who: 'Untitled (Hand Dryer), 1998', text: 'Warm air, steel, a red button. On loan from the building. Visitors may interact with this work. (Sketch above: a study of the same, by a museum guard on a slow Tuesday.)' }]) }));
   /* the SkyDeck view through the restroom window follows the clock like the deck's own glass */
   G.on('room:enter', sc => { if (!sc || sc.roomId !== 'skydeck:wc') return; const v = safe(() => G.showpieces.skydeck.viewNow(), 'day'); for (const o of sc.world.objs) if (o.data && o.data.sky && o.p.time !== v) { o.p = Object.assign({}, o.p, { time: v }); o._key = null; } sc.world.version++; });
-  nav(); G.on('ready', nav);
-  G.restrooms = { list: () => WC.map(w => ({ venue: w.venue, id: w.id, name: w.def.name })), has: v => BY_VENUE.has(v), roomOf: v => (BY_VENUE.get(v) || {}).id || null, enter, leave };
+  nav(); G.on('ready', nav); G.on('ready', () => { for (const w of WC) dress(w); });   // plain rooms: names + colours (also again on enter, in case a venue is defined late)
+  G.restrooms = { list: () => WC.map(w => ({ venue: w.venue, id: w.id, name: w.def.name })), has: v => BY_VENUE.has(v), roomOf: v => (BY_VENUE.get(v) || {}).id || null, enter, leave, roomIds: () => [...ROOMS.keys()] };   // roomIds: for tools/restrooms_check.mjs (every room, every restroom door)
 }

@@ -1,4 +1,4 @@
-// Real venue restrooms (owner msgs 151 + 192, BIBLE Direction update 28): the rooms behind a venue's "Restroom" door. Batch 1 (SkyDeck, diner, City Hall) + batch 2 (eight more) + batch 3 (twelve layouts, sixteen venues) + batch 4 (eleven one-off rooms, the post layout x5, the shop layout x23).
+// Real venue restrooms (owner msgs 151 + 192, BIBLE Direction update 28): the rooms behind a venue's "Restroom" door. Batch 1 (SkyDeck, diner, City Hall) + batch 2 (eight more) + batch 3 (twelve layouts, sixteen venues) + batch 4 (eleven one-off rooms, the post layout x5, two plain layouts for every shop, restaurant and office).
 // Each entry: venue (the room whose Restroom door leads here), id ('<venue>:wc', so navgoals.rootOf() files it under the venue), the room def
 // (defineRoom format, see interior.js; exits are added by src/sim/restrooms.js), and where the venue's door goes when the venue has none of its own:
 //   door: { x, y, flip, spot: { x, y } }  room coords of the door art (furn.wc.door) in the VENUE and the floor spot in front of it.
@@ -35,68 +35,25 @@ const NOOKS = [
 const CHROME_ = '#c2c8cc';
 /** a story piece you can tap: the item carries the lines (src/sim/restrooms.js fixture 'wcstory') */
 const T = (label, who, lines) => ({ tags: ['wcstory'], story: { label, who, lines } });
-const BW4 = { vessel: 1, console: 1.1, pedestal: .7, trough: 1.4, tub: 1, stone: .9 };
-/** the shared shop restroom (batch 4: ten clothing stores + thirteen home-goods stores): one footprint, every surface in the brand's own style */
-const shop = (venue, name, v) => { const bw = BW4[v.basin] || 1;
-  return { venue, id: venue + ':wc', back: 'Back to ' + name, door: { kind: 'auto' },
-    def: { name: name + ' Restroom', w: 4, d: 4, music: v.music || 'cafe', floor: GT.f_wood, wall: { color: v.wall, pattern: v.pattern, color2: v.wall2, trim: v.trim, rail: 1.0, h: 2.6 },
-      items: [
-        I('wc.floor4', 0, 0, Object.assign({ w: 4, d: 4 }, v.floor)),
-        I('wc.basin4', .3, 0, { style: v.basin, c: v.bc, c2: v.bc2, m: v.m }), WY('wc.glass4', .3 + (bw - (v.gw || .7)) / 2, { kind: v.glass, c: v.frame, w: v.gw }, { mount: v.gm || 1.2 }),
-        I('wc.stall', 2.7, 0, Object.assign({ left: true }, v.stall)),
-        WX('wc.deco4', 1.0, Object.assign({ w: v.dw || 1.0 }, v.deco), Object.assign({ mount: v.dm || .8 }, T(v.story[0], name, v.story.slice(1)))),
-      ],
-      exits: [{ x: 1.6, y: 3.5 }] } }; };
-const SHOPS = [
-  /* ---- the ten clothing stores (docs/reports/clothing_stores.md) ---- */
-  shop('cs_hollowell', 'Hollowell & Sons', { wall: '#2f4a40', pattern: 'planks', trim: BRASS, floor: { style: 'herring', c: '#7a5030' }, basin: 'console', bc: '#5a3a24', bc2: '#f2eee6', m: BRASS, glass: 'arch', frame: BRASS,
-    stall: { style: 'library', c: '#5a3a24', m: BRASS }, deco: { kind: 'tape' }, story: ['The tape measure', 'A tailor\'s tape and shears hang by the door. "Measure twice, wash once." (Mr Hollowell, embroidered on a hand towel)'] }),
-  shop('cs_nightjar', 'Nightjar', { wall: '#1c1622', trim: '#ff4a8a', floor: { style: 'tiles', c: '#141018', c2: '#221c2c' }, basin: 'trough', bc: '#2a2a30', m: '#8a8f98', glass: 'tall', frame: '#2a2a2e',
-    stall: { style: 'bar', c: '#141018', deco: 'stars' }, deco: { kind: 'neon', t: 'NIGHT', w: 1.6 }, dw: 1.6, dm: 1.2, music: 'bar', story: ['The neon', 'NIGHTJAR, in pink neon, buzzing very slightly. In here it is always 2 a.m. and you always look great.'] }),
-  shop('cs_juniper', 'Juniper & Rye', { wall: '#f4e8d0', trim: '#c8574d', floor: { style: 'boards', c: '#a07850' }, basin: 'console', bc: '#c8a888', bc2: '#f4f0e8', m: BRASS, glass: 'oval', frame: '#8a6a44',
-    stall: { style: 'cafe', c: '#c8574d', deco: 'planks' }, deco: { kind: 'yarn', w: 1.2 }, story: ['The yarn shelf', 'Five balls of wool on a shelf, one slowly unravelling toward the floor. A note: "Spare yarn. For emergencies. Knitting emergencies."'] }),
-  shop('cs_secondwind', 'Second Wind', { wall: '#e8d9a8', pattern: 'stripes', wall2: '#d8c070', trim: '#3a7a5a', floor: { style: 'check', c: '#9a8a64', c2: '#e8dcc0' }, basin: 'pedestal', bc2: '#e8b0b8', glass: 'oval', frame: '#3a7a5a',
-    stall: { style: 'gym', c: '#7a9a6a', deco: 'stickers' }, deco: { kind: 'mismatch', w: 1.2 }, story: ['The picture frames', 'Three frames that have nothing to do with each other, all marked 50 cents. The pink basin was a donation too. Everything in here was.'] }),
-  shop('cs_sole', 'Cobble & Sole', { wall: '#9a5a44', pattern: 'brick', trim: '#3a3a40', floor: { style: 'concrete', c: '#8a8680' }, basin: 'trough', bc: '#5a5a60', glass: 'plain', frame: '#3a3a40',
-    stall: { style: 'service', c: '#5a4a3a', deco: 'rivets' }, deco: { kind: 'shoes' }, story: ['The shoe boxes', 'Shoe boxes stacked up to the ceiling. One is labelled "LEFT FEET (SPARE)". You decide not to ask.'] }),
-  shop('cs_tidepool', 'Tidepool', { wall: '#7fd0cc', pattern: 'planks', trim: '#f4f0e8', floor: { style: 'boards', c: '#c8a070' }, basin: 'stone', bc: '#e8d8b0', glass: 'oval', frame: '#f2c230',
-    stall: { style: 'pool', c: '#f28a6a', deco: 'stripe' }, deco: { kind: 'surf', w: 1.2 }, dm: .2, story: ['The surfboard', 'A yellow board with a bite-shaped dent. The sign: "Do not ask Dee about the dent." Sand in the sink, sand on the floor, sand in places sand should not be.'] }),
-  shop('cs_outfitters', 'Saltline Outfitters', { wall: '#8a6a48', pattern: 'planks', trim: '#3a3a40', floor: { style: 'boards', c: '#6a4a30' }, basin: 'stone', bc: '#9a968e', glass: 'plain', frame: '#5a4a30',
-    stall: { style: 'cafe', c: '#6a5040', deco: 'planks', m: '#3a3a40' }, deco: { kind: 'trail' }, story: ['The trail map', 'A hand-drawn map of the ridge trail, with the staff\'s favourite lunch spots marked. One just says "bears? (no)".'] }),
-  shop('cs_otterline', 'Otterline Boathouse', { wall: '#f4f0e8', trim: '#d2392f', floor: { style: 'boards', c: '#d8c8a8' }, basin: 'tub', bc2: '#f4f0e8', m: CHROME_, glass: 'oval', frame: '#d2392f',
-    stall: { style: 'arena' }, deco: { kind: 'oars' }, dm: .2, story: ['The crossed oars', 'Two old oars from the 1987 Bay Regatta, which Otterline lost by a boat length. Nobody has forgotten.'] }),
-  shop('cs_brim', 'Brim & Buckle', { wall: '#f2d8d0', pattern: 'stripes', wall2: '#e8c0b8', trim: '#3a3a40', floor: { style: 'herring', c: '#c8a070' }, basin: 'pedestal', bc2: '#f4f0e8', m: BRASS, glass: 'oval', frame: BRASS,
-    stall: { style: 'deco', c: '#e8a0a8' }, deco: { kind: 'hats', w: 1.2 }, story: ['The hat pegs', 'Three hats on brass pegs: "For trying on in the mirror only. Please return to peg." The red one is very tempting.'] }),
-  shop('cs_lantern', 'Little Lantern Atelier', { wall: '#f6efe0', trim: '#3f6a8a', floor: { style: 'concrete', c: '#c8c4bc' }, basin: 'trough', bc: '#8a9098', glass: 'plain', frame: '#3f6a8a',
-    stall: { style: 'cafe', c: '#3f6a8a', deco: 'none' }, deco: { kind: 'sketch', w: 1.3 }, story: ['The drying prints', 'Prints pegged up to dry: a hat, a bird, a boat. The ink-stained sink says this is the print room as much as the loo.'] }),
-  /* ---- the thirteen home-goods stores ---- */
-  shop('goods:timber', 'Timber & Trowel', { wall: '#e8e4dc', pattern: 'brick', trim: '#e8b040', floor: { style: 'concrete', c: '#a8a49c' }, basin: 'trough', bc: '#b8bec4', glass: 'plain', frame: '#e8b040',
-    stall: { style: 'service', c: '#e8b040' }, deco: { kind: 'peg', w: 1.2 }, story: ['The pegboard', 'A pegboard with a spare wrench, a level and a sign: "Plumbing aisle 7. Yes, this is a hint."'] }),
-  shop('goods:fjord', 'Fjord & Fold', { wall: '#f4f0e8', trim: '#3a6ab0', floor: { style: 'boards', c: '#e0c8a0' }, basin: 'vessel', bc: '#e0c8a0', bc2: '#f4f4f0', glass: 'oval', frame: '#e0c8a0',
-    stall: { style: 'museum', c: '#e0c8a0' }, deco: { kind: 'flatpack' }, story: ['The instructions', 'A framed assembly sheet for this very restroom. Step 4 shows a little figure looking confused. Three screws are left over.'] }),
-  shop('goods:bellwether', 'Bellwether', { wall: '#efe2cc', pattern: 'stripes', wall2: '#e6d6bc', trim: BRASS, floor: { style: 'check', c: '#7a6a58', c2: '#efe2cc' }, basin: 'console', bc: '#f4f0e8', bc2: '#e8e4dc', m: BRASS, glass: 'arch', frame: BRASS,
-    stall: { style: 'library', c: '#5a2a30', m: BRASS }, deco: { kind: 'bell', w: 1.2 }, story: ['The old bell', 'The bell that rang the store open every morning since 1921, now retired to the restroom. It still gleams.'] }),
-  shop('goods:lumen', 'Lumen Lighting', { wall: '#2c2738', trim: BRASS, floor: { style: 'tiles', c: '#1e1a26' }, basin: 'vessel', bc: '#3a3448', bc2: '#f4f0e8', m: BRASS, glass: 'oval', frame: BRASS,
-    stall: { style: 'bar', c: '#2c2738', deco: 'stars' }, deco: { kind: 'lamps', w: 1.4 }, dm: 1.0, story: ['The test lamps', 'Three pendant shades in yellow, pink and blue, all on, all for sale. The tag: "Try before you buy. Yes, even in here."'] }),
-  shop('goods:copper', 'Copper Pan', { wall: '#f4ece0', pattern: 'tile', trim: '#c87a4a', floor: { style: 'redtile' }, basin: 'tub', bc2: '#c87a4a', m: '#c87a4a', glass: 'plain', frame: '#c87a4a',
-    stall: { style: 'bakery', c: '#3f6a5a' }, deco: { kind: 'pans', w: 1.4 }, story: ['The pan rail', 'Four copper pans hanging over the sink: "Display only. Please do not cook in the restroom." Someone clearly once tried.'] }),
-  shop('goods:attic', 'The Gilded Attic', { wall: '#6a5446', pattern: 'stripes', wall2: '#5e4a3e', trim: BRASS, floor: { style: 'herring', c: '#5a3a24' }, basin: 'console', bc: '#4a3020', bc2: '#e8e0d0', m: BRASS, glass: 'oval', frame: BRASS,
-    stall: { style: 'library', c: '#4a3020', m: BRASS }, deco: { kind: 'antique', w: 1.1 }, story: ['The portrait and the clock', 'A stern portrait and a clock stopped at ten past four. The price tags say "not for sale" in three handwritings.'] }),
-  shop('goods:warp', 'Warp & Weft', { wall: '#f2e4cc', trim: '#c8574d', floor: { style: 'boards', c: '#b08a60' }, basin: 'stone', bc: '#c8b898', glass: 'oval', frame: '#c8574d',
-    stall: { style: 'bakery', c: '#3f6a8a' }, deco: { kind: 'weave', w: 1.4 }, story: ['The woven panel', 'A hand-woven wall panel from the shop\'s loom. A label: "Woven in 41 hours. Please do not dry your hands on it."'] }),
-  shop('goods:loam', 'Leaf & Loam', { wall: '#dfeeda', pattern: 'tile', trim: '#4f7a3a', floor: { style: 'tiles', c: '#c87a5a', s: 1 }, basin: 'trough', bc: '#7a8a6a', glass: 'arch', frame: '#4f7a3a',
-    stall: { style: 'cafe', c: '#5a8a5a' }, deco: { kind: 'leaves', w: 1.4 }, story: ['The plant shelf', 'Four cuttings on the shelf, rooting in the steam. A card: "These like it in here. Please talk to them."'] }),
-  shop('goods:voltaic', 'Voltaic', { wall: '#e8ecf0', pattern: 'tile', trim: '#5a8ac8', floor: { style: 'tiles', c: '#d0d6dc', c2: '#c4cad0' }, basin: 'vessel', bc: '#2a2e36', bc2: '#f4f4f4', m: CHROME_, glass: 'plain', frame: '#2a2e36',
-    stall: { style: 'mall', c: '#5a8ac8' }, deco: { kind: 'gadget' }, story: ['The smart panel', 'A smart thermostat says 22C and the hand sensor says hello. The tap needs a wave, a second wave, and then a slightly embarrassed third wave.'] }),
-  shop('goods:spoke', 'Spoke & Strum', { wall: '#f4ece0', pattern: 'brick', trim: '#2f8a6a', floor: { style: 'concrete', c: '#8a8680' }, basin: 'trough', bc: '#2f8a6a', glass: 'plain', frame: '#2f8a6a',
-    stall: { style: 'gym', c: '#2f8a6a' }, deco: { kind: 'bike', w: 1.4 }, dm: .6, story: ['The bike on the wall', 'A green bike hung on the wall: "Staff parking." Under it, a guitar pick. Of course there is a guitar pick.'] }),
-  shop('goods:kestrel', 'Kestrel & Pine', { wall: '#f2e2b8', pattern: 'planks', trim: '#6a4a30', floor: { style: 'boards', c: '#8a6a44' }, basin: 'stone', bc: '#8a8680', glass: 'plain', frame: '#6a4a30',
-    stall: { style: 'cafe', c: '#6a4a30', deco: 'planks' }, deco: { kind: 'antler', w: .8 }, story: ['The antlers', 'A pair of carved wooden antlers. A small sign: "No deer were harmed. One woodworker was mildly splintered."'] }),
-  shop('goods:sleepy', 'Sleepyhead', { wall: '#e8ecf8', pattern: 'stripes', wall2: '#dfe4f2', trim: '#a8b8d8', floor: { style: 'boards', c: '#d0c0a8' }, basin: 'pedestal', bc2: '#f4f4f8', glass: 'oval', frame: '#a8b8d8',
-    stall: { style: 'pool', c: '#a8b8d8', deco: 'none' }, deco: { kind: 'towels', w: 1.4 }, story: ['The towel shelf', 'Fluffy towels in four colours, folded better than any towel has a right to be. The tag: "Feel them. Go on."'] }),
-  shop('goods:nord', 'Atelier Nord', { wall: '#f6f4f0', trim: '#2a2a2e', floor: { style: 'concrete', c: '#c8c4bc' }, basin: 'vessel', bc: '#c8a070', bc2: '#2a2a2e', m: '#2a2a2e', glass: 'tall', frame: '#2a2a2e', gw: .5,
-    stall: { style: 'museum' }, deco: { kind: 'slab', w: 1.2 }, dm: .1, story: ['The marble slab', 'A slab of marble with one black line across it. It is a towel rail. It is also, the card says, "a meditation on horizon". It costs more than a car.'] }),
-];
+/** the plain restroom (owner msg 208, 2026-11-16: "All shops' bathrooms should be very simple"): two layouts from one tiny table, no per-brand design.
+    'shop' (4x4: one stall, a pedestal basin, a mirror, a bin) for shops, cafes, restaurants and the friends' flats; 'office' (5x4: one stall, a counter basin,
+    a mirror, a dryer, a bin) for office lobbies and offices. src/sim/restrooms.js gives each room its venue's name and wall colour at 'ready'. */
+const PLAIN = {
+  shop: { w: 4, x: 1.6, wall: '#ece6da', items: () => [I('wc.floor4', 0, 0, { style: 'tiles', w: 4, d: 4, c: '#d8d4cc', c2: '#cfcbc2' }), I('wc.basin4', .4, 0, { style: 'pedestal', c2: '#f4f4f0' }),
+    WY('wc.glass4', .4, { kind: 'plain', c: '#8a8f98' }, { mount: 1.2 }), I('wc.bin', .15, 1.6, { style: 'service' }, { flip: true }), I('wc.stall', 2.7, 0, { style: 'service', left: true, deco: 'none' })] },
+  office: { w: 5, x: 2.0, wall: '#e8e6e0', items: () => [I('wc.floor4', 0, 0, { style: 'tiles', w: 5, d: 4, c: '#c8ccd0', c2: '#c0c4c8', s: 1 }), I('wc.basin4', .4, 0, { style: 'console', c: '#5a5a60', c2: '#e8e8e4', m: CHROME_ }),
+    WY('wc.glass4', .4, { kind: 'plain', c: '#5a5a60', w: 1.1 }, { mount: 1.2 }), WY('wc.dryer', 1.8, {}, { mount: 1.0 }), I('wc.bin', .15, 2.2, { style: 'museum' }, { flip: true }), I('wc.stall', 3.7, 0, { style: 'museum', left: true })] },
+};
+const plain = (venue, kind) => { const L = PLAIN[kind]; return { venue, id: venue + ':wc', back: 'Leave the restroom', door: { kind: 'auto' }, plain: kind,
+  def: { name: 'Restroom', w: L.w, d: 4, music: 'quiet', floor: GT.f_tile, wall: { color: L.wall, trim: '#8a8f98', rail: 1.0, h: 2.6 }, items: L.items(), exits: [{ x: L.x, y: 3.5 }] } }; };
+const PLAIN_TABLE = {
+  shop: ['cs_hollowell', 'cs_nightjar', 'cs_juniper', 'cs_secondwind', 'cs_sole', 'cs_tidepool', 'cs_outfitters', 'cs_otterline', 'cs_brim', 'cs_lantern',
+    ...'timber fjord bellwether lumen copper attic warp loam voltaic spoke kestrel sleepy nord'.split(' ').map(k => 'goods:' + k),
+    ...'1 2 4 6 7 9 10 11 12 13 14 15 16 17 18 19 20 21 22 26 28 30 32 34 35 36 38 39 40 41 42 43 44 46 47 48 49 50 51 52 54 55 56 57 58 59 60 61'.split(' ').map(n => 'pub:' + n),
+    'grocery', 'cornerstore', 'clothing', 'bookstore', 'rel_flat_marlow', 'rel_flat_tasha', 'rel_flat_noor', 'rel_flat_tav'],
+  office: [...'1 2 6 7 8 9 11 12 13 14 15 16 18 19 20 21 22 23 24 48'.split(' ').map(n => 'lobby:' + n), 'bank', 'office', 'courier', 'warehouse', 'gazette_newsroom', 'radio_studio'],
+};
+const PLAINS = Object.keys(PLAIN_TABLE).flatMap(k => PLAIN_TABLE[k].map(v => plain(v, k)));
 /** the post office restroom (batch 4): one layout for the five branches, each with its own colour and one detail of its own */
 const post = (venue, name, v) => ({ venue, id: venue + ':wc', back: 'Back to the ' + v.short, door: v.door,
   def: { name: name + ' Restroom', w: 5, d: 4, music: 'quiet', floor: GT.f_tile, wall: { color: v.wall, pattern: 'tile', trim: v.trim, rail: 1.1, h: 2.8 },
@@ -467,7 +424,7 @@ export const WC = [
       exits: [{ x: 3, y: 4.5 }] } },
 
   /* ---- the Orpheum: red velvet stripes, cinema carpet (a few popcorn kernels), oxblood stalls with brass, a bulb-ringed mirror, a framed poster ---- */
-  { venue: 'cinema', id: 'cinema:wc', back: 'Back to the cinema', also: ['cinema:screen1'], door: { kind: 'auto' },
+  { venue: 'cinema', id: 'cinema:wc', back: 'Back to the cinema', also: ['cinema:screen1', 'cinema:hall'], door: { kind: 'auto' },
     def: { name: 'Orpheum Restrooms', w: 7, d: 5, music: 'quiet', floor: GT.f_carpet, wall: { color: '#6a1e24', pattern: 'stripes', color2: '#5a1820', trim: '#c9a35a', rail: 1.0, h: 3.0 },
       items: [
         I('wc.floor3', 0, 0, { style: 'cinema', w: 7, d: 5 }),
@@ -500,6 +457,6 @@ export const WC = [
 
   /* ---- one shared layout for five small coffee and tea places (see nook() below) ---- */
   ...NOOKS,
-  /* ---- batch 4: one-off venues, the post office layout (five branches), the shared shop restroom (ten clothing + thirteen home-goods stores) ---- */
-  ...ONE4, ...POSTS, ...SHOPS,
+  /* ---- batch 4: one-off venues, the post office layout (five branches), the two plain layouts (every shop, restaurant, office lobby; owner msg 208) ---- */
+  ...ONE4, ...POSTS, ...PLAINS,
 ];

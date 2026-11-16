@@ -77,12 +77,12 @@ await pg.waitForTimeout(800); await closeUi();
 
 const VENUES = [['diner', 'door:diner'], ['skydeck', 'door:skydeck_lobby'], ['cityhall', 'door:cityhall'], ['skydeck_lobby', 'door:skydeck_lobby'], ['central_station', 'door:central_station'], ['deptstore', 'door:deptstore'], ['library', 'door:library'], ['museum', 'door:museum'], ['gym', 'door:gym'], ['bar', 'door:bar'], ['arena', 'door:arena'], ['cityhall_records', 'door:cityhall'], ['hotel', 'door:hotel'], ['hotel_ballroom', 'door:hotel'], ['cafe', 'door:cafe'], ['ramen', 'door:ramen'], ['pizza', 'door:pizza'], ['bakery', 'door:bakery'], ['aquarium', 'door:aquarium'], ['natatorium:leisure', 'door:natatorium'], ['university:commons', 'door:university'], ['cinema', 'door:cinema'], ['fishmarket', 'door:fishmarket'], ['observatory', 'door:observatory', 14], ['pub:8', 'door:pub:8'], ['pub:45', 'door:pub:45'], ['pub:53', 'door:pub:53'], ['pub:29', 'door:pub:29'], ['pub:24', 'door:pub:24'],
   /* batch 4 */ ...['concerthall', 'playhouse', 'conservatory', 'clinic', 'airport:terminal', 'airport:concourse', 'lighthouse', 'restaurant', 'school_classroom', 'fire_station', 'post_main', 'post_downtown', 'post_maplewood', 'post_hillcrest', 'post_harbor',
-    'cs_hollowell', 'cs_nightjar', 'cs_juniper', 'cs_secondwind', 'cs_sole', 'cs_tidepool', 'cs_outfitters', 'cs_otterline', 'cs_brim', 'cs_lantern',
-    'goods:timber', 'goods:fjord', 'goods:bellwether', 'goods:lumen', 'goods:copper', 'goods:attic', 'goods:warp', 'goods:loam', 'goods:voltaic', 'goods:spoke', 'goods:kestrel', 'goods:sleepy', 'goods:nord',
-    'hotel_restaurant', 'hotel_bar', 'natatorium:change', 'cinema:screen1', 'observatory:planetarium'].map(v => [v, 'door:' + v.split(/[:_]/)[0], 14])].filter(v => !o.only || o.only.split(',').includes(v[0]));
+    /* the plain layouts (owner msg 208), sampled by play: 15 venues of both layouts; every other door is checked by the round trip below */
+    'cs_nightjar', 'cs_tidepool', 'goods:timber', 'goods:nord', 'pub:1', 'pub:12', 'pub:40', 'pub:61', 'grocery', 'bookstore', 'rel_flat_tav', 'lobby:1', 'lobby:20', 'bank', 'gazette_newsroom',
+    'hotel_restaurant', 'hotel_bar', 'natatorium:change', 'cinema:screen1', 'observatory:planetarium'].map(v => [v, 'door:' + v, 14])].filter(v => !o.only || o.only.split(',').includes(v[0]));
 async function venueRun(v, door, hour) {
   console.log('--- ' + v); const wcId = await pg.evaluate(v => G.restrooms.roomOf(v), v); if (!wcId) { say(false, v + ': no restroom room registered'); return; }
-  await pg.evaluate(([v, door, hour]) => { G.state.flags.lastDoor = door; G.state.t = Math.floor(G.state.t / 1440) * 1440 + (hour || 12) * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); for (const k of ['hunger', 'energy', 'fun', 'social']) G.needs.set(k, 90); return G.go('int:' + v); }, [v, door, hour]);   // other needs topped up: a long run starves the player (a faint ends the visit)
+  await pg.evaluate(([v, door, hour]) => { G.state.flags.lastDoor = door; G.state.t = Math.floor(G.state.t / 1440) * 1440 + (hour || 12) * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); for (const k of ['hunger', 'energy', 'fun', 'social']) G.needs.set(k, 90); return G.go('int:' + v).then(() => 1); }, [v, door, hour]);   // other needs topped up: a long run starves the player (a faint ends the visit)
   await pg.waitForTimeout(1500); await closeUi();
   // stand a few steps from the Restroom door, then tap it
   const dr = await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom); if (!it) return null; const s = it.spot || it; let best = null; for (const [dx, dy] of [[-.5, 1.8], [0, 2.5], [2, 1], [-1, 2], [0, 2], [2, 0]]) { const x = s.x + dx, y = s.y + dy; if (!G.world.isBlocked(x, y)) { best = [x, y]; break; } } if (best) { G.player.x = best[0]; G.player.y = best[1]; } G.snapCam(); return { label: it.label, navTo: it.navTo, spot: [s.x, s.y] }; });
@@ -128,10 +128,30 @@ async function venueRun(v, door, hour) {
 }
 for (const [v, door, hour] of VENUES) { try { await venueRun(v, door, hour); } catch (e) { say(false, v + ': the script stopped here: ' + e.message.split('\n')[0] + ' ' + await dbg().catch(() => '')); await closeUi().catch(() => {}); } }
 
+// batch 4: EVERY restroom door of EVERY room (owner msg 208: no venue left with the old fade-out): each one must lead into a room and back
+if (!o.only || o.only.split(',').includes('all')) {
+  console.log('--- every restroom door, round trip');
+  const R = await pg.evaluate(async () => { const mk = G.scenes.get('int:'), out = { rooms: 0, doors: 0, bad: [] }, sl = ms => new Promise(r => setTimeout(r, ms));
+    for (const id of G.restrooms.roomIds()) { if (/^home|:wc$|:bath/.test(id)) continue; let sc; try { sc = mk('int:' + id); } catch (e) { continue; }
+      if (sc.roomId && sc.roomId !== id) continue;   /* an old alias id (lobby:4 is City Hall's former id: the same room) */
+      const rr = sc.interactables.filter(i => i.restroom); if (!rr.length) continue; out.rooms++; out.doors += rr.length;
+      const wc = G.restrooms.roomOf(id); if (!wc || rr.some(i => !i.wc || i.navTo !== 'int:' + wc)) { out.bad.push(id + ': door not wired (' + rr.map(i => i.wc).join(',') + ')'); continue; }
+      G.state.t = Math.floor(G.state.t / 1440) * 1440 + 14 * 60; for (const k of ['hunger', 'energy', 'fun', 'social', 'hygiene']) G.needs.set(k, 90);
+      await G.go('int:' + id); await sl(150); if (G.scene.id !== 'int:' + id) { out.bad.push(id + ': could not stand in the venue (' + G.scene.id + ')'); continue; }
+      const s = rr[0].spot || rr[0]; await G.restrooms.enter(id, { x: s.x, y: s.y, dir: 1 }); await sl(150);
+      if (G.scene.id !== 'int:' + wc) { out.bad.push(id + ': enter -> ' + G.scene.id); continue; }
+      const ok = G.interactables().some(i => /^Toilet$/.test(i.label || '')) && G.interactables().some(i => /^Wash hands$/.test(i.label || ''));
+      await G.restrooms.leave(); await sl(150); if (G.scene.id !== 'int:' + id || !ok) out.bad.push(id + ': ' + (ok ? '' : 'no toilet / basin; ') + 'leave -> ' + G.scene.id);
+    }
+    return out; });
+  say(R.rooms > 150 && !R.bad.length, `every restroom door: ${R.rooms} rooms, ${R.doors} doors, each one into its restroom (a toilet and a basin there) and back` + (R.bad.length ? ' BAD: ' + R.bad.slice(0, 12).join(' | ') : ''));
+  await closeUi();
+}
+
 // batch 4: the park pavilion's public restroom, reached from the city
 if (!o.only || o.only.split(',').includes('park')) {
   console.log('--- park');
-  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 13 * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); for (const k of ['hunger', 'energy', 'fun', 'social']) G.needs.set(k, 90); const p = G.bladder.parkRestrooms()[0]; return G.go('city', { x: p.x, y: p.y + 1.5 }); }); await pg.waitForTimeout(2000); await closeUi();
+  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 13 * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); for (const k of ['hunger', 'energy', 'fun', 'social']) G.needs.set(k, 90); const p = G.bladder.parkRestrooms()[0]; return G.go('city', { x: p.x, y: p.y + 1.5 }).then(() => 1); }); await pg.waitForTimeout(2000); await closeUi();
   const pk = await pg.evaluate(() => { const its = G.interactables().filter(i => /^Public restroom$/.test(i.label || '')); return { n: its.length, wc: its.map(i => i.wc) }; });
   say(pk.n > 0 && pk.wc.every(w => w === 'park:wc'), 'park: the pavilion doors lead to the park restroom ' + JSON.stringify(pk)); await shot('park_0_door');
   const from = await st(); await tapIt(/^Public restroom$/); const inP = await waitFor(() => G.scene.id === 'int:park:wc', null, 20000); await pg.waitForTimeout(1000); await closeUi(); await shot('park_1_room_day');
