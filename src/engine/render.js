@@ -197,13 +197,6 @@ function silTrim(fr) {
   while (n < SILS.length && silPx > NL.budget * .7 && SILS[n].fr < fr) { const s = SILS[n++], L = s.sp._nl, i = L ? L.indexOf(s) : -1; if (i >= 0) L.splice(i, 1); silPx -= s.px; s.c = s.k = s.x = null; }
   SILS.splice(0, n);
 }
-/* the same rows of a sprite that keeps the pattern and stands in front of lit things: the mask's own pattern is put back there */
-function cutDraw(sp, sy, sh, dx, dy, a, hx) {
-  const y = dy + sy, x1 = dx + sp.w, y1 = y + sh; if (!nER || dx >= eX1 || x1 <= eX0 || y >= eY1 || y1 <= eY0 || !hitBox(ER, nER, dx, y, x1, y1, hx)) return; nlCut++;
-  /* only the part of it that overlaps lit things: the box around the overlaps, or, when that is much larger than the overlaps themselves (a tower in front of three people), each overlap on its own (a step costs about as much as 16000 px of punching) */
-  if (hN > 1 && hN * 16000 + hA < (hX1 - hX0) * (hY1 - hY0)) { for (let i = 0, o = 0; i < nER; i++, o += 4) { if (dx >= ER[o + 2] || x1 <= ER[o] || y >= ER[o + 3] || y1 <= ER[o + 1]) continue; const p = ER[o] > dx ? ER[o] : dx, q = ER[o + 1] > y ? ER[o + 1] : y, r = ER[o + 2] < x1 ? ER[o + 2] : x1, t = ER[o + 3] < y1 ? ER[o + 3] : y1; nPut++; pushOp(1, sp, p - dx, q - dy, r - p, t - q, p, q, a, null); } }
-  else { nPut++; pushOp(1, sp, hX0 - dx, hY0 - dy, hX1 - hX0, hY1 - hY0, hX0, hY0, a, null); }
-}
 
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 /** the trees of one outskirts chunk as one canvas {c, x, y} (world px), thinned by the same distance dither as the ground; null if none */
