@@ -293,3 +293,8 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - Rules (agreed): always optional (Auto and mini-games-off work exactly as now); 15-30 s, one thumb, portrait; playing well gives a small bonus, skipping never punishes; daily chores offer the game the first time and then only occasionally.
 - Work order is the lead's decision.
 - CORRECTION (owner msg 164): mini-games appear EVERY time, daily chores included (not 'first time then occasionally'). The player chooses: a Settings switch turns mini-games off (the existing mini-games-off / Auto switch, made easy to find in the menu). A tooltip points to that switch when a mini-game comes up for the second time; show it only the first few such times in a save (about 3), then never again.
+
+## Direction update 34 (owner msg 165, 2026-11-16) — custom alarm, featured classic song, luggage
+- SLEEP: all existing sleep options stay; a button at the bottom lets the player set the alarm to any time.
+- MUSIC: one of the original eight loops (it played a lot) is a favourite: it returns as a FEATURED song. Bring the eight originals back as "Classics" (same sound as before), in the jukebox and in the pools, so the owner can name it; featured songs come up more often. He will keep naming favourites.
+- INTRO LUGGAGE: at the carousel the player takes the suitcase and TOWS it behind them (a rolling-suitcase animation) through the airport, into the cab, out of the cab and up to the flat; inside the door it leaves the hand and stands by the door as one more thing to unpack (tap, like the moving boxes). The left-over red bag standing outside the airport (from when the game started outdoors) is removed.

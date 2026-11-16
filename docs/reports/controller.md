@@ -30,7 +30,8 @@ cursor, surfaces, pad keyboard, glyph hints, legend strip, Settings section), `s
   (small corner badges), and in a legend strip under the game. The strip takes 30 px at the bottom of the screen while a pad is in use (the game view shrinks by
   that much), so it can never cover a button.
 - **Keyboard**: in any window the arrow keys / Tab move the same focus ring and Enter / Space press it. In the world the keys keep their old jobs.
-- **Vibration**: ON by default, deliberately sparse and short (using a target, tab / target cycling, a few good-news moments). Toggle in Settings.
+- **Vibration**: ON by default, deliberately sparse and short (using a target, tab / target cycling, paying, the end of a mini-game, a skill / friend /
+  goal / promotion moment, a need hitting zero; never on plain focus moves). Toggle in Settings.
 
 ## 2. Buttons
 
@@ -75,7 +76,7 @@ Switch, anything else -> the brand-free "dots" set). Manual choice in Settings.
 | Confirm | press the focused thing. Text field: the pad keyboard. Slider / select: nothing (left / right changes it). Surface: step onto it |
 | Back | the nearest Back / x / Close / Cancel / Not now / Done around the focus (it wears the Back glyph); if there is none, an Escape key press |
 | LB / RB | previous / next tab of the nearest tab bar (the bar wears LB and RB at its ends) |
-| Left face (X) | a "Skip ..." button when one is on screen (it wears the glyph), or an element marked `data-pad-key="x"` |
+| Left face (X) | a "Skip ..." button when one is on screen (it wears the glyph; the focus never starts on it), or an element marked `data-pad-key="x"` |
 | Right stick | scroll the list the focus is in (or the window's main scroller) |
 | LT / RT | page up / down |
 | Start | put the phone away (when the phone is open) |
@@ -141,13 +142,23 @@ The HUD prompt shows this target (not the plain nearest thing) while a pad is in
    reachable (they are scrolled into view when focused). Anything covering more than 90% x 60% of the screen is a backdrop, not a button.
 3. **Which layer**: while a window is open (`G.modal > 0`), on the title, in a cutscene or during an activity with a sheet, HUD-like layers (`#hud`, `#goalsw`,
    `#ph-banners`, `#toasts`, `#nav-*`, `.dev-btn`, `[data-pad-passive]`) are left out. While walking nothing is focused; D-pad up puts everything on screen in.
-4. **Where the focus starts**: `[data-pad="default"]`, else the first thing in the window that is not a Back / Close button, a dialogue line or an "aside".
+4. **Where the focus starts**: `[data-pad="default"]`, else the first thing in the window's content that is not a Back / Close button, a Skip button, a
+   dialogue line, an "aside" (Auto, Log), a header control or a box around other things. If only such things are on screen nothing is focused (the ring
+   is hidden) until the player pushes a direction: Confirm can never skip a cutscene or auto-finish a game by accident.
+   When the focused thing vanishes but its window stays (an answer was given, the next question is not up yet) the ring does not jump to Close / x, and
+   Confirm is ignored for 0.28 s after any jump the ring makes by itself.
    When a window closes the focus returns to where it was (a stack per layer; inside one layer, e.g. phone app -> phone home, by the same words).
    After a re-render (lists redraw themselves a lot) the focus goes to the thing with the same words nearest to where it was.
-5. **Moving**: among things lying in that direction, lowest `gap ahead + 2.2 x gap sideways + 0.25 x centre offset`. Things far off to the side
-   (sideways gap > 2.5 x (forward gap + 40 px)) are not "that way". A box with things in it (the map with its buttons) costs 140 px extra so its contents come
-   first; from inside a box, a move with nothing that way lands on the box. Nothing that way at all: the list scrolls if it can, else the focus wraps to the far
-   end of the same row / column, else the ring gives a small shake.
+5. **Moving**. "That way" = the thing's middle lies that way and it is past the focus's edge.
+   - LEFT / RIGHT stay in the row: a thing in line with the focus costs 0.35 x its distance for the first 300 px (full price beyond), a diagonal neighbour
+     costs its distance + 2.2 x its sideways gap + 70 px. So "right" from a left arrow goes to the arrow at the other end of its row, not to a swatch below.
+   - UP / DOWN go to the NEAREST ROW first (everything whose near edge is within 20 px of the nearest one), then to the nearest thing in that row. A row is
+     never skipped because something further on happens to be in line.
+   - Things far off to the side (sideways gap > 2.5 x (forward gap + 40 px)) are not "that way"; for up / down they are the fallback when nothing else is
+     (a footer's buttons under a wide panel).
+   - Boxes (a thing with other things on it: the map with its buttons and its list panel). Into a box: if something on it is straight ahead, go to that
+     (the list's first row), else onto the box. Inside a box: a move toward more of the box lands on the box, not on something outside it.
+   - Nothing that way at all: the list scrolls if it can, else the focus wraps to the far end of the same row / column, else the ring gives a small shake.
 6. **Dialogue lines** (`data-pad="line"`): Confirm on the line advances it; the moment answers appear the focus jumps to the first answer.
 7. **Back**: of all Back-like controls on screen, the one that shares the deepest ancestor with the focus (so the map's "Close list" wins over the phone's Back
    while you are in that list). Words that count: Back, x / Close ..., Dismiss, Cancel, Not now, No thanks, Later, Done, Resume, `.ph-hback`, `[data-pad-back]`.
@@ -195,7 +206,8 @@ screen and reached through the same focus layer, but nobody pressed through it w
 | Title (New Game / Continue / Settings) | focus | played |
 | Character creator: presets, tabs, swatches, arrows, name | focus + LB / RB + pad keyboard | played |
 | Traits, first-home picker | focus | played |
-| Arrival cutscenes, taxi tutorial | X = Skip; "Skip intro" from the HUD (D-pad up) | played (skipped, not walked through with a pad) |
+| Arrival cutscenes, taxi tutorial | X = Skip; "Skip intro" from the HUD (D-pad up, or X there) | played (skipped, not walked through with a pad) |
+| Shows, cinema ("Leave early"), the plane's "Skip the wait" | X (the cutscene's lone button, `.tut-skipcut`) | "Skip the wait" played; shows not played |
 | Walking, doors, lobbies, stairs | stick + target + Confirm | played (home, lobby, street, cafe, deli, Nana's house) |
 | Fixtures (fridge, bed, counters), kit menus (`choose`), windows (`modal`), `say` boxes, first-time cards | target, then focus | played |
 | Activities (nap, eating): progress bar, Stop | Back = Stop | played |
@@ -204,7 +216,7 @@ screen and reached through the same focus layer, but nobody pressed through it w
 | Phone: home, Messages (thread, reply), Settings, Me (tabs, skill page), MapleCab, Map lists + route card | focus + LB / RB, Start = away | played |
 | Phone Map canvas | pan surface | played (drag + zoom); picking a pin with Confirm is by design, not asserted |
 | My Day sheet (ideas, Add, walk-through Skip) | Y, focus, X = Skip | played |
-| Cab ride | X = Skip ride (also focused) | played. Bus "Skip ride" / "Choose stop", the train's "Get off here" / "Skip ahead": same mechanism, not played |
+| Cab ride | X = Skip ride (the button wears the X glyph; it is never focused) | played. Bus "Skip ride" / "Choose stop", the train's "Get off here" / "Skip ahead": same mechanism, not played |
 | Decorate: panels, tray, tabs, Done | focus + LB / RB | played |
 | Decorate: moving a piece | cursor surface (hold Confirm = drag), X undo, Y turn | drag + undo played; turn, colour, store, sell, try-a-piece from the Shop tab: same mechanism |
 | Skill mini-games (kit) | auto surface | `timing` played. `balance`, `aim` (hold): Confirm held. `rhythm`: lane buttons. `sort`: focus on the bins. `trace`, `memory`, `quickdraw`, arcade cabinets, chess: the pointer inside the canvas. None of these other kinds was played with the pad |
@@ -244,8 +256,10 @@ Known gaps (honest list):
    kitchen. Knobs in `padnav.js` `TW`: `reach` 3.4, `near` 1.6 / `nearBonus` 1.5, `facing` 1.25, `people` .9, `sticky` .4, `cycleReach` 7, `lockSecs` 5.
    If people are too hard to talk to: lower `people`. If the target jumps about while walking: raise `sticky`. If far things grab the prompt: lower `reach`.
 3. **Where the focus goes.** The order is geometric, not hand-written, so odd layouts can surprise: a wide row above a grid, the map with buttons on it, a
-   sheet whose first control is not the one you want (My Day opens on "Week"). Knobs: `TW.sideWeight` 2.2 (how readily a move goes diagonally), the 140 px
-   box penalty and the "not that way" cone in `move()`, and per screen `data-pad="default"` on the control that should start with the focus.
+   sheet whose first control is not the one you want (My Day opens on "Week"). Knobs: `TW.inLine` .35 / `TW.inLineReach` 300 / `TW.diagonal` 70 (how strongly
+   left / right stay in the row), `TW.rowTol` 20 (what counts as one row for up / down), `TW.sideWeight` 2.2, the "not that way" cone in `move()`, and per
+   screen `data-pad="default"` on the control that should start with the focus. Example seen: at 1280 x 720 "down" from the creator's last arrow lands in
+   the other column (it is the nearest thing below), and My Day opens with the ring on "Week".
 Also worth a real try: pointer speed (`TW.cursorSpeed` 640 px/s x the Settings slider), the camera lean (`TW.look` .36), the repeat rate (`TUNE.repeatFirst`
 .34 s, `TUNE.repeatNext` .105 s), rumble strengths (`FX` in `pad.js`), the 0.28 s `TW.mashGuard` (Confirm is ignored right after the ring jumps by itself, so
 mashing through answers cannot press a Close button that slid under the ring), and the 30 px legend strip (is giving up that much of a phone screen right?).
@@ -349,3 +363,18 @@ the left stick walks, gold corners mark what the bottom button will use, the bum
 button) the bag, Select the Map, and a click on the right stick gives a hand pointer that can tap anything. Touch the screen and it is a touch game again.
 Settings > Controller (it appears once a pad has been used) has the button pictures, the confirm button, the walking feel, dead zone, pointer speed, vibration.
 If there is no sound: tap the screen once (browsers only start audio after a touch).
+
+## 13. Summary
+
+- Full gamepad support is in: stick walking with a highlighted target and one button to use it, one focus layer that drives every DOM screen without
+  per-screen code, a free pointer and "surfaces" for everything that is played with a finger (the map, Decorate's room, mini-game canvases), a pad
+  keyboard for text fields, glyph hints in four styles that exist only while a pad is in use, a Controller section in Settings, light rumble, and the same
+  focus ring for the arrow keys.
+- A scripted fake pad played the whole game loop from the title screen to save / reload / Continue at three screen sizes with three pad styles:
+  68 / 68, 61 + 6 layout skips, 68 / 68, no page errors. With no pad the game is identical to a build without the feature (same DOM, same pixels, same
+  frame rate).
+- Nobody has held a controller. The three things to try first with a real one: does "up" feel right (Settings > Controller > Walking stick), is the
+  highlighted thing the one you meant, and does the ring go where you expect. Every number behind those is a named tunable (section 9).
+- To reproduce: `node tools/build.mjs && node tools/pad_check.mjs` (about 10 minutes; `--w 844 --h 390 --style ps --tag land_`, `--w 1280 --h 720 --style
+  switch --tag desk_`), `node tools/pad_extra.mjs`, and for the touch comparison `python3 tools/pad_nopad.py /tmp/nopad && (cd /tmp/nopad && node
+  tools/build.mjs) && node tools/pad_touch_check.mjs /tmp/nopad/dist`.

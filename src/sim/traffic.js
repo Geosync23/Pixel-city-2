@@ -97,9 +97,9 @@ function setLight(ob, st) { const name = SN[st]; if (ob.p && ob.p.state === name
    (after SIG.min s) when nobody is coming on it and someone waits on the other street; it is held (up to SIG.max s) while its own traffic keeps coming and at once
    past SIG.green s when the other street has someone waiting; with nobody waiting on the other street it simply stays green. Amber SIG.amber s as before. Vehicles
    that pre-empt (sirens, the cab / bus the player rides) still force their axis green. Demand = the vehicles within 18 units of the stop line (node.ap). */
-const SIG = { min: 3, green: 4, max: 6, claim: 3, bus: 3, amber: 1.6 };   // bus: extra green while two or more buses are still coming on it (transit priority);   // claim: extra seconds a green may run past max while someone who has been promised the junction (node.cl) is still waiting to get in
+const SIG = { min: 3, green: 4, max: 6, claim: 3, bus: 3, cap: 11, amber: 1.6 };   // bus: extra green while two or more buses are still coming on it (transit priority);   // claim: extra seconds a green may run past max while someone who has been promised the junction (node.cl) is still waiting to get in
 function signals(dt) {
-  const t = T.time;
+  const t = T.time; let held2 = false;
   for (let i = 0; i < sigNodes.length; i++) {
     const n = sigNodes[i]; let gx, gy;
     if (n.sAx === '') { const ph = (t + n.phase) % 19.2; n.sAx = ph < 9.6 ? 'x' : 'y'; n.sT = ph < 9.6 ? ph : ph - 9.6; n.sAm = n.sT >= 8; }
@@ -107,9 +107,10 @@ function signals(dt) {
     else {
       n.pre = ''; n.sT += dt;
       if (n.sAm) { if (n.sT >= SIG.amber) { n.sAx = n.sAx === 'x' ? 'y' : 'x'; n.sT = 0; n.sAm = false; } }
-      else if (n.sT >= SIG.min) { let own = 0, oth = 0, bus = 0; const A = n.ap; for (let k = 0; k < A.length; k++) { const o = A[k]; if (o.e.axis === n.sAx) { if (o.xw < 1.5) { own++; if (o.bus) bus++; } } else oth++; }   /* xw: someone who has been waiting for room on his exit cannot use the green anyway */
+      else if (n.sT >= SIG.min) { let own = 0, oth = 0, bus = 0, left = 0; const A = n.ap; for (let k = 0; k < A.length; k++) { const o = A[k]; if (o.e.axis === n.sAx) { if (o.xw < 1.5) { own++; if (o.bus) bus++; if (o.v < .3 && o.stuck > 2) left++; } } else oth++; }   /* xw: someone who has been waiting for room on his exit cannot use the green anyway */
         const ca = n.sAx === 'x' ? 0 : 1, cl = n.cl[ca], held = cl && cl.active && t - n.clT[ca] < .3 && n.sT < SIG.max + SIG.claim;
-        if (oth > 0 && !held && (own === 0 || n.sT >= SIG.max + (bus > 1 ? SIG.bus : 0) || (n.sT >= SIG.green && own < 2))) { n.sAm = true; n.sT = 0; } }
+        if (left > 0 && n.sT < SIG.cap) held2 = true; else held2 = false;   /* queue clearance: whoever was already standing in the queue gets through on this green (up to SIG.cap), so nobody sits through two reds */
+        if (oth > 0 && !held && !held2 && (own === 0 || n.sT >= SIG.max + (bus > 1 ? SIG.bus : 0) || (n.sT >= SIG.green && own < 2))) { n.sAm = true; n.sT = 0; } }
       const g = n.sAm ? 1 : 2; gx = n.sAx === 'x' ? g : 0; gy = n.sAx === 'y' ? g : 0;
     }
     if (gx !== n.gx || gy !== n.gy) { n.gx = gx; n.gy = gy; for (const ob of n.lights) setLight(ob, ob.flip ? gx : gy); }
