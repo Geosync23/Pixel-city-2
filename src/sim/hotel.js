@@ -54,7 +54,7 @@ for (const x of [
 
 const CASES = [
   { short: 'Suitcase at Central Station', where: 'at Central Station, where the cab rank is', anchor: p => p.id === 'door:central_station', found: 'A burgundy suitcase beside a luggage trolley, GRAND MAPLE on the brass tag. Inside the lid, in pencil: "Hats. Do NOT sit on." You tie a hotel label to the handle.' },
-  { short: 'Suitcase at the airport', where: 'out at the airport, by the kerb where the shuttle stops', anchor: p => p.id === 'spawn:airport', found: 'The second one, standing alone at the kerb like a passenger who missed the flight. It rattles: shoes, at a guess, a great many shoes.' },
+  { short: 'Suitcase at the airport', where: 'out at the airport, by the kerb where the shuttle stops', anchor: p => p.id === 'taxi:airport',   /* owner msgs 196 + 165: it stood 2 tiles from where you arrive and looked like your own bag: now along the kerb at the taxi stand */  found: 'The second one, standing alone at the kerb like a passenger who missed the flight. It rattles: shoes, at a guess, a great many shoes.' },
   { short: 'Suitcase at the taxi stand', where: 'at a taxi stand across town, in Old Town or by the harbour', anchor: null, found: 'The third, under the taxi-stand sign with a florist\'s receipt tucked in the strap. It smells faintly of lilies. Somebody loaded it with the wedding flowers.' },
 ];
 let S = null, built = null, mini = null, riding = false, svc = null; const cases = [];

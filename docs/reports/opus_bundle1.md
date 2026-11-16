@@ -89,8 +89,11 @@ porch rocker): **Fireside Rocking Chair** (red cushion, blue throw) $340 at the 
 Source added by this bundle vs 493d093: about +17 KB (13 files). dist/index.html now 15,139,450 bytes (was 15,106,791 at 493d093, which includes other workers' changes since).
 
 ## Checks run
-`node src/data/validate.mjs` OK; `node tools/build.mjs` OK; regex lookbehind in dist: 0; `minigames_check`, `minigames_b_check`, `jobs_check`, `navcheck --rooms all`,
-`instore_check`: see the final message for the last run's results.
+All run on the final build. `node src/data/validate.mjs` OK. `node tools/build.mjs` OK. Regex lookbehind in dist: 0. `minigames_b_check` all passed.
+`jobs_check` OK. `navcheck --rooms all` all passed with 0 page errors. `instore_check` OK (the new rockers are in-store only and sold in reachable shops).
+`minigames_check`: every part passed (knead played by touch from the stove: 1.00) except one 'walk' line at 390x844, where ck_stir, ck_boil and ck_oven
+"did not start" for three recipes. Those are not my games, and the same line passed at 375x812. A rerun of `minigames_check walk` on its own passed all of it at
+both sizes, so I read it as a timing flake under load.
 
 ## Files
 Edited: `src/ui/phone.js`, `src/ui/phone_reader.js`, `src/ui/phone_post.js`, `src/ui/phone_guide.js`, `src/data/media.js`, `src/story/jobs_new.js`, `src/sim/jobs.js`,
