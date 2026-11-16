@@ -608,3 +608,6 @@ Central Station need to be able to access and see the teain platform 1 and 2.  l
 
 ## 160 (2026-11-16)
 Also be sure to modify the train job to use the platforms once built.
+
+## 161 (2026-11-16)
+The flower shops in the game should allow you to buy houseplants as well.  And maybe they should also be available at some of the home goods stores.

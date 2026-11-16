@@ -138,3 +138,4 @@
 118. (msg 158) (a) Music a bit too loud by default: music bus trimmed from x0.9 to x0.6 (about -3.5 dB at every slider setting, so existing saves get it too); goes out with the next stage. (b) COOKING MINI-GAMES: many more, matched to the dish (blender, chopping, stirring ...; a smoothie must not be a pan-flip); one mini-game per dish is enough: build the set and pick the most fitting one per recipe. Fable docket, BIBLE update 30.
 119. (msg 159) CENTRAL STATION: the player must be able to walk onto and see train platforms 1 and 2, like at the other stations. Fable docket (BIBLE update 31).
 120. (msg 160) When the Central Station platforms exist, the TRAIN JOB must be changed to use them (part of the same work item).
+121. (msg 161) FLOWER SHOPS must also sell houseplants (for the home); some home-goods stores should stock them too.
