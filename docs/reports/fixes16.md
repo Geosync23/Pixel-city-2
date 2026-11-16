@@ -16,7 +16,7 @@ Drivers: `/tmp/claude-0/-home-user-Pixel-city-2/ab4bf52b-889a-5288-a866-29c2e55d
 - `node src/data/validate.mjs`: OK. `node tools/build.mjs`: OK (14,471 KB). `grep -c '(?<[=!]' dist/index.html` = 0.
 - `node tools/navcheck.mjs --rooms all`: all passed, room graph 277 rooms / 518 doors / 0 rooms with problems, 0 page errors.
 - `node tools/perf.mjs --verify`: VERIFY OK (same pixels), 0 page errors.
-- `node tools/music_check.mjs`: RESULT_MUSIC
+- `node tools/music_check.mjs`: 61 of 61 checks passed (the "in a cab" and "on the bus" contexts still draw from their pools), 0 page errors.
 - Drivers: 0 page errors in `ride.mjs` (before, after and skip runs), `shows.mjs` (before and after) and `seats.mjs` (before and after).
 
 ## Not done (as briefed)
