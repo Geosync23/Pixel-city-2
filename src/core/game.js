@@ -138,8 +138,12 @@ function onTap(clx, cly) {
  * a: { label, anim, minutes, rate?: game-minutes per real second (default: finishes in ~4-8 s), tick?(gm), done?(), cancel?(), canCancel?: true,
  *      at?: {x,y,z?,dir} snap the player there (seat/bed), hide?: bool }
  */
-G.startActivity = a => { const p = G.player; G.endActivity(false); a.left = a.minutes; a.rate = a.rate || Math.max(4, a.minutes / 6); a.prev = { x: p.x, y: p.y, zoff: p.zoff }; if (a.at) { p.x = a.at.x; p.y = a.at.y; p.zoff = a.at.z || 0; if (a.at.dir !== undefined) p.dir = a.at.dir; } p.pose = a.anim || null; p.hidden = !!a.hide; p.stop(); G.busy = a; G.emit('activity', a); return a; };
-G.endActivity = (completed = true) => { const a = G.busy; if (!a) return; G.busy = null; const p = G.player; p.pose = null; p.hidden = false; if (a.at) { p.x = a.prev.x; p.y = a.prev.y; p.zoff = a.prev.zoff; } if (completed) a.done && a.done(); else a.cancel && a.cancel(); G.emit('activityEnd', a, completed); };
+/* owner msg 180: a small hop when the player sits down and stands up (drawn by the renderer from p.hop, about 4 px for 0.18 s; position and sorting are untouched). Only for sitting activities the player walks to:
+   not for hidden ones (a bath, a vehicle), lying down, a cutscene, or a scene that puts the player on a far seat (a.noHop switches it off for one activity). */
+const HOP_ANIMS = ['sit', 'cycle', 'row', 'eat', 'drink', 'read', 'type', 'phone', 'talk'];
+const hopAct = a => !!(a && a.at && !a.hide && !a.noHop && !G.cutscene && (a.anim === 'sit' || a.anim === 'cycle' || a.anim === 'row' || (a.at.z > 0 && HOP_ANIMS.includes(a.anim))));
+G.startActivity = a => { const p = G.player; G.endActivity(false); a.left = a.minutes; a.rate = a.rate || Math.max(4, a.minutes / 6); a.prev = { x: p.x, y: p.y, zoff: p.zoff }; if (a.at) { p.x = a.at.x; p.y = a.at.y; p.zoff = a.at.z || 0; if (a.at.dir !== undefined) p.dir = a.at.dir; } p.pose = a.anim || null; p.hidden = !!a.hide; p.stop(); G.busy = a; if (hopAct(a) && Math.hypot(a.at.x - a.prev.x, a.at.y - a.prev.y) < 4) p.hop = performance.now(); G.emit('activity', a); return a; };
+G.endActivity = (completed = true) => { const a = G.busy; if (!a) return; G.busy = null; const p = G.player; p.pose = null; p.hidden = false; if (a.at) { p.x = a.prev.x; p.y = a.prev.y; p.zoff = a.prev.zoff; } p.hop = hopAct(a) ? performance.now() : 0; if (completed) a.done && a.done(); else a.cancel && a.cancel(); G.emit('activityEnd', a, completed); };
 
 /* ---------- main loop ---------- */
 let last = 0;

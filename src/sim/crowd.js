@@ -18,6 +18,7 @@
 // Hooks: every citizen is an interactable ('Talk'). On tap: G.social.talkToCitizen({ char, spec, district, mood, kind }) if it exists (may return a
 //   Promise: the citizen waits until it resolves), else a greeting bubble. Citizens set `isCitizen = true`. No events are emitted.
 // Listens: 'room:enter'/'room:exit', 'bus:arrive'/'bus:depart', 'use', 'activity', 'season', 'scene', 'load'.
+import { benchSeats, onGround } from './_benchseat.js';
 import { G } from '../core/game.js';
 import { findPath, followPath } from '../engine/nav.js';
 import { GT } from '../engine/world.js';
@@ -100,7 +101,7 @@ function reached(c) {
   if (!g) { if (Math.hypot(c.tx - c.x, c.ty - c.y) < .6) arrive(c); else { c.link = null; next(c); } return; }
   if (g.t === 'walk') { c.ww = g.i; next(c); }
   else if (g.t === 'door') fadeOut(c);
-  else if (g.t === 'slot') { const a = g.a, s = a.slots[g.i]; if (a.occ[g.i] === c && Math.hypot(s.x - c.x, s.y - c.y) < 1.3) settle(c, a, g.i); else { if (a.occ[g.i] === c) a.occ[g.i] = null; c.anchor = null; rejoin(c); } }
+  else if (g.t === 'slot') { const a = g.a, s = a.slots[g.i]; if (a.occ[g.i] === c && Math.hypot(s.x - c.x, s.y - c.y) < 1.3) { settle(c, a, g.i); if (c.seated) c.hop = performance.now();   /* the little hop onto the bench (owner msg 180); people who are placed seated do not hop */ } else { if (a.occ[g.i] === c) a.occ[g.i] = null; c.anchor = null; rejoin(c); } }
 }
 function roadClear(c) {
   const V = G.traffic && G.traffic.vehicles; if (!V) return true; const L = c.link, mx = (c.x + L.bx) / 2, my = (c.y + L.by) / 2;
@@ -234,7 +235,8 @@ function mkSlots(a) {
   const line = (n, x0, y0, ux, uy, dir) => { for (let k = 0; k < n; k++) { const x = x0 + ux * k * .78, y = y0 + uy * k * .78; if (!okCell(x, y)) break; S.push({ x, y, z: 0, dir, anims: ['stand', 'stand', 'phone', 'stand', 'talk'], seated: false, kind: 'queue', wander: 0 }); } };
   const queue = n => { let best = null, bn = 0; for (const d of D4) { let k = 0; while (k < n && okCell(a.x + d[0] * (1 + k * .78), a.y + d[1] * (1 + k * .78))) k++; if (k > bn) { bn = k; best = d; } } if (best) line(n, a.x + best[0], a.y + best[1], best[0], best[1], dirOf(-best[0], -best[1])); a.q = true; };
   switch (a.t) {
-    case 'bench': S.push({ x: p.x, y: p.y, z: p.seatZ === undefined ? .45 : p.seatZ, dir: p.dir === undefined ? 1 : p.dir, anims: ['sit', 'read', 'phone', 'eat', 'sit'], seated: true, kind: 'bench', wander: 0 }); break;
+    case 'bench': { const bs = !p.seat && !p.seats && p.seatZ === undefined && world ? benchSeats(world, p) : null, q = bs && onGround(world, bs[(a.seed * 97 | 0) % bs.length]);   /* seating follow-ups: on a real seat of the bench that stands there, facing the way it faces (was the poi's middle and its dir: backwards on the quay benches) */
+      S.push({ x: q ? q.x : p.x, y: q ? q.y : p.y, z: q ? q.z : p.seatZ === undefined ? .45 : p.seatZ, dir: q ? q.dir : p.dir === undefined ? 1 : p.dir, anims: ['sit', 'read', 'phone', 'eat', 'sit'], seated: true, kind: 'bench', wander: 0 }); break; }
     case 'bus': { const ax = p.axis === 'y' ? 0 : 1, ay = 1 - ax, dir = p.lane ? dirOf(p.lane.x - p.x, p.lane.y - p.y) : 1; for (const k of [-.8, .8, -1.6, 1.6]) { const x = p.x + ax * k, y = p.y + ay * k; if (okCell(x, y)) S.push({ x, y, z: 0, dir, anims: ['stand', 'stand', 'phone', 'stand'], seated: false, kind: 'bus', wander: 0 }); } break; }
     case 'stall': case 'ferriswheel': queue(5); break;
     case 'door': {
@@ -269,7 +271,7 @@ function recruit(a, i) {
   for (let k = 0; k < pool.length; k++) { const c = pool[k]; if (!c.active || c.st !== WALK || c.mate || c.lead || c.pet || c.anchor || c.keep || (c.kind !== 'stroll' && c.kind !== 'phone') || (s.age ? c.spec.age !== s.age : c.spec.age === 'kid')) continue; const dx = c.x - s.x, dy = c.y - s.y, d = dx * dx + dy * dy; if (d < bd) { bd = d; b = c; } }
   if (!b) return false; b.goal = { t: 'slot', a, i }; if (!tryPath(b, s.x, s.y, 2500, 40)) { b.goal = null; return false; } b.anchor = a; b.slot = i; a.occ[i] = b; b.link = null; return true;
 }
-function unseat(c) { const a = c.anchor; if (a && a.occ[c.slot] === c) a.occ[c.slot] = null; c.anchor = null; c.sl = null; c.seated = false; c.zoff = 0; c.pose = null; c.run = false; c.carry = !!a && a.t === 'stall'; c.kind = c.carry ? 'carrier' : 'stroll'; c.spd = rr(1.4, 2) * (c.spec.age === 'elder' ? .72 : 1); c.z = world.heightAt(c.x, c.y); rejoin(c); }
+function unseat(c) { const a = c.anchor; if (c.seated) c.hop = performance.now(); if (a && a.occ[c.slot] === c) a.occ[c.slot] = null; c.anchor = null; c.sl = null; c.seated = false; c.zoff = 0; c.pose = null; c.run = false; c.carry = !!a && a.t === 'stall'; c.kind = c.carry ? 'carrier' : 'stroll'; c.spd = rr(1.4, 2) * (c.spec.age === 'elder' ? .72 : 1); c.z = world.heightAt(c.x, c.y); rejoin(c); }
 function advance(a) { const O = a.occ, S = a.slots, f = O[0]; if (f) { if (f.st !== STATIC) return; unseat(f); } for (let i = 1; i < S.length; i++) { const c = O[i]; if (!c || O[i - 1]) continue; if (c.st !== STATIC) break; O[i - 1] = c; O[i] = null; c.slot = i - 1; c.sl = S[i - 1]; c.st = SHIFT; c.pose = null; } }
 function tickAnchors() {
   let rec = 1; doors.length = 0;

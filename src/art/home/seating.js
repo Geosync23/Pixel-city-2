@@ -4,7 +4,7 @@
 // seats = default (face 1) positions; seatsFor(p) returns the right ones for any p.
 import { box, lw, ball, cyl, dk, lt } from '../../engine/raster.js';
 import { tier, wood, FAB, METAL, b, leg, pole, shadow, cushion, dot, blob, fabric } from './_lib.js';
-import { qz, qy } from '../../engine/raster.js';
+import { qz, qy, fq } from '../../engine/raster.js';
 
 const GOLD = '#d9b65c';
 function sofa(w, n, p) {
@@ -93,11 +93,38 @@ function officeChair(p) {
   if (f3) { arms(.07); seat(); back(); arms(.43); } else { back(); arms(.07); seat(); arms(.43); }
 }
 
+/* ---- rocking chair (Nana's chair by the range, owner msg 180) ----
+ * p.tilt -2..2: how far it has rocked back (+) or forward (-). The whole chair is turned about the point where its runners rest on the floor, so it is drawn from lines and four-sided faces
+ * (boxes cannot lean). sim/rocking.js steps the tilt while somebody sits in it; the sitter is moved with the seat. ROCK_STEP = radians per tilt step (shared with the sim). */
+export const ROCK_STEP = .07;
+function rocker(p) {
+  const w = p.wood || '#8a5a3a', wd = dk(w, .3), c = p.c || FAB.red, th = p.throw, a = (p.tilt || 0) * ROCK_STEP, ca = Math.cos(a), sa = Math.sin(a), Y0 = .42;
+  const T = q => [q[0], Y0 + (q[1] - Y0) * ca - q[2] * sa, Math.max(0, (q[1] - Y0) * sa + q[2] * ca)], L = (A, B, col) => lw(T(A), T(B), col), Q = (pts, col) => fq(pts.map(T), col);
+  shadow(.02, .74, .12, .82);
+  const RUN = [[0, .13], [.13, .05], [.28, .01], [.42, 0], [.56, .01], [.71, .05], [.86, .13]];
+  const runner = x => { for (let i = 0; i < RUN.length - 1; i++) { L([x, RUN[i][0], RUN[i][1]], [x, RUN[i + 1][0], RUN[i + 1][1]], wd); L([x, RUN[i][0], RUN[i][1] + .04], [x, RUN[i + 1][0], RUN[i + 1][1] + .04], w); } };
+  const post = (x, y0, z0, y1, z1) => { L([x, y0, z0], [x, y1, z1], w); L([x + .035, y0, z0], [x + .035, y1, z1], wd); };
+  runner(.07);
+  post(.05, .2, .05, .1, 1.2); post(.63, .2, .05, .1, 1.2);                                    // the back posts lean a little
+  Q([[.09, .13, .5], [.63, .13, .5], [.63, .1, 1.12], [.09, .1, 1.12]], lt(w, .14));            // the back: slats
+  for (const x of [.22, .36, .5]) L([x, .135, .52], [x, .105, 1.1], dk(w, .12));
+  L([.05, .1, 1.18], [.67, .1, 1.18], lt(w, .22)); L([.05, .1, 1.14], [.67, .1, 1.14], w);      // top rail
+  if (th) { Q([[.36, .12, .78], [.68, .12, .78], [.68, .09, 1.22], [.36, .09, 1.22]], th); for (const z of [.88, 1.0, 1.12]) L([.36, .12, z], [.68, .12, z], lt(th, .3)); L([.36, .125, .78], [.68, .125, .78], dk(th, .25)); }   // a knitted throw over the back
+  post(.05, .66, .05, .66, .66); L([.06, .13, .72], [.06, .72, .67], w);                        // far front post and arm
+  Q([[.08, .16, .43], [.66, .16, .43], [.66, .7, .43], [.08, .7, .43]], c); Q([[.12, .2, .43], [.62, .2, .43], [.62, .62, .43], [.12, .62, .43]], lt(c, .12));   // seat cushion
+  Q([[.08, .7, .43], [.66, .7, .43], [.66, .7, .36], [.08, .7, .36]], dk(c, .2)); Q([[.66, .16, .43], [.66, .7, .43], [.66, .7, .36], [.66, .16, .36]], dk(c, .34));
+  runner(.67);
+  post(.63, .66, .05, .66, .66);                                                                // near front post and arm
+  L([.67, .13, .73], [.67, .72, .68], lt(w, .22)); L([.67, .13, .7], [.67, .72, .65], w); L([.7, .13, .7], [.7, .72, .65], wd);
+}
+const rockerSeats = [{ x: .37, y: .42, z: .45, dir: 1 }];
 const chairSeats = [{ x: .25, y: .27, z: .46, dir: 1 }];
 const T3 = [{ tier: 0 }, { tier: 1 }, { tier: 2 }];
 export default [
   { id: 'furn.home.chair', kind: 'furniture', tags: ['home', 'kitchen', 'dining', 'seat', 'chair'], size: [.5, .5, .95], use: { x: .25, y: .8 }, seats: chairSeats, seatsFor: faceFlip(chairSeats, .5),
     variants: [{ tier: 0, c: FAB.teal }, { tier: 1, c: FAB.red }, { tier: 2, c: FAB.navy }, { tier: 0, c: FAB.mustard, face: 3 }, { tier: 1, c: FAB.sage, wood: '#e9e2d2', face: 3 }, { tier: 2, c: FAB.plum, face: 3 }], draw: chair },
+  { id: 'furn.home.rocker', kind: 'furniture', tags: ['home', 'living', 'seat', 'chair', 'rocker'], size: [.74, .85, 1.2], vb: [-.15, -.25, 0, .95, 1.1, 1.45], use: { x: .37, y: 1.15 }, seats: rockerSeats,
+    variants: [{ throw: '#7a9ec8' }, { c: FAB.sage, wood: '#5e3f30' }, { throw: '#7a9ec8', tilt: 2 }, { throw: '#7a9ec8', tilt: -2 }], draw: rocker },
   { id: 'furn.home.stool', kind: 'furniture', tags: ['home', 'kitchen', 'dining', 'seat', 'stool'], size: p => [.5, .5, p.bar ? .8 : .52], use: { x: .25, y: .8 }, seats: [{ x: .25, y: .25, z: .5, dir: 1 }], seatsFor: p => [{ x: .25, y: .25, z: p && p.bar ? .8 : .5, dir: 1 }],
     variants: [{ tier: 0 }, { tier: 1, c: FAB.teal }, { tier: 2, c: '#7a4a3a' }, { tier: 0, bar: true }, { tier: 1, bar: true, c: FAB.mustard }, { tier: 2, bar: true, c: FAB.navy }], draw: stool },
   sofaAsset('sofa.2', 2, 2, [{ tier: 0, c: FAB.olive }, { tier: 1, c: FAB.teal }, { tier: 2, c: FAB.plum, c2: FAB.rose }, { tier: 1, c: FAB.rust, c2: FAB.cream, face: 3 }, { tier: 0, c: FAB.grey, face: 3 }]),

@@ -80,7 +80,7 @@ function spawn(s, instant) {
 function goSpot(c) { const s = c.spot, W = scene.world; let tx = s.x, ty = s.y; if (W.isBlocked(tx, ty)) { const f = nearestFree(W, Math.floor(tx * 2), Math.floor(ty * 2), 4); if (f) { tx = (f[0] + .5) / 2; ty = (f[1] + .5) / 2; } } c.path = findPath(W, c.x, c.y, tx, ty, { limit: 6000, snap: 4 }); c.st = IN; c.pose = null; c.seated = false; if (!c.path) settle(c); }
 function free(c, now) { if (!c.active) return; if (c.spot && c.spot.by === c) c.spot.by = null; c.spot = null; if (c.spec && c.spec._n > 0) c.spec._n--; c.active = false; c.hidden = true; c.path = null; }
 function leave(c, fast) {
-  if (c.st === OUT) { if (fast) c.fade = -3; return; } if (c.spot && c.spot.by === c) c.spot.by = null; const W = scene.world; c.pose = null; c.seated = false; c.zoff = 0; c.hold = 0;
+  if (c.st === OUT) { if (fast) c.fade = -3; return; } if (c.spot && c.spot.by === c) c.spot.by = null; const W = scene.world; if (c.seated && !fast) c.hop = performance.now();   /* ... and off it */ c.pose = null; c.seated = false; c.zoff = 0; c.hold = 0;
   if (fast) { c.st = OUT; c.fade = -3; c.path = null; return; }
   if (W.isBlocked(c.x, c.y)) { const f = nearestFree(W, Math.floor(c.x * 2), Math.floor(c.y * 2), 4); if (f) { c.x = (f[0] + .5) / 2; c.y = (f[1] + .5) / 2; } }
   c.z = W.heightAt(c.x, c.y); c.path = findPath(W, c.x, c.y, exitPt.x, exitPt.y - .3, { limit: 6000, snap: 4 }); c.st = OUT; if (!c.path) c.fade = -2;
@@ -109,7 +109,7 @@ function step(c, dt) {
     if ((c.think -= dt) <= 0) { c.think = rr(2.5, 6); const s = c.spot; if (s.anims.length > 1) { c.pose = pick(s.anims); if (c.pose === 'stand') c.pose = null; } if (c.kind !== 'staff' && (c.stay -= 4) <= 0) leave(c); }
   } else if (c.path) {
     const ox = c.x, oy = c.y, m = followPath(scene.world, c, c.path, c.spd * dt); c.moving = m > 1e-4; if (c.moving) c.face(c.x - ox, c.y - oy); c.z = scene.world.heightAt(c.x, c.y);
-    if (!c.path.length) { c.path = null; c.moving = false; if (c.st === IN) { if (c.spot && c.spot.by === c && !isRes(c.spot) && !nearPlayer(c.spot, .6)) settle(c); else leave(c); } else c.fade = -2.5; }
+    if (!c.path.length) { c.path = null; c.moving = false; if (c.st === IN) { if (c.spot && c.spot.by === c && !isRes(c.spot) && !nearPlayer(c.spot, .6)) { settle(c); if (c.seated) c.hop = performance.now();   /* the little hop onto the seat (owner msg 180); not when a room is filled with people already seated */ } else leave(c); } else c.fade = -2.5; }
   } else if (c.st === OUT && !c.fade) c.fade = -2.5;
 }
 /** an NPC at this fixture / spot makes room (player is about to use it) */

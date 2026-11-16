@@ -18,6 +18,7 @@
 // City: on entering the city scene, world pois of type 'bench' / 'spot' (and anything carrying a world function tag) become interactables.
 // Events: 'activity:start'(id, ctx), 'activity:done'(id, { completed, minutes, totals }), 'ui:open'(key, ctx), 'cooked'(recipeId, servings), 'recipe:learned'(recipeId, how)
 // State: G.state.acts = { plants: { key: absDay watered }, last: { activityId: t } }; G.state.cook = recipe knowledge (see the cooking section; API G.cooking)
+import { propSeats, onGround as onGround0, benchSeats } from './_benchseat.js';
 import { G } from '../core/game.js';
 import { ACTIVITIES, ACTIVITY_BY_ID, FUNCTION_TAGS } from '../data/activities.js';
 import { ITEM_BY_ID, RECIPES, RECIPE_BY_ID, RECIPE_CATS, LEARN_FROM, LEGACY_RECIPES, COOKBOOKS, homegoodsForTag } from '../data/items.js';
@@ -518,17 +519,7 @@ function buildCity(scene) {
     }
   } catch (e) { console.warn('bench props: ' + e.message); }
 }
-/* seating follow-ups: the seats of a placed prop in world coordinates (z = absolute height of the seat) */
-const FLP = [1, 0, 3, 2];
-const propSeats = (ob, st) => st.map(q => ob.flip ? { x: ob.x + q.y, y: ob.y + q.x, z: (ob.z || 0) + (q.z || .45), dir: FLP[q.dir || 0] } : { x: ob.x + q.x, y: ob.y + q.y, z: (ob.z || 0) + (q.z || .45), dir: q.dir || 0 });
-/* the seated player's height is 'ground under the seat + at.z' (core/game.js), so a seat's absolute height becomes a height over the ground there (it was passed as it was: on any ground that is not at 0 the sitter floated by the ground's height, or sank by it in the harbour) */
-const onGround = s => s && Object.assign({}, s, { z: Math.max(0, s.z - G.world.heightAt(s.x, s.y)) });
-/* the real seats of the bench prop a bench poi stands for (null: no such prop, the poi's own middle is used) */
-function benchSeats(world, p) {
-  let best = null, bd = 1.3;
-  for (const ob of world.objs) { const a = ob.a; if (!a || !Array.isArray(a.seats) || !/bench/.test(ob.id)) continue; const B = ob.B, d = Math.hypot((B[0] + B[3]) / 2 - p.x, (B[1] + B[4]) / 2 - p.y); if (d < bd) { bd = d; best = ob; } }
-  return best ? propSeats(best, best.a.seats.filter(q => q && !q.lie)) : null;
-}
+const onGround = s => onGround0(G.world, s);
 const nearSeat = seats => { const p = G.player, ents = (G.scene && G.scene.ents) || [], free = seats.filter(q => !ents.some(c => c !== p && !c.hidden && Math.hypot(c.x - q.x, c.y - q.y) < .3)); return (free.length ? free : []).reduce((a, b) => !a || Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a, null); };
 /** generic "Sit": any fixture with a non-lying seat that no other activity claimed */
 function sitOn(fx) {

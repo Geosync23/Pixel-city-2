@@ -235,6 +235,7 @@ function treeLayer(world, cx, cy) {
  * are untouched.
  */
 /* test switch (tools/perf.mjs --html build.html,build.html?noseat): ?noseat draws sitters the old way, as separately sorted items */
+const HOP_MS = 180, HOP_PX = 4;
 const SEATING = !(typeof location !== 'undefined' && /[?&]noseat\b/.test(location.search || ''));
 const isSitter = e => e.seated || e.pose === 'sit' || (e.poseOpts ? !!e.poseOpts.seated : e.pose === 'type' && e.z > .2);   // ('type' is drawn seated unless poseOpts.seated is false)
 const SQ = [];
@@ -509,8 +510,11 @@ export class Renderer {
     const L = this._L, vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4; let n = 0;
     const Q = this._Q; Q.length = 0; world.query(vx0, vy0, vx1, vy1, Q);
     for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; it.ns = 0; ob._fr = fr; ob._it = it; }
+    const hopNow = performance.now();
     for (let i = 0; i < ents.length; i++) {
-      const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U), ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
+      const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U); let ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
+      /* the little hop of sitting down / standing up (owner msg 180): e.hop = performance.now() at the moment; the sprite is lifted along a short arc and nothing else changes (position, sorting and the seat it is drawn with stay as they are) */
+      if (e.hop) { const u = (hopNow - e.hop) / HOP_MS; if (u >= 1 || u < 0) e.hop = 0; else ay -= Math.round(HOP_PX * 4 * u * (1 - u)); }
       const rx0 = spr.x + ax, ry0 = spr.y + ay, rx1 = rx0 + spr.w, ry1 = ry0 + spr.h; if (rx1 < vx0 || rx0 > vx1 || ry1 < vy0 || ry0 > vy1) continue;
       if (SEATING && isSitter(e)) { const so = seatObj(world, e); if (so && so._fr === fr) { const h = so._it, q = SP[nsp] || (SP[nsp] = { e: null, spr: null, ax: 0, ay: 0, d: 0, ov: null, next: null }); nsp++; q.e = e; q.spr = spr; q.ax = ax; q.ay = ay; q.d = e.x + e.y; q.ov = seatOverlay(so, h.spr, e);
         /* the piece's sitters as a list, far to near */ if (!h.ns || q.d < h.sit.d) { q.next = h.ns ? h.sit : null; h.sit = q; } else { let p = h.sit; while (p.next && p.next.d <= q.d) p = p.next; q.next = p.next; p.next = q; } h.ns++; if (e.ghost && !gh) gh = q, q.host = h; continue; } }
@@ -544,7 +548,7 @@ export class Renderer {
       /* seating: the piece's sitters (far to near), each followed by the parts of the piece in front of it */
       if (it.ns) for (let q = it.sit; q; q = q.next) { const qs = q.spr, ea = q.e.alpha; if (ea !== undefined) ctx.globalAlpha = ea; if (q.e.dir < 2) ctx.drawImage(qs.c, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y); else { const r0 = Math.min(qs.h, 1 - qs.y); ctx.drawImage(qs.c, 0, 0, qs.w, r0, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y, qs.w, r0); } if (ea !== undefined) ctx.globalAlpha = 1; const ov = q.ov; if (ov && it.ob._a === undefined) ctx.drawImage(ov.c, ov.x + it.ax - cam.x, ov.y + it.ay - cam.y);   /* (not while the piece is see-through: its front would be drawn twice) */ } }
     for (const it of S) if (it.e && it.e.ghost && !(SEATING && isSitter(it.e))) { ctx.globalAlpha = .3; ctx.drawImage(it.spr.c, it.spr.x + it.ax - cam.x, it.spr.y + it.ay - cam.y); ctx.globalAlpha = 1; }
-    if (this._gs) { const g = this._gs, gs = g.spr; ctx.globalAlpha = .3; ctx.drawImage(gs.c, gs.x + g.ax - cam.x, gs.y + g.ay - cam.y); ctx.globalAlpha = 1; }   /* a seated focus behind something that cannot fade */
+    if (this._gs) { const g = this._gs, gs = g.spr; ctx.globalAlpha = .5; ctx.drawImage(gs.c, gs.x + g.ax - cam.x, gs.y + g.ay - cam.y); ctx.globalAlpha = 1; }   /* a seated focus behind something that cannot fade */
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
