@@ -54,17 +54,17 @@ function poolSprite(r, col) { // banded, dithered ellipse of light
  * ---------- night light (docs/reports/nightlight.md) ----------
  * The light mask (ambient colour + dithered pools) is multiplied over the finished frame. Until now that put the dither pattern across
  * everybody who stood in a pool. Now the pools stay what they are for the ground and the static world, and everything that moves (people,
- * pets, vehicles, loose props) is put into the mask as ONE flat colour: the light at its feet (the pools that reach it, summed, in a few
- * bands). The flat colours are painted into a layer E in draw order, sprite shape by sprite shape, and whatever stands in front of a
- * lit thing (a building, a tree, a lamp post, the front of the bench somebody sits on) is cut out of E again, so the pools still show on
- * those. E is then laid over the mask before the multiply. Nothing is drawn twice on the frame itself and the static world is untouched.
+ * pets, vehicles) and every upright thing at their scale (posts, trees, bins, benches, parked cars) is put into the mask as ONE flat colour:
+ * the light at its feet (the pools that reach it, summed, in a few bands). Their shapes are collected in draw order, and whatever stands in
+ * front and keeps the pattern (a building, a wall, the front of a big piece somebody sits on) is cut out again, so the pools still show
+ * on those. The result is laid over the mask before the multiply. Nothing is drawn twice on the frame itself and the static world is untouched.
  */
 const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(location.search || '') : null;
 /* mode: 'new' | 'old' (the mask over everything, as before; ?nightlight=old or G.renderer.nightLight('old')). step: one band = this much of a pool's full strength (the pool's own rings are 1 / .7 / .35 with dithered halves in between, so .175 = one ring).
  * max: most bands (pools add up). hyst: a band only changes when the light is this far (in bands) past the edge. rate: frames between two band steps (a change of several bands is walked through, never jumped).
  * big: an entity whose sprite is larger than this many px keeps the pattern like the static world (train cars, airliners, parade floats, stage screens); vehicles are always lit as a whole.
- * budget / slots: the cache of flat-colour sprite shapes: at most `budget` px in total (x4 bytes), at most `slots` colours per sprite. */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000, budget: 3e6, slots: 4 };
+ * propFoot / propBig / propTall: which placed objects are lit as a whole (wholeOb below). */
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000 };
 let LB = new Float32Array(7 * 64), nLB = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 function addLight(cx, cy, c, a, owner) {
   if (!c._rgb || !(a > 0)) return; if ((nLB + 1) * 7 > LB.length) { const n = new Float32Array(LB.length * 2); n.set(LB); LB = n; }
@@ -107,6 +107,10 @@ function band(e, fr, al) {
   if (ci !== e._ni) { e._ni = ci; e._ns = '#' + (0x1000000 + ci).toString(16).slice(1); }
   return b;
 }
+/* the glow pass (Renderer.draw): the boxes that hold glow so far this frame */
+let GR = new Float32Array(4 * 128), nGR = 0, gX0 = 0, gY0 = 0, gX1 = 0, gY1 = 0;
+function addG(x0, y0, x1, y1) { if (x1 <= x0 || y1 <= y0) return; if ((nGR + 1) * 4 > GR.length) { const n = new Float32Array(GR.length * 2); n.set(GR); GR = n; } const o = nGR++ * 4; GR[o] = x0; GR[o + 1] = y0; GR[o + 2] = x1; GR[o + 3] = y1; if (nGR === 1) { gX0 = x0; gY0 = y0; gX1 = x1; gY1 = y1; } else { if (x0 < gX0) gX0 = x0; if (y0 < gY0) gY0 = y0; if (x1 > gX1) gX1 = x1; if (y1 > gY1) gY1 = y1; } }
+function hitG(x0, y0, x1, y1) { if (!nGR || x0 >= gX1 || x1 <= gX0 || y0 >= gY1 || y1 <= gY0) return false; for (let i = 0, o = 0; i < nGR; i++, o += 4) if (x0 < GR[o + 2] && x1 > GR[o] && y0 < GR[o + 3] && y1 > GR[o + 1]) return true; return false; }
 /* is this entity lit as a whole? (the rest keeps the pattern, like the static world, and hides lit things behind it) */
 function isWhole(e, sp) {
   const n = e.nl; if (n !== undefined) return n === 'whole';   // an entity can say so itself: nl = 'whole' | 'ground'
@@ -121,27 +125,28 @@ function wholeOb(ob, sp) {
   if (n) w = n === 'whole'; else { const fx = B[3] - B[0], fy = B[4] - B[1], px = sp.w * sp.h; w = B[5] - B[2] > .12 && sp.l !== sp.c && (fx <= 1.5 && fy <= 1.5 ? px <= NL.propTall : fx <= NL.propFoot && fy <= NL.propFoot && px <= NL.propBig); }   // (thin things: trees, posts, poles, however tall; wider things up to a kiosk)
   return ob._nw = w;
 }
-/* flat-colour copies of sprite shapes. Sprites out of the sprite cache never change (sp.im), so their copies are kept: up to NL.slots colours per sprite, NL.budget px in all (least recently drawn go first). Anything else is tinted on a scratch canvas each time it is drawn. */
-const SILS = []; let silPx = 0, scratch = null, scratchX = null;
-let nTint = 0, tTint = 0; function tintInto(x, sp, col) { nTint++; const t0 = performance.now(); tint_(x, sp, col); tTint += performance.now() - t0; }
-function tint_(x, sp, col) { x.globalCompositeOperation = 'copy'; x.drawImage(sp.c, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, sp.w, sp.h); }
-function silFor(sp, col, ci, fr) {
-  if (!sp.im) { if (!scratch || scratch.width < sp.w || scratch.height < sp.h) { scratch = mk(Math.max(sp.w, scratch ? scratch.width : 64), Math.max(sp.h, scratch ? scratch.height : 64)); scratchX = scratch.getContext('2d'); } tintInto(scratchX, sp, col); return scratch; }
-  const L = sp._nl || (sp._nl = []); let old = null;
-  for (let i = 0; i < L.length; i++) { const s = L[i]; if (s.ci === ci) { s.fr = fr; return s.c; } if (!old || s.fr < old.fr) old = s; }
-  if (L.length < NL.slots) { const c = mk(sp.w, sp.h), s = { c, x: c.getContext('2d'), ci, fr, sp, px: sp.w * sp.h }; tintInto(s.x, sp, col); L.push(s); SILS.push(s); silPx += s.px; if (silPx > NL.budget) silTrim(fr); return c; }
-  old.ci = ci; old.fr = fr; tintInto(old.x, sp, col); return old.c;
+/* The two layers (see Renderer._nightE). A = coverage: the shapes of everything lit as a whole, minus what stands in front of them. C = colour: each such thing's flat mask colour.
+ * C is filled by rectangle (the sprite's box): cheap, and right wherever A covers, because a thing drawn later either has the same colour, or (hitDiff) first punches its own shape out of C and then fills only
+ * what is empty in its box. No sprite is ever copied or tinted, so there is nothing to cache.
+ * ER = this frame's boxes with their colour (a thing in front only has to be cut out of A where it overlaps one). */
+let XA = null, XC = null, nlLit = 0, nlCut = 0, nlPunch = 0;
+let ER = new Float32Array(5 * 128), nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;
+function addE(x0, y0, x1, y1, ci) { if ((nER + 1) * 5 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 5; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; ER[o + 4] = ci; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
+function hitE(x0, y0, x1, y1) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 5) if (x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
+function hitDiff(x0, y0, x1, y1, ci) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 5) if (ER[o + 4] !== ci && x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
+/* rows sy .. sy + sh of sprite sp (drawn at dx, dy; a = its alpha or undefined) are lit as a whole in colour col (ci as a number) */
+function litDraw(sp, sy, sh, dx, dy, ci, col, a) {
+  const w = sp.w, y = dy + sy, part = sh !== sp.h; nlLit++; if (a !== undefined) XA.globalAlpha = a;
+  if (part) XA.drawImage(sp.c, 0, sy, w, sh, dx, y, w, sh); else XA.drawImage(sp.c, dx, dy);
+  if (a !== undefined) XA.globalAlpha = 1; XC.fillStyle = col;
+  if (nER && hitDiff(dx, y, dx + w, y + sh, ci)) {
+    nlPunch++; XC.globalCompositeOperation = 'destination-out'; if (a !== undefined) XC.globalAlpha = a; if (part) XC.drawImage(sp.c, 0, sy, w, sh, dx, y, w, sh); else XC.drawImage(sp.c, dx, dy);
+    if (a !== undefined) XC.globalAlpha = 1; XC.globalCompositeOperation = 'destination-over'; XC.fillRect(dx, y, w, sh); XC.globalCompositeOperation = 'source-over';
+  } else XC.fillRect(dx, y, w, sh);
+  addE(dx, y, dx + w, y + sh, ci);
 }
-function silTrim(fr) {
-  SILS.sort((a, b) => a.fr - b.fr); let n = 0;
-  while (n < SILS.length && silPx > NL.budget * .7 && SILS[n].fr < fr) { const s = SILS[n++], L = s.sp._nl, i = L ? L.indexOf(s) : -1; if (i >= 0) L.splice(i, 1); silPx -= s.px; s.sp = null; }
-  SILS.splice(0, n);
-}
-/* the rectangles of E that hold something this frame (a thing in front only has to be cut out where it overlaps one) */
-let ER = new Float32Array(4 * 128), nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;
-function addE(x0, y0, x1, y1) { if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
-function hitE(x0, y0, x1, y1) { if (x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0) return false; for (let i = 0, o = 0; i < nER; i++, o += 4) if (x0 < ER[o + 2] && x1 > ER[o] && y0 < ER[o + 3] && y1 > ER[o + 1]) return true; return false; }
-
+/* the same rows of a sprite that keeps the pattern and stands in front of lit things: out of the coverage */
+function cutDraw(sp, sy, sh, dx, dy, a) { nlCut++; XA.globalCompositeOperation = 'destination-out'; if (a !== undefined) XA.globalAlpha = a; if (sh !== sp.h) XA.drawImage(sp.c, 0, sy, sp.w, sh, dx, dy + sy, sp.w, sh); else XA.drawImage(sp.c, dx, dy); if (a !== undefined) XA.globalAlpha = 1; XA.globalCompositeOperation = 'source-over'; }
 
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 /** the trees of one outskirts chunk as one canvas {c, x, y} (world px), thinned by the same distance dither as the ground; null if none */
@@ -212,7 +217,7 @@ function seatOverlay(ob, base, e) {
 }
 
 export class Renderer {
-  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.E = mk(8, 8); this.Ex = this.E.getContext('2d'); this._eb = [0, 0, 0, 0]; this._tap = new LightTap(); this.nl = NL;   /* night light: E = the 'lit as a whole' layer of the light mask, _eb = the part of it used last frame */ this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0, frames: 0, tGround: 0, tUnder: 0, tItems: 0, tAmb: 0, tGlow: 0, tOver: 0, tNl: 0, nlSil: 0, nlCut: 0 };   /* t*: total ms per part of draw() (tools/perf.mjs divides by frames) */ this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
+  constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.B = mk(8, 8); this.M = mk(8, 8); this.E = mk(8, 8); this.Ex = this.E.getContext('2d'); this.C = mk(8, 8); this.Cx = this.C.getContext('2d'); this._eb = [0, 0, 0, 0]; this._tap = new LightTap(); this.nl = NL;   /* night light: E / C = the coverage and colour layers of what is lit as a whole (see _nightE), _eb = the part of them used last frame */ this.Bx = this.B.getContext('2d'); this.Mx = this.M.getContext('2d'); this.W = 8;   /* QA8: B / M are only ever resized, so their contexts are fetched once (getContext was called twice a frame) */ this.H = 8; this.stats = { items: 0, chunks: 0, chunkBakes: 0, chunkMs: 0, aheadMs: 0, frames: 0, tGround: 0, tUnder: 0, tItems: 0, tAmb: 0, tGlow: 0, tOver: 0, tNl: 0 };   /* t*: total ms per part of draw() (tools/perf.mjs divides by frames) */ this.maxNewChunks = 2; this.frameNo = 0; this._scan = 0; this._L = []; this._S = []; this._Q = []; this.bake = BAKE;   /* the bake-ahead tunables (engine/sprites.js), reachable as G.renderer.bake */ this.ahead = { world: null, cx: 0, cy: 0, vx: 0, vy: 0, last: 0, base: 16.7, q: [] }; }
   /** test hook (tools/perf.mjs --verify): paint objects [from, from + n) of the world and every chunk both ways (whole / in bands); returns { tested, bad: [ids...] }. Expect bad = []. */
   sliceCheck(world, from = 0, n = 1e9, rows = 23) {
     const bad = [], seen = new Set(); let tested = 0;
@@ -247,10 +252,10 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlPx: silPx, nlCount: SILS.length, nlTint: nTint, tTint }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlPunch }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; return NL.mode; }
-  resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this._eb[0] = this._eb[1] = this._eb[2] = this._eb[3] = 0; this.ctx.imageSmoothingEnabled = false; }
+  resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this.C.width = W; this.C.height = H; this._eb[0] = this._eb[1] = this._eb[2] = this._eb[3] = 0; this.ctx.imageSmoothingEnabled = false; }
   _chunk(world, cx, cy, budget) {
     const cache = world._chunks || (world._chunks = new Map()); const key = cx * 4096 + cy; let e = cache.get(key);
     if (e && e.ver === world.version) { e.t = this.frameNo; return e.spr; }
@@ -326,13 +331,14 @@ export class Renderer {
     this.stats.chunks = n;
   }
   /**
-   * night light: paint E = for every thing that is lit as a whole, its shape in its flat mask colour, in draw order; things that keep the
-   * pattern are cut out of E where they stand in front. Then E goes over the mask m. S = this frame's sorted items (as drawn), al = the
-   * strength the pools were drawn with. Mirrors the item loop of draw() step by step (sitters, see-through objects, the focus ghost).
+   * night light: for every thing that is lit as a whole, put its shape into the coverage layer A and its flat mask colour into the colour
+   * layer C, in draw order; things that keep the pattern are cut out of A where they stand in front. Then C, kept only where A covers, goes
+   * over the mask m. S = this frame's sorted items (as drawn), al = the strength the pools were drawn with. Mirrors the item loop of
+   * draw() step by step (sitters, see-through objects, the focus ghost).
    */
   _nightE(S, cam, amb, al, m) {
-    const x = this.Ex, fr = this.frameNo, eb = this._eb, ST = this.stats, W = this.W, H = this.H;
-    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; if (eb[2] > eb[0]) x.clearRect(eb[0], eb[1], eb[2] - eb[0], eb[3] - eb[1]); nER = 0;
+    const fr = this.frameNo, eb = this._eb, W = this.W, H = this.H; XA = this.Ex; XC = this.Cx;
+    if (eb[2] > eb[0]) { XA.clearRect(eb[0], eb[1], eb[2] - eb[0], eb[3] - eb[1]); XC.clearRect(eb[0], eb[1], eb[2] - eb[0], eb[3] - eb[1]); } nER = 0;
     if (amb !== AMB) { AMB = amb; const n = parseInt(amb.slice(1), 16); aR = n >> 16; aG = n >> 8 & 255; aB = n & 255; }
     for (let i = 0; i < S.length; i++) {
       const it = S[i], sp = it.spr, dx = sp.x + it.ax - cam.x, dy = sp.y + it.ay - cam.y, e = it.e, ob = it.ob, oa = ob ? ob._a : undefined;
@@ -347,26 +353,25 @@ export class Renderer {
         if (who === ob && ob) { qe._ni = ob._ni; qe._ns = ob._ns; qe._nb = ob._nb; qe._nf = fr; qe._nt = fr; qe._nhr = ob._nhr; qe._nhg = ob._nhg; qe._nhb = ob._nhb; q.lit = lit; }
         else { sample(q.ax - cam.x, Math.round((qe.x + qe.y) * U / 2 - (ob ? ob.z : qe.z) * U) - cam.y, qx, qy, qx + qs.w, qy + qs.h, null); q.lit = band(qe, fr, al) > 0 || sT; }
         if (qe.dir < 2) continue; const r0 = Math.min(qs.h, 1 - qs.y); if (r0 >= qs.h) continue;
-        if (q.lit) { if (qe.alpha !== undefined) x.globalAlpha = qe.alpha; x.drawImage(silFor(qs, qe._ns, qe._ni, fr), 0, r0, qs.w, qs.h - r0, qx, qy + r0, qs.w, qs.h - r0); x.globalAlpha = 1; addE(qx, qy + r0, qx + qs.w, qy + qs.h); ST.nlSil++; }
-        else if (nER && hitE(qx, qy + r0, qx + qs.w, qy + qs.h)) { x.globalCompositeOperation = 'destination-out'; if (qe.alpha !== undefined) x.globalAlpha = qe.alpha; x.drawImage(qs.c, 0, r0, qs.w, qs.h - r0, qx, qy + r0, qs.w, qs.h - r0); x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; ST.nlCut++; }
+        if (q.lit) litDraw(qs, r0, qs.h - r0, qx, qy, qe._ni, qe._ns, qe.alpha); else if (nER && hitE(qx, qy + r0, qx + qs.w, qy + qs.h)) cutDraw(qs, r0, qs.h - r0, qx, qy, qe.alpha);
       }
-      if (lit) { who._nd = fr; const a = e ? e.alpha : oa; if (a !== undefined) x.globalAlpha = a; x.drawImage(silFor(sp, who._ns, who._ni, fr), 0, 0, sp.w, sp.h, dx, dy, sp.w, sp.h); x.globalAlpha = 1; addE(dx, dy, dx + sp.w, dy + sp.h); ST.nlSil++; }
-      else if (nER && hitE(dx, dy, dx + sp.w, dy + sp.h) && !(oa !== undefined && oa < .05)) { x.globalCompositeOperation = 'destination-out'; if (oa !== undefined) x.globalAlpha = oa; else if (e && e.alpha !== undefined) x.globalAlpha = e.alpha; x.drawImage(sp.c, dx, dy); x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; ST.nlCut++; }
+      if (lit) { who._nd = fr; litDraw(sp, 0, sp.h, dx, dy, who._ni, who._ns, e ? e.alpha : oa); }
+      else if (nER && hitE(dx, dy, dx + sp.w, dy + sp.h) && !(oa !== undefined && oa < .05)) cutDraw(sp, 0, sp.h, dx, dy, oa !== undefined ? oa : e ? e.alpha : undefined);
       /* the piece's sitters (far to near), each followed by the part of the piece in front of it */
       if (it.ns) for (let q = it.sit; q; q = q.next) {
         const qs = q.spr, qe = q.e, qx = qs.x + q.ax - cam.x, qy = qs.y + q.ay - cam.y, rows = qe.dir < 2 ? qs.h : Math.min(qs.h, 1 - qs.y);
-        if (rows > 0) {
-          if (q.lit) { if (qe.alpha !== undefined) x.globalAlpha = qe.alpha; x.drawImage(silFor(qs, qe._ns, qe._ni, fr), 0, 0, qs.w, rows, qx, qy, qs.w, rows); x.globalAlpha = 1; addE(qx, qy, qx + qs.w, qy + rows); ST.nlSil++; }
-          else if (nER && hitE(qx, qy, qx + qs.w, qy + rows)) { x.globalCompositeOperation = 'destination-out'; if (qe.alpha !== undefined) x.globalAlpha = qe.alpha; x.drawImage(qs.c, 0, 0, qs.w, rows, qx, qy, qs.w, rows); x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; ST.nlCut++; }
-        }
-        const ov = q.ov; if (ov && oa === undefined && nER && !(lit && who === ob)) { const ox = ov.x + it.ax - cam.x, oy = ov.y + it.ay - cam.y; if (hitE(ox, oy, ox + ov.w, oy + ov.h)) { x.globalCompositeOperation = 'destination-out'; x.drawImage(ov.c, ox, oy); x.globalCompositeOperation = 'source-over'; ST.nlCut++; } }
+        if (rows > 0) { if (q.lit) litDraw(qs, 0, rows, qx, qy, qe._ni, qe._ns, qe.alpha); else if (nER && hitE(qx, qy, qx + qs.w, qy + rows)) cutDraw(qs, 0, rows, qx, qy, qe.alpha); }
+        const ov = q.ov; if (ov && oa === undefined && nER && !(lit && who === ob)) { const ox = ov.x + it.ax - cam.x, oy = ov.y + it.ay - cam.y; if (hitE(ox, oy, ox + ov.w, oy + ov.h)) cutDraw(ov, 0, ov.h, ox, oy, undefined); }
       }
     }
     if (!nER) { eb[0] = eb[1] = eb[2] = eb[3] = 0; return; }
     /* the focus entity shows through what stands in front of it at 30% (draw()): so does its light */
-    for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr, dx = sp.x + S[i].ax - cam.x, dy = sp.y + S[i].ay - cam.y; x.globalAlpha = .3; x.drawImage(silFor(sp, e._ns, e._ni, fr), 0, 0, sp.w, sp.h, dx, dy, sp.w, sp.h); x.globalAlpha = 1; }
+    for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ni, e._ns, .3); }
     const x0 = Math.max(0, Math.floor(eX0)), y0 = Math.max(0, Math.floor(eY0)), x1 = Math.min(W, Math.ceil(eX1)), y1 = Math.min(H, Math.ceil(eY1)); eb[0] = x0; eb[1] = y0; eb[2] = x1; eb[3] = y1;
-    if (x1 > x0 && y1 > y0) { m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.drawImage(this.E, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); }
+    if (x1 > x0 && y1 > y0) {
+      const w = x1 - x0, h = y1 - y0; XC.globalCompositeOperation = 'destination-in'; XC.drawImage(this.E, x0, y0, w, h, x0, y0, w, h); XC.globalCompositeOperation = 'source-over';
+      m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.drawImage(this.C, x0, y0, w, h, x0, y0, w, h);
+    }
   }
   /**
    * world: World. cam: {x,y} top-left in world px (integers). ents: dynamic entities, each
@@ -421,10 +426,11 @@ export class Renderer {
     tn = performance.now(); ST.tAmb += tn - tm; tm = tn;
     if (dark > .02) {
       const b = this.Bx; b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
-      /* perf: an item only has to be cut out of the light buffer where light has been drawn: lx0..ly1 = the box around all light sprites drawn so far (cutting elsewhere changed nothing, but was a draw call per item per frame) */
-      let lx0 = 1e9, ly0 = 1e9, lx1 = -1e9, ly1 = -1e9;
-      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && x < lx1 && x + sp.w > lx0 && y < ly1 && y + sp.h > ly0) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; if (x < lx0) lx0 = x; if (y < ly0) ly0 = y; if (x + sp.w > lx1) lx1 = x + sp.w; if (y + sp.h > ly1) ly1 = y + sp.h; }
-        if (it.ns && any) { b.globalCompositeOperation = 'destination-out'; for (let q = it.sit; q; q = q.next) b.drawImage(q.spr.c, q.spr.x + q.ax - cam.x, q.spr.y + q.ay - cam.y); } }
+      /* perf: an item only has to be cut out of the light buffer where light has been drawn. The boxes around the glowing pixels of the sprites drawn so far are kept (GR; a sprite knows the box of its glow: sp.lb, engine/sprites.js),
+       * and an item is only cut out where it overlaps one. (It used to be one box around all light sprites, whole sprites: in a street that is soon the whole screen, and nearly every item was cut, one draw call each.) */
+      nGR = 0;
+      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && hitG(x, y, x + sp.w, y + sp.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, x, y); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; const q = sp.lb; if (q) addG(x + q[0], y + q[1], x + q[2], y + q[3]); else addG(x, y, x + sp.w, y + sp.h); }
+        if (it.ns && any) { for (let q = it.sit; q; q = q.next) { const qx = q.spr.x + q.ax - cam.x, qy = q.spr.y + q.ay - cam.y; if (hitG(qx, qy, qx + q.spr.w, qy + q.spr.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(q.spr.c, qx, qy); } } } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     tn = performance.now(); ST.tGlow += tn - tm; tm = tn;

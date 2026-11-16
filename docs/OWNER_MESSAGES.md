@@ -632,3 +632,6 @@ You shouldn't be able to buy everything. Like for example, the Roomy app, it has
 
 ## 168 (2026-11-16)
 Also decide, well, not just Roomy, but I haven't looked. Isn't there a clothes app? So same thing. You shouldn't be able to buy all the clothes online. You should have to go to stores for quite a bit of it. Same with furniture. It's a significant amount that's available only in store.
+
+## 169 (2026-11-16)
+Question- would it be possible for you to create a trailer for the game? If it just has motion graphics and video clips,  no voice overs, etc?

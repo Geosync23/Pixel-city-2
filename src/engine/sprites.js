@@ -43,8 +43,16 @@ const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; 
 export function toSprite(r) {
   if (!r) return null; const n = r.w * r.h * 4;   // (buffers from the raster pool can be views into a larger ArrayBuffer)
   const c = mk(r.w, r.h); c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.buf.buffer, r.buf.byteOffset, n), r.w, r.h), 0, 0);
-  let l = null; if (r.hasLight) { l = mk(r.w, r.h); l.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.lb.buffer, r.lb.byteOffset, n), r.w, r.h), 0, 0); }
-  return { c, l, x: r.x, y: r.y, w: r.w, h: r.h, im: 1 };   /* im: this sprite's canvases are never drawn on again (the renderer keeps flat-colour copies of such sprites for the night light) */
+  let l = null, lb = null; if (r.hasLight) { l = mk(r.w, r.h); l.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(r.lb.buffer, r.lb.byteOffset, n), r.w, r.h), 0, 0); lb = lightBox(r.lb, r.w, r.h); }
+  return { c, l, x: r.x, y: r.y, w: r.w, h: r.h, lb };   /* lb: the box around the pixels that glow, [x0, y0, x1, y1] in sprite px (the renderer's night pass only cuts things out of the glow where there is glow) */
+}
+/* the box around the non-empty pixels of a light layer */
+function lightBox(d, w, h) {
+  let y0 = 0, y1 = h - 1, x0 = w, x1 = -1, i = 0; const n = w * h;
+  while (i < n && !d[i]) i++; if (i >= n) return [0, 0, 0, 0]; y0 = (i / w) | 0;
+  i = n - 1; while (!d[i]) i--; y1 = (i / w) | 0;
+  for (let y = y0; y <= y1; y++) { const o = y * w; let a = 0; while (a < x0 && !d[o + a]) a++; if (a < x0) x0 = a; let b = w - 1; while (b > x1 && !d[o + b]) b--; if (b > x1) x1 = b; }
+  return [x0, y0, x1 + 1, y1 + 1];
 }
 /** toSprite for a result this module rendered itself with pooled buffers: the buffers go back to the raster pool */
 export function toSpritePooled(r) { if (!r) return null; const s = toSprite(r); R.recycle(r); return s; }
