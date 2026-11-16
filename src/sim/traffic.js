@@ -237,7 +237,8 @@ function fill(dt) {
 }
 
 /* a cab that waits for its fare (parked in the lane by transit.js) eases over to the kerb, so the street behind it is not blocked (parked vehicles are not stepped) */
-function kerbIn(v, dt) { const e = v.e; v.curb = Math.min(TUNE.cabKerb, v.curb + .9 * dt); v.lat = e.c + e.ls * (v.off + v.curb); if (e.axis === 'x') v.y = v.lat; else v.x = v.lat; }
+function kerbIn(v, dt) { const e = v.e, ax = e.axis === 'x'; for (const o of T.list) if (o !== v && o.parked && Math.abs(ax ? o.x - v.x : o.y - v.y) < (o.len + v.len) / 2 + .4 && Math.abs(ax ? o.y - v.y : o.x - v.x) < 2.2) return;   /* not into a cab that already stands at the kerb there (a taxi stand): it stays beside it, as before */
+  v.curb = Math.min(TUNE.cabKerb, v.curb + .9 * dt); v.lat = e.c + e.ls * (v.off + v.curb); if (e.axis === 'x') v.y = v.lat; else v.x = v.lat; }
 /* a vehicle with a destination (a cab) whose next street stays full: route again from where it is, treating that street as blocked. Keeps its stop / onStop. */
 function reroute(v) {
   const bad = v.ne, to = v.dest; if (!bad || !to || !v.plan || v.cyclic) return false; bad.len += 1e4; let rt = null;

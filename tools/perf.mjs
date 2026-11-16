@@ -3,7 +3,7 @@
 //   node tools/perf.mjs [--scenes walk,night_rain,...|all] [--rate 4] [--dsf 2] [--runs 3] [--out name] [--profile] [--html file]
 //                       [--soak minutes] [--save file] [--label text]
 //
-//   --scenes   comma list (default: all). Scenes: walk (three districts, day), night_rain (same walk, 21:30, rain), cab (taxi across town),
+//   --scenes   comma list (default: all). Scenes: walk (three districts, day), night_rain (same walk, 21:30, rain), night_plaza (City Hall Plaza at 22:00), cab (taxi across town),
 //              train (light rail ride), parade (Blossom Parade staged + marching), rooms (enter and leave five rooms), busy_room (the Galleria
 //              and Central Station on foot), phone (phone open over the city), walk4x (city walk at game speed 4), snow (winter walk in snow).
 //   --rate     CPU slow-down (Emulation.setCPUThrottlingRate), default 4. --dsf  devicePixelRatio (2 or 3), default 2. Viewport is 390x844, touch.
@@ -80,6 +80,7 @@ const HELP = () => {
 /* ---------- scenes: prep() is not measured, run() is ---------- */
 const SCENES = {
   walk: { title: 'city walk, three districts (day)', prep: async () => { await toCity(62, 231, 12); }, run: async () => walkRoute(ROUTE, 40000) },
+  night_plaza: { title: 'City Hall Plaza and the streets around it, 22:00, clear (night light: many people, props and vehicles in pools)', prep: async () => { await toCity(222, 228, 22); }, run: async () => walkRoute([[232, 228], [232, 215], [212, 215], [212, 232], [222, 228], [236, 226], [222, 228]], 30000) },
   night_rain: { title: 'the same walk at night in rain', prep: async () => { await toCity(62, 231, 21.5); G.weather.setWeather('rain', 6); await sleep(1500); }, run: async () => walkRoute(ROUTE, 40000) },
   cab: { title: 'cab ride across town', prep: async () => { await toCity(100, 262, 12); },
     run: async () => { const off = G.on('taxi:here', c => setTimeout(() => { if (c && c._it && G.transit.pending) G.useInteractable(c._it); }, 50)); const pr = G.transit.callTaxi('cinema', { free: true, silent: true }); const r = await Promise.race([pr, sleep(60000).then(() => 'cap 60 s')]); off(); return 'arrived: ' + r + ' at ' + Math.round(G.player.x) + ',' + Math.round(G.player.y); } },

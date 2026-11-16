@@ -660,3 +660,6 @@ Some cheap pieces are in store only because they're seasonal or from a boutique 
 
 
 Should a wish-listed in-store piece remind you when you walk past its shop? Yes
+
+## 176 (2026-11-16)
+Foot, bus cab train should all always be an option in map navigation or use the take me there function. Always all of them.

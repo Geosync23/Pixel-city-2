@@ -60,11 +60,11 @@ function poolSprite(r, col) { // banded, dithered ellipse of light
  * back, so the pools still show on those. Then the mask is multiplied over the frame as before. Nothing is drawn twice on the frame itself and the static world is untouched.
  */
 const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(location.search || '') : null;
-/* mode: 'new' | 'old' (the mask over everything, as before; ?nightlight=old or G.renderer.nightLight('old')). step: one band = this much of a pool's full strength (the pool's own rings are 1 / .7 / .35 with dithered halves in between, so .175 = one ring).
+/* mode: 'new' | 'old' (the mask over everything, as before; ?nightlight=old or G.renderer.nightLight('old')). props: placed objects can be lit as a whole too (false = only what moves; ?nightlight=noprops or G.renderer.nightLight('noprops' | 'props')); gen: counts changes of `props`. step: one band = this much of a pool's full strength (the pool's own rings are 1 / .7 / .35 with dithered halves in between, so .175 = one ring).
  * max: most bands (pools add up). hyst: a band only changes when the light is this far (in bands) past the edge. rate: frames between two band steps (a change of several bands is walked through, never jumped).
  * big: an entity whose sprite is larger than this many px keeps the pattern like the static world (train cars, airliners, parade floats, stage screens); vehicles are always lit as a whole.
  * propFoot / propBig / propTall: which placed objects are lit as a whole (wholeOb below). promote / perFrame / slots / budget: the flat-colour copies (silGet below). */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000, promote: 10, promoteBig: 4, perFrame: 2, slots: 4, budget: 2.5e6 };
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), gen: 1, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 14000, propTall: 48000, promote: 10, promoteBig: 4, perFrame: 2, slots: 4, budget: 2.5e6 };
 let LB = new Float32Array(7 * 64), nLB = 0, lX0 = 0, lY0 = 0, lX1 = 0, lY1 = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 function addLight(cx, cy, c, a, owner) {
   if (!c._rgb || !(a > 0)) return; if ((nLB + 1) * 7 > LB.length) { const n = new Float32Array(LB.length * 2); n.set(LB); LB = n; }
@@ -109,8 +109,8 @@ function band(e, fr, al) {
   return b;
 }
 /* the glow pass (Renderer.draw): the boxes that hold glow so far this frame */
-let GR = new Float32Array(4 * 128), nGR = 0, gX0 = 0, gY0 = 0, gX1 = 0, gY1 = 0;
-function addG(x0, y0, x1, y1) { if (x1 <= x0 || y1 <= y0) return; if ((nGR + 1) * 4 > GR.length) { const n = new Float32Array(GR.length * 2); n.set(GR); GR = n; } const o = nGR++ * 4; GR[o] = x0; GR[o + 1] = y0; GR[o + 2] = x1; GR[o + 3] = y1; if (nGR === 1) { gX0 = x0; gY0 = y0; gX1 = x1; gY1 = y1; } else { if (x0 < gX0) gX0 = x0; if (y0 < gY0) gY0 = y0; if (x1 > gX1) gX1 = x1; if (y1 > gY1) gY1 = y1; } }
+let GR = new Float32Array(4 * 128), nGR = 0, gX0 = 0, gY0 = 0, gX1 = 0, gY1 = 0, vW = 0, vH = 0;   // (vW, vH = the canvas size this frame)
+function addG(x0, y0, x1, y1) { if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0; if (x1 > vW) x1 = vW; if (y1 > vH) y1 = vH; if (x1 <= x0 || y1 <= y0) return;   /* (only what is on the canvas: cutting costs by the pixel, on or off it) */ if ((nGR + 1) * 4 > GR.length) { const n = new Float32Array(GR.length * 2); n.set(GR); GR = n; } const o = nGR++ * 4; GR[o] = x0; GR[o + 1] = y0; GR[o + 2] = x1; GR[o + 3] = y1; if (nGR === 1) { gX0 = x0; gY0 = y0; gX1 = x1; gY1 = y1; } else { if (x0 < gX0) gX0 = x0; if (y0 < gY0) gY0 = y0; if (x1 > gX1) gX1 = x1; if (y1 > gY1) gY1 = y1; } }
 /* is this entity lit as a whole? (the rest keeps the pattern, like the static world, and hides lit things behind it) */
 function isWhole(e, sp) {
   const n = e.nl; if (n !== undefined) return n === 'whole';   // an entity can say so itself: nl = 'whole' | 'ground'
@@ -121,8 +121,8 @@ function isWhole(e, sp) {
 /* is this placed object lit as a whole? Things that stand on the ground at the scale of a person or a street prop: posts, trees, bins, benches, barrels, parked cars, furniture.
  * Buildings, walls and other large pieces keep the pools on them (a wall takes a pool like the ground does); so does anything flat. An asset or an object can say nl: 'whole' | 'ground'. Cached on the object. */
 function wholeOb(ob, sp) {
-  const n = ob.nl || (ob.a && ob.a.nl), B = ob.B; let w;
-  if (n) w = n === 'whole'; else { const fx = B[3] - B[0], fy = B[4] - B[1], px = sp.w * sp.h; w = B[5] - B[2] > .12 && sp.l !== sp.c && (fx <= 1.5 && fy <= 1.5 ? px <= NL.propTall : fx <= NL.propFoot && fy <= NL.propFoot && px <= NL.propBig); }   // (thin things: trees, posts, poles, however tall; wider things up to a kiosk)
+  const n = ob.nl || (ob.a && ob.a.nl), B = ob.B; let w; ob._ng = NL.gen;
+  if (n) w = n === 'whole'; else if (!NL.props) w = false; else { const fx = B[3] - B[0], fy = B[4] - B[1], px = sp.w * sp.h; w = B[5] - B[2] > .12 && sp.l !== sp.c && (fx <= 1.5 && fy <= 1.5 ? px <= NL.propTall : fx <= NL.propFoot && fy <= NL.propFoot && px <= NL.propBig); }   // (thin things: trees, posts, poles, however tall; wider things up to a kiosk)
   return ob._nw = w;
 }
 /* How the flat colours get into the mask (see Renderer._nightE). The mask is opaque. For a thing that is lit as a whole, its sprite is punched out of the mask (destination-out) and the hole is
@@ -137,7 +137,7 @@ let OS = [], OC = [], ON = new Float32Array(8 * 128), nOP = 0, nPut = 0, nlLit =
 /* one step: type 0 punch + fill with col / 1 punch + put back / 2 draw a flat-colour copy; src = sprite (0, 1) or canvas (2); the part sx, sy, sw, sh of it, drawn at dx, dy; a = alpha or undefined */
 function pushOp(type, src, sx, sy, sw, sh, dx, dy, a, col) { if ((nOP + 1) * 8 > ON.length) { const n = new Float32Array(ON.length * 2); n.set(ON); ON = n; } const o = nOP * 8; OS[nOP] = src; OC[nOP] = col; nOP++; ON[o] = type; ON[o + 1] = sx; ON[o + 2] = sy; ON[o + 3] = sw; ON[o + 4] = sh; ON[o + 5] = dx; ON[o + 6] = dy; ON[o + 7] = a === undefined ? -1 : a; }
 let ER = new Float32Array(4 * 128), nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;
-function addE(x0, y0, x1, y1) { if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
+function addE(x0, y0, x1, y1) { if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0; if (x1 > vW) x1 = vW; if (y1 > vH) y1 = vH; if (x1 <= x0 || y1 <= y0) return; if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; } const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
 /* does the box x0..y1 overlap any of the n boxes in R? If so hX0..hY1 = the box around the overlaps (inside x0..y1): only that part has to be worked on */
 let hX0 = 0, hY0 = 0, hX1 = 0, hY1 = 0, hN = 0, hA = 0, camX = 0, camY = 0;   // (hN = how many boxes overlap, hA = their overlaps' area added up)
 /*
@@ -295,8 +295,8 @@ export class Renderer {
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
   perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length }); }
-  /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). Returns the mode. */
-  nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; return NL.mode; }
+  /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). nightLight('noprops' | 'props'): only what moves is lit as a whole / upright placed objects too (default). Returns the mode. */
+  nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; else if (mode === 'props' || mode === 'noprops') { NL.props = mode === 'props'; NL.gen++; } return NL.mode; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.E.width = W; this.E.height = H; this.ctx.imageSmoothingEnabled = false; }
   _chunk(world, cx, cy, budget) {
     const cache = world._chunks || (world._chunks = new Map()); const key = cx * 4096 + cy; let e = cache.get(key);
@@ -378,14 +378,14 @@ export class Renderer {
    * pools were drawn with. Mirrors the item loop of draw() step by step (sitters, see-through objects, the focus ghost).
    */
   _nightE(S, cam, amb, al, m) {
-    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; nPut = 0; silNew = 0; camX = cam.x; camY = cam.y;
+    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; nPut = 0; silNew = 0; camX = cam.x; camY = cam.y; vW = W; vH = H;
     if (amb !== AMB) { AMB = amb; const n = parseInt(amb.slice(1), 16); aR = n >> 16; aG = n >> 8 & 255; aB = n & 255; }
     for (let i = 0; i < S.length; i++) {
       const it = S[i], sp = it.spr, dx = sp.x + it.ax - cam.x, dy = sp.y + it.ay - cam.y, e = it.e, ob = it.ob, oa = ob ? ob._a : undefined;
       /* this item: lit as a whole (its light: under its feet / the middle of its footprint, never its own lamp), or part of the patterned world */
       let who = null, lit = false;
       if (e) { if (isWhole(e, sp)) { who = e; sample(it.ax - cam.x, it.ay - cam.y, dx, dy, dx + sp.w, dy + sp.h, null); } }
-      else if (ob._nw !== undefined ? ob._nw : wholeOb(ob, sp)) { who = ob; const B = ob.B, mx = (B[0] + B[3]) / 2, my = (B[1] + B[4]) / 2; sample(Math.round((mx - my) * U) - cam.x, Math.round((mx + my) * U / 2 - B[2] * U) - cam.y, dx, dy, dx + sp.w, dy + sp.h, ob); }
+      else if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) { who = ob; const B = ob.B, mx = (B[0] + B[3]) / 2, my = (B[1] + B[4]) / 2; sample(Math.round((mx - my) * U) - cam.x, Math.round((mx + my) * U / 2 - B[2] * U) - cam.y, dx, dy, dx + sp.w, dy + sp.h, ob); }
       if (who) lit = band(who, fr, al) > 0 || sT;
       /* sitters: on a piece that is lit as a whole they take the piece's colour (one thing, no seam); on anything else each is lit by the light on the ground under it. Legs behind the piece first (as in draw()). */
       if (it.ns) for (let q = it.sit; q; q = q.next) {
@@ -475,9 +475,9 @@ export class Renderer {
       const b = this.Bx; b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); let any = false;
       /* perf: an item only has to be cut out of the light buffer where light has been drawn. The boxes around the glowing pixels of the sprites drawn so far are kept (GR; a sprite knows the box of its glow: sp.lb, engine/sprites.js),
        * and an item is only cut out where it overlaps one (for a placed object: where its six-sided outline does, hexOf), and only that part of it. (It used to be one box around all light sprites, whole sprites: in a street that is soon the whole screen, and nearly every item was cut, one draw call each.) */
-      nGR = 0; camX = cam.x; camY = cam.y;
-      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (any && x < gX1 && x + sp.w > gX0 && y < gY1 && y + sp.h > gY0 && hitBox(GR, nGR, x, y, x + sp.w, y + sp.h, it.ob && it.ob.vbl ? it.ob._hx || hexOf(it.ob) : null)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, hX0 - x, hY0 - y, hX1 - hX0, hY1 - hY0, hX0, hY0, hX1 - hX0, hY1 - hY0); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; const q = sp.lb; if (q) addG(x + q[0], y + q[1], x + q[2], y + q[3]); else addG(x, y, x + sp.w, y + sp.h); }
-        if (it.ns && any) { for (let q = it.sit; q; q = q.next) { const qx = q.spr.x + q.ax - cam.x, qy = q.spr.y + q.ay - cam.y; if (hitBox(GR, nGR, qx, qy, qx + q.spr.w, qy + q.spr.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(q.spr.c, hX0 - qx, hY0 - qy, hX1 - hX0, hY1 - hY0, hX0, hY0, hX1 - hX0, hY1 - hY0); } } } }
+      nGR = 0; camX = cam.x; camY = cam.y; vW = W; vH = H;
+      for (let i = 0; i < S.length; i++) { const it = S[i]; if (it.ob && it.ob._a !== undefined && it.ob._a < .6) continue; const sp = it.spr, x = sp.x + it.ax - cam.x, y = sp.y + it.ay - cam.y; if (nGR && x < gX1 && x + sp.w > gX0 && y < gY1 && y + sp.h > gY0 && hitBox(GR, nGR, x, y, x + sp.w, y + sp.h, it.ob && it.ob.vbl ? it.ob._hx || hexOf(it.ob) : null)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(sp.c, hX0 - x, hY0 - y, hX1 - hX0, hY1 - hY0, hX0, hY0, hX1 - hX0, hY1 - hY0); } if (sp.l) { b.globalCompositeOperation = 'source-over'; b.drawImage(sp.l, x, y); any = true; const q = sp.lb; if (q) addG(x + q[0], y + q[1], x + q[2], y + q[3]); else addG(x, y, x + sp.w, y + sp.h); }
+        if (it.ns && nGR) { for (let q = it.sit; q; q = q.next) { const qx = q.spr.x + q.ax - cam.x, qy = q.spr.y + q.ay - cam.y; if (hitBox(GR, nGR, qx, qy, qx + q.spr.w, qy + q.spr.h)) { b.globalCompositeOperation = 'destination-out'; b.drawImage(q.spr.c, hX0 - qx, hY0 - qy, hX1 - hX0, hY1 - hY0, hX0, hY0, hX1 - hX0, hY1 - hY0); } } } }
       if (any) { ctx.globalCompositeOperation = 'lighten'; ctx.globalAlpha = Math.min(1, dark); ctx.drawImage(this.B, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     }
     tn = performance.now(); ST.tGlow += tn - tm; tm = tn;

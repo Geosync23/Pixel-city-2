@@ -153,3 +153,4 @@
 133. (msg 173) WATCHING / READING ON THE PHONE: must be PART SCREEN (still on the phone, but the world stays visible around it) and TIME GOES ON while you watch or read. Fable docket (BIBLE update 37).
 134. (msg 174) Dez STICKS WITH YOU in Chapter 2 whatever way you travel, and boards the bus with you (already so since Stage 84); his lines changed to match (no more "I will be on the bike / beat you there"); goes out with the next stage.
 135. (msg 175) In-store answers: ~58% is good; cheap seasonal / boutique pieces stay in store only; YES: a wish-listed in-store piece reminds you when you walk past its shop (queued for the Opus lane after QA round 16).
+136. (msg 176) Foot, bus, train and cab must ALWAYS all be offered in Map navigation / Take me there: DONE in Stage 86 (bus no longer dropped when slower or when the walks to its stops are long; cab offered for any distance).

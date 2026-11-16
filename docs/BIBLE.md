@@ -309,3 +309,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 37 (owner msg 173, 2026-11-16) — phone shows and reading are part-screen, time runs
 - Watching a show (Reel and any other video app) or reading (short reads, the guide, books, letters) on the phone no longer takes the whole screen and no longer stops the clock: the phone shrinks to a part-screen player / reader (the character visibly holds the phone; the world, the HUD clock and needs stay visible around it) and game time goes on, with the activity's effects accruing as time passes. The player can stop any time. Music stays off while watching, as now.
+
+## Direction update 38 (owner msg 176, 2026-11-16) — all four ways, always
+- Map navigation and every "Take me there" always offer ALL of: on foot, bus, train, cab (even when one is slow or silly for the distance). Never hide an option.
