@@ -852,3 +852,6 @@ Reading time is fine
 
 ## 208 (2026-11-16)
  bathrooms can be simple lets not good crazy except for signature buildings. All shops bathrooms should be very simple
+
+## 209 (2026-11-16)
+Status of woekers
