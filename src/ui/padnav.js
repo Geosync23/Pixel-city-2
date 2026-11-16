@@ -43,6 +43,7 @@ export const TW = {
   cursorSpeed: 640,  // px / s at full deflection (x prefs.cursor)
   scrollSpeed: 900,  // px / s right-stick scrolling
   sideWeight: 2.2,   // focus moves: how much a sideways gap costs against a forward gap
+  mashGuard: .28,    // s: after the focused thing vanishes and the ring jumps elsewhere, Confirm is ignored this long
 };
 const PASSIVE = '#hud,#goalsw,#ph-banners,#toasts,#ph-fab,#nav-arrow,#nav-trip,#nav-stop,.dev-btn,.bubble,[data-pad-passive]';
 const SURF = 'canvas.mg-cv,canvas.md-gcv,canvas.jp-map,.ph-map,[data-pad-surface]';
@@ -52,7 +53,7 @@ const PID = 7743;   // the pointer id of the pad's synthetic pointer
 let L = null;                 // the overlay layer { box, ring, cur, deco, bar }
 let focus = null, frect = null, froot = null, flabel = '', hist = [], trail = [];
 let list = [], overlayN = 0, back = null, skip = null, tabsEl = null, keysMap = {}, mainScroll = null, scanAt = 0, dirty = true, mo = null;
-let arrive = null, fresh = false, hudFocus = false, cursorOn = false, cx = 0, cy = 0, press = null, surf = null, surfaces = [], osk = null;
+let lost = null, autoAt = -9, arrive = null, fresh = false, hudFocus = false, cursorOn = false, cx = 0, cy = 0, press = null, surf = null, surfaces = [], osk = null;
 let target = null, tgtLock = 0, tgtAt = [0, 0], tgtT = 0, legendKey = '', ringKey = '', lastState = '', patched = false, kbLoop = false, zoomHeld = 0;
 const wrapEl = () => document.getElementById('wrap');
 const now = () => performance.now() / 1000;
@@ -182,15 +183,20 @@ const words = t => t.replace(/[^a-zA-Z ]+.*$/, '').trim().slice(0, 24) || t;   /
 function setFocus(c, quiet) {
   if (!c) { focus = null; return; }
   if (focus && focus !== c.e && focus.isConnected && c.root !== froot) { hist.push(focus); if (hist.length > 8) hist.shift(); }
-  focus = c.e; froot = c.root; frect = rectOf(c); flabel = label(c.e).slice(0, 40);
+  focus = c.e; froot = c.root; frect = rectOf(c); flabel = label(c.e).slice(0, 40); lost = null;
   if (!c.virt) { const sc = scCache && scroller(c.e); if (sc) try { c.e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { c.e.scrollIntoView(false); } }
   back = findBack(); tabsEl = findTabs();
 }
-function defaultFocus() {
+function defaultFocus(any, strict) {
   let c = list.find(q => q.e.getAttribute('data-pad') === 'default' || q.e.hasAttribute('autofocus')); if (c) return c;
   const vis = q => q.r.top >= -2 && q.r.left >= -2 && q.r.bottom <= innerHeight + 2 && q.r.right <= innerWidth + 2;
-  const plain = q => backRank(q.e) < 0 && vis(q) && !padAttr(q.e);   // not a back button, not a dialogue line, not an aside
-  return list.find(q => plain(q) && !q.root.matches(PASSIVE)) || list.find(plain) || list.find(q => vis(q) && padAttr(q.e) === 'line') || list.find(q => backRank(q.e) < 0 && vis(q)) || list.find(vis) || list[0] || null;
+  const plain = q => backRank(q.e) < 0 && vis(q) && !padAttr(q.e) && !q.box;   // not a back button, not a dialogue line, not an aside, not a box around other things
+  const body = q => plain(q) && !q.root.matches(PASSIVE) && !q.e.closest('[class$="-head"],[class*="-head "]');   // and not a header's Auto / Pause / Log either: the window's content first
+  c = list.find(body) || list.find(q => plain(q) && !q.root.matches(PASSIVE)) || list.find(plain) || list.find(q => vis(q) && padAttr(q.e) === 'line');
+  /* strict: what was focused vanished but its window is still there (a question was answered, the next is not up yet): the ring does not jump to Close / x */
+  if (!c && !(strict && !any)) c = list.find(q => backRank(q.e) < 0 && vis(q) && padAttr(q.e) !== 'aside') || list.find(q => vis(q) && padAttr(q.e) !== 'aside');
+  /* an "aside" (Auto, Log, ...) never takes the focus by itself: only when the player pushes a direction and there is nothing else (any = true) */
+  return c || (any ? list.find(vis) || list[0] || null : null);
 }
 /* after a re-render: the thing with the same words close to where the focus was (same = true), else whatever (not a Back button) now sits on that spot */
 function nearest(r, lab, sameOnly) {
@@ -199,7 +205,7 @@ function nearest(r, lab, sameOnly) {
   return bd < (sameOnly ? 180 : 70) ? best : null;
 }
 /** keep the focus on something real after every scan */
-function refocus() {
+function refocus(any) {
   if (!list.length) { focus = null; return; }
   const cur = focus && inList(focus);
   /* a dialogue LINE (data-pad="line") holds the focus only while there is nothing to choose: when answers appear the focus goes to the first of them */
@@ -209,6 +215,7 @@ function refocus() {
   const rootAlive = froot && froot.isConnected && list.some(c => c.root === froot);
   if (focus && rootAlive && frect) {
     const c = nearest(frect, flabel, true); if (c) return setFocus(c, true);
+    autoAt = now();
     /* a new page inside the same window (a phone app opened, or closed again): going back puts the focus where it was (same words, same spot) */
     for (let i = trail.length - 1; i >= 0; i--) { const t = trail[i]; if (t.root !== froot) continue; const m = list.filter(q => words(label(q.e)) === words(t.lab)); if (!m.length) continue;
       const dist = q => Math.hypot((q.r.left + q.r.right) / 2 - t.x, (q.r.top + q.r.bottom) / 2 - t.y); m.sort((a, b2) => dist(a) - dist(b2)); if (m.length > 1 && dist(m[0]) > 60) continue;   // one of a kind: wherever it is (the page may still be sliding in)
@@ -217,7 +224,9 @@ function refocus() {
     const c3 = nearest(frect, flabel, false); if (c3) return setFocus(c3, true);
   }
   for (let i = hist.length - 1; i >= 0; i--) { const c = hist[i].isConnected && inList(hist[i]); if (c) { hist.length = i; return setFocus(c, true); } }
-  hist = hist.filter(h => h.isConnected); const was = !!focus; setFocus(defaultFocus(), true); if (!was) fresh = true;
+  hist = hist.filter(h => h.isConnected); const was = !!focus, strict = (was && rootAlive) || !!(lost && lost.isConnected && list.some(c => c.root === lost));
+  setFocus(defaultFocus(any, strict), true); if (!was) fresh = true; else autoAt = now();
+  if (!focus && strict) lost = lost || froot;
 }
 function move(dx, dy) {
   if (!focus || !inList(focus)) { refocus(); return !!focus; }
@@ -269,6 +278,7 @@ function tapKey(k) { key(k, 'keydown'); key(k, 'keyup'); }
 const isText = e => e && (e.tagName === 'TEXTAREA' || (e.tagName === 'INPUT' && /^(text|search|email|url|tel|password|number|)$/.test(e.getAttribute('type') || '')));
 function activate() {
   const c = focus && inList(focus); if (!c) { refocus(); return; }
+  if (now() - autoAt < TW.mashGuard) return;   // what was focused has just gone and the ring jumped: a Confirm meant for the old thing does not press the new one
   const e = c.e, r = rectOf(c), x = Math.max(1, Math.min(innerWidth - 1, (r.left + r.right) / 2)), y = Math.max(1, Math.min(innerHeight - 1, (r.top + r.bottom) / 2));
   if (c.sf) return enterSurface(c);
   if (isText(e)) { if (Pad.mode === 'pad') openOsk(e); else e.focus(); return; }
@@ -409,7 +419,7 @@ function brackets() {   // four gold corners with a dark edge, drawn once
   if (BR) return BR; BR = document.createElement('canvas'); BR.width = 7; BR.height = 7; const g = BR.getContext('2d'); g.fillStyle = '#2a2733'; g.fillRect(0, 0, 7, 3); g.fillRect(0, 0, 3, 7); g.fillStyle = '#ffd23e'; g.fillRect(1, 1, 5, 1); g.fillRect(1, 1, 1, 5); return BR;
 }
 function drawTarget(ctx, cam) {
-  if (Pad.mode !== 'pad' || !target || G.modal || G.busy || G.cutscene || cursorOn || hudFocus) return;
+  if (Pad.mode !== 'pad' || !target || G.modal || G.busy || G.cutscene || cursorOn || hudFocus || surf || lastState !== 'world') return;
   const it = target, z = it.z !== undefined ? it.z : G.world.heightAt(it.x, it.y), h = it.ent ? 1.7 : Math.max(.9, Math.min(2.4, (it.h === undefined ? .8 : it.h) + .5));
   const a = WS(it.x, it.y, z), cxp = Math.round(a[0] - cam.x), by = Math.round(a[1] - cam.y) + 4, ty = Math.round(a[1] - h * U - cam.y) - 2, hw = it.ent ? 8 : 11, pul = Math.round(Math.sin(performance.now() / 170) * 1.2), b = brackets();
   const l = cxp - hw - pul, r = cxp + hw + pul, t = ty - pul, bt = by + pul;
@@ -491,7 +501,7 @@ function onPoll(dt) {
     const n = Pad.nav;
     if (n.x || n.y) {
       const f = focus && inList(focus) ? focus : null;
-      if (fresh || !had || !f) { if (!f) refocus(); }   // the first push only shows where the focus is
+      if (fresh || !had || !f) { if (!f) refocus(true); }   // the first push only shows where the focus is
       else if (f && n.x && f.tagName === 'INPUT' && f.type === 'range') stepRange(f, n.x);
       else if (f && n.x && f.tagName === 'SELECT') stepSelect(f, n.x);
       else move(n.x, n.y);

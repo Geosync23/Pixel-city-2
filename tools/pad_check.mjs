@@ -148,7 +148,8 @@ async function playOut(label, ms = 120000) {
   const t0 = Date.now(); let presses = 0, kinds = new Set(), last = '';
   while (Date.now() - t0 < ms) {
     const q = await P.ev(() => { const mg = G.minigame && G.minigame.MG.cur, i = G.padnav.info(), w = mg ? mg.state() : null; return { mg: !!mg, kind: mg ? mg.kind : '', want: w ? w.want : null, paused: w ? w.paused : false, counting: w ? w.counting : false, done: w ? w.done : false, st: i.state, surf: i.surf, f: i.focus ? i.focus.text : '', n: i.n, jp: !!document.querySelector('.jp, .jp-sheet, [class^="jp-"]'), modal: G.modal, c: mg ? (r => [r.left, r.top, r.width, r.height])(mg.canvas.getBoundingClientRect()) : null }; });
-    if (!q.mg && !q.jp && q.st === 'world') break;
+    if (!q.mg && !q.jp && q.st === 'world') { if (process.env.PAD_DEBUG) console.log('   playOut ends', JSON.stringify(q)); break; }
+    if (process.env.PAD_DEBUG) console.log('   playOut', q.st, q.n, JSON.stringify(q.f), q.mg ? q.kind + JSON.stringify(q.want) : '', q.jp);
     if (q.mg && !q.paused && !q.done) {
       kinds.add(q.kind); const w = q.want || {};
       if (q.counting) { await sleep(120); continue; }
@@ -161,6 +162,7 @@ async function playOut(label, ms = 120000) {
       if (w.ready) { await P.press('ok', 45, 60); presses++; } else await sleep(25); continue;
     }
     await P.up('ok');
+    if (q.st === 'ui' && q.n > 0 && !q.f) { await sleep(150); continue; }   // only asides on screen (Auto / x): nothing is focused, wait for the next part
     if (q.st === 'ui' && q.n > 0) { if (q.f === last && /^(Auto|x)$/i.test(q.f)) await P.press('down', 60, 150); last = q.f; await P.press('ok', 60, 420); presses++; continue; }
     await sleep(200);
   }
@@ -179,15 +181,16 @@ stage('games', async () => {
   const how4 = await P.choose(() => { const c = [...document.querySelectorAll('.ph-card')].find(q => /Developer mode/.test(q.textContent)); return c && [...c.querySelectorAll('button')].find(b => b.textContent === 'On'); }, null, { after: 600 });
   await backOut(); await P.press('up', 60, 400); const how5 = await P.choose(/^Developer menu/, null, { after: 800 }); i = await P.info(); await shot('27_dev_menu');
   ok('Settings: Developer mode On; D-pad up steps onto the HUD, DEV opens the dev menu', how && how4 && how5 && i.state === 'ui' && i.n > 10, how5, i.focus && i.focus.text);
-  const how6 = await P.choose(/^Job stories/, null, { after: 800 }); await P.press('ok', 70, 800); const how7 = await P.choose(/^Play "/, null, { after: 1500 }); await clearTips(); await shot('28_job_play');
+  const how6 = await P.choose(/^Job stories/, null, { after: 800 }); await P.press('ok', 70, 800); const how7 = await P.choose(/^Play "/, null, { after: 1500 }); await clearTips(); await shot('28_job_play'); const jf = (await P.info()).focus;
   const title = await P.ev(() => (document.querySelector('.jp-title, .jp-head b, .jp b') || {}).textContent || document.querySelector('#ui').lastElementChild.className);
   const r2 = await playOut('job'); await shot('29_job_play_end'); await clearTips(); await backOut(); const s = await st();
+  ok('job play: the focus starts on the play\'s first answer, not on Auto', jf && !/^Auto$/.test(jf.text), 'focus', jf && jf.text);
   ok('dev menu -> Job stories -> the first job -> Play: the job play is played through with the pad', how6 && how7 && r2.presses > 2 && s.st === 'world', how7, title + ' ' + JSON.stringify(r2));
 });
 /* ------------------------------------------------------------------ H: a Chapter */
 stage('chapter', async () => {
   await clearTips(); await backOut();
-  await P.press('up', 60, 400); let how = await P.choose(/^Developer menu/, null, { after: 800 }); const how2 = await P.choose(/^To 8 am/, null, { after: 800 }); await backOut(); await clearTips(); let s = await st();
+  await P.press('up', 60, 400); let how = await P.choose(/^Developer menu/, null, { after: 800 }); await P.choose(/^Freeze needs at full: off/, null, { after: 500 }); const how2 = await P.choose(/^To 8 am/, null, { after: 800 }); await backOut(); await clearTips(); let s = await st();
   const row = await P.ev(() => { const r = G.chapters.row(); return r ? { title: r.title, ready: r.ready, state: r.state, x: r.place && r.place.x, y: r.place && r.place.y } : null; });
   ok('dev menu: "To 8 am" (the next morning opens Chapter 1)', how && how2 && row && row.state === 'open', how2, JSON.stringify(row) + ' ' + s.t);
   /* get there: a cab to Nana's house */
@@ -210,7 +213,7 @@ stage('chapter', async () => {
   ok('Chapter: Begin, A steps through the lines (' + lines + ' read)', how5 && lines >= 3, 'focus(line)', texts.slice(0, 3).map(t => t.slice(0, 40)).join(' | '));
   ok('Chapter: a choice appears, the focus is on the first answer, A picks it', choice && choice.opts.some(o => choice.focus && o.startsWith(choice.focus.slice(0, 12))) && picked.length > 2, 'focus', choice ? choice.opts.join(' / ').slice(0, 120) + ' -> ' + picked : 'no choice reached');
   /* step out of the Chapter ("..." -> pick this up later) so the rest of the check can go on */
-  for (let k = 0; k < 4; k++) { const open = await P.ev(() => !!document.querySelector('.chd-wrap')); if (!open) break; const h = await P.choose(/^More$/, null, { after: 600, noCursor: true }); if (!h) { await P.press('ok', 70, 400); continue; } const h2 = await P.choose(/later|step out|pick this up/i, null, { after: 900 }); if (h2) break; }
+  for (let k = 0; k < 4; k++) { const open = await P.ev(() => !!document.querySelector('.chd-wrap')); if (!open) break; const h = await P.choose(/^More$/, null, { after: 600, noCursor: true }); if (!h) { await P.press('ok', 70, 400); continue; } const h2 = await P.choose(/^Let's pick this up later/, null, { after: 900 }); if (h2) break; }
   await clearTips(); await backOut(); s = await st(); const cur = await P.ev(() => JSON.stringify(G.chapters.current()));
   ok('Chapter: "..." -> "pick this up later" steps out', s.st === 'world', 'focus', cur);
 });
