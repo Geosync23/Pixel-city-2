@@ -1,3 +1,4 @@
+STATE 2026-11-16 evening: the whole agreed docket (WHO DOES WHAT below) is DONE and published up to Stage 105. Nothing is queued. Parked until the owner says go: J4 (17 extra jobs), iPhone 13 mini work, Trailer A, the second Fable slot. Small lead items left: trees under the viaduct; long traffic soak; optional signature bathrooms for a few pubs / lobbies; city folk in restrooms; natatorium pad A; pad wording for 'Click / Tap' strings.
 # Backlog (lead's queue — one worker at a time; update as items land)
 DONE: engine, art sets (chars, airport ext, transit, home, venue fixtures), data, narrative data, city gen, sim core + HUD, phone, traffic/taxi/bus, housing, venue rooms, crowd, social, intro + story + planes, jobs (10), rail + Central Station, stalls sell + door glow (src/sim/stalls.js).
 DONE too: airport interior + new opening; unique street names + addresses; riders on two-wheelers; lead docs (CLAUDE.md, LEAD_PLAYBOOK, STATUS, HISTORY, OWNER_NOTES).
