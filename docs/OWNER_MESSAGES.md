@@ -669,3 +669,6 @@ There shoild be quite a few more clothing stores
 
 ## 178 (2026-11-16)
 All stores should also have some preset outfits.  Make then from exitisting items and they can sometimes be on mannequins in stores. Also a handful of new ones with items that also become buy able individually
+
+## 179 (2026-11-16)
+Status, also mention parked items
