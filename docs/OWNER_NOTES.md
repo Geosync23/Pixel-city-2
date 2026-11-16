@@ -163,3 +163,4 @@
 143. (msg 184) SPLIT AGREED: item 5 (clothing stores AND the preset outfits / mannequins) is ALL Fable. OPUS takes: 1a the classics songs, 2 phone shows / reading part-screen, the wish-list reminder, the size split when needed. FABLE: 1b luggage towing, 3 mini-game audit + gym + cooking, 4 bathrooms, 5 clothing stores + outfits, 6 Central Station (very detailed, unique), 7 new mini-game categories, 8 seating follow-ups, 9 trailer.
 144. (msg 185) Item 9 (the trailer) is Fable too: already so in the split.
 145. (msg 186) Pull the NEW MINI-GAME CATEGORIES up to run together with the mini-game audit (+ gym + cooking): one mini-game programme, right after the night light.
+146. (msg 187) Traffic took long: when it finishes, give a full report on all of its work.

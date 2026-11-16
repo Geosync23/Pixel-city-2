@@ -65,7 +65,7 @@ const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(locati
  * big: an entity whose sprite is larger than this many px keeps the pattern like the static world (train cars, airliners, parade floats, stage screens); vehicles are always lit as a whole.
  * tiles / tile / tileMax / tileWait: the mask tiles (Renderer._maskTiles; ?nightlight=notiles paints the mask directly every frame, as before).
  * propFoot / propBig: which placed objects are lit as a whole (wholeOb below: footprint in tiles, painted box in px). promote / perFrame / slots / budget: the flat-colour copies (silGet below). */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 4, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 6, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
 let LB = new Float32Array(7 * 64), nLB = 0, lX0 = 0, lY0 = 0, lX1 = 0, lY1 = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 function addLight(cx, cy, c, a, owner) {
   if (!c._rgb || !(a > 0)) return; if ((nLB + 1) * 7 > LB.length) { const n = new Float32Array(LB.length * 2); n.set(LB); LB = n; }
