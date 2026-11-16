@@ -592,3 +592,8 @@ Light approved
 
 ## 156 (2026-11-16)
 Can an opus agent do any of this? Like controller support?
+
+## 157 (2026-11-16)
+The rule is Fable also handles complex systems engineering etc. But yes what you mentioned as well. 
+
+But yes start opus on small fixes and data seating etc, If you think it can handle lighting then go
