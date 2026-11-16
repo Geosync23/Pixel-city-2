@@ -17,13 +17,23 @@ const find = (re, sc = 'button') => pg.evaluate(([s, sc]) => { const x = new Reg
 const tapText = async (re, sc = 'button', w) => { const r = await find(re, sc); if (!r) throw new Error('no button ' + re); await tap(r[0], r[1], w); return r; };
 const shot = n => pg.screenshot({ path: path.join(OUT, 'bath_' + n + '.png') });
 let bad = 0; const say = (ok, t) => { if (!ok) bad++; console.log((ok ? 'PASS ' : 'FAIL ') + t); };
-const closeUi = () => pg.evaluate(async () => { for (let i = 0; i < 12; i++) { const s = document.querySelector('.say'); if (s) s.click(); const b = [...document.querySelectorAll('button')].find(b => /^(Got it|OK|Close)$/.test(b.textContent.trim()) && b.offsetParent); if (b) b.click(); if (!s && !b) break; await new Promise(r => setTimeout(r, 80)); } });
+const closeUi = () => pg.evaluate(async () => { for (let i = 0; i < 12; i++) { const s = document.querySelector('.say'); if (s) s.click(); const mx = document.querySelector('.modal .x'); if (mx) mx.click(); const b = [...document.querySelectorAll('button')].find(b => /^(Got it|OK|Close)$/.test(b.textContent.trim()) && b.offsetParent); if (b) b.click(); if (!s && !b && !mx) break; await new Promise(r => setTimeout(r, 80)); } });
 const toasts = () => pg.evaluate(() => [...document.querySelectorAll('#toasts > *')].map(e => e.textContent.trim()));
-/** tap an interactable of the current scene (by label) on the canvas, as a finger would */
+/** tap an interactable of the current scene (by label) on the canvas, as a finger would; when it is off screen (rooms are big at phone zoom), first walk
+    toward it by tapping the floor on screen in its direction, like a player does */
+const SAFE = { x0: 40, x1: 350, y0: 300, y1: 700 };
 async function tapIt(re, w = 400) {
-  const p = await pg.evaluate(s => { const x = new RegExp(s), its = G.interactables().filter(i => isFinite(i.x) && x.test(i.label || '')); if (!its.length) return null; const P = G.player; its.sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y)); const it = its[0]; const q = G.toScreen(it.x, it.y, Math.min(1.4, (it.h || 1) * .6)); return [q.x, q.y, it.label]; }, re.source);
-  if (!p) throw new Error('nothing labelled ' + re + ' here'); await tap(p[0], p[1], w); return p[2];
+  const where = () => pg.evaluate(s => { const x = new RegExp(s), its = G.interactables().filter(i => isFinite(i.x) && x.test(i.label || '')); if (!its.length) return null; const P = G.player; its.sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y)); const it = its[0]; const q = G.toScreen(it.x, it.y, Math.min(1.4, (it.h || 1) * .5)), me = G.toScreen(P.x, P.y, .7); const el = document.elementFromPoint(q.x, q.y); return [q.x, q.y, it.label, me.x, me.y, !el || el.tagName === 'CANVAS']; }, re.source);
+  for (let k = 0; k < 8; k++) {
+    await closeUi(); const p = await where(); if (!p) throw new Error('nothing labelled ' + re + ' here');
+    if (p[0] > SAFE.x0 && p[0] < SAFE.x1 && p[1] > SAFE.y0 - 120 && p[1] < SAFE.y1 + 60 && p[5]) { await tap(p[0], p[1], w); return p[2]; }
+    // walk toward it: a floor tap part of the way along the screen line from me to it, kept inside the safe area
+    let tx = p[3] + (p[0] - p[3]) * .6, ty = p[4] + (p[1] - p[4]) * .6; tx = Math.max(SAFE.x0, Math.min(SAFE.x1, tx)); ty = Math.max(SAFE.y0, Math.min(SAFE.y1, ty));
+    await tap(tx, ty, 300); await pg.waitForFunction(() => !G.player.path || !G.player.path.length, null, { timeout: 8000 }).catch(() => {}); await pg.waitForTimeout(300);
+  }
+  const p = await where(); await tap(p[0], p[1], w); return p[2];
 }
+const dbg = () => pg.evaluate(() => JSON.stringify({ pending: G.pending && G.pending.it.label, path: G.player.path && G.player.path.length, at: [+G.player.x.toFixed(2), +G.player.y.toFixed(2)], modal: G.modal, mtxt: [...document.querySelectorAll('.modal, .say, [class*=card]')].filter(e => e.offsetWidth).map(e => e.className + ': ' + e.textContent.slice(0, 80)).slice(0, 4), busy: G.busy && G.busy.label, cut: !!G.cutscene }));
 const waitFor = (fn, arg, ms = 25000) => pg.waitForFunction(fn, arg, { timeout: ms, polling: 100 }).then(() => true, () => false);
 const st = () => pg.evaluate(() => ({ scene: G.scene.id, x: +G.player.x.toFixed(2), y: +G.player.y.toFixed(2), bladder: Math.round(G.needs.get('bladder')), hygiene: +G.needs.get('hygiene').toFixed(1), busy: G.busy && G.busy.label, hidden: !!G.player.hidden, t: G.now().clock }));
 
@@ -43,12 +53,12 @@ for (const [v, door] of VENUES) {
   await pg.evaluate(([v, door]) => { G.state.flags.lastDoor = door; G.state.t = Math.floor(G.state.t / 1440) * 1440 + 12 * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); return G.go('int:' + v); }, [v, door]);
   await pg.waitForTimeout(1500); await closeUi();
   // stand a few steps from the Restroom door, then tap it
-  const dr = await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom); if (!it) return null; const s = it.spot || it; let best = null; for (const [dx, dy] of [[0, 3], [3, 0], [2, 2], [-2, 3], [0, 2], [2, 0]]) { const x = s.x + dx, y = s.y + dy; if (!G.world.isBlocked(x, y)) { best = [x, y]; break; } } if (best) { G.player.x = best[0]; G.player.y = best[1]; } G.snapCam(); return { label: it.label, navTo: it.navTo, spot: [s.x, s.y] }; });
+  const dr = await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom); if (!it) return null; const s = it.spot || it; let best = null; for (const [dx, dy] of [[-1.5, 1.5], [0, 2.5], [2, 1], [-1, 2], [0, 2], [2, 0]]) { const x = s.x + dx, y = s.y + dy; if (!G.world.isBlocked(x, y)) { best = [x, y]; break; } } if (best) { G.player.x = best[0]; G.player.y = best[1]; } G.snapCam(); return { label: it.label, navTo: it.navTo, spot: [s.x, s.y] }; });
   say(!!dr && dr.navTo === 'int:' + v + ':wc', v + ': Restroom door present, leads to the restroom room (' + JSON.stringify(dr) + ')');
   await pg.waitForTimeout(600); await shot(v + '_0_door');
   await tapIt(/^Restroom$/);
   const inWc = await waitFor(id => G.scene && G.scene.id === id, 'int:' + v + ':wc');
-  say(inWc, v + ': tapped the door, walked there and went in -> ' + (await st()).scene);
+  say(inWc, v + ': tapped the door, walked there and went in -> ' + (await st()).scene + (inWc ? '' : ' ' + await dbg()));
   if (!inWc) continue;
   await pg.waitForTimeout(1200); await closeUi(); await shot(v + '_1_room_day');
   // toilet
@@ -71,7 +81,7 @@ for (const [v, door] of VENUES) {
   await waitFor(() => !G.busy, null, 15000); const h1 = (await st()).hygiene;
   say(washing && h1 > h0, v + `: Wash hands: hygiene ${h0} -> ${h1}`);
   // no need: bladder full
-  await pg.evaluate(() => G.needs.set('bladder', 100)); await tapIt(/^Toilet$/, 300); await pg.waitForTimeout(2500);
+  await pg.evaluate(() => G.needs.set('bladder', 100)); await tapIt(/^Toilet$/, 300); await waitFor(() => [...document.querySelectorAll('#toasts > *')].some(e => /do not need/i.test(e.textContent)), null, 12000);
   const nn = await st(), nt = (await toasts()).join(' | '); say(!nn.busy && /do not need/i.test(nt), v + ': bladder full -> no visit: ' + nt.slice(-80));
   // out
   await tapIt(/^Back to /); const back = await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(700);
@@ -92,7 +102,7 @@ if (!o.only || o.only.includes('diner')) {
   const g = await pg.evaluate(() => { const p = G.places && G.places.get('diner'); G.navGoals.select({ need: 'bladder', place: 'diner' }); if (G.phone && G.phone.setWaypoint) { try { G.phone.setWaypoint({ id: 'diner', x: p.x, y: p.y, name: p.name }); } catch (e) { } } else G.state.phone.waypoint = { id: 'diner', x: p.x, y: p.y, name: p.name }; return true; });
   await pg.waitForTimeout(1500); const c1 = await pg.evaluate(() => { const c = G.navGoals.current(); return c && { id: c.id, room: c.step.room, label: c.step.label }; });
   say(c1 && c1.id === 'wc' && c1.room === 'diner', 'guide in the diner: ' + JSON.stringify(c1)); await shot('guide_1_venue');
-  await tapIt(/^Restroom$/); await waitFor(() => G.scene.id === 'int:diner:wc', null, 15000); await pg.waitForTimeout(1500);
+  await tapIt(/^Restroom$/); const gin = await waitFor(() => G.scene.id === 'int:diner:wc', null, 15000); if (!gin) console.log('  guide: door tap did not take me in ' + await dbg()); await pg.waitForTimeout(1500);
   const c2 = await pg.evaluate(() => { const c = G.navGoals.current(); return c && { id: c.id, room: c.step.room, label: c.step.label }; });
   say(c2 && c2.id === 'wc' && c2.room === 'diner:wc', 'guide in the restroom: ' + JSON.stringify(c2)); await shot('guide_2_room');
   await tapIt(/^Toilet$/, 300); await waitFor(() => !!G.busy, null, 12000); await pg.waitForTimeout(800);
@@ -106,7 +116,7 @@ const hb = await pg.evaluate(async () => { const h = G.housing.current(); await 
 say(hb.door, 'home: ' + JSON.stringify(hb));
 if (hb.door) {
   await pg.evaluate(() => { G.needs.set('bladder', 20); const it = G.interactables().find(i => /^Bathroom$/.test(i.label)); const s = it.spot || it; G.player.x = s.x; G.player.y = s.y + 1.5; G.snapCam(); }); await pg.waitForTimeout(500);
-  await tapIt(/^Bathroom$/); const ok = await waitFor(() => /:bath$/.test(G.scene.id), null, 15000); await pg.waitForTimeout(800);
+  await tapIt(/^Bathroom$/); const ok = await waitFor(() => /:bath$/.test(G.scene.id), null, 15000); if (!ok) console.log('  home: bathroom door tap ' + await dbg()); await pg.waitForTimeout(800);
   await tapIt(/^Toilet$/, 300); await waitFor(() => !!G.busy, null, 12000); await shot('home_inuse'); await waitFor(() => !G.busy, null, 20000);
   const hs = await st(); say(ok && hs.bladder >= 99, 'home bathroom: in, toilet -> bladder ' + hs.bladder);
 }

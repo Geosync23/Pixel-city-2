@@ -173,7 +173,7 @@ function door(p) {
     qy(-.06, 1.06, .02, 0, 2.08, CHROME); qy(.02, .98, .05, 0, 2.02, c); frameY(.02, .98, .05, 0, 2.02, dk(c, .45));
     discY(.5, .055, 1.5, .2, '#8a9098'); discY(.5, .06, 1.5, .16, '#d8eef4', '#c4e0ea'); lw([.42, .065, 1.56], [.5, .065, 1.44], '#f4fbff');
     qy(.06, .94, .06, .02, .2, '#d5dbe0'); qy(.72, .86, .06, 1.0, 1.24, '#d5dbe0'); lw([.74, .065, 1.12], [.84, .065, 1.12], '#9aa2aa');
-    signY('WC', .22, .78, .06, 2.07, 2.43, '#3f9a94', '#f8f5ee', { lit: true }); frameY(.22, .78, .06, 2.07, 2.43, '#f8f5ee');   // enamel plaque over the door
+    signY('WC', .2, .8, .06, 2.1, 2.54, '#3f9a94', '#f8f5ee', { lit: true, frame: false }); lw([.2, .06, 2.1], [.8, .06, 2.1], '#2a6a64');   // enamel plaque over the door
   }
 }
 
@@ -229,7 +229,7 @@ export default [
   F('wc.pendant', ['wc', 'lamp', 'overhead'], [.4, .4, 1.6], pendant, { solid: false, overhead: true, vb: [-.1, -.1, 0, .5, .5, 1.7], light: { x: .2, y: .2, z: 0, r: 2.4 }, variants: [{}] }),
   F('wc.tube', ['wc', 'lamp'], [1.2, .2, .16], tube, { wall: true, mount: 2.1, solid: false, vb: [-.1, -.1, -.2, 1.3, .3, .3], light: { x: .6, y: 1.2, z: 0, r: 2.6 }, variants: [{}] }),
   F('wc.sign', ['wc', 'sign', 'decor'], p => (p.kind === 'civic' ? [2.3, .06, 1.2] : p.kind === 'level' ? [2, .04, .4] : [1.3, .04, .95]), sign, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'wash' }, { kind: 'level' }, { kind: 'civic' }] }),
-  F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.5], variants: [{ style: 'sky' }, { style: 'diner' }] }),
+  F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.7], variants: [{ style: 'sky' }, { style: 'diner' }] }),
   F('wc.floor', ['wc', 'floor'], p => [p.w || 5, p.d || 4, .01], floor, { solid: false, flat: true, variants: S3.map(style => ({ style, w: 5, d: 4 })) }),
   F('wc.mints', ['wc', 'wcmints'], [.3, .3, .06], mints, { solid: false, variants: [{}] }),
   F('wc.bin', ['wc', 'bin'], [.4, .4, .72], bin, { variants: S3.map(style => ({ style })) }),

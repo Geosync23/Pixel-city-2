@@ -747,3 +747,16 @@ Ok going to bed. You make decions as needed.
 
 ## 195 (2026-11-16)
 Good morning, status
+
+## 196 (2026-11-16)
+Keep it yellow, remove the red luggage stack too
+
+Wish-list reminder: is once a day per piece, about 4.5 tiles from the door, right? Should it also fire at shops that carry the piece only this week (it does now)? Yes
+
+Central Station: is the whole shift on the platforms right, or should the hall's information desk stay part of the job? Should the station stay a terminus where trains reverse, or should trains run through? Should the platforms be darker at night? Info desk can atill be a brief part. Trains can reverse there if thats how its already built. But coming through makes sense too.
+
+Suitcase: it is yellow to match the bag on the belt; do you want red? A red luggage stack still stands at the drop-off as scenery; was that the "red bag" you meant? Yes that's the one, it is standing next to you and look lkke yours. Let's get rid of it.
+
+Clothing stores: the shoe and hat shops sell matching sets, not whole outfits, and team merch moved to Otterline. OK? Yes ok
+
+(traffic, night-light steps, mini-game details, classics volume, reading pace) show me these items. Mini games weren't done?

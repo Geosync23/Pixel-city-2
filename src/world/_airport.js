@@ -40,7 +40,7 @@ export function build(c) {
   c.put('prop.airport.canopy', h.x + 2, h.y + 10, { p: { w: 16, pillars: true } });
   c.put('prop.airport.shelter', 340, 100.2, { p: { sign: 'TAXI', w: 4 } }); c.put('prop.airport.shelter', 306, 100.2, { p: { sign: 'BUS', w: 4 } });
   c.put('prop.airport.board', 331, 100.1, { p: { w: 3, seed: 2, title: 'ARRIVALS' } }); c.put('prop.airport.totem', 314, 100.3, { p: c.vp('prop.airport.totem', r) }); c.put('prop.airport.totem', 337.5, 100.3, { p: c.vp('prop.airport.totem', r) });
-  for (const [x, y] of [[317, 100.3], [326.5, 100.4], [334.5, 101]]) c.putv('prop.airport.luggage', x, y, r, { free: true }); c.putv('prop.airport.trolleycorral', 310.5, 100.2, r, { free: true }); c.putv('prop.airport.trolley', 328.5, 100.3, r, { free: true });
+  for (const [x, y] of [[326.5, 100.4], [334.5, 101]])   /* owner msg 196: the red stack by the spawn (317, 100.3) looked like your own bag: removed */ c.putv('prop.airport.luggage', x, y, r, { free: true }); c.putv('prop.airport.trolleycorral', 310.5, 100.2, r, { free: true }); c.putv('prop.airport.trolley', 328.5, 100.3, r, { free: true });
   for (const x of [300, 345, 352]) c.putv('prop.street.planter.round', x, 100.4, r, { free: true }); c.put('prop.airport.flagpole', 355.5, 100.5, { p: {} }); c.put('prop.airport.flagpole', 298.5, 100.5, { p: {} });
   w.poi({ type: 'spawn', id: 'spawn:airport', x: AP.curb.x, y: AP.curb.y, dir: 1 }); w.poi({ type: 'taxistand', id: 'taxi:airport', name: 'Airport Taxi Stand', x: 342, y: 103.4, lane: { x: 342, y: 105 } });
   w.poi({ type: 'landmark', id: 'lm:airport', name: 'Maple Bay International', x: 326, y: 95 });
