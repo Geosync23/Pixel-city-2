@@ -8,11 +8,12 @@ const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; 
 
 /* test switch (tools/occl_check.mjs --query "?occl=old"): the draw order as it was before the occlusion pass */
 const OCCL = !(typeof location !== 'undefined' && /[?&]occl=old\b/.test(location.search || ''));
-/* SOFT: set by behind(): its last answer was for two boxes NEITHER of which can cover the other (beside each other on screen, or one above and beside): an order for what hangs over the boxes only.
- * The sort keeps such a link when it can and drops it first when links contradict each other (sortItems). */
-let SOFT = false;
+/* SOFT: set by behind(): how much its last answer counts when links contradict each other (sortItems). 0 = a hard link: one box really covers the other. 1, 2 = the two boxes cannot cover each
+ * other (beside each other on screen, or one above and beside), the order is for what hangs over the boxes only: 1 with somebody who moves in it, 2 between two placed objects (the weakest: an
+ * order by centre depth). */
+let SOFT = 0;
 function behind(p, q, m) {
-  const A = p.B, B = q.B; SOFT = false;
+  const A = p.B, B = q.B; SOFT = 0;
   // separation along x and along y (-1: A is behind, 1: A is in front, 0: ranges overlap)
   const sx = A[3] <= B[0] + 1e-6 ? -1 : B[3] <= A[0] + 1e-6 ? 1 : 0, sy = A[4] <= B[1] + 1e-6 ? -1 : B[4] <= A[1] + 1e-6 ? 1 : 0;
   if (m === 2) return behindLong(p, q, sx, sy);
@@ -20,7 +21,7 @@ function behind(p, q, m) {
   // Two placed objects: one consistent order (centre depth), as ever (m = 0: the static world is drawn exactly as before the occlusion pass).
   // With somebody who moves (m = 1): the axis with the LARGER gap decides (= compare the two corners that face each other). That is what is true for the parts that can overlap, and it goes over into
   // the one-axis rule below without a jump when one walks past the end of a long thing (a counter, a fence); the centre depth said "in front" until the middle of it and "behind" after.
-  if (sx && sy && sx !== sy) { SOFT = OCCL; if (m === 1) { const gx = sx < 0 ? B[0] - A[3] : A[0] - B[3], gy = sy < 0 ? B[1] - A[4] : A[1] - B[4]; if (gx !== gy) return gx > gy ? sx < 0 : sy < 0; } return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4]; }
+  if (sx && sy && sx !== sy) { SOFT = OCCL ? 2 - m : 0; if (m === 1) { const gx = sx < 0 ? B[0] - A[3] : A[0] - B[3], gy = sy < 0 ? B[1] - A[4] : A[1] - B[4]; if (gx !== gy) return gx > gy ? sx < 0 : sy < 0; } return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4]; }
   if (sx) return sx < 0; if (sy) return sy < 0;
   if (A[5] <= B[2] + 1e-6) return true; if (B[5] <= A[2] + 1e-6) return false;
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
@@ -30,32 +31,51 @@ function behind(p, q, m) {
  * A long box has no single depth. The old rules compared centres whenever two boxes were not cleanly one behind the other; for a bus that says "the tree is in front" for half of the pass and
  * "behind" for the other half (the tree popped over the bus), and it contradicts the clean cases around it (bus behind the tree, tree behind the man, man behind the bus): the sort then has to drop one
  * of the three links, and it dropped a different one from frame to frame. Every pair with a vehicle or a train car in it (m = 2) is decided here instead:
+ * - a TREE (any placed object whose picture hangs well over its sort box: the crown over the trunk) and a vehicle: the SIDE of the vehicle the trunk stands on decides (near side: in front,
+ *   far side: behind), all the way along the vehicle and past its ends until the crown (r) has cleared the end by more than the trunk's distance from the side; only then the end decides
+ *   (ahead of the nose: in front). By then the two no longer touch, so nothing is seen to change. A trunk that the vehicle's box touches by a hair (a bus pulling in to the kerb) still counts
+ *   for its side.
  * - cleanly apart on the ground along one axis, or along both in the same sense: the nearer one is in front, as before.
- * - BESIDE each other on screen (behind along x, in front along y, or the other way round): what can overlap is only what hangs over the boxes, and for that the SIDE of the vehicle the other
- *   thing stands on is right (the near-side tree stays in front of the bus, the far-side one behind it) until the other thing, with all that hangs over it (r: a tree's crown, a person's arms), has
- *   cleared the vehicle's end by more than its distance from the side; then the end decides. By then the two no longer touch, so nothing is seen to change. Two vehicles: the larger gap decides.
+ * - BESIDE each other on screen (behind along x, in front along y, or the other way round): the larger gap decides = the two corners that face each other are compared. That is what is true for a
+ *   thin upright thing (a person, a post), and it goes over into the one-axis rule without a jump.
  * - one wholly ABOVE the other and apart on the ground in the other sense (a train on its deck and the next deck slab; a car under the viaduct and the train over it): the lower one can never
  *   cover the upper one, so the upper one is drawn later, if it is clear of the lower one's box by ZM (pictures stand a little taller than their boxes: a head) or by more than the gap on the ground.
  *   The old order "x, then y, then height" made loops train -> next slab -> the other train -> train: cars of one train cut into the other.
  * - boxes that reach INTO each other (somebody at the kerb whose box touches the bus by a hair, a car under a canopy): the axis along which they are least far in decides, not the centres.
+ *   Two train cars at a right angle (a corner of the line; the cars are straight, so their boxes cross there): where one arm of the corner runs towards the camera and the other away, a fixed order.
  */
 const ZM = .5;
 function ovOf(ob) { const v = ob.vbl, B = ob.B; if (!v) return ob._ov = 0; let r = B[0] - ob.x - v[0], t = ob.x + v[3] - B[3]; if (t > r) r = t; t = B[1] - ob.y - v[1]; if (t > r) r = t; t = ob.y + v[4] - B[4]; if (t > r) r = t; return ob._ov = r > 3 ? 3 : r > 0 ? r : 0; }   // how far a placed object's picture hangs over its sort box on the ground (a tree: its crown over the trunk)
 function behindLong(p, q, sx, sy) {
   const A = p.B, B = q.B, sz = A[5] <= B[2] + 1e-6 ? -1 : B[5] <= A[2] + 1e-6 ? 1 : 0;
+  if (!sz && p.m !== q.m) {   /* one vehicle and something that hangs over its box: by the side */
+    const lp = p.m === 2, ob = lp ? q.ob : p.ob, r = ob === null ? 0 : ob._ov !== undefined ? ob._ov : ovOf(ob);
+    if (r > .3) {
+      const L = lp ? A : B, O = lp ? B : A, ax = L[3] - L[0] >= L[4] - L[1]   /* the vehicle lies along x */, c = ax ? (O[1] + O[4]) / 2 : (O[0] + O[3]) / 2, l0 = ax ? L[1] : L[0], l1 = ax ? L[4] : L[3];
+      if (c <= l0 || c >= l1) {
+        let of = c >= l1;   // the thing is in front (it stands on the near side)
+        const a0 = ax ? O[0] : O[1], a1 = ax ? O[3] : O[4], m0 = ax ? L[0] : L[1], m1 = ax ? L[3] : L[4], ga = a0 >= m1 ? a0 - m1 : m0 >= a1 ? m0 - a1 : -1;
+        if (ga >= 0 && (a0 >= m1) !== of) { SOFT = 1; const gc = of ? (ax ? O[1] : O[0]) - l1 : l0 - (ax ? O[4] : O[3]); if (ga - r > (gc > 0 ? gc : 0)) of = !of; }   // past the end, on the other side of it
+        return lp ? of : !of;
+      }
+      if ((lp ? p.e : q.e).thru) return !lp;   // it stands in the path of something that runs above the street (e.thru: a train car; two trees of the city reach up through the viaduct): the car is drawn over it
+    }
+  }
   if (sx || sy) {
     const gx = sx < 0 ? B[0] - A[3] : sx > 0 ? A[0] - B[3] : 0, gy = sy < 0 ? B[1] - A[4] : sy > 0 ? A[1] - B[4] : 0; let s, g;
-    if (sx && sy && sx !== sy) {
-      SOFT = true; let r = 0, ax = gx > gy;   // ax: x is the axis "along" (two vehicles: the larger gap)
-      if (p.m !== 2 || q.m !== 2) { const L = p.m === 2 ? A : B, o = p.m === 2 ? q : p, ob = o.ob; ax = L[3] - L[0] >= L[4] - L[1]; r = OVR * (ob !== null ? (ob._ov !== undefined ? ob._ov : ovOf(ob)) : .35); }
-      const ga = (ax ? gx : gy) - r, gc = ax ? gy : gx; if (ga > gc) { s = ax ? sx : sy; g = ga; } else { s = ax ? sy : sx; g = gc; }
-    } else if (sx && (!sy || gx >= gy)) { s = sx; g = gx; } else { s = sy; g = gy; }
-    if (sz && sz !== s) { SOFT = true; const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; if (gz >= ZM || gz > g) return sz < 0; }
+    if (sx && sy && sx !== sy) { SOFT = 1; if (gx > gy) { s = sx; g = gx; } else { s = sy; g = gy; } }
+    else if (sx && (!sy || gx >= gy)) { s = sx; g = gx; } else { s = sy; g = gy; }
+    if (sz && sz !== s) { const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; if (gz >= ZM) { SOFT = 0; return sz < 0; }   /* (a hard link: the lower one can never cover the upper one) */ SOFT = 1; if (gz > g) return sz < 0; }
     return s < 0;
   }
   if (sz) return sz < 0;
-  /* in each other: least far in */
-  const ax = B[0] - A[3], bx = A[0] - B[3], ay = B[1] - A[4], by = A[1] - B[4], az = B[2] - A[5] - ZM, bz = A[2] - B[5] - ZM, X = ax > bx ? ax : bx, Y = ay > by ? ay : by, Z = az > bz ? az : bz;
+  /* in each other */
+  if (p.m === 2 && q.m === 2) { const wa = A[3] - A[0], ha = A[4] - A[1], wb = B[3] - B[0], hb = B[4] - B[1], ax = wa >= ha;
+    if (ax !== (wb >= hb) && (ax ? wa : ha) > 2.5 && (ax ? hb : wb) > 2.5) {   // two long ones at a right angle: X lies along x, Y along y. Y is in front only where X runs away from the camera and Y towards it.
+      const X = ax ? A : B, Y = ax ? B : A, ox = ((X[0] > Y[0] ? X[0] : Y[0]) + (X[3] < Y[3] ? X[3] : Y[3])) / 2, oy = ((X[1] > Y[1] ? X[1] : Y[1]) + (X[4] < Y[4] ? X[4] : Y[4])) / 2, dx = (X[0] + X[3]) / 2 > ox, dy = (Y[1] + Y[4]) / 2 > oy;
+      if (dx !== dy) return ax ? !dx : dx;   // X runs towards the camera from the corner and Y away from it: X is in front; the other way round: Y. (Both towards it, or both away: as below.)
+    } }
+  const ax = B[0] - A[3], bx = A[0] - B[3], ay = B[1] - A[4], by = A[1] - B[4], az = B[2] - A[5] - ZM, bz = A[2] - B[5] - ZM, X = ax > bx ? ax : bx, Y = ay > by ? ay : by, Z = az > bz ? az : bz;   // least far in
   if (X > Y && X > Z) { if (ax !== bx) return ax > bx; } else if (Y > X && Y > Z) { if (ay !== by) return ay > by; } else if (Z > X && Z > Y) { if (az !== bz) return az > bz; }
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
 }
@@ -68,7 +88,7 @@ function behindLong(p, q, sx, sy) {
  * So a long entity carries the six-sided OUTLINE of its box on screen (item.h, world px, 4 px of slack like the sprite's padding): [x0, x1 of screen x, lo, hi of (y + x / 2), lo, hi of (y - x / 2)],
  * and it is only compared with what reaches into that outline (pairMiss: against a placed object's own outline, or another long thing's; against the sprite rectangle of anything else, hexMiss).
  */
-const HEXP = 4, OVR = typeof location !== 'undefined' && /[?&]occlr=0\b/.test(location.search || '') ? 0 : 1, hexOn = e => { const b = e.vb || e.bb; return b !== undefined && (b[2] - b[0] > 2.5 || b[3] - b[1] > 2.5); };
+const HEXP = 4, hexOn = e => { const b = e.vb || e.bb; return b !== undefined && (b[2] - b[0] > 2.5 || b[3] - b[1] > 2.5); };
 /* outline against outline: [x0, x1, lo, hi of (y + x / 2), lo, hi of (y - x / 2)] each (exact: the two six-sided shapes have the same three directions) */
 function hexHex(h, g) { return g[0] >= h[1] || g[1] <= h[0] || g[2] >= h[3] || g[3] <= h[2] || g[4] >= h[5] || g[5] <= h[4]; }
 /* the outline of a placed object (its painted box, ob.vbl), cached on it */
@@ -78,47 +98,47 @@ function obHex(ob) { const v = ob.vbl, x = ob.x, y = ob.y, z = ob.z; return ob._
 function pairMiss(p, q) { const hp = p.h, hq = q.h; return hp !== null ? (hq !== null ? hexHex(hp, hq) : hexMiss(hp, q.t)) : hexMiss(hq, p.t); }
 function hexMiss(h, r) { return r[0] >= h[1] || r[2] <= h[0] || r[1] + r[0] * .5 >= h[3] || r[3] + r[2] * .5 <= h[2] || r[1] - r[2] * .5 >= h[5] || r[3] - r[0] * .5 <= h[4]; }
 /** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint}. n: only the first n items of L; out: array to fill (perf: the renderer reuses its lists; the scratch arrays below are reused too, so a frame allocates nothing here)
- * Links that contradict each other (A behind B behind C behind A): the walk below drops whichever link it meets last. Occlusion pass: if the dropped one was a HARD link (one box really covers
- * the other: a deck and the train on it) while SOFT ones (see behind()) are in the loop, the frame is sorted again with the hard links first (resort): no soft link may undo a hard one. Frames
- * without such a loop (nearly all) are sorted exactly as before. */
+ * Links that contradict each other (A behind B behind C behind A): the walk below drops whichever link it meets last. Occlusion pass: links have a weight (SOFT, see behind()). If the walk dropped a
+ * link that is not of the weakest kind, the frame is sorted again without the weakest links, starting from the order just found, and if that still drops a hard link, once more by the hard links alone
+ * (resort): a weaker link never undoes a stronger one. Frames without such a loop (nearly all) are sorted exactly as before. */
 let sDeps = [], sCnt = new Int32Array(256), sOrder = new Int32Array(256), sStack = new Int32Array(1024), sSt = new Uint8Array(256), sPos = new Int32Array(256);
-const SB = 1 << 24, SM = SB - 1; export const SORT = { resorts: 0 };
+const SB = 1 << 24, SB2 = 1 << 25, SM = SB - 1; export const SORT = { resorts: 0 };   // a link = the index of the item behind (+ SB: soft 1, + SB2: soft 2)
 export function sortItems(L, n = L.length, out = []) {
   if (sCnt.length < n) { sCnt = new Int32Array(n * 2); sOrder = new Int32Array(n * 2); sSt = new Uint8Array(n * 2); sStack = new Int32Array(n * 8); sPos = new Int32Array(n * 2); }
   const deps = sDeps, cnt = sCnt, st = sSt, order = sOrder, stack = sStack; while (deps.length < n) deps.push([]);
   cnt.fill(0, 0, n); st.fill(0, 0, n);
-  for (let i = 0; i < n; i++) { const p = L[i], a = p.r, ma = p.m, ha = p.h; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; const q = L[j], mj = q.m; if ((ha !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, ma > mj ? ma : mj)) deps[j][cnt[j]++] = SOFT ? i | SB : i; else deps[i][cnt[i]++] = SOFT ? j | SB : j; } }
+  for (let i = 0; i < n; i++) { const p = L[i], a = p.r, ma = p.m, ha = p.h; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; const q = L[j], mj = q.m; if ((ha !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, ma > mj ? ma : mj)) deps[j][cnt[j]++] = i + SOFT * SB; else deps[i][cnt[i]++] = j + SOFT * SB; } }
   /* order = indices by sort hint k, stable (an insertion sort: the same order as the Array.sort((p, q) => L[p].k - L[q].k) it replaces, without its temporary arrays) */
   for (let i = 0; i < n; i++) { const k = L[i].k; let j = i - 1; while (j >= 0 && L[order[j]].k > k) { order[j + 1] = order[j]; j--; } order[j + 1] = i; }
-  let sp = 0, m = 0, bad = false;   // (st: 1 = being walked, 2 = drawn; bad: a hard link was dropped)
-  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB) bad = true; } else { sp -= 2; st[i] = 2; out[m++] = L[i]; } } }
-  if (bad) { SORT.resorts++; m = resort(L, n, out); }
+  let sp = 0, m = 0, bad = false;   // (st: 1 = being walked, 2 = drawn; bad: a link that is not of the weakest kind was dropped)
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB2) bad = true; } else { sp -= 2; st[i] = 2; const it = L[i]; it._i = i; out[m++] = it; } } }
+  if (bad) { SORT.resorts++; if (resort(L, n, out, SB2)) resort(L, n, out, SB); }
   if (out.length !== m) out.length = m;
   return out;
 }
-/* the second try: (1) walk the hard links only -> an order that honours every hard link that can be honoured (sPos); (2) walk all links again, without the soft ones that go against (1). */
-function resort(L, n, out) {
-  const deps = sDeps, cnt = sCnt, st = sSt, order = sOrder, stack = sStack, pos = sPos; let sp = 0, m = 0;
+/* the next try: walk only the links below `lim` (SB2: without the weakest, SB: the hard ones alone), starting from the items in the order the last try drew them. That is the last order, mended
+ * where it broke such a link. Returns true if a hard link was dropped again. */
+function resort(L, n, out, lim) {
+  const deps = sDeps, cnt = sCnt, st = sSt, stack = sStack, ord = sPos; let sp = 0, m = 0, bad = false;
+  for (let o = 0; o < n; o++) ord[o] = out[o]._i;
   st.fill(0, 0, n);
-  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx]; if (d < SB && !st[d]) { st[d] = 1; stack[sp++] = d; stack[sp++] = 0; } } else { sp -= 2; pos[i] = m++; } } }
-  st.fill(0, 0, n); m = 0;
-  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c] && (d < SB || pos[c] < pos[i])) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } } else { sp -= 2; out[m++] = L[i]; } } }
-  return m;
+  for (let o = 0; o < n; o++) { const root = ord[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx]; if (d < lim) { const c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB) bad = true; } } else { sp -= 2; st[i] = 2; out[m++] = L[i]; } } }
+  return bad;
 }
 
 /* the depth sort in plain form, for the test hook Renderer.sortCheck (tools/perf.mjs --verify): both must give the same order. (Until the occlusion pass this was the sort as it was before the perf pass,
- * word for word; it now has the outline test and the second try of sortItems, written out the slow way.) */
+ * word for word; it now has the outline test and the further tries of sortItems, written out the slow way.) */
 function sortItemsRef(L) {
   const n = L.length, deps = new Array(n), soft = new Array(n);
   for (let i = 0; i < n; i++) { deps[i] = []; soft[i] = []; }
   for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue; if (behind(L[i], L[j], Math.max(L[i].m, L[j].m))) { deps[j].push(i); soft[j].push(SOFT); } else { deps[i].push(j); soft[i].push(SOFT); } } }
   const order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
-  /* walk(use(i, x) -> follow link number x of item i?) -> { out: indices in draw order, bad: a hard link was dropped } */
-  const walk = use => { const out = [], st = new Uint8Array(n), stack = []; let bad = false;
-    for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (idx < d.length) { stack[stack.length - 1]++; const c = d[idx]; if (!use(i, idx)) continue; if (!st[c]) { st[c] = 1; stack.push(c, 0); } else if (st[c] === 1 && !soft[i][idx]) bad = true; } else { stack.length -= 2; st[i] = 2; out.push(i); } } }
-    return { out, bad }; };
-  let w = walk(() => true);
-  if (w.bad) { const pos = new Array(n); walk((i, x) => !soft[i][x]).out.forEach((i, at) => { pos[i] = at; }); w = walk((i, x) => !soft[i][x] || pos[deps[i][x]] < pos[i]); }
+  /* walk(lim): follow the links whose weight is below lim, drop a link that points back into the walk -> { out: indices in draw order, bad: a link of weight < lim - 1 was dropped, hard: a hard link was } */
+  const walk = lim => { const out = [], st = new Uint8Array(n), stack = []; let bad = false, hard = false;
+    for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (idx < d.length) { stack[stack.length - 1]++; const c = d[idx], w = soft[i][idx]; if (w >= lim) continue; if (!st[c]) { st[c] = 1; stack.push(c, 0); } else if (st[c] === 1) { if (w < 2) bad = true; if (!w) hard = true; } } else { stack.length -= 2; st[i] = 2; out.push(i); } } }
+    return { out, bad, hard }; };
+  let w = walk(3);
+  if (w.bad) { order.length = 0; for (const i of w.out) order.push(i); w = walk(2); if (w.hard) { order.length = 0; for (const i of w.out) order.push(i); w = walk(1); } }
   return w.out.map(i => L[i]);
 }
 let WID = 0;
@@ -389,6 +409,14 @@ export class Renderer {
     for (let i = 0; i < n; i++) if (idx[i] < 0) go(i);
     return out;
   }
+  /** test hook: why is item a drawn before item b in the frame just drawn? -> { link: 'hard' | 'soft' | 'none' | 'against hard' | 'against soft' (their own link), path: the chain of hard links a -> .. -> b that forces it, if any } */
+  sortWhy(a, b) {
+    const L = this._L.filter(it => it.spr), n = L.length, ia = L.indexOf(a), ib = L.indexOf(b), nxt = L.map(() => []); let link = 'none';
+    for (let i = 0; i < n; i++) { const p = L[i].r; for (let j = i + 1; j < n; j++) { const q = L[j].r; if (p[0] >= q[2] || q[0] >= p[2] || p[1] >= q[3] || q[1] >= p[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue; const bh = behind(L[i], L[j], Math.max(L[i].m, L[j].m)), sf = SOFT, f = bh ? i : j, t = bh ? j : i; if ((f === ia && t === ib) || (f === ib && t === ia)) link = (f === ia ? '' : 'against ') + (sf ? 'soft' : 'hard'); if (!sf) nxt[f].push(t); } }
+    const prev = new Int32Array(n).fill(-1), Q = [ia]; prev[ia] = ia; for (let h = 0; h < Q.length; h++) for (const t of nxt[Q[h]]) if (prev[t] < 0) { prev[t] = Q[h]; Q.push(t); }
+    let path = null; if (ia >= 0 && ib >= 0 && prev[ib] >= 0) { path = []; for (let x = ib; x !== ia; x = prev[x]) path.unshift(L[x]); path.unshift(L[ia]); }
+    return { link, path, order: [this._S.indexOf(a), this._S.indexOf(b)] };
+  }
   /** how many frames had to be sorted a second time (sortItems) since the page loaded */
   get resorts() { return SORT.resorts; }
   /** test hook (async): citizens' sprites (every direction, two frames of stand / walk) drawn by the bake worker vs. here; { tested, bad } */
@@ -601,7 +629,7 @@ export class Renderer {
     const fr = this.frameNo, SP = this._SP || (this._SP = []); let nsp = 0, gh = null;   /* seating: sitter records (reused) + the seated focus entity, if any */
     const L = this._L, vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4; let n = 0;
     const Q = this._Q; Q.length = 0; world.query(vx0, vy0, vx1, vy1, Q);
-    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0], _h: null, _t: null }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; it.m = 0; it.ns = 0; ob._fr = fr; ob._it = it; }
+    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, _i: 0, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0], _h: null, _t: null }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; it.m = 0; it.ns = 0; ob._fr = fr; ob._it = it; }
     const hopNow = performance.now();
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U); let ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
@@ -610,7 +638,7 @@ export class Renderer {
       const rx0 = spr.x + ax, ry0 = spr.y + ay, rx1 = rx0 + spr.w, ry1 = ry0 + spr.h; if (rx1 < vx0 || rx0 > vx1 || ry1 < vy0 || ry0 > vy1) continue;
       if (SEATING && isSitter(e)) { const so = seatObj(world, e); if (so && so._fr === fr) { const h = so._it, q = SP[nsp] || (SP[nsp] = { e: null, spr: null, ax: 0, ay: 0, d: 0, ov: null, next: null }); nsp++; q.e = e; q.spr = spr; q.ax = ax; q.ay = ay; q.d = e.x + e.y; q.ov = seatOverlay(so, h.spr, e);
         /* the piece's sitters as a list, far to near */ if (!h.ns || q.d < h.sit.d) { q.next = h.ns ? h.sit : null; h.sit = q; } else { let p = h.sit; while (p.next && p.next.d <= q.d) p = p.next; q.next = p.next; p.next = q; } h.ns++; if (e.ghost && !gh) gh = q, q.host = h; continue; } }
-      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0], _h: null, _t: null }); n++; it.ns = 0;
+      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, _i: 0, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0], _h: null, _t: null }); n++; it.ns = 0;
       const b = e.bb || BB, B = it._B, r = it._r; B[0] = e.x + b[0]; B[1] = e.y + b[1]; B[2] = e.z; B[3] = e.x + b[2]; B[4] = e.y + b[3]; B[5] = e.z + b[4]; r[0] = rx0; r[1] = ry0; r[2] = rx1; r[3] = ry1;
       it.B = B; it.spr = spr; it.ax = ax; it.ay = ay; it.r = r; it.k = B[0] + B[3] + B[1] + B[4]; it.ob = null; it.e = e;
       /* occlusion pass (see behindLong, pairMiss). m: which rules of behind() apply to its pairs (2 a vehicle or train car, 1 anybody else who moves). h: the outline of a long entity's box on screen;
