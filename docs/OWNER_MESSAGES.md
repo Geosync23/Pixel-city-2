@@ -649,3 +649,6 @@ B characters in text look like a g fix it please
 
 ## 173 (2026-11-16)
 Whwn watching shows or reading on yoir phone, it should be part screen, on phone still, so you can see the world around you and time goes on.
+
+## 174 (2026-11-16)
+Well, we can. I guess you're right. Like, it's actually a choice, right? Because you could walk to the tower, you can get a cab to the tower, whatever. But if you take the bus, he follows you the whole way. Maybe he was supposed to take his bike, but he follows you the whole way. I think he should just stick with you. No matter what you do, he sticks with you. And if you get on the bus, he should get on it too.

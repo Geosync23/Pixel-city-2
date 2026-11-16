@@ -365,17 +365,17 @@ const ch02 = {
       play('ui', 'map_pick:skydeck_lobby', { label: 'Open the Map and pick the SkyDeck', hint: 'It will offer you the ways to get there.' }),
       s('dez', 'See how it hands you choices? Walk, bus, train, cab. How long, how much.'),
       s('dez', "You don't have to know the town. You just have to know where you want to be. The phone does the rest and so do your feet."),
-      s('dez', "Your pick. Just not the cab. I'll be on the bike, so I'll beat you, so don't feel bad about it."),   /* QA10: the route card closes the phone, so these lines come after the player has picked */
-      go('skydeck_lobby', { with: ['dez'], label: 'Make your own way to Beacon Tower', note: "Dez texts: 'still here. the pigeons and I are becoming close.'" }),
+      s('dez', "Your pick. Just not the cab. The bike stays locked up: I'm coming with you. Lead on, I'll heckle."),   /* QA10: the route card closes the phone, so these lines come after the player has picked */
+      go('skydeck_lobby', { with: ['dez'], label: 'Make your own way to Beacon Tower', note: "Dez comes along. He has opinions about your route." }),
     ]),
     sc('lobby', 'skydeck_lobby', 'Beacon Tower', [
       iff('went:train', [s('dez', 'Train! Good pick. It goes round the whole town on its bridge like a toy.'),
         s('dez', "Tap in at the gate, sit on the bay side, get off when it says your stop. That's the entire skill.")]),
       iff('went:bus', [s('dez', 'The bus! Respect. The bus is the truth about a city.'),
         s('dez', 'Stops every few blocks. The sign tells you the number, the Map tells you which number. Done.')]),
-      iff('went:walk', [s('dez', "You WALKED? All of it? Okay, I take back the legs thing. Your side got some legs.")]),
-      iff('went:cab', [s('dez', 'A cab. I said not the cab. Was it Manny?'), s('dez', "...It was Manny. Fine. Manny's allowed.")]),
-      s('dez', "Took you long enough. I've dropped two parcels and had a pretzel."),
+      iff('went:walk', [s('dez', "We WALKED. All of it. Okay, I take back the legs thing. Your side got some legs.")]),
+      iff('went:cab', [s('dez', 'A cab. I said not the cab.'), s('dez', "...It was Manny, though. Fine. Manny's allowed.")]),
+      s('dez', "Took us long enough. On the bike I'd have dropped two parcels and had a pretzel by now."),
       s('dez', "I deliver here every day, so I know a guy. The guy is the ticket machine. I'm paying. Get in the lift."),
       give('ticket', 'skydeck', { text: "Dez buys your SkyDeck ticket. He makes a show of it." }),
       go('skydeck', { with: ['dez'], by: 'walk', label: 'Take the lift to the top' }),
