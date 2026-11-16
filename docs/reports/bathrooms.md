@@ -146,8 +146,8 @@ New: `src/sim/restrooms.js` (mechanism), `src/scenes/rooms/restrooms.js` (the th
 
 ## 7. Not tested / known gaps
 
-- The SkyDeck LOBBY still has its old fade-out restroom door (a different room, street level). Question for the owner below.
-- City Hall's other floors (council, records, upper), and every other venue, still use the old fade-out until their batch.
+- (batch 1 note, now done in batch 2) The SkyDeck lobby has its own small restroom.
+- Every venue without a WC entry still uses the old fade-out until its batch (City Hall's floors are done in batch 2).
 - No NPCs use or queue for the stalls (crowd files were off limits); all stalls are free. The stall interactable does not check "occupied by someone else".
 - Leaving in the middle of a toilet visit is the activity's own Stop (tested only through the code path, not by tapping Stop).
 - Save + reload while standing inside a restroom: by code it lands at the venue's street door (title.js rule for venues); not played.
@@ -155,7 +155,7 @@ New: `src/sim/restrooms.js` (mechanism), `src/scenes/rooms/restrooms.js` (the th
 - The navigator's "nearest restroom" rows are unchanged (they name the venue, which is right); Map / Wander shortcuts not re-played.
 - At phone zoom the bigger rooms do not fit the screen (like every room); the arrow and the walk work.
 
-## 8. Questions for the owner
+## 8. Questions for the owner (batch 1; the lead answered 1-3 with defaults, see batch 2)
 
 1. SkyDeck lobby: give it its own small street-level restroom (a 4th room), or take its door away and send people up to Level 52?
 2. Should all of City Hall's restroom doors (upper floor, records, council) lead to the one grand washroom, or should the offices upstairs get a plainer one?
@@ -195,7 +195,7 @@ Checks (batch 2, by the worker):
 - navcheck --rooms all: first run 1 FAIL in the OBSERVATORY ("Stairs to the dome" led to the city): the run is longer now (299 rooms) and the game clock passed
   00:18, when the observatory walks everyone out; a second run of the room graph on the same tree: 299 rooms, 0 problems. The audit part passed.
   Suggestion for the lead: navcheck could set the time per room (T(null, 14)) to make it independent of run length.
-- nightcheck: all checks passed. perf --verify: see the final message.
+- nightcheck: all checks passed. perf --verify: VERIFY OK (same pixels), 0 page errors (the first try was cut off by my own timeout while other checks ran; re-run alone).
 - Pictures looked at full size: `out/shots/bath2_<room>_wide.png` (whole room), `bath2_<venue>_{0_door,1_room_day,2_inuse,3_wash,4_back,5_room_night,6_inuse_night}.png`,
   `bath2_stop.png`, `bath2_reload.png`; asset sheets `out/gallery/b2_*.png`. Redrawn after looking: terrazzo and gym floors were too speckled, globe lamps in the
   station floated like puffs (removed), sticker text ran into the mirror, the half-unit room depths showed a strip of the base floor (now whole units),
