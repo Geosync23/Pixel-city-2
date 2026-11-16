@@ -864,3 +864,6 @@ Teiler 2 is good but lets open on a dense zoomed in coty shot with a title card.
 
 ## 212 (2026-11-16)
 This is great but one laat change for the trailer. When it starts counting out the days say the your life your pace thing. Then continue with counting as it is. Then at the end extend a show some zoomed in view of our character doing more interesting things, a job, etx. Then talk about alll the activities and jos breifly. Tych on how much twre is to do and see. Then kill thr lighthouse shot replace with anotjer city shot. Love the ending shot.
+
+## 213 (2026-11-16)
+Tbis is very close. When it says fully explorable  ,  hold on on tht shot and the following ones too. Thats fine if it makes the trailer longer
