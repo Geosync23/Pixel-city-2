@@ -663,3 +663,6 @@ Should a wish-listed in-store piece remind you when you walk past its shop? Yes
 
 ## 176 (2026-11-16)
 Foot, bus cab train should all always be an option in map navigation or use the take me there function. Always all of them.
+
+## 177 (2026-11-16)
+There shoild be quite a few more clothing stores

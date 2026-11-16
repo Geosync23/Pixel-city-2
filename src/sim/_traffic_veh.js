@@ -154,7 +154,7 @@ export function place(v, e, off, s) {
 /** follow a route() result (or {edges, offs}) from index k. A route with an end (`to`) is remembered as the vehicle's destination, so it can be re-routed round a blocked street. */
 export function setPlan(v, rt, k = 0, cyclic = false) { v.plan = rt ? rt.edges : null; v.offs = rt ? rt.offs : null; v.planI = k; v.cyclic = cyclic; v.dest = rt && rt.to && !cyclic ? rt.to : null; if (v.e) chooseNext(v); }
 
-const usable = (f, e, n) => !(f === e.rev || (f.closed && !e.closed));   /* a street that ends at the edge of town (dead end) is driven into like any other: the vehicle leaves town there (traffic.js housekeeping) instead of every car avoiding it */   /* city events: a street closed for a parade is never entered (sim/cityevents.js) */
+const usable = (f, e, n) => !(f === e.rev || (f.closed && !e.closed) || (f.to.dead && n.out.length > 2 && T.onScreen && T.onScreen(f.to.x, f.to.y, 90)));   /* a street that ends at the edge of town (dead end) is driven into like any other: the vehicle leaves town there (traffic.js housekeeping). Not while that end is in view: there it would have to turn round on the spot */   /* city events: a street closed for a parade is never entered (sim/cityevents.js) */
 export function chooseNext(v) {
   const e = v.e, n = e.to; let ne = null, off = 1;
   if (v.plan) { let k = v.planI + 1; if (k >= v.plan.length && v.cyclic) k = 0; if (k < v.plan.length) { ne = v.plan[k]; off = v.offs ? v.offs[k] : 1; if (v.bus && v.off !== off && e.lanes > 1 && ne.lanes > 1 && ne.axis === e.axis) off = v.off; } }   /* a bus that is in the other lane stays in it straight on (no diagonal through the box); it moves over to the kerb lane on the street with its stop (step) */

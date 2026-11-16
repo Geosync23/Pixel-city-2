@@ -312,3 +312,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 38 (owner msg 176, 2026-11-16) — all four ways, always
 - Map navigation and every "Take me there" always offer ALL of: on foot, bus, train, cab (even when one is slow or silly for the distance). Never hide an option.
+
+## Direction update 39 (owner msg 177, 2026-11-16) — many more clothing stores
+- Quite a few more enterable clothing stores (today about five). Direction: the clothing BRANDS that already exist in the catalogue get their own shops with their own look (the boutiques Marigold, Hollowell, Nightjar, Juniper & Rye, Second Wind, Little Lantern, Tidepool; a shoe shop or two, a hat / accessories shop, a sportswear shop, a formal-wear / tailor, a kids-free thrift second branch, a department-store fashion floor), spread over the districts in existing buildings / empty shopfronts (add, never rework the city), each stocking its brand's in-store-only pieces so the in-store rule sends the player to different places. Unique interiors, not copies.
