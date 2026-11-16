@@ -711,3 +711,8 @@ Lets pull up mini game audit and new mini gamds to be together
 
 ## 187 (2026-11-16)
 Traffic must be getting close. It really took a long time. Give a report when its done on all the work
+
+## 188 (2026-11-16)
+Great. Soinds amazing. But Same with night lighting it seems like its taking quite some time too.
+
+Also, Yes run the mini games on both Fable slots

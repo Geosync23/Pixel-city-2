@@ -164,3 +164,4 @@
 144. (msg 185) Item 9 (the trailer) is Fable too: already so in the split.
 145. (msg 186) Pull the NEW MINI-GAME CATEGORIES up to run together with the mini-game audit (+ gym + cooking): one mini-game programme, right after the night light.
 146. (msg 187) Traffic took long: when it finishes, give a full report on all of its work.
+147. (msg 188) Night lighting also seems to take long (noted; worker still running). YES: run the mini-game programme on BOTH Fable slots when they free (audit + gym + cooking on one, new categories on the other).
