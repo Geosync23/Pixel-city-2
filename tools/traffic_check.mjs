@@ -226,7 +226,7 @@ if (o.plan === 'rides') {
 if (o.plan === 'shots') {
   const spots = (o.sites ? o.sites.split(',') : ['at_234_296', 'at_266_296', 'at_178_296']).map(SITE); let k = 0;
   for (const s of spots) { k++; const { ctx, pg, errs } = await open(`?scene=city&x=${s.x + s.hx + 1.6}&y=${s.y + s.hy + 1.6}&t=7.2`, 40 + k); await pg.evaluate(HARNESS); await pg.evaluate(([x, y]) => window.__TC.focus(x, y), [s.x, s.y]);
-    await pg.evaluate(hz => window.__TC.run(45, hz), o.hz); const r = await pg.evaluate(hz => window.__TC.run(115, hz, { stopJam: 2 }), o.hz);   // 07:12 + 160 sim s = 09:28: inside the morning rush (a game day is 28 real minutes) const st = await pg.evaluate(() => window.__TC.stuckNow());
+    await pg.evaluate(hz => window.__TC.run(45, hz), o.hz); const r = await pg.evaluate(hz => window.__TC.run(115, hz, { stopJam: 2 }), o.hz); const st = await pg.evaluate(() => window.__TC.stuckNow());   // 07:12 + 160 sim s = 09:28: inside the morning rush (a game day is 28 real minutes) const st = await pg.evaluate(() => window.__TC.stuckNow());
     await pg.addStyleTag({ content: '.bubble,.toast,.toasts,.say,.tip,.ph-banner,.banner{display:none!important}' }); await pg.evaluate(() => window.__TC.render(5)); await pg.screenshot({ path: path.join(SHOTS, `${NAME}_spot${k}.png`) });
     const res = await pg.evaluate(() => window.__TC.result()); console.log(`  spot ${k} ${s.id}: shot at ${r.clock} (${r.sim} sim s), ${r.veh} vehicles around, standing > 20 s in the whole area: ${JSON.stringify(st)}; overlap pair-s so far ${res.bands.reduce((a, b) => a + b.ovS, 0).toFixed(1)}; errors ${errs.length} -> out/shots/${NAME}_spot${k}.png`); await ctx.close(); }
   await br.close(); srv.close(); process.exit(0);

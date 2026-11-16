@@ -629,3 +629,6 @@ Okay, I understood you couldn't identify the exact song I was talking about, but
 
 ## 167 (2026-11-16)
 You shouldn't be able to buy everything. Like for example, the Roomy app, it has every single furniture item in there. That should not be the case. There should be a reason to have to go to the stores. There should be a limited selection. Or maybe you still can see everything, but it says only available in store for some items. Man, let's just do it that way. And then it'll also tell you where it's available and it'll take me there Option will appear.
+
+## 168 (2026-11-16)
+Also decide, well, not just Roomy, but I haven't looked. Isn't there a clothes app? So same thing. You shouldn't be able to buy all the clothes online. You should have to go to stores for quite a bit of it. Same with furniture. It's a significant amount that's available only in store.

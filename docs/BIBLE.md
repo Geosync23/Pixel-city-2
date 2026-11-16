@@ -302,3 +302,4 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 35 (owner msg 167, 2026-11-16) — some furniture is in-store only
 - The Roomy app keeps showing the whole catalogue, but a good share of the pieces cannot be ordered online: they are marked "Only available in store", list the store(s) that stock them, and offer "Take me there" (the existing route guidance). The stores must have a reason to be visited. The same principle applies to any other 'buy everything from the phone' app.
+- (owner msg 168) The same for the CLOTHES app and every other shopping app: a significant share (more than half is fine) of clothes and of furniture is in-store only, shown in the app with the store name(s) and "Take me there". The lead decides the split: basics online, the nicer / signature / brand pieces in store.
