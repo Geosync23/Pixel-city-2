@@ -635,3 +635,6 @@ Also decide, well, not just Roomy, but I haven't looked. Isn't there a clothes a
 
 ## 169 (2026-11-16)
 Question- would it be possible for you to create a trailer for the game? If it just has motion graphics and video clips,  no voice overs, etc?
+
+## 170 (2026-11-16)
+45 seconds, wide, cozy but with a bit of upbeat. Also talk about the high number of enterable and spealized buildings, show the ones you talked about and more, the airport too. Book this for later lile the jobs update. Ill let you know when its time.
