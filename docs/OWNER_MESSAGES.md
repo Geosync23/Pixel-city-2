@@ -814,3 +814,6 @@ Also this all seems like opus capable work no?
 
 ## 200 (2026-11-16)
 Great and so both Fable workers are parked? If so you can hire one additional opus to help finish all work
+
+## 201 (2026-11-16)
+Those three calls are fine, keep going

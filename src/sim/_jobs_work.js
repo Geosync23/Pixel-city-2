@@ -266,6 +266,7 @@ function expire(o) {
 
 export function update(dt) {
   if (!W || W.paused) return; const now = G.state.t;
+  if (W.job.deskRoom && !inRoom()) { if (!W.desk) for (const t of W.tpl) if (t.every && W.next[t.id] < now + (t.first || 0)) W.next[t.id] = now + (t.first || 0); return; }   /* the desk-step job: no tickets spawn or go cold while you are between its rooms */
   for (const o of W.orders.slice()) if (o.due && now > o.due && W.active !== o && !W.lock) expire(o);
   for (const t of W.tpl) {
     if (t.filler || (t.limit && (W.n[t.id] || 0) >= t.limit)) continue; const n = W.orders.filter(o => o.tpl === t.id).length;

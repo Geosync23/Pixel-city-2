@@ -74,11 +74,11 @@ function useStall(fx) {
 }
 const MINT = ['A mint from the little silver dish. Cool, sharp, very level 52.', 'Another mint. Nobody is counting. Probably.', 'A mint. Your breath now matches the view.'];
 const CARDS = [
-  ['A card in the suggestion box', '"More hooks in the stalls. I had to hold my umbrella the whole time." — A.'],
-  ['A card in the suggestion box', '"The first mayor\'s portrait watches you wash. I have never washed so thoroughly." — anon.'],
-  ['A card in the suggestion box', '"Best restroom in the city. Don\'t tell the library." — a librarian'],
-  ['A card in the suggestion box', '"Please keep the chain flush. My grandad pulled it in 1952 and so did I." — R.T.'],
-  ['A card in the suggestion box', '"Can the fountain outside be fixed like these taps were?" — Every citizen'],
+  ['A card in the suggestion box', '"More hooks in the stalls. I had to hold my umbrella the whole time." (A.)'],
+  ['A card in the suggestion box', '"The first mayor\'s portrait watches you wash. I have never washed so thoroughly." (anon.)'],
+  ['A card in the suggestion box', '"Best restroom in the city. Don\'t tell the library." (a librarian)'],
+  ['A card in the suggestion box', '"Please keep the chain flush. My grandad pulled it in 1952 and so did I." (R.T.)'],
+  ['A card in the suggestion box', '"Can the fountain outside be fixed like these taps were?" (every citizen)'],
 ];
 let mintN = 0;
 
