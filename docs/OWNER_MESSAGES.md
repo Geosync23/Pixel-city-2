@@ -646,3 +646,6 @@ This Gelato stand is in the middle of the road
 ## 172 (2026-11-16)
 Dez cant get on the bus during the 2nd main story mission so he chases it
 B characters in text look like a g fix it please
+
+## 173 (2026-11-16)
+Whwn watching shows or reading on yoir phone, it should be part screen, on phone still, so you can see the world around you and time goes on.
