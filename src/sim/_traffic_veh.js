@@ -40,7 +40,7 @@ export class Veh {
     this.v = 0; this.off = 1; this.noff = 1; this.s = 0; this.lat = 0; this.turnS = 0; this.inNode = null; this.cornerOn = false; this.cx = 0; this.cy = 0; this.cax = 'x'; this.cd = 1;
     this.plan = null; this.offs = null; this.planI = 0; this.cyclic = false; this.stop = null; this.onStop = null; this.halt = false; this.parked = false; this.curb = 0; this.keep = false; this.pre = false;
     this.stuck = 0; this.gho = 0; this.ghost = false; this.pedWait = 0; this.honk = 1; this.byPlayer = false; this.bus = null; this.stand = null; this.taxiFree = false; this.role = ''; this.acc = 1; this.gap = 1.3; this.age = 0; this.ride = false; this.leadFast = false;
-    this.mk = -1; this.nmk = -1; this.ln = 99; this.lw = 0; this.xw = 0; this.dg = 0; this.lcT = 0; this.pass = null; this.dest = null; this.unstick = false; this.why = 0; this.apN = null; this.far = false;
+    this.mk = -1; this.nmk = -1; this.ln = 99; this.lw = 0; this.xw = 0; this.dg = 0; this.lcT = 0; this.pass = null; this.dest = null; this.unstick = false; this.why = 0; this.apN = null; this.far = false; this.ck = false;
   }
   /** kind: { id, asset, vmax }, params: art params (color, route, free...) */
   setKind(kind, params) {
@@ -209,8 +209,9 @@ export function step(v, dt) {
   let e = v.e; const ax = e.axis === 'x', d = e.d, hl = v.len / 2, hw = v.wid / 2, L = T.list, multi = e.lanes > 1;
   let adv = v.halt ? 0 : 60, dodge = 0, byPlayer = false, lead = null, slowTo = 99; v.age += dt; if (v.lcT > 0) v.lcT -= dt;
   const ps = v.pass; if (ps && (!ps.active || ps.e.axis !== e.axis)) v.pass = null;
-  for (let i = 0; i < L.length; i++) {
-    const o = L[i]; if (o === v) continue; const rx = o.x - v.x, ry = o.y - v.y, al = (ax ? rx : ry) * d; if (al < -6 || al > 26) continue;
+  const vx = v.x, vy = v.y, nL = L.length;
+  for (let i = 0; i < nL; i++) {
+    const o = L[i]; if (o === v) continue; const rx = o.x - vx, ry = o.y - vy, al = (ax ? rx : ry) * d; if (al < -6 || al > 26) continue;
     const la = Math.abs(ax ? ry : rx); if (la > 5.2) continue; const par = o.e.axis === e.axis; if (la > (par ? 2.4 : hw + o.len / 2 - .1)) continue; const ohl = par ? o.len / 2 : o.wid / 2;
     if (par && (o.parked || o.halt) && o.v < .1 && (o.curb >= .5 || o === v.pass)) {   // something standing at the kerb (a stand cab, a waiting cab), or the obstacle being overtaken: go round it
       /* on a road with two lanes each way the swerve takes part of the inside lane: only when nobody is beside or just behind there (else wait behind the parked car) */
@@ -229,8 +230,8 @@ export function step(v, dt) {
   }
   if (v.pass && dodge < 1.5) { const o = v.pass, al = ((ax ? o.x - v.x : o.y - v.y)) * d; if (al < -(hl + o.len / 2 + .8) || al > 14) v.pass = null; else dodge = 1.5; }
   const P = T.peds;
-  for (let i = 0; i < P.length; i++) {
-    const p = P[i]; if (p.hidden) continue; const rx = p.x - v.x, ry = p.y - v.y, al = (ax ? rx : ry) * d; if (al <= 0 || al > hl + 6.5) continue; const lr = (ax ? ry : rx), la = lr < 0 ? -lr : lr; if (la > hw + .6) continue;
+  for (let i = 0, nP = P.length; i < nP; i++) {
+    const p = P[i]; if (p.hidden) continue; const rx = p.x - vx, ry = p.y - vy, al = (ax ? rx : ry) * d; if (al <= 0 || al > hl + 6.5) continue; const lr = (ax ? ry : rx), la = lr < 0 ? -lr : lr; if (la > hw + .6) continue;
     /* someone STANDING at the kerb edge of the lane (waiting at a bus stop with their toes on the asphalt: QA round 14's bus pile-up): go round slowly instead of waiting for ever */
     if (!p.moving) { const side = ((ax ? p.y : p.x) - (e.c + e.ls * (v.off + v.curb))) * e.ls, need = hw + .4 - side; if (side >= .3 && need <= .8) { if (need > dodge) dodge = need; if (slowTo > 2.6) slowTo = 2.6; if (la >= hw + .28) continue; } }
     if (la > .98) continue;
@@ -256,7 +257,7 @@ export function step(v, dt) {
       if (v.pre && n.signal) { n.pre = e.axis; n.preT = T.time + 1.2; }
       const sg = !n.signal ? 2 : ax ? n.gx : n.gy; let go = sg === 2 || (sg === 1 && line < 1.2 && v.v > 3), why = 0;
       /* perf: the box is only asked for from where the vehicle has to decide (it can still stop from there), and a vehicle standing at the line that was refused asks again every other frame */
-      if (go && v.gho <= 0 && line < 3 + v.v * v.v / 10) { why = v.v < .3 && v.why > 0 && v.why < 5 && ((T.tick + v.uid) & 1) ? v.why : canEnter(v, n, false); go = why === 0; }
+      if (go && v.gho <= 0 && line < 3 + v.v * v.v / 10) { why = v.v < .3 && v.why > 0 && v.why < 5 && (v.ck = !v.ck) ? v.why : canEnter(v, n, false); go = why === 0; }
       else if (sg === 0 && TUNE.rightOnRed && v.v < .3 && line < 1 && v.stuck > 1 && v.len < 5 && rank(e, v.ne) === 2 && v.gho <= 0) { go = canEnter(v, n, true) === 0; if (go && line < .5) T.stats.rightOnRed++; }   /* right turn on red, after a full stop, when nothing is coming */ v.why = go ? 0 : why || (sg === 2 ? 9 : 5);   // debug: why it is held at the line (1 box, 2 claim, 3 no exit room, 4 yield, 5 red light)
       if (!go) {
         if (line - .3 < adv) { adv = line - .3; lead = null; }

@@ -602,3 +602,6 @@ But yes start opus on small fixes and data seating etc, If you think it can hand
 Music is a bit too loud by default..
 
 Need a lot more cooking mini games and they need to match what's being made (at least to some degree, fan fry flipping smoothie? What? Need a blender mini fame a chopping onr a stirring one. Don't need to do more than one jusy make them and pick the most appropriate)
+
+## 159 (2026-11-16)
+Central Station need to be able to access and see the teain platform 1 and 2.  like the other stations.

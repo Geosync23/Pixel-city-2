@@ -45,7 +45,7 @@ const DDENS = { downtown: 1, oldtown: .7, harbor: .6, hillcrest: .3, maplewood: 
 const timeF = h => h < 5 ? .07 : h < 7 ? .07 + (h - 5) * .4 : h < 9.5 ? 1 : h < 16 ? .62 : h < 19 ? 1 : h < 22 ? .5 : .2;
 
 const all = [], free = [], near = []; let nearW = 0, simR = 40, mx = 25, my = 29, target = 0, refill = true, fx = 0, fy = 0, lfx = -999, lfy = -999, tA = 0, tB = 0, tP = 0;
-const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0, tG = 0, sigDt = 0, pdt = 0;
+const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0, tG = 0, sigDt = 0, pdt = 0, absGm = 0, absN = 0;
 
 function onScreen(x, y, m) { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m && sy < G.H + m + 30; }
 function countKind(k) { let n = 0; for (const v of T.list) if (v.kind === k) n++; return n; }
@@ -67,6 +67,8 @@ function release(v) {
   if (v.stand) { const j = v.stand.cabs.indexOf(v); if (j >= 0) v.stand.cabs.splice(j, 1); } if (v.bus) v.bus.veh = null;
   v.reset(); v.active = false; v.hidden = true; free.push(v);
 }
+/** well out of view (no terrain lookup: the vehicle knows its height). 28 px = 3.5 units: more than a vehicle drives between two checks */
+function farOff(v) { const sx = (v.x - v.y) * U - G.cam.x, sy = (v.x + v.y) * U / 2 - v.z * U - G.cam.y; return sx < -28 || sx > G.W + 28 || sy < -28 || sy > G.H + 58; }
 function clearLane(x, y, r) { for (const o of T.list) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r) return false; return true; }
 const AS = GT.asphalt, nearRoad = (x, y) => world.tileType(x, y) === AS || world.tileType(x + .7, y) === AS || world.tileType(x - .7, y) === AS || world.tileType(x, y + .7) === AS || world.tileType(x, y - .7) === AS;
 /** nobody within r along the lane of lane ref q (other lanes and the oncoming side do not count) */
@@ -192,7 +194,7 @@ function rebuildNear() {
 function housekeeping() {
   // despawn
   for (let i = T.list.length - 1; i >= 0; i--) {
-    const v = T.list[i], dx = v.x - fx, dy = v.y - fy, d2 = dx * dx + dy * dy; v.far = !v.ride && !onScreen(v.x, v.y, 64);
+    const v = T.list[i], dx = v.x - fx, dy = v.y - fy, d2 = dx * dx + dy * dy; v.far = !v.ride && farOff(v);
     if (v.bus) { if (d2 > (simR + 14) * (simR + 14) && v.role === 'bus') { busU(v.bus); release(v); } continue; }
     if (v.stand) { if (d2 > (simR + 12) * (simR + 12)) release(v); continue; }
     if (v.keep) continue;
@@ -258,7 +260,8 @@ function ensure() {
 
 function update(dt, gm) {
   if (!ready && !ensure()) return;
-  for (let i = 0; i < buses.length; i++) if (!buses[i].veh) busAbstract(buses[i], gm);
+  /* perf: the buses that are not on the street as vehicles move along their loops every fourth step, with the game minutes added up */
+  absGm += gm; if ((++absN & 3) === 0) { for (let i = 0; i < buses.length; i++) if (!buses[i].veh) busAbstract(buses[i], absGm); absGm = 0; }
   if (G.scene !== C) return;
   T.time += dt; T.lit = !!G.env && (G.env.dark || 0) > .35; sigDt += dt; if ((T.tick % 3) === 0) { signals(sigDt); sigDt = 0; }   /* perf: the lights are worked out every third step */
   const f = G.camTarget || G.player; fx = f.x; fy = f.y; mx = G.W / 32 + 12; my = G.H / 16 + 12; simR = Math.max(34, Math.min(70, Math.hypot(mx, my) / 1.414 + 2));
