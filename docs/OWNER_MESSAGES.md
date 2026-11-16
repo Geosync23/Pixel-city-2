@@ -652,3 +652,11 @@ Whwn watching shows or reading on yoir phone, it should be part screen, on phone
 
 ## 174 (2026-11-16)
 Well, we can. I guess you're right. Like, it's actually a choice, right? Because you could walk to the tower, you can get a cab to the tower, whatever. But if you take the bus, he follows you the whole way. Maybe he was supposed to take his bike, but he follows you the whole way. I think he should just stick with you. No matter what you do, he sticks with you. And if you get on the bus, he should get on it too.
+
+## 175 (2026-11-16)
+Is roughly 58% the right amount, or stricter or looser? Sounds good
+
+Some cheap pieces are in store only because they're seasonal or from a boutique brand, such as a $19 summer shirt. Keep that, or should cheap always mean orderable? Keep it that way
+
+
+Should a wish-listed in-store piece remind you when you walk past its shop? Yes
