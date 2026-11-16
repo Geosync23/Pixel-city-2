@@ -196,3 +196,4 @@
 - 2026-11-16: TRAILER 2 ROUND 4 published (version id 1794860537-3e2b; 61.2 s): each 'fully explorable' travel shot held a full bar (owner msg 213). Known flaw: cab under the viaduct is a ghost outline for ~1 s: worker re-shooting the cab shot.
 
 - 2026-11-16: TRAILER 2 cab re-shoot published (version id 1794861005-208b): cab on the Old Town river road, clear for the whole hold; current final cut 61.2 s.
+- 2026-11-16: TRAILER 2 FINAL published (version id 1794867386-89fd) and sent to the owner as a downloadable file (docs/trailer/Maple_Bay_Trailer.mp4, 61.2 s, 13.96 MB): opening corner and cab shot re-recorded at weekday evening rush with REAL density (cab street 0.9 -> ~32 people in view, 0.65 -> 3.8 moving vehicles; nothing spawned or raised); other held shots were already at rush-hour level. To check: the game appeared to freeze on Saturday from 10:00 (Blossom Festival start) in the worker's measurements.

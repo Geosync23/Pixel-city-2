@@ -60,6 +60,9 @@ export async function installHelpers(page) {
     T.free = (x, y, zoom) => { const G = window.G; G.player.hidden = true; G.player.path = null; T.cam.x = x; T.cam.y = y; T.cam.z = G.world.heightAt(x, y); G.player.x = x; G.player.y = y; G.camTarget = T.cam; if (zoom) G.setZoom(zoom); G.snapCam(); G.renderer.warm(G.world, G.cam); };
     T.move = (x, y, ride = true) => { const G = window.G; T.cam.x = x; T.cam.y = y; T.cam.z = G.world.heightAt(x, y); if (ride) { G.player.x = x; G.player.y = y; } G.snapCam(); };
     T.time = h => { const G = window.G; const d = Math.floor(G.state.t / 1440); G.state.t = d * 1440 + h * 60; };
+    /* density pass (owner msg 215): what is in view right now, read only: crowd citizens and traffic vehicles whose position is on screen */
+    T.count = () => { const G = window.G; if (!G.scene || G.scene.id !== 'city') return null; const on = e => { const s = G.toScreen(e.x, e.y, e.z || 0); return s.x > 0 && s.x < innerWidth && s.y > 0 && s.y < innerHeight; };
+      const veh = G.traffic.vehicles.filter(v => !v.hidden && v.active !== false && on(v)); return [G.crowd.citizens().filter(c => c.active && !c.hidden && on(c)).length, veh.filter(v => Math.abs(v.v || 0) > .3).length, veh.length]; };
     T.player = () => { const G = window.G; G.player.hidden = false; G.camTarget = null; G.snapCam(); };
   });
 }

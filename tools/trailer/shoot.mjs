@@ -15,7 +15,8 @@ for (const id of ids) {
     if (!ctx.frozen) { await freeze(page); ctx.frozen = true; }
     if (S.settle) await settle(page, S.settle);
     if (S.ready) await S.ready(ctx);
-    const n = Math.round((S.sec || 3) * FPS), dir = await record(page, id, n, S.frame ? (i, t) => S.frame(ctx, t, i) : null);
+    const dens = []; const n = Math.round((S.sec || 3) * FPS), dir = await record(page, id, n, async (i, t) => { if (S.frame) await S.frame(ctx, t, i); if (i % 3 === 0) { const d = await page.evaluate(() => window.TR && TR.count ? TR.count() : null).catch(() => null); if (d) dens.push(d); } });
+    if (dens.length) { const av = k => +(dens.reduce((a, d) => a + d[k], 0) / dens.length).toFixed(1); ctx.meta({ dens, people: av(0), moving: av(1), vehicles: av(2), clock: await page.evaluate(() => G.now().clock + ' wd' + G.now().weekday) }); console.log(id, 'in view: people', av(0), 'moving vehicles', av(1), 'all vehicles', av(2)); }
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(dir, '%05d.jpg'), '-c:v', 'libx264', '-crf', '10', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', path.join(SCRATCH, 'clips', id + '.mp4')]);
     const k = Math.max(1, Math.floor(n / 6));
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(dir, '%05d.jpg'), '-vf', `select='not(mod(n\\,${k}))',scale=640:-1,tile=3x2`, '-frames:v', '1', path.join(SCRATCH, 'strips', id + '.jpg')]);

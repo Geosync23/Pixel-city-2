@@ -44,6 +44,36 @@ const job = (id, z = 5, o = {}) => ({ url: city(o.h || 10), sec: o.sec || 8, set
     const open = G.minigame.isOpen() || G.modal > 0 || !!G.busy; if (open) { window._mg++; if (!G.busy) p.pose = 'work'; if (window._mg > 32) { try { G.minigame.abort(); } catch (e) { } if (G.busy) G.endActivity(false); const id = G.jobs.debugStep(); for (const w of document.querySelectorAll('#ui .modal, #ui .mg')) w.remove(); G.modal = 0; p.pose = null; window._mg = 0; window._cool = 6; window._log.push([i, 'done', id]); } return; }
     if (window._cool-- > 0 || p.path) return; const hh = G.jobs.hud(), h = hh && hh.orders; if (h && h[0]) { G.jobs.goStep(h[0].id); window._cool = 10; window._log.push([i, 'go', h[0].title, +p.x.toFixed(1), +p.y.toFixed(1), !!p.path]); } }, i).then(async () => { if (i === 235) console.log(JSON.stringify(await c.ev(() => window._log))); }) });
 
+/* ---- density pass (owner msg 215): the held city shots at each place's really busy hour, nothing added. ----
+   busy(): let the simulation run `min` seconds at the take's start position (the game fills the view by its own rules), reading what is in view once a second;
+   then wait up to `max` seconds in all for a moment at least as busy as the 85th percentile of what was seen. Only waiting; nothing is spawned or changed. */
+const busy = (min = 45, max = 75) => async c => { const seen = []; const score = d => d ? d[0] + 4 * d[1] : 0; for (let k = 0; k < max; k++) { await c.settle(1); const d = await c.ev(() => TR.count()); seen.push(score(d));
+    if (k >= min) { const srt = seen.slice().sort((a, b) => a - b), p85 = srt[Math.floor(srt.length * .85)]; if (score(d) >= p85) { console.log('busy: waited', k + 1, 's; in view', JSON.stringify(d), 'p85', p85, 'median', srt[srt.length >> 1]); return; } } } console.log('busy: took the moment at', max, 's'); };
+/* the clock runs while the street fills (1 s = 0.85 game minutes), so each shot starts about an hour before the time it is filmed at: START 16:12 -> filmed about 17:00-17:20 */
+const RUSH = 16.2;   // a weekday (day 0 = Monday), evening rush: traffic at its daily maximum (src/sim/traffic.js timeF = 1 from 16 to 19), crowd factor at its cap (weather.js crowdFactor: afternoon 1.0 x rush 1.3, capped at 1)
+const D = {
+  /* opening: same corner, hour, zoom and pan as before; 45-90 s of running instead of 14 */
+  d_open: { url: city(16.2), setup: free(236, 257, 3), ready: busy(), sec: 6, frame: pan([236, 257], [241.6, 257], 6) },
+  /* on foot: same walk across the City Hall plaza */
+  d_foot: { url: city(RUSH), setup: walk([216, 226], [238, 226], 3), ready: async c => { await busy()(c); await c.ev(() => window._walk()); }, sec: 3.4 },
+  /* bus: same follow shot from the same corner */
+  d_bus: Object.assign({ url: city(RUSH), sec: 3.4 }, bus(207, 244, 3), { settle: 55 }),   // the old helper (camera on the nearest moving bus), from the street the earlier bus shot was on, after 55 s of running
+  /* train: the camera waits at Central for 45 s, then for the next real departure (no clock jump), then follows the train as before */
+  d_train: { url: city(RUSH), sec: 3.4, setup: c => c.ev(() => { const S = G.rail.station('central'); TR.free(S.x, S.y - 2, 2); }),
+    ready: async c => { await busy(45, 60)(c); for (let k = 0; k < 400; k++) { const r = await c.ev(() => { const s = G.rail.trains().find(s => s.at === 'central' && s.toDepart < .3 && s.v < .01); if (!s) return null; window._tr = [s.dir, s.train]; return [s.dir, s.train, s.x, s.y, G.now().clock]; }); if (r) { console.log('train', JSON.stringify(r)); break; } await c.settle(.25); } await c.settle(2.5); },
+    frame: c => c.ev(() => { const s = G.rail.trainState(window._tr[0], window._tr[1]); TR.cam.x += (s.x - TR.cam.x) * .5; TR.cam.y += (s.y - TR.cam.y) * .5; TR.move(TR.cam.x, TR.cam.y); }) },
+  /* boardwalk: same place, hour, zoom and pan */
+  d_board: { url: city(17.65), setup: free(98, 344.5, 2), ready: busy(), sec: 3, frame: pan([98, 344.5], [98 + 5.6 / 2, 344.5], 3) },
+  /* cab: a real ride (G.transit.callTaxi, clinic to grocery) along the same Old Town river road. New: the camera does not ride with the cab. It waits on the river road (the game's crowd and
+     traffic live around the camera, so the street is in its steady state when the cab arrives; around a cab at full speed the game cannot fill the street fast enough) and drifts a little with the cab as it passes.
+     The see-through effect for things in front of the ridden cab stays switched off, as in the previous take. */
+  d_cab: { url: city(16.35), sec: 29,
+    setup: async c => { c.ev(async () => { await G.go('city', { x: 130, y: 196, fade: false }); const p = G.player; p.hidden = false; G.setZoom(3); TR.cam.x = 147; TR.cam.y = 233; TR.cam.z = G.world.heightAt(147, 233); G.camTarget = TR.cam; G.snapCam(); G.renderer.warm(G.world, G.cam); window._wait = 1; }); await wait(1200); },
+    ready: async c => { await busy(40, 60)(c); await c.ev(() => { window._p = G.transit.callTaxi('grocery', { silent: true }); }); },
+    frame: (c, t, i) => c.ev(i => { const r = G.transit.ride, v = r && r.vehicle; if (r && !window._rs) { window._rs = i; } if (v) { v.ghost = false; G.player.ghost = false; for (const e of G.scene.ents) if (e.ghost) e.ghost = false; }
+      const cx = v ? Math.max(146, Math.min(154, 150 + (v.x - 150) * .3)) : 147; TR.cam.x += (cx - TR.cam.x) * .2; TR.cam.y = 233; G.camTarget = TR.cam; const on = v && Math.abs(v.y - 233) < 1.5 && v.x > 137 && v.x < 163; if (on && !window._in) { window._in = i; return ['in', i, +v.x.toFixed(1)]; } if (!on && window._in && !window._out) { window._out = i; return ['out', i]; } return null; }, i).then(r => { if (r) { console.log('cab', JSON.stringify(r)); if (r[0] === 'in') c.meta({ in: r[1] }); else c.meta({ out: r[1] }); } }) },
+};
+
 export const SHOTS = {
   /* ================= TRAILER A: The City Wakes Up ================= */
   a01_light: { url: city(4.6), setup: free(34, 346, 1), settle: 3, sec: 7.4, frame: pan([34, 346], [44, 350], 7.4, { mins: 112 }) },
@@ -119,4 +149,5 @@ export const SHOTS = {
   x_barista: job('barista', 4), x_station: job('station_agent', 4), x_cook: job('line_cook', 4), x_fire: job('firefighter', 4), x_dj: job('radio_dj'), x_aqua: job('aquarist', 4), x_florist: job('florist'),
   x_tread: act('gym', 'gym_treadmill', 'treadmill', 4), x_weights: act('gym', 'gym_weights', 'weights'), x_dance: act('bar', 'dance', 'dancefloor', 4, { h: 21 }), x_piano: act('home:villa_belvedere', 'practice_instrument', 'instrument', 5, { h: 19 }),
   x_cookhome: act('home:marlowe_1br', 'cook', 'stove', 5, { h: 18.5 }), x_fish: act('city', 'fish_pier', 'fishing_spot', 4, { h: 18.3, at: [148, 250.6], label: 'fish' }), x_paint: act('home:easel_house', 'paint', 'easel', 4), x_pool: act('bar', 'play_pool', 'pool', 5, { h: 21 }),
+  ...D, d_cab2: D.d_cab, d_cab3: D.d_cab, d_bus2: D.d_bus, d_foot2: D.d_foot, d_open2: D.d_open, d_board2: D.d_board, d_foot3: D.d_foot, d_foot4: D.d_foot, d_bus3: D.d_bus, d_train2: D.d_train,
 };
