@@ -132,3 +132,4 @@
 112. (msg 152) iPhone 13 mini: do not worry about it for now (no further iPhone work or questions; the no-lookbehind / start-up-error safeguards stay).
 113. (msg 153) Asked for the status of each worker; answered (controller: built, proving with its fake-pad run; traffic: baseline measured, now editing the driving; QA lane idle).
 114. (msg 154) Asked to see the night-light change: the two comparison pictures (docs/shots/light_compare_1/2.png) were sent again; still waiting for his go-ahead.
+115. (msg 155) NIGHT LIGHT APPROVED: the trial look (light pools on the ground, people / objects lit as a whole by the nearest light, no pattern over characters) is to be implemented; queued on the Fable docket after bathrooms (docket order kept).

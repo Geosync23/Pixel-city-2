@@ -273,3 +273,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 ## Direction update 28 (owner msg 151, 2026-11-15) — real bathrooms; night light under the people
 - BATHROOMS are always real, drawn rooms. No "tap the Restroom door and you are relieved" anywhere (the SkyDeck was his example). Always: walk in, use a toilet, then wash hands at a sink. Bathrooms are unique per place (size, tiles, fixtures, mood matching the venue), not copies.
 - NIGHT LIGHT: the dithered streetlight pools are loved, but they must not be painted over the characters as a top layer. Direction shown to the owner as a before / after (docs/shots/light_compare_*.png; trial code in HISTORY): pools fall on the ground; each person / object is lit as a whole by the nearest light. IMPLEMENT ONLY AFTER HIS GO-AHEAD.
+
+## Direction update 29 (owner msg 155, 2026-11-16) — night light approved
+- The owner approved the trial look from docs/shots/light_compare_*.png: the dithered streetlight pools fall on the GROUND only; each person / object is drawn clean and lit as a whole by the nearest light; nothing is painted over characters as a top layer. Implement it (Fable work) in docket order.
