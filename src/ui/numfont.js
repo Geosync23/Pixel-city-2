@@ -11,7 +11,7 @@
 import { DIGITS_REGULAR, DIGITS_BOLD } from './_numfont_data.js';
 
 export const order = 5;
-const MODES = ['', 'a', 'b', 'c', 'd'], KEY = 'maplebay.num', DIG = 'U+0030-0039';
+const MODES = ['', 'a', 'b', 'c', 'd'], KEY = 'maplebay.num', DIG = 'U+0030-0039', DIGB = 'U+0030-0039,U+0042';   /* mode d also redraws the capital B (owner msg 172: Pixelify's B reads as a G) */
 const STACK = '"Pixelify Sans",ui-rounded,"Trebuchet MS",system-ui,sans-serif';
 const FAM = { a: 'MB Digits A', b: 'MB Digits A', c: 'MB Digits C', d: 'MB Digits D' };
 const MONEY = ['.hud-money b', '.hud-clock', '.ph-st-clock', '.ph-st-money', '.ph-big', '.ph-kv b', '.ph-row-r', '.shop-price', '.ph-w-clock', '.ph-nowline b'];
@@ -32,7 +32,7 @@ function faces(m) {
   let p;
   if (m === 'a') p = add(pixelSrc(), '400'); // one face at 400: bold text matches it and, with font-synthesis-weight:none, is not thickened
   else if (m === 'b') p = Promise.all([add(pixelSrc(), '400'), add(pixelSrc(), '400', { sizeAdjust: '112%', ascentOverride: '82.1%', descentOverride: '25%', lineGapOverride: '0%' }, 'MB Digits B')]).then(r => r[0]); // B: the same digits 12% larger, line metrics unchanged
-  else if (m === 'd') p = Promise.all([add(b64(DIGITS_REGULAR), '100 550'), add(b64(DIGITS_BOLD), '551 1000')]).then(r => r[0] && r[1]);
+  else if (m === 'd') p = Promise.all([add(b64(DIGITS_REGULAR), '100 550', { unicodeRange: DIGB }), add(b64(DIGITS_BOLD), '551 1000', { unicodeRange: DIGB })]).then(r => r[0] && r[1]);
   else p = Promise.all([add(LOCAL(400), '100 550'), add(LOCAL(700), '551 1000')]).then(r => r[0] || r[1]);
   return (loaded[m] = p);
 }

@@ -108,6 +108,10 @@ export const comp = {
   free(id) { for (const c of list) if (!id || c.id === id) c.hold = null; },
   update(dt) {
     if (!list.length || !G.scene || !G.world) return; const P = G.player, w = G.world; acc += dt; const think = acc > .45; if (think) acc = 0;
+    /* owner msg 172: company rides along. While the player is in a bus / cab / train the companions are aboard too (not drawn, not chasing the vehicle); they step out beside the player on arrival. */
+    const riding = !!(G.cutscene && G.cutscene.ride) || (P.hidden && !!safe(() => G.transit.ride, null));
+    if (riding) { for (const c of list) if (!c.aboard) { c.aboard = true; c.wasHidden = c.ch.hidden; c.ch.hidden = true; c.ch.path = null; } return; }
+    list.forEach((c, i) => { if (!c.aboard) return; c.aboard = false; if (!c.wasHidden) c.ch.hidden = false; const s = spotFor(i, null, c); c.tgt = s; c.ch.x = s.x; c.ch.y = s.y; c.ch.path = null; c.ch.pose = null; c.stuck = 0; c.ch.z = safe(() => w.heightAt(s.x, s.y), 0); c.ch.faceTo(P.x, P.y); });
     list.forEach((c, i) => {
       const ch = c.ch; if (ch.hidden) return;
       if (!G.scene.ents.includes(ch)) G.scene.ents.push(ch);

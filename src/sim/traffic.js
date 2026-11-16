@@ -78,7 +78,7 @@ function farOff(v) { const sx = (v.x - v.y) * U - G.cam.x, sy = (v.x + v.y) * U 
 function clearLane(x, y, r) { for (const o of T.list) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r) return false; return true; }
 const AS = GT.asphalt, nearRoad = (x, y) => world.tileType(x, y) === AS || world.tileType(x + .7, y) === AS || world.tileType(x - .7, y) === AS || world.tileType(x, y + .7) === AS || world.tileType(x, y - .7) === AS;
 /** nobody within r along the lane of lane ref q (other lanes and the oncoming side do not count) */
-function laneClear(q, r) { const ax = q.e.axis === 'x'; for (const o of T.list) { if (o.parked && o.curb >= .5) continue; if (o.e.axis !== q.e.axis) { if (Math.abs(o.x - q.x) < 5 && Math.abs(o.y - q.y) < 5) return false; continue; } if (Math.abs(ax ? o.y - q.y : o.x - q.x) < 1.4 && Math.abs(ax ? o.x - q.x : o.y - q.y) < r) return false; } return true; }
+function laneClear(q, r) { const ax = q.e.axis === 'x'; for (const o of T.list) { if (o.parked && o.curb >= .3) continue; if (o.e.axis !== q.e.axis) { if (Math.abs(o.x - q.x) < 5 && Math.abs(o.y - q.y) < 5) return false; continue; } if (Math.abs(ax ? o.y - q.y : o.x - q.x) < 1.4 && Math.abs(ax ? o.x - q.x : o.y - q.y) < r) return false; } return true; }
 function trySpawn(prefill, h) {
   if (nearW <= 0) return false; const p = G.player;
   for (let t = 0; t < 40; t++) {

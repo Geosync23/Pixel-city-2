@@ -27,7 +27,7 @@ import { ASSETS, assetSize } from '../art/registry.js';
 export const T = { list: [], peds: [], time: 0, tick: 0, lit: false, world: null, honkAt: 0, sfx: null, edges: null, reroute: null, onScreen: null,
   stats: { ghost: 0, ghostPre: 0, unstick: 0, replan: 0, reroute: 0, laneChange: 0, pass: 0, claim: 0, squeeze: 0, busSkip: 0, despawn: 0, rightOnRed: 0 }, busSkip: null };
 /** tunables (docs/reports/traffic2.md) */
-export const TUNE = { claimAfter: 2.5, replanAfter: 3, rerouteAfter: 5, passAfter: 2.5, ghostPre: 8, ghostAfter: 60, unstickAfter: 40, clearBox: 1.6, yieldTime: 1.8, rightOnRed: true, busKerb: .3, cabKerb: .6 };
+export const TUNE = { claimAfter: 2.5, replanAfter: 3, rerouteAfter: 5, passAfter: 2.5, ghostPre: 8, ghostAfter: 60, unstickAfter: 40, clearBox: 1.6, yieldTime: 1.8, rightOnRed: true, busKerb: .3, cabKerb: .35 };   // cabKerb .35: the cab's side is on the kerb line (.6 put it under the passenger who had just got out)
 const R = 1.3, HP = Math.PI / 2;
 let UID = 0;
 
@@ -109,7 +109,7 @@ function roomFor(v, n, f, foff) {
   const ax = f.axis === 'x', b0 = (ax ? n.x : n.y) + f.d * ((ax ? n.hx : n.hy) + TUNE.clearBox), lf = f.c + f.ls * foff, L = T.list; let free = 40, lv = 0, need = v.len + 1;   // lv: how far the last vehicle on that lane will still roll for sure
   for (let i = 0; i < L.length; i++) {
     const o = L[i]; if (o === v || o.e.axis !== f.axis) continue; const lo = ax ? o.y : o.x; if (Math.abs(lo - lf) > 1.2) continue; if (o.e !== f && o.e.d !== f.d) continue;
-    if ((o.parked || o.halt) && o.curb >= .5 && o.v < .1) continue;   // at the kerb: driven round, does not fill the lane
+    if ((o.parked || o.halt) && o.curb >= .3 && !o.bus && o.v < .1) continue;   // at the kerb: driven round, does not fill the lane
     const al = ((ax ? o.x : o.y) - b0) * f.d - o.len / 2; if (al < -o.len - 3 || al > 40) continue; if (o.inNode === n && o.e !== f) continue;   // still on his way in: counted below
     if (al < free) { free = al; lv = (o.stop && o.stop.e === f) || o.halt || o.ln < 14 ? 0 : o.v; }   /* about to stop (its bus stop, its own stop line): no credit for its speed */
   }
@@ -213,7 +213,7 @@ export function step(v, dt) {
   for (let i = 0; i < nL; i++) {
     const o = L[i]; if (o === v) continue; const rx = o.x - vx, ry = o.y - vy, al = (ax ? rx : ry) * d; if (al < -6 || al > 26) continue;
     const la = Math.abs(ax ? ry : rx); if (la > 5.2) continue; const par = o.e.axis === e.axis; if (la > (par ? 2.4 : hw + o.len / 2 - .1)) continue; const ohl = par ? o.len / 2 : o.wid / 2;
-    if (par && (o.parked || o.halt) && o.v < .1 && (o.curb >= .5 || o === v.pass)) {   // something standing at the kerb (a stand cab, a waiting cab), or the obstacle being overtaken: go round it
+    if (par && (o.parked || o.halt) && o.v < .1 && ((o.curb >= .3 && !o.bus) || o === v.pass)) {   // something standing at the kerb (a stand cab, a waiting cab), or the obstacle being overtaken: go round it
       /* on a road with two lanes each way the swerve takes part of the inside lane: only when nobody is beside or just behind there (else wait behind the parked car) */
       if (al > -hl - ohl - 1.5 && al < 10) { const need = o === v.pass ? 1.5 : .8; if (need > dodge && (!multi || v.off !== 3 || v.dg > .5 || laneFree(v, 1, -99))) dodge = need; } if (la < (o === v.pass ? 1.2 : 1) && al > 0 && v.gho <= 0) { const a2 = al - hl - ohl - .5; if (a2 < adv) adv = a2; } continue;
     }

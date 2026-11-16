@@ -642,3 +642,7 @@ Question- would it be possible for you to create a trailer for the game? If it j
 ## 171 (2026-11-16)
 [screenshot: the game at Wed Spring 3 15:18, a GELATO cart with an orange umbrella and its vendor standing on the asphalt of a street next to a corner building, cars beside it]
 This Gelato stand is in the middle of the road
+
+## 172 (2026-11-16)
+Dez cant get on the bus during the 2nd main story mission so he chases it
+B characters in text look like a g fix it please
