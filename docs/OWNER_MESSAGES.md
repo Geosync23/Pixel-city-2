@@ -666,3 +666,6 @@ Foot, bus cab train should all always be an option in map navigation or use the 
 
 ## 177 (2026-11-16)
 There shoild be quite a few more clothing stores
+
+## 178 (2026-11-16)
+All stores should also have some preset outfits.  Make then from exitisting items and they can sometimes be on mannequins in stores. Also a handful of new ones with items that also become buy able individually
