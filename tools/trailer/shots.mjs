@@ -17,4 +17,10 @@ export const SHOTS = {
   t_plane: { url: city(9), setup: c => c.ev(() => { TR.free(330, 40, 1); }), settle: 1, sec: 8,
     ready: c => c.ev(() => { const f = G.planes.landNow('airliner'); window._f = f; return f ? [f.cx, f.cy, f.alt, f.phase] : null; }).then(r => console.log(JSON.stringify(r))),
     frame: (c, t, i) => c.ev(i => { const f = window._f; if (i % 30 === 0) console.log; return [Math.round(f.cx), Math.round(f.cy), Math.round(f.alt), f.phase]; }, i).then(r => { if (i % 30 === 0) console.log(JSON.stringify(r)); }) },
+  t_cook: { url: city(18), setup: async c => { await c.ev(async () => { document.body.classList.add('tr-ui'); await G.go('int:home:marlowe_1br', { fade: false }); G.player.hidden = false; G.camTarget = null; window._r = G.skillplay.demo('ck_chop'); }); }, settle: 1, sec: 4 },
+  t_fish: { url: city(18), setup: async c => { await c.ev(async () => { document.body.classList.add('tr-ui'); await G.go('city', { x: 104.8, y: 361, fade: false }); G.player.hidden = false; G.camTarget = null; window._r = G.skillplay.demo('fish'); }); }, settle: 1, sec: 4 },
+  t_job: { url: city(10), setup: async c => { c.ev(async () => { document.body.classList.add('tr-ui'); window._r = G.jobs.debugStart('barista'); }); await new Promise(r => setTimeout(r, 2500)); }, settle: 2, sec: 4 },
+  t_date: { url: city(19), setup: async c => { c.ev(async () => { document.body.classList.add('tr-ui'); window._r = G.rel.debug.fire('fd.tasha'); }); await new Promise(r => setTimeout(r, 2500)); }, settle: 2, sec: 4 },
+  t_fest: { url: city(19), setup: async c => { c.ev(async () => { G.cityEvents.debug.start('lantern_parade'); G.cityEvents.debug.parade(); }); await new Promise(r => setTimeout(r, 2500)); }, settle: 3, sec: 4, ready: c => c.ev(() => [G.player.x, G.player.y, G.now().clock, G.zoom]).then(r => console.log(r)) },
+  t_rain: { url: city(19.5, '').replace('weather=clear', 'weather=rain'), setup: c => c.ev(() => { TR.free(222, 232, 2); }), settle: 5, sec: 3 },
 };

@@ -826,3 +826,12 @@ Open the second Fable slot for the trailer. Then park slot 1 when seating is don
 
 ## 204 (2026-11-16)
 Lwts make 2 trailers . #4. But then a mix of 2 and 3. Lots of door opening but first some city shots to.start us off and I like the lines from trailer 1 ""1 city", "4 ways to get around", "over N buildings to walk into", "your life, your pace".
+
+## 205 (2026-11-16)
+The arena scoreboard can't fade, so a player on the bench under it shows through as a half-transparent ghost. Is that enough, or should the bench move? Its fine
+
+Behind the classroom partition only your head shows when you face the camera. Fade the partition too? No
+
+Should the rocking chair be sold in a furniture shop? Yes
+
+The hop is 4 pixels over about a fifth of a second. Right size? Yes

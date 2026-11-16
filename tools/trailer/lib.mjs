@@ -19,8 +19,8 @@ export function serve(base) {
 
 /* everything that is UI, not world: HUD, phone, toasts, prompts, nav arrow, dev button, pad hints. Speech bubbles (.bubble) stay unless hideBubbles. */
 export const HIDE_CSS = `
-#ui > *:not(.bubble):not(.tr-keep) { display: none !important; }
-body.tr-ui #ui > .modal, body.tr-ui #ui > .mg, body.tr-ui #ui > .say { display: revert !important; }
+body:not(.tr-ui) #ui > *:not(.bubble):not(.tr-keep) { display: none !important; }
+body.tr-ui #goalsw, body.tr-ui #hud, body.tr-ui #ph-banners, body.tr-ui #ph-fab, body.tr-ui #nav-trip, body.tr-ui #nav-arrow, body.tr-ui #nav-stop, body.tr-ui #toasts, body.tr-ui #phone-layer, body.tr-ui .dev-btn { display: none !important; }
 `;
 
 export async function open({ url = '?scene=city&t=7', dist = true, hide = true, w = W, h = H, extraCss = '' } = {}) {
