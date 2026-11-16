@@ -719,3 +719,6 @@ Also, Yes run the mini games on both Fable slots
 
 ## 189 (2026-11-16)
 Ok understood thanks for the explanation
+
+## 190 (2026-11-16)
+How many lines of code are we at
