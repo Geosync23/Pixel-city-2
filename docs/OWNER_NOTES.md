@@ -177,3 +177,4 @@
 157. (msg 200) Owner allows ONE ADDITIONAL OPUS worker to help finish the work (team now: 1 Fable worker + 2 Opus + lead; the second Fable slot stays parked). Lead clarified that one Fable worker (seating follow-ups) is still running.
 158. (msg 201) Owner approved the three bathroom calls: SkyDeck street lobby gets its own small restroom; every City Hall restroom door leads to the one grand washroom; no city folk in restrooms for now. Keep going.
 159. (msg 202) Owner asked how close the Fable worker is to finishing seating and starting the trailer: lead estimated seating in its final checks, trailer not started; offered opening the second Fable slot for the trailer (owner to decide).
+160. (msg 203) TRAILER: open the second Fable slot for it now; when seating finishes, PARK that first Fable slot (so again 1 Fable worker). Music: the INDOORS song from the original eight tracks. The lead must PITCH SEVERAL TRAILER IDEAS and wait for the choice before building.

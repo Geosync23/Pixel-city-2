@@ -820,3 +820,6 @@ Those three calls are fine, keep going
 
 ## 202 (2026-11-16)
 How close is the Fable worker to finishing seating and making the trailer
+
+## 203 (2026-11-16)
+Open the second Fable slot for the trailer. Then park slot 1 when seating is done. Will the teailer have music? Please use the indoors song from the first few tracks you made. Pitch several trailer ideas before moving forward.

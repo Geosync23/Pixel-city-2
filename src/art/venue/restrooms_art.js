@@ -1,6 +1,7 @@
-// Real venue restrooms (owner msgs 151 + 192, BIBLE Direction update 28) — art. ids furn.wc.*; rooms: src/scenes/rooms/restrooms.js, logic: src/sim/restrooms.js.
+// Real venue restrooms (owner msgs 151 + 192, BIBLE Direction update 28): art. ids furn.wc.*; rooms: src/scenes/rooms/restrooms.js, logic: src/sim/restrooms.js.
 // Every piece takes p.style 'sky' (SkyDeck: dark stone, walnut, brass) | 'diner' (Dot's Diner: pink tile, teal metal, chrome) | 'hall' (City Hall: marble, oak, brass).
-// Only the toilet bowl core (bowl()) is shared between the three looks; everything else is drawn per style.
+// Only the toilet bowl core (bowl()) is shared between the looks; everything else is drawn per style. Batch 2 (restrooms_art2.js) adds the styles
+// service, station, mall, library, museum, gym, bar, arena to stall / bin / door / sign here, and its own basins, mirrors, floors and props.
 //   stall   {style, occ (door shut + feet / red light), left (draw the left partition)}  tag wcstall; seats[0] = on the toilet, use = in front of the door
 //   vanity  {style 'sky'|'hall'} (tag sink)       sink {style 'diner'} wall-hung basin + cracked mirror (tag sink)
 //   mirror  {style 'sky' round backlit | 'hall' arched gilt} (wall)     dryer (wall, diner chrome)      bin {style}
@@ -9,21 +10,21 @@
 import { box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, hash2, textS, isFlipped, PW, px, C } from '../../engine/raster.js';
 import { F, bx, post, frameY, frameX } from './_lib.js';
 
-const PORC = '#f4f1ea', BRASS = '#c9a35a', CHROME = '#d5dbe0', INK = '#2a2733';
-const shadow = (x0, x1, y0, y1) => qz(x0, x1, y0, y1, 0, '#2a1f4538');
-const dot = (x, y, z, h, dx = 0, dy = 0) => { const s = PW(x, y, z); px(Math.round(s[0]) + dx, Math.round(s[1]) + dy, C(h)); };
-const blob = (x, y, z, rx, ry, h) => { const s = PW(x, y, z); for (let Y = Math.ceil(s[1] - ry); Y <= Math.floor(s[1] + ry); Y++) { const t = (Y - s[1]) / ry, hw = rx * Math.sqrt(Math.max(0, 1 - t * t)); for (let X = Math.ceil(s[0] - hw); X <= Math.floor(s[0] + hw); X++) px(X, Y, C(h)); } };
+export const PORC = '#f4f1ea', BRASS = '#c9a35a', CHROME = '#d5dbe0', INK = '#2a2733';
+export const shadow = (x0, x1, y0, y1) => qz(x0, x1, y0, y1, 0, '#2a1f4538');
+export const dot = (x, y, z, h, dx = 0, dy = 0) => { const s = PW(x, y, z); px(Math.round(s[0]) + dx, Math.round(s[1]) + dy, C(h)); };
+export const blob = (x, y, z, rx, ry, h) => { const s = PW(x, y, z); for (let Y = Math.ceil(s[1] - ry); Y <= Math.floor(s[1] + ry); Y++) { const t = (Y - s[1]) / ry, hw = rx * Math.sqrt(Math.max(0, 1 - t * t)); for (let X = Math.ceil(s[0] - hw); X <= Math.floor(s[0] + hw); X++) px(X, Y, C(h)); } };
 /** a disc / ring on a +y plane (round mirror, porthole) */
-const discY = (cx, y, cz, r, h, h2) => { const p = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; p.push([cx + Math.cos(a) * r, y, cz + Math.sin(a) * r]); } fq(p, h, h2); };
+export const discY = (cx, y, cz, r, h, h2) => { const p = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; p.push([cx + Math.cos(a) * r, y, cz + Math.sin(a) * r]); } fq(p, h, h2); };
 
 /** upright lettering on a +y plane (each 3x5 glyph kept square, the line stepping down the wall), centred on x0..x1 with its top at z.
     The engine's textY skews every glyph column, which turns S into = at this size; signs here need to be read. */
-function label(str, x0, x1, y, z, c) {
+export function label(str, x0, x1, y, z, c) {
   const n = str.length, w = (n * 4 - 1) / 16, xm = (x0 + x1) / 2, fl = isFlipped(), A = PW(fl ? xm + w / 2 : xm - w / 2, y, z), B = PW(fl ? xm - w / 2 : xm + w / 2, y, z), q = Math.max(1, n * 4 - 1);
   for (let i = 0; i < n; i++) { const t = i * 4 / q; textS(str[i], Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), c); }
 }
 /** the same on a +x plane, centred on y0..y1 */
-function labelX(str, x, y0, y1, z, c) {
+export function labelX(str, x, y0, y1, z, c) {
   const n = str.length, w = (n * 4 - 1) / 16, ym = (y0 + y1) / 2, fl = isFlipped(), A = PW(x, fl ? ym - w / 2 : ym + w / 2, z), B = PW(x, fl ? ym + w / 2 : ym - w / 2, z), q = Math.max(1, n * 4 - 1);
   for (let i = 0; i < n; i++) { const t = i * 4 / q; textS(str[i], Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), c); }
 }
@@ -34,7 +35,7 @@ const heartY = (xc, y, zc, c) => { for (let i = 0; i < HEART.length; i++) { cons
 
 /* ---------- the one shared piece: a toilet bowl, side-on in its stall. x0 = the side wall it backs onto (it faces +x), cy = its centre along y.
    o: { hung, tank 'low'|'high'|'plate', seat, c, m (metal), tankC, plate } ---------- */
-function bowl(x0, cy, o) {
+export function bowl(x0, cy, o) {
   const c = o.c || PORC, sc = o.seat || c, m = o.m || CHROME;
   if (o.tank === 'high') {   // Victorian high cistern on brackets, flush pipe, pull chain
     const tc = o.tankC || '#3f5f4f'; bx(x0 + .01, cy - .25, 1.62, .05, .5, .05, dk(m, .2)); box(x0 + .02, cy - .22, 1.66, .22, .44, .24, tc); lw([x0 + .24, cy - .2, 1.72], [x0 + .24, cy + .2, 1.72], lt(tc, .25));
@@ -53,22 +54,48 @@ const ST = {
   sky: { w: 1.4, d: 1.6, top: 2.6, zb: .03, t: .08, door: .1, panel: '#4a3326', door2: '#5a3f2e', post: '#26272c', m: BRASS, toilet: { hung: true, tank: 'plate', plate: BRASS, seat: '#2b2b30' }, back: '#3a3d44' },
   diner: { w: 1.2, d: 1.5, top: 1.85, zb: .28, t: .05, door: .1, panel: '#3f9a94', door2: '#47a8a1', post: CHROME, m: CHROME, toilet: { tank: 'low', seat: '#2a2733' }, back: null },
   hall: { w: 1.6, d: 1.7, top: 2.25, zb: .16, t: .07, door: .12, panel: '#8a5a34', door2: '#9a6a3e', post: '#e8e2d6', m: BRASS, toilet: { tank: 'high', seat: '#8a5a34', m: BRASS, tankC: '#2f5f4f' }, back: '#e8e2d6' },
+  // batch 2
+  service: { w: 1.3, d: 1.5, top: 2.0, zb: .2, t: .05, panel: '#9aa3a8', door2: '#a8b0b4', post: '#7f878c', m: '#c2c8cc', toilet: { tank: 'low', seat: '#e8e4dc' }, back: '#c8ccd0', deco: 'rivets' },
+  station: { w: 1.3, d: 1.6, top: 2.1, zb: .18, t: .06, panel: '#5a7a9a', door2: '#6a8aaa', post: '#c2c8cc', m: CHROME, toilet: { hung: true, tank: 'plate', plate: '#c2c8cc', seat: '#2a2733' }, back: '#eef0ea', deco: 'coin' },
+  mall: { w: 1.5, d: 1.7, top: 2.4, dTop: 2.2, zb: .04, t: .07, panel: '#b8a6d8', door2: '#c4b4e0', post: '#e8e4f0', m: CHROME, toilet: { hung: true, tank: 'plate', plate: '#e8e8ec' }, back: '#efe6da', deco: 'rail' },
+  library: { w: 1.3, d: 1.5, top: 2.1, zb: .14, t: .06, panel: '#3f5a46', door2: '#4a6a52', post: '#e9e0cc', m: BRASS, toilet: { tank: 'low', seat: '#7a5a3a' }, back: '#e9e0cc', frames: true, deco: 'numeral' },
+  museum: { w: 1.4, d: 1.6, top: 2.5, dTop: 2.3, zb: .02, t: .06, panel: '#f2f0ec', door2: '#f8f6f2', post: '#2a2a2e', m: '#2a2a2e', toilet: { hung: true, tank: 'plate', plate: '#2a2a2e', seat: '#2a2a2e' }, back: '#f4f2ee', deco: 'edge' },
+  gym: { w: 1.2, d: 1.5, top: 1.9, zb: .25, t: .05, panel: '#e2572e', door2: '#ec6a3c', post: '#3a3f4c', m: '#c2c8cc', toilet: { tank: 'low', seat: '#2a2733' }, back: '#dfe3e6', deco: 'number' },
+  bar: { w: 1.2, d: 1.4, top: 1.9, zb: .22, t: .05, panel: '#2a2430', door2: '#33293a', post: '#1e1a22', m: '#8a8f98', toilet: { tank: 'low', seat: '#2a2733', c: '#e8e2d8' }, back: '#3a3040', deco: 'stickers' },
+  arena: { w: 1.2, d: 1.5, top: 1.95, zb: .22, t: .05, panel: '#d2392f', door2: '#dc4a3e', post: '#d8dcdf', m: CHROME, toilet: { hung: true, tank: 'plate', seat: '#2a2733' }, back: '#e6e6e2', deco: 'stripe' },
 };
+const STICK = ['#f2c230', '#4ad8f0', '#ff4a8a', '#9ccc4a', '#f4f0e8', '#b07af8'];
+/** per-style marks on a stall's outer partition (x-plane at x) and on its shut door (y-plane at y) */
+function decoX(s, p, x, D) {
+  if (s.deco === 'stickers') { const r = (p.seed || 3) * 7; for (let i = 0; i < 7; i++) { const y = .15 + ((i * 37 + r) % 100) / 100 * (D - .4), z = .5 + ((i * 53 + r) % 100) / 100 * 1.1, c = STICK[(i + r) % STICK.length]; qx(x, y, y + .14, z, z + .1, c); } labelX('ROCK', x, .3, .9, 1.5, '#f4f0e8'); }
+  else if (s.deco === 'stripe') { qx(x, 0, D - .1, 1.15, 1.25, '#f4f0e8'); }
+  else if (s.deco === 'rivets') { for (let y = .1; y < D - .1; y += .3) { dot(x, y, s.top - .08, dk(s.panel, .35)); dot(x, y, s.zb + .08, dk(s.panel, .35)); } }
+  else if (s.deco === 'rail') bx(x - .02, 0, s.top - .06, .04, D - .1, .04, CHROME);
+}
+function decoY(s, p, xa, xb, y) {
+  const n = String(p.n || 1);
+  if (s.deco === 'coin') { bx(xb - .36, y - .01, .98, .12, .03, .2, '#b8943a'); dot(xb - .3, y + .02, 1.12, '#3a2a14'); lw([xb - .33, y + .02, 1.05], [xb - .27, y + .02, 1.05], '#3a2a14'); }   // the old pay lock (10 cents)
+  else if (s.deco === 'numeral') { qy(xa + .25, xa + .55, y, 1.6, 1.78, BRASS); label(n === '2' ? 'II' : 'I', xa + .25, xa + .55, y, 1.75, '#3a2a14'); }
+  else if (s.deco === 'number') label(n, xa + .2, xa + .5, y, 1.6, '#f4f0e8');
+  else if (s.deco === 'edge') frameY(xa + .04, xb - .04, y, s.zb + .06, (s.dTop || 2.2) - .06, '#2a2a2e');
+  else if (s.deco === 'stickers') { for (let i = 0; i < 4; i++) qy(xa + .12 + i * .2, xa + .24 + i * .2, y, .7 + (i % 2) * .5, .8 + (i % 2) * .5, STICK[i + 1]); }
+  else if (s.deco === 'stripe') qy(xa, xb, y, 1.15, 1.25, '#f4f0e8');
+}
 const stSize = p => { const s = ST[p.style] || ST.diner; return [s.w, s.d, s.top + .06]; };
 function panelFace(s, x0, x1, y, z0, z1, c) {   // a door / partition face on +y, dressed per style
   qy(x0, x1, y, z0, z1, c);
-  if (s === ST.hall) { const i = .1; frameY(x0 + i, x1 - i, y, z0 + .12, (z0 + z1) / 2 - .05, dk(c, .3)); frameY(x0 + i, x1 - i, y, (z0 + z1) / 2 + .05, z1 - .12, dk(c, .3)); lw([x0 + i + .02, y, z1 - .14], [x1 - i - .02, y, z1 - .14], lt(c, .2)); }
+  if (s === ST.hall || s.frames) { const i = .1; frameY(x0 + i, x1 - i, y, z0 + .12, (z0 + z1) / 2 - .05, dk(c, .3)); frameY(x0 + i, x1 - i, y, (z0 + z1) / 2 + .05, z1 - .12, dk(c, .3)); lw([x0 + i + .02, y, z1 - .14], [x1 - i - .02, y, z1 - .14], lt(c, .2)); }
   else if (s === ST.sky) { for (let x = x0 + .12; x < x1 - .05; x += .12) lw([x, y, z0 + .05], [x, y, z1 - .05], dk(c, .12)); }
   else { lw([x0, y, z1 - .02], [x1, y, z1 - .02], lt(c, .3)); lw([x0, y, z0 + .02], [x1, y, z0 + .02], dk(c, .25)); }
 }
 function panelX(s, x, y0, y1, z0, z1, c) {
   qx(x, y0, y1, z0, z1, dk(c, .14));
-  if (s === ST.hall) { const i = .12; frameX(x, y0 + i, y1 - i, z0 + .12, (z0 + z1) / 2 - .05, dk(c, .38)); frameX(x, y0 + i, y1 - i, (z0 + z1) / 2 + .05, z1 - .12, dk(c, .38)); }
+  if (s === ST.hall || s.frames) { const i = .12; frameX(x, y0 + i, y1 - i, z0 + .12, (z0 + z1) / 2 - .05, dk(c, .38)); frameX(x, y0 + i, y1 - i, (z0 + z1) / 2 + .05, z1 - .12, dk(c, .38)); }
   else if (s === ST.sky) { for (let y = y0 + .14; y < y1 - .05; y += .14) lw([x, y, z0 + .05], [x, y, z1 - .05], dk(c, .24)); }
   else lw([x, y0, z1 - .02], [x, y1, z1 - .02], lt(c, .2));
 }
 function stall(p) {
-  const s = ST[p.style] || ST.diner, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner ? .05 : .1, dTop = s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H, occ = !!p.occ, cy = D * .45;
+  const s = ST[p.style] || ST.diner, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner || s.zb > .15 && s.deco ? .06 : .1, dTop = s.dTop || (s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H), occ = !!p.occ, cy = D * .45;
   const red = (q, pts, c) => { const X = Math.round(q[0]), Y = Math.round(q[1]); for (const [a, b] of pts) px(X + a, Y + b, C(c)); };
   if (s.back) qy(0, W, .01, 0, Math.min(H, 2.2), s === ST.hall ? (u, v) => (v % 10 === 0 ? '#d6cfc0' : (u + (v / 10 | 0) * 7) % 14 === 0 ? '#d6cfc0' : s.back) : s.back);   // the wall inside the stall
   shadow(.04, W - .04, .2, D - .1);
@@ -86,6 +113,7 @@ function stall(p) {
   if (!occ) { qx(W - T - .06, D - pw - .7, D - pw - .02, z0 + .02, dTop - .02, dk(s.door2, .2)); lw([W - T - .06, D - pw - .02, z0 + .02], [W - T - .06, D - pw - .02, dTop - .02], dk(s.door2, .5)); }
   // right partition (the next stall's left wall), outer face visible
   box(W - T, 0, z0, T, D - pw, H - z0, s.panel, { ol: false }); panelX(s, W, 0, D - pw, z0, H, s.panel);
+  if (s.deco) decoX(s, p, W, D);
   if (s === ST.diner && p.tag) { labelX('D+J', W, .7, 1.25, 1.45, INK); heartX(W, .4, 1.3, '#c8233a'); lw([W, 1.2, 1.0], [W, .7, 1.0], dk(s.panel, .3)); }   // carved into the partition
 
   // front: pilasters / posts
@@ -100,7 +128,8 @@ function stall(p) {
     panelFace(s, xa, xb, D - .02, z0 + .02, dTop - .02, s.door2); frameY(xa, xb, D - .02, z0 + .02, dTop - .02, dk(s.door2, .45));
     lw([xb - .1, D - .02, 1.0], [xb - .1, D - .02, 1.14], s.m); qy(xb - .3, xb - .14, D - .03, 1.2, 1.27, '#c8233a');
     if (s === ST.diner) heartY(xa + .3, D - .025, 1.4, '#c8233a');
-  } else qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a');   // vacant
+    if (s.deco) decoY(s, p, xa, xb, D - .025);
+  } else { qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a'); if (s.deco === 'coin' || s.deco === 'number' || s.deco === 'numeral') decoY(s, p, -.1, .5, D); }   // vacant (the number / lock shows on the post side)
   if (s === ST.sky) lit(() => { dot(W - pw / 2, D, 1.5, occ ? '#ff5a5a' : '#7df0a0'); dot(W - pw / 2, D, 1.53, occ ? '#ff8a8a' : '#b8ffcc'); });
 }
 
