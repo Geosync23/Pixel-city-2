@@ -108,7 +108,7 @@ function syncPlanner() {
   for (let d = d0; d < d0 + 7; d++) { const T = shiftT(job, d); if (!T || S.appts[d] || T.start <= G.state.t || T.start < j.from || j.off === d) continue;
     try { S.appts[d] = { id: P.add({ title: 'Shift at ' + vname(job), placeId: job.venue, t: T.start, dur: T.end - T.start, kind: 'work', data: { jobId: job.id } }), job: job.id }; } catch (e) { /* optional */ } }
 }
-const atWork = job => G.scene && G.scene.id === roomOf(job);
+const atWork = job => G.scene && (G.scene.id === roomOf(job) || (!!job.deskRoom && G.scene.id === 'int:' + job.deskRoom));   /* deskRoom: the shift may start in that room (the Station Agent's desk step) */
 function clockIn(force, withStory) {
   st(); const j = S.job; if (!j || S.shift) return false; const job = JOB_BY_ID[j.id], d = today(), now = G.state.t; let T = shiftT(job, d);
   if (force) T = { start: now, end: now + shiftHours(job) * 60 };
@@ -265,7 +265,7 @@ async function debugStart(jobId, level, opts) {   /* opts.story: clock in the wa
   st(); const job = JOB_BY_ID[jobId]; if (!job) return false; quiet = !(opts && opts.story); if (S.shift) endShift('early'); dbg = true;
   if (!S.job || S.job.id !== jobId) { if (S.job) quit('switch'); S.job = { id: jobId, level: level || 1, points: 0, hiredDay: today(), from: G.state.t, shifts: 0, streak: 0, warnings: 0, lastDay: -1, offWeek: -1 }; syncPlanner(); G.emit('job:hired', jobId, S.job.level); }
   if (level) S.job.level = level;
-  try { if (!atWork(job)) await G.go(roomOf(job)); } finally { dbg = false; }
+  try { if (!G.scene || G.scene.id !== roomOf(job)) await G.go(roomOf(job)); } finally { dbg = false; }   /* the job's own room (not its deskRoom) */
   return clockIn(true, !!(opts && opts.story));
 }
 function debugFinish() { st(); const sh = S.shift; if (!sh) return null; if (G.busy) G.endActivity(false); WK.pause(true); sh.auto = true; G.advance(Math.max(1, Math.ceil(sh.end - G.state.t))); if (S.shift) endShift('done'); return S.last; }

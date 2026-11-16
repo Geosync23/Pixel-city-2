@@ -89,22 +89,25 @@ KINDS.rhythm = E => {
   const o = E.def.o || {}, L = Math.max(1, Math.min(4, o.lanes || 3)), n = Math.round((o.notes || 14) + 8 * E.d), beat = 60 / ((o.bpm || 84) + 56 * E.d), T = 1.7 - .6 * E.d, notes = [], parts = [], x0 = 12, lw = (W - 24) / L, hitY = 90, topY = 4;
   let tt = 1.5, last = -1; for (let k = 0; k < n; k++) { let lane = o.alt ? k % L : Math.floor(Math.random() * L); if (!o.alt && L > 1 && lane === last && Math.random() < .5) lane = (lane + 1) % L; last = lane; notes.push({ t: tt, lane, q: -1 }); tt += beat * (E.d > .3 && Math.random() < .25 + .25 * E.d ? .5 : 1); }
   let now = 0, combo = 0, best = 0, sum = 0, padFlash = new Array(L).fill(0), padQ = new Array(L).fill(0), judged = 0; E.prog(0, n);
-  const end = tt + .5;
+  const end = tt + .5, hits = [], look = LOOK[o.look] || null;   /* o.look: an own picture over the same rules (LOOK below); hits = the last taps / misses it animates */
   const g = { done: false, score: 0,
     update(dt) {
       now += dt; stepParts(parts, dt); for (let k = 0; k < L; k++) padFlash[k] = Math.max(0, padFlash[k] - dt);
-      for (const nt of notes) if (nt.q < 0 && now - nt.t > .2) { nt.q = 0; judged++; combo = 0; E.prog(judged, n); E.beat(0, 'miss'); }
+      for (const nt of notes) if (nt.q < 0 && now - nt.t > .2) { nt.q = 0; judged++; combo = 0; E.prog(judged, n); E.beat(0, 'miss'); hits.push({ lane: nt.lane, q: 0, t: now, late: 1 }); }
+      while (hits.length > 6) hits.shift();
       if (now >= end) { g.done = true; g.score = clamp(sum / n); }
     },
     down(x) {
       const lane = clamp(Math.floor((x - x0) / lw), 0, L - 1); let bestN = null, bd = .22;
       for (const nt of notes) if (nt.q < 0 && nt.lane === lane) { const dd = Math.abs(nt.t - now); if (dd < bd) { bd = dd; bestN = nt; } }
       padFlash[lane] = .18;
-      if (!bestN) { padQ[lane] = 0; sum = Math.max(0, sum - .15); combo = 0; E.beat(0, 'miss'); return; }
+      if (!bestN) { padQ[lane] = 0; sum = Math.max(0, sum - .15); combo = 0; E.beat(0, 'miss'); hits.push({ lane, q: 0, t: now }); return; }
       const q = bd < .075 ? 1 : bd < .14 ? .75 : .45; bestN.q = q; sum += q; judged++; combo++; best = Math.max(best, combo); padQ[lane] = q; E.prog(judged, n);
-      spark(parts, x0 + lane * lw + lw / 2, hitY, q >= 1 ? GOLD : LANE_COL[lane], q >= 1 ? 8 : 4); E.beat(q, 'note'); if (combo > 2 && combo % 4 === 0) E.cap('Combo x' + combo);
+      hits.push({ lane, q, t: now }); if (look) spark(parts, look.at ? look.at(lane, x0, lw) : x0 + lane * lw + lw / 2, hitY - 6, q >= 1 ? GOLD : '#fffaf0', q >= 1 ? 8 : 4);
+      else spark(parts, x0 + lane * lw + lw / 2, hitY, q >= 1 ? GOLD : LANE_COL[lane], q >= 1 ? 8 : 4); E.beat(q, 'note'); if (combo > 2 && combo % 4 === 0) E.cap('Combo x' + combo);
     },
     draw(c) {
+      if (look) { look.draw(c, { notes, now, T, L, x0, lw, hitY, topY, padFlash, padQ, hits, judged, n, combo, E }); drawParts(c, parts); return; }
       for (let k = 0; k < L; k++) { box(c, x0 + k * lw, topY, lw, H - topY - 4, k % 2 ? '#3a3644' : '#454050'); R(c, x0 + k * lw + 1, hitY - 6, lw - 2, 12, padFlash[k] > 0 ? (padQ[k] > 0 ? '#ffffff' : BAD) : LANE_COL[k] + '99'); R(c, x0 + k * lw + 1, hitY - 1, lw - 2, 2, '#fff8e0'); if (E.theme.icons && E.theme.icons[k]) drawIcon(c, E.theme.icons[k], x0 + k * lw + lw / 2 - 8, hitY - 8, 1, .9); }
       for (const nt of notes) { if (nt.q >= 0 && nt.q > 0) continue; const y = hitY - (nt.t - now) / T * (hitY - topY); if (y < topY - 8 || y > H) continue; const x = x0 + nt.lane * lw + 4, w = lw - 8; R(c, x, y - 5, w, 10, INK); R(c, x + 1, y - 4, w - 2, 8, nt.q === 0 ? '#77707f' : LANE_COL[nt.lane]); R(c, x + 2, y - 3, w - 4, 2, '#ffffff66'); }
       drawParts(c, parts);
@@ -113,6 +116,98 @@ KINDS.rhythm = E => {
     stats: () => ({ combo: best, notes: n }),
   };
   return g;
+};
+
+/* ---- rhythm LOOKS (owner msg 198): the same falling-note rules (lanes = the left / right half of the picture, a note = a cue that reaches the line at its beat),
+   drawn as the thing you are doing. o.look 'knead' (ck_knead): hands come down to a ball of dough on a floured board; it squashes on a push (left), folds on a
+   fold (right), slumps on a miss. o.look 'pingpong' (the rally): the table from your end, the net, a ball served from the far side to your backhand (left, the
+   black rubber) or forehand (right, red); your paddle swings and the ball flies back. Nothing here changes timing or scoring. ---- */
+function ell(g, cx, cy, rx, ry, c) { g.fillStyle = c; cx = Math.round(cx); cy = Math.round(cy); const n = Math.max(1, Math.round(ry)); for (let y = -n; y <= n; y++) { const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry)))); g.fillRect(cx - w, cy + y, w * 2 + 1, 1); } }
+const lastHit = (S, lane) => { for (let i = S.hits.length - 1; i >= 0; i--) if (lane === undefined || S.hits[i].lane === lane) return S.hits[i]; return null; };
+const easeBack = a => (a >= 1 ? 0 : Math.sin(a * Math.PI) * (1 - a * .6));                     // 0 -> 1 -> 0 with a soft tail
+let FLOUR = null; const flour = () => FLOUR || (FLOUR = Array.from({ length: 70 }, (_, i) => { const r = Math.sin(i * 91.7) * 43758.5; const f = r - Math.floor(r), h = Math.sin(i * 12.9 + 4) * 9871.3; return [f, h - Math.floor(h), i % 3]; }));
+const LOOK = {};
+LOOK.knead = {
+  at: lane => (lane ? 108 : 72),                                                                 // where the hand meets the dough
+  draw(c, S) {
+    const { now, T, hitY, topY } = S, cx = 90, cy = 84;
+    R(c, 0, 0, W, H, '#8a5a2c'); for (let y = 0; y < H; y += 14) { R(c, 0, y, W, 1, '#6f4522'); R(c, 0, y + 1, W, 1, '#9a6a38'); }        // the worktop
+    box(c, 6, 3, W - 12, H - 6, '#d9b27a'); R(c, 7, 4, W - 14, 2, '#e8c690'); for (let y = 12; y < H - 6; y += 9) R(c, 9 + (y * 7) % 20, y, 40 + (y * 13) % 50, 1, '#c99d62');   // the board
+    for (const [fx, fy, k] of flour()) { const x = 10 + fx * (W - 20), y = 6 + fy * (H - 12), near = Math.hypot((x - cx) / 70, (y - cy) / 30) < 1; if (near || k === 0) R(c, x, y, k === 1 ? 2 : 1, 1, near ? '#fffaf0' : '#f6efdc'); }
+    ell(c, cx, cy + 3, 46, 13, '#efe3c6'); ell(c, cx, cy + 3, 40, 10, '#f6efdc');                   // the floured patch the dough sits on
+    for (let lane = 0; lane < 2; lane++) {                                                      // the two "lanes": faint flour trails down to a hand-print at the line
+      const lx = S.x0 + lane * S.lw + S.lw / 2; for (let y = topY + 4; y < hitY - 10; y += 6) R(c, lx - 1, y, 2, 2, '#f6efdc88');
+      const px = this.at(lane), f = S.padFlash[lane], col = f > 0 ? (S.padQ[lane] > 0 ? '#ffffff' : BAD) : '#fffaf0';
+      ell(c, px + (lane ? 10 : -10), hitY - 1, 9, 4, f > 0 ? col : '#f6efdcaa'); R(c, px + (lane ? 6 : -14), hitY - 1, 8, 1, f > 0 ? col : '#c99d62');
+    }
+    /* the dough: a push (left) squashes it flat and long, a fold (right) rolls it up taller with a crease, a miss leaves it slumped and sticky */
+    const h = lastHit(S), a = h ? (now - h.t) / .42 : 1, e = h ? easeBack(a) : 0, smooth = Math.min(1, S.judged / Math.max(1, S.n));
+    let rx = 25, ry = 14, dx = 0, crease = 0;
+    if (h && a < 1) { if (h.q <= 0) { rx += 5 * e; ry -= 3 * e; } else if (h.lane === 0) { rx += 9 * e; ry -= 5 * e; dx = 4 * e; } else { rx -= 4 * e; ry += 3 * e; crease = e; } }
+    const bob = Math.sin(now * 3) * .4, y0 = cy - ry * .35 + bob;
+    ell(c, cx + dx, cy + 4, rx + 2, 4, '#b8925c');                                              // shadow on the board
+    ell(c, cx + dx, y0, rx + 1, ry + 1, INK); ell(c, cx + dx, y0, rx, ry, h && a < 1 && h.q <= 0 ? '#e9cf9c' : '#f3dcae');
+    ell(c, cx + dx, y0 + ry * .35, rx - 2, ry * .55, '#e2c38e'); ell(c, cx + dx - rx * .25, y0 - ry * .35, rx * .45, ry * .35, '#fff1cf');   // shade + highlight
+    if (smooth < .8) for (let k = 0; k < 4; k++) { const lx = cx + dx + Math.cos(k * 2.1 + 1) * rx * .55, ly = y0 + Math.sin(k * 2.1 + 1) * ry * .45; R(c, lx, ly, 2, 1, '#d4b07a'); }   // lumps: gone as it comes together
+    if (crease > .05) { line(c, cx - rx * .6, y0 - 1, cx + rx * .6, y0 - 1 - 3 * crease, '#c9a46e'); ell(c, cx + rx * .15, y0 - ry * .5, rx * .5, ry * .3 * crease + 1, '#fbe6bc'); }   // the folded flap
+    if (h && h.q > 0 && h.lane === 0 && a < .6) for (let k = 0; k < 3; k++) R(c, cx + dx + rx - 2 + k * 3, y0 - 2 + k * 2, 2, 1, '#ffffff');   // pushed: a little flour flies off the end
+    if (h && h.q <= 0 && a < .8) { c.globalAlpha = .7 * (1 - a); ell(c, cx, y0 - ry - 3, 10 + a * 10, 4 + a * 3, '#ffffff'); c.globalAlpha = 1; }                  // a miss: a puff of flour
+    /* the hands: each cue is a floury hand coming down its side; at the line it is on the dough */
+    for (const nt of S.notes) {
+      if (nt.q > 0) continue; const u = (nt.t - now) / T; if (u > 1.05 || u < -.25) continue; const y = hitY - u * (hitY - topY);
+      const lx = S.x0 + nt.lane * S.lw + S.lw / 2, tx = this.at(nt.lane) + (nt.lane ? 10 : -10), x = lx + (tx - lx) * Math.max(0, Math.min(1, 1 - u * 1.4));
+      hand(c, x, y - 4, nt.lane, nt.q === 0);
+    }
+    const hh = lastHit(S); if (hh && hh.q > 0 && now - hh.t < .22) hand(c, this.at(hh.lane) + (hh.lane ? 10 : -10) + (hh.lane ? -3 : 3), hitY - 6, hh.lane, false, true);   // the hand at work
+  },
+};
+/** a hand seen from above, fingers pointing down the board: lane 0 = the left hand (pink sleeve, flat: push), lane 1 = the right (blue sleeve, curled: fold) */
+function hand(c, x, y, lane, grey, press) {
+  x = Math.round(x); y = Math.round(y); const skin = grey ? '#a8a2ad' : '#f0c39a', dark = grey ? '#77707f' : '#d39a6e', cuff = grey ? '#77707f' : LANE_COL[lane];
+  R(c, x - 6, y - 9, 12, 5, INK); R(c, x - 5, y - 8, 10, 3, cuff); R(c, x - 5, y - 8, 10, 1, '#ffffff55');                                       // sleeve cuff
+  R(c, x - 6, y - 5, 12, press ? 8 : 9, INK); R(c, x - 5, y - 4, 10, press ? 6 : 7, skin); R(c, x - 5, y + 1, 10, 1, dark);                     // palm
+  if (lane === 0) { for (let k = 0; k < 4; k++) { R(c, x - 5 + k * 3, y + 3, 2, press ? 3 : 4, INK); R(c, x - 5 + k * 3, y + 3, 1, press ? 2 : 3, skin); } R(c, x + 5, y - 3, 3, 4, INK); R(c, x + 5, y - 2, 2, 2, skin); }   // flat fingers + thumb
+  else { R(c, x - 6, y + 3, 12, 3, INK); R(c, x - 5, y + 3, 10, 2, dark); for (let k = 1; k < 4; k++) R(c, x - 5 + k * 3 - 1, y + 3, 1, 2, INK); R(c, x - 8, y - 3, 3, 4, INK); R(c, x - 7, y - 2, 2, 2, skin); }   // curled fingers + thumb
+  if (!grey) { R(c, x - 3, y + (lane ? 4 : 6), 1, 1, '#ffffff'); R(c, x + 2, y + (lane ? 4 : 5), 1, 1, '#ffffff'); }                               // flour on the fingertips
+}
+LOOK.pingpong = {
+  at: lane => (lane ? 132 : 48),
+  draw(c, S) {
+    const { now, T, hitY } = S, FY = 12, NY = 96, half = y => 38 + (y - FY) / (NY - FY) * 44, tx = (y, u) => 90 + (u - .5) * 2 * half(y);   // table: far edge y 12, near edge y 96
+    R(c, 0, 0, W, H, '#4a4660'); R(c, 0, 0, W, 22, '#3b3850'); R(c, 0, 22, W, 1, '#2a2733');                                   // the room behind
+    R(c, 0, 58, W, H - 58, '#6b5a4a'); for (let y = 62; y < H; y += 8) R(c, 0, y, W, 1, '#5d4e40');                                           // floor
+    for (let y = FY; y <= NY; y++) { const hw = half(y); R(c, 90 - hw - 1, y, hw * 2 + 2, 1, INK); R(c, 90 - hw, y, hw * 2, 1, y === FY || y === NY ? '#ffffff' : '#2f7f5f'); R(c, 90 - hw, y, 1, 1, '#ffffff'); R(c, 90 + hw - 1, y, 1, 1, '#ffffff'); }
+    R(c, 90, FY, 1, NY - FY, '#ffffffaa'); R(c, 6, NY + 1, W - 12, 3, INK); R(c, 7, NY + 1, W - 14, 2, '#245f47');                         // centre line, front edge
+    R(c, 14, NY + 4, 4, 8, INK); R(c, W - 18, NY + 4, 4, 8, INK);                                                                         // legs
+    const NETY = 42, nhw = half(NETY);                                                                                                    // the net
+    R(c, 90 - nhw - 3, NETY - 8, 2, 9, INK); R(c, 90 + nhw + 1, NETY - 8, 2, 9, INK); R(c, 90 - nhw - 1, NETY - 7, nhw * 2 + 2, 7, '#2a273399');
+    for (let x = 90 - nhw; x < 90 + nhw; x += 3) R(c, x, NETY - 7, 1, 7, '#d9d9e055'); for (let y = NETY - 6; y < NETY; y += 2) R(c, 90 - nhw, y, nhw * 2, 1, '#d9d9e033'); R(c, 90 - nhw - 1, NETY - 8, nhw * 2 + 2, 1, '#ffffff');
+    /* the balls: the next one is served when the one before it is due (never shown for less than .45 s), lands on your half, comes up to the line */
+    let prevT = -9, opp = 90, served = 0;
+    for (let i = 0; i < S.notes.length; i++) {
+      const nt = S.notes[i], start = Math.min(nt.t - .45, Math.max(nt.t - T, prevT)); prevT = nt.t;
+      if (nt.q > 0 || now < start || now > nt.t + .25) continue; const u = Math.max(0, (now - start) / (nt.t - start)), side = nt.lane ? .78 : .22;
+      if (u <= 1 && !served) { opp = tx(FY, .5 + (side - .5) * .3); served = 1; }
+      const gy = FY + 4 + (hitY - FY - 4) * Math.min(1.3, u), gx = tx(Math.min(NY, gy), .5 + (side - .5) * Math.min(1.3, u));
+      const B = .62, z = u < B ? Math.sin(u / B * Math.PI) * 14 + (1 - u / B) * 4 : Math.sin((u - B) / (1 - B) * Math.PI / 2) * 9;   // over the net, one bounce on your side, up to the bat
+      if (u < 1.05) ell(c, gx, gy, 3, 1, '#1e4a38'); const r = u > .5 ? 2 : 1.5;
+      if (u > .45 && u < 1) { c.globalAlpha = .35; ring(c, tx(Math.min(NY, FY + 4 + (hitY - FY - 4) * B), .5 + (side - .5) * B), FY + 4 + (hitY - FY - 4) * B, 3, '#ffffff'); c.globalAlpha = 1; }
+      disc(c, gx, gy - z, Math.ceil(r) + 1, INK); disc(c, gx, gy - z, Math.ceil(r), nt.q === 0 ? '#c9c2b8' : '#fff4dc'); R(c, gx - 1, gy - z - 1, 1, 1, '#ffffff');
+    }
+    R(c, opp - 3, FY - 9, 7, 6, INK); R(c, opp - 2, FY - 8, 5, 4, '#d8342e'); R(c, opp, FY - 3, 1, 3, '#b8794a');                     // the other player's bat at the far end
+    /* the return: a good hit flies back over the net */
+    const h = lastHit(S);
+    if (h && h.q > 0 && now - h.t < .32) { const u = (now - h.t) / .32, sx = this.at(h.lane), gy = hitY - (hitY - FY - 4) * u, gx = sx + (90 + (h.lane ? -14 : 14) - sx) * u, z = Math.sin(u * Math.PI) * 12 + 6 * (1 - u);
+      disc(c, gx, gy - z, 2, INK); disc(c, gx, gy - z, 1, '#fff4dc'); }
+    /* the hit line at your end and your bat: it swings to the side you tap (black rubber = backhand on the left, red = forehand on the right) */
+    for (let lane = 0; lane < 2; lane++) { const f = S.padFlash[lane]; R(c, S.x0 + lane * S.lw + 4, hitY + 2, S.lw - 8, 1, f > 0 ? (S.padQ[lane] > 0 ? '#ffffff' : BAD) : '#ffffff44'); }
+    const nx = S.notes.find(q => q.q < 0), want = nx ? nx.lane : null, idle = h && now - h.t < .5 ? h.lane : want;
+    const bx = idle === null ? 90 : this.at(idle), sw = h && now - h.t < .16 ? 1 - (now - h.t) / .16 : 0, by = hitY + 6 - sw * 6, lane = idle === null ? 1 : idle;
+    const dir = lane ? 1 : -1, rub = lane ? '#d8342e' : '#2a2733';
+    line(c, bx - dir * 2, by + 3, bx - dir * 7, by + 12, INK, 4); line(c, bx - dir * 2, by + 3, bx - dir * 7, by + 12, '#b8794a', 2);  // handle
+    disc(c, bx, by - 1, 7, INK); disc(c, bx, by - 1, 6, rub); R(c, bx - 3, by - 5, 3, 2, lane ? '#ff8a7a' : '#57527a');               // rubber
+    if (sw > 0) { c.globalAlpha = .5 * sw; line(c, bx + dir * 9, by + 8, bx + dir * 2, by - 10, '#ffffff', 1); c.globalAlpha = 1; }
+  },
 };
 
 /* ---- trace: drag along the dotted path; the strokes you leave are the picture ---- */

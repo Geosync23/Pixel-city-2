@@ -130,14 +130,16 @@ New: `src/sim/restrooms.js` (mechanism), `src/scenes/rooms/restrooms.js` (the th
 ## 6. Checks run (by the worker)
 
 - `node src/data/validate.mjs` exit 0. `node tools/build.mjs` OK. `grep -c '(?<[=!]' dist/index.html` = 0.
-- Size: the same tree built without the three new files 15,082,325 B, with them 15,106,898 B = **+24.6 KB** (budget 50 KB).
-- `node tools/restrooms_check.mjs` (390x844, touch, New Game + `G.intro.skip()`, every step by a finger tap on the canvas; rooms are bigger than the
-  phone screen so the script walks there by tapping the floor first, as a player does): **all passed, 0 page errors**:
+- Size: the same tree built without the three new files 15,082,325 B, with them 15,106,146 B = **+23.8 KB** (budget 50 KB; the whole file is 14.75 MB of 16).
+- `node tools/restrooms_check.mjs` (390x844, touch, New Game + `G.intro.skip()`; every USE (door, toilet, basin, way out) is a finger tap on the
+  canvas; rooms are bigger than the phone screen, so when the target is off screen the script first walks the player near it with the game's
+  pathfinder `G.player.goTo`, the call a floor tap makes; venues are reached by `G.go('int:<venue>')`, not by walking the city): **30/30 passed, 0 page errors**:
   for each of the three: door present and leads to the room; tap -> walk -> inside; Toilet: activity runs, player hidden, stall door shut, bladder
   17-18 -> 100, door open again after; Wash hands: hygiene +8.8..+8.9; bladder full -> "You do not need to go right now." and no visit; way out ->
   back in the venue at exactly the door spot; diner: leaving unwashed -> the nudge once; night (22:30): in, toilet, out. Guide: need goal from the
   diner -> arrow "The restroom" on the door -> inside "A free stall" -> goal ends on the seat. A home bathroom (Juniper Court): in, toilet, bladder 100.
-- navcheck / nightcheck / perf --verify: see the end of this file.
+- `node tools/navcheck.mjs --rooms all`: all passed, 0 page errors (291 rooms, incl. `skydeck:wc`, `diner:wc`, `cityhall:wc`: 1 door each, routes to
+  the venue and the city found). `node tools/nightcheck.mjs`: all checks passed. `node tools/perf.mjs --verify`: VERIFY OK (same pixels), 0 page errors.
 - Screenshots looked at, full size, by the worker: `out/shots/bath_<diner|skydeck|cityhall>_{0_door,1_room_day,2_inuse,3_wash,4_back,5_room_night,
   6_inuse_night}.png`, `bath_guide_1_venue.png`, `bath_guide_2_room.png`, `bath_home_inuse.png`; wide views of each whole room at 1200-1400 px
   (`out/shots/v_*.png`) and the asset sheets (`out/gallery/wc*.png`).

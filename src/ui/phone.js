@@ -18,8 +18,9 @@
 //   setWaypoint(placeOrId | null) / waypoint()   the on-screen guide arrow (phone_map.js); emits 'waypoint'(place | null)
 //   part -> null | 'video' | 'read'   PART-SCREEN (owner msg 173, BIBLE update 37): a view that watches or reads calls ctx.partScreen('video' | 'read', { start?: 'full' })
 //        while it renders; the phone then shrinks to a sheet docked at the bottom (video ~43% of the height, reading ~60%), G.modal drops back (the world,
-//        the clock at 1x / 2x / 4x and the HUD run; o.rate = a slower pace for text you read yourself), the player holds the phone (a hold activity 'On your phone', or the seat they are already on keeps them
-//        seated with its clock taken over), world taps are ignored (G.busy). Header buttons: Bigger (back to the full, paused phone) / Smaller, Stop.
+//        the clock at 1x / 2x / 4x and the HUD run at the normal rate for video AND reading (owner msg 199: no slow reading pace; o.rate is kept as an option but nothing passes it), the player holds the phone (a hold activity 'On your phone', or the seat they are already on keeps them
+//        seated with its clock taken over), world taps are ignored (G.busy). Header button: Stop. No Bigger / Smaller (owner msg 199: "Get rid of bigger. We need to show the
+//        world keeps going."): watching and reading always stay docked; the HUD phone button / M / Q while docked = Stop (put the phone away).
 //        Ends by itself when the view goes, the phone closes, the scene changes, or something else ends the hold (a need at its floor, a Chapter, HUD Stop).
 //        setPart(kind | null) -> bool.     Every other view opens full and pauses time as before.
 // Events: 'phone:open'(appId | null), 'phone:close', 'phone:notify'(entry), 'phone:unlock'(appId), 'phone:app'(appId), 'phone:part'(kind | null)
@@ -170,8 +171,7 @@ function render(anim) {
         el('span.ph-head-t', null, el('b', { text: v.title || d.name }), root0 && d.question ? el('small', { text: d.question }) : null), sz), b, foot);
     try { if (v.fn) v.fn(b, c); else if (v.app === 'notifications') logView(b, c); else impl.get(v.app).render(b, c); }
     catch (e) { console.error('phone app', v.app, e); b.replaceChildren(empty('ui.warning', 'This app hit a snag', 'Try again in a moment.')); }
-    if (v.part) sz.append(el('button.ph-szb', { 'data-ps': 'size', 'aria-label': 'Bigger or smaller', onclick: () => sizeTo(v, !!part) }, el('span', { text: part ? 'Bigger' : 'Smaller' })),
-      el('button.ph-szb.x', { 'data-ps': 'stop', 'aria-label': 'Stop and put the phone away', onclick: () => close() }, el('span', { text: 'Stop' })));
+    if (v.part) sz.append(el('button.ph-szb.x', { 'data-ps': 'stop', 'aria-label': 'Stop and put the phone away', onclick: () => close() }, el('span', { text: 'Stop' })));
     else if (part) setPart(null);
   }
   if (!v && part) setPart(null);
@@ -214,7 +214,7 @@ function openApp(id, arg) {
 }
 function open(appId, arg) {
   if (!layer || G.onTitle) return false;
-  if (isOpen && part && !appId) { const v = current(); if (v) sizeTo(v, true); else setPart(null); return true; }   /* part-screen: the HUD phone button / M makes the player bigger instead of leaving it */
+  if (isOpen && part && !appId) { close(); return true; }   /* part-screen: the HUD phone button / M puts the phone away (owner msg 199: no Bigger) */
   if (!isOpen) {
     isOpen = true; G.modal++; depth = G.modal; layer.classList.add('open'); layer.setAttribute('aria-hidden', 'false'); stack = [];
     const p = G.player; if (p && !p.pose && !G.busy && !G.cutscene) { p.pose = PHONE.openAnim || 'phone'; posed = true; }
@@ -263,13 +263,7 @@ function holdTick() {
   if (hold.own) { if (G.busy !== hold.own) return lost(); hold.own.rate = clockRate(); hold.own.left = 99999; return; }
   if (hold.b) { if (G.busy !== hold.b) { hold = null; return lost(); } hold.b.rate = clockRate(); hold.b.left = hold.left; }   // the seat does not run out while you watch
 }
-/* the Bigger / Smaller button. A view that lays itself out for the space it has (Pages' pagination) is drawn again (v.refit runs first) */
-function sizeTo(v, big) {
-  const was = part; if (v.refit && big === !!was) safe(() => v.refit(), 0); v.big = big;   // only when the size really changes
-  if (!setPart(big ? null : v.part)) { v.big = true; tip('Part-screen works when you are free, sitting down or on a ride.'); return; }
-  if (v.refit && !part !== !was) refresh();
-}
-function sizeLabel() { if (viewEl) for (const q of viewEl.querySelectorAll('.ph-szb[data-ps=size] span')) q.textContent = part ? 'Bigger' : 'Smaller'; }
+/* (the Bigger / Smaller button and its sizeTo / sizeLabel were removed for owner msg 199: watching and reading always stay docked) */
 function dock() {
   const ui = root(); if (!part) { ui.classList.remove('ph-part'); ui.style.removeProperty('--phh'); G.camDY = 0; return; }
   const h = body.getBoundingClientRect().height || 0, u = ui.getBoundingClientRect(); ui.classList.add('ph-part'); ui.style.setProperty('--phh', Math.round(h) + 'px');
@@ -277,7 +271,7 @@ function dock() {
   G.camDY = u.width > 560 ? 0 : Math.round(h / 2) / (G.cssScale || 1);
 }
 function partOff() {
-  if (!part) return; part = null; holdOff(); layer.classList.remove('part', 'part-video', 'part-read'); dock(); sizeLabel(); G.emit('phone:part', null);
+  if (!part) return; part = null; holdOff(); layer.classList.remove('part', 'part-video', 'part-read'); dock(); G.emit('phone:part', null);
 }
 /** shrink to / grow from part-screen. Returns true when the phone is now in the asked state. */
 function setPart(kind) {
@@ -285,7 +279,7 @@ function setPart(kind) {
   if (!part) { if (!canPart()) return false; part = kind; G.modal = Math.max(0, G.modal - 1); depth--; layer.classList.add('part'); }
   else if (part === kind) return true;
   part = kind; layer.classList.remove('part-video', 'part-read'); layer.classList.add('part-' + kind);
-  if (hold && hold.own) hold.own.label = PS_LABEL[kind]; holdOn(); dock(); sizeLabel(); G.emit('phone:part', kind); return true;
+  if (hold && hold.own) hold.own.label = PS_LABEL[kind]; holdOn(); dock(); G.emit('phone:part', kind); return true;
 }
 
 /* ---------- boot ---------- */
@@ -312,7 +306,7 @@ function keys() {
   addEventListener('keydown', e => {
     if (!isOpen || G.modal > depth) return; const k = e.key.toLowerCase(), typing = /^(input|textarea|select)$/i.test((e.target && e.target.tagName) || '');
     if (k === 'escape') { e.preventDefault(); e.stopPropagation(); back(); }
-    else if (!typing && part && (k === 'm' || k === 'q')) { e.preventDefault(); e.stopPropagation(); open(); }   /* docked: the phone key makes it bigger, as the HUD's phone button */
+    else if (!typing && part && (k === 'm' || k === 'q')) { e.preventDefault(); e.stopPropagation(); close(); }   /* docked: the phone key puts the phone away, as the HUD's phone button (no Bigger, owner msg 199) */
     else if (!typing && (k === 'm' || k === 'q' || (!part && (k === 'p' || k === 'tab')))) { e.preventDefault(); e.stopPropagation(); close(); }   /* part-screen: P / 1 2 4 / Tab reach the HUD (pause, speed, needs) */
   }, true);
   G.on('key', k => { if (!G.hud && (k === 'p' || k === 'tab' || k === 'm' || k === 'q')) open(); });

@@ -34,6 +34,7 @@ export const TUNE = {
   contextLabel: { ride: 'On the move: +25% fun', queue: 'Killing time in the queue: +25% fun', bench: 'Park bench break: +10% fun', home: '', out: '' },
   lateEnergyPerHour: -1.5, lateHours: [23, 5],
   CLOCK: { read: 0.1, play: 0.2 },   // game minutes per real second while reading a short read (a 500-word piece = ~13 game minutes) / playing a game (a 60 s round = 12)
+  // (owner msg 199: reading is always docked with the clock at the NORMAL rate now; CLOCK.read is only the PAY unit of a short read: fun / screen time per real second read)
   FILM_MINUTES: 20,             // game minutes a film costs on the phone (the cinema show is ~100)
   READ_WPM: 230,                // "real reading speed": a page is worth words / READ_WPM real minutes, time stops counting at 1.6x that
   bookSittings: [15, 30, 60],   // game minutes; an owned book runs like an activity (fast clock, cancellable)

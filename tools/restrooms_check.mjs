@@ -1,6 +1,8 @@
 // Real venue restrooms check (src/sim/restrooms.js): New Game at 390x844 touch, then for each venue with a real restroom: tap the Restroom door, walk in,
 // tap a Toilet (bladder fills, the stall door shuts, you are hidden), tap Wash hands (hygiene), tap the way out (you land at the door you used);
 // also: no need (bladder full), leaving unwashed (one nudge), night, and a home bathroom. Run after node tools/build.mjs.
+// Every USE (door, toilet, basin, way out) is a finger tap on the canvas; when the thing is off the phone screen the player first walks near it with the
+// game's pathfinder (G.player.goTo, the same call a floor tap makes).
 //   node tools/restrooms_check.mjs [--only diner,skydeck,cityhall]      Shots: out/shots/bath_*.png
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module';
 const ROOT = '/home/user/Pixel-city-2'; const require = createRequire(ROOT + '/'); const { chromium } = require('playwright');
@@ -19,17 +21,18 @@ const shot = n => pg.screenshot({ path: path.join(OUT, 'bath_' + n + '.png') });
 let bad = 0; const say = (ok, t) => { if (!ok) bad++; console.log((ok ? 'PASS ' : 'FAIL ') + t); };
 const closeUi = () => pg.evaluate(async () => { for (let i = 0; i < 12; i++) { const s = document.querySelector('.say'); if (s) s.click(); const mx = document.querySelector('.modal .x'); if (mx) mx.click(); const b = [...document.querySelectorAll('button')].find(b => /^(Got it|OK|Close)$/.test(b.textContent.trim()) && b.offsetParent); if (b) b.click(); if (!s && !b && !mx) break; await new Promise(r => setTimeout(r, 80)); } });
 const toasts = () => pg.evaluate(() => [...document.querySelectorAll('#toasts > *')].map(e => e.textContent.trim()));
-/** tap an interactable of the current scene (by label) on the canvas, as a finger would; when it is off screen (rooms are big at phone zoom), first walk
-    toward it by tapping the floor on screen in its direction, like a player does */
-const SAFE = { x0: 40, x1: 350, y0: 300, y1: 700 };
+/** tap an interactable of the current scene (by label) on the canvas, as a finger would; when it is off screen or under the HUD (rooms are big at
+    phone zoom), first walk near it (see the note at the top) */
+const SAFE = { x0: 30, x1: 360, y0: 300, y1: 720 };
 async function tapIt(re, w = 400) {
   const where = () => pg.evaluate(s => { const x = new RegExp(s), its = G.interactables().filter(i => isFinite(i.x) && x.test(i.label || '')); if (!its.length) return null; const P = G.player; its.sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y)); const it = its[0]; const q = G.toScreen(it.x, it.y, Math.min(1.4, (it.h || 1) * .5)), me = G.toScreen(P.x, P.y, .7); const el = document.elementFromPoint(q.x, q.y); return [q.x, q.y, it.label, me.x, me.y, !el || el.tagName === 'CANVAS']; }, re.source);
   for (let k = 0; k < 8; k++) {
     await closeUi(); const p = await where(); if (!p) throw new Error('nothing labelled ' + re + ' here');
     if (p[0] > SAFE.x0 && p[0] < SAFE.x1 && p[1] > SAFE.y0 - 120 && p[1] < SAFE.y1 + 60 && p[5]) { await tap(p[0], p[1], w); return p[2]; }
-    // walk toward it: a floor tap part of the way along the screen line from me to it, kept inside the safe area
-    let tx = p[3] + (p[0] - p[3]) * .6, ty = p[4] + (p[1] - p[4]) * .6; tx = Math.max(SAFE.x0, Math.min(SAFE.x1, tx)); ty = Math.max(SAFE.y0, Math.min(SAFE.y1, ty));
-    await tap(tx, ty, 300); await pg.waitForFunction(() => !G.player.path || !G.player.path.length, null, { timeout: 8000 }).catch(() => {}); await pg.waitForTimeout(300);
+    // walk toward it with the game's own pathfinder (what a floor tap does: G.player.goTo), then tap it with a finger. Floor taps chosen by a script kept
+    // landing on other things on the way (the suggestion box, the diner counter), which is the script's aim, not the game's.
+    await pg.evaluate(s => { const x = new RegExp(s), P = G.player, its = G.interactables().filter(i => isFinite(i.x) && x.test(i.label || '')).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y)); const it = its[0], t = it.spot || it; P.goTo(G.world, t.x, t.y + 1.2, { snap: 10 }) || P.goTo(G.world, t.x, t.y, { snap: 10 }); }, re.source);
+    await pg.waitForFunction(() => !G.player.path || !G.player.path.length, null, { timeout: 12000 }).catch(() => {}); await pg.waitForTimeout(300);
   }
   const p = await where(); await tap(p[0], p[1], w); return p[2];
 }
@@ -82,7 +85,7 @@ for (const [v, door] of VENUES) {
   say(washing && h1 > h0, v + `: Wash hands: hygiene ${h0} -> ${h1}`);
   // no need: bladder full
   await pg.evaluate(() => G.needs.set('bladder', 100)); await tapIt(/^Toilet$/, 300); await waitFor(() => [...document.querySelectorAll('#toasts > *')].some(e => /do not need/i.test(e.textContent)), null, 12000);
-  const nn = await st(), nt = (await toasts()).join(' | '); say(!nn.busy && /do not need/i.test(nt), v + ': bladder full -> no visit: ' + nt.slice(-80));
+  const nn = await st(), nt = (await toasts()).join(' | '); say(!nn.busy && /do not need/i.test(nt), v + ': bladder full -> no visit: ' + nt.slice(-80) + (/do not need/i.test(nt) ? '' : ' ' + await dbg()));
   // out
   await tapIt(/^Back to /); const back = await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(700);
   const at = await st(); const d = Math.hypot(at.x - dr.spot[0], at.y - dr.spot[1]); const tt2 = (await toasts()).join(' | ');

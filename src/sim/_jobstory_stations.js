@@ -23,7 +23,7 @@ export const STATIONS = {
   baggage_handler: {       /* int:airport:terminal — baggage claim */
     bag_cart: ['bag_cart'], baggage_carousel: ['carousel_island'], oversize_desk: ['oversize_desk'], lost_found: ['lost_found'] },
   station_agent: {         /* int:central_station:platforms (scenes/rooms/station_platforms.js): every station is a real fixture on Platforms 1-2 */
-    platform_edge: ['platform_edge'] /* the dispatch point on Platform 1 */, station_info: ['station_info'] /* the help point on the concourse */, ticket_gate: ['ticket_gate'] /* the validators at the stair head */,
+    platform_edge: ['platform_edge'] /* the dispatch point on Platform 1 */, station_info: { first: [['station_info'], ['info', 14.8, 18]] } /* the help point on the concourse; in the hall (the desk step, owner msg 198) the Information desk */, ticket_gate: ['ticket_gate'] /* the validators at the stair head */,
     lost_property: ['lost_property'] /* the hatch of the stationmaster's office */, announcer_booth: ['announcer_booth'] /* the PA box (Gladys) by the office */ },
   retail_associate: {      /* int:deptstore — the Thread & Co. Outlet bay */
     folding_table: [/clothing\.foldtable/], clothes_rack: [/clothing\.(round)?rack/], fitting_room: [/clothing\.mirror/, 27.8, 1.8], mallcounter: ['mallcounter', 29.5, 2.3], shop_window: [[/clothing\.mannequin/, 25.8, 5.3], [/clothing\.mannequin/, 27.3, 5.8]] },
@@ -122,6 +122,9 @@ export function newScripts(h) {
       { id: 'walk', filler: 1, make: () => ({ title: 'Between flights', steps: [s('sort_belt', { any: 1, name: 'Walk the Belt' })] }) },
     ],
     station_agent: l => [
+      /* the DESK STEP (owner msg 198, story/jobs_new.js deskRoom): clocked in in the hall, one traveller at the Information desk; when it is answered _jobs_work.js
+         hands the shift up to the platforms (desk: 1 = only this ticket runs while W.desk, and never after) */
+      { id: 'desk', desk: 1, max: 1, when: W => !!W.desk, make: () => ({ title: 'A traveller at the Information desk', custAt: { tag: 'station_info' }, steps: [s('which_platform', { name: 'Answer at the Information Desk', mini: q('At the Information desk', pick(ASK_STN)) })] }) },
       /* the REAL timetable: the ticket appears when a Loop A train is about to stand at Platform 1 (G.rail.nextTrains), about one train in three (20-28 game minutes apart) */
       { id: 'train', max: 1, when: W => { const now = G.state.t; if (W._trainAt && now < W._trainAt) return false; let ok = true; try { const nt = G.rail.nextTrains('central').find(q => q.dir === 0); ok = !!nt && (nt.boarding || nt.minutes < 2.5); } catch (e) { ok = true; } if (ok) W._trainAt = now + 20 + Math.random() * 8; return ok; },
         make: () => ({ title: 'Loop A is in on Platform 1', steps: [l >= 2 && s('announce', { mini: mash('The announcement', 'Speak', 6) }), s('dispatch', { mini: meter('timing', 'Along the train', 'Raise the flag when the last door is shut: in the green', 'Flag up') })] }) },

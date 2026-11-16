@@ -495,9 +495,9 @@ const keepIn = on => { const sc = G.scene; if (sc && sc.indoor && T && JOB_BY_ID
 function defineNav() {
   if (!G.navGoals || !G.navGoals.define) return;
   G.navGoals.define('jobroom', 'commit', 62, ctx => {
-    const j = curJob(), job = j && JOB_BY_ID[j.id]; if (!job || !job.room || job.room === job.venue || !ctx.attached || j.onShift) return null;
-    if (ctx.placeId !== job.venue && ctx.root !== job.venue && ctx.root !== safe(() => G.navGoals.rootOf(job.room), null)) return null;
+    const j = curJob(), job = j && JOB_BY_ID[j.id], rm = job && (job.deskRoom || job.room); if (!job || !rm || rm === job.venue || !ctx.attached || j.onShift) return null;   /* deskRoom: you clock in there (the Station Agent: the hall = venue, so 'clockin' leads) */
+    if (ctx.placeId !== job.venue && ctx.root !== job.venue && ctx.root !== safe(() => G.navGoals.rootOf(rm), null)) return null;
     if (j.nextShift === null || j.nextShift === undefined || j.nextShift - G.state.t > 240) return null;
-    return { room: job.room, find: null, label: 'Walk in to clock in: ' + ((ROOMS.get(job.room) || {}).name || job.name), short: 'clock in', done: false };
+    return { room: rm, find: null, label: 'Walk in to clock in: ' + ((ROOMS.get(rm) || {}).name || job.name), short: 'clock in', done: false };
   });
 }

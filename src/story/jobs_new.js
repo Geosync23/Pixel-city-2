@@ -103,7 +103,8 @@ export const NEW_JOBS = [
     } },
 
   // ------------------------------------------------------------------ 13. STATION AGENT
-  { id: 'station_agent', name: 'Station Agent', venue: 'central_station', room: 'central_station:platforms' /* the shift is worked on Platforms 1-2, through the hall's gates (staff pass) */, boss: 'ada', listedOn: 'phone',
+  { id: 'station_agent', name: 'Station Agent', venue: 'central_station', room: 'central_station:platforms' /* the shift is worked on Platforms 1-2, through the hall's gates (staff pass) */,
+    deskRoom: 'central_station' /* owner msg 198 "Info desk can still be a brief part": clock in in the hall, answer ONE traveller at the Information desk, then up through the gates (sim/_jobs_work.js) */, boss: 'ada', listedOn: 'phone',
     blurb: 'Central Station needs a steady pair of eyes on the platform. Early mornings, a flag, a whistle, a very old clock.',
     hoursNote: 'Monday to Friday, six in the morning till one.',
     requires: {},

@@ -5,6 +5,8 @@
 // mini()). Per-job SCRIPTS below say which chains spawn, how often, with which customer and which mini; all names/minutes/anims/bonuses
 // come from the data. Customers are light Chars living in the room scene (max 4) with a patience bar.
 //   start(job, level, sh)  stop()  pause(bool)  update(dt)  onScene()  hud()  goStep(orderId)  debugStep()  city.set(key, target|null)
+//   job.deskRoom (story/jobs_new.js, the Station Agent): a shift clocked in in that room runs ONE desk ticket there (templates with desk: 1), then hands the shift
+//       to job.room (W.roomId changes, a guide pin points the way). Clocked in directly in job.room: no desk step. Entering job.room first skips it (no penalty).
 //   inject({ title, task: { id, name, station, minutes, anim, bonus }, run: () => Promise<quality 0..1 | null>, onDone?(q) }) -> order | null
 //       one extra ticket whose single step opens `run` instead of a micro-interaction (the job's PLAY, sim/_jobplay_*.js). null from run = closed, the ticket stays.
 // The 11 new jobs (story/jobs_new.js): their station tags do not exist on the room fixtures, so _jobstory_stations.js names an existing fixture (or a spot)
@@ -169,20 +171,38 @@ export function start(job, level, sh) {
   stop();
   W = { job, level, sh, alias: !!job.isNew, scene: G.scene, roomId: 'int:' + (job.room || job.venue), orders: [], custs: [], next: {}, n: {}, cnt: { stack: 0, drinks: 0 }, fired: {}, seq: 0, paused: false, its: [], res: [], carry: null, lock: false, active: null };
   W.tpl = (SCRIPTS[job.id] ? SCRIPTS[job.id](level) : []).filter(t => !t.lvl || level >= t.lvl);
+  /* the desk step (see the header): the shift starts in job.deskRoom with only its desk ticket(s); handOff() moves it on to job.room */
+  W.desk = !!job.deskRoom && !!G.scene && G.scene.id === 'int:' + job.deskRoom && W.tpl.some(t => t.desk); W.tplMain = W.tpl.filter(t => !t.desk);
+  if (W.desk) { W.roomId = 'int:' + job.deskRoom; W.tpl = W.tpl.filter(t => t.desk); } else W.tpl = W.tplMain;
   for (const t of W.tpl) if (t.every) W.next[t.id] = G.state.t + (t.first || 0);
   /* QA6: you meet your boss on your first shift (a stray tap at the till used to open "Say hello" small talk with an unmet boss, and bosses stayed "Stranger" for good) */
   try { const b = G.social && G.social.boss && G.social.boss(job.id); if (b && G.social.meet && !(G.social.known() || []).includes(b)) { G.social.meet(b); const nm = (CAST_BY_ID[b] && CAST_BY_ID[b].short) || b; for (const it of (G.scene && G.scene.interactables) || []) if (it.npc === b && it.label === 'Say hello') it.label = 'Talk to ' + nm; } } catch (e) { /* optional */ }
   if (inRoom() && G.crowd && G.crowd.reserve) for (const tag of job.workLoop.stations) for (const fx of fxList(tag)) if (fx.staff || tag === 'own_desk') { try { G.crowd.reserve(fx); W.res.push(fx); } catch (e) { /* optional */ } }
   update(0);
+  if (W.desk) safe(() => { const fx = fxList('station_info')[0] || null; if (fx) { G.navGoals.set({ room: job.deskRoom, find: { x: fx.x, y: fx.y, h: 2 }, label: 'Information desk: a traveller is waiting', short: 'Information desk', name: 'the Information desk', near: 2.2 }); W.pin = true; } });
 }
+/** the desk step is over (answered, or skipped by walking into job.room first): the rest of the shift runs in job.room as usual */
+function handOff(skipped) {
+  if (!W || !W.desk) return; W.desk = false; W.tpl = W.tplMain; W.roomId = 'int:' + (W.job.room || W.job.venue); const now = G.state.t;
+  for (const t of W.tpl) if (t.every) W.next[t.id] = now + (t.first || 0);
+  if (skipped) { for (const o of W.orders) if (o.cust) leave(o.cust); W.orders = []; dropCarry(); }
+  clearPin();
+  if (!skipped) { toast('Thank you. Now up through the gates: the rest of your shift is on the platforms.', 'good', 4200);
+    safe(() => { G.navGoals.set({ room: W.job.room, label: 'Up to the platforms: the rest of your shift', short: 'the platforms', name: 'the platforms', done: () => !W || G.scene.id === W.roomId }); W.pin = true; }); }
+  G.emit('job:desk:done', W.job.id, !!skipped); sync();
+}
+function clearPin() { if (W && W.pin) { W.pin = false; safe(() => { const c = G.navGoals.current(); if (c && c.id === 'pin') G.navGoals.clear(); }); } }
+function safe(f) { try { return f(); } catch (e) { return undefined; } }
 function dropCarry() { const p = G.player; if (W) W.carry = null; p.carry = false; p.poseOpts = null; }
 export function stop() {
-  if (!W) return; clearIts(); for (const c of W.custs.slice()) removeCust(c); for (const fx of W.res) try { G.crowd.release(fx); } catch (e) { /* optional */ }
+  if (!W) return; clearPin(); clearIts(); for (const c of W.custs.slice()) removeCust(c); for (const fx of W.res) try { G.crowd.release(fx); } catch (e) { /* optional */ }
   city.set('shift', null); dropCarry(); W = null; G.emit('jobs:hud');
 }
 /** pause the stream (auto-work): customers leave, tickets are cleared */
 export function pause(b) { if (!W) return; W.paused = b; if (b) { for (const o of W.orders) if (o.cust) leave(o.cust); W.orders = []; dropCarry(); } sync(); }
-export function onScene() { if (!W) return; if (G.scene.id === W.roomId && G.scene !== W.scene) { W.scene = G.scene; W.custs = []; W.its = []; for (const o of W.orders) { o.cust = null; const st = o.steps[o.i]; if (st && !st.city) resolve(o, st); } } sync(); }
+export function onScene() { if (!W) return; if (W.desk && G.scene.id === 'int:' + (W.job.room || W.job.venue)) handOff(true);   /* walked up before the desk ticket: skip it */
+  if (G.scene.id === W.roomId && G.scene !== W.scene) { const old = W.scene; if (old && old.ents) for (const c of W.custs) { const i = old.ents.indexOf(c); if (i >= 0) old.ents.splice(i, 1); }   /* no customer left standing in the room we came from */
+    W.scene = G.scene; W.custs = []; W.its = []; for (const o of W.orders) { o.cust = null; const st = o.steps[o.i]; if (st && !st.city) resolve(o, st); } } sync(); }
 
 function spawn(t) {
   const m = t.make(W); if (!m) return null;
@@ -235,6 +255,7 @@ function finish(o) {
   const speed = o.due ? .6 + .4 * Math.min(1, Math.max(0, (o.due - G.state.t) / o.patience) * 2) : 1;
   if (o.cust || o.due) { sh.tipSum += avg * speed; sh.tipN++; }
   if (o.cust) { bubble(o.cust, avg * speed > .75 ? pick(THANKS) : 'Hm. Okay.', 1600); leave(o.cust); }
+  if (W.desk && o.tpl === 'desk') return handOff(false);
   sync();
 }
 function expire(o) {

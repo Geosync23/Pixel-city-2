@@ -118,15 +118,15 @@ function paginate(text, fontPx, width, height) {
   flush(); return pages.length ? pages : [['']];
 }
 function openRead(ctx, id, page) { const r = M().read(id); if (!r || !r.released) return toast('That one is not out yet.'); ctx.push(r.serial ? `${r.serial.name} ${r.serial.part}/${r.serial.of}` : r.title, (b, c) => reading(b, c, id, page), 'read:' + id); }
-/* the reading position as a word count, so a new pagination (Aa, Bigger / Smaller) opens on the page that holds the same words */
+/* the reading position as a word count, so a new pagination (Aa) opens on the page that holds the same words */
 let refitAt = null;
 const wordsIn = pg => pg.join(' ').split(/\s+/).filter(Boolean).length;
 function reading(b, ctx, id, startPage) {
   injectMediaCss(); const r = M().read(id), P = M().prefs(); if (!r) { b.append(empty('novel_lighthouse', 'Not found', '')); return; }
   /* PART-SCREEN (phone.js): reading docks the phone (a taller sheet than video) before the page is measured; time runs above it */
-  /* the clock above runs at READING pace (TUNE.CLOCK.read game minutes per real second, x the 1x / 2x / 4x speed): read at a normal speed, a piece costs the
-     minutes the Library lists for it (a 500-word piece ~13 min), as full-screen does. At the normal walking-world rate it would cost about two game hours. */
-  safe(() => ctx.partScreen && ctx.partScreen('read', { refit: () => remember(), rate: TUNE.CLOCK.read }), 0);
+  /* the clock above runs at the NORMAL rate (owner msg 199: no slow reading pace; time passes while you read as it does while you watch). The page still PAYS
+     its fun / screen time in TUNE.CLOCK.read units per real second read, so a piece's totals are what the Library lists (as a film pays its 20 minutes). */
+  safe(() => ctx.partScreen && ctx.partScreen('read', { refit: () => remember() }), 0);
   const view = document.querySelector('#phone-layer .ph-view'), vw = (view && view.clientWidth) || 340, vh = (view && view.clientHeight) || 560;
   const fontPx = FONT[P.font] || FONT[1], pages = paginate(r.text, fontPx, vw - 44, vh - 52 - 46 - 64 - 30);
   if (refitAt && refitAt.id === id && startPage === undefined) { let w = 0, k = 0; while (k < pages.length - 1 && w + wordsIn(pages[k]) <= refitAt.word) { w += wordsIn(pages[k]); k++; } startPage = k; }
