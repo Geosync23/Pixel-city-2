@@ -86,15 +86,23 @@ export function build(c) {
 /* owner msg 150 ("this newspaper dispenser bank is in the road"): street furniture placed at a half tile can be wider than the strip of pavement it stands on, so
    ten pieces city-wide hung half a tile over the asphalt. Last world step: every small street piece whose footprint touches asphalt is slid, by the smallest
    step that works, back onto pavement where nothing else stands. Nothing is removed. */
-const OFFROAD = /^prop\.street\.(newsbox|bin|hydrant|mailbox|planter|recycling|bollard|atm|vending|utilitybox|postercolumn|aframe|bikeshare|bench|cart\.[a-z]+|kiosk|phonebooth|busshelter)|^prop\.road\.(meter|bikerack)/;
+const OFFROAD = /^prop\.street\.(newsbox|bin|hydrant|mailbox|planter|recycling|bollard|atm|vending|utilitybox|postercolumn|aframe|bikeshare|bench|cart\.[a-z]+|kiosk|phonebooth|busshelter)|^prop\.road\.(meter|bikerack)|^prop\.harbor\.(crates|barrels)/;
+/* Opus bundle 2: river-bank rocks / reeds / willows, yard trees in a cul-de-sac turning circle and street-name signs at signal corners stood in the carriageway
+   (tools/onroad_check.mjs lists them). These are tested against the CARRIAGEWAY (occupancy 1) and rail ballast only, so trees planted in parking lots stay;
+   greenery prefers a verge to a sidewalk. A-frame boards keep half a tile off the kerb (they used to stand on the kerb line). */
+const CARRIAGE = /^prop\.nature\.|^prop\.park\.(raisedbed|birdbath|bikerack)|^prop\.road\.sign\.street/;
 export function offRoad(c) {
   const w = c.world, ASPHALT = 3, onRoad = (x0, y0, x1, y1) => { for (let x = x0 + .1; x < x1; x += .2) for (let y = y0 + .1; y < y1; y += .2) { const t = w.tileType(x, y); if (t === ASPHALT || t === 0 || t === 6) return true; } return false; };
+  const inLane = (x0, y0, x1, y1, green, wet) => { for (let x = x0 + .05; x < x1; x += .2) for (let y = y0 + .05; y < y1; y += .2) { const t = w.tileType(x, y), k = c.occAt(x, y); if (k === 1 || t === 9 || (green !== undefined && (t === 0 || (!wet && (t === 6 || t === 17)) || (green && k === 2)))) return true; } return false; };
+  const park = (x0, y0, x1, y1) => w.parking.some(s => Math.abs(s.x - (x0 + x1) / 2) < 2 && Math.abs(s.y - (y0 + y1) / 2) < 2);
   const hits = (ob, x0, y0, x1, y1) => w.objs.some(o => o !== ob && o.solid && o.B[0] < x1 - .01 && o.B[3] > x0 + .01 && o.B[1] < y1 - .01 && o.B[4] > y0 + .01);
   let moved = 0;
   for (const ob of w.objs.slice()) {
-    if (!OFFROAD.test(ob.id) || !onRoad(ob.B[0], ob.B[1], ob.B[3], ob.B[4])) continue;
+    const lane = CARRIAGE.test(ob.id), m = /aframe/.test(ob.id) ? .45 : 0, green = lane && /^prop\.(nature|park)/.test(ob.id);
+    if (!(lane ? inLane(ob.B[0], ob.B[1], ob.B[3], ob.B[4]) : OFFROAD.test(ob.id) && onRoad(ob.B[0] - m, ob.B[1] - m, ob.B[3] + m, ob.B[4] + m))) continue;
     const sx = ob.size[0], sy = ob.size[1]; let best = null;
-    for (let d = .5; d <= 6 && !best; d += .5) for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d], [-d, -d], [d, d], [-d, d], [d, -d]]) { const x = ob.x + dx, y = ob.y + dy; if (!onRoad(x, y, x + sx, y + sy) && !hits(ob, x, y, x + sx, y + sy)) { best = [x, y]; break; } }
+    const ok = (x, y, g) => lane ? !inLane(x, y, x + sx, y + sy, g, /reeds|lily|rock/.test(ob.id)) && !park(x, y, x + sx, y + sy) : !onRoad(x - m, y - m, x + sx + m, y + sy + m) && !w.pois.some(p => p.type === 'door' && Math.abs(p.x - x - sx / 2) < 1.2 && Math.abs(p.y - y - sy / 2) < 1.2);
+    for (const g of green ? [true, false] : [false]) for (let d = .5; d <= 6 && !best; d += .5) for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d], [-d, -d], [d, d], [-d, d], [d, -d]]) { const x = ob.x + dx, y = ob.y + dy; if (ok(x, y, g) && !hits(ob, x, y, x + sx, y + sy)) { best = [x, y]; break; } }
     if (!best) continue;
     const o = { p: ob.p, flip: ob.flip, data: ob.data, solid: ob.solid }; w.remove(ob); w.place(ob.a, best[0], best[1], o); moved++;
   }

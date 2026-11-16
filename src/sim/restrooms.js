@@ -55,6 +55,7 @@ function wireVenue(scene, w) {
   const here = scene.roomId, go = it => () => { const s = it.spot || { x: it.x, y: it.y }, dir = Math.abs(s.y - it.y) >= Math.abs(s.x - it.x) ? 1 : 0;
     if (w.gate === 'arena') arenaQueue(scene);   // the Arena's half-time queue
     return enter(here, { x: s.x, y: s.y, dir }); };
+  if (w.door && w.door.kind === 'auto' && !scene._wcLate) return;   // bladder.js places the door / sign first; wired again by the late handler below
   let n = 0;
   for (const it of scene.interactables) if (it.restroom) { it.use = go(it); it.navTo = 'int:' + w.id; it.wc = w.id; n++; }
   if (!n && w.door && here === w.venue) {
@@ -110,6 +111,9 @@ export function init() {
   S = G.defineState('restrooms', () => ({ back: null, visits: {} }));
   G.on('load', () => { S = G.state.restrooms && typeof G.state.restrooms === 'object' ? G.state.restrooms : (G.state.restrooms = { back: null, visits: {} }); if (!S.visits) S.visits = {}; visit = null; going = false; });
   G.on('room:build', scene => { try { const w = BY_VENUE.get(scene.roomId); if (w) wireVenue(scene, w); } catch (e) { console.warn('restrooms: ' + e.message); } });
+  /* door kind 'auto': keep the door or sign stand bladder.js found room for (the small venues of batch 3), then lead it into the real room.
+     Registered at 'ready' so it runs after bladder.js's own 'room:build' handler. */
+  let late = false; G.on('ready', () => { if (late) return; late = true; G.on('room:build', scene => { try { const w = BY_VENUE.get(scene.roomId); if (w && w.door && w.door.kind === 'auto') { scene._wcLate = true; wireVenue(scene, w); } } catch (e) { console.warn('restrooms: ' + e.message); } }); });
   registerFixture('wcstall', fx => ({ label: 'Toilet', toilet: true, guestOk: true, hit: 16, use: () => useStall(fx) }));
   registerFixture('wcmints', () => ({ label: 'Take a mint', hit: 10, use: () => { toast(MINT[mintN++ % MINT.length], 'good', 2600); } }));
   registerFixture('wcsuggest', () => ({ label: 'Suggestion box', hit: 14, use: () => say([{ who: CARDS[mintN % CARDS.length][0], text: CARDS[mintN++ % CARDS.length][1] }]) }));

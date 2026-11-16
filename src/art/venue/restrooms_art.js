@@ -62,6 +62,19 @@ const ST = {
   museum: { w: 1.4, d: 1.6, top: 2.5, dTop: 2.3, zb: .02, t: .06, panel: '#f2f0ec', door2: '#f8f6f2', post: '#2a2a2e', m: '#2a2a2e', toilet: { hung: true, tank: 'plate', plate: '#2a2a2e', seat: '#2a2a2e' }, back: '#f4f2ee', deco: 'edge' },
   gym: { w: 1.2, d: 1.5, top: 1.9, zb: .25, t: .05, panel: '#e2572e', door2: '#ec6a3c', post: '#3a3f4c', m: '#c2c8cc', toilet: { tank: 'low', seat: '#2a2733' }, back: '#dfe3e6', deco: 'number' },
   bar: { w: 1.2, d: 1.4, top: 1.9, zb: .22, t: .05, panel: '#2a2430', door2: '#33293a', post: '#1e1a22', m: '#8a8f98', toilet: { tank: 'low', seat: '#2a2733', c: '#e8e2d8' }, back: '#3a3040', deco: 'stickers' },
+  // batch 3
+  deco: { w: 1.4, d: 1.6, top: 2.4, dTop: 2.15, zb: .04, t: .07, panel: '#1e1a22', door2: '#26202c', post: '#c9a35a', m: BRASS, toilet: { tank: 'low', seat: '#1e1a22', m: BRASS }, back: '#e8c8c0', deco: 'sunray' },
+  cafe: { w: 1.3, d: 1.5, top: 2.0, zb: .1, t: .06, panel: '#c8a070', door2: '#d4ae80', post: '#8a6a44', m: '#3a3a40', toilet: { tank: 'low', seat: '#c8a070' }, back: '#efe6d2', deco: 'planks' },
+  ramen: { w: 1.2, d: 1.4, top: 2.0, zb: .06, t: .06, panel: '#4a3020', door2: '#5a3a28', post: '#2a1c14', m: '#8a8f98', toilet: { tank: 'low', seat: '#2a1c14' }, back: '#d8c8a0', deco: 'noren' },
+  pizza: { w: 1.2, d: 1.4, top: 1.9, zb: .22, t: .05, panel: '#3f8a55', door2: '#4a9a62', post: '#f4f0e8', m: CHROME, toilet: { tank: 'low', seat: '#f4f0e8' }, back: '#f4f0e8', deco: 'band' },
+  bakery: { w: 1.2, d: 1.4, top: 1.95, zb: .12, t: .06, panel: '#a8c8d8', door2: '#b4d2e0', post: '#f0e0c0', m: '#c2c8cc', toilet: { tank: 'low', seat: '#f4f0e8' }, back: '#f0e0c0', frames: true },
+  aqua: { w: 1.3, d: 1.6, top: 2.2, zb: .08, t: .06, panel: '#1f7a8a', door2: '#2a8a9a', post: '#c9a35a', m: BRASS, toilet: { hung: true, tank: 'plate', plate: BRASS, seat: '#f4f1ea' }, back: '#2a6a9a', deco: 'porthole' },
+  pool: { w: 1.2, d: 1.5, top: 1.9, zb: .25, t: .05, panel: '#5ab4c8', door2: '#68c0d2', post: '#e8eef0', m: CHROME, toilet: { hung: true, tank: 'plate', seat: '#2a2733' }, back: '#e8eef0', deco: 'number' },
+  uni: { w: 1.2, d: 1.5, top: 1.95, zb: .22, t: .05, panel: '#2c3a5c', door2: '#35456a', post: '#c2c8cc', m: '#c2c8cc', toilet: { tank: 'low', seat: '#2a2733' }, back: '#e8e0d0', deco: 'flyers' },
+  cinema: { w: 1.3, d: 1.5, top: 2.1, zb: .1, t: .06, panel: '#6a1e24', door2: '#7a262c', post: '#c9a35a', m: BRASS, toilet: { tank: 'low', seat: '#2a1a1a' }, back: '#4a1418', deco: 'stripe2' },
+  fish: { w: 1.2, d: 1.4, top: 1.9, zb: .3, t: .04, panel: '#a8b0b4', door2: '#b4bcc0', post: '#7a8288', m: '#c2c8cc', toilet: { tank: 'low', seat: '#2a2733' }, back: '#e8eef0', deco: 'rivets' },
+  obs: { w: 1.3, d: 1.5, top: 2.1, zb: .1, t: .06, panel: '#1c2448', door2: '#242e58', post: '#c9a35a', m: BRASS, toilet: { tank: 'low', seat: '#1c2448', m: BRASS }, back: '#2a3460', deco: 'stars' },
+  nook: { w: 1.3, d: 1.5, top: 2.0, zb: .14, t: .06, panel: '#7a5a3a', door2: '#8a6a48', post: '#3a3036', m: '#c2c8cc', toilet: { tank: 'low', seat: '#f4f0e8' }, back: '#e8e0d0', deco: 'planks' },
   arena: { w: 1.2, d: 1.5, top: 1.95, zb: .22, t: .05, panel: '#d2392f', door2: '#dc4a3e', post: '#d8dcdf', m: CHROME, toilet: { hung: true, tank: 'plate', seat: '#2a2733' }, back: '#e6e6e2', deco: 'stripe' },
 };
 const STICK = ['#f2c230', '#4ad8f0', '#ff4a8a', '#9ccc4a', '#f4f0e8', '#b07af8'];
@@ -71,6 +84,13 @@ function decoX(s, p, x, D) {
   else if (s.deco === 'stripe') { qx(x, 0, D - .1, 1.15, 1.25, '#f4f0e8'); }
   else if (s.deco === 'rivets') { for (let y = .1; y < D - .1; y += .3) { dot(x, y, s.top - .08, dk(s.panel, .35)); dot(x, y, s.zb + .08, dk(s.panel, .35)); } }
   else if (s.deco === 'rail') bx(x - .02, 0, s.top - .06, .04, D - .1, .04, CHROME);
+  else if (s.deco === 'sunray') { const yc = D / 2, zc = s.top - .45; for (let i = 0; i < 7; i++) { const a = Math.PI * (.1 + i * .8 / 6); lw([x, yc, zc], [x, yc + Math.cos(a) * .5, zc + Math.sin(a) * .4], BRASS); } lw([x, .1, s.zb + .2], [x, D - .2, s.zb + .2], BRASS); }
+  else if (s.deco === 'planks') { for (let y = .18; y < D - .1; y += .18) lw([x, y, s.zb + .02], [x, y, s.top - .02], dk(s.panel, .3)); }
+  else if (s.deco === 'band') qx(x, 0, D - .1, .9, 1.0, '#c8343a');
+  else if (s.deco === 'porthole') { const P = []; for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; P.push([x, D / 2 + Math.cos(a) * .22, 1.4 + Math.sin(a) * .22]); } fq(P, BRASS); fq(P.map(q => [x, D / 2 + (q[1] - D / 2) * .75, 1.4 + (q[2] - 1.4) * .75]), '#3ab0d0'); dot(x, D / 2 - .05, 1.47, '#f4f8fb'); }
+  else if (s.deco === 'flyers') { for (let i = 0; i < 4; i++) { const y = .15 + i * .3, z = .9 + (i % 2) * .35; qx(x, y, y + .2, z, z + .26, ['#f4f0e8', '#f2c230', '#9ccc4a', '#f4a8c0'][i]); lw([x, y + .04, z + .2], [x, y + .16, z + .2], '#5a5a60'); } labelX('E=MC2', x, .1, D - .2, 1.62, '#f4f0e8'); }
+  else if (s.deco === 'stripe2') { qx(x, 0, D - .1, s.top - .3, s.top - .24, BRASS); qx(x, 0, D - .1, .5, .56, BRASS); }
+  else if (s.deco === 'stars') { for (let i = 0; i < 9; i++) dot(x, .1 + (i * 37 % 100) / 100 * (D - .3), .6 + (i * 53 % 100) / 100 * 1.3, i % 3 ? '#f2dca0' : '#f4f8fb'); }
 }
 function decoY(s, p, xa, xb, y) {
   const n = String(p.n || 1);
@@ -80,6 +100,11 @@ function decoY(s, p, xa, xb, y) {
   else if (s.deco === 'edge') frameY(xa + .04, xb - .04, y, s.zb + .06, (s.dTop || 2.2) - .06, '#2a2a2e');
   else if (s.deco === 'stickers') { for (let i = 0; i < 4; i++) qy(xa + .12 + i * .2, xa + .24 + i * .2, y, .7 + (i % 2) * .5, .8 + (i % 2) * .5, STICK[i + 1]); }
   else if (s.deco === 'stripe') qy(xa, xb, y, 1.15, 1.25, '#f4f0e8');
+  else if (s.deco === 'sunray') { const xc = (xa + xb) / 2, zc = 1.7; for (let i = 0; i < 7; i++) { const a = Math.PI * (.1 + i * .8 / 6); lw([xc, y, zc], [xc + Math.cos(a) * .4, y, zc + Math.sin(a) * .3], BRASS); } }
+  else if (s.deco === 'porthole') { const xc = (xa + xb) / 2, P = []; for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; P.push([xc + Math.cos(a) * .16, y, 1.5 + Math.sin(a) * .16]); } fq(P, BRASS); fq(P.map(q => [xc + (q[0] - xc) * .7, y, 1.5 + (q[2] - 1.5) * .7]), '#3ab0d0'); }
+  else if (s.deco === 'band') qy(xa, xb, y, .9, 1.0, '#c8343a');
+  else if (s.deco === 'stars') for (let i = 0; i < 5; i++) dot(xa + .1 + (i * 37 % 100) / 100 * (xb - xa - .2), y, .7 + (i * 53 % 100) / 100, '#f2dca0');
+  else if (s.deco === 'flyers') qy(xa + .2, xa + .45, y, 1.1, 1.4, '#f2c230');
 }
 const stSize = p => { const s = ST[p.style] || ST.diner; return [s.w, s.d, s.top + .06]; };
 function panelFace(s, x0, x1, y, z0, z1, c) {   // a door / partition face on +y, dressed per style
@@ -95,7 +120,8 @@ function panelX(s, x, y0, y1, z0, z1, c) {
   else lw([x, y0, z1 - .02], [x, y1, z1 - .02], lt(c, .2));
 }
 function stall(p) {
-  const s = ST[p.style] || ST.diner, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner ? .05 : s.zb > .15 && s.deco ? .06 : .1, dTop = s.dTop || (s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H), occ = !!p.occ, cy = D * .45;
+  const s0 = ST[p.style] || ST.diner, s = p.c ? Object.assign({}, s0, { panel: p.c, door2: lt(p.c, .1), back: p.c2 || s0.back }) : s0;
+  const _x = s, W = s.w, D = s.d, T = s.t, H = s.top, z0 = s.zb, pw = s === ST.diner ? .05 : s.zb > .15 && s.deco ? .06 : .1, dTop = s.dTop || (s === ST.sky ? 2.2 : s === ST.hall ? 1.95 : H), occ = !!p.occ, cy = D * .45;
   const red = (q, pts, c) => { const X = Math.round(q[0]), Y = Math.round(q[1]); for (const [a, b] of pts) px(X + a, Y + b, C(c)); };
   if (s.back) qy(0, W, .01, 0, Math.min(H, 2.2), s === ST.hall ? (u, v) => (v % 10 === 0 ? '#d6cfc0' : (u + (v / 10 | 0) * 7) % 14 === 0 ? '#d6cfc0' : s.back) : s.back);   // the wall inside the stall
   shadow(.04, W - .04, .2, D - .1);
@@ -129,7 +155,8 @@ function stall(p) {
     lw([xb - .1, D - .02, 1.0], [xb - .1, D - .02, 1.14], s.m); qy(xb - .3, xb - .14, D - .03, 1.2, 1.27, '#c8233a');
     if (s === ST.diner) heartY(xa + .3, D - .025, 1.4, '#c8233a');
     if (s.deco) decoY(s, p, xa, xb, D - .025);
-  } else qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a');   // vacant
+  } else { qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a');   // vacant
+    if (s.deco === 'noren') { const c = p.c3 || '#2c3a6a'; for (let i = 0; i < 3; i++) { const a = xa + i * (xb - xa) / 3 + .01, b = a + (xb - xa) / 3 - .03; qy(a, b, D + .01, 1.45, 1.95, c); } lw([xa, D + .01, 1.96], [xb, D + .01, 1.96], '#8a6a44'); dot((xa + xb) / 2, D + .02, 1.75, '#f4f0e8'); } }
   if (s === ST.sky) lit(() => { dot(W - pw / 2, D, 1.5, occ ? '#ff5a5a' : '#7df0a0'); dot(W - pw / 2, D, 1.53, occ ? '#ff8a8a' : '#b8ffcc'); });
 }
 
@@ -209,7 +236,7 @@ function sign(p) {
   else if (k === 'otters') { qy(0, 2.2, .02, .1, .6, '#d2392f'); qy(0, 2.2, .02, .1, .18, '#f4f0e8'); label('OTTERS', 0, 2.2, .02, .52, '#f4f0e8'); }
   else { box(0, 0, 0, 2.3, .05, 1.2, BRASS, { ol: true }); qy(.08, 2.22, .05, .08, 1.12, '#b88f48'); label('PUBLIC', 0, 2.3, .05, .98, '#3a2a14'); label('WASHROOM', 0, 2.3, .05, .56, '#3a2a14'); lw([.3, .05, .62], [2.0, .05, .62], '#8a6a34'); for (const [x, z] of [[.14, .14], [2.16, .14], [.14, 1.06], [2.16, 1.06]]) dot(x, .05, z, '#f2dca0'); }
 }
-const DOORS = { service: ['#8e979d', '#5e666c', '#c2c8cc', 'WC'], library: ['#6a4a30', '#e9e0cc', BRASS, 'WC'], museum: ['#f4f2ee', '#2a2a2e', '#2a2a2e', 'WC'], gym: ['#e2572e', '#3a3f4c', '#c2c8cc', 'WC'], bar: ['#2a2430', '#1e1a22', '#8a8f98', 'WC'] };
+const DOORS = { pizza: ['#3f8a55', '#f4f0e8', CHROME, 'WC'], bakery: ['#a8c8d8', '#f0e0c0', '#c2c8cc', 'WC'], aqua: ['#1f7a8a', '#c9a35a', BRASS, 'WC'], nook: ['#7a5a3a', '#3a3036', '#c2c8cc', 'WC'], service: ['#8e979d', '#5e666c', '#c2c8cc', 'WC'], library: ['#6a4a30', '#e9e0cc', BRASS, 'WC'], museum: ['#f4f2ee', '#2a2a2e', '#2a2a2e', 'WC'], gym: ['#e2572e', '#3a3f4c', '#c2c8cc', 'WC'], bar: ['#2a2430', '#1e1a22', '#8a8f98', 'WC'] };
 function door(p) {
   const sky = p.style === 'sky', c = sky ? '#4a3326' : '#c8233a', D2 = DOORS[p.style];
   if (D2) {   // batch 2 doors: [leaf, frame, metal, plate text]
@@ -218,7 +245,7 @@ function door(p) {
     else if (p.style === 'museum') { lw([.86, .06, .9], [.86, .06, 1.3], m); label(t, .3, .7, .06, 1.62, m); lw([.3, .06, 1.24], [.7, .06, 1.24], '#c9c4ba'); }
     else if (p.style === 'gym') { qy(.03, .97, .055, .02, .22, '#3a3f4c'); lw([.12, .06, 1.1], [.5, .06, 1.1], m); qy(.3, .7, .06, 1.5, 1.74, '#f4f0e8'); label(t, .3, .7, .06, 1.7, '#3a3f4c'); }
     else if (p.style === 'bar') { for (let i = 0; i < 9; i++) { const x = .1 + (i * 37 % 80) / 100, z = .3 + (i * 53 % 150) / 100; qy(x, x + .12, .055, z, z + .1, STICK[i % STICK.length]); } lit(() => label(t, .3, .7, .06, 1.98, '#ff4a8a')); glow(() => qy(.25, .75, .07, 1.8, 2.04, '#ff4a8a40')); lw([.8, .06, .95], [.8, .06, 1.2], m); }
-    else { qy(.08, .92, .055, .02, .24, m); qy(.74, .9, .06, .95, 1.3, m); qy(.32, .68, .06, 1.5, 1.72, '#3a5a8a'); label(t, .32, .68, .06, 1.68, '#f4f0e8'); }   // service: steel kick + push plate, blue WC plate
+    else { const sv = p.style === 'service'; qy(.08, .92, .055, .02, .24, m); qy(.74, .9, .06, .95, 1.3, m); qy(.26, .74, .06, 1.4, 1.8, sv ? '#3a5a8a' : fc); label(t, .26, .74, .06, 1.72, sv ? '#f4f0e8' : lc); if (p.style === 'aqua') { discY(.5, .056, 1.05, .16, BRASS); discY(.5, .057, 1.05, .12, '#3ab0d0'); } }   // service: steel kick + push plate, blue WC plate
     return;
   }
   if (sky) {
@@ -284,7 +311,7 @@ function suggest() {
 const S3 = ['sky', 'diner', 'hall'];
 export default [
   F('wc.stall', ['wc', 'wcstall', 'restroom'], stSize, stall, { use: p => ({ x: (ST[p.style] || ST.diner).w / 2, y: (ST[p.style] || ST.diner).d + .4 }), seatsFor: p => { const s = ST[p.style] || ST.diner; return [{ x: s.t + .5, y: s.d * .45, z: .42, dir: 0 }]; },
-    variants: [{ style: 'sky', left: true }, { style: 'sky', occ: 1 }, { style: 'diner', tag: 1 }, { style: 'diner', occ: 1 }, { style: 'hall', left: true }, { style: 'hall', occ: 1 }].concat(['service', 'station', 'mall', 'library', 'museum', 'gym', 'bar', 'arena'].flatMap(style => [{ style, left: true }, { style, occ: 1, n: 2 }])) }),
+    variants: [{ style: 'sky', left: true }, { style: 'sky', occ: 1 }, { style: 'diner', tag: 1 }, { style: 'diner', occ: 1 }, { style: 'hall', left: true }, { style: 'hall', occ: 1 }].concat(['service', 'station', 'mall', 'library', 'museum', 'gym', 'bar', 'arena', 'deco', 'cafe', 'ramen', 'pizza', 'bakery', 'aqua', 'pool', 'uni', 'cinema', 'fish', 'obs', 'nook'].flatMap(style => [{ style, left: true }, { style, occ: 1, n: 2 }])) }),
   F('wc.vanity', ['wc', 'sink'], p => [p.w || (p.style === 'hall' ? 4.2 : 2.6), p.style === 'hall' ? .62 : .56, .9], vanity, { vb: p => [-.3, -.3, 0, (p.w || (p.style === 'hall' ? 4.2 : 2.6)) + .3, .9, 1.6], use: p => ({ x: (p.w || (p.style === 'hall' ? 4.2 : 2.6)) / 2, y: 1.0 }), light: { x: 1, y: .8, z: 0, r: 1.6 }, variants: [{ style: 'sky' }, { style: 'hall' }] }),
   F('wc.sink', ['wc', 'sink'], [.8, .5, .85], dinerSink, { vb: [-.3, -.3, 0, 1.1, .8, 1.8], use: { x: .4, y: .9 }, variants: [{ style: 'diner' }] }),
   F('wc.mirror', ['wc', 'mirror', 'decor'], p => (p.style === 'hall' ? [.9, .08, 1.4] : [.85, .08, .85]), mirror, { wall: true, mount: 1.2, solid: false, light: { x: .4, y: .5, z: 0, r: 1.2 }, variants: [{ style: 'sky' }, { style: 'hall' }] }),
@@ -292,7 +319,7 @@ export default [
   F('wc.pendant', ['wc', 'lamp', 'overhead'], [.4, .4, 1.6], pendant, { solid: false, overhead: true, vb: [-.1, -.1, 0, .5, .5, 1.7], light: { x: .2, y: .2, z: 0, r: 2.4 }, variants: [{}] }),
   F('wc.tube', ['wc', 'lamp'], [1.2, .2, .16], tube, { wall: true, mount: 2.1, solid: false, vb: [-.1, -.1, -.2, 1.3, .3, .3], light: { x: .6, y: 1.2, z: 0, r: 2.6 }, variants: [{}] }),
   F('wc.sign', ['wc', 'sign', 'decor'], p => (p.kind === 'civic' ? [2.3, .06, 1.2] : p.kind === 'level' ? [2, .04, .4] : p.kind === 'quiet' ? [1.6, .04, .6] : p.kind === 'toilets' || p.kind === 'otters' ? [2.2, .04, .62] : [1.5, .04, .95]), sign, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'wash' }, { kind: 'level' }, { kind: 'civic' }, { kind: 'quiet' }, { kind: 'toilets' }, { kind: 'otters' }] }),
-  F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.7], variants: ['sky', 'diner', 'service', 'library', 'museum', 'gym', 'bar'].map(style => ({ style })) }),
+  F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.7], variants: ['sky', 'diner', 'service', 'library', 'museum', 'gym', 'bar', 'pizza', 'bakery', 'aqua', 'nook'].map(style => ({ style })) }),
   F('wc.floor', ['wc', 'floor'], p => [p.w || 5, p.d || 4, .01], floor, { solid: false, flat: true, variants: S3.map(style => ({ style, w: 5, d: 4 })) }),
   F('wc.mints', ['wc', 'wcmints'], [.3, .3, .06], mints, { solid: false, variants: [{}] }),
   F('wc.bin', ['wc', 'bin'], [.4, .4, .72], bin, { variants: S3.concat(['station', 'mall', 'museum', 'library', 'bar', 'arena', 'gym']).map(style => ({ style })) }),

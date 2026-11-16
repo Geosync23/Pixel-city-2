@@ -68,11 +68,11 @@ function glass(p) {
 function floorPat2(p) {
   const st = p.style, w = p.w || 5, d = p.d || 4, H = (x, y, s) => hash2(Math.floor(x * 16), Math.floor(y * 16), s);
   if (st === 'service') return (x, y) => { const r = Math.hypot(x - w / 2, y - d / 2); if (r < .14) return r < .1 && (Math.floor(x * 16) + Math.floor(y * 16)) % 2 ? '#3a3f44' : '#6a7074'; const n = H(x, y, 1); return n < .05 ? '#7a8084' : n > .97 ? '#a8aeb2' : '#8e9498'; };
-  if (st === 'station') return (x, y) => { if (d - y < .5 && d - y > .3) return (Math.floor(x * 8) + Math.floor(y * 8)) % 2 ? '#f2c230' : '#e0b020'; const n = H(x, y, 2); return n < .006 ? '#c8574d' : n < .014 ? '#5a5a5e' : n < .022 ? '#e4e0d8' : n < .026 ? '#4f74b8' : (Math.floor(x) + Math.floor(y)) % 2 ? '#a4a39e' : '#9c9b96'; };
+  if (st === 'station') return (x, y) => { if (d - y < .5 && d - y > .3) return (Math.floor(x * 8) + Math.floor(y * 8)) % 2 ? '#f2c230' : '#e0b020'; const n = H(x, y, 2); return n < .003 ? '#a8857c' : n < .009 ? '#8e8d88' : n < .015 ? '#b0aea8' : (Math.floor(x) + Math.floor(y)) % 2 ? '#a4a39e' : '#9e9d98'; };
   if (st === 'mall') return (x, y) => { const row = Math.floor(y), off = row % 2 ? .75 : 0, fx = (x + off) / 1.5 - Math.floor((x + off) / 1.5), fy = y - row; if (fx < .02 || fy < .03) return '#c8bca8'; return H(x, y, 3) < .04 ? '#d8ccb8' : '#e6dccb'; };
   if (st === 'library') return (x, y) => { const u = x + y, v = x - y, i = Math.floor(u / .5), j = Math.floor(v / .25 + (i % 2) * .5), fu = u / .5 - i, fv = v / .25 + (i % 2) * .5 - j; if (fu < .08 || fv < .1) return '#6a4628'; const k = (i * 7 + j * 3) % 4; return ['#a8743f', '#9c6a38', '#b07c48', '#946232'][k]; };
   if (st === 'museum') return (x, y) => { const fx = x / 2 - Math.floor(x / 2), fy = y / 2 - Math.floor(y / 2); if (fx < .01 || fy < .015) return '#a8a6a0'; return Math.abs(((x - y) % 3 + 3) % 3 - 1.5) < .08 ? '#e2e0da' : H(x, y, 4) < .03 ? '#c4c2bc' : '#d2d0ca'; };
-  if (st === 'gym') return (x, y) => { const n = H(x, y, 5); return n < .008 ? '#e2572e' : n < .014 ? '#4ad8f0' : n < .03 ? '#4a4f58' : (Math.floor(x) + Math.floor(y)) % 2 ? '#383c44' : '#34383f'; };
+  if (st === 'gym') return (x, y) => { const n = H(x, y, 5); return n < .003 ? '#6a4a40' : n < .006 ? '#3e5a64' : n < .02 ? '#40444c' : (Math.floor(x) + Math.floor(y)) % 2 ? '#383c44' : '#35393f'; };
   if (st === 'bar') return (x, y) => { const k = (Math.floor(x * 2) + Math.floor(y * 2)) % 2, n = H(x, y, 6); return k ? (n < .1 ? '#5a2a30' : '#6e2a32') : (n < .1 ? '#2e2a32' : '#24202a'); };
   return (x, y) => { if (Math.abs(y - (d - 1.2)) < .08) return '#d2392f'; if (Math.abs(y - (d - 1.0)) < .03) return '#f4f0e8'; const n = H(x, y, 7); return n < .04 ? '#8a8e94' : '#a2a6ac'; };   // arena: grey epoxy, team stripe
 }

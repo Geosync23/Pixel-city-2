@@ -835,3 +835,8 @@ Behind the classroom partition only your head shows when you face the camera. Fa
 Should the rocking chair be sold in a furniture shop? Yes
 
 The hop is 4 pixels over about a fifth of a second. Right size? Yes
+
+## 206 (2026-11-16)
+Lets go with Trailer 2. But it brings up an issue I've been meaning to bring up- trees and busses dont play nice it creates weird clipping and occlusion errors.  Same thing with two trains passing eachother.
+
+We nees to fix these issues. Then recapture footage exactly as it is for Trailer 2 and then polish it.
