@@ -70,7 +70,7 @@ const fun = (R, max) => { const n = Math.max(1, Math.round(max * R.q)); add('fun
 export const BG = {
   /* ---- 1. the moving boxes (the first mini-game a new player meets: it cannot go wrong) ---- */
   unbox: { quietAuto: true, skill: 'handiness', title: (l, ctx) => 'Unpack: ' + safe(() => boxOf(ctx).label, 'a moving box'), fxc: ['#f2c230', '#fff8b0'],
-    kit: (l, ctx) => ({ kind: 'unbox', level: 1, sub: 'Moving in', icon: 'skill.handiness', hint: 'Tap the tape to open the box. Then tap each thing to lift it out.', o: { items: boxItems(ctx) }, verdicts: ['Unpacked', 'Unpacked', 'Unpacked with care', 'Home already!'] }),
+    kit: (l, ctx) => ({ kind: 'unbox', level: 1, sub: 'Moving in', icon: 'skill.handiness', hint: safe(() => boxOf(ctx).lug, 0) ? 'Tap the zip to open the case. Then tap each thing to lift it out.' : 'Tap the tape to open the box. Then tap each thing to lift it out.', o: { items: boxItems(ctx), lug: safe(() => boxOf(ctx).lug, 0) }, verdicts: ['Unpacked', 'Unpacked', 'Unpacked with care', 'Home already!'] }),
     result: R => { const n = R.played ? fun(R, B.unboxFun) : 0; return { icon: 'skill.handiness', title: R.played ? 'Unpacked with care' : 'Unpacked', lines: [n ? `That felt good: Fun +${n}` : null] }; } },
   /* ---- 4. gardening: watering is watering (the house plants used to open the weeding game) ---- */
   water: { quietAuto: true, skill: 'gardening', also: ['handiness'], title: () => 'Water the plant', fxc: ['#8fd8f0', '#dff1fa'],

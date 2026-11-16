@@ -45,7 +45,7 @@ const dayName = d => { const t = Math.floor(G.state.t / 1440), k = d - t; return
 function readRow(r, ctx) {
   const st = r.done ? 'Read' : r.page > 0 ? `Page ${r.page + 1}` : r.isNew ? 'NEW' : '';
   return el('button.md-read' + (r.done ? '.done' : ''), { onclick: () => openRead(ctx, r.id) },
-    el('span.md-read-m', null, el('b', { text: r.title }), el('small', { text: `${r.by} · ${fmtMin(r.minutes)}` })),
+    el('span.md-read-m', null, el('b', { text: r.title }), el('small', { text: `${r.by} · about ${fmtMin(r.clockMin || r.minutes)}` })),
     st ? el('em.md-tag' + (st === 'NEW' ? '.new' : r.done ? '.ok' : ''), { text: st }) : null);
 }
 function library(b, ctx) {
@@ -134,7 +134,7 @@ function reading(b, ctx, id, startPage) {
   let page = Math.max(0, Math.min(pages.length - 1, startPage !== undefined ? startPage : (r.page || 0))), acc = 0, shown = false, finished = false;
   if (page >= pages.length) page = 0;
   function remember() { if (finished) return; settle(); let w = 0; for (let k = 0; k < page; k++) w += wordsIn(pages[k]); refitAt = { id, word: w }; M().readProgress(id, page); }
-  const mine = M().begin('pages', id);
+  const mine = M().begin('pages', id), t0 = G.state.t;   /* t0: the end card says how much of the day went by (the clock runs while you read) */
   b.classList.add('md-page'); if (P.night) b.classList.add('night');
   const words = () => pages[page].join(' ').split(/\s+/).filter(Boolean).length, expect = () => Math.max(3, words() / TUNE.READ_WPM * 60);
   const txt = el('div.md-text', { style: { fontSize: fontPx + 'px', lineHeight: String(LH) } }), prog = el('span.md-pg'), clock = el('span.md-clock');
@@ -160,7 +160,7 @@ function reading(b, ctx, id, startPage) {
     finished = true; const s = M().session(), mins = s ? s.minutes : 0, fun = s ? s.fun : 0, first = M().finishRead(id); M().end();
     const all = M().reads(), nx = r.serial ? all.find(q => q.serial && q.serial.id === r.serial.id && q.serial.part === r.serial.part + 1) : null, st = M().streak();
     txt.replaceChildren(el('div.md-end', null, iconEl('novel_lighthouse', 3), el('b', { text: r.serial && r.serial.part < r.serial.of ? 'To be continued' : 'The end' }), el('p', { text: r.title }),
-      el('div.md-end-stats', null, chip(`${fmtMin(Math.max(1, mins))} read`), chip(`Fun +${fun.toFixed(1)}`, fun > .05 ? 'good' : ''), st.n ? chip(`${st.n}-day streak`, 'gold') : null),
+      el('div.md-end-stats', null, chip(`${fmtMin(Math.max(1, G.state.t - t0))} read`), chip(`Fun +${fun.toFixed(1)}`, fun > .05 ? 'good' : ''), st.n ? chip(`${st.n}-day streak`, 'gold') : null),
       first ? null : el('small', { text: 'You had read this one before.' }),
       nx ? (nx.released ? btn(`Next: Part ${nx.serial.part}`, () => { ctx.back(); setTimeout(() => openRead(ctx, nx.id), 30); }, 'pri wide') : el('small.md-soon', { text: `Part ${nx.serial.part} arrives ${dayName(nx.day)}.` })) : null,
       btn('Back to the library', () => ctx.back(), 'wide')));
@@ -179,7 +179,7 @@ function reading(b, ctx, id, startPage) {
 function sitting(b, ctx, id, minutes) {
   injectMediaCss(); const k0 = M().books().find(k => k.id === id); if (!k0) { b.append(empty('novel_lighthouse', 'Not in your bag', 'The book has to be in your backpack.')); return; }
   const it = k0.item, rate = minutes / TUNE.bookSecondsPerSitting; let left = minutes, fun = 0, xp = 0, done = false, cancelled = false;
-  const mine = M().begin('pages', id); b.classList.add('md-sitting'); safe(() => ctx.partScreen && ctx.partScreen('read'), 0);   // PART-SCREEN (phone.js)
+  const mine = M().begin('pages', id), t0 = G.state.t;   /* t0: the end card says how much of the day went by (the clock runs while you read) */ b.classList.add('md-sitting'); safe(() => ctx.partScreen && ctx.partScreen('read'), 0);   // PART-SCREEN (phone.js)
   const pg = el('div.md-flip', null, el('i'), el('i'), el('i')), pbar = el('div.md-book-bar', null, bar(k0.pct * 100, 100, it.kind === 'skill' ? '#3b5bdb' : '#e0703a'), el('small', { text: Math.round(k0.pct * 100) + '%' })), status = el('p.md-sit-st'), out = el('div.md-sit-out');
   b.append(el('div.md-sit-hero', null, iconEl(it.id, 5, 'book'), pg), el('b.md-sit-t', { text: it.name }), status, pbar, out,
     el('p.md-note', { text: it.kind === 'skill' ? 'Same book, same progress as on your shelf. Studying on a small screen is a little slower than at a desk.' : 'Same bookmark as on your shelf at home. An armchair is nicer, but this is the bus.' }));

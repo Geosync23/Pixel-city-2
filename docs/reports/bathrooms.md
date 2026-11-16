@@ -41,40 +41,40 @@ Status: **real** = done in this batch. A = auto door/sign (fade), B = lobby.rest
 | Thread & Co. (clothing) | A sign | fitting-room-style loo with a full-length mirror and a mannequin torso |
 | **Iron Maple Gym (gym)** | **real (batch 2)** | **DONE: locker-room loo: rubber floor, two orange stalls, steel basins with pump bottles, lockers, a bench, a scale ("Step on the scale")** |
 | **Maple Bay Galleria (deptstore)** | **real (batch 2)** | **DONE: through the corner WC doorway: lilac stalls to the ceiling, quartz counter with sensor taps, one long mirror, a baby-change table with a forgotten duck** |
-| Grand Maple Hotel (hotel, events, guest floor) | B (2 doors) | Art-deco lobby powder room: velvet stool, attendant's tray, fresh flowers |
+| **Grand Maple Hotel (hotel, ballroom, spa)** | **real (batch 3)** | **DONE (batch 3): art-deco powder room: blush walls, black lacquer stalls with gold sunrays, black marble vanity on gold legs, fan mirrors, roses, a velvet pouf; the ballroom and spa doors lead here too** |
 | **Central Station (central_station)** | **real (batch 2)** | **DONE: railed steps down in the hall; below: white subway tile, green trim, terrazzo, a steel trough, four blue stalls with old 10c locks, a tile mosaic of the steam train** |
-| Rise & Shine Bakery (bakery) | A door | flour-dusted staff loo, a sack in the corner, bread-shaped soap |
+| Rise & Shine Bakery (bakery) | **real (batch 3)** | **DONE (batch 3): staff loo and flour store: butter walls, floury boards, enamel washbowl and jug, flour sacks** |
 | Dog-Eared Books (bookstore) | A door | tiny loo lined with paperback shelves ("take one, leave one") |
-| Bean & Gone (cafe) | A sign | plant-filled loo, chalkboard wall with customers' doodles |
+| Bean & Gone (cafe) | **real (batch 3)** | **DONE (batch 3): chalkboard wall of doodles, trailing pothos, green tiles, a bowl on a reclaimed shelf** |
 | Lucky Corner (cornerstore) | A sign | cramped stock-room loo, cases of soda stacked to the ceiling |
-| Noodle Lantern (ramen) | A sign | paper lanterns, wooden tub-sink, slippers at the door |
+| Noodle Lantern (ramen) | **real (batch 3)** | **DONE (batch 3): dark wood, paper screen, stone basin fed by bamboo, noren curtain on the stall, toilet slippers** |
 | FreshWay Market (grocery) | A sign | customer loo past the dairy cold room, rolling bins, recycling posters |
-| The Orpheum (cinema) | A sign | red velvet + film-poster frames, popcorn on the floor, an usher's torch on the hook |
-| Slice of Heaven (pizza) | A door | green-white-red tiles, a flour-sack bin, pizza-peel towel holder |
+| The Orpheum (cinema) | **real (batch 3)** | **DONE (batch 3): red velvet stripes, cinema carpet with a few popcorn kernels, oxblood stalls, bulb-ringed mirror, framed poster** |
+| Slice of Heaven (pizza) | **real (batch 3)** | **DONE (batch 3): white tile with green trim, terracotta floor, farmhouse sink, Nonna photo + calendar** |
 | **The Blue Heron (bar)** | **real (batch 2)** | **DONE: one black stall, band stickers everywhere, red bulb, steel bowl, a lipstick heart on the mirror, the gumball machine** |
 | **Maple Bay Public Library (library)** | **real (batch 2)** | **DONE: "the cleanest in the city": sage and cream stripes, oak herringbone, green stalls I and II, pedestal basins, QUIET sign, a swap shelf ("Swap shelf")** |
 | ZipParcel Depot (courier) | A door | staff loo with a parcel-scale, cardboard everywhere |
 | **Museum of Maple Bay (museum)** | **real (batch 2)** | **DONE: white gallery loo, polished concrete, minimal white stalls with black edges, black stone bowls on plinths, a hand dryer exhibited with a museum label ("Read the label")** |
-| Maple Bay Aquarium (aquarium) | A door | blue tiles, a fish-tank wall over the basins |
+| Maple Bay Aquarium (aquarium) | **real (batch 3)** | **DONE (batch 3): deep-blue tile, a wave across the floor, teal stalls with portholes, scallop-shell basins, a fish tank in the wall (door in the gift shop: no ticket needed)** |
 | Symphony Hall (concerthall) | A door | intermission queue, gilt mirrors, programme left on the sink |
 | Lantern Playhouse (playhouse) | A sign | backstage-style: bulb-ringed mirror, costume rail |
 | Fire Station No. 2 (fire_station) | A door | crew washroom, boots by the door, red tiles, a brass pole poster |
 | Maplewood Elementary (school_classroom) | A sign | low kid-size basins, colourful tiles, hand-wash song poster |
 | The Maple Bay Gazette (gazette_newsroom) | A door | headlines papered on the walls, a typewriter on the cistern |
 | Bay Radio 98.6 (radio_studio) | A sign | "ON AIR - QUIET FLUSH" light, foam acoustic tiles |
-| Observatory (observatory) | A sign | star-map ceiling, dark-adapted red night light |
+| Observatory (observatory) | **real (batch 3)** | **DONE (batch 3): midnight walls, star-burst floor, brass, a constellation chart, a red night light low on the wall** |
 | Conservatory (conservatory) | A sign | greenhouse loo by the gift shop (lines say so): ferns, a watering can, glass roof |
-| Bay Fish Hall (fishmarket) | B (2 doors) | wet-floor fish-market loo, rubber boots, fish-scale tiles, ice-machine hum |
+| Bay Fish Hall (fishmarket) | **real (batch 3)** | **DONE (batch 3): wet white tile, red quarry floor with a drain and a puddle, galvanised stalls and sink, rubber boots** |
 | Gull Point Lighthouse (lighthouse) | B | narrow round room under the stair, porthole, ship's lamp |
 | General Post Office (post_main), Downtown Postcard Counter | B | stamp-mosaic tiles, a "first-class" brass plate, letter-rack towel holder |
 | Office lobbies (lobby:1-24, lobby:48, 20 rooms) | B | one line each, by the building's theme: BayJet (aircraft-lav), Harbor Authority (ship's head), Ironside Foundry (cast-iron), Meridian Twin Towers (glass + chrome), Garnet Exchange (red stone), Harbor Trust (banker's marble), Kessler Block (old brick), Tidewater Insurance (beige corporate), Lanternworks (loft industrial), Northgate (municipal green), Carrow & Finch (law-firm walnut), Bayline Telecom (90s teal), Pelican Mutual (pelican tile), Quay Street Labs (lab-white with eyewash), Gas & Light (vintage gas lamps), Silver One (silver mirrors), Hollis Price (chambers oak), Brightwater Health (pastel clinic), Atlas Maritime (map mural), Shed 5 Works (shipping-container loo) |
 | **Maple Bay Arena (arena)** | **real (batch 2)** | **DONE: Otters-red block: five stalls, a round wash fountain, the score on a TV, an OTTERS sign, a queue rail; the half-time queue (wait) is kept** |
 | City park pavilion (city) | D | park pavilion loo: pine soap, timber walls, wildflower posters (a real room behind the pavilion door) |
-| Maple Bay Natatorium (natatorium, leisure) | B | changing-room loo, tiled benches, chlorine-blue, flip-flops |
-| Maple Bay University Commons (university) | B | student loo, flyers + graffiti equations on the stall doors |
+| Maple Bay Natatorium (natatorium, leisure) | **real (batch 3)** | **DONE (batch 3): pool-side tile with a blue stripe, non-slip floor, tiled basin ledge, wall hair dryer, lost-property box** |
+| Maple Bay University Commons (university) | **real (batch 3)** | **DONE (batch 3): painted block, speckled lino, navy stalls with flyers and E=MC2, notice board, forgotten textbook** |
 | Home-goods stores (goods:timber, fjord, bellwether, lumen, copper, attic, warp, loam, voltaic, spoke, kestrel, sleepy, nord) | A door | each store's loo is its own showroom: Timber (plywood + tool rack), Fjord (pale birch), Bellwether (department-store marble), Lumen (lamp-lit), Copper Pan (copper basin), Gilded Attic (antique washstand), Warp & Weft (textile-lined), Leaf & Loam (plants), Voltaic (sensor everything), Spoke & Strum (bike-hook), Kestrel & Pine (cabin), Sleepyhead (fluffy towels), Atelier Nord (minimal concrete) |
 | Clothing stores (cs_hollowell, nightjar, juniper, secondwind, sole, tidepool, outfitters, otterline, brim, lantern) | A door/sign | tailor's mirror (Hollowell), neon-black (Nightjar), knit cosy (Juniper & Rye), thrift-shop mismatched (Second Wind), shoe-box shelves (Cobble & Sole), beach-hut (Tidepool), outdoor-gear (Saltline), boathouse (Otterline), hat-stand (Brim & Buckle), kids' pastel (Little Lantern) |
-| Public places pub:1-61 (55 shops / cafes / restaurants) | A door/sign | one each from its trade: Tea Garden (bamboo), Heron's Table (rustic farm), Bloom & Paper (flowers), Coast Gas Mini Mart (gas-station loo with key on a hubcap), Maple Brewing Taproom (barrel sink), Night Owl Coffee (dark + owl print), El Farolito (talavera tiles), Little Hanoi (bamboo + lanterns), Flour & Fig (fig-tree mural), Marigold & Main (marigold wallpaper), Cedar & Olive (olive-wood), Silver Spoon Diner (chrome diner #2, NOT Dot's look: blue-white), Addis Table (woven baskets), Halo Donuts (pink sprinkles tile), Lacquer Lounge (nail-bar pink + gold), Rind & Wheel (cheese-cave stone), Paper Lantern Books (paper lanterns), Baker House Bagels (subway tile), Suds & Bubbles (laundromat: washer as the sink stand), Otis & Sons (barber-pole stripes), Jade Rabbit (jade green), Nine Dragons (red + dragon screen), Marchetti's (deli-counter tiles), Kettle & Crumb (kettle collection), Old Post Stationers (letterpress posters), Bubbling Lantern (steam + lanterns), Post Corner Pharmacy (white + sample shelf), Paws & Whiskers (dog bowl by the door), Seoul Ember (charcoal + K-pop poster), Paper Crane Izakaya (paper cranes), Birch Lane Pantry (jars), Wax & Wane / B-Side / Spin City (record-sleeve walls, three different eras), Black Cat Ink / Ink & Ivy Tattoo (flash-sheet walls), Ink & Ivy Vintage (clawfoot tub as planter), Sunnyside Cafe (sunflower yellow), Bay Thread Co-op (patchwork), Tidewater Gallery (white cube with one framed loo roll), Studio 11 (paint-splattered), Ink & Ivy Comics (comic-page wallpaper), Salt & Co. Provisions / Chandlery (ship's chandlery brass), Cold Storage Boba (ice-blue), Cannery Coffee (tin-can lamps), Rope Works Fish & Chips / Smokehouse (rope + smoke-stained timber), Harbor Tea & Spice (spice-tin wall), Mama Opal's (family photos), Elm House Bakery (elm wood), Tin Robot Toys (toy robot on the cistern), Bloom & Paper Riverside (river view window) |
+| Public places pub:1-61 (55 shops / cafes / restaurants) | A door/sign; **5 done in batch 3** (pub:8, 45, 53, 29, 24: the shared small-cafe layout, section 10) | one each from its trade: Tea Garden (bamboo), Heron's Table (rustic farm), Bloom & Paper (flowers), Coast Gas Mini Mart (gas-station loo with key on a hubcap), Maple Brewing Taproom (barrel sink), Night Owl Coffee (dark + owl print), El Farolito (talavera tiles), Little Hanoi (bamboo + lanterns), Flour & Fig (fig-tree mural), Marigold & Main (marigold wallpaper), Cedar & Olive (olive-wood), Silver Spoon Diner (chrome diner #2, NOT Dot's look: blue-white), Addis Table (woven baskets), Halo Donuts (pink sprinkles tile), Lacquer Lounge (nail-bar pink + gold), Rind & Wheel (cheese-cave stone), Paper Lantern Books (paper lanterns), Baker House Bagels (subway tile), Suds & Bubbles (laundromat: washer as the sink stand), Otis & Sons (barber-pole stripes), Jade Rabbit (jade green), Nine Dragons (red + dragon screen), Marchetti's (deli-counter tiles), Kettle & Crumb (kettle collection), Old Post Stationers (letterpress posters), Bubbling Lantern (steam + lanterns), Post Corner Pharmacy (white + sample shelf), Paws & Whiskers (dog bowl by the door), Seoul Ember (charcoal + K-pop poster), Paper Crane Izakaya (paper cranes), Birch Lane Pantry (jars), Wax & Wane / B-Side / Spin City (record-sleeve walls, three different eras), Black Cat Ink / Ink & Ivy Tattoo (flash-sheet walls), Ink & Ivy Vintage (clawfoot tub as planter), Sunnyside Cafe (sunflower yellow), Bay Thread Co-op (patchwork), Tidewater Gallery (white cube with one framed loo roll), Studio 11 (paint-splattered), Ink & Ivy Comics (comic-page wallpaper), Salt & Co. Provisions / Chandlery (ship's chandlery brass), Cold Storage Boba (ice-blue), Cannery Coffee (tin-can lamps), Rope Works Fish & Chips / Smokehouse (rope + smoke-stained timber), Harbor Tea & Spice (spice-tin wall), Mama Opal's (family photos), Elm House Bakery (elm wood), Tin Robot Toys (toy robot on the cistern), Bloom & Paper Riverside (river view window) |
 | Residential lobbies (24) | none | none needed (residents go home); keep as is |
 | Street stations (7), trains, planes | none | later: a tiny train / plane lavatory as a room on long rides (owner?) |
 
@@ -200,3 +200,47 @@ Checks (batch 2, by the worker):
   `bath2_stop.png`, `bath2_reload.png`; asset sheets `out/gallery/b2_*.png`. Redrawn after looking: terrazzo and gym floors were too speckled, globe lamps in the
   station floated like puffs (removed), sticker text ran into the mirror, the half-unit room depths showed a strip of the base floor (now whole units),
   the SkyDeck mints sat on top of the Wash hands spot (taps went to the mints), cyl() colour functions crashed two bins and the fountain.
+
+
+## 10. Batch 3 (twelve layouts, sixteen venues)
+
+Chosen by how often a player is there: the hotel lobby (lead's first pick; the ballroom and spa doors lead there too), the busiest food and drink places
+(Bean & Gone, Noodle Lantern, Slice of Heaven, Rise & Shine), the big day-out places (Aquarium, Natatorium, Orpheum, Observatory, Bay Fish Hall), the
+University Commons (students live there), and one shared layout for five small coffee and tea places. The concert hall, the playhouse, the conservatory
+and the clinic are next.
+
+| room id | size | look | way in |
+|---|---|---|---|
+| hotel:wc | 8x6 | blush walls, black/ivory diamond floor with brass lines, 3 black lacquer stalls with gold sunrays, black marble vanity on gold legs, fan mirrors, roses, lotion tray, velvet pouf | the lobby's two restroom doors; also from the ballroom and the spa |
+| cafe:wc | 4x4 | cream + green trim, green tiles, light plank stall, ceramic bowl on a reclaimed shelf, round wood mirror, trailing pothos, chalkboard ("BEAN THERE") | the sign stand bladder.js found room for (no free wall) |
+| ramen:wc | 4x4 | plank walls, pebble-and-slate floor, dark stall with an indigo noren curtain, stone basin with a bamboo spout, paper screen, lantern, slippers | sign stand |
+| pizza:wc | 4x4 | white tile with green rail, terracotta floor, green stall with a red band, farmhouse sink with a flour-sack towel, oval mirror with flag ribbon, Nonna's photo + calendar | new green door with a cream WC plate |
+| bakery:wc | 4x4 | butter-yellow walls, floury boards, pale-blue panelled stall, enamel washbowl and jug on a stand, flour sacks (existing art) | new pale-blue door |
+| aquarium:wc | 8x5 | deep-blue tile, wave across a blue floor, 3 teal stalls with portholes, scallop-shell basins on coral, porthole mirrors, fish tank in the wall | new teal door with a porthole, in the gift shop (outside the ticketed zones) |
+| natatorium:wc | 9x5 | white tile + blue stripe, non-slip pale-blue floor with a drain, 3 aqua stalls (numbered), tiled ledge with 3 basins, long mirror, hair dryer, lost-property box | the leisure hall's restroom door |
+| university:wc | 7x5 | painted block, speckled lino, 3 navy stalls with flyers and E=MC2, white counter, a forgotten textbook, notice board | the Commons' restroom doors |
+| cinema:wc | 7x5 | red velvet stripes, cinema carpet with a few kernels, 3 oxblood stalls with brass, black counter, bulb-ringed mirror, framed poster | sign stand |
+| fishmarket:wc | 6x4 | white tile + harbour-blue rail, red quarry floor with drain and puddle, 3 galvanised stalls, galvanised sink with hose, steel mirror, rubber boots | the hall's two restroom doors |
+| observatory:wc | 5x4 | midnight walls, star-burst floor, midnight stall with brass stars, copper bowl on dark wood, constellation chart, red night light | sign stand |
+| pub:N:wc (one layout) | 4x4 | one stall, a bowl on a wooden shelf, round mirror, plank floor; walls, wood, stall colour and story piece per venue (below) | the venue's own door or sign stand |
+
+The shared small-cafe layout (counts as one of the twelve), venue by venue:
+- Night Owl Coffee (pub:8): midnight-violet walls, violet stall, brass mirror, an owl print.
+- Sunnyside Cafe (pub:45): sunflower-yellow walls, yellow stall, orange trim, a sun plaque and a sunflower in a pot.
+- Cannery Coffee Roasters (pub:53): grey brick, steel-grey stall, a shelf of old tins.
+- Kettle & Crumb (pub:29): blush walls, red stall, a shelf of three kettles.
+- Jade Rabbit Tea House (pub:24): pale green walls, jade stall, a rabbit plate.
+
+Mechanism: door kind `auto` (keep the door or sign stand bladder.js places, then lead it into the room; a second 'room:build' handler registered at
+'ready' runs after bladder.js). Stall colour override (`p.c`, `p.c2`) for the shared layout. Exit label check in the test script now matches
+"Back to / Up to / Leave the ..." (the hotel's is "Leave the powder room", since you may have come from the ballroom or the spa).
+Art: new `src/art/venue/restrooms_art3.js` (basin3, glass3, floor3, deco3, prop3); 12 more stall styles + 4 door styles in `restrooms_art.js`.
+Lead's fixes: Central Station terrazzo and the gym rubber floor calmed down (far fewer, low-contrast flecks); the batch 3 floors were calmed the same way
+after the first look (cafe grout, pizza grout, bakery flour, cinema carpet, aquarium wave).
+
+Size: Stage 101 tree with the Stage 101 versions of my files 15,140,184 B; with batch 3 15,168,821 B = **+28.0 KB** (budget 60 KB).
+All bathroom work so far: batch 1 +23.8 KB, batch 2 +19.1 KB, batch 3 +28.0 KB = **about 70.9 KB** (measured per batch against the tree of the time).
+
+What remains after batch 3: of the 133 venue entrance rooms that had a fade-out restroom (survey), 22 now lead into real rooms (plus City Hall's
+floors, the hotel ballroom and spa, the SkyDeck deck); **111 entrance rooms remain**, plus the park pavilion and a few inner rooms (airport, post office, lobbies' upper floors).
+Biggest groups left: 50 pub venues (shops and small restaurants), 20 office lobbies, 13 home-goods stores, 10 clothing stores.

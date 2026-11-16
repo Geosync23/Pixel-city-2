@@ -109,8 +109,10 @@ function plan(from, to, t = G.state.t) {
 }
 
 /* ---------- trains in the city ---------- */
+const OLD_SORT = typeof location !== 'undefined' && /[?&]occl=old\b/.test(location.search || '');   // test switch (tools/occl_check.mjs): the cars' sort boxes as before the occlusion pass
+const SORT_UP = OLD_SORT ? 0 : .5;   // the cars' sort boxes stand this much above their floors (the renderer treats what is clear of a box by .5 as "above it", whatever is beside it: engine/render.js behindLong, ZM)
 function mkCar(set, k) {
-  return { x: 0, y: 0, z: 0, bb: [0, 0, 12, 2.2, 2.6], set, k, p: null, key: '', flip: false, isTrain: true,
+  return { x: 0, y: 0, z: 0, bb: [0, 0, 12, 2.2, 2.6], vb: [-.3, -.3, 12.3, 2.5, 3.1, 0], set, k, p: null, key: '', flip: false, isTrain: true,   /* vb: the box the car is painted in (the renderer's outline test, docs/reports/occlusion.md); bb is the sort box, stretched and lifted below */
     // sort z (this.z) is lifted strictly above everything under the car floor (deck slabs, lamp tops); the sprite is shifted back down by the same amount (lift) so the picture does not move
     lift: 0, _sh: null, sprite() { const spr = assetSprite(carA, this.p, this.flip, this.key); if (!this.lift || !spr) return spr; const sh = this._sh; if (sh && sh.src === spr && sh.lift === this.lift) return sh.out; const out = Object.assign({}, spr, { y: spr.y + Math.round(this.lift * 16) }); this._sh = { src: spr, lift: this.lift, out }; return out; },
     prebake(pri) { if (this.p) prebakeAsset(carA, this.p, this.flip, pri, this.key); } }; // performance report: bake train cars ahead (QA13)
@@ -136,9 +138,9 @@ function placeCars(set, st) {
     // such a segment is "in front" of the car by x while "behind" the deck by z and the deck is "behind" the car -> a cycle the sorter breaks differently each frame.
     const x0 = c.x, y0 = c.y, x1 = c.x + (ax ? 12 : 2.2), y1 = c.y + (ax ? 2.2 : 12); let top = zd, lo = ax ? x0 : y0, hi = ax ? x1 : y1; const U = underList(N);
     for (const ob of U) { const B = ob.B; if (B[0] >= x1 || x0 >= B[3] || B[1] >= y1 || y0 >= B[4]) continue; if (B[5] > top && B[5] < zd + .9 && B[2] < zd) top = B[5]; }
-    const zs = top > zd ? Math.ceil((top + .02) * 16) / 16 : zd; c.z = zs; c.lift = zs - zd;
+    const zs = (top > zd ? Math.ceil((top + .02) * 16) / 16 : zd) + SORT_UP; c.z = zs; c.lift = zs - zd; { const v = c.vb; v[2] = ax ? 12.3 : 2.5; v[3] = ax ? 2.5 : 12.3; v[5] = -c.lift; }
     for (const ob of U) { const B = ob.B; if (B[0] >= x1 || x0 >= B[3] || B[1] >= y1 || y0 >= B[4] || B[5] > zs || B[5] - B[2] > 1.5 || ob.id.indexOf('prop.rail.viaduct') !== 0) continue; if (ax) { if (B[0] < lo) lo = B[0]; if (B[3] > hi) hi = B[3]; } else { if (B[1] < lo) lo = B[1]; if (B[4] > hi) hi = B[4]; } }
-    if (!(G.rail && G.rail._noLift)) c.bb = ax ? [lo - c.x, 0, hi - c.x, 2.2, 2.6] : [0, lo - c.y, 2.2, hi - c.y, 2.6];
+    if (OLD_SORT && !(G.rail && G.rail._noLift)) c.bb = ax ? [lo - c.x, 0, hi - c.x, 2.2, 2.6] : [0, lo - c.y, 2.2, hi - c.y, 2.6];
   }
 }
 function tick() {

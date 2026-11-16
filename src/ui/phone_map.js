@@ -39,7 +39,7 @@ function guidePts() {
  *  p: place id | place | { x, y, name }. Falls back to a plain waypoint when there is no navigator or the Map app is not available. Returns true when the route card was opened. */
 export function routeTo(p) {
   if (typeof p === 'string') p = place(p); if (!p || typeof p.x !== 'number') return false;
-  const d = { id: p.id || null, name: p.name || 'Destination', x: p.x, y: p.y };
+  const d = Object.assign({ id: p.id || null, name: p.name || 'Destination', x: p.x, y: p.y }, p.room ? { room: p.room } : null);   /* keep `room` (a Galleria bay): the trip's arrow goes on inside */
   if (G.nav && G.phone && G.phone.isUnlocked && G.phone.isUnlocked('map') && safe(() => G.nav.routeTo(d), []).length) { needCenter = false; G.phone.open('map', { route: d }); return true; }
   setWaypoint(p); return false;
 }

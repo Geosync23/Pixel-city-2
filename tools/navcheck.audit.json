@@ -578,6 +578,22 @@
   ]
  },
  {
+  "name": "In store: Galleria bay by bus (QA16 gap)",
+  "door": "deptstore",
+  "setup": "T(null, 13); const r = G.instore.where('tp_tiedye_pop').find(q => /Thread/.test(q.name)); const p = G.places.get(r.place); const o = G.nav.routeTo({ id: r.place, name: p.name, x: p.x, y: p.y }, undefined, { all: true }); G.nav.start(o.find(q => q.mode === 'bus')); const t = G.nav.trip(); t.stage = 1; G.emit('ride:end', 'bus', t.alight.id);",
+  "after": "G.nav.cancel(); G.phone.setWaypoint(null);",
+  "checks": [
+   {
+    "go": "city",
+    "label": "Thread & Co"
+   },
+   {
+    "go": "int:deptstore",
+    "label": "^Thread & Co. Outlet$"
+   }
+  ]
+ },
+ {
   "name": "Plain place: grocery -> the till",
   "door": "grocery",
   "setup": "T(null, 13); G.phone.setWaypoint('grocery');",

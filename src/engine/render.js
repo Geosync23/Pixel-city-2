@@ -6,22 +6,81 @@ import { outskirtTrees, fadeAt, hazeAt } from './terrainfx.js';
 import { ASSETS } from '../art/registry.js';
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
-function behind(A, B) {
+/* test switch (tools/occl_check.mjs --query "?occl=old"): the draw order as it was before the occlusion pass */
+const OCCL = !(typeof location !== 'undefined' && /[?&]occl=old\b/.test(location.search || ''));
+function behind(p, q, m) {
+  const A = p.B, B = q.B;
   // separation along x and along y (-1: A is behind, 1: A is in front, 0: ranges overlap)
   const sx = A[3] <= B[0] + 1e-6 ? -1 : B[3] <= A[0] + 1e-6 ? 1 : 0, sy = A[4] <= B[1] + 1e-6 ? -1 : B[4] <= A[1] + 1e-6 ? 1 : 0;
-  // separated on both axes in opposite senses: the solids cannot really overlap on screen, so use one consistent order (centre depth) to avoid cycles -> no flicker
-  if (sx && sy && sx !== sy) return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4];
+  if (m === 2) return behindLong(p, q, sx, sy);
+  // separated on both axes in opposite senses (A is beside B on screen): the footprints cannot cover each other, only what hangs over them can (a tree's crown, a person's arms).
+  // Two placed objects: one consistent order (centre depth), as ever (m = 0: the static world is drawn exactly as before the occlusion pass).
+  // With somebody who moves (m = 1): the axis with the LARGER gap decides (= compare the two corners that face each other). That is what is true for the parts that can overlap, and it goes over into
+  // the one-axis rule below without a jump when one walks past the end of a long thing (a counter, a fence); the centre depth said "in front" until the middle of it and "behind" after.
+  if (sx && sy && sx !== sy) { if (m === 1) { const gx = sx < 0 ? B[0] - A[3] : A[0] - B[3], gy = sy < 0 ? B[1] - A[4] : A[1] - B[4]; if (gx !== gy) return gx > gy ? sx < 0 : sy < 0; } return A[0] + A[3] + A[1] + A[4] < B[0] + B[3] + B[1] + B[4]; }
   if (sx) return sx < 0; if (sy) return sy < 0;
   if (A[5] <= B[2] + 1e-6) return true; if (B[5] <= A[2] + 1e-6) return false;
   return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
 }
+/*
+ * ---------- vehicles and train cars (docs/reports/occlusion.md; owner msg 206) ----------
+ * A long box has no single depth. The old rules compared centres whenever two boxes were not cleanly one behind the other; for a bus that says "the tree is in front" for half of the pass and
+ * "behind" for the other half (the tree popped over the bus), and it contradicts the clean cases around it (bus behind the tree, tree behind the man, man behind the bus): the sort then has to drop one
+ * of the three links, and it dropped a different one from frame to frame. Every pair with a vehicle or a train car in it (m = 2) is decided here instead:
+ * - cleanly apart on the ground along one axis, or along both in the same sense: the nearer one is in front, as before.
+ * - BESIDE each other on screen (behind along x, in front along y, or the other way round): what can overlap is only what hangs over the boxes, and for that the SIDE of the vehicle the other
+ *   thing stands on is right (the near-side tree stays in front of the bus, the far-side one behind it) until the other thing, with all that hangs over it (r: a tree's crown, a person's arms), has
+ *   cleared the vehicle's end by more than its distance from the side; then the end decides. By then the two no longer touch, so nothing is seen to change. Two vehicles: the larger gap decides.
+ * - one wholly ABOVE the other and apart on the ground in the other sense (a train on its deck and the next deck slab; a car under the viaduct and the train over it): the lower one can never
+ *   cover the upper one, so the upper one is drawn later, if it is clear of the lower one's box by ZM (pictures stand a little taller than their boxes: a head) or by more than the gap on the ground.
+ *   The old order "x, then y, then height" made loops train -> next slab -> the other train -> train: cars of one train cut into the other.
+ * - boxes that reach INTO each other (somebody at the kerb whose box touches the bus by a hair, a car under a canopy): the axis along which they are least far in decides, not the centres.
+ */
+const ZM = .5;
+function ovOf(ob) { const v = ob.vbl, B = ob.B; if (!v) return ob._ov = 0; let r = B[0] - ob.x - v[0], t = ob.x + v[3] - B[3]; if (t > r) r = t; t = B[1] - ob.y - v[1]; if (t > r) r = t; t = ob.y + v[4] - B[4]; if (t > r) r = t; return ob._ov = r > 3 ? 3 : r > 0 ? r : 0; }   // how far a placed object's picture hangs over its sort box on the ground (a tree: its crown over the trunk)
+function behindLong(p, q, sx, sy) {
+  const A = p.B, B = q.B, sz = A[5] <= B[2] + 1e-6 ? -1 : B[5] <= A[2] + 1e-6 ? 1 : 0;
+  if (sx || sy) {
+    const gx = sx < 0 ? B[0] - A[3] : sx > 0 ? A[0] - B[3] : 0, gy = sy < 0 ? B[1] - A[4] : sy > 0 ? A[1] - B[4] : 0; let s, g;
+    if (sx && sy && sx !== sy) {
+      let r = 0, ax = gx > gy;   // ax: x is the axis "along" (two vehicles: the larger gap)
+      if (p.m !== 2 || q.m !== 2) { const L = p.m === 2 ? A : B, o = p.m === 2 ? q : p, ob = o.ob; ax = L[3] - L[0] >= L[4] - L[1]; r = OVR * (ob !== null ? (ob._ov !== undefined ? ob._ov : ovOf(ob)) : .35); }
+      const ga = (ax ? gx : gy) - r, gc = ax ? gy : gx; if (ga > gc) { s = ax ? sx : sy; g = ga; } else { s = ax ? sy : sx; g = gc; }
+    } else if (sx && (!sy || gx >= gy)) { s = sx; g = gx; } else { s = sy; g = gy; }
+    if (sz && sz !== s) { const gz = sz < 0 ? B[2] - A[5] : A[2] - B[5]; if (gz >= ZM || gz > g) return sz < 0; }
+    return s < 0;
+  }
+  if (sz) return sz < 0;
+  /* in each other: least far in */
+  const ax = B[0] - A[3], bx = A[0] - B[3], ay = B[1] - A[4], by = A[1] - B[4], az = B[2] - A[5] - ZM, bz = A[2] - B[5] - ZM, X = ax > bx ? ax : bx, Y = ay > by ? ay : by, Z = az > bz ? az : bz;
+  if (X > Y && X > Z) { if (ax !== bx) return ax > bx; } else if (Y > X && Y > Z) { if (ay !== by) return ay > by; } else if (Z > X && Z > Y) { if (az !== bz) return az > bz; }
+  return A[0] + A[3] + A[1] + A[4] + (A[2] + A[5]) * .01 < B[0] + B[3] + B[1] + B[4] + (B[2] + B[5]) * .01;
+}
+/*
+ * ---------- the outline of a long thing ----------
+ * The sort only compares two things whose sprites' rectangles overlap. A long box seen from the camera is a slanted band: most of its rectangle is empty (for a 12-unit train car about three quarters),
+ * so a long vehicle got an order with everything in those empty corners: a car under the viaduct "in front of" the train above it, a person two lanes away. None of those can be seen, but each is a
+ * link in the sort, and three of them soon contradict each other (the train is over the deck, the deck is over the car, the car is "in front of" the train); the sort then has to drop one link, and it
+ * dropped a different one from frame to frame: cars of one train cut into the other, a tree jumped over a bus.
+ * So a long entity carries the six-sided OUTLINE of its box on screen (item.h, world px, 4 px of slack like the sprite's padding): [x0, x1 of screen x, lo, hi of (y + x / 2), lo, hi of (y - x / 2)],
+ * and it is only compared with what reaches into that outline (pairMiss: against a placed object's own outline, or another long thing's; against the sprite rectangle of anything else, hexMiss).
+ */
+const HEXP = 4, OVR = typeof location !== 'undefined' && /[?&]occlr=0\b/.test(location.search || '') ? 0 : 1, hexOn = e => { const b = e.vb || e.bb; return b !== undefined && (b[2] - b[0] > 2.5 || b[3] - b[1] > 2.5); };
+/* outline against outline: [x0, x1, lo, hi of (y + x / 2), lo, hi of (y - x / 2)] each (exact: the two six-sided shapes have the same three directions) */
+function hexHex(h, g) { return g[0] >= h[1] || g[1] <= h[0] || g[2] >= h[3] || g[3] <= h[2] || g[4] >= h[5] || g[5] <= h[4]; }
+/* the outline of a placed object (its painted box, ob.vbl), cached on it */
+function obHex(ob) { const v = ob.vbl, x = ob.x, y = ob.y, z = ob.z; return ob._oh = [(x + v[0] - y - v[4]) * U - HEXP, (x + v[3] - y - v[1]) * U + HEXP, (x + v[0] - z - v[5]) * U - HEXP, (x + v[3] - z - v[2]) * U + HEXP, (y + v[1] - z - v[5]) * U - HEXP, (y + v[4] - z - v[2]) * U + HEXP]; }
+/* can the two items not touch on screen? Each by its outline if it has one (p.h: a placed object, a long entity), else by the box of its sprite's own pixels (p.t).
+ * (Glow that reaches out of a long entity's box, a train's headlight beam, is not part of this: what the beam falls on is not "in front of" or "behind" the train.) */
+function pairMiss(p, q) { const hp = p.h, hq = q.h; return hp !== null ? (hq !== null ? hexHex(hp, hq) : hexMiss(hp, q.t)) : hexMiss(hq, p.t); }
+function hexMiss(h, r) { return r[0] >= h[1] || r[2] <= h[0] || r[1] + r[0] * .5 >= h[3] || r[3] + r[2] * .5 <= h[2] || r[1] - r[2] * .5 >= h[5] || r[3] - r[0] * .5 <= h[4]; }
 /** topological depth sort of items {B: world AABB, r: screen rect, k: sort hint}. n: only the first n items of L; out: array to fill (perf: the renderer reuses its lists; the scratch arrays below are reused too, so a frame allocates nothing here) */
 let sDeps = [], sCnt = new Int32Array(256), sOrder = new Int32Array(256), sStack = new Int32Array(1024), sSt = new Uint8Array(256);
 export function sortItems(L, n = L.length, out = []) {
   if (sCnt.length < n) { sCnt = new Int32Array(n * 2); sOrder = new Int32Array(n * 2); sSt = new Uint8Array(n * 2); sStack = new Int32Array(n * 8); }
   const deps = sDeps, cnt = sCnt, st = sSt, order = sOrder, stack = sStack; while (deps.length < n) deps.push([]);
   cnt.fill(0, 0, n); st.fill(0, 0, n);
-  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if (behind(L[i].B, L[j].B)) deps[j][cnt[j]++] = i; else deps[i][cnt[i]++] = j; } }
+  for (let i = 0; i < n; i++) { const p = L[i], a = p.r, ma = p.m, ha = p.h; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; const q = L[j], mj = q.m; if ((ha !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, ma > mj ? ma : mj)) deps[j][cnt[j]++] = i; else deps[i][cnt[i]++] = j; } }
   /* order = indices by sort hint k, stable (an insertion sort: the same order as the Array.sort((p, q) => L[p].k - L[q].k) it replaces, without its temporary arrays) */
   for (let i = 0; i < n; i++) { const k = L[i].k; let j = i - 1; while (j >= 0 && L[order[j]].k > k) { order[j + 1] = order[j]; j--; } order[j + 1] = i; }
   let sp = 0, m = 0;
@@ -34,7 +93,7 @@ export function sortItems(L, n = L.length, out = []) {
 function sortItemsRef(L) {
   const n = L.length, deps = new Array(n);
   for (let i = 0; i < n; i++) deps[i] = null;
-  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if (behind(L[i].B, L[j].B)) (deps[j] || (deps[j] = [])).push(i); else (deps[i] || (deps[i] = [])).push(j); } }
+  for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue;   /* (the outline test of the occlusion pass, see pairMiss: part of what is sorted, not of how) */ if (behind(L[i], L[j], Math.max(L[i].m, L[j].m))) (deps[j] || (deps[j] = [])).push(i); else (deps[i] || (deps[i] = [])).push(j); } }
   const out = [], st = new Uint8Array(n), order = new Array(n); for (let i = 0; i < n; i++) order[i] = i; order.sort((p, q) => L[p].k - L[q].k);
   const stack = [];
   for (const root of order) { if (st[root]) continue; stack.push(root, 0); st[root] = 1; while (stack.length) { const idx = stack[stack.length - 1], i = stack[stack.length - 2], d = deps[i]; if (d && idx < d.length) { stack[stack.length - 1]++; const c = d[idx]; if (!st[c]) { st[c] = 1; stack.push(c, 0); } } else { stack.length -= 2; out.push(L[i]); } } }
@@ -299,6 +358,14 @@ export class Renderer {
   }
   /** test hook: is the draw order of the frame just drawn the same as the old depth sort gives? { items, same } */
   sortCheck() { const L = this._L.filter(it => it.spr), ref = sortItemsRef(L), S = this._S; let same = ref.length === S.length; for (let i = 0; same && i < ref.length; i++) if (ref[i] !== S[i]) same = false; return { items: S.length, same }; }
+  /** test hook (tools/occl_check.mjs): contradictions in the order of the frame just drawn = groups of items that are each "behind" the next all the way round (the sort has to drop a link of each). Returns [[item...]...]. Expect [] wherever something long moves. */
+  sortCycles() {
+    const L = this._L.filter(it => it.spr), n = L.length, adj = L.map(() => []), idx = new Int32Array(n).fill(-1), low = new Int32Array(n), on = new Uint8Array(n), st = [], out = []; let c = 0;
+    for (let i = 0; i < n; i++) { const a = L[i].r; for (let j = i + 1; j < n; j++) { const b = L[j].r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((L[i].h || L[j].h) && pairMiss(L[i], L[j])) continue; if (behind(L[i], L[j], Math.max(L[i].m, L[j].m))) adj[j].push(i); else adj[i].push(j); } }
+    const go = v => { idx[v] = low[v] = c++; st.push(v); on[v] = 1; for (const w of adj[v]) { if (idx[w] < 0) { go(w); if (low[w] < low[v]) low[v] = low[w]; } else if (on[w] && idx[w] < low[v]) low[v] = idx[w]; } if (low[v] === idx[v]) { const g = []; let w; do { w = st.pop(); on[w] = 0; g.push(L[w]); } while (w !== v); if (g.length > 1) out.push(g); } };
+    for (let i = 0; i < n; i++) if (idx[i] < 0) go(i);
+    return out;
+  }
   /** test hook (async): citizens' sprites (every direction, two frames of stand / walk) drawn by the bake worker vs. here; { tested, bad } */
   async charCheck(ents, max = 12) {
     const bad = [], seen = new Set(); let tested = 0;
@@ -509,7 +576,7 @@ export class Renderer {
     const fr = this.frameNo, SP = this._SP || (this._SP = []); let nsp = 0, gh = null;   /* seating: sitter records (reused) + the seated focus entity, if any */
     const L = this._L, vx0 = cam.x - 4, vy0 = cam.y - 4, vx1 = cam.x + W + 4, vy1 = cam.y + H + 4; let n = 0;
     const Q = this._Q; Q.length = 0; world.query(vx0, vy0, vx1, vy1, Q);
-    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; it.ns = 0; ob._fr = fr; ob._it = it; }
+    for (let i = 0; i < Q.length; i++) { const ob = Q[i]; if (ob.hidden) continue; const spr = objSprite(ob); if (!spr) continue; const wx = (ob.x - ob.y) * U, wy = (ob.x + ob.y) * U / 2 - ob.z * U;   /* = WS(ob.x, ob.y, ob.z) */ if (ob.size[2] <= .06 && !spr.l) { ctx.drawImage(spr.c, spr.x + wx - cam.x, spr.y + wy - cam.y); continue; } const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0], _h: null, _t: null }); n++; it.B = ob.B; it.spr = spr; it.ax = wx; it.ay = wy; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.e = null; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; it.m = 0; it.ns = 0; ob._fr = fr; ob._it = it; }
     const hopNow = performance.now();
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i]; if (e.hidden) continue; const spr = e.sprite(); if (!spr) continue; const ax = Math.round((e.x - e.y) * U); let ay = Math.round((e.x + e.y) * U / 2 - e.z * U);
@@ -518,9 +585,16 @@ export class Renderer {
       const rx0 = spr.x + ax, ry0 = spr.y + ay, rx1 = rx0 + spr.w, ry1 = ry0 + spr.h; if (rx1 < vx0 || rx0 > vx1 || ry1 < vy0 || ry0 > vy1) continue;
       if (SEATING && isSitter(e)) { const so = seatObj(world, e); if (so && so._fr === fr) { const h = so._it, q = SP[nsp] || (SP[nsp] = { e: null, spr: null, ax: 0, ay: 0, d: 0, ov: null, next: null }); nsp++; q.e = e; q.spr = spr; q.ax = ax; q.ay = ay; q.d = e.x + e.y; q.ov = seatOverlay(so, h.spr, e);
         /* the piece's sitters as a list, far to near */ if (!h.ns || q.d < h.sit.d) { q.next = h.ns ? h.sit : null; h.sit = q; } else { let p = h.sit; while (p.next && p.next.d <= q.d) p = p.next; q.next = p.next; p.next = q; } h.ns++; if (e.ghost && !gh) gh = q, q.host = h; continue; } }
-      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0] }); n++; it.ns = 0;
+      const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, _B: [0, 0, 0, 0, 0, 0], _r: [0, 0, 0, 0], _h: null, _t: null }); n++; it.ns = 0;
       const b = e.bb || BB, B = it._B, r = it._r; B[0] = e.x + b[0]; B[1] = e.y + b[1]; B[2] = e.z; B[3] = e.x + b[2]; B[4] = e.y + b[3]; B[5] = e.z + b[4]; r[0] = rx0; r[1] = ry0; r[2] = rx1; r[3] = ry1;
       it.B = B; it.spr = spr; it.ax = ax; it.ay = ay; it.r = r; it.k = B[0] + B[3] + B[1] + B[4]; it.ob = null; it.e = e;
+      /* occlusion pass (see behindLong, pairMiss). m: which rules of behind() apply to its pairs (2 a vehicle or train car, 1 anybody else who moves). h: the outline of a long entity's box on screen;
+         e.vb = [dx0, dy0, dx1, dy1, h, dz] is the box its picture is painted in, when the sort box e.bb is something else (train cars). t: the box of the sprite's own pixels. */
+      if (OCCL) {
+        const m = it.m = e.isVehicle || e.vb !== undefined ? 2 : 1, q = spr.bx;
+        if (q) { const t = it._t || (it._t = [0, 0, 0, 0]); t[0] = rx0 + q[0]; t[1] = ry0 + q[1]; t[2] = rx0 + q[2]; t[3] = ry0 + q[3]; it.t = t; } else it.t = r;
+        if (m === 2 && hexOn(e)) { const v = e.vb || b, h = it._h || (it._h = [0, 0, 0, 0, 0, 0]), x0 = e.x + v[0], y0 = e.y + v[1], x1 = e.x + v[2], y1 = e.y + v[3], z0 = e.z + (v[5] || 0), z1 = z0 + v[4]; h[0] = (x0 - y1) * U - HEXP; h[1] = (x1 - y0) * U + HEXP; h[2] = (x0 - z1) * U - HEXP; h[3] = (x1 - z0) * U + HEXP; h[4] = (y0 - z1) * U - HEXP; h[5] = (y1 - z0) * U + HEXP; it.h = h; } else it.h = null;
+      } else { it.m = 0; it.h = null; it.t = r; }
     }
     for (let i = n; i < L.length && L[i].spr; i++) { L[i].spr = null; L[i].ob = null; L[i].e = null; L[i].sit = null; L[i].ns = 0; }
     for (let i = nsp; i < SP.length && SP[i].e; i++) { SP[i].e = null; SP[i].spr = null; SP[i].next = null; SP[i].ov = null; SP[i].host = null; }   // do not keep last frame's sprites / entities alive

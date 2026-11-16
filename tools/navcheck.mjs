@@ -38,6 +38,7 @@ const ALIAS = { airtram: ['int:airport:terminal', 'int:airport:concourse'] }, go
 /* one-way or closed by design: the arrow is not expected to lead INTO these (the plane of the intro, the old cinema hall, City Hall's former lobby id, Nana's attic before Chapter 5) */
 const NOENTRY = /^(airport:plane|cinema:hall|lobby:4|home:grandma:attic)$/;   /* QA11: Nana's attic ladder appears only from Chapter 5 on (story-gated, _chapters_world.js); a fresh game has no way up by design */
 for (const id of ids) {
+  T(null, 12);   /* Opus bundle 2: every room is probed at noon of the same day (needs full), so a long --rooms all run cannot drift past closing time (the observatory walked the player out) */
   const sid = 'int:' + id; try { G.go = go0; await G.go(sid, { fresh: true }); } catch (e) { out.push({ id, err: String(e).slice(0, 120) }); continue; } await sleep(60); await dismiss();
   if (!G.scene || G.scene.id !== sid) { out.push({ id, err: 'landed in ' + (G.scene && G.scene.id) }); continue; }
   const edges = G.navArrow.edges(sid), rec = { id, bad: [], doors: 0, routes: 0 };

@@ -47,7 +47,8 @@ export function where(id, n = 3) {
     const now = new Set(safe(() => C.whereSold(id), [])), anchor = anchorShop(piece);
     for (const s of piece.shops) { if (s === 'online' || !SHOPS[s]) continue; const place = safe(() => C.placeOf(s), null); if (!place) continue;
       const venue = (C && C.VENUE && C.VENUE[s]) || place, nm = safe(() => C.shopName(s), SHOPS[s].name), inside = place !== venue ? safe(() => G.places.get(place).name, '') : '';   /* a bay in the Galleria, the arena's team store, the hotel boutique */
-      add(rowFor(s, venue, place, inside && inside !== nm ? `${nm}, ${inside}` : nm, { inStock: inSeason && (now.has(s) || s === anchor), season: inSeason ? null : [].concat(piece.season).map(k => SEASON[k]).join(' / ') })); }
+      const go = place !== venue && safe(() => G.places.get(venue).room, null) ? venue : place;   /* Opus bundle 2: a Galleria bay is routed to the bay itself (its place has `room`), so the arrow goes on inside the mall */
+      add(rowFor(s, venue, go, inside && inside !== nm ? `${nm}, ${inside}` : nm, { inStock: inSeason && (now.has(s) || s === anchor), season: inSeason ? null : [].concat(piece.season).map(k => SEASON[k]).join(' / ') })); }
     out.sort((a, b) => (b.inStock - a.inStock) || a.d - b.d);
   } else {
     const it = ITEM_BY_ID[id], g = GOOD_BY_ID[id], ids = [...new Set([...(g ? g.stores : []), ...((it && it.soldAt) || [])])];

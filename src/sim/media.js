@@ -128,7 +128,10 @@ function end() {
 /* ---------- Pages ---------- */
 const wordsOf = r => r._w || (r._w = String(r.text).split(/\s+/).filter(Boolean).length);
 const readMin = r => Math.max(2, Math.round(wordsOf(r) / TUNE.READ_WPM * 60 * TUNE.CLOCK.read));   // game minutes a read takes at reading speed
-const reads = () => { const d = today(); return READS.map(r => ({ ...r, words: wordsOf(r), minutes: readMin(r), released: d >= (r.day || 0), isNew: d >= (r.day || 0) && (r.day || 0) > (S.base || 0) && d - (r.day || 0) < 7 && S.reader.done[r.id] === undefined, done: S.reader.done[r.id] !== undefined, page: S.reader.pos[r.id] || 0 })); };
+/* Opus bundle 2: what a read takes on the clock. Reading runs the NORMAL clock (owner msg 199), so the Library lists the game time a read at reading speed
+   really takes at 1x (rounded to 5 min); `minutes` stays the PAY (fun / screen time) of the piece, unchanged */
+const clockMin = r => { const m = wordsOf(r) / TUNE.READ_WPM * 60 * (G.CLOCK || .85); return m < 30 ? Math.max(2, Math.round(m)) : Math.round(m / 5) * 5; };
+const reads = () => { const d = today(); return READS.map(r => ({ ...r, words: wordsOf(r), minutes: readMin(r), clockMin: clockMin(r), released: d >= (r.day || 0), isNew: d >= (r.day || 0) && (r.day || 0) > (S.base || 0) && d - (r.day || 0) < 7 && S.reader.done[r.id] === undefined, done: S.reader.done[r.id] !== undefined, page: S.reader.pos[r.id] || 0 })); };
 const read = id => reads().find(r => r.id === id) || null;
 function touchStreak() { const st = S.reader.streak, d = today(); if (st.last === d) return; st.n = st.last === d - 1 ? st.n + 1 : 1; st.last = d; st.best = Math.max(st.best || 0, st.n); }
 function readProgress(id, page) { S.reader.pos[id] = page; S.reader.last = { kind: 'read', id }; }

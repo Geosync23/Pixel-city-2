@@ -91,6 +91,8 @@ function tickHint() {
 function frame() {
   if (cap && performance.now() > capT) { cap.remove(); cap = null; }
   if (!H) return; const w = H.world;
+  /* Opus bundle 2: a window (shop, menu, dialog) opened over the bubble: the bubble steps aside until it closes (at 390 px it sat on the shop's Close button), unless it points into that window */
+  { const m = document.querySelector('.modal'), y = !!m && !(H.hl && m.contains(H.hl)); if (y !== !!H.yield) { H.yield = y; H.box.classList.toggle('yield', y); } }
   /* QA8: with the phone up, the bubble sat on the app's own header (the ride's destination, the Chats tabs); it moves to the bottom unless what it points at is down there */
   if (++H.k % 10 === 1) { let low = false; try { if (G.phone && G.phone.isOpen) { const hl = H.hl && H.hl.getBoundingClientRect(); low = !hl || !hl.height || hl.top < innerHeight * .55;
       /* owner msg 110: down there it covered the reply buttons in Messages; if any phone button sits in the band the bubble would take, it stays at the top */

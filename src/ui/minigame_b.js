@@ -30,10 +30,10 @@ export function garment(c, x, y, type, col, s = 1) {
 /* ---- unbox: three taps on the tape, then lift each thing out as it comes up ---- */
 registerKind('unbox', E => {
   const o = E.def.o || {}, items = (o.items && o.items.length ? o.items : [['Your things', 'ui.star']]).slice(0, 5), n = items.length, parts = [], T = TUNE_B.unbox, sc = n > 4 ? 1 : 2, sw = n > 4 ? 30 : 36;
-  let tape = 3, cur = -1, pop = 0, t = 0, fly = null, wait = 0, flap = 0; const out = [];
+  let tape = 3, cur = -1, pop = 0, t = 0, fly = null, wait = 0, flap = 0; const out = [], lug = !!o.lug;   /* o.lug: the intro suitcase (docs/reports/luggage.md): a yellow case with a zip and a red maple tag, same rules */
   const slot = k => ({ x: W / 2 - n * sw / 2 + k * sw + (sw - 16 * sc) / 2, y: 38 - 16 * sc });
   const next = () => { cur = out.length; pop = 0; E.cap(items[cur][0]); };
-  E.prog(0, n + 1); E.cap('Tap the tape');
+  E.prog(0, n + 1); E.cap(lug ? 'Tap the zip' : 'Tap the tape');
   const g = { done: false, score: 0, snap: true,
     update(dt) {
       t += dt; stepParts(parts, dt); if (tape <= 0) flap = Math.min(1, flap + dt * 5);
@@ -50,6 +50,9 @@ registerKind('unbox', E => {
       box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#efe3c8'); R(c, 9, 86, W - 18, 13, '#c9a878'); R(c, 9, 86, W - 18, 1, '#a8885c'); R(c, 16, 38, W - 32, 3, '#8a5a2c'); R(c, 16, 41, W - 32, 1, '#2a273333');   // wall, floor, shelf
       for (const k of out) { const s = slot(k); icon(c, items[k][1], s.x, s.y, sc); }
       const bx = 52, bw = 76, by = 58, open = tape <= 0;
+      if (lug) { suitcase(c, bx, bw, by, open, flap, tape, t, () => { if (cur >= 0) icon(c, items[cur][1], W / 2 - 16, by + 4 - pop * 34 + (pop >= 1 ? Math.sin(t * 6) * 1.5 : 0), 2); });
+        if (fly) { const s = slot(fly.k), u = fly.u, x0 = W / 2 - 16, y0 = by - 30; icon(c, items[fly.k][1], x0 + (s.x - x0) * u, y0 + (s.y - y0) * u - Math.sin(u * Math.PI) * 10, sc === 2 ? 2 : 2 - u); }
+        if (open && cur >= 0 && pop >= 1 && Math.floor(t * 3) % 2 === 0) ring(c, W / 2, by - 14, 20, GOLD, 2); drawParts(c, parts); return; }
       if (open) { R(c, bx - 14 * flap, by - 5, 16, 6, INK); R(c, bx - 14 * flap + 1, by - 4, 14, 4, '#d2ad74'); R(c, bx + bw - 2 + 14 * flap, by - 5, 16, 6, INK); R(c, bx + bw - 1 + 14 * flap, by - 4, 14, 4, '#d2ad74'); R(c, bx + 2, by - 4, bw - 4, 8, '#6b4a2a'); }
       if (cur >= 0) icon(c, items[cur][1], W / 2 - 16, by + 4 - pop * 34 + (pop >= 1 ? Math.sin(t * 6) * 1.5 : 0), 2);
       if (fly) { const s = slot(fly.k), u = fly.u, x0 = W / 2 - 16, y0 = by - 30; icon(c, items[fly.k][1], x0 + (s.x - x0) * u, y0 + (s.y - y0) * u - Math.sin(u * Math.PI) * 10, sc === 2 ? 2 : 2 - u); }
@@ -63,6 +66,21 @@ registerKind('unbox', E => {
   };
   return g;
 });
+
+/** the intro suitcase for 'unbox' (colours of src/art/home/luggage.js LUG): closed, a zip pull runs along the seam with each tap; open, the lid stands up behind */
+function suitcase(c, bx, bw, by, open, flap, tape, t, inside) {
+  const Y = '#f2c230', YD = dark(Y, .78), YL = '#f8dc78', TAG = '#d2412f';
+  if (open) { const lh = 6 + 14 * flap; box(c, bx, by - lh, bw, lh, YD); R(c, bx + 3, by - lh + 3, bw - 6, Math.max(1, lh - 5), '#2f8f96'); R(c, bx + 2, by - 4, bw - 4, 6, '#1f5a5e'); }   // the lid swung up (its teal lining), the inside of the case
+  inside();
+  box(c, bx, by, bw, 40, Y); R(c, bx + 1, by + 1, bw - 2, 2, YL); R(c, bx + 17, by + 7, 2, 28, YD); R(c, bx + bw - 19, by + 7, 2, 28, YD);   // shell + two ribs
+  R(c, bx + 4, by + 40, 7, 3, INK); R(c, bx + bw - 11, by + 40, 7, 3, INK);   // wheels
+  R(c, bx + bw - 3, by + 6, 4, 2, INK); box(c, bx + bw + 1, by + 6, 10, 13, TAG); ['..#..', '#.#.#', '#####', '.###.', '..#..'].forEach((r, j) => { for (let i = 0; i < 5; i++) if (r[i] === '#') R(c, bx + bw + 3 + i, by + 9 + j, 1, 1, '#fff4dc'); });   // the red tag with its white maple leaf
+  if (open) return;
+  box(c, bx - 2, by - 8, bw + 4, 10, Y); R(c, bx - 1, by - 7, bw + 2, 2, YL); box(c, bx + bw / 2 - 9, by - 13, 18, 6, '#3a4250'); R(c, bx + bw / 2 - 6, by - 11, 12, 2, YD);   // lid + carry handle
+  const zx = bx + 3 + (bw - 12) * (3 - tape) / 3 + Math.sin(t * 9) * .8;
+  R(c, bx, by - 1, zx - bx, 3, '#2a2733'); for (let x = Math.ceil(zx) + 5; x < bx + bw - 1; x += 3) R(c, x, by, 2, 1, '#6a5a40');   // zipped open so far / the closed teeth
+  box(c, zx, by - 3, 6, 9, '#c8ccd4'); R(c, zx + 2, by + 3, 2, 2, INK); if (Math.floor(t * 3) % 2 === 0) ring(c, zx + 3, by + 1, 10, GOLD, 2);   // the pull
+}
 
 /* ---- laundry: sort lights from darks, or fold ---- */
 registerKind('laundry', E => {

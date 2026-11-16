@@ -39,7 +39,8 @@ export function clearTop(x0, x1, skip) {
   for (const s of ['#hud .hud-tl', '#hud .hud-tr', '#nav-trip']) { const e = document.querySelector(s); if (!e || e === skip) continue; const r = e.getBoundingClientRect(); if (!r.height || !r.width) continue; if (r.right > x0 && r.left < x1) b = Math.max(b, r.bottom); }
   return b;
 }
-const pt = p => p ? Object.assign({ id: typeof p.id === 'string' ? p.id : null, name: p.name || 'Waypoint', x: p.x, y: p.y }, p.room ? { room: p.room } : null) : null;
+const pt = p => { if (!p) return null; const rm = p.room || (typeof p.id === 'string' && safe(() => place(p.id).room, null));   /* a place inside a building (Galleria bay): keep its room so the arrow goes on inside */
+  return Object.assign({ id: typeof p.id === 'string' ? p.id : null, name: p.name || 'Waypoint', x: p.x, y: p.y }, rm ? { room: rm } : null); };
 const KIND = { cab: 'taxi', bus: 'bus', train: 'train' }, inCity = () => !!G.scene && G.scene.id === 'city', normSt = id => String(id || '').replace(/^station:|^st_/, '');
 const same = (a, b) => !!a && !!b && (a.id ? a.id === b.id : a.x === b.x && a.y === b.y);
 
