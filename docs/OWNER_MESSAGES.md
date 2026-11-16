@@ -855,3 +855,6 @@ Reading time is fine
 
 ## 209 (2026-11-16)
 Status of woekers
+
+## 210 (2026-11-16)
+No workers currently going?
