@@ -725,3 +725,16 @@ How many lines of code are we at
 
 ## 191 (2026-11-16)
 Great thanks. After the mini game parallel Fable collaboration, wind down one Fable worker for the night (est timezone). One opis, one Fable and you (fable)
+
+## 192 (2026-11-16)
+"Fable order now:
+Night light (running).
+Mini-game programme: audit, then gym and cooking, then the new categories, with the Settings switch and tooltip.
+Suitcase towing in the intro.
+Real bathrooms.
+Clothing stores with outfits and mannequins.
+Central Station platforms and the train job.
+Seating follow-ups.
+Trailer."
+
+Hand 3 and 4 to opus
