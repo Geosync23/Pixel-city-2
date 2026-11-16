@@ -605,3 +605,6 @@ Need a lot more cooking mini games and they need to match what's being made (at 
 
 ## 159 (2026-11-16)
 Central Station need to be able to access and see the teain platform 1 and 2.  like the other stations.
+
+## 160 (2026-11-16)
+Also be sure to modify the train job to use the platforms once built.

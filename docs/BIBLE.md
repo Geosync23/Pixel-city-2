@@ -283,3 +283,4 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 31 (owner msg 159, 2026-11-16) — Central Station platforms
 - Central Station must have its train platforms 1 and 2 visible and walkable, the way the other stations do (add to the station, do not rework it).
+- (owner msg 160) Once the platforms are built, the train job (station / rail job play) must take place on them.
