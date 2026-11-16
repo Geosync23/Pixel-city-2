@@ -94,7 +94,7 @@ export class Session {
       if (ss && ss !== '.') { const v = ss === 'x' ? 1 : .55; if (T.kit === 'rim') { noise(this.drumF, t, { ft: 'bandpass', f: 3200, q: 3, d: .03, v: .16 * v }); tone(this.drumF, t, { f: 1650, d: .025, v: .05 * v }); } else { noise(this.drumF, t, { ft: 'bandpass', f: 1800, q: .7, d: .13, v: .13 * v }); tone(this.drumF, t, { type: 'triangle', f: 190, f2: 150, d: .06, v: .08 * v }); } }
       if (hh && hh !== '.') noise(this.drumF, t, { ft: 'highpass', f: 7500, d: hh === 'x' ? .035 : .02, v: hh === 'x' ? .05 : .03 });
     }
-    if (T.crackle && Math.random() < .12) noise(this.out, t + Math.random() * d16, { ft: 'highpass', f: 2500, d: .004, v: rand(.008, .02) });
+    if (false && T.crackle && Math.random() < .12)   /* owner msg 198: vinyl crackle removed from the classics */ noise(this.out, t + Math.random() * d16, { ft: 'highpass', f: 2500, d: .004, v: rand(.008, .02) });
   }
   stop(fade = 3) { const ctx = A.ctx, g = this.out.gain, now = ctx.currentTime; this.done = true; try { g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(.0001, now + fade); } catch (e) { } const out = this.out; setTimeout(() => { try { out.disconnect(); } catch (e) { } }, (fade + 6) * 1000); }
 }

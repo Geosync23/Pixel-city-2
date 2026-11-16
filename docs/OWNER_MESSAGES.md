@@ -765,3 +765,44 @@ Clothing stores: the shoe and hat shops sell matching sets, not whole outfits, a
 Show me pictures of the night light and traffic questions
 
 Also make all these quesrions a questionnaire
+
+## 198 (2026-11-16)
+Questionnaire answers
+1. [Traffic] There are 28 buses on the road, about one every 12 seconds per route. Downtown they are half of all vehicles.
+   -> Keep 28 | Note: Keep them if with the new system,.they flow. I think lets leave them for now ill let you know if its a problem
+2. [Traffic] Some junctions on the bus streets see mostly buses. Add more cars there? It costs a little waiting time and frame rate.
+   -> Add more cars | Note: But not too many
+3. [Traffic] Cars turn right on a red light when the way is clear.
+   -> Keep it
+4. [Night light] People change brightness in about six steps as they walk from the edge of a lamp pool to its middle. The trial you approved had four, coarser steps.
+   -> Keep six steps
+5. [Night light] Trees and walls still show the dotted pool pattern on them. People, lamp posts and small objects are lit as a whole.
+   -> Light trees as a whole too
+6. [Night light] A person standing at the rim of a pool is a touch darker than the ground under them.
+   -> Fine as it is
+7. [Mini-games: cooking and gym] Wok dishes use the stirring game.
+   -> Use the pan flip
+8. [Mini-games: cooking and gym] Kneading and ping-pong reuse other games' pictures.
+   -> Draw their own pictures
+9. [Mini-games: cooking and gym] On the first few plays a hint shows for 7 seconds.
+   -> 7 seconds is fine
+10. [Mini-games: chores and venues] Laundry sorting happens in a 3-minute "Loading the machine" step.
+   -> Keep it at the machine
+11. [Mini-games: chores and venues] Watering takes three pours per plant.
+   -> Fine
+12. [Mini-games: chores and venues] The pool, ducks, pet pen and fishing have simple animations.
+   -> Good enough
+13. [Mini-games: chores and venues] Build two more games: "pick the ripest" at the market and a photo game?
+   -> Not now
+14. [Classic songs] Are the eight original songs too loud next to the new tunes on the phone speaker?
+   -> Volume is fine
+15. [Classic songs] The originals have a vinyl crackle.
+   -> Remove it
+16. [Phone: shows and reading] While you read text yourself the clock runs slowly, about 6 game minutes per real minute.
+   -> Keep the slow clock | Note: Only for the book reading app
+17. [Phone: shows and reading] Should the phone remember that you pressed "Bigger"?
+   -> (no choice) | Note: In reference to what?
+18. [From today] The Central Station platforms are as bright as the hall at night.
+   -> Fine as it is
+19. [From today] Closing the wish-list banner with x:
+   -> Reminds again the next day (as now)

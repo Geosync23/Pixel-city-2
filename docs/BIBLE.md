@@ -321,3 +321,12 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - MUSIC: on the FIRST DAY of a new game only the eight original songs play, each in its old place (title, interior, morning / day / evening / night streets, rainy, train). From day two the new songbook plays, with the eight classics in the pools of their places, weighted to come up a bit more often than other tunes (about 2x a normal tune; the owner's favourites 'interior' and 'day' about 2.5x): noticeable, not dominant. This replaces 'the first ~5 minutes' in update 34's note.
 - TRAILER (update 36): no longer on hold; it is the LAST item of the to-do list.
 - (owner msg 183) Central Station: the platform area must be VERY detailed and unique (a showpiece, not a copy of the other stations).
+
+## Direction update 41 (owner msgs 196 + 198, 2026-11-16): questionnaire decisions
+- Suitcase stays yellow; no red luggage beside the player at the kerb. Central Station: terminus is fine; the hall's information desk stays a brief part of the Station Agent shift; platform brightness at night fine.
+- Traffic: 28 buses stay for now; a few more cars at the bus junctions (not too many); right turn on red stays.
+- Night light: six steps stay; TREES are lit as a whole too (no dotted pool pattern on tree crowns); rim darkness fine.
+- Mini-games: wok dishes keep the pan flip; kneading and ping-pong get their OWN pictures; hint 7 s; laundry / watering / simple venue animations fine as built; no new games (pick the ripest, photo) for now.
+- Music: classics volume fine; NO vinyl crackle.
+- Phone: the slow reading clock applies only to the book reading app (Pages).
+- Wish-list reminder: as built (4.5 tiles, once a day, weekly stock counts, x does not silence longer).

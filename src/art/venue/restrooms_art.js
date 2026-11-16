@@ -6,7 +6,7 @@
 //   mirror  {style 'sky' round backlit | 'hall' arched gilt} (wall)     dryer (wall, diner chrome)      bin {style}
 //   pendant (sky, hang with z)   tube (wall, diner fluorescent)   sign {kind 'wash'|'level'|'civic'} (wall)   door {style 'sky'|'diner'} (wall: the venue's restroom door)
 //   floor {style, w, d} (flat, under everything)   mints (tag wcmints, sits on the sky vanity)   mop (diner: bucket + wet-floor sign)   suggest (hall: suggestion box, tag wcsuggest)
-import { box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, hash2, textY, textX, signY, textW, PW, px, C } from '../../engine/raster.js';
+import { box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, hash2, textS, isFlipped, PW, px, C } from '../../engine/raster.js';
 import { F, bx, post, frameY, frameX } from './_lib.js';
 
 const PORC = '#f4f1ea', BRASS = '#c9a35a', CHROME = '#d5dbe0', INK = '#2a2733';
@@ -16,6 +16,17 @@ const blob = (x, y, z, rx, ry, h) => { const s = PW(x, y, z); for (let Y = Math.
 /** a disc / ring on a +y plane (round mirror, porthole) */
 const discY = (cx, y, cz, r, h, h2) => { const p = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; p.push([cx + Math.cos(a) * r, y, cz + Math.sin(a) * r]); } fq(p, h, h2); };
 
+/** upright lettering on a +y plane (each 3x5 glyph kept square, the line stepping down the wall), centred on x0..x1 with its top at z.
+    The engine's textY skews every glyph column, which turns S into = at this size; signs here need to be read. */
+function label(str, x0, x1, y, z, c) {
+  const n = str.length, w = (n * 4 - 1) / 16, xm = (x0 + x1) / 2, fl = isFlipped(), A = PW(fl ? xm + w / 2 : xm - w / 2, y, z), B = PW(fl ? xm - w / 2 : xm + w / 2, y, z), q = Math.max(1, n * 4 - 1);
+  for (let i = 0; i < n; i++) { const t = i * 4 / q; textS(str[i], Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), c); }
+}
+/** the same on a +x plane, centred on y0..y1 */
+function labelX(str, x, y0, y1, z, c) {
+  const n = str.length, w = (n * 4 - 1) / 16, ym = (y0 + y1) / 2, fl = isFlipped(), A = PW(x, fl ? ym - w / 2 : ym + w / 2, z), B = PW(x, fl ? ym + w / 2 : ym - w / 2, z), q = Math.max(1, n * 4 - 1);
+  for (let i = 0; i < n; i++) { const t = i * 4 / q; textS(str[i], Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), c); }
+}
 /** a little marker heart on a +x / +y plane, centred at (along, z) */
 const HEART = [[0, -.1], [.1, .02], [.08, .07], [.04, .08], [0, .04], [-.04, .08], [-.08, .07], [-.1, .02]];
 const heartX = (x, yc, zc, c) => { for (let i = 0; i < HEART.length; i++) { const a = HEART[i], b = HEART[(i + 1) % HEART.length]; lw([x, yc + a[0], zc + a[1]], [x, yc + b[0], zc + b[1]], c); } };
@@ -75,7 +86,7 @@ function stall(p) {
   if (!occ) { qx(W - T - .06, D - pw - .7, D - pw - .02, z0 + .02, dTop - .02, dk(s.door2, .2)); lw([W - T - .06, D - pw - .02, z0 + .02], [W - T - .06, D - pw - .02, dTop - .02], dk(s.door2, .5)); }
   // right partition (the next stall's left wall), outer face visible
   box(W - T, 0, z0, T, D - pw, H - z0, s.panel, { ol: false }); panelX(s, W, 0, D - pw, z0, H, s.panel);
-  if (s === ST.diner && p.tag) { textX('D+J', W, 1.25, 1.45, INK); heartX(W, .4, 1.3, '#c8233a'); lw([W, 1.2, 1.0], [W, .7, 1.0], dk(s.panel, .3)); }   // carved into the partition
+  if (s === ST.diner && p.tag) { labelX('D+J', W, .7, 1.25, 1.45, INK); heartX(W, .4, 1.3, '#c8233a'); lw([W, 1.2, 1.0], [W, .7, 1.0], dk(s.panel, .3)); }   // carved into the partition
 
   // front: pilasters / posts
   if (s === ST.diner) { for (const x of [0, W - pw]) { bx(x, D - pw, 0, pw, pw, H, CHROME, { l: '#c2c8ce', r: '#9aa2aa' }); bx(x - .02, D - pw - .02, 0, pw + .04, pw + .04, .1, '#9aa2aa'); } }
@@ -162,22 +173,22 @@ function tube() {
 }
 function sign(p) {
   const k = p.kind || 'wash';
-  if (k === 'wash') { signY('WASH', 0, 1.5, .02, .52, .92, '#f8f5ee', '#c8233a', { frame: false }); signY('HANDS', 0, 1.5, .02, .1, .5, '#f8f5ee', '#c8233a', { frame: false }); frameY(0, 1.5, .02, .1, .92, '#2a2733'); dot(.08, .02, .86, '#8a9098'); dot(1.42, .02, .86, '#8a9098'); }
-  else if (k === 'level') { lit(() => textY('LEVEL 52', 0, .02, .3, BRASS)); glow(() => { textY('LEVEL 52', 0, .02, .29, '#ffe2a0'); }); lw([0, .02, .04], [2, .02, .04], dk(BRASS, .2)); }
-  else { box(0, 0, 0, 2.3, .05, 1.2, BRASS, { ol: true }); qy(.08, 2.22, .05, .08, 1.12, '#b88f48'); signY('PUBLIC', .08, 2.22, .05, .74, 1.12, '#b88f48', '#3a2a14', { frame: false }); signY('WASHROOM', .08, 2.22, .05, .4, .74, '#b88f48', '#3a2a14', { frame: false }); signY('EST 1891', .08, 2.22, .05, .1, .38, '#b88f48', '#6a4a24', { frame: false }); for (const [x, z] of [[.14, .14], [2.16, .14], [.14, 1.06], [2.16, 1.06]]) dot(x, .05, z, '#f2dca0'); }
+  if (k === 'wash') { qy(0, 1.5, .02, .1, .92, '#f8f5ee'); frameY(0, 1.5, .02, .1, .92, '#2a2733'); label('WASH', 0, 1.5, .02, .8, '#c8233a'); label('HANDS', 0, 1.5, .02, .44, '#c8233a'); dot(.08, .02, .86, '#8a9098'); dot(1.42, .02, .86, '#8a9098'); }
+  else if (k === 'level') { lit(() => label('LEVEL 52', 0, 2, .02, .32, BRASS)); lw([0, .02, .04], [2, .02, .04], dk(BRASS, .2)); }
+  else { box(0, 0, 0, 2.3, .05, 1.2, BRASS, { ol: true }); qy(.08, 2.22, .05, .08, 1.12, '#b88f48'); label('PUBLIC', 0, 2.3, .05, .98, '#3a2a14'); label('WASHROOM', 0, 2.3, .05, .56, '#3a2a14'); lw([.3, .05, .62], [2.0, .05, .62], '#8a6a34'); for (const [x, z] of [[.14, .14], [2.16, .14], [.14, 1.06], [2.16, 1.06]]) dot(x, .05, z, '#f2dca0'); }
 }
 function door(p) {
   const sky = p.style === 'sky', c = sky ? '#4a3326' : '#c8233a';
   if (sky) {
     qy(-.06, 1.06, .02, 0, 2.36, '#26272c'); qy(.02, .98, .05, 0, 2.28, c); for (let x = .1; x < .95; x += .11) lw([x, .05, .04], [x, .05, 2.24], dk(c, .14));
     lw([.82, .06, .8], [.82, .06, 1.5], BRASS); lw([.83, .06, .8], [.83, .06, 1.5], dk(BRASS, .3));
-    qy(.24, .7, .06, 1.38, 1.62, '#26272c'); lit(() => textY('WC', .32, .06, 1.57, BRASS));
+    qy(.24, .7, .06, 1.38, 1.62, '#26272c'); lit(() => label('WC', .24, .7, .06, 1.58, BRASS));
     glow(() => qz(-.1, 1.1, .1, .5, .005, '#ffd89030'));
   } else {
     qy(-.06, 1.06, .02, 0, 2.08, CHROME); qy(.02, .98, .05, 0, 2.02, c); frameY(.02, .98, .05, 0, 2.02, dk(c, .45));
     discY(.5, .055, 1.5, .2, '#8a9098'); discY(.5, .06, 1.5, .16, '#d8eef4', '#c4e0ea'); lw([.42, .065, 1.56], [.5, .065, 1.44], '#f4fbff');
     qy(.06, .94, .06, .02, .2, '#d5dbe0'); qy(.72, .86, .06, 1.0, 1.24, '#d5dbe0'); lw([.74, .065, 1.12], [.84, .065, 1.12], '#9aa2aa');
-    signY('WC', .2, .8, .06, 2.1, 2.54, '#3f9a94', '#f8f5ee', { lit: true, frame: false }); lw([.2, .06, 2.1], [.8, .06, 2.1], '#2a6a64');   // enamel plaque over the door
+    qy(.2, .8, .06, 2.1, 2.5, '#3f9a94'); lit(() => label('WC', .2, .8, .06, 2.4, '#f8f5ee')); lw([.2, .06, 2.1], [.8, .06, 2.1], '#2a6a64');   // enamel plaque over the door
   }
 }
 
@@ -218,7 +229,7 @@ function mop() {
 }
 function suggest() {
   lw([.25, .2, 0], [.25, .2, .82], BRASS); lw([.26, .2, 0], [.26, .2, .82], dk(BRASS, .3)); cyl(.25, .2, 0, .15, .03, dk(BRASS, .2), { ol: false });
-  box(0, 0, .82, .5, .36, .34, '#8a5a34', { t: '#7a4e2d' }); qz(.12, .38, .14, .2, 1.161, '#2a1f18'); qy(.04, .46, .36, 1.04, 1.12, '#f4ead0'); textY('IDEAS?', .05, .36, 1.115, '#5a3a20');
+  box(0, 0, .82, .5, .36, .34, '#8a5a34', { t: '#7a4e2d' }); qz(.12, .38, .14, .2, 1.161, '#2a1f18'); lw([.04, .36, 1.1], [.46, .36, 1.1], BRASS); qy(.16, .34, .36, .88, 1.0, '#f4ead0'); label('?', .16, .34, .36, 1.0, '#7a2030');
   bx(.36, .08, 1.16, .1, .12, .02, '#f8f5ee'); lw([.36, .16, 1.18], [.18, .3, .95], '#c8bea6');
 }
 
