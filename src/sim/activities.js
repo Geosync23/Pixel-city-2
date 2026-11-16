@@ -48,7 +48,7 @@ const invCount = id => (G.inv ? G.inv.count(id) + (isHome(G.scene) ? G.inv.fridg
 /* ---------- tag mapping ---------- */
 const HOME_T = ['bed', 'fridge', 'stove', 'microwave', 'sofa', 'tv', 'computer', 'bookshelf', 'game', 'music', 'shower', 'exercise', 'instrument', 'easel', 'plant', 'wardrobe', 'pantry', 'moving_box', 'delivery_box'];
 const VENUE_T = FUNCTION_TAGS.venue.filter(t => !['till', 'shelf', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'taxi_rank'].includes(t));
-const RAW = [...new Set([...HOME_T, ...VENUE_T, 'bath', 'seating', 'booth', 'fitting', 'cardio', 'yoga', 'lockers', 'reading', 'moving', 'boxes', 'armchair'])];
+const RAW = [...new Set([...HOME_T, ...VENUE_T, 'bath', 'seating', 'booth', 'fitting', 'cardio', 'yoga', 'boxing', 'lockers', 'reading', 'moving', 'boxes', 'armchair'])];
 function tagsFor(fx, scene) {
   const T = new Set(fx.tags), out = new Set(), id = fx.asset.id || '', rid = vkey(scene.roomId || ''), homeAsset = T.has('home');
   if (homeAsset || isHome(scene)) {

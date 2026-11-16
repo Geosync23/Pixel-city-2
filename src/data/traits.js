@@ -253,7 +253,7 @@ export const TRAITS = [
     earned: true, plus: ['"The Usual" (+4 mood, 3 h) when you walk into your regular place', '5% off there, quietly'], regular: { moodlet: 'the_usual', cash: 0.05 },
     thoughts: ['They know my order.'], said: ['The usual? Thought so.'] }),
   T('gym_rat', 'Gym Rat', 'earned', 'skill.fitness', 'Earned by working out ten times.', {
-    earned: true, plus: ['Fitness grows 10% faster', '"Pumped" lasts longer'], xp: { fitness: 1.1 }, acts: [{ ids: ['gym_weights', 'gym_treadmill', 'gym_yoga_class', 'exercise_home', 'jog', 'sk_hoops'], moodlet: 'pumped' }],
+    earned: true, plus: ['Fitness grows 10% faster', '"Pumped" lasts longer'], xp: { fitness: 1.1 }, acts: [{ ids: ['gym_weights', 'gym_treadmill', 'gym_bike', 'gym_row', 'gym_bag', 'gym_yoga_class', 'exercise_home', 'jog', 'sk_hoops'], moodlet: 'pumped' }],
     thoughts: ['Leg day. Every day is leg day.'], said: ['Looking strong lately!'] }),
   T('local', 'True Local', 'earned', 'ui.pin', 'Earned by discovering forty places.', {
     earned: true, plus: ['Fun drops 10% slower outdoors', 'Passers-by greet you more often'], decay: [{ need: 'fun', mult: 0.9, when: 'out' }], greet: 2,

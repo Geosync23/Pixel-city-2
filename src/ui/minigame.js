@@ -370,7 +370,7 @@ const col1 = E => E.theme.color || '#e0527a';
 KINDS.stir = E => {
   const o = E.def.o || {}, hw = (o.zone || .17) - .06 * E.d, c0 = .52, T = o.secs || 26, need = o.need || 10, parts = [], cx = W / 2, cy = 50, rad = 32, col = E.theme.color || '#d9a441';
   let w = 0, ang = 0, t = 0, prog = 0, stuck = 0, splash = 0, inz = false, down = false, auto = false, la = null, moved = 0, lastBeat = 0, splT = 0;
-  const g = { done: false, score: 0,
+  const g = { done: false, score: 0, snap: true /* a pad's Confirm lands on the middle of the pot = hold-to-stir */,
     update(dt) {
       t += dt; stepParts(parts, dt); splT = Math.max(0, splT - dt);
       if (auto) w = clamp(w + (down ? .62 : -.5) * dt, 0, 1.2); else { const inst = clamp(moved / dt / 9.5, 0, 1.3); w += (inst - w) * Math.min(1, dt * 5); moved = 0; }
@@ -508,7 +508,7 @@ KINDS.golden = E => {
     down() { if (wait > 0 || g.done) return; const dz = h - z0; judge(Math.abs(dz) <= zw * .2 ? 1 : Math.abs(dz) <= zw / 2 ? .8 : dz < 0 ? Math.max(0, .55 + (dz + zw / 2) * 2.2) : Math.max(0, .45 - (dz - zw / 2) * 5)); },
     draw(c) {
       box(c, 8, 4, W - 16, H - 10, E.theme.paper || '#55505f'); const t3 = tone(h), ox = 46, oy = 8, ow = 88, oh = 62, lift = out ? Math.min(14, (.9 - wait) * 40) : 0;
-      if (fry) { box(c, ox, oy + 16, ow, oh - 16, '#8a8f9a'); R(c, ox + 2, oy + 26, ow - 4, oh - 28, '#e8b63a'); for (let k = 0; k < 7; k++) R(c, ox + 6 + k * 12, oy + 28 + Math.floor((h * 30 + k * 3) % 6), 2, 2, '#fff8b0'); R(c, ox + 10, oy + 20 - lift, ow - 20, 2, INK); R(c, ox + ow - 12, oy + 4 - lift, 2, 18, INK); }
+      if (fry) { box(c, ox, oy + 16, ow, oh - 16, '#8a8f9a'); R(c, ox + 2, oy + 26, ow - 4, oh - 28, E.theme.color2 || '#e8b63a'); for (let k = 0; k < 7; k++) R(c, ox + 6 + k * 12, oy + 28 + Math.floor((h * 30 + k * 3) % 6), 2, 2, '#fff8b0'); R(c, ox + 10, oy + 20 - lift, ow - 20, 2, INK); R(c, ox + ow - 12, oy + 4 - lift, 2, 18, INK); }
       else { box(c, ox, oy, ow, oh, '#3a3644'); box(c, ox + 6, oy + 6, ow - 12, oh - 14, t3 === 2 ? '#5a2a1c' : '#f0a04a'); R(c, ox + 8, oy + oh - 20 + 0, ow - 16, 2, '#2a2733'); for (let k = 0; k < 3; k++) disc(c, ox + 14 + k * 30, oy + oh - 4, 2, '#d9d9e0'); }
       const dx = ox + ow / 2 - 24, dy = oy + (fry ? 14 : 8) - lift, al = h < z0 - zw / 2 ? clamp(.6 * (1 - h / (z0 - zw / 2))) : clamp((h - z0 - zw / 2) * 2.4, 0, .85);
       tint.width = 48; const tc = tint.getContext('2d'); drawIcon(tc, E.theme.icon || 'skill.cooking', 0, 0, 3); if (al > .02) { tc.globalCompositeOperation = 'source-atop'; tc.globalAlpha = al; tc.fillStyle = h < z0 ? '#fff4dc' : '#1e1410'; tc.fillRect(0, 0, 48, 48); } c.drawImage(tint, Math.round(dx), Math.round(dy));

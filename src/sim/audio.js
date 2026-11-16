@@ -13,7 +13,8 @@
 //   sfx(name, opts?)        play a sound from _audio_sfx.js SFX (plus the aliases below). opts: number volume | { v, pitch, pan }
 //   setVolume(key, v)       key 'master' | 'music' | 'sfx' | 'city'; stored in G.state.audio and applied at once
 //   getVolume(key)
-//   music(id | null)        play one tune of the songbook now (id, pool name or an old track name; null = stop; the controller resumes on its own)
+//   music(id | null)        play one tune now (a songbook id, a classic id 'classic_day', an old track name 'day' = that classic, or a pool name; null = stop; the controller resumes on its own)
+//                           the CLASSICS (the eight original loops, _music_classic.js): all of day one of a new game, then in the pools with extra bag tickets (docs/reports/classics.md)
 //   nowPlaying() / skip()   the tune that is sounding { id, title, feel, pool, where, t, dur } | null; end it and start the next
 //   mood(name | null, min)  a special pool for a while ('date', 'family', 'festival')
 //   debug.music()           what is playing, the context and its pool, the bag, the tune held for next;  debug.jukebox() dev chooser for any tune
@@ -33,8 +34,9 @@ import { stinger as playStinger } from './_audio_music.js';
 import { SONGS, SONG } from './_music_songs.js';
 import { Player, compile, renderSong, STYLES } from './_music_engine.js';
 import { INST } from './_music_synth.js';
-import { pool as musicPool, draw as bagDraw, played as bagPlayed, putBack as bagPutBack, timeOf, whereOf, POOL_INFO, TIMES, DISTRICTS, SEASONS } from './_music_pools.js';
-import { LEVELS } from './_music_levels.js';
+import { pool as musicPool, draw as bagDraw, played as bagPlayed, putBack as bagPutBack, timeOf, whereOf, POOL_INFO, TIMES, DISTRICTS, SEASONS, CLASSIC_IN, weight as bagWeight } from './_music_pools.js';
+import { LEVELS, CLASSIC_LEVELS } from './_music_levels.js';
+import { ClassicPlayer, CLASSICS, CLASSIC_IDS, TRACKS as CLASSIC_TRACKS, renderClassic } from './_music_classic.js';
 import { BedMixer, sceneFor, BED_ON, BED_GAIN, PLACES, PHASES, INDOOR as BED_ROOMS } from './_audio_bed.js';
 import { STRETCHES } from '../data/ambience_audio.js';
 import { choose } from '../ui/kit.js';
@@ -153,12 +155,25 @@ const VENUE = [[/plane|cabin/, 'plane'], [/cafe|coffee|bakery|tea|cocoa|galley|a
   [/hotel|restaurant|bistro|skydeck|concerthall|playhouse|cinema|foyer/, 'hotel'], [/gym|dojo|natatorium|arena/, 'gym'], [/library|bookstore|university|school|classroom|records/, 'library'],
   [/museum|observatory|aquarium|conservatory|lighthouse|gallery/, 'museum'], [/store|shop|grocery|market|galleria|goods|deptstore|clothing|mall/, 'shop'], [/office|bank|cityhall|clinic|post|newsroom|studio|fire_station|depot|warehouse|courier/, 'office'], [/station/, 'train']];
 const FLAVOUR = { downtown: 'downtown', oldtown: 'oldtown', arts: 'arts', maplewood: 'suburb', hillcrest: 'suburb', railyard: 'harbor', park: 'park', harbor: 'harbor', airport: 'airport' };
-const OLD_TRACK = { title: 'title', morning: 'out:morning:downtown:0', day: 'out:midday:downtown:0', evening: 'out:evening:downtown:0', night: 'out:late:downtown:0', rainy: 'rain', interior: 'room', train: 'train' };
+/* the eight old track names now mean the classics themselves (owner msg 181) */
+const OLD_TRACK = { title: 'classic_title', morning: 'classic_morning', day: 'classic_day', evening: 'classic_evening', night: 'classic_night', rainy: 'classic_rainy', interior: 'classic_interior', train: 'classic_train' };
+const songOf = id => SONG[id] || CLASSICS[id], isCK = k => typeof k === 'string' && k.startsWith('classic:');
+const CK_WHERE = { title: 'Title screen', interior: 'Indoors', train: 'On the train', rainy: 'Outdoors in the rain', morning: 'Outdoors, morning', day: 'Outdoors, daytime', evening: 'Outdoors, evening', night: 'Outdoors, night' };
+let titleSeen = false;
+/* DAY ONE (owner msg 181, BIBLE Direction update 40; docs/reports/classics.md): on the first day of a NEW game only the eight classics play, each in its
+   old place by the rule of commit e834cfe (wantTrack). mus().d1 = the day index when 'game:new' fired (saves from before have none: unaffected).
+   Day one lasts until 05:00 the next morning: the first night's sleep (any alarm from 05:00 on) or staying up through the night ends it at the same moment. */
+function dayOne() { const m = mus(); if (typeof m.d1 !== 'number') return false; if (G.state.t < (m.d1 + 1) * 1440 + 300) return true; delete m.d1; return false; }
+function oldTrack() {   /* e834cfe wantTrack(), title handled by the caller; 0-5 h is 'night' (the old code fell through to 'day' there by an oversight) */
+  const sc = G.scene, id = String(sc && sc.id || ''); if (/train|tram/.test(id) || rideKind === 'train' || rideKind === 'airtram') return 'train'; if (sc && sc.indoor) return 'interior';
+  const wk = weatherKind(); if (wk === 'rain' || wk === 'storm') return 'rainy'; const h = G.now().hf; return h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'day' : h >= 17 && h < 21 ? 'evening' : 'night';
+}
 let player = null, cur = null, forced = null, held = null, mwant = null, mood = null, rideKind = null, wound = false, startMs = 0;
 const mus = () => { const s = S || vol; return s.mus && typeof s.mus === 'object' ? s.mus : (s.mus = { bags: {}, recent: [], last: null }); };
 /** { g: the kind of place (a change of it ends the tune), key: the pool } for this moment */
 function musicCtx() {
-  if (G.onTitle) return { g: 'title', key: 'title' };
+  if (G.onTitle) return { g: 'title', key: titleSeen ? 'title' : 'classic:title' }; titleSeen = false;   /* the title screen always opens with Classic: Title */
+  if (dayOne()) { const k = oldTrack(); return { g: 'c:' + (k === 'interior' || k === 'train' ? k : 'out'), key: 'classic:' + k }; }
   const sc = G.scene, id = String(sc && sc.id || ''), ti = G.now(), time = timeOf(ti.hf), wk = weatherKind();
   if (mood && G.state.t < mood.until) return { g: 'mood:' + mood.name, key: mood.name }; mood = null;
   /* QA r15 C-odd 1: a cab / bus ride keeps the tune that is playing (its kind of place carries on); the ride's pool only chooses the NEXT tune */
@@ -181,15 +196,16 @@ function musicCtx() {
   return { g: 'out', key: 'out:' + time + ':' + fl + ':' + ti.season };
 }
 /* giveBack: a tune that was cut off in its first 20 s (you walked through a door, a show began) has not had its turn: it goes back into its bag. A tune you Skip does not. */
-function endTune(fade, musical, giveBack) { if (!player) return; try { if (giveBack && cur && !wound && A.ctx.currentTime - player.started < 20 && cur.key !== 'forced') bagPutBack(mus(), cur.key, cur.id); wound = true; if (musical) player.wind(fade); else player.stop(fade); } catch (e) { fail(e); } }
+function endTune(fade, musical, giveBack) { if (!player) return; try { if (giveBack && cur && !wound && A.ctx.currentTime - player.started < 20 && cur.key !== 'forced' && !isCK(cur.key)) bagPutBack(mus(), cur.key, cur.id); wound = true; if (musical) player.wind(fade); else player.stop(fade); } catch (e) { fail(e); } }
 function stopMusic(fade, giveBack) { if (player) { endTune(fade, false, giveBack); player = null; cur = null; track = null; wound = false; } }
 function unhold() { if (held) { bagPutBack(mus(), held.key, held.id); held = null; } }
 function startTune(want) {
   const st = mus(), t0 = typeof performance !== 'undefined' ? performance.now() : 0; let id, key = want.key;
-  if (forced) { id = forced; key = 'forced'; } else if (held && held.key === key) { id = held.id; held = null; } else { unhold(); id = bagDraw(st, key); }
-  const song = SONG[id]; if (!song) { musicGap = 10; forced = null; return; }
-  player = new Player(A.ctx, song, buses.music, buses.send, { db: LEVELS[id] || 0 }); player.schedule(A.ctx.currentTime + .3);
-  cur = { g: forced ? 'forced' : want.g === 'keep' ? 'room' : want.g, key, id, pool: key }; track = id; wound = false; if (!forced) { bagPlayed(st, id); held = { key, id: bagDraw(st, key) }; }
+  const ck = !forced && isCK(key);
+  if (forced) { id = forced; key = 'forced'; } else if (ck) { unhold(); id = 'classic_' + key.slice(8); if (id === 'classic_title') titleSeen = true; } else if (held && held.key === key) { id = held.id; held = null; } else { unhold(); id = bagDraw(st, key); }
+  const song = songOf(id); if (!song) { musicGap = 10; forced = null; return; }
+  player = song.classic ? new ClassicPlayer(A.ctx, id, buses.music, buses.send, { db: CLASSIC_LEVELS[id] || 0, fade: 3 }) : new Player(A.ctx, song, buses.music, buses.send, { db: LEVELS[id] || 0 }); player.schedule(A.ctx.currentTime + .3);
+  cur = { g: forced ? 'forced' : want.g === 'keep' ? 'room' : want.g, key, id, pool: key }; track = id; wound = false; if (!forced) { bagPlayed(st, id); if (!ck) held = { key, id: bagDraw(st, key) }; }
   startMs = typeof performance !== 'undefined' ? +(performance.now() - t0).toFixed(1) : 0;
 }
 function musicTick(dt, c) {
@@ -198,15 +214,16 @@ function musicTick(dt, c) {
     player.schedule(c.currentTime + .45);
     if (!wound && !forced && want.g !== 'keep' && want.g !== cur.g) endTune(1.6, true, true);   /* another kind of place: finish the bar, fade */
     if (player.done && c.currentTime > player.next + .2) { const natural = !wound; player = null; cur = null; track = null; wound = false; forced = null; musicGap = natural ? (want.g === 'title' ? 5 : 20 + Math.random() * 30) : 2.5 + Math.random() * 2.5; }
-  } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced) { if (!held || held.key !== want.key) { unhold(); held = { key: want.key, id: bagDraw(mus(), want.key) }; } if (SONG[held.id]) compile(SONG[held.id]); } }
+  } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced && !isCK(want.key)) { if (!held || held.key !== want.key) { unhold(); held = { key: want.key, id: bagDraw(mus(), want.key) }; } if (SONG[held.id]) compile(SONG[held.id]); } }
 }
-function nowPlaying() { if (!player || !cur) return null; const s = player.song, p = player.pos(); return { id: s.id, title: s.title, feel: s.feel, pool: cur.key, where: POOL_INFO[cur.key] || (cur.key === 'forced' ? 'Chosen by hand' : 'Outdoors'), t: +p.t.toFixed(1), dur: +p.dur.toFixed(1), section: p.section, bar: p.bar, ending: wound }; }
-function musicDebug() { const st = mus(), w = unlocked ? (mwant || musicCtx()) : null, ids = w ? musicPool(w.key) : []; return { unlocked, playing: nowPlaying(), context: w, pool: ids, bag: w ? (st.bags[w.key] || []).filter(x => ids.includes(x)) : [], next: held ? held.id : null, last: st.last, recent: (st.recent || []).slice(), played: st.n || 0, gap: +musicGap.toFixed(1), forced, mood, startMs, tunes: SONGS.length }; }
+function nowPlaying() { if (!player || !cur) return null; const s = player.song, p = player.pos(); return { id: s.id, title: s.title, feel: s.feel, pool: cur.key, where: POOL_INFO[cur.key] || (isCK(cur.key) ? 'First day: ' + CK_WHERE[cur.key.slice(8)] : cur.key === 'forced' ? 'Chosen by hand' : 'Outdoors'), t: +p.t.toFixed(1), dur: +p.dur.toFixed(1), section: p.section, bar: p.bar, ending: wound }; }
+function musicDebug() { const st = mus(), w = unlocked ? (mwant || musicCtx()) : null, ids = !w ? [] : isCK(w.key) ? ['classic_' + w.key.slice(8)] : musicPool(w.key); return { unlocked, playing: nowPlaying(), context: w, pool: ids, bag: w ? (st.bags[w.key] || []).filter(x => ids.includes(x)) : [], next: held ? held.id : null, last: st.last, recent: (st.recent || []).slice(), played: st.n || 0, gap: +musicGap.toFixed(1), forced, mood, startMs, tunes: SONGS.length + CLASSIC_IDS.length, dayOne: dayOne(), firstDay: typeof st.d1 === 'number' ? st.d1 : null }; }
 async function jukebox() {
   const np = nowPlaying(), o = [{ label: 'Follow the game again', sub: np ? 'Now: ' + np.title + ' (' + np.where + ')' : 'Nothing is playing', value: 'auto' }, { label: 'Skip to the next tune', value: '>' }], seen = new Set();
   const add = (head, ids) => { for (const id of ids) { if (seen.has(id)) continue; seen.add(id); const s = SONG[id], c = compile(s); o.push({ label: head + ': ' + s.title, sub: s.feel + ', ' + Math.round(c.dur) + ' s. ' + whereOf(id), value: id }); } };
+  for (const id of CLASSIC_IDS) { const s = CLASSICS[id]; seen.add(id); o.push({ label: 'Classics: ' + s.title, sub: s.feel + ', ' + Math.round(s.loop) + ' s a time round. ' + whereOf(id), value: id }); }
   for (const k in POOL_INFO) add(POOL_INFO[k], SONGS.filter(s => (' ' + (s.pl || '') + ' ').includes(' ' + k + ' ')).map(s => s.id)); add('Outdoors', SONGS.filter(s => s.out).map(s => s.id)); add('Other', SONGS.map(s => s.id));
-  const v = await choose('Jukebox (' + SONGS.length + ' tunes)', o, { cls: 'dev-list' }); if (!v) return null;
+  const v = await choose('Jukebox (' + (SONGS.length + CLASSIC_IDS.length) + ' tunes)', o, { cls: 'dev-list' }); if (!v) return null;
   if (v === 'auto') G.audio.music(null); else if (v === '>') G.audio.skip(); else G.audio.music(v); return v;
 }
 function tick(dt) {
@@ -238,7 +255,7 @@ export function init() {
     setVolume(k, v) { if (!(k in vol)) return; v = clamp(v); vol[k] = v; if (S) S[k] = v; applyVolumes(true); },
     getVolume: k => levels()[k],
     /** play one tune now by its id (or a pool name, or one of the eight old track names: a tune of that pool); null = stop and let the controller carry on */
-    music(id) { if (id === null) { forced = null; stopMusic(1.5); musicGap = 3; return; } let k = SONG[id] ? id : null; if (!k) { const p = OLD_TRACK[id] || (POOL_INFO[id] ? id : null); if (p) k = bagDraw(mus(), p); } if (!k) return; unhold(); forced = k; stopMusic(.8); musicGap = .9; },
+    music(id) { if (id === null) { forced = null; stopMusic(1.5); musicGap = 3; return; } let k = songOf(id) ? id : OLD_TRACK[id] || null; if (!k && POOL_INFO[id]) k = bagDraw(mus(), id); if (!k) return; unhold(); forced = k; stopMusic(.8); musicGap = .9; },
     /** { id, title, feel, pool, where, t, dur, section, bar } of the tune that is sounding, or null in a gap */
     nowPlaying,
     /** end this tune (short fade) and start the next one of the pool */
@@ -254,7 +271,7 @@ export function init() {
       /** dev menu: audition any tune of the songbook */
       jukebox,
       /** for tools/music_check.mjs: the songbook and the real player / renderer */
-      musicKit: () => ({ SONGS, SONG, STYLES, INST, LEVELS, POOL_INFO, TIMES, DISTRICTS, SEASONS, compile, renderSong, Player, pool: musicPool, draw: bagDraw, played: bagPlayed, whereOf, timeOf, ctx: musicCtx, state: mus, watch }),
+      musicKit: () => ({ SONGS, SONG, STYLES, INST, LEVELS, POOL_INFO, TIMES, DISTRICTS, SEASONS, compile, renderSong, Player, pool: musicPool, draw: bagDraw, played: bagPlayed, whereOf, timeOf, ctx: musicCtx, state: mus, watch, CLASSICS, CLASSIC_IDS, CLASSIC_IN, CLASSIC_LEVELS, CLASSIC_TRACKS, ClassicPlayer, renderClassic, weight: bagWeight, dayOne, oldTrack }),
       ambience: () => Object.assign({ unlocked, running: !!A.ctx && A.ctx.state === 'running', want: bedQ, legacyProfile: amb ? amb.profile : null, noiseLayers: amb ? Object.keys(amb.layers) : [], events: amb ? amb.events.map(e => e[0]) : [], volumes: levels(), busGain: buses ? +buses.bed.gain.value.toFixed(3) : 0, unpackMs: unpackMs.slice(-8) }, bed ? bed.state() : { scene: null, tracks: [], sources: 0 }),
       stretches: () => Object.keys(STRETCHES).map(n => Object.assign({ name: n }, STRETCHES[n])),
       places: () => ({ places: PLACES.slice(), phases: PHASES.slice(), rooms: Object.keys(BED_ROOMS), weather: ['rain', 'storm', 'snow', 'fog'] }),
@@ -284,7 +301,7 @@ export function init() {
   G.on('show:doors', () => { watch.show = true; }); G.on('show:start', () => { watch.show = true; }); G.on('show:end', () => { watch.show = false; });
   G.on('activity:start', id => { const d = ACTIVITY_BY_ID[id]; watch.tv = !!(d && d.tag === 'tv'); }); G.on('activity:done', () => { watch.tv = false; });
   G.on('scene', () => { watch.show = false; watch.tv = false; mwant = null; });
-  G.on('ride:start', k => { rideKind = k; mwant = null; }); G.on('ride:end', () => { rideKind = null; mwant = null; }); G.on('load', () => { rideKind = null; mood = null; held = null; mwant = null; }); G.on('rel:date', () => { if (mood && mood.name === 'date') mood = null; });
+  G.on('ride:start', k => { rideKind = k; mwant = null; }); G.on('game:new', () => { mus().d1 = Math.floor(G.state.t / 1440); held = null; mwant = null; });   /* a new game: day one of the classics */ G.on('ride:end', () => { rideKind = null; mwant = null; }); G.on('load', () => { rideKind = null; mood = null; held = null; mwant = null; }); G.on('rel:date', () => { if (mood && mood.name === 'date') mood = null; });
   G.on('frame', tick);
   G.on('thunder', loud => play('thunder', { v: .35 + .65 * clamp(loud) }));
   G.on('scene', (s, prev) => { if (!prev || !s) return; if (s.indoor && !prev.indoor) play('door_open', { v: .7 }); else if (!s.indoor && prev.indoor) play('door_close', { v: .7 }); });

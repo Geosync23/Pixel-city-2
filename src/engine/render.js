@@ -72,6 +72,7 @@ function addLight(cx, cy, c, a, owner) {
   { const x0 = cx - c._rx, y0 = cy - c._ry, x1 = cx + c._rx, y1 = cy + c._ry; if (!nLB) { lX0 = x0; lY0 = y0; lX1 = x1; lY1 = y1; } else { if (x0 < lX0) lX0 = x0; if (y0 < lY0) lY0 = y0; if (x1 > lX1) lX1 = x1; if (y1 > lY1) lY1 = y1; } }   // lX0..lY1 = the box around all pools
   LO[nLB] = owner || null; const o = nLB++ * 7, q = c._rgb; LB[o] = cx; LB[o + 1] = cy; LB[o + 2] = c._rx; LB[o + 3] = c._ry; LB[o + 4] = q[0] * a; LB[o + 5] = q[1] * a; LB[o + 6] = q[2] * a;
 }
+const HP = []; let HN = new Float32Array(3 * 32), nHP = 0;   // the pools the hooks drew this frame: sprite, x, y, strength (Renderer._nightE needs to know where the mask is more than its tiles)
 /* what scene.lights(m, cam, pool) hooks draw on: passes everything on to the mask and notes the pools (headlights, stage lights) */
 class LightTap {
   constructor() { this.m = null; }
@@ -80,7 +81,7 @@ class LightTap {
   get fillStyle() { return this.m.fillStyle; } set fillStyle(v) { this.m.fillStyle = v; }
   get canvas() { return this.m.canvas; }
   save() { this.m.save(); } restore() { this.m.restore(); } fillRect(x, y, w, h) { this.m.fillRect(x, y, w, h); }
-  drawImage(img, x, y, w, h, a, b, c, d) { const m = this.m; if (w === undefined) { m.drawImage(img, x, y); if (img._rgb) addLight(x + img._rx, y + img._ry, img, m.globalAlpha, null); } else if (a === undefined) m.drawImage(img, x, y, w, h); else m.drawImage(img, x, y, w, h, a, b, c, d); }
+  drawImage(img, x, y, w, h, a, b, c, d) { const m = this.m; if (w === undefined) { m.drawImage(img, x, y); if (img._rgb) { const a = m.globalAlpha; addLight(x + img._rx, y + img._ry, img, a, null); if (a > 0) { HP[nHP] = img; if ((nHP + 1) * 3 > HN.length) { const n = new Float32Array(HN.length * 2); n.set(HN); HN = n; } HN[nHP * 3] = x; HN[nHP * 3 + 1] = y; HN[nHP * 3 + 2] = a; nHP++; } } } else if (a === undefined) m.drawImage(img, x, y, w, h); else m.drawImage(img, x, y, w, h, a, b, c, d); }
 }
 /* the light at a point (canvas px) = the pools that reach it, summed (sR, sG, sB); sT = some pool overlaps the rectangle x0..y1 (the sprite) at all.
  * A pool's strength falls off like the average of its dithered rings: 1 in the core, .7 at 65%, .35 at 90%, 0 at the rim. */
@@ -132,7 +133,7 @@ function wholeOb(ob, sp) {
  * for free, and needs no copy of any sprite.
  * Punching costs about three times a plain draw, so for a sprite that keeps being lit in the same colour (everything that stands still: props, trees, people waiting) a flat-colour copy of it
  * is made after NL.promote frames and from then on simply drawn into the mask (one plain draw; same pixels). See silGet.
- * The steps are collected first (OS / ON / OC) and then run in one go. What is put back comes from the mask tiles (Renderer._maskTiles) when the mask was drawn from them; a copy of the mask is only made when there are no tiles or a moving light reaches one of the places.
+ * The steps are collected first (OS / ON / OC) and then run in one go. What is put back comes from the mask tiles (Renderer._maskTiles) when the mask was drawn from them; a copy of the whole mask is only made when there are no tiles (dusk, dawn) or a moving light reaches one of the places.
  * ER = this frame's boxes of lit things (something in front is only put back where it overlaps one). */
 let OS = [], OC = [], ON = new Float32Array(8 * 128), nOP = 0, nPut = 0, nlLit = 0, nlCut = 0, nlCopy = 0;
 /* one step: type 0 punch + fill with col / 1 punch + put back / 2 draw a flat-colour copy; src = sprite (0, 1) or canvas (2); the part sx, sy, sw, sh of it, drawn at dx, dy; a = alpha or undefined */
@@ -394,11 +395,12 @@ export class Renderer {
     let h = LL.length | 0;
     for (let i = 0; i < LL.length; i++) {
       const l = LL[i], c = l.c; h = Math.imul(h ^ ((l.x * 16) | 0), 16777619); h = Math.imul(h ^ ((l.y * 16) | 0), 16777619); h = Math.imul(h ^ ((l.z * 16 + l.r * 4096) | 0), 16777619);
-      if (c !== undefined) { if (l._cs !== c) { l._cs = c; let q = 0; for (let j = 0; j < c.length; j++) q = Math.imul(q ^ c.charCodeAt(j), 16777619); l._ch = q; } h = Math.imul(h ^ l._ch, 16777619); }
+      if (c) { if (l._cs !== c) { l._cs = c; let q = 0; for (let j = 0; j < c.length; j++) q = Math.imul(q ^ c.charCodeAt(j), 16777619); l._ch = q; } h = Math.imul(h ^ l._ch, 16777619); }
     }
     if (K.world !== world || K.amb !== amb || K.al !== al || K.sig !== h) { K.world = world; K.amb = amb; K.al = al; K.sig = h; K.since = fr; for (const t of K.tiles.values()) K.spare.push(t.c); K.tiles.clear(); if (K.spare.length > NL.tileMax) K.spare.length = NL.tileMax; }
     if (fr - K.since < NL.tileWait) return false;   // still changing (dusk): not worth painting tiles that are thrown away next frame
     const tx0 = Math.floor(cam.x / T), ty0 = Math.floor(cam.y / T), tx1 = Math.floor((cam.x + W - 1) / T), ty1 = Math.floor((cam.y + H - 1) / T); let ok = true, baked = 0;
+    if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) > NL.tileMax - 4) return false;   // (a canvas so large that the tiles in view would not fit the cache: paint directly)
     for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
       const key = tx * 65536 + ty; let t = K.tiles.get(key); if (t) { t.t = fr; continue; } ok = false; if (baked) continue; baked = 1; K.bakes++;
       if (K.tiles.size >= NL.tileMax) { let k0 = 0, t0 = Infinity; for (const [k, v] of K.tiles) if (v.t < t0) { t0 = v.t; k0 = k; } K.spare.push(K.tiles.get(k0).c); K.tiles.delete(k0); }
@@ -449,20 +451,24 @@ export class Renderer {
     /* the focus entity shows through what stands in front of it at 30% (draw()): so does its light */
     for (let i = 0; i < S.length; i++) { const e = S[i].e; if (!e || !e.ghost || e._nd !== fr || (SEATING && isSitter(e))) continue; const sp = S[i].spr; litDraw(sp, 0, sp.h, sp.x + S[i].ax - cam.x, sp.y + S[i].ay - cam.y, e._ni, e._ns, .3, fr, false, 0, 0, 0, 0); }
     /* run the steps */
-    /* what has to be put back comes from the mask tiles when the mask was drawn from them (no copy needed), unless a moving light (the tiles do not have those) reaches one of the places: then, and when there are no tiles, from a copy of the mask as it is now */
-    let copy = nPut > 0 && !tiled;
-    if (nPut && tiled && nLB > nLBw) for (let i = 0, o = 0; i < nOP && !copy; i++, o += 8) { if (ON[o] !== 1) continue; const x0 = ON[o + 5], y0 = ON[o + 6], x1 = x0 + ON[o + 3], y1 = y0 + ON[o + 4]; for (let j = nLBw, q = nLBw * 7; j < nLB; j++, q += 7) if (x0 < LB[q] + LB[q + 2] && x1 > LB[q] - LB[q + 2] && y0 < LB[q + 1] + LB[q + 3] && y1 > LB[q + 1] - LB[q + 3]) { copy = true; break; } }
-    if (copy) { const x = this.Ex; x.globalCompositeOperation = 'copy'; x.drawImage(this.M, 0, 0); nlCopy++; }
-    m.globalAlpha = 1;
+    /* what has to be put back comes from the mask tiles when the mask was drawn from them. The tiles do not have the moving lights the hooks drew on top (headlights): if one of those reaches a place
+     * that is put back, or there are no tiles (dusk, dawn), everything is put back from a copy of the mask as it is now instead. */
+    let copy = nPut > 0 && (!tiled || NL.putCopy);   /* (NL.putCopy: a test switch, tools/nightcheck.mjs compares the two ways) */
+    if (nPut && !copy && nHP) for (let i = 0, o = 0; i < nOP && !copy; i++, o += 8) { if (ON[o] !== 1) continue; const x0 = ON[o + 5], y0 = ON[o + 6], x1 = x0 + ON[o + 3], y1 = y0 + ON[o + 4];
+      for (let j = 0, q = 0; j < nHP; j++, q += 3) { const im = HP[j], rx = im._rx, ry = im._ry, cx = HN[q] + rx, cy = HN[q + 1] + ry; if (x0 >= cx + rx || x1 <= cx - rx || y0 >= cy + ry || y1 <= cy - ry) continue; const nx = cx < x0 ? x0 : cx > x1 ? x1 : cx, ny = cy < y0 ? y0 : cy > y1 ? y1 : cy, ex = (nx - cx) / rx, ey = (ny - cy) / ry; if (ex * ex + ey * ey < 1) { copy = true; break; } } }
+    if (copy) { const x = this.Ex; x.globalAlpha = 1; x.globalCompositeOperation = 'copy'; x.drawImage(this.M, 0, 0); nlCopy++; }
+    m.globalAlpha = 1; let op = 0;   // (op: the mask's composite operation right now, 0 source-over / 1 destination-out / 2 destination-over: it is only set when it changes)
     for (let i = 0, o = 0; i < nOP; i++, o += 8) {
       const src = OS[i], t = ON[o], sx = ON[o + 1], sy = ON[o + 2], sw = ON[o + 3], sh = ON[o + 4], dx = ON[o + 5], dy = ON[o + 6], a = ON[o + 7]; OS[i] = null;
-      if (t === 2) { m.globalCompositeOperation = 'source-over'; if (a >= 0) m.globalAlpha = a; m.drawImage(src, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; continue; }   // a flat-colour copy: just drawn
-      m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1;
-      m.globalCompositeOperation = 'destination-over';
+      if (t === 2) { if (op !== 0) { m.globalCompositeOperation = 'source-over'; op = 0; } if (a >= 0) m.globalAlpha = a; m.drawImage(src, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; continue; }   // a flat-colour copy: just drawn
+      if (op !== 1) m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1;
+      m.globalCompositeOperation = 'destination-over'; op = 2;
       if (t === 0) { m.fillStyle = OC[i]; m.fillRect(dx, dy, sw, sh); }
       else { const x0 = dx < 0 ? 0 : dx, y0 = dy < 0 ? 0 : dy, x1 = dx + sw > W ? W : dx + sw, y1 = dy + sh > H ? H : dy + sh; if (x1 <= x0 || y1 <= y0) continue;
-        if (copy) m.drawImage(this.E, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
-        else { const T = NL.tile, K = this._mt.tiles, wx0 = x0 + cam.x, wy0 = y0 + cam.y, wx1 = x1 + cam.x, wy1 = y1 + cam.y; for (let ty = Math.floor(wy0 / T); ty * T < wy1; ty++) for (let tx = Math.floor(wx0 / T); tx * T < wx1; tx++) { const t = K.get(tx * 65536 + ty); if (!t) continue; const a0 = wx0 > tx * T ? wx0 : tx * T, b0 = wy0 > ty * T ? wy0 : ty * T, a1 = wx1 < tx * T + T ? wx1 : tx * T + T, b1 = wy1 < ty * T + T ? wy1 : ty * T + T; m.drawImage(t.c, a0 - tx * T, b0 - ty * T, a1 - a0, b1 - b0, a0 - cam.x, b0 - cam.y, a1 - a0, b1 - b0); } } }
+        if (copy) { m.drawImage(this.E, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); continue; }
+        const T = NL.tile, K = this._mt.tiles, wx0 = x0 + cam.x, wy0 = y0 + cam.y, wx1 = x1 + cam.x, wy1 = y1 + cam.y;   // from the tiles
+        for (let ty = Math.floor(wy0 / T); ty * T < wy1; ty++) for (let tx = Math.floor(wx0 / T); tx * T < wx1; tx++) { const tl = K.get(tx * 65536 + ty); if (!tl) continue; const a0 = wx0 > tx * T ? wx0 : tx * T, b0 = wy0 > ty * T ? wy0 : ty * T, a1 = wx1 < tx * T + T ? wx1 : tx * T + T, b1 = wy1 < ty * T + T ? wy1 : ty * T + T; m.drawImage(tl.c, a0 - tx * T, b0 - ty * T, a1 - a0, b1 - b0, a0 - cam.x, b0 - cam.y, a1 - a0, b1 - b0); }
+      }
     }
     m.globalCompositeOperation = 'source-over';
   }
@@ -510,7 +516,7 @@ export class Renderer {
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
-      const nlOn = NL.mode !== 'old' && dark > .05, al = Math.min(1, dark * .5); nLB = 0;
+      const nlOn = NL.mode !== 'old' && dark > .05, al = Math.min(1, dark * .5); nLB = 0; nHP = 0;
       /* perf: the mask of the world's own lights (ambient + every pool on screen: 20 to 40 draws a frame in town) is kept in tiles while nothing about it changes (all night; indoors all day): see _maskTiles. Same pixels. */
       const tiled = dark > .05 && NL.tiles && this._maskTiles(world, cam, env.amb, al, m, nlOn); nLBw = nLB;
       if (!tiled) {

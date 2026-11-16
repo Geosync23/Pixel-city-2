@@ -9,6 +9,10 @@
 //           build, run it again until the trims stop moving). Without it: render WITH the trims and assert every tune within +-1.5 LU of the target and no true peak above -1 dBTP.
 //   LIVE    the game by touch: no AudioContext before the first touch; 20+ contexts -> the right pool plays; 200 picks without an immediate repeat and
 //           with fair turns inside each pool; music stays off while a show / the TV is on; no frame over 100 ms when a tune starts; zero page errors.
+//   CLASSICS (docs/reports/classics.md) the eight original loops: the code is the e834cfe code (TRACKS + Session text = docs/audio/classics.html), titles,
+//           pools + bag tickets (10,000 picks per pool: shares, never twice in a row, every tune in every round), save / load of the bag; rendered
+//           (four seeds x three passes each, mean loudness; --write corrects CLASSIC_LEVELS); live: the title opens with Classic: Title, day one plays only
+//           classics in their old places, skip / Now playing / G.audio.music / watch silence with a classic, day two plays the songbook again.
 // Results: printed, and out/music/report.json (a partial run writes report.part.json). Exit code 1 if an assertion fails.
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module'; import { execFileSync, spawnSync } from 'node:child_process';
 import { ROOT } from './artfiles.mjs';
@@ -17,7 +21,7 @@ const arg = k => process.argv.includes(k), opt = k => { const i = process.argv.i
 const ONLY = opt('--only'), WRITE = arg('--write'), TUNES = opt('--tunes') ? opt('--tunes').split(',') : null, OUT = path.join(ROOT, 'out/music'), TARGET = -17, SR = 48000; fs.mkdirSync(OUT, { recursive: true });
 const results = [], fails = []; const check = (name, ok, detail = '') => { results.push({ name, ok: !!ok, detail }); if (!ok) fails.push(name); console.log((ok ? '  ok   ' : '  FAIL ') + name + (detail ? '  [' + detail + ']' : '')); };
 const report = { when: new Date().toISOString(), target: TARGET, checks: results, tunes: {}, live: {} };
-const E = await import(path.join(ROOT, 'src/sim/_music_engine.js')), { SONGS, SONG } = await import(path.join(ROOT, 'src/sim/_music_songs.js')), PO = await import(path.join(ROOT, 'src/sim/_music_pools.js')), { INST } = await import(path.join(ROOT, 'src/sim/_music_synth.js'));
+const CL = await import(path.join(ROOT, 'src/sim/_music_classic.js')), E = await import(path.join(ROOT, 'src/sim/_music_engine.js')), { SONGS, SONG } = await import(path.join(ROOT, 'src/sim/_music_songs.js')), PO = await import(path.join(ROOT, 'src/sim/_music_pools.js')), { INST } = await import(path.join(ROOT, 'src/sim/_music_synth.js'));
 const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'], keyOf = S => KEYS[(((S.tr || 0) % 12) + 12) % 12] + (S.min ? ' minor' : ''), mmss = s => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
 
 /* ------------------------------------------------------------------ static */
@@ -47,6 +51,46 @@ function staticChecks() {
   check('no two tunes share a melodic contour (interval + rhythm match of the opening 40 notes under 0.6)', !pairs.length || pairs[0][0] < .6, 'closest: ' + pairs.slice(0, 3).map(p => `${p[1]}~${p[2]} ${p[0].toFixed(2)}`).join(', ') + '; median ' + (pairs.length ? pairs[pairs.length >> 1][0].toFixed(2) : '-'));
 }
 const med = a => { const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; };
+
+/* ------------------------------------------------------------------ classics (static) */
+const CLASSIC_TITLES = { classic_interior: 'Classic: Indoors', classic_day: 'Classic: Daytime Streets', classic_morning: 'Classic: Morning Streets', classic_evening: 'Classic: Evening Streets', classic_night: 'Classic: Night Streets', classic_rainy: 'Classic: Rain', classic_train: 'Classic: Train', classic_title: 'Classic: Title' };
+/* the hours a typical day spends in each context (for the overall share) */
+function dayMix() { const outs = t => { const o = []; for (const d of PO.DISTRICTS) for (let s = 0; s < 4; s++) o.push(`out:${t}:${d}:${s}`); return o; };
+  return [[['home_am'], 1.5], [['home'], 3], [['home_late'], 1.5], [outs('dawn'), .3], [outs('morning'), 1.2], [outs('midday'), 1.2], [outs('afternoon'), 1.2], [outs('golden'), 1], [outs('evening'), 1], [outs('late'), .4], [['work'], 3], [['cafe'], .6], [['diner'], .5], [['shop'], .6], [['bar'], .5], [['gym'], .4], [['library', 'museum'], .4], [['hotel'], .2], [['office'], .2], [['bus', 'cab', 'train'], .8], [['rain'], .5], [['room'], .3], [['date', 'family', 'festival'], .3]]; }
+function classicStatic() {
+  console.log('\nCLASSICS: the eight original loops (static)'); const R = report.classics = { pools: {} };
+  const src = fs.readFileSync(path.join(ROOT, 'src/sim/_music_classic.js'), 'utf8'), ref = fs.readFileSync(path.join(ROOT, 'docs/audio/classics.html'), 'utf8'), block = (t, a, b) => { const i = t.indexOf(a); return i < 0 ? '' : t.slice(i, t.indexOf(b, i)); };
+  const same = block(src, 'const TRACKS = {', '\n};') === block(ref.replace('const TRACKS', 'const TRACKS'), 'const TRACKS = {', '\n};') && block(src, '  constructor(id, dest, delaySend', '\n}\n') === block(ref, '  constructor(id, dest, delaySend', '\n}\n') && block(src, 'function compile(id)', '\n}\n') === block(ref, 'function compile(id)', '\n}\n');
+  check('classics: TRACKS, compile() and Session are the code of e834cfe, character for character (as kept in docs/audio/classics.html)', same && src.includes('export const TRACKS = {'));
+  const ids = CL.CLASSIC_IDS; check('classics: eight, with their titles', ids.length === 8 && ids.every(id => CL.CLASSICS[id].title === CLASSIC_TITLES[id]), ids.map(id => CL.CLASSICS[id].title + ' (' + CL.CLASSICS[id].loop.toFixed(1) + ' s a pass)').join(', '));
+  /* pools: every classic is in its places with its weight */
+  const wrong = []; for (const id of ids) { const c = PO.CLASSIC_IN[id]; if (!c) { wrong.push(id + ' has no row'); continue; } for (const k of (c.pl || '').split(' ').filter(Boolean)) if (!PO.pool(k).includes(id)) wrong.push(id + ' not in ' + k);
+    for (const t of (c.out || '').split(' ').filter(Boolean)) for (const d of PO.DISTRICTS) for (let se = 0; se < 4; se++) if (!PO.pool(`out:${t}:${d}:${se}`).includes(id)) wrong.push(id + ' not in out:' + t + ':' + d + ':' + se); }
+  const strays = []; for (const k of PO.namedPools()) for (const id of PO.pool(k)) if (ids.includes(id) && !(PO.CLASSIC_IN[id].pl || '').split(' ').includes(k)) strays.push(id + ' in ' + k);
+  check('classics: each is in the pools of its old place (and nowhere else)', !wrong.length && !strays.length, wrong.concat(strays).slice(0, 6).join(', ') || ids.map(id => id.slice(8) + ': ' + [PO.CLASSIC_IN[id].pl, PO.CLASSIC_IN[id].out && 'outdoors ' + PO.CLASSIC_IN[id].out].filter(Boolean).join(' + ') + ' x' + PO.CLASSIC_IN[id].w).join('; '));
+  /* 10,000 picks per pool */
+  const keys = PO.namedPools().slice(); for (const t of PO.TIMES) for (const d of PO.DISTRICTS) for (let se = 0; se < 4; se++) keys.push(`out:${t}:${d}:${se}`);
+  let rep = 0, missed = 0, worstW = 0, worstWhere = ''; const share = {};
+  for (const key of keys) { const st = { bags: {}, recent: [], last: null }, P = PO.pool(key), cnt = {}, lastAt = {}; let cl = 0, prev = null, gapMax = 0; const tickets = P.reduce((a, id) => a + Math.ceil(PO.weight(id)), 0);
+    for (let i = 0; i < 10000; i++) { const id = PO.draw(st, key); PO.played(st, id); if (id === prev) rep++; prev = id; cnt[id] = (cnt[id] || 0) + 1; if (ids.includes(id)) cl++; }
+    /* every tune comes round: the longest run of picks without a given tune stays under two rounds */
+    const seq = []; { const st2 = { bags: {}, recent: [], last: null }; for (let i = 0; i < 3000; i++) { const id = PO.draw(st2, key); PO.played(st2, id); seq.push(id); } for (const id of P) { let last = -1, g = 0; seq.forEach((x, i) => { if (x === id) { g = Math.max(g, i - last); last = i; } }); g = Math.max(g, seq.length - last); gapMax = Math.max(gapMax, g); if (g > 2 * tickets + 1) missed++; } }
+    const ord = P.filter(id => !ids.includes(id)), avg = ord.reduce((a, id) => a + (cnt[id] || 0), 0) / ord.length;
+    for (const id of P.filter(x => ids.includes(x))) { const r = (cnt[id] || 0) / avg, d = Math.abs(r - PO.weight(id)) / PO.weight(id); if (d > worstW) { worstW = d; worstWhere = `${key}: ${id} ${r.toFixed(2)}x (table ${PO.weight(id)}x)`; } }
+    share[key] = cl / 10000; if (!key.startsWith('out:') || /^out:\w+:downtown:0$/.test(key)) R.pools[key] = { tunes: P.length, classics: +(cl / 100).toFixed(1), longestWait: gapMax }; }
+  check('classics: 10,000 picks in each of ' + keys.length + ' pools: never the same tune twice in a row', rep === 0, rep + ' repeats');
+  check('classics: every tune of every pool comes round (no tune waits longer than two rounds)', !missed, missed + ' tunes waited too long');
+  check('classics: a classic comes up as often as its weight says (within 10 % of the table, against the mean of the ordinary tunes)', worstW < .1, 'furthest: ' + worstWhere);
+  const mean = ks => ks.reduce((a, k) => a + share[k], 0) / ks.length, all = mean(keys), named = mean(PO.namedPools()), outs = mean(keys.filter(k => k.startsWith('out:')));
+  let a = 0, w = 0; for (const [ks, h] of dayMix()) { a += mean(ks) * h; w += h; } const day = a / w; R.share = { day: +(day * 100).toFixed(1), allPools: +(all * 100).toFixed(1), named: +(named * 100).toFixed(1), outdoors: +(outs * 100).toFixed(1) };
+  R.byTime = Object.fromEntries(PO.TIMES.map(t => [t, +(mean(keys.filter(k => k.split(':')[1] === t)) * 100).toFixed(1)]));
+  check('classics: not an absolute ton: share of plays 10-25 % over a typical day and over all pools', day >= .1 && day <= .25 && all >= .1 && all <= .25, `typical day ${(day * 100).toFixed(1)} %, mean of all ${keys.length} pools ${(all * 100).toFixed(1)} % (named ${(named * 100).toFixed(1)} %, outdoors ${(outs * 100).toFixed(1)} %); by time of day outdoors: ` + PO.TIMES.map(t => t + ' ' + R.byTime[t]).join(', '));
+  /* save / load of the bag: the round goes on where it was */
+  { const st = { bags: {}, recent: [], last: null }, key = 'home', seq = []; for (let i = 0; i < 4; i++) { const id = PO.draw(st, key); PO.played(st, id); seq.push(id); }
+    const back = JSON.parse(JSON.stringify(st)), left = back.bags[key].slice(); for (let i = 0; i < 4; i++) { const id = PO.draw(back, key); PO.played(back, id); seq.push(id); }
+    const ok = seq.every((x, i) => !i || x !== seq[i - 1]) && left.length > 0 && seq.slice(4, 4 + Math.min(4, left.filter(x => x !== st.last).length)).every(x => left.includes(x));
+    check('classics: the bag (with its classic tickets) survives a save / load and the round carries on', ok, 'left after 4 picks: ' + left.join(', ') + ' -> then ' + seq.slice(4).join(', ')); }
+}
 
 /* ------------------------------------------------------------------ browser */
 let srv = null, URL0 = '', SAVE = '';
@@ -119,7 +163,7 @@ async function render(br) {
   if (WRITE) {
     const L = {}; for (const id of ids) L[id] = +Math.max(-12, Math.min(24, M[id].trim + (TARGET - M[id].lufs) * 1.15)).toFixed(1);   /* the limiter gives back a little less than it is given: step a bit further */
     const old = (await import(path.join(ROOT, 'src/sim/_music_levels.js'))).LEVELS, all = {}; for (const s of SONGS) { const v = L[s.id] !== undefined ? L[s.id] : old[s.id]; if (v !== undefined) all[s.id] = v; }
-    fs.writeFileSync(path.join(ROOT, 'src/sim/_music_levels.js'), '// GENERATED by tools/music_check.mjs --write: the trim (dB) that brings each tune to the same integrated loudness (' + TARGET + ' LUFS at the music bus, before the Music slider). Do not edit by hand.\nexport const LEVELS = ' + JSON.stringify(all).replace(/,/g, ', ') + ';\n');
+    writeLevels(all, null);
     console.log('     wrote src/sim/_music_levels.js: trims ' + Math.min(...Object.values(L)) + ' .. ' + Math.max(...Object.values(L)) + ' dB; loudness was ' + Math.min(...ids.map(id => M[id].lufs)) + ' .. ' + Math.max(...ids.map(id => M[id].lufs)) + ' LUFS. Build and run again.'); return;
   }
   const lu = ids.map(id => M[id].lufs), off = ids.filter(id => Math.abs(M[id].lufs - TARGET) > 1.5), hot = ids.filter(id => M[id].peak > -1);
@@ -133,6 +177,32 @@ async function render(br) {
   report.worst = { hf: worst('hf'), topHf: worst('topHf'), flat: worst('flat'), topFlat: worst('topFlat') };
 }
 
+async function writeLevels(songs, classics) {
+  const cur = await import(path.join(ROOT, 'src/sim/_music_levels.js') + '?' + Date.now()); songs = songs || cur.LEVELS; classics = classics || cur.CLASSIC_LEVELS || {};
+  fs.writeFileSync(path.join(ROOT, 'src/sim/_music_levels.js'), '// GENERATED by tools/music_check.mjs --write: the trim (dB) that brings each tune to the same integrated loudness (' + TARGET + ' LUFS at the music bus, before the Music slider). Do not edit by hand.\nexport const LEVELS = ' + JSON.stringify(songs).replace(/,/g, ', ') + ';\n'
+    + '// The classics (_music_classic.js), measured the same way (tools/music_check.mjs --write; the mean of four renders of three passes each).\nexport const CLASSIC_LEVELS = ' + JSON.stringify(classics).replace(/,/g, ', ') + ';\n');
+}
+/* the classics: four renders each (seeds 1-4: the per-pass variations differ), three passes, with the trim; mean loudness */
+async function renderClassics(br) {
+  console.log('\nRENDER: the eight classics, offline, by the shipped code (four seeds x three passes each)' + (WRITE ? ' (--write: correcting CLASSIC_LEVELS)' : '')); const g = await openGame(br), chunks = {}, M = {}, R = report.classics = report.classics || {};
+  await g.pg.exposeFunction('saveChunk', (id, b64) => { (chunks[id] = chunks[id] || []).push(Buffer.from(b64, 'base64')); });
+  for (const id of CL.CLASSIC_IDS) { const runs = [];
+    for (let seed = 1; seed <= 4; seed++) {
+      const r = await g.pg.evaluate(async ([id, seed, sr, tag]) => { const K = G.audio.debug.musicKit(), trim = K.CLASSIC_LEVELS[id] || 0, b = await K.renderClassic(id, sr, trim, { passes: 3, seed }), l = b.getChannelData(0), r = b.getChannelData(1), n = l.length, CH = 1 << 20;
+        for (let o = 0; o < n; o += CH) { const m = Math.min(CH, n - o), u = new Int16Array(m * 2); for (let i = 0; i < m; i++) { u[2 * i] = Math.max(-1, Math.min(1, l[o + i])) * 32767; u[2 * i + 1] = Math.max(-1, Math.min(1, r[o + i])) * 32767; } let s = ''; const u8 = new Uint8Array(u.buffer); for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); await saveChunk(tag, btoa(s)); }
+        return { dur: b.duration, trim }; }, [id, seed, SR, id + '_' + seed]);
+      const m = measure(id + '_' + seed, Buffer.concat(chunks[id + '_' + seed])); delete chunks[id + '_' + seed]; m.trim = r.trim; runs.push(m); }
+    const lufs = 10 * Math.log10(runs.reduce((a, m) => a + Math.pow(10, m.lufs / 10), 0) / runs.length);
+    M[id] = { lufs: +lufs.toFixed(1), min: Math.min(...runs.map(m => m.lufs)), max: Math.max(...runs.map(m => m.lufs)), peak: Math.max(...runs.map(m => m.peak)), hf: Math.max(...runs.map(m => m.hf)), topHf: Math.max(...runs.map(m => m.topHf)), flat: Math.max(...runs.map(m => m.flat)), phone: +(runs.reduce((a, m) => a + m.phone, 0) / runs.length).toFixed(1), sounding: runs[0].sounding, trim: runs[0].trim };
+    const m = M[id]; console.log(`     ${id.padEnd(17)} ${mmss(m.sounding).padStart(5)}  ${m.lufs.toFixed(1).padStart(6)} LUFS (seeds ${m.min} .. ${m.max})  peak ${m.peak.toFixed(1).padStart(6)}  phone ${m.phone.toFixed(1).padStart(6)}  >6k ${m.hf}%  loudest s >6k ${m.topHf}%  flat ${m.flat}  trim ${m.trim}`); }
+  R.measured = M; const errs = g.errs.slice(); await g.ctx.close();
+  check('classics: rendering raised no page error', !errs.length, errs.slice(0, 3).join(' | '));
+  if (WRITE) { const L = {}; for (const id in M) L[id] = +Math.max(-12, Math.min(24, M[id].trim + (TARGET - M[id].lufs) * 1.15)).toFixed(1); await writeLevels(null, L); console.log('     wrote CLASSIC_LEVELS: ' + JSON.stringify(L) + '. Build and run again.'); return; }
+  const ids = Object.keys(M), off = ids.filter(id => Math.abs(M[id].lufs - TARGET) > 1.5), hot = ids.filter(id => M[id].peak > -1);
+  check(`classics: loudness (mean of four renders) within +-1.5 LU of ${TARGET} LUFS, like every tune`, !off.length, off.map(id => id + ' ' + M[id].lufs).join(', ') || ids.map(id => id.slice(8) + ' ' + M[id].lufs).join(', '));
+  check('classics: no clipping: true peak at or under -1 dBTP', !hot.length, hot.map(id => id + ' ' + M[id].peak).join(', ') || 'highest ' + Math.max(...ids.map(id => M[id].peak)) + ' dBTP');
+}
+
 /* ------------------------------------------------------------------ live */
 async function live(br) {
   console.log('\nLIVE: the game, by touch'); const g = await openGame(br), pg = g.pg, R = report.live;
@@ -141,8 +211,8 @@ async function live(br) {
   /* the title screen: a tap that does not start the game (top edge) unlocks audio; the title pool plays */
   await pg.touchscreen.tap(8, 8); await pg.waitForTimeout(400);
   const onTitle = await pg.evaluate(() => G.onTitle);
-  if (onTitle) { const t = await pg.evaluate(async () => { const K = G.audio.debug.musicKit(); let d = null; for (let i = 0; i < 90; i++) { await new Promise(r => setTimeout(r, 100)); d = G.audio.debug.music(); if (d.playing) break; } return { id: d.playing && d.playing.id, key: d.context && d.context.key, ok: !!(d.playing && K.pool('title').includes(d.playing.id)), state: G.audio.info().state }; }); check('context title screen -> pool title', t.ok && t.key === 'title', `${t.id} (audio ${t.state})`); }
-  else check('context title screen -> pool title', false, 'the tap started the game');
+  if (onTitle) { const t = await pg.evaluate(async () => { const K = G.audio.debug.musicKit(); let d = null; for (let i = 0; i < 90; i++) { await new Promise(r => setTimeout(r, 100)); d = G.audio.debug.music(); if (d.playing) break; } return { id: d.playing && d.playing.id, key: d.context && d.context.key, ok: !!(d.playing && d.playing.id === 'classic_title'), title: d.playing && d.playing.title, state: G.audio.info().state }; }); check('the title screen opens with Classic: Title', t.ok && t.key === 'classic:title', `${t.id} "${t.title}" (audio ${t.state})`); }
+  else check('the title screen opens with Classic: Title', false, 'the tap started the game');
   await startGame(g);
   const sp = await pg.evaluate(() => spots()); R.spots = sp;
   const C = []; const out = (name, d, h, wx, key) => C.push({ name, kind: 'city', at: sp[d], h, wx, key });
@@ -167,14 +237,14 @@ async function live(br) {
   }
   check('at least 20 contexts walked', C.length >= 20, C.length + ' contexts, ' + okN + ' right');
   /* the controller itself: 14 real starts in one place, never the same tune twice in a row */
-  { const r = await pg.evaluate(async at => { await toCity(at[0], at[1], 12); await sleep(600); const seq = [], ms = []; __mus.frames = []; __mus.rec = true; let n = 0; for (let i = 0; i < 14; i++) { const t = await tune(); seq.push(t.id); ms.push(t.startMs); n = t.n; await sleep(500); } __mus.rec = false; const f = __mus.frames.slice(); return { seq, ms, n, maxFrame: Math.max(...f), over: f.filter(x => x > 100).length, frames: f.length, p99: f.slice().sort((a, b) => a - b)[Math.floor(f.length * .99)], errors: G.audio.info().errors, last: G.audio.info().lastError }; }, sp.downtown);
+  { const r = await pg.evaluate(async at => { await toCity(at[0], at[1], 12); await sleep(600); const K = G.audio.debug.musicKit(), seq = [], ms = []; __mus.frames = []; __mus.rec = true; let n = 0; for (let i = 0; i < 14; i++) { const t = await tune(); seq.push(t.id); ms.push(t.startMs); n = t.n; await sleep(500); } __mus.rec = false; const f = __mus.frames.slice(); const tickets = K.pool(K.ctx().key).reduce((a, id) => a + Math.ceil(K.weight(id)), 0); return { tickets, seq, ms, n, maxFrame: Math.max(...f), over: f.filter(x => x > 100).length, frames: f.length, p99: f.slice().sort((a, b) => a - b)[Math.floor(f.length * .99)], errors: G.audio.info().errors, last: G.audio.info().lastError }; }, sp.downtown);
     const rep = r.seq.filter((x, i) => i && x === r.seq[i - 1]).length; R.starts = r;
-    const n8 = new Set(r.seq.slice(0, Math.min(r.n, 14))).size; check('14 real starts downtown at noon: never the same tune twice in a row, and none again before the others of the pool', rep === 0 && r.seq.every(Boolean) && n8 === Math.min(r.n, 14), `pool of ${r.n}: ` + r.seq.join(' > '));
+    const win = Math.min(14, r.tickets + 1), n8 = new Set(r.seq.slice(0, win)).size; check('14 real starts downtown at noon: never the same tune twice in a row, and every tune of the pool within one round of the bag (' + win + ' picks: a classic holds extra tickets)', rep === 0 && r.seq.every(Boolean) && n8 === Math.min(r.n, win), `pool of ${r.n}: ` + r.seq.join(' > '));
     check('starting a tune never costs a frame over 100 ms', r.over === 0, `longest frame ${r.maxFrame} ms, 99th percentile ${r.p99} ms over ${r.frames} frames; picking + first notes took ${Math.max(...r.ms)} ms at most`);
     check('the audio system logged no error', r.errors === 0, r.last || ''); }
   /* 200 picks through the bag, walking contexts like a day in the city */
   { const r = await pg.evaluate(() => { const K = G.audio.debug.musicKit(), st = { bags: {}, recent: [], last: null }, keys = ['out:morning:downtown:0', 'cafe', 'out:midday:oldtown:0', 'work', 'out:afternoon:market:0', 'shop', 'out:golden:harbor:0', 'home', 'out:evening:arts:0', 'bar', 'out:late:suburb:0', 'home_late', 'rain', 'train', 'cab'];
-      const seq = [], per = {}; let k = 0, broke = 0, refills = 0; for (let i = 0; i < 200; i++) { if (i % 3 === 0) k = (k + 1 + ((i * 7) % 4)) % keys.length; const key = keys[k], left = (st.bags[key] || []).filter(x => K.pool(key).includes(x)), was = st.last, id = K.draw(st, key); if (left.length && !left.includes(id) && !(left.length === 1 && left[0] === was)) broke++; if (!left.length) refills++; K.played(st, id); seq.push(id); (per[key] = per[key] || []).push(id); }
+      const seq = [], per = {}; let k = 0, broke = 0, refills = 0; for (let i = 0; i < 200; i++) { if (i % 3 === 0) k = (k + 1 + ((i * 7) % 4)) % keys.length; const key = keys[k], left = (st.bags[key] || []).filter(x => K.pool(key).includes(x)), was = st.last, id = K.draw(st, key); if (left.length && !left.includes(id) && !left.every(x => x === was)) broke++; if (!left.length) refills++; K.played(st, id); seq.push(id); (per[key] = per[key] || []).push(id); }
       let rep = 0, near = 0; for (let i = 1; i < seq.length; i++) { if (seq[i] === seq[i - 1]) rep++; if (i > 1 && seq[i] === seq[i - 2]) near++; }
       let spread = 0; for (const key in per) { const n = {}, ids = K.pool(key); for (const id of ids) n[id] = 0; for (const id of per[key]) n[id]++; const v = Object.values(n); spread = Math.max(spread, Math.max(...v) - Math.min(...v)); }
       return { rep, near, broke, refills, spread, distinct: new Set(seq).size, pools: Object.keys(per).length }; });
@@ -187,16 +257,41 @@ async function live(br) {
       let back = -1; const t0 = performance.now(); for (let i = 0; i < 150; i++) { await sleep(200); if (G.audio.debug.music().playing) { back = (performance.now() - t0) / 1000; break; } } return { before, during, tv, back }; }, sp.downtown);
     check('music stops while a show is on and stays off while the TV is on', r.before && r.during === 0 && r.tv === 0, `playing before: ${r.before}; samples with music during the show: ${r.during}, during TV: ${r.tv}`);
     check('music comes back after the show', r.back > 8 && r.back < 30, r.back.toFixed(1) + ' s after it ended'); R.watch = r; }
+  /* DAY ONE: only the classics, each in its old place; skip, Now playing, the watch silence; day two: the songbook */
+  { const r = await pg.evaluate(async sp => { const K = G.audio.debug.musicKit(), home = (G.housing.current() || {}).id, o = []; K.state().d1 = G.now().day; const day0 = G.now().day;
+      const at = async (name, f, want) => { try { G.weather.setWeather('clear', 12); } catch (e) { } await f(); await sleep(650); const t = await tune(), np = G.audio.nowPlaying(); o.push({ name, want, id: t.id, key: t.key, title: np && np.title, where: np && np.where }); };
+      await at('downtown 8:00', () => toCity(sp.downtown[0], sp.downtown[1], 8), 'classic_morning'); await at('old town 13:00', () => toCity(sp.oldtown[0], sp.oldtown[1], 13), 'classic_day');
+      await at('park 18:30', () => toCity(sp.park[0], sp.park[1], 18.5), 'classic_evening'); await at('harbor 22:00', () => toCity(sp.harbor[0], sp.harbor[1], 22), 'classic_night');
+      await at('downtown in the rain', () => toCity(sp.downtown[0], sp.downtown[1], 14, 'rain'), 'classic_rainy'); await at('a cab at 14:00', async () => { await toCity(sp.downtown[0], sp.downtown[1], 14); G.emit('ride:start', 'taxi', null); }, 'classic_day'); G.emit('ride:end', 'taxi', null);
+      await at('the cafe', async () => { setHour(10); await G.go('int:cafe', { fade: false }); await sleep(300); await closeUi(); }, 'classic_interior'); await at('home at 23:30', async () => { setHour(23.5); await G.go('int:home:' + home, { fade: false }); await sleep(300); await closeUi(); }, 'classic_interior');
+      await at('central station', async () => { setHour(9); await G.go('int:central_station', { fade: false }); await sleep(300); await closeUi(); }, 'classic_interior'); await at('on the train', async () => { G.emit('ride:start', 'train', null); }, 'classic_train'); G.emit('ride:end', 'train', null);
+      await at('outdoors 3:00, still the first night', async () => { await toCity(sp.arts[0], sp.arts[1], 3); }, 'classic_night');
+      /* skip: a fresh classic of the same place; G.audio.music by old name */
+      const a = G.audio.nowPlaying(); G.audio.skip(); let b = null; for (let i = 0; i < 60; i++) { await sleep(100); b = G.audio.nowPlaying(); if (b && b.t < 3) break; } const skip = { before: a && a.id, after: b && b.id, fresh: !!(b && b.t < 3) };
+      G.audio.music('interior'); let f = null; for (let i = 0; i < 40; i++) { await sleep(100); f = G.audio.nowPlaying(); if (f && f.id === 'classic_interior') break; } G.audio.music(null); await sleep(400);
+      /* the watch silence with a classic */
+      await tune(); const before = !!G.audio.nowPlaying(); G.emit('show:start'); let during = 0; for (let i = 0; i < 25; i++) { await sleep(200); if (i > 10 && G.audio.nowPlaying()) during++; } G.emit('show:end');
+      /* day two: 05:00 the next morning */
+      await toCity(sp.downtown[0], sp.downtown[1], 12); G.state.t = (day0 + 1) * 1440 + 12 * 60; G.advance(1); await sleep(700); const two = await tune(), d2 = G.audio.debug.music();
+      return { o, skip, forced: f && f.id, before, during, two, d1After: K.state().d1, dayOneAfter: d2.dayOne, errors: G.audio.info().errors }; }, sp);
+    R.dayOne = r; const bad = r.o.filter(x => x.id !== x.want || !/^Classic: /.test(x.title || ''));
+    check('day one: only the classics, each in its old place (' + r.o.length + ' places)', !bad.length, (bad.length ? 'WRONG: ' + bad.map(x => `${x.name}: ${x.id} (want ${x.want})`).join(', ') + ' | ' : '') + r.o.map(x => `${x.name} -> ${x.title}`).join('; '));
+    check('day one: Skip starts the classic of the place afresh; G.audio.music(\'interior\') plays Classic: Indoors', r.skip.fresh && /^classic_/.test(r.skip.after || '') && r.forced === 'classic_interior', JSON.stringify(r.skip) + ', forced ' + r.forced);
+    check('day one: a classic stops for a show and stays out', r.before && r.during === 0, `playing before ${r.before}, samples during ${r.during}`);
+    check('day two: the songbook plays again (classics only through the bag)', !r.dayOneAfter && r.d1After === undefined && r.two.inPool && !/^classic:/.test(r.two.key), `plays ${r.two.id} from ${r.two.key}`); }
+  /* the bag with classic tickets survives a real save / load */
+  { const r = await pg.evaluate(async () => { const K = G.audio.debug.musicKit(), st = K.state(); for (let i = 0; i < 3; i++) K.played(st, K.draw(st, 'home')); const was = JSON.stringify(st.bags.home); G.save(); G.load(); await sleep(300); const now = K.state(); return { was, now: JSON.stringify(now.bags.home), tickets: (now.bags.home || []).filter(x => /^classic_/.test(x)).length }; });
+    check('save / load keeps the bag (classic tickets included)', r.was === r.now, r.now); }
   /* mute */
   { const r = await pg.evaluate(async () => { await tune(); G.audio.setVolume('music', 0); await sleep(700); const off = !G.audio.debug.music().playing; G.audio.setVolume('music', .6); return { off }; }); check('Music volume 0 stops the tune', r.off); }
   check('zero page errors', !g.errs.length, g.errs.slice(0, 3).join(' | ')); await g.ctx.close();
 }
 
-if (!ONLY || ONLY === 'static') staticChecks();
+if (!ONLY || ONLY === 'static') { staticChecks(); classicStatic(); }
 if (!ONLY || ONLY !== 'static') {
   if (!arg('--nobuild')) execFileSync('node', [path.join(ROOT, 'tools/build.mjs')], { stdio: 'inherit' });
   await serve(); const br = await chromium.launch();
-  try { if (!ONLY || ONLY === 'render') await render(br); if ((!ONLY || ONLY === 'live') && !WRITE) await live(br); } finally { await br.close(); srv.close(); }
+  try { if (!ONLY || ONLY === 'render') { if (!arg('--classics')) await render(br); if (!TUNES) await renderClassics(br); } if ((!ONLY || ONLY === 'live') && !WRITE) await live(br); } finally { await br.close(); srv.close(); }
 }
 report.size = { dist: fs.existsSync(path.join(ROOT, 'dist/index.html')) ? fs.statSync(path.join(ROOT, 'dist/index.html')).size : 0, source: fs.readdirSync(path.join(ROOT, 'src/sim')).filter(f => /^_music_|^_audio_music/.test(f)).reduce((a, f) => a + fs.statSync(path.join(ROOT, 'src/sim', f)).size, 0) };
 const RF = ONLY || TUNES || WRITE ? 'report.part.json' : 'report.json'; fs.writeFileSync(path.join(OUT, RF), JSON.stringify(report, null, 1));   /* a partial run never overwrites the full report */

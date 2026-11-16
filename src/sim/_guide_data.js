@@ -94,7 +94,7 @@ export const SPOT = { // spot kind -> [chapter, label, glyph, activity tags, blu
 };
 export const LANDMARK_BLURB = ['A Maple Bay landmark. Everyone gives directions from here.', 'Worth a detour, and a good place to meet a friend.', 'One of the sights of {d}. You will know it when you see it.'];
 // which chapters an activity also appears in
-export const ACT_ALSO = { gym_treadmill: 'fitness', gym_weights: 'fitness', gym_yoga_class: 'fitness', gym_shower: 'fitness', jog: 'fitness', exercise_home: 'fitness', swing: 'fitness', dance: 'shows', dance_home: 'fitness',
+export const ACT_ALSO = { gym_treadmill: 'fitness', gym_bike: 'fitness', gym_row: 'fitness', gym_bag: 'fitness', gym_stretch: 'fitness', gym_weights: 'fitness', gym_yoga_class: 'fitness', gym_shower: 'fitness', jog: 'fitness', exercise_home: 'fitness', swing: 'fitness', dance: 'shows', dance_home: 'fitness',
   watch_movie: 'shows', play_arcade: 'shows', bar_hang_out: 'shows', watch_live_music: 'shows', open_mic: 'shows', library_study: 'arts', library_read: 'arts', library_computer: 'services', browse_books: 'arts', read_novel: 'arts',
   paint: 'arts', sketch_outdoors: 'arts', practice_instrument: 'arts', listen_busker: 'arts', linger: 'eat', try_on: 'shop', computer_find_job: 'services', computer_shop: 'shop', fish_pier: 'outdoors' };
 export const ACT_SKIP = new Set(['store_groceries', 'grab_snack', 'microwave_meal', 'heat_on_stove', 'eat', 'drink', 'chat', 'check_phone', 'nap_sofa', 'prep_cold', 'assemble_furniture']);

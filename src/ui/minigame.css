@@ -8,7 +8,7 @@
 .mg-b{min-width:44px;min-height:44px;padding:2px 8px;box-shadow:0 2px 0 var(--edge);font-size:14px}.mg-b.mg-auto{background:var(--gold)}.mg-b.mg-x{background:#ffd9d2}
 .mg-hint{font-size:13px;font-weight:600;line-height:1.25;min-height:32px;display:flex;align-items:center;justify-content:center;text-align:center;background:#fffdf4;border:2px solid var(--edge);padding:2px 6px}
 .mg-stage{position:relative;align-self:center;width:100%;max-width:364px;border:2px solid var(--edge);background:#f3e8cf;line-height:0}
-.mg-cv{width:100%;aspect-ratio:180/110;display:block;touch-action:none;cursor:pointer}
+.mg-cv{width:100%;aspect-ratio:180/110;display:block;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 .mg-veil{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#2a2733cc;color:#fff4dc;line-height:1.2;text-align:center}
 .mg-veil.on{display:flex}.mg-veil.res{background:#2a2733aa}.mg-veil b{font-size:20px}
 .mg-big{min-width:200px;min-height:42px;background:var(--gold)}.mg-big.alt{background:var(--panel);min-height:38px;font-size:13px}

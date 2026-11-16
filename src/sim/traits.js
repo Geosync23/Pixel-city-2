@@ -100,7 +100,7 @@ function wire() {
     const okk = info && (info.completed || (info.minutes || 0) >= 5); if (!okk) return; const N = G.needs;
     for (const t of list()) for (const a of t.acts || []) if (a.ids && a.ids.includes(id)) { if (a.moodlet) N.addMoodlet(a.moodlet); if (a.fun) N.add('fun', a.fun); if (a.social) N.add('social', a.social); }
     if (id === 'sleep' && info.completed !== false) { const h = hf(); if (h >= 4.5 && h < 7 && once('early')) bump('early'); }
-    if (['gym_weights', 'gym_treadmill', 'gym_yoga_class', 'exercise_home', 'jog', 'sk_hoops', 'sk_bay_swim'].includes(id) && (info.minutes || 0) >= 10) bump('gym');
+    if (['gym_weights', 'gym_treadmill', 'gym_bike', 'gym_row', 'gym_bag', 'gym_stretch', 'gym_yoga_class', 'exercise_home', 'jog', 'sk_hoops', 'sk_bay_swim'].includes(id) && (info.minutes || 0) >= 10) bump('gym');
     if (id === 'nap' && has('heavy_sleeper')) N.addMoodlet('power_nap', 4);
   });
   on('money', (delta, reason) => {
