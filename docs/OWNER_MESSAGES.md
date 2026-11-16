@@ -693,3 +693,6 @@ Will that fils structure mean i could no longer download as a single html file f
 Add the trailer to the todo at the end.
 
 Its indoors, and daytime streets songs I like the most. But just bring all of these back as alll the songs for the first day then put them back in rotation weighted to appear a bit more then others but not an absolute ton.
+
+## 182 (2026-11-16)
+But can I copy the private link from claude and pate into a browser while logged in the way I can now?
