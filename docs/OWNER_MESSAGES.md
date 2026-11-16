@@ -861,3 +861,6 @@ No workers currently going?
 
 ## 211 (2026-11-16)
 Teiler 2 is good but lets open on a dense zoomed in coty shot with a title card. Then the plane lands like before.  Also dont mention 4 way to get around. Just say fully exploration. Also some text about being an open world life sim.
+
+## 212 (2026-11-16)
+This is great but one laat change for the trailer. When it starts counting out the days say the your life your pace thing. Then continue with counting as it is. Then at the end extend a show some zoomed in view of our character doing more interesting things, a job, etx. Then talk about alll the activities and jos breifly. Tych on how much twre is to do and see. Then kill thr lighthouse shot replace with anotjer city shot. Love the ending shot.
