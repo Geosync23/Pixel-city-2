@@ -320,3 +320,4 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 ## Direction update 40 (owner msg 181, 2026-11-16) — the classics are day one; trailer at the end of the list
 - MUSIC: on the FIRST DAY of a new game only the eight original songs play, each in its old place (title, interior, morning / day / evening / night streets, rainy, train). From day two the new songbook plays, with the eight classics in the pools of their places, weighted to come up a bit more often than other tunes (about 2x a normal tune; the owner's favourites 'interior' and 'day' about 2.5x): noticeable, not dominant. This replaces 'the first ~5 minutes' in update 34's note.
 - TRAILER (update 36): no longer on hold; it is the LAST item of the to-do list.
+- (owner msg 183) Central Station: the platform area must be VERY detailed and unique (a showpiece, not a copy of the other stations).

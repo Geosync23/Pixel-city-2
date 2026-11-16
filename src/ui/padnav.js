@@ -136,7 +136,8 @@ function reachable(e, r) {
   let l = r.left, t = r.top, rr = r.right, b = r.bottom; const sc = scroller(e);
   if (sc) { const q = sc.getBoundingClientRect(); l = Math.max(l, q.left); t = Math.max(t, q.top); rr = Math.min(rr, q.right); b = Math.min(b, q.bottom); if (rr - l < 3 || b - t < 3) return live(sc); }
   const x = (l + rr) / 2, y = (t + b) / 2; if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return false;
-  const h = document.elementFromPoint(x, y); return !!h && (e === h || e.contains(h) || (h.tagName === 'LABEL' && h.contains(e)));
+  const h = document.elementFromPoint(x, y); if (h && e.tagName === 'CANVAS' && e.parentElement && e.parentElement !== document.body && e.parentElement.contains(h) && e.matches(SURF) && (q => q.width * q.height <= r.width * r.height * 1.4)(e.parentElement.getBoundingClientRect())) return true;   /* QA16: a game canvas under its own start card (PlayBox "Tap the game to start") is still the surface to step onto */
+  return !!h && (e === h || e.contains(h) || (h.tagName === 'LABEL' && h.contains(e)));
 }
 function layerRoot(e) { const ui = root(), w = wrapEl(); let a = e; while (a.parentElement && a.parentElement !== ui && a.parentElement !== w && a.parentElement !== document.body) a = a.parentElement; return a; }
 const label = e => (e.getAttribute('aria-label') || e.textContent || '').replace(/\s+/g, ' ').trim();

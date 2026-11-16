@@ -696,3 +696,6 @@ Its indoors, and daytime streets songs I like the most. But just bring all of th
 
 ## 182 (2026-11-16)
 But can I copy the private link from claude and pate into a browser while logged in the way I can now?
+
+## 183 (2026-11-16)
+Ok great thanks.  So of the 9 todo items coming up- (8 you said plus adding the trailer), I think 7, 6 (make a very detailed uniqie platform) and  3 have to be fable. But thr rest could be opus no? What do you think?
