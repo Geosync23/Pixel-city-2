@@ -47,3 +47,9 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 - Remaining weak spots: gym / cooking / job framing unchanged (small panels; player beside the treadmill); date text sheet unreadable at phone size; lighthouse is dusk not sunset; half-beat doors fast; plane shot's map-edge haze; 11.05 MB of 12.
 - docs/trailer/REPORT.md does not exist (this file is the report); storyboard_a.md still refers to it.
 
+## Trailer B revision 2 (owner msg 211; published version id 1794855009-897d)
+- docs/trailer/trailer_b.mp4 = new cut (45.0 s, 11.06 MB, Stage 104 build); previous polished cut kept as trailer_b_v1.mp4.
+- Opening 0.00-4.72 s (two bars): close downtown street corner (Hollowell & Sons, Nest & Wire, bus shelter, cab, airport bus, pedestrians), slow pan, dimmed 28 %, title 'MAPLE BAY' + leaf from 0.4 s and 'an open-world life sim' from ~0.85 s, held to 4.57 s. Plane 4.72-7.02 s with '1 city'. The foot / bus / train / cab run is now ONE bar (7.02-9.33 s, 0.58 s each) under 'fully explorable' ('4 ways to get around' removed). End card also carries 'an open-world life sim'. From 9.33 s on unchanged.
+- Worker looked at every frame of 0-4.75 s and 7.0-9.4 s, the 98 raw frames of the bus passing the tree in the opening (no popping), end card at 43.5 s. LEAD looked at six frames (0.3, 2.0, 5.5, 7.3, 8.5, 43.5 s: out/shots/trailer_b_lead2.png). Nobody has watched it in motion or heard it.
+- Weak spots: the word MAPLE sits across the Nest & Wire sign lettering; the opening is busy rather than packed (10-15 people); the four transport shots are glimpses at 0.58 s each.
+

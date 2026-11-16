@@ -49,10 +49,11 @@ const WEEK = [['MON', 'b_job', 2, 'A job shift: trainee barista at the cafe (the
 const B = { len: LEN, music: 'music_b.wav', video: [], gfx: [] };
 {
   const v = B.video, g = B.gfx, tdB = td;
-  v.push({ clip: 'b01_vista', t0: 0, t1: bar(2), note: 'The harbour: pier, Ferris wheel, boats' });
-  v.push({ clip: 'a08_plane', in: tdB - 1.2, t0: bar(2), t1: bar(3), note: 'The airport: a plane touches down' });
+  // revision (owner msg 211): opens on a dense, close downtown corner under the title card (2 bars so the title can be read); the plane follows; the on-foot / bus / train / cab run is trimmed from 2 beats each to 1 beat each (one bar) to pay for it
+  v.push({ clip: 'b00_c3', t0: 0, t1: bar(3), note: 'OPENING: a busy downtown street corner, close (zoom 3): shopfronts, traffic lights, cab, bus, people, trees; title card over it' });
+  v.push({ clip: 'a08_plane', in: tdB - 1.2, t0: bar(3), t1: bar(4), note: 'The airport: a plane touches down' });
   const ways = [['b03_foot', .9, 'On foot across the plaza'], ['b04_bus', 0, 'Bus'], ['b05_train', .3, 'Train on the viaduct'], ['a13_cabtown', 12.47, 'Cab']];
-  ways.forEach((w, i) => v.push({ clip: w[0], in: w[1], t0: bar(3, i * 2), t1: bar(3, i * 2 + 2), note: '4 ways: ' + w[2] }));
+  ways.forEach((w, i) => v.push({ clip: w[0], in: w[1], t0: bar(4, i), t1: bar(4, i + 1), note: 'Fully explorable: ' + w[2] }));
   const steps = []; let k = 0; const total = DOORS1.length + DOORS2.length, num = i => Math.max(1, Math.round(N * Math.pow((i + 1) / total, 1.35)));
   DOORS1.forEach((r, i) => { const t = bar(5, i); v.push({ clip: 'room_' + r, in: 0, t0: t, t1: bar(5, i + 1), note: 'Door ' + (i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .1 }); steps.push([t, num(k++)]); });
   let b = 0; WEEK.forEach(w => { const t = bar(9, b); v.push({ clip: w[1], in: w[1] === 'b_fest' ? 0 : .4, t0: t, t1: bar(9, b + w[2]), note: w[0] + ': ' + w[3] }); g.push({ kind: 'day', t0: t, t1: bar(9, b + w[2]) - .04, text: w[0] }); b += w[2]; });
@@ -62,14 +63,16 @@ const B = { len: LEN, music: 'music_b.wav', video: [], gfx: [] };
   v.push({ clip: 'b_sunset', t0: bar(18), t1: END, note: 'Sunset at the lighthouse' });
   v.push({ clip: 'a16_end', t0: END, t1: LEN, note: 'End card over downtown at night' });
   g.push({ kind: 'fadein', t0: 0, t1: .5 });
-  g.push({ kind: 'cap', t0: .5, t1: bar(3) - .15, text: '1 city', size: 104 });
-  g.push({ kind: 'cap', t0: bar(3), t1: bar(5) - .15, text: '4 ways to get around', size: 88 });
+  g.push({ kind: 'dim', t0: .3, t1: bar(3), a: .28 });
+  g.push({ kind: 'title', t0: .4, t1: bar(3) - .15, y: 270, leaf: 1, tag: 'an open-world life sim', tagAt: .45 });
+  g.push({ kind: 'cap', t0: bar(3) + .1, t1: bar(4) - .15, text: '1 city', size: 104 });
+  g.push({ kind: 'cap', t0: bar(4), t1: bar(5) - .15, text: 'fully explorable', size: 96 });   // owner msg 211: replaces '4 ways to get around'
   g.push({ kind: 'count', t0: bar(5), t1: bar(9) - .05, steps, label: 'enterable buildings' });
   g.push({ kind: 'count', t0: bar(13), t1: bar(16), steps, label: 'enterable buildings' });
   g.push({ kind: 'cap', t0: bar(16), t1: bar(17) - .12, text: 'nearly 200 enterable buildings', size: 68 });   // owner msg 206-207: replaces 'over 190 buildings to walk into'; at the bottom, clear of the tank
   g.push({ kind: 'cap', t0: bar(17, .5), t1: END - .12, text: 'your life, your pace', size: 88 });
   g.push({ kind: 'dim', t0: END, t1: LEN, a: .5 });
-  g.push({ kind: 'title', t0: END, t1: LEN, y: 290, leaf: 1 });
+  g.push({ kind: 'title', t0: END, t1: LEN, y: 270, leaf: 1, tag: 'an open-world life sim', tagAt: .58 });
   g.push({ kind: 'fadeout', t0: LEN - .5, t1: LEN + .1 });
 }
 export const EDL = { a: A, b: B };

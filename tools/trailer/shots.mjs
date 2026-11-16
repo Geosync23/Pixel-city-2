@@ -57,6 +57,10 @@ export const SHOTS = {
   a16_end: { url: city(20.3), setup: free(236.2, 253.8, 1), settle: 8, sec: 4.2, frame: pan([236.2, 253.8], [232.8, 258.3], 4.2) },
 
   /* ================= TRAILER B: the mix ================= */
+  /* revision (owner msg 211): the film opens on a dense, close downtown street corner under the title card. Candidates c1-c3; the EDL names the one used. Pans move whole canvas pixels per frame. */
+  b00_c1: { url: city(12.4), setup: free(219, 229.5, 3), settle: 14, sec: 6, frame: pan([219, 229.5], [224.6, 229.5 + 5.6 - 11.25 + 5.65], 6) },
+  b00_c2: { url: city(12.4), setup: free(212, 243, 3), settle: 14, sec: 6, frame: pan([212, 243], [217.6, 243], 6) },
+  b00_c3: { url: city(17.2), setup: free(236, 257, 3), settle: 14, sec: 6, frame: pan([236, 257], [241.6, 257], 6) },
   b01_vista: { url: city(13), setup: free(96.6, 357.35, 1), settle: 8, sec: 2.8, frame: pan([96.6, 357.35], [102.4, 352.65], 2.8) },
   b03_foot: { url: city(13.5), setup: walk([216, 226], [228, 226], 3), settle: 8, sec: 2.2, ready: c => c.ev(() => window._walk()) },
   b04_bus: Object.assign({ url: city(13.2), sec: 2.6 }, bus(220, 240, 3)),

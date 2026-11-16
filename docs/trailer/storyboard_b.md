@@ -10,12 +10,12 @@ FINAL CUT (polish pass, footage re-recorded on the Stage 104 build). Count capti
 
 | # | Time (s) | On the beat | Shot | What it shows | How it is captured |
 |---|---|---|---|---|---|
-| 1 | 00.00-02.41 | bar 1 | b01_vista | The harbour: pier, Ferris wheel, boats | Free camera, zoom 1, slow pan, 13:00. |
-| 2 | 02.41-04.72 | bar 2 | a08_plane | The airport: a plane touches down | G.planes.landNow('airliner') forces a landing now (the game's own ambient landing); camera tracks the aircraft along the runway, zoom 1; trimmed so the wheels touch on the downbeat. |
-| 3 | 04.72-05.87 | bar 3 | b03_foot | 4 ways: On foot across the plaza | Player walks across the plaza (player.goTo), the game's own follow camera, zoom 3. |
-| 4 | 05.87-07.02 | bar 3, beat 3 | b04_bus | 4 ways: Bus | Camera follows the nearest moving bus, zoom 3. |
-| 5 | 07.02-08.18 | bar 4 | b05_train | 4 ways: Train on the viaduct | Camera follows a trainset leaving Central, zoom 2. |
-| 6 | 08.18-09.33 | bar 4, beat 3 | a13_cabtown | 4 ways: Cab | A second real cab ride (G.transit.callTaxi('diner') from the office district), the game's ride camera, zoom 2; the last seconds of the ride. |
+| 1 | 00.00-04.72 | bar 1 | b00_c3 | OPENING: a busy downtown street corner, close (zoom 3): shopfronts, traffic lights, cab, bus, people, trees; title card over it | Free camera (hidden player rides along), zoom 3, 17:12, 14 s of settling so the game's crowd and traffic are in, steady pan of one canvas pixel per frame; weather forced clear. |
+| 2 | 04.72-07.02 | bar 3 | a08_plane | The airport: a plane touches down | G.planes.landNow('airliner') forces a landing now (the game's own ambient landing); camera tracks the aircraft along the runway, zoom 1; trimmed so the wheels touch on the downbeat. |
+| 3 | 07.02-07.60 | bar 4 | b03_foot | Fully explorable: On foot across the plaza | Player walks across the plaza (player.goTo), the game's own follow camera, zoom 3. |
+| 4 | 07.60-08.18 | bar 4, beat 2 | b04_bus | Fully explorable: Bus | Camera follows the nearest moving bus, zoom 3. |
+| 5 | 08.18-08.75 | bar 4, beat 3 | b05_train | Fully explorable: Train on the viaduct | Camera follows a trainset leaving Central, zoom 2. |
+| 6 | 08.75-09.33 | bar 4, beat 4 | a13_cabtown | Fully explorable: Cab | A second real cab ride (G.transit.callTaxi('diner') from the office district), the game's ride camera, zoom 2; the last seconds of the ride. |
 | 7 | 09.33-18.56 | bar 5 on, one cut every beat (0.58 s) | 16 interiors | DOORS: diner, cs_hollowell, aquarium, lighthouse, central_station-platforms, cityhall, natatorium-pool, museum, observatory, skydeck, home-villa_belvedere, cafe, fishmarket, conservatory, cs_nightjar, bookstore. Each cut opens with the gold-edged door wipe; the counter (top right) jumps on each cut. | G.go('int:<room>') (the game's scene change, no fade), 4 s for the room's own visitors, then the player walks in from the entrance (player.goTo) and the clip starts half a second later, when the player is a couple of steps inside; camera leads the player by a fixed offset so every room is framed alike. |
 | 8 | 18.56-19.72 | bar 9 | b_job | MON: A job shift: trainee barista at the cafe (the shift panel is the game’s own) | G.jobs.debugStart('barista') (hire + clock in); the shift panel on the right is the game's UI (HUD hidden). |
 | 9 | 19.72-20.87 | bar 9, beat 3 | b_gym | TUE: The gym: treadmill mini-game | G.go('int:gym'), G.skillplay.demo('stride') opens the treadmill mini-game; real mouse clicks play it. |
@@ -35,14 +35,16 @@ FINAL CUT (polish pass, footage re-recorded on the Stage 104 build). Count capti
 | Time (s) | On the beat | Graphic |
 |---|---|---|
 | 00.00-00.50 | bar 1 | Fade in from the game's dark blue |
-| 00.50-04.57 | bar 1, beat 1.7 | Caption: "1 city" |
-| 04.72-09.18 | bar 3 | Caption: "4 ways to get around" |
+| 00.30-04.72 | bar 1, beat 1.3 | Picture dimmed 50 % for the end card |
+| 00.40-04.57 | bar 1, beat 1.5 | Title "MAPLE BAY" (the title screen's lettering: cream + gold, ink outline), then the line "an open-world life sim" |
+| 04.82-06.87 | bar 3, beat 1.2 | Caption: "1 city" |
+| 07.02-09.18 | bar 4 | Caption: "fully explorable" |
 | 09.33-18.51 | bar 5 | Counter box (top right) climbing 1 to 190, label "enterable buildings" |
 | 27.79-34.72 | bar 13 | Counter box (top right) climbing 1 to 190, label "enterable buildings" |
 | 34.72-36.90 | bar 16 | Caption: "nearly 200 enterable buildings" |
 | 37.31-41.52 | bar 17, beat 1.5 | Caption: "your life, your pace" |
 | 41.64-45.00 | final chord | Picture dimmed 50 % for the end card |
-| 41.64-45.00 | final chord | Title "MAPLE BAY" (the title screen's lettering: cream + gold, ink outline) |
+| 41.64-45.00 | final chord | Title "MAPLE BAY" (the title screen's lettering: cream + gold, ink outline), then the line "an open-world life sim" |
 | 44.50-45.00 | final chord | Fade out |
 | 18.56-27.75 | bar 9 | Weekday tags top left, one per scene: MON TUE WED THU FRI SAT SUN (my addition, not one of the owner's captions; easy to drop) |
 | 40 cuts | on each door cut | "Door" wipe: two dark, slightly see-through leaves with a gold edge slide off the sides in 2-3 frames; they start a quarter of the way in, so no frame is fully covered (a graphic; the game itself has no door-opening animation) |
