@@ -331,3 +331,8 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - Phone: the slow reading clock applies only to the book reading app (Pages).
 - Wish-list reminder: as built (4.5 tiles, once a day, weekly stock counts, x does not silence longer).
 - (owner msg 199, same day) PHONE: no 'Bigger' button on shows / reading: always part-screen, the world must be seen to keep going. Reading runs the NORMAL clock everywhere (the slow reading pace is dropped, Pages included).
+
+## Direction update 42 (owner msgs 203-204, 2026-11-16): two trailers
+- Trailer A 'The City Wakes Up': the city without the player first (dawn over the harbour, trams and buses starting, shop lights, city folk), the plane lands about halfway, the last third is the player joining in; very few captions (title, building count, closing line).
+- Trailer B 'Open Every Door' x 'A Week in Maple Bay': some city shots to start, then many doors opening on the beat into different interiors with a counter climbing to the real number of enterable buildings, mixed with things-to-do scenes (job, cooking, date, gym, fishing, rainy evening, festival); captions: '1 city', '4 ways to get around', 'over N buildings to walk into', 'your life, your pace'.
+- Both: 45 seconds, wide (16:9), no voice-over, cosy with a bit of upbeat, music = the original 'Indoors' song, the airport appears, N is counted from the game. Owner sees a storyboard and a rough cut before polish.

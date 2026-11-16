@@ -3,11 +3,12 @@
 // also: no need (bladder full), leaving unwashed (one nudge), night, and a home bathroom. Run after node tools/build.mjs.
 // Every USE (door, toilet, basin, way out) is a finger tap on the canvas; when the thing is off the phone screen the player first walks near it with the
 // game's pathfinder (G.player.goTo, the same call a floor tap makes).
-//   node tools/restrooms_check.mjs [--only diner,skydeck,cityhall]      Shots: out/shots/bath_*.png
+//   node tools/restrooms_check.mjs [--only diner,skydeck,...] [--shots bath2]      DIST=/path/to/index.html overrides the build tested (default: the repo's dist/index.html)
+//   Shots: out/shots/<prefix>_*.png (prefix 'bath' by default). Also once: Stop during a toilet visit, save + reload inside a restroom, City Hall's records floor door.
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module';
 const ROOT = '/home/user/Pixel-city-2'; const require = createRequire(ROOT + '/'); const { chromium } = require('playwright');
-const a = process.argv.slice(2), o = { only: '' }; for (let i = 0; i < a.length; i++) o[a[i].slice(2)] = a[++i];
-const HTML = fs.readFileSync(path.join(ROOT, 'dist/index.html'), 'utf8');
+const a = process.argv.slice(2), o = { only: '', shots: 'bath' }; for (let i = 0; i < a.length; i++) o[a[i].slice(2)] = a[++i];
+const HTML = fs.readFileSync(process.env.DIST || path.join(ROOT, 'dist/index.html'), 'utf8'); console.log('testing ' + (process.env.DIST || 'dist/index.html'));
 const OUT = path.join(ROOT, 'out/shots'); fs.mkdirSync(OUT, { recursive: true });
 const srv = http.createServer((q, r) => { r.writeHead(200, { 'content-type': 'text/html' }); r.end(HTML); }); await new Promise(r => srv.listen(0, r)); const U = `http://localhost:${srv.address().port}/`;
 const br = await chromium.launch(); const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true }), pg = await ctx.newPage(), errs = [];
@@ -17,7 +18,7 @@ await pg.waitForFunction(() => window.G && G.onTitle !== undefined && !document.
 const tap = async (x, y, w = 350) => { await pg.touchscreen.tap(x, y); await pg.waitForTimeout(w); };
 const find = (re, sc = 'button') => pg.evaluate(([s, sc]) => { const x = new RegExp(s, 'i'), e = [...document.querySelectorAll(sc)].find(b => b.offsetWidth && x.test((b.getAttribute('aria-label') || b.textContent || '').trim())); if (!e) return null; e.scrollIntoView({ block: 'center' }); const q = e.getBoundingClientRect(); return [q.left + q.width / 2, q.top + q.height / 2]; }, [re.source, sc]);
 const tapText = async (re, sc = 'button', w) => { const r = await find(re, sc); if (!r) throw new Error('no button ' + re); await tap(r[0], r[1], w); return r; };
-const shot = n => pg.screenshot({ path: path.join(OUT, 'bath_' + n + '.png') });
+const shot = n => pg.screenshot({ path: path.join(OUT, o.shots + '_' + n + '.png') });
 let bad = 0; const say = (ok, t) => { if (!ok) bad++; console.log((ok ? 'PASS ' : 'FAIL ') + t); };
 const closeUi = () => pg.evaluate(async () => { for (let i = 0; i < 12; i++) { const s = document.querySelector('.say'); if (s) s.click(); const mx = document.querySelector('.modal .x'); if (mx) mx.click(); const b = [...document.querySelectorAll('button')].find(b => /^(Got it|OK|Close)$/.test(b.textContent.trim()) && b.offsetParent); if (b) b.click(); if (!s && !b && !mx) break; await new Promise(r => setTimeout(r, 80)); } });
 const toasts = () => pg.evaluate(() => [...document.querySelectorAll('#toasts > *')].map(e => e.textContent.trim()));
@@ -50,17 +51,17 @@ await pg.waitForFunction(() => !G.intro.active && G.scene, null, { timeout: 6000
 await pg.evaluate(() => { try { G.state.tips.off = 1; } catch (e) { } try { G.firstTime.setEnabled(false); } catch (e) { } });
 await pg.waitForTimeout(800); await closeUi();
 
-const VENUES = [['diner', 'door:diner'], ['skydeck', 'door:skydeck_lobby'], ['cityhall', 'door:cityhall']].filter(v => !o.only || o.only.split(',').includes(v[0]));
+const VENUES = [['diner', 'door:diner'], ['skydeck', 'door:skydeck_lobby'], ['cityhall', 'door:cityhall'], ['skydeck_lobby', 'door:skydeck_lobby'], ['central_station', 'door:central_station'], ['deptstore', 'door:deptstore'], ['library', 'door:library'], ['museum', 'door:museum'], ['gym', 'door:gym'], ['bar', 'door:bar'], ['arena', 'door:arena'], ['cityhall_records', 'door:cityhall']].filter(v => !o.only || o.only.split(',').includes(v[0]));
 for (const [v, door] of VENUES) {
-  console.log('--- ' + v);
+  console.log('--- ' + v); const wcId = await pg.evaluate(v => G.restrooms.roomOf(v), v); if (!wcId) { say(false, v + ': no restroom room registered'); continue; }
   await pg.evaluate(([v, door]) => { G.state.flags.lastDoor = door; G.state.t = Math.floor(G.state.t / 1440) * 1440 + 12 * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); return G.go('int:' + v); }, [v, door]);
   await pg.waitForTimeout(1500); await closeUi();
   // stand a few steps from the Restroom door, then tap it
   const dr = await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom); if (!it) return null; const s = it.spot || it; let best = null; for (const [dx, dy] of [[-.5, 1.8], [0, 2.5], [2, 1], [-1, 2], [0, 2], [2, 0]]) { const x = s.x + dx, y = s.y + dy; if (!G.world.isBlocked(x, y)) { best = [x, y]; break; } } if (best) { G.player.x = best[0]; G.player.y = best[1]; } G.snapCam(); return { label: it.label, navTo: it.navTo, spot: [s.x, s.y] }; });
-  say(!!dr && dr.navTo === 'int:' + v + ':wc', v + ': Restroom door present, leads to the restroom room (' + JSON.stringify(dr) + ')');
+  say(!!dr && dr.navTo === 'int:' + wcId, v + ': Restroom door present, leads to the restroom room (' + JSON.stringify(dr) + ')');
   await pg.waitForTimeout(600); await shot(v + '_0_door');
   await tapIt(/^Restroom$/);
-  const inWc = await waitFor(id => G.scene && G.scene.id === id, 'int:' + v + ':wc');
+  const inWc = await waitFor(id => G.scene && G.scene.id === id, 'int:' + wcId);
   say(inWc, v + ': tapped the door, walked there and went in -> ' + (await st()).scene + (inWc ? '' : ' ' + await dbg()));
   if (!inWc) continue;
   await pg.waitForTimeout(1200); await closeUi(); await shot(v + '_1_room_day');
@@ -75,9 +76,9 @@ for (const [v, door] of VENUES) {
   say(b1.bladder >= 99 && b0.bladder < 30 && !b1.hidden && open, v + `: bladder ${b0.bladder} -> ${b1.bladder}, visible again, door open again`);
   // wash hands (diner: first leave without washing to see the nudge, then come back)
   if (v === 'diner') {
-    await tapIt(/^Back to /); await waitFor(id => G.scene.id === id, 'int:' + v, 15000); const tt = (await toasts()).join(' | ');
+    await tapIt(/^(Back|Up) to /); await waitFor(id => G.scene.id === id, 'int:' + v, 15000); const tt = (await toasts()).join(' | ');
     say(/without washing/i.test(tt), v + ': left unwashed -> nudge: ' + tt.slice(0, 160));
-    await pg.waitForTimeout(800); await tapIt(/^Restroom$/); await waitFor(id => G.scene.id === id, 'int:' + v + ':wc', 15000); await pg.waitForTimeout(800);
+    await pg.waitForTimeout(800); await tapIt(/^Restroom$/); await waitFor(id => G.scene.id === id, 'int:' + wcId, 15000); await pg.waitForTimeout(800);
   }
   const h0 = (await st()).hygiene;
   await tapIt(/^Wash hands$/, 300); const washing = await waitFor(() => !!G.busy, null, 12000); await pg.waitForTimeout(300); await shot(v + '_3_wash');
@@ -87,15 +88,15 @@ for (const [v, door] of VENUES) {
   await pg.evaluate(() => G.needs.set('bladder', 100)); await tapIt(/^Toilet$/, 300); await waitFor(() => [...document.querySelectorAll('#toasts > *')].some(e => /do not need/i.test(e.textContent)), null, 12000);
   const nn = await st(), nt = (await toasts()).join(' | '); say(!nn.busy && /do not need/i.test(nt), v + ': bladder full -> no visit: ' + nt.slice(-80) + (/do not need/i.test(nt) ? '' : ' ' + await dbg()));
   // out
-  await tapIt(/^Back to /); const back = await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(700);
+  await tapIt(/^(Back|Up) to /); const back = await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(700);
   const at = await st(); const d = Math.hypot(at.x - dr.spot[0], at.y - dr.spot[1]); const tt2 = (await toasts()).join(' | ');
   say(back && d < .9, v + `: way out -> ${at.scene} at (${at.x}, ${at.y}), ${d.toFixed(2)} from the door spot`); say(!/without washing/i.test(tt2) || v === 'diner', v + ': no nudge after washing');
   await shot(v + '_4_back');
   // night
-  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 22 * 60 + 30; }); await tapIt(/^Restroom$/); await waitFor(id => G.scene.id === id, 'int:' + v + ':wc', 15000);
+  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 22 * 60 + 30; }); await tapIt(/^Restroom$/); await waitFor(id => G.scene.id === id, 'int:' + wcId, 15000);
   await pg.waitForTimeout(1500); await closeUi(); await shot(v + '_5_room_night');
   await pg.evaluate(() => G.needs.set('bladder', 25)); await tapIt(/^Toilet$/, 300); await waitFor(() => !!G.busy, null, 12000); await pg.waitForTimeout(400); await shot(v + '_6_inuse_night'); await waitFor(() => !G.busy, null, 20000);
-  await tapIt(/^Back to /); await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(500);
+  await tapIt(/^(Back|Up) to /); await waitFor(id => G.scene.id === id, 'int:' + v, 15000); await pg.waitForTimeout(500);
 }
 
 // the need chooser's guide: from inside the diner the arrow points at the Restroom door, inside at a stall, and the goal ends on the seat
@@ -112,6 +113,23 @@ if (!o.only || o.only.includes('diner')) {
   await tapIt(/^Toilet$/, 300); await waitFor(() => !!G.busy, null, 12000); await pg.waitForTimeout(800);
   const c3 = await pg.evaluate(() => G.navGoals.current()); say(!c3 || c3.id !== 'wc', 'guide ends on the seat: ' + JSON.stringify(c3 && c3.id));
   await waitFor(() => !G.busy, null, 20000);
+}
+
+// Stop in the middle of a toilet visit, then save + reload while standing inside a restroom
+if (!o.only || o.only.includes('library')) {
+  console.log('--- stop + reload');
+  await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 14 * 60; G.state.flags.lastDoor = 'door:library'; G.needs.set('bladder', 10); return G.go('int:library'); }); await pg.waitForTimeout(1200); await closeUi();
+  await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom), s = it.spot; G.player.x = s.x + 1.5; G.player.y = s.y + 1; G.snapCam(); });
+  await tapIt(/^Restroom$/); const inL = await waitFor(() => G.scene.id === 'int:library:wc', null, 15000); await pg.waitForTimeout(800);
+  await tapIt(/^Toilet$/, 300); await waitFor(() => !!G.busy, null, 12000); await pg.waitForTimeout(700);
+  const sb = await find(/^Stop$/); if (sb) await tap(sb[0], sb[1], 600); await waitFor(() => !G.busy, null, 8000);
+  const ss = await st(), so = await pg.evaluate(() => !G.scene.fixtures.some(f => f.tags.includes('wcstall') && f.ob.p.occ));
+  say(inL && !!sb && !ss.busy && !ss.hidden && so && ss.bladder > 10 && ss.bladder < 99, `Stop during a visit: stopped, visible, stall open, bladder part-filled (${ss.bladder})`); await shot('stop');
+  await pg.evaluate(() => G.save()); const before = await st();
+  await pg.reload(); await pg.waitForFunction(() => window.G && G.onTitle !== undefined && !document.getElementById('load'), null, { timeout: 180000 }); await pg.waitForTimeout(800);
+  await tapText(/^Continue$/, 'button', 3000); await pg.waitForFunction(() => G.scene && G.player, null, { timeout: 60000 }); await pg.waitForTimeout(1500);
+  await pg.evaluate(() => { try { G.state.tips.off = 1; } catch (e) { } try { G.firstTime.setEnabled(false); } catch (e) { } }); await closeUi();
+  const after = await st(); say(before.scene === 'int:library:wc' && /^(city|int:library)$/.test(after.scene) && !after.hidden && !!(await pg.evaluate(() => G.state.restrooms && G.state.restrooms.visits)), `save inside the library restroom + reload -> ${after.scene} (${after.x}, ${after.y}), visible`); await shot('reload');
 }
 
 // a home bathroom still works

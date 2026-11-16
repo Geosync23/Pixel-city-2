@@ -823,3 +823,6 @@ How close is the Fable worker to finishing seating and making the trailer
 
 ## 203 (2026-11-16)
 Open the second Fable slot for the trailer. Then park slot 1 when seating is done. Will the teailer have music? Please use the indoors song from the first few tracks you made. Pitch several trailer ideas before moving forward.
+
+## 204 (2026-11-16)
+Lwts make 2 trailers . #4. But then a mix of 2 and 3. Lots of door opening but first some city shots to.start us off and I like the lines from trailer 1 ""1 city", "4 ways to get around", "over N buildings to walk into", "your life, your pace".

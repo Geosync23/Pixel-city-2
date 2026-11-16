@@ -24,7 +24,9 @@ import { WC } from '../scenes/rooms/restrooms.js';
 
 export const order = 134;   // before bladder.js (135): its 'room:build' handler must see scene._wc already set
 const O = 1;
-const BY_VENUE = new Map(WC.map(w => [w.venue, w])), BY_ID = new Map(WC.map(w => [w.id, w]));
+const BY_VENUE = new Map(), BY_ID = new Map(WC.map(w => [w.id, w]));
+for (const w of WC) for (const v of [w.venue].concat(w.also || [])) BY_VENUE.set(v, w);   // `also`: other rooms of the building whose restroom doors lead here (City Hall's floors)
+const fromRoom = (w, v) => v === w.venue || (w.also || []).includes(v);
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const rid = () => (G.scene && /^int:/.test(G.scene.id) ? G.scene.id.slice(4) : null);
 let S = null, going = false, visit = null;   // visit = { id, nudged } for the stay in progress
@@ -43,24 +45,30 @@ function leave() {
   const w = BY_ID.get(rid()); if (!w || going) return Promise.resolve(false);
   const B = G.state.bladder || {}, unwashed = !!B.unwashed && G.state.t - B.unwashed < 60;
   if (unwashed && (!visit || !visit.nudged)) { if (visit) visit.nudged = true; toast('Off without washing your hands? The basin is right there. (Your call.)', 'info', 3400); }
-  const b = S.back && S.back.venue === w.venue ? S.back : null; S.back = null; visit = null;
+  const b = S.back && fromRoom(w, S.back.venue) ? S.back : null; S.back = null; visit = null;
   G.emit('restroom:leave', w.id, { washed: !unwashed });
-  going = true; return G.go('int:' + w.venue, Object.assign({ wc: true }, b ? { x: b.x, y: b.y, dir: b.dir } : {})).finally(() => { going = false; });
+  going = true; return G.go('int:' + (b ? b.venue : w.venue), Object.assign({ wc: true }, b ? { x: b.x, y: b.y, dir: b.dir } : {})).finally(() => { going = false; });
 }
 
 /* ---------- the venue side: its door ---------- */
 function wireVenue(scene, w) {
-  const go = it => () => { const s = it.spot || { x: it.x, y: it.y }, dir = Math.abs(s.y - it.y) >= Math.abs(s.x - it.x) ? 1 : 0; return enter(w.venue, { x: s.x, y: s.y, dir }); };
+  const here = scene.roomId, go = it => () => { const s = it.spot || { x: it.x, y: it.y }, dir = Math.abs(s.y - it.y) >= Math.abs(s.x - it.x) ? 1 : 0;
+    if (w.gate === 'arena') arenaQueue(scene);   // the Arena's half-time queue
+    return enter(here, { x: s.x, y: s.y, dir }); };
   let n = 0;
   for (const it of scene.interactables) if (it.restroom) { it.use = go(it); it.navTo = 'int:' + w.id; it.wc = w.id; n++; }
-  if (!n && w.door) {
-    const d = w.door, W = scene.world; let a = null; try { a = asset('furn.wc.door'); } catch (e) { a = null; }
-    if (a) W.place(a, O + d.x, O + d.y, { p: { style: d.style }, z: 0, flip: !!d.flip, solid: false });
-    const it = { x: d.flip ? O + d.x + .1 : O + d.x + .5, y: d.flip ? O + d.y + .5 : O + d.y + .1, h: 1.7, hit: 16, spot: { x: O + d.spot.x, y: O + d.spot.y }, label: 'Restroom', restroom: true, navTo: 'int:' + w.id, wc: w.id };
+  if (!n && w.door && here === w.venue) {
+    // door kinds: a wall door (furn.wc.door, style), 'existing' (the venue already draws one, e.g. the Galleria's WC doorway), 'stairs' (Central Station: steps down, a floor prop)
+    const d = w.door, W = scene.world, id = d.kind === 'stairs' ? 'furn.wc.prop' : 'furn.wc.door'; let a = null; try { a = d.kind === 'existing' ? null : asset(id); } catch (e) { a = null; }
+    if (a) W.place(a, O + d.x, O + d.y, d.kind === 'stairs' ? { p: { kind: 'stairs' }, z: 0, solid: true } : { p: { style: d.style }, z: 0, flip: !!d.flip, solid: false });
+    const it = d.kind === 'stairs' ? { x: O + d.x + 1, y: O + d.y + 1.6, h: 1.9, hit: 20, label: 'Restroom', restroom: true, navTo: 'int:' + w.id, wc: w.id, spot: { x: O + d.spot.x, y: O + d.spot.y } } : { x: d.flip ? O + d.x + .1 : O + d.x + .5, y: d.flip ? O + d.y + .5 : O + d.y + .1, h: 1.7, hit: 16, spot: { x: O + d.spot.x, y: O + d.spot.y }, label: 'Restroom', restroom: true, navTo: 'int:' + w.id, wc: w.id };
     it.use = go(it); scene.interactables.push(it);
   }
   scene._wc = 'real';
 }
+
+/** at the Arena a busy half-time means a queue before you get in (sim/arena.js keeps the count in scene.arena.queue.wc) */
+function arenaQueue(sc) { const q = safe(() => sc.arena.queue.wc, 0), wait = q > 2 ? Math.round(q * 1.3) : 0; if (!wait) return; toast(`Half-time rush: ${q} people ahead of you. ${wait} minutes of shuffling and small talk about the second quarter.`, 'info', 3600); safe(() => G.advance(wait)); }
 
 /* ---------- inside: stalls, mints, suggestions ---------- */
 const occ = (fx, on) => { if (!fx || !fx.ob) return; fx.ob.p = Object.assign({}, fx.ob.p, { occ: on ? 1 : 0 }); fx.ob._key = null; if (fx.ob.world) fx.ob.world.version++; };
@@ -81,17 +89,19 @@ const CARDS = [
   ['A card in the suggestion box', '"Can the fountain outside be fixed like these taps were?" (every citizen)'],
 ];
 let mintN = 0;
+const BOOKS = ['A water-stained paperback mystery. Somebody has underlined the murderer on page 12.', 'A pocket guide to the birds of the bay, with a gull pressed between the pages. Just a feather, luckily.', 'A note tucked in a cookbook: "Library loo book swap, est. 2009. Be kind, rewind." Nobody is sure about the last bit.'];
+const SCALE = ['The scale blinks, thinks, and shows a number you decide not to remember.', 'It says ERR. Someone has written "same" on a sticky note next to it.', 'The number is fine. The number is always fine.'];
 
 /* ---------- navigation: venue door -> stall ---------- */
 function nav() {
   const N = G.navGoals; if (!N || N._wcDone) return; N._wcDone = true;
-  const gr = safe(() => N.graph, null); if (gr) for (const w of WC) gr.push(['int:' + w.venue, /^Restroom$/, 'int:' + w.id], ['int:' + w.id, /^Back to /, 'int:' + w.venue]);
+  const gr = safe(() => N.graph, null); if (gr) for (const w of WC) { for (const v of [w.venue].concat(w.also || [])) gr.push(['int:' + v, /^Restroom$/, 'int:' + w.id]); gr.push(['int:' + w.id, new RegExp('^' + w.back.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), 'int:' + w.venue]); }
   if (N.define) N.define('wc', 'default', 31, ctx => {
     const s = ctx.sel; if (!s || s.need !== 'bladder') return null; const r = rid(); if (!r) return null;
     if (G.busy && /toilet/i.test((G.busy.actId || '') + ' ' + (G.busy.label || ''))) return { done: true, quiet: 1 };
     const inWc = BY_ID.get(r), inVenue = BY_VENUE.get(r);
     if (inWc) return { room: inWc.id, find: { label: /^Toilet$/ }, label: 'A free stall', short: 'a free stall', name: inWc.def.name };
-    if (inVenue) return { room: inVenue.venue, find: { label: /^Restroom$/ }, label: 'The restroom', short: 'the restroom', name: safe(() => ROOMS.get(inVenue.venue).name, 'the restroom') };
+    if (inVenue) return { room: r, find: { label: /^Restroom$/ }, label: 'The restroom', short: 'the restroom', name: safe(() => ROOMS.get(r).name, 'the restroom') };
     return null;
   }, (ctx, s) => s && s.need === 'bladder');
 }
@@ -103,6 +113,10 @@ export function init() {
   registerFixture('wcstall', fx => ({ label: 'Toilet', toilet: true, guestOk: true, hit: 16, use: () => useStall(fx) }));
   registerFixture('wcmints', () => ({ label: 'Take a mint', hit: 10, use: () => { toast(MINT[mintN++ % MINT.length], 'good', 2600); } }));
   registerFixture('wcsuggest', () => ({ label: 'Suggestion box', hit: 14, use: () => say([{ who: CARDS[mintN % CARDS.length][0], text: CARDS[mintN++ % CARDS.length][1] }]) }));
+  registerFixture('wcbooks', () => ({ label: 'Swap shelf', hit: 14, use: () => say([{ who: 'Take one, leave one', text: BOOKS[mintN++ % BOOKS.length] }]) }));
+  registerFixture('wcscale', () => ({ label: 'Step on the scale', hit: 12, range: .9, use: () => toast(SCALE[mintN++ % SCALE.length], 'info', 3000) }));
+  registerFixture('wcbaby', () => ({ label: 'Baby-change table', hit: 12, use: () => toast('A fold-down changing table, a pack of wipes and a rubber duck someone left behind. The duck looks content.', 'info', 3400) }));
+  registerFixture('wclabel', () => ({ label: 'Read the label', hit: 12, use: () => say([{ who: 'Untitled (Hand Dryer), 1998', text: 'Warm air, steel, a red button. On loan from the building. Visitors may interact with this work. (Sketch above: a study of the same, by a museum guard on a slow Tuesday.)' }]) }));
   /* the SkyDeck view through the restroom window follows the clock like the deck's own glass */
   G.on('room:enter', sc => { if (!sc || sc.roomId !== 'skydeck:wc') return; const v = safe(() => G.showpieces.skydeck.viewNow(), 'day'); for (const o of sc.world.objs) if (o.data && o.data.sky && o.p.time !== v) { o.p = Object.assign({}, o.p, { time: v }); o._key = null; } sc.world.version++; });
   nav(); G.on('ready', nav);

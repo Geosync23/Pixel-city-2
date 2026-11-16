@@ -262,9 +262,9 @@ function bin(p) {
   else if (p.style === 'hall') { cyl(.2, .2, 0, .12, .08, dk(BRASS, .2), { ol: false }); cyl(.2, .2, .08, .17, .5, BRASS, { l: '#d8b46a', r: '#a8844a' }); cyl(.2, .2, .58, .18, .04, dk(BRASS, .25)); ball(.2, .2, .66, .07, BRASS); }
   else if (p.style === 'station') { cyl(.2, .2, 0, .17, .62, '#2f5a46', { l: '#3a6a54', r: '#244a3a' }); cyl(.2, .2, .62, .18, .05, '#b8943a'); qy(.1, .3, .37, .3, .42, '#f4f0e8'); }
   else if (p.style === 'mall' || p.style === 'museum') { const c = p.style === 'mall' ? '#e8e4f0' : '#2a2a2e'; cyl(.2, .2, 0, .15, .5, c, {}); cyl(.2, .2, .5, .16, .03, p.style === 'mall' ? CHROME : '#4a4a50'); }
-  else if (p.style === 'library') { cyl(.2, .2, 0, .16, .42, '#b08a5a', { l: (u, v) => (v % 3 === 0 ? '#8a6a40' : '#c09a68'), r: '#8a6a40' }); }
+  else if (p.style === 'library') { cyl(.2, .2, 0, .16, .42, '#b08a5a', {}); for (const z of [.1, .2, .3]) cyl(.2, .2, z, .165, .015, '#8a6a40', { ol: false }); }
   else if (p.style === 'bar' || p.style === 'service') { cyl(.2, .2, 0, .17, .55, '#8a9098', { l: '#9aa0a8', r: '#6a7078' }); lw([.06, .37, .3], [.12, .37, .38], '#5a6068'); if (p.style === 'bar') qy(.12, .24, .37, .2, .28, '#ff4a8a'); }
-  else if (p.style === 'arena') { cyl(.2, .2, 0, .17, .6, '#d2392f', { l: (u, v) => (v > 3 && v < 6 ? '#f4f0e8' : '#d2392f') }); cyl(.2, .2, .6, .18, .04, '#3a3f4c'); }
+  else if (p.style === 'arena') { cyl(.2, .2, 0, .17, .6, '#d2392f', {}); cyl(.2, .2, .3, .175, .08, '#f4f0e8', { ol: false }); cyl(.2, .2, .6, .18, .04, '#3a3f4c'); }
   else if (p.style === 'gym') { box(0, .05, 0, .4, .32, .5, '#3a3f4c', { t: '#2a2e38' }); }
   else { cyl(.2, .2, 0, .16, .46, '#efe6cf', { l: '#f4ecd8', r: '#d6ccb4' }); cyl(.2, .2, .46, .17, .04, CHROME); bx(.12, .36, 0, .16, .06, .03, CHROME); dot(.3, .3, .26, '#c8bea6'); dot(.31, .3, .24, '#c8bea6'); }
 }
