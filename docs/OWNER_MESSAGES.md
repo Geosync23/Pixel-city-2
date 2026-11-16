@@ -817,3 +817,6 @@ Great and so both Fable workers are parked? If so you can hire one additional op
 
 ## 201 (2026-11-16)
 Those three calls are fine, keep going
+
+## 202 (2026-11-16)
+How close is the Fable worker to finishing seating and making the trailer
