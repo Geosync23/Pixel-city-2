@@ -99,7 +99,7 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
 /* QA6: the curb caption shows the real clock (it used to say 2:00 PM whatever the time was) */
 const curbText = () => safe(() => { const n = G.now(), h = n.hour % 12 || 12; return `Maple Bay Intl., Arrivals. ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][n.weekday]}, ${h}:${String(n.minute).padStart(2, '0')} ${n.hour < 12 ? 'AM' : 'PM'}. ${n.seasonName}.`; }, SEQ.curb.text);
 {
-  let offs = [], lug = null, p0 = null, tm = 0, idle = 0;
+  let offs = [], p0 = null, tm = 0, idle = 0;
   const T = id => SEQ[id].prompt;
   const SUBS = {
     move: () => hint(T('tut_move')),
@@ -117,8 +117,7 @@ const curbText = () => safe(() => { const n = G.now(), h = n.hour % 12 || 12; re
       const my = token, s = I();
       if (!G.scene || G.scene.id !== 'city') { await G.go('city', { poi: 'spawn:airport' }); if (!live(my)) return; }
       const P = G.player; G.state.flags.firstCabFree = true; p0 = { x: P.x, y: P.y }; tm = 0;
-      const w = cityW(), sp = w && w.pois.find(p => p.id === 'spawn:airport');
-      if (sp && Math.hypot(P.x - sp.x, P.y - sp.y) < 12) lug = safe(() => w.place('prop.airport.luggage', P.x + .6, P.y - .2, { p: { kind: 'single' }, solid: false }), null);
+      /* owner msg 165: no left-over red bag next to you at the kerb any more: you tow your own suitcase out of the terminal (sim/luggage.js) */
       if (c.fresh || !s.sub) { caption(null, curbText(), 3600); safe(() => G.phone.lock('taxi')); sub('move'); }
       else sub(s.welcomed ? (safe(() => G.messages.unread(), 0) && !safe(() => G.phone.isUnlocked('taxi'), true) ? 'phone' : 'taxi_app') : 'move');
       if (I().sub === 'taxi_app') safe(() => G.phone.unlock('taxi', true));
@@ -136,7 +135,7 @@ const curbText = () => safe(() => { const n = G.now(), h = n.hour % 12 || 12; re
       else if (/wait|get_in/.test(k) && !pend) { idle += dt; if (idle > 2.5) sub('taxi_app'); } else idle = 0;
     },
     done: () => !!safe(() => G.transit.ride && G.transit.ride.kind === 'taxi', false),
-    exit() { for (const f of offs) f(); offs = []; if (lug) safe(() => cityW().remove(lug)); lug = null; safe(() => G.phone.unlock('taxi', true)); },
+    exit() { for (const f of offs) f(); offs = []; safe(() => G.phone.unlock('taxi', true)); },
   });
 }
 

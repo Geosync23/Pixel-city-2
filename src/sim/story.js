@@ -64,6 +64,7 @@ function cond(when) {
   if (when.startsWith('attended:')) return when === 'attended:open_mic' && beatSt('k2_open_mic') === 'done';
   if (when === 'met_npcs:all') return safe(() => G.social.known().length >= CAST.length, false);
   if (when.startsWith('outside_before') || when.startsWith('outside_after')) return !!c[when.split(':')[0]];
+  if (when === 'moving_done') return (c.boxes_unpacked || 0) >= 3 && !safe(() => G.housing.boxes().some(b => b.intro), true);   /* the last intro box (3 boxes, plus the suitcase in games since owner msg 165) */
   if (when.startsWith('recipes:')) return (S().recipes || []).length >= +when.slice(8);
   const m = /^(.+):(\d+)$/.exec(when); if (m) return (c[m[1]] || 0) >= +m[2];
   return !!c[when];

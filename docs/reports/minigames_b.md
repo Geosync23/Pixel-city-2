@@ -111,7 +111,15 @@ The robot is faster and steadier than a thumb: 3 stars from it says the game can
 
 ## Size
 
-`dist/index.html`: 14,899,251 bytes at the start, 14,945,635 after: **+46.4 KB** (target was under +150 KB; other workers' changes in the same hours are in the number). No art files: every picture is drawn with the kit's rectangles and the existing item icons.
+`dist/index.html`: 14,899,251 bytes before my files, 14,945,635 with them (builds 07:40 and 08:30): **+46.4 KB** (target: under +150 KB). The three source files are 66.6 KB before the build shrinks them.
+The last build of this job (08:57) is 15,018,663 bytes: the further +73 KB came from the other workers' files in that half hour, none of mine changed. That leaves about 1.76 MB under the 16 MB limit (16,777,216).
+No art files: every picture is drawn with the kit's rectangles and the existing item icons.
+
+## The standard checks (run at the end, on the 08:57 build)
+
+`node src/data/validate.mjs` exit 0; `node tools/build.mjs` ok; `node tools/navcheck.mjs --rooms all` all passed, 0 page errors; `node tools/jobs_check.mjs` all checks pass; `node tools/minigames_check.mjs` (worker A's, whole run) all passed;
+`node tools/minigames_b_check.mjs` all passed; `node tools/perf.mjs --verify` VERIFY OK (the first run hung for 17 minutes with no output and was stopped; the second finished in the normal time: it reads the live source tree, so most likely another worker's file was half saved);
+`grep -c '(?<[=!]' dist/index.html` = 0.
 
 ## Questions for the owner
 

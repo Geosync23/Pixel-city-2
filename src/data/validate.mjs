@@ -228,3 +228,11 @@ if (process.argv.includes('--summary')) {
 if (errors.length) { console.error(`\n${errors.length} data error(s):\n - ` + errors.join('\n - ')); process.exit(1); }
 console.log('src/data OK: all cross-references resolve.');
 await import('./clothes_validate.mjs'); // wardrobe catalogue: >= 1,000 pieces, >= 60 hairstyles, every piece draws and is unique (exits 1 on failure)
+{ // preset outfits of the clothing shops (owner msg 178): every piece exists and is sold at that shop, seasons agree, a look is a whole outfit
+  const C = await import('./clothes.js'), O = await import('./clothing_outfits.js'), S = await import('./clothing_stores.js'); await import('./instore.js');
+  const errs = O.checkOutfits(C.PIECE_BY_ID, C.SHOPS);
+  for (const s of S.STORES) { if (!(O.OUTFITS[s.id] || []).length) errs.push(`outfits: the store ${s.id} has no looks`); if (!s.hours || s.hours.length !== 7) errs.push(`clothing store ${s.id}: hours must list 7 days`); }
+  for (const shop of Object.keys(C.SHOPS)) if (shop !== 'online' && !(O.OUTFITS[shop] || []).length) errs.push(`outfits: the clothing shop ${shop} has no looks`);
+  if (errs.length) { console.error(`\n${errs.length} outfit problem(s):\n - ` + errs.join('\n - ')); process.exit(1); }
+  console.log(`outfits OK: ${Object.values(O.OUTFITS).reduce((n, l) => n + l.length, 0)} looks in ${Object.keys(O.OUTFITS).length} shops.`);
+}

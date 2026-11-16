@@ -153,6 +153,6 @@ export function init() {
   G.on('room:build', onRoom); G.on('room:enter', dress);
   G.on('scene', s => {
     if (!s || s.id !== 'city' || !s.world) return; ensure(s.world); if (s._cs) return; s._cs = true;
-    for (const id in DOOR) { const p = DOOR[id].poi; if (!s.interactables.some(it => it.poi === p)) s.interactables.push({ x: p.x, y: p.y, label: STORE_BY_ID[id].name, h: 1.2, range: 1.3, poi: p, use: () => enter(id) }); }
+    for (const id in DOOR) { const p = DOOR[id].poi; if (!s.interactables.some(it => it.poi === p)) s.interactables.push({ x: p.x, y: p.y, label: STORE_BY_ID[id].name, h: 1.2, hit: 16, range: 1.3, poi: p, use: () => enter(id) }); }
   });
 }

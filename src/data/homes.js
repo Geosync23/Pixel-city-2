@@ -45,6 +45,8 @@ export const MOVING_BOXES = [
   { id: 'box_bedroom', label: 'BEDROOM', gives: [{ item: 'outfit_pajamas', qty: 1 }, { item: 'decor_t0', qty: 1 }, { item: 'novel_lighthouse', qty: 1 }] },
   { id: 'box_misc', label: 'MISC / ???', gives: [{ item: 'music_t0', qty: 1 }, { item: 'umbrella', qty: 1 }, { item: 'gift_postcards', qty: 1 }] },
 ];
+// The suitcase you towed home from the airport (sim/luggage.js, owner msg 165): it stands by the front door as a fourth intro "moving box" and unpacks the same way.
+export const SUITCASE_BOX = { id: 'box_suitcase', label: 'SUITCASE', gives: [{ item: 'outfit_tee_jeans', qty: 1 }, { item: 'outfit_sport', qty: 1 }] };
 export const MOVING_BOXES_DONE_MOODLET = 'unpacked';
 
 // Home ambience: sum of `bonus.ambience` of all placed home goods (drooping plants count 0).

@@ -150,12 +150,12 @@ export function init() {
   for (const t of ['checkout', 'till', 'host_stand', 'host', 'reception']) registerFixture(t, (fx, scene) => {
     const v = VENUE_BY_ID[scene.roomId]; if (!v || seen.has(fx)) return null;
     if (!itemsSoldAt(v.id).length && !SERVICES.some(s => s.venue === v.id)) return null;
-    seen.add(fx); return { label: v.type === 'food' || (v.offers && v.offers.menu && !v.offers.shop) ? 'Order' : itemsSoldAt(v.id).length ? 'Shop' : 'Front desk', shop: v.id, use: () => open(v.id) };
+    seen.add(fx); return { label: v.type === 'food' || (v.offers && v.offers.menu && !v.offers.shop) ? 'Order' : itemsSoldAt(v.id).length ? 'Shop' : 'Front desk', shop: v.id, use: () => G.shop.open(v.id) };   /* through G.shop.open so sim/clothes_shop.js can offer Outfits / Clothes first at a clothes shop's till (it wraps that entry point) */
   });
   G.on('scene', s => {
     for (const k in bought) delete bought[k];
     if (!s || s.id !== 'city' || !s.world || !Array.isArray(s.world.pois)) return; while (cityRemovers.length) cityRemovers.pop()();
     for (const p of s.world.pois) { if (!p || !isFinite(p.x)) continue; const vid = p.venue || String(p.id || '').replace(/^(stall|venue|stand):/, ''), v = VENUE_BY_ID[vid]; if (!v || v.interior || v.id === 'airport' || String(p.id || '').startsWith('door:')) continue;
-      cityRemovers.push(G.addInteractable({ scene: 'city', x: p.x, y: p.y, label: v.name, h: 1, range: 2, spot: p.spot || p.stand, use: () => open(v.id, { checkHours: true }) })); }
+      cityRemovers.push(G.addInteractable({ scene: 'city', x: p.x, y: p.y, label: v.name, h: 1, range: 2, spot: p.spot || p.stand, use: () => G.shop.open(v.id, { checkHours: true }) })); }
   });
 }

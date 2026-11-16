@@ -219,8 +219,8 @@ export const GOAL_LISTS = {
   first_evening: {
     title: 'First night in Maple Bay',
     goals: [
-      { id: 'unpack', text: 'Unpack your moving boxes (0/3)', hint: 'Tap a box to unpack it.',
-        doneWhen: 'boxes_unpacked:3', doneText: "All unpacked. It is starting to look like yours." },
+      { id: 'unpack', text: 'Unpack your moving boxes and suitcase (0/4)', hint: 'Tap a box (or the suitcase by the door) to unpack it.',
+        doneWhen: 'boxes_unpacked:4', doneText: "All unpacked. It is starting to look like yours." },   /* owner msg 165: the suitcase you towed home is the fourth (sim/luggage.js); goals already in old saves keep their 0/3 */
       { id: 'fridge', text: 'Check the fridge', hint: 'Tap the fridge.',
         doneWhen: 'fridge_opened', doneText: 'A starter cupboard: eggs, bread, rice, the basics. Enough to cook tonight.' },
       { id: 'find_food', text: 'Find something to eat nearby', hint: 'Open Maps on your phone to see what is close.',

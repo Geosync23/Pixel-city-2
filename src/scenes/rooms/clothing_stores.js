@@ -96,7 +96,7 @@ store('cs:sole', { signature: 'Shoe walls on three sides, and the cobbler\'s ben
       HL(3, 3.5, 'shade', '#7a2a2a'), HL(7, 3.5, 'bulb')],
     npc: [S(1.7, 1.2, 3), S(4.7, 1.2, 3), S(1.2, 3.2, 2)], exits: [{ x: 4.5, y: 6.5 }] });
 
-/* ---- Tidepool Beach Shop (Harborside, Shed 5) 10 x 8: aqua boards, a sandy floor, surfboards against the wall, a beach hut for a fitting room */
+/* ---- Tidepool Beach Shop (Harborside, Cannery Row) 10 x 8: aqua boards, a sea-blue mat and a strip of decking, surfboards against the wall, a beach hut for a fitting room */
 store('cs:tidepool', { signature: 'The surfboards along the back wall, and the striped beach hut you change in.', tryThis: ['Change in the beach hut', 'Sit on the deck bench under the buoys', 'Buy the whole boardwalk look off a mannequin'], activities: ['browse', 'seat'] },
   { w: 10, d: 8, floor: GT.f_mat, floors: [{ x0: 0, y0: 6, x1: 10, y1: 8, floor: GT.f_wood }], wall: { color: '#7fd0cc', pattern: 'planks', trim: '#fff3c8' },
     items: [PX('sign', 5, { text: 'TIDEPOOL', bg: '#1f8a9a', fg: '#fff3c8', fr2: '#f07a5a' }, 2.1), WY('cs.boards', 3, { w: 3 }, 0), PY('hw.lifering', 6.3, { c: '#f07a5a', bg: '#7fd0cc' }, 1.3), WX('clothing.shoewall', 1.5, { w: 2.5, c: '#fff3c8', seed: 14 }, 0),

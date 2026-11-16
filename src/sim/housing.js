@@ -40,6 +40,7 @@
 //   deliverNow()                land all pending deliveries        unpack(boxUid) -> [itemId]   box contents -> storage (+ gifts to bag/wardrobe)
 //   storage() -> [itemId] (incl. stay)     items() -> placed     slots() -> { used, max }     ambience() -> number
 //   addBox({ label, items: [itemId], pos?, sz?, asm?, from? }) -> box | null (null = no room for another box)      BOX_MAX
+//   addLuggage() -> box   the intro suitcase (sim/luggage.js): an intro moving box { lug: 1, label 'SUITCASE' } drawn as furn.home.suitcase by the front door
 //   snapshot() -> string / restore(string)   the furniture layout + storage (design mode's undo)      recolour(uid, itemId) -> $ paid | false (same family)
 //   cardboard() -> n      recycle() -> n taken out      freeSpot(itemId, nearX, nearY) -> pos | null   the nearest place the piece fits (table tops for small things)
 //   check({ itemId, x, y, flip } | { itemId, wall, at }, ignoreUid?) -> null | reason string
@@ -58,7 +59,7 @@
 // Flags: G.state.flags.boxes_unpacked (count of intro moving boxes opened), flags['invited:<roomId>'] = abs minute the invitation ends.
 // City doors: on entering the city, door pois of homes get `poi.onUse` (info card for homes that are not yours) / `poi.locked` (story homes).
 import { G } from '../core/game.js';
-import { HOMES, HOME_BY_ID, SIZE_CLASSES, MOVING_BOXES, MOVING_BOXES_DONE_MOODLET, AMBIENCE_TIERS, MOVING, FURNISH } from '../data/homes.js';
+import { HOMES, HOME_BY_ID, SIZE_CLASSES, MOVING_BOXES, SUITCASE_BOX, MOVING_BOXES_DONE_MOODLET, AMBIENCE_TIERS, MOVING, FURNISH } from '../data/homes.js';
 import { ITEM_BY_ID } from '../data/items.js';
 import { MORTGAGE, SELL_BACK, DELIVERY } from '../data/economy.js';
 import { BOX_MAX, sizeOf as shipSize } from '../data/shipping.js';
@@ -230,13 +231,14 @@ function roomDef(id, room) {
     /* keep the places that were planned for what is in the boxes free, when there is room elsewhere */
     const plans = []; for (const b of S.boxes) (b.pos || []).forEach((q, k) => { if (q && q.x !== undefined && b.items[k]) plans.push(rectAt(visual(b.items[k]), q)); });
     for (const b of S.boxes) {
-      const kind = boxKind(b), sz = b.k === 'm' || kind !== 's' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids), fr = list.map(useSpot).filter(Boolean), fb = spotsReach(sh, real.concat(voids), fr);
-      for (const s of spots.filter(q => !plans.some(o => hit([q[0], q[1], q[0] + sz, q[1] + sz], o))).concat(plans.length ? spots : [])) { if (at) break; const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
+      const kind = boxKind(b), sz = b.lug ? .5 : b.k === 'm' || kind !== 's' ? 1 : .5; let at = null, any = null; const base = reach(sh, real, voids), fr = list.map(useSpot).filter(Boolean), fb = spotsReach(sh, real.concat(voids), fr);
+      const cand = b.lug ? lugSpots(sh) : spots;   /* the intro suitcase (sim/luggage.js) stands by the front door: the nearest free half-cell that passes the same checks */
+      for (const s of cand.filter(q => !plans.some(o => hit([q[0], q[1], q[0] + sz, q[1] + sz], o))).concat(plans.length ? cand : [])) { if (at) break; const r = [s[0], s[1], s[0] + sz, s[1] + sz]; if (r[2] > sh.w || r[3] > sh.d || solids.some(o => hit(r, o))) continue; if (!any) any = s;
         const front = cellOf(sz === 1 ? [s[0] + .5, s[1] + 1.3] : [s[0] + .25, s[1] + .8]); if (front[3] > sh.d || real.some(o => hit(front, o)) || voids.some(o => hit(front, o))) continue;
         const a = reach(sh, real.concat([r]), voids); if (!a[real.length] || base.some((ok, i) => ok && !a[i])) continue;
         const fa = spotsReach(sh, real.concat([r], voids), fr.concat([[front[0] + .25, front[1] + .25]])); if (fa[fr.length] && !fb.some((ok, i) => ok && !fa[i])) { at = s; break; } }
       at = at || any; if (at) { const r = [at[0], at[1], at[0] + sz, at[1] + sz]; solids.push(r); real.push(r); }
-      if (at) list.push({ id: b.k === 'm' ? 'furn.home.boxes' : boxArt()[kind], x: at[0], y: at[1], box: b.uid, bk: b.k === 'm' ? 'm' : kind, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
+      if (at) list.push({ id: b.lug ? 'furn.home.suitcase' : b.k === 'm' ? 'furn.home.boxes' : boxArt()[kind], x: at[0], y: at[1], box: b.uid, bk: b.k === 'm' ? 'm' : kind, p: { seed: (parseInt(String(b.uid).slice(1), 10) || 1) % 7 } });
     }
     if (S.card > 0 && boxArt().card) { const s = spots.find(q => { const r = [q[0], q[1], q[0] + .5, q[1] + .5]; return r[2] <= sh.w && r[3] <= sh.d && !solids.some(o => hit(r, o)); }); if (s) list.push({ id: boxArt().card, x: s[0], y: s[1], card: 1, solid: false, p: { n: Math.min(3, S.card) } }); }
   }
@@ -252,6 +254,14 @@ function roomDef(id, room) {
   }
   return guard(withExit({ name: h.name, home: mine, homeId: id, room, w: sh.w, d: sh.d, floor: sh.floor, floors: sh.floors, wall: sh.wall, items: list }, sh, 'home:' + id), mine);
 }
+/* the intro suitcase: half-cells round the front door (or the exit mat), nearest first; the doorway itself is kept clear by keepRects */
+function lugSpots(sh) {
+  const d = sh.door, dp = d ? (d.wall === 'y' ? [d.at + .5, d.off || 0] : [d.off || 0, d.at + .5]) : sh.exit ? [sh.exit.x, sh.exit.y] : [sh.w / 2, sh.d], out = [];
+  for (let y = 0; y <= sh.d - .5; y += .5) for (let x = 0; x <= sh.w - .5; x += .5) { const k = Math.hypot(x + .25 - dp[0], y + .25 - dp[1]); if (k < 4.5) out.push([x, y, k]); }
+  return out.sort((p, q) => p[2] - q[2]).map(q => [q[0], q[1]]);
+}
+/** the intro suitcase lands in the home as one more intro moving box (sim/luggage.js); returns it (the existing one when it is already there) */
+function addLuggage() { if (!S.id) return null; let b = S.boxes.find(x => x.lug); if (b) return b; b = { uid: uid('b'), k: 'm', label: SUITCASE_BOX.label, items: [], gives: SUITCASE_BOX.gives.map(g => Object.assign({}, g)), intro: 1, lug: 1 }; S.boxes.push(b); return b; }
 /* ---------- more homes: rooms of a home, viewings, the designer's furnished set ---------- */
 /** walk from one room of a home into another: you arrive on the `spot` of the link piece that leads back (stairs, a door), else on the room's exit mat */
 function goRoom(id, to, from) {
@@ -569,7 +579,7 @@ export function init() {
     current: () => (S.id ? { id: S.id, home: HOME_BY_ID[S.id], owned: S.owned, state: S, roomId: 'home:' + S.id, door: 'door:home:' + S.id } : null),
     isHome, homes, rent, buy, payOff, mortgage: () => S.mortgage, start, goHome, refresh, equity,
     canEnter: roomId => !whyNot(roomId), whyNot, invite: (roomId, hours = 3) => { G.state.flags['invited:' + roomId] = G.state.t + hours * 60; },
-    addFurniture, deliverNow: () => land(true), unpack: (id, o) => { const r = unpack(id, o); if (r && !(o && o.quiet)) refresh(); return r; }, addBox, BOX_MAX, boxKind,
+    addFurniture, deliverNow: () => land(true), unpack: (id, o) => { const r = unpack(id, o); if (r && !(o && o.quiet)) refresh(); return r; }, addBox, addLuggage, BOX_MAX, boxKind,
     isDecor, recolour, snapshot, restore, freeSpot: (itemId, nx, ny) => spotFor(itemId, null, nx, ny, curRoom()), cardboard: () => S.card || 0, recycle,
     storage: () => S.storage.concat(S.stay), items: () => S.items, boxes: () => S.boxes, slots, ambience,
     check, place, move, rotate, store, sell, sellPrice, visual, roomDef, guestSpots, shell: id => (id ? SHELLS[id] : shOf(S.id, curRoom())), room: curRoom,

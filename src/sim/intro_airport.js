@@ -2,7 +2,7 @@
 //   cabin     seated in the plane after landing; everyone deboards (scene.cabin choreography); then the MOVEMENT tutorial; walk out the door.
 //   concourse goal "Follow the signs to the tram": moving-walkway tip, first text from Nora (phone + quick-reply tutorial), talk / shop tip.
 //   tramride  the people-mover ride (scene 'airtram').
-//   baggage   "Collect your bag at carousel 2" (your yellow bag appears on the belt; tap it -> starter snacks + backpack window), then
+//   baggage   "Collect your bag at carousel 2" (your yellow bag appears on the belt; tap it -> starter snacks + backpack window; from then on you TOW it: sim/luggage.js), then
 //             customs green channel -> arrivals hall -> exit doors -> city 'spawn:airport' where the existing 'curb' step takes over.
 // State: G.state.intro.ap = { c0, belt, talk, shop, msg, replied, bag, joke } (JSON flags; steps resume from them after a load).
 // The sibling "welcome" texts stay with the curb step (sendWelcome there); this file only sends a short "are you on the ground?" opener.
@@ -101,7 +101,7 @@ export function init() {
     let ok = false, run = 0, t = 0, tb = -1, cur = '', bag = null, it = null, sc = null;
     const clear = () => { if (sc && it) { const i = sc.interactables.indexOf(it); if (i >= 0) sc.interactables.splice(i, 1); } if (sc && bag) safe(() => sc.claim[1].remove(bag)); it = null; bag = null; };
     const grab = () => {
-      if (!at('baggage') || ST().bag) return; const s = ST(), p = G.player; s.bag = 1; clear(); p.carry = true; p.poseOpts = { item: 'bag', itemColor: '#f2c230' }; safe(() => G.audio.sfx('toast'));
+      if (!at('baggage') || ST().bag) return; const s = ST(); s.bag = 1; clear(); safe(() => G.luggage.pickUp()); /* owner msg 165: you tow it from here (sim/luggage.js) */ safe(() => G.audio.sfx('toast'));
       for (const [id, n] of [['granola_bar', 2], ['chocolate_bar', 1], ['canned_coffee', 1]]) safe(() => G.inv.add(id, n, { silent: true }));
       toast('Got your bag! (And the snacks you packed.)', 'good', 3200); goalEnd('ap_bag', true); goal('ap_exit', 'Head through customs to the exit', 'Green channel, then across the arrivals hall to the doors.'); cur = '';
       setTimeout(() => { if (at('baggage') && !G.modal) { safe(() => G.inv.open()); ST().invTip = 1; } }, 700);
@@ -111,7 +111,7 @@ export function init() {
         const my = ++run; ok = false; t = 0; tb = -1; cur = ''; bag = null; it = null; slow(true);
         if (room() !== 'airport:terminal') { await G.go('int:airport:terminal', { x: 36.5, y: 2.9, dir: 1 }); if (my !== run || !at('baggage')) return; }
         sc = G.scene; const s = ST(); safe(() => G.phone.lock('taxi'));
-        if (s.bag) { goal('ap_exit', 'Head through customs to the exit'); G.player.carry = true; G.player.poseOpts = { item: 'bag', itemColor: '#f2c230' }; } else { goal('ap_bag', 'Collect your bag at carousel 2', 'Baggage claim is just past the tram platform. Carousel 2.'); caption(null, 'Main Terminal. Baggage claim first, then the exit.', 3600); }
+        if (s.bag) { goal('ap_exit', 'Head through customs to the exit'); safe(() => G.luggage.pickUp()); } else { goal('ap_bag', 'Collect your bag at carousel 2', 'Baggage claim is just past the tram platform. Carousel 2.'); caption(null, 'Main Terminal. Baggage claim first, then the exit.', 3600); }
         sc.canLeave = () => { if (!at('baggage') || ST().bag) return true; toast('Not without your bag - it is on carousel 2!', 'info'); return false; };
         ok = true;
       },
