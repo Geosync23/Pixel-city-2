@@ -130,7 +130,7 @@ const HARNESS = () => {
     result() {
       const hs = []; for (let i = 0; i < heat.length; i++) if (heat[i] > 0) hs.push([i, +heat[i].toFixed(1)]);
       const hws = {}; for (const k in hw) hws[k] = hw[k].gaps;
-      return { bands: BANDS.map((b, i) => Object.assign({ band: b }, M[i])), heat: hs, nodeBox, ex, hw: hws, sim, frames, paused, errs: H.errs, district: world.districtAt((G.camTarget || G.player).x, (G.camTarget || G.player).y), W: G.W, Hh: G.H, simR: TR.simR };
+      return { stats: TR.stats ? Object.assign({}, TR.stats) : null, bands: BANDS.map((b, i) => Object.assign({ band: b }, M[i])), heat: hs, nodeBox, ex, hw: hws, sim, frames, paused, errs: H.errs, district: world.districtAt((G.camTarget || G.player).x, (G.camTarget || G.player).y), W: G.W, Hh: G.H, simR: TR.simR };
     },
     stuckNow() { return TR.vehicles.filter(v => v._m && v._m.st > 20).map(v => [v.kind, +v.x.toFixed(1), +v.y.toFixed(1), Math.round(v._m.st), v._m.cause || '']); },
     errs: [], wx: null, walk: null,
@@ -176,20 +176,60 @@ async function runOne(R) {
 
 /* ---------- plans ---------- */
 const WORST = (o.sites ? o.sites.split(',') : ['downtown_206_232', 'downtown_266_200', 'downtown_234_296']).map(SITE);
-const TOUR = [[206, 232], [206, 200], [234, 200], [266, 200], [266, 232], [266, 264], [266, 296], [234, 296], [206, 296], [178, 296], [178, 264], [178, 232], [206, 232], [234, 232], [234, 170], [206, 170], [206, 138], [178, 138], [178, 200], [112, 200], [112, 264], [82, 264], [82, 296], [178, 296], [206, 296], [206, 232]];
+const _T = [[206, 232], [206, 200], [234, 200], [266, 200], [266, 232], [266, 264], [266, 296], [234, 296], [206, 296], [178, 296], [178, 264], [178, 232], [206, 232], [234, 232], [234, 170], [206, 170], [206, 138], [178, 138], [178, 200], [112, 200], [112, 264], [82, 264], [82, 296], [178, 296], [206, 296], [206, 232]];
 const runs = []; const days = o.days || 0;
 const survey = (list, d, tag = '') => { for (const s of list) runs.push({ id: 'sv_' + s.id + tag, kind: 'survey', site: s, t: 5, secs: d * DAY, seed: 11 + runs.length, shot: o.shots ? 2 : 0 }); };
 if (o.plan === 'quick') survey(WORST.concat(MAP.sites.filter(s => !WORST.includes(s)).slice(0, 1)), days || 1);
 if (o.plan === 'survey' || o.plan === 'base') survey(o.sites && o.plan === 'survey' ? WORST : MAP.sites, days || 1);
 if (o.plan === 'soak' || o.plan === 'base') {
   for (const s of WORST) runs.push({ id: 'soak_' + s.id, kind: 'soak', site: s, t: 5, secs: (days || 3) * DAY, seed: 101 + runs.length });
-  runs.push({ id: 'soak_tour', kind: 'soak', site: SITE('206,232'), walk: TOUR, t: 5, secs: (days || 3) * DAY, seed: 131 });
+  runs.push({ id: 'soak_tour', kind: 'soak', site: SITE('at_206_232'), walk: _T, t: 5, secs: (days || 3) * DAY, seed: 131 });
 }
 if (o.plan === 'base') {
   for (const s of WORST) runs.push({ id: 'rain_' + s.id, kind: 'rain', site: s, t: 5, secs: DAY, wx: 'rain', seed: 201 + runs.length });
-  runs.push({ id: 'event_winter', kind: 'event', site: SITE('220,232'), t: 15, secs: 8 * 60 / .85, event: ['winter_parade', 15], seed: 301 });   // Market St closed 206-234, 15:30-21:00 (parade 17:00)
-  runs.push({ id: 'event_blossom', kind: 'event', site: SITE('178,138'), t: 10.5, secs: 7 * 60 / .85, event: ['blossom_parade', 10.5], seed: 302 });   // Riverside Dr + Airport Pkwy closed 11-16
+  runs.push({ id: 'event_winter', kind: 'event', site: SITE('at_220_232'), t: 15, secs: 8 * 60 / .85, event: ['winter_parade', 15], seed: 301 });   // Market St closed 206-234, 15:30-21:00 (parade 17:00)
+  runs.push({ id: 'event_blossom', kind: 'event', site: SITE('at_178_138'), t: 10.5, secs: 7 * 60 / .85, event: ['blossom_parade', 10.5], seed: 302 });   // Riverside Dr + Airport Pkwy closed 11-16
   for (const s of WORST) runs.push({ id: 'desk_' + s.id, kind: 'desktop', site: s, t: 5, secs: DAY, view: [1280, 800], seed: 401 + runs.length });
+}
+/* ---------- plan rides: the player's cab and bus rides, in REAL time (no fast-forward: the page runs as a player's would) ---------- */
+if (o.plan === 'rides') {
+  const out = []; const say = (k, v) => { out.push(`${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`); console.log('  ' + out[out.length - 1]); };
+  const { ctx, pg, errs } = await open('?scene=city&x=209.6&y=247&t=8.2', 5);   // on the kerb by the stop "1st St & 3rd Ave" (bus:18, route 3), morning rush
+  await pg.evaluate(() => { try { G.dev.set(true); G.state.dev.needs = true; G.state.dev.money = true; } catch (e) { } window.sleep = ms => new Promise(r => setTimeout(r, ms)); window.snap = () => ({ x: +G.player.x.toFixed(1), y: +G.player.y.toFixed(1), clock: G.now().clock, veh: G.traffic.count(), stats: G.traffic.stats ? Object.assign({}, G.traffic.stats) : null });
+    window.watch = () => { const w = window.W = { maxStuck: 0, t0: performance.now(), stuckS: 0 }; w.iv = setInterval(() => { const r = G.transit.ride; if (r && r.vehicle) { if (r.vehicle.stuck > w.maxStuck) w.maxStuck = r.vehicle.stuck; if (r.vehicle.v < .3) w.stuckS += .1; } }, 100); return w; };
+    window.unwatch = () => { const w = window.W; clearInterval(w.iv); return { seconds: +((performance.now() - w.t0) / 1000).toFixed(1), longestStandstill: +w.maxStuck.toFixed(1), standingSeconds: +w.stuckS.toFixed(1) }; }; });
+  /* 1. bus: wait at the stop, ride one stop, get off */
+  say('bus ride 1 (wait at bus:18, get off at the next stop)', await pg.evaluate(async () => { const s0 = snap(), t0 = performance.now(); const pr = G.transit.boardBus('bus3', 'bus:18'); let waited = null; for (let i = 0; i < 900 && !G.transit.ride; i++) await sleep(100); if (!G.transit.ride) return { failed: 'no bus boarded in 90 s', nb: G.transit.nextBuses('bus:18') }; waited = +((performance.now() - t0) / 1000).toFixed(1); watch();
+    await sleep(1500); const b = [...document.querySelectorAll('.ride-btns button')].find(b => /Get off/.test(b.textContent)); if (b) b.click(); const ok = await Promise.race([pr, sleep(120000).then(() => 'timeout 120 s')]); return { waitedSeconds: waited, arrived: ok, ride: unwatch(), from: s0, to: snap() }; }));
+  await pg.screenshot({ path: path.join(SHOTS, NAME + '_bus1.png') });
+  /* 2. bus with Skip: board again where we got off, choose a stop 3 ahead, Skip ride */
+  say('bus ride 2 (Choose stop + Skip ride)', await pg.evaluate(async () => { const s0 = snap(), p = G.player; let st = null, bd = 1e9; for (const q of G.transit.stops()) { const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; st = q; } }
+    const rid = (st.routes || [])[0], loop = G.traffic.loops[rid], i = loop.stops.findIndex(s => s.id === st.id), dest = loop.stops[(i + 3) % loop.stops.length].id, t0 = performance.now(), pr = G.transit.boardBus(rid, st.id, dest); for (let k = 0; k < 900 && !G.transit.ride; k++) await sleep(100); if (!G.transit.ride) return { failed: 'no bus boarded in 90 s at ' + st.id };
+    const waited = +((performance.now() - t0) / 1000).toFixed(1); await sleep(2500); const t1 = G.state.t; const b = [...document.querySelectorAll('.ride-btns button')].find(b => /Skip ride/.test(b.textContent)); if (!b) return { failed: 'no Skip button' }; b.click(); const ok = await Promise.race([pr, sleep(20000).then(() => 'timeout 20 s')]); await sleep(600);
+    return { stop: st.id, dest, waitedSeconds: waited, arrived: ok, gameMinutesSkipped: +(G.state.t - t1).toFixed(1), from: s0, to: snap(), atDest: Math.hypot(G.player.x - G.world.pois.find(q => q.id === dest).x, G.player.y - G.world.pois.find(q => q.id === dest).y) < 9, modal: G.modal }; }));
+  await pg.screenshot({ path: path.join(SHOTS, NAME + '_bus2.png') });
+  /* 3. cab: call one to where we stand, ride it all the way across town at rush hour */
+  const cab = async (dest, skipAfter) => pg.evaluate(async ([dest, skipAfter]) => { const s0 = snap(), t0 = performance.now(), g0 = G.state.t; let here = null; const off = G.on('taxi:here', () => { here = +((performance.now() - t0) / 1000).toFixed(1); });
+    const pr = G.transit.callTaxi(dest, { silent: true }); for (let k = 0; k < 600 && !G.transit.ride; k++) { await sleep(100); const pd = G.transit.pending; if (pd && pd.state === 'waiting' && pd.cab && pd.cab._it && !G.transit.ride && Math.hypot(G.player.x - pd.cab.x, G.player.y - pd.cab.y) > 3.2) G.useInteractable(pd.cab._it); } off();
+    if (!G.transit.ride) return { failed: 'cab not boarded in 60 s', pending: G.transit.pending && G.transit.pending.state, here }; const r = G.transit.ride, fare = r.fare, len = +r.total.toFixed(0); watch(); const g1 = G.state.t;
+    if (skipAfter) { await sleep(skipAfter); const b = [...document.querySelectorAll('.ride-btns button')].find(b => /Skip ride/.test(b.textContent)); if (!b) return { failed: 'no Skip button' }; b.click(); }
+    const ok = await Promise.race([pr, sleep(150000).then(() => 'timeout 150 s')]); await sleep(500); const pl = G.places.get(dest) || G.world.pois.find(q => q.id === dest || q.id === 'door:' + dest);
+    return { dest, cabHereAfterSeconds: here, pickupGameMin: +(g1 - g0).toFixed(1), routeLength: len, fare, arrived: ok, ride: unwatch(), rideGameMin: +(G.state.t - g1).toFixed(1), metresFromDestination: pl ? Math.round(Math.hypot(G.player.x - pl.x, G.player.y - pl.y)) : null, from: s0, to: snap(), modal: G.modal, cutscene: !!G.cutscene }; }, [dest, skipAfter]);
+  say('cab ride 1 (to the cinema, full ride)', await cab('cinema', 0)); await pg.screenshot({ path: path.join(SHOTS, NAME + '_cab1.png') });
+  say('cab ride 2 (to the cafe, Skip ride after 4 s)', await cab('cafe', 4000)); await pg.screenshot({ path: path.join(SHOTS, NAME + '_cab2.png') });
+  say('cab ride 3 (to the airport)', await cab('airport', 0));
+  say('page errors', errs.length ? errs : 'none'); await ctx.close();
+  fs.writeFileSync(path.join(OUT, NAME + '.md'), `# traffic_check ${NAME}: player rides, real time, build ${path.basename(o.html)}\n\n` + out.map(l => '- ' + l).join('\n') + '\n'); console.log(`-> out/traffic/${NAME}.md`); await br.close(); srv.close(); process.exit(errs.length ? 1 : 0);
+}
+/* ---------- plan shots: the three worst baseline spots at the morning rush, 390x844: the first moment (after 2.5 sim minutes, within 9) when two or more vehicles
+   in view have stood for > 20 s, else the end of the 9 minutes. Speech bubbles and toasts are hidden for the picture (fast-forward piles them up). ---------- */
+if (o.plan === 'shots') {
+  const spots = (o.sites ? o.sites.split(',') : ['at_234_296', 'at_266_296', 'at_178_296']).map(SITE); let k = 0;
+  for (const s of spots) { k++; const { ctx, pg, errs } = await open(`?scene=city&x=${s.x + s.hx + 1.6}&y=${s.y + s.hy + 1.6}&t=8`, 40 + k); await pg.evaluate(HARNESS); await pg.evaluate(([x, y]) => window.__TC.focus(x, y), [s.x, s.y]);
+    await pg.evaluate(hz => window.__TC.run(150, hz), o.hz); const r = await pg.evaluate(hz => window.__TC.run(390, hz, { stopJam: 2 }), o.hz); const st = await pg.evaluate(() => window.__TC.stuckNow());
+    await pg.addStyleTag({ content: '.bubble,.toast,.toasts,.say,.tip,.ph-banner,.banner{display:none!important}' }); await pg.evaluate(() => window.__TC.render(5)); await pg.screenshot({ path: path.join(SHOTS, `${NAME}_spot${k}.png`) });
+    const res = await pg.evaluate(() => window.__TC.result()); console.log(`  spot ${k} ${s.id}: shot at ${r.clock} (${r.sim} sim s), ${r.veh} vehicles around, standing > 20 s in the whole area: ${JSON.stringify(st)}; overlap pair-s so far ${res.bands.reduce((a, b) => a + b.ovS, 0).toFixed(1)}; errors ${errs.length} -> out/shots/${NAME}_spot${k}.png`); await ctx.close(); }
+  await br.close(); srv.close(); process.exit(0);
 }
 console.log(`traffic_check: plan ${o.plan}, ${runs.length} runs, ${MAP.sites.length} sites, build ${path.basename(o.html)}, ${o.hz} Hz`);
 const results = []; { let k = 0; const worker = async () => { while (k < runs.length) { const R = runs[k++]; try { results.push(await runOne(R)); } catch (e) { console.log('  !! ' + R.id + ' failed: ' + e.message.slice(0, 200)); results.push({ id: R.id, failed: e.message, bands: [], heat: [], nodeBox: {}, ex: {}, hw: {}, run: { site: R.site.id }, pageErrs: [e.message], errs: [] }); } } }; await Promise.all(Array.from({ length: Math.min(o.jobs, runs.length) }, worker)); }
@@ -222,6 +262,8 @@ md += '\n## Bus headways (game minutes between buses of one route at a stop, all
 for (const k in hwR) { const l = hwR[k], n = l.length, mean = l.reduce((s, v) => s + v, 0) / (n || 1), sd = Math.sqrt(l.reduce((s, v) => s + (v - mean) * (v - mean), 0) / (n || 1)); md += `| ${k} | ${n} | ${f1(mean)} | ${f1(sd)} | ${f2(sd / (mean || 1))} | ${f1(qt(l, 0))} | ${f1(qt(l, .05))} | ${f1(qt(l, .95))} | ${f1(qt(l, 1))} | ${pct(l.filter(v => v < mean / 4).length, n)} |\n`; summary['hw_' + k] = { n, mean, sd, cv: sd / (mean || 1) }; }
 const exAll = { tele: [], ov: [], gl: [], long: [] }; for (const r of results) for (const k in exAll) for (const e of (r.ex && r.ex[k]) || []) if (exAll[k].length < 60) exAll[k].push([r.id, ...e]);
 md += `\n## Examples\n\nStops > 60 s (run, sim s, kind, x, y, cause, clock): ${JSON.stringify(exAll.long.slice(0, 25))}\n\nGridlock cycles (run, sim s, vehicles in the cycle, x, y, clock): ${JSON.stringify(exAll.gl.slice(0, 25))}\n\nOverlaps (run, sim s, kinds, x, y, visible, note): ${JSON.stringify(exAll.ov.slice(0, 25))}\n\nTeleports (run, sim s, kind, from, to, visible, role): ${JSON.stringify(exAll.tele.slice(0, 25))}\n`;
+{ const st = {}; let any = false; for (const r of results) if (r.stats) { any = true; for (const k in r.stats) st[k] = (st[k] || 0) + r.stats[k]; } const hrs = results.reduce((s, r) => s + (r.sim || 0), 0) / 3600;
+  md += any ? `\n## The build's own counters (G.traffic.stats, all runs, ${f1(hrs)} sim h)\n\n${Object.entries(st).map(([k, v]) => `${k} ${f1(v)} (${f2(v / hrs)}/h)`).join(', ')}\n` : '\n(this build has no G.traffic.stats counters)\n'; summary.stats = any ? st : null; }
 const nErr = results.reduce((s, r) => s + r.pageErrs.length + r.errs.length, 0); md += `\nPage errors over all runs: ${nErr}${nErr ? ' -> ' + JSON.stringify(results.flatMap(r => r.pageErrs.concat(r.errs)).slice(0, 8)) : ''}\n`;
 
 /* ---------- heat map: stop>20 s seconds per 2x2 cell, all runs, on the road map ---------- */

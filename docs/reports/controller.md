@@ -168,3 +168,103 @@ pad is in use). `G.padnav.addSurface({ el, rect(), kind, keys: { y: 'r' }, hints
   `refresh()`, `TW` (the world tunables).
 - `G.padSteer()` and `G.camLook` are read by `core/game.js` (both absent until a pad has been used).
 - Prefs are per device, not per save: `localStorage['maplebay.pad.v1'] = { glyphs, confirm, dead, rumble, cursor, stick }`.
+
+## 7. Hooks in other files (each marked `PAD HOOK`)
+
+| File | Hook |
+|---|---|
+| `src/core/game.js` | the walk reads `G.padSteer()` (after hold-to-steer and the arrow keys; `[dx, dy, speed]`), the camera adds `G.camLook` |
+| `src/ui/kit.js` | `el()` marks elements that get a click / pointerdown / pointerup handler (`_pn = 1`, a property: no DOM change) |
+| `src/ui/hud.js` | glyph slots on the prompt, My Day, bag and phone buttons; the prompt names `G.padnav.target()` while a pad is in use |
+| `src/ui/phone_settings.js` | one line: `G.padnav.settings(b, ctx)` (the Controller section, above "More") |
+| `src/ui/talk.js`, `src/ui/chapters_ui.js` | the line is `data-pad="line"`; the Chapter sheet's Log and "..." are `data-pad="aside"` |
+| `src/sim/firsttime.js` | "Got it" is `data-pad="default"` (not "Show me") |
+| `src/sim/_jobplay_kit.js`, `src/ui/minigame.js` | Auto (and the kit's Pause / Stop) are `data-pad="aside"`: the focus never lands on Auto by itself |
+| `src/ui/furnish.js` | the room is registered as a surface (`G.padnav.addSurface`), Y = R (turn), X = U (undo) |
+
+Not touched: `src/engine/*` (the target highlight is a `G.overlays` function in `padnav.js`), `title.js`, `creator.js`, `shop.js`, `myday.js`, `goals.js`,
+`phone.js`, every `phone_*.js` app except Settings, `skillplay*.js`, `_jobplay_games.js`, `phone_map.js`. They needed nothing.
+
+## 8. Status per screen
+
+"Played" = driven by the fake pad in `tools/pad_check.mjs` or `tools/pad_extra.mjs`. "Same mechanism" = built from the same buttons / lists as a played
+screen and reached through the same focus layer, but nobody pressed through it with a pad. "Pointer" = works through a surface or the free pointer.
+
+| Screen | How | Status |
+|---|---|---|
+| Title (New Game / Continue / Settings) | focus | played |
+| Character creator: presets, tabs, swatches, arrows, name | focus + LB / RB + pad keyboard | played |
+| Traits, first-home picker | focus | played |
+| Arrival cutscenes, taxi tutorial | X = Skip; "Skip intro" from the HUD (D-pad up) | played (skipped, not walked through with a pad) |
+| Walking, doors, lobbies, stairs | stick + target + Confirm | played (home, lobby, street, cafe, deli, Nana's house) |
+| Fixtures (fridge, bed, counters), kit menus (`choose`), windows (`modal`), `say` boxes, first-time cards | target, then focus | played |
+| Activities (nap, eating): progress bar, Stop | Back = Stop | played |
+| Talking to people | target (LB / RB when a door is nearer), focus on lines then verbs, Back = goodbye | played |
+| Shops / cafes (buy, eat here, tabs) | focus + LB / RB | played |
+| Phone: home, Messages (thread, reply), Settings, Me (tabs, skill page), MapleCab, Map lists + route card | focus + LB / RB, Start = away | played |
+| Phone Map canvas | pan surface | played (drag + zoom); picking a pin with Confirm is by design, not asserted |
+| My Day sheet (ideas, Add, walk-through Skip) | Y, focus, X = Skip | played |
+| Cab ride | X = Skip ride (also focused) | played. Bus "Skip ride" / "Choose stop", the train's "Get off here" / "Skip ahead": same mechanism, not played |
+| Decorate: panels, tray, tabs, Done | focus + LB / RB | played |
+| Decorate: moving a piece | cursor surface (hold Confirm = drag), X undo, Y turn | drag + undo played; turn, colour, store, sell, try-a-piece from the Shop tab: same mechanism |
+| Skill mini-games (kit) | auto surface | `timing` played. `balance`, `aim` (hold): Confirm held. `rhythm`: lane buttons. `sort`: focus on the bins. `trace`, `memory`, `quickdraw`, arcade cabinets, chess: the pointer inside the canvas. None of these other kinds was played with the pad |
+| Job plays (`_jobplay_kit`: pick / order / grid / live / mg) | focus (+ hold buttons: Confirm down = pointerdown, up = pointerup) | `pick` played ("The Regulars"); `order`, `grid`, `live`, the `.jp-map` canvas: same mechanism / pointer |
+| Job board, shift HUD, tickets, `ui/jobs.js` minis (pick / meter / belt / mash), results card | focus | same mechanism, not played |
+| Chapters: start card, dialogue lines, choices, "..." menu | target, focus (`line` / `aside`) | played |
+| Chapter extras (book, log, moments, bell / ladder taps in the world) | focus / pointer | not played |
+| Dev menu | D-pad up, focus | played |
+| Settings: sliders, chips, Controller section, Save | focus, left / right on sliders | played |
+| Save, reload, Continue | focus | played |
+| Other phone apps (Bank, Jobs, Wellness, Delivery, Planner / week view, Closet, Roomy / homes, Appy store, Reader, Reel, Wander guide, Post, University, Opportunities, Porchlight, Bay Basics) | focus | same mechanism, not played. Search boxes use the pad keyboard; `<select>`s change with left / right |
+| Phone games (Playbox, `canvas.md-gcv`) | cursor surface (Confirm on the canvas, then stick + Confirm) | by design, not played. Reflex games will be harder with a stick than with a thumb |
+| Reel video scrubber, full-screen reel | pointer | not played |
+| Venue specials with their own canvas / pointer code (observatory eyepiece and constellations, conservatory photo, lighthouse, natatorium minis, hotel, post sorting, museum, fish market mini, shows "stand up") | free pointer (R3); several also listen to keys | not played |
+| Wardrobe / mirror (creator in edit mode), barber, clothes shops | focus | same mechanism |
+| Notification banners | D-pad up, focus | same mechanism (the DEV button and "Skip intro" were played this way) |
+
+Nothing is known to be unreachable: whatever the focus layer cannot see, the free pointer can tap. What a pad cannot do: pinch (not needed: triggers / zoom
+buttons).
+
+Known gaps (honest list):
+- **Sound may stay silent until the first touch, click or key.** Browsers unlock audio on a "user activation"; a gamepad button is not one in most browsers.
+- The tutorial's words still say "Click where you want to walk (or use WASD / the arrow keys)" and Help says "Tap the ground to walk": no controller wording.
+- The `E` keycap in the prompt is replaced by the glyph; other places that print key names (Help text) are unchanged.
+- Timed DOM games with moving targets (the job "belt") are playable with the focus ring but nobody tried how fair they feel.
+- A non-standard pad (no "standard" mapping) gets: left stick, first ten buttons in the usual order, D-pad from a hat or two axes. If its buttons are in
+  another order the player has the "Confirm button" setting, and the free pointer needs only the left stick, one face button and a stick click. There is no
+  button-remapping screen.
+- iOS Safari reports no `vibrationActuator`: no rumble on iPhone / iPad.
+
+## 9. What will most likely feel wrong in the hand, and the knob for each
+
+1. **The stick on the diagonal map.** Default "Along the streets" turns the stick 45 degrees; some players expect "Exact direction". Knobs: Settings >
+   Controller > Walking stick; `TUNE.snapDeg` (11: how hard the eight directions pull), `TUNE.walkMin` (.42) / `TUNE.walkFull` (.82) (analogue speed),
+   `prefs.dead` (.18, Settings slider). All in `src/core/pad.js`.
+2. **Which thing gets highlighted.** Especially on a crowded pavement, next to a door with a person in front of it, and between two close fixtures in a small
+   kitchen. Knobs in `padnav.js` `TW`: `reach` 3.4, `near` 1.6 / `nearBonus` 1.5, `facing` 1.25, `people` .9, `sticky` .4, `cycleReach` 7, `lockSecs` 5.
+   If people are too hard to talk to: lower `people`. If the target jumps about while walking: raise `sticky`. If far things grab the prompt: lower `reach`.
+3. **Where the focus goes.** The order is geometric, not hand-written, so odd layouts can surprise: a wide row above a grid, the map with buttons on it, a
+   sheet whose first control is not the one you want (My Day opens on "Week"). Knobs: `TW.sideWeight` 2.2 (how readily a move goes diagonally), the 140 px
+   box penalty and the "not that way" cone in `move()`, and per screen `data-pad="default"` on the control that should start with the focus.
+Also worth a real try: pointer speed (`TW.cursorSpeed` 640 px/s x the Settings slider), the camera lean (`TW.look` .36), the repeat rate (`TUNE.repeatFirst`
+.34 s, `TUNE.repeatNext` .105 s), rumble strengths (`FX` in `pad.js`), the 0.28 s `TW.mashGuard` (Confirm is ignored right after the ring jumps by itself, so
+mashing through answers cannot press a Close button that slid under the ring), and the 30 px legend strip (is giving up that much of a phone screen right?).
+
+## 11. Questions for the owner (after he has held a pad)
+
+1. Does "up" feel right? Try Settings > Controller > Walking stick both ways and say which one should be the default.
+2. Is the highlighted thing the one you meant, most of the time? Where it is not (crowded pavement, kitchen corner), which one did you mean?
+3. The strip of button hints takes 30 px at the bottom while a controller is in use. Keep it, make it smaller, or show it only for a few seconds?
+4. Start = phone, Select = Map, Y = My Day, X = bag. Is that the right four? (There is no free button left for the needs panel: it is D-pad up, then Confirm.)
+5. Vibration is on by default and sparse. More, less, or off by default?
+6. Should the tutorial get controller wording ("Push the stick to walk") when a pad is in use? That is a small text job in the intro, not done here.
+
+## 12. How to try it (for the owner)
+
+Pair a controller with the phone (iPhone / iPad: Settings > Bluetooth, hold the pad's pairing button: Xbox = the small button on top, PlayStation = Create +
+PS, Switch Pro = the button next to the USB port). Open the game and **press any button on the pad**: a gold ring appears on "New Game" / "Continue" and a
+strip of button pictures along the bottom. From there: stick or D-pad to move the ring, the bottom button to choose, the right button to go back. In the city
+the left stick walks, gold corners mark what the bottom button will use, the bumpers pick another thing, Start is the phone, Y (top button) My Day, X (left
+button) the bag, Select the Map, and a click on the right stick gives a hand pointer that can tap anything. Touch the screen and it is a touch game again.
+Settings > Controller (it appears once a pad has been used) has the button pictures, the confirm button, the walking feel, dead zone, pointer speed, vibration.
+If there is no sound: tap the screen once (browsers only start audio after a touch).

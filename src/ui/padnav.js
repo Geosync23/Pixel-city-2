@@ -28,7 +28,7 @@ import { WS, U } from '../engine/raster.js';
 import { el, root } from './kit.js';
 import { padGlyph } from '../art/icons/pad.js';
 
-export const order = 96;
+export const order = 1;   // early, so this module's key listener is ahead of the windows' own (Tab would otherwise close the phone before it could move the focus)
 /* ---- tunables for the world side (docs/reports/controller.md "Tunables") ---- */
 export const TW = {
   people: .9,        // units a person counts as further away than a thing (streets are full of passers-by; LB / RB still reach them)
@@ -53,7 +53,7 @@ const PID = 7743;   // the pointer id of the pad's synthetic pointer
 let L = null;                 // the overlay layer { box, ring, cur, deco, bar }
 let focus = null, frect = null, froot = null, flabel = '', hist = [], trail = [];
 let list = [], overlayN = 0, back = null, skip = null, tabsEl = null, keysMap = {}, mainScroll = null, scanAt = 0, dirty = true, mo = null;
-let lost = null, autoAt = -9, arrive = null, fresh = false, hudFocus = false, cursorOn = false, cx = 0, cy = 0, press = null, surf = null, surfaces = [], osk = null;
+let holdEl = null, holdXY = [0, 0], lost = null, autoAt = -9, arrive = null, fresh = false, hudFocus = false, cursorOn = false, cx = 0, cy = 0, press = null, surf = null, surfaces = [], osk = null;
 let target = null, tgtLock = 0, tgtAt = [0, 0], tgtT = 0, legendKey = '', ringKey = '', lastState = '', patched = false, kbLoop = false, zoomHeld = 0;
 const wrapEl = () => document.getElementById('wrap');
 const now = () => performance.now() / 1000;
@@ -157,7 +157,7 @@ function scan() {
   else list = [];   // walking about: nothing is focused (D-pad up steps onto the HUD)
   /* decorations */
   back = findBack(); skip = null; keysMap = {}; tabsEl = null;
-  for (const c of list) { const e = c.e; if (!skip && (e.hasAttribute('data-pad-skip') || (/^skip\b/i.test(label(e)) && !e.closest('[data-set]')))) skip = e;   // not Settings' "Skip" (the tune) const k = e.getAttribute('data-pad-key'); if (k) keysMap[k] = e; }
+  for (const c of list) { const e = c.e; if (!skip && isSkip(e)) skip = e; const k = e.getAttribute('data-pad-key'); if (k) keysMap[k] = e; }
   tabsEl = findTabs(); mainScroll = null;
 }
 function rectOf(c) { if (c.virt) { const q = c.virt.rect(); return { left: q.left, top: q.top, right: q.right, bottom: q.bottom, width: q.right - q.left, height: q.bottom - q.top }; } return c.e.getBoundingClientRect(); }
@@ -179,6 +179,8 @@ function findTabs() {
 
 /* ---------- focus ---------- */
 const padAttr = e => e.getAttribute('data-pad');
+/* a Skip button ("Skip", "Skip ride", a cutscene's lone button such as "Leave early"): X presses it, and the focus never starts on it, so a Confirm meant for something else cannot skip a scene. Not Settings' "Skip" (the tune). */
+const isSkip = e => e.hasAttribute('data-pad-skip') || e.classList.contains('tut-skipcut') || (/^skip\b/i.test(label(e)) && !e.closest('[data-set]'));
 const words = t => t.replace(/[^a-zA-Z ]+.*$/, '').trim().slice(0, 24) || t;   // 'Messages, 3 new' and 'Messages' are the same button
 function setFocus(c, quiet) {
   if (!c) { focus = null; return; }
@@ -191,12 +193,12 @@ function setFocus(c, quiet) {
 }
 function defaultFocus(any, strict) {
   let c = list.find(q => q.e.getAttribute('data-pad') === 'default' || q.e.hasAttribute('autofocus')); if (c) return c;
-  const vis = q => q.r.top >= -2 && q.r.left >= -2 && q.r.bottom <= innerHeight + 2 && q.r.right <= innerWidth + 2;
-  const plain = q => backRank(q.e) < 0 && vis(q) && !padAttr(q.e) && !q.box;   // not a back button, not a dialogue line, not an aside, not a box around other things
+  const vis = q => q.r.bottom > 8 && q.r.right > 8 && q.r.top < innerHeight - 8 && q.r.left < innerWidth - 8;   // on screen, at least in part (a tall card may run off the bottom)
+  const plain = q => backRank(q.e) < 0 && vis(q) && !padAttr(q.e) && !q.box && !isSkip(q.e);   // not a back button, not a dialogue line, not an aside, not a box around other things
   const body = q => plain(q) && !q.root.matches(PASSIVE) && !q.e.closest('[class$="-head"],[class*="-head "]');   // and not a header's Auto / Pause / Log either: the window's content first
   c = list.find(body) || list.find(q => plain(q) && !q.root.matches(PASSIVE)) || list.find(plain) || list.find(q => vis(q) && padAttr(q.e) === 'line');
   /* strict: what was focused vanished but its window is still there (a question was answered, the next is not up yet): the ring does not jump to Close / x */
-  if (!c && !(strict && !any)) c = list.find(q => backRank(q.e) < 0 && vis(q) && padAttr(q.e) !== 'aside') || list.find(q => vis(q) && padAttr(q.e) !== 'aside');
+  if (!c && !(strict && !any)) c = list.find(q => backRank(q.e) < 0 && vis(q) && padAttr(q.e) !== 'aside' && !isSkip(q.e)) || list.find(q => vis(q) && padAttr(q.e) !== 'aside' && !isSkip(q.e));
   /* an "aside" (Auto, Log, ...) never takes the focus by itself: only when the player pushes a direction and there is nothing else (any = true) */
   return c || (any ? list.find(vis) || list[0] || null : null);
 }
@@ -232,7 +234,7 @@ function refocus(any) {
 }
 function move(dx, dy) {
   if (!focus || !inList(focus)) { refocus(); return !!focus; }
-  const cur = inList(focus), a = rectOf(cur); frect = a; let best = null, bs = 1e9, wrap = null, ws = -1e9, outer = null, outerA = 0;
+  const cur = inList(focus), a = rectOf(cur); frect = a; let best = null, bs = 1e9, wrap = null, ws = -1e9, outer = null, outerA = 0, far = null, fs = 1e9;
   const acx = (a.left + a.right) / 2, acy = (a.top + a.bottom) / 2;
   for (const c of list) {
     if (c.e === focus) continue; const q = rectOf(c), qx = (q.left + q.right) / 2, qy = (q.top + q.bottom) / 2;
@@ -244,8 +246,9 @@ function move(dx, dy) {
       if (ctr > 2) { const s = Math.hypot(qx - acx, qy - acy) * .6; if (s < bs) { bs = s; best = c; } } continue; }
     if (a.left >= q.left - 1 && a.right <= q.right + 1 && a.top >= q.top - 1 && a.bottom <= q.bottom + 1) { if (!outer || q.width * q.height < outerA) { outer = c; outerA = q.width * q.height; } continue; }   // the thing the focus is inside: where a move ends up when nothing else lies that way
     if (ctr > 2 && fwd > -Math.min(dx ? a.width : a.height, dx ? q.width : q.height) * .6) {
-      if (side > 0 && side > (fwd + 40) * 2.5) continue;   // far off to the side: not "that way"
-      const s = Math.max(0, fwd) + side * TW.sideWeight + off * .25 + (c.box ? 140 : 0); if (s < bs) { bs = s; best = c; }   // a box with things in it (the map): its contents first
+      const s = Math.max(0, fwd) + side * TW.sideWeight + off * .25 + (c.box ? 140 : 0);   // a box with things in it (the map): its contents first
+      if (side > 0 && side > (fwd + 40) * 2.5) { if (fwd >= 0 && s < fs) { fs = s; far = c; } continue; }   // far off to the side: not "that way", unless nothing else is (a footer's buttons under a wide panel)
+      if (s < bs) { bs = s; best = c; }
     } else if (side <= 0 && ctr < -2) { const s = -ctr; if (s > ws) { ws = s; wrap = c; } }   // same row / column, the far end: where a wrap lands
   }
   if (!best) {
@@ -253,7 +256,7 @@ function move(dx, dy) {
     const sc = scCache && scroller(focus) || mainScroller();
     if (sc && dy && (dy > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 2 : sc.scrollTop > 0)) { sc.scrollTop += dy * sc.clientHeight * .6; dirty = true; return true; }
     if (sc && dx && sc.scrollWidth > sc.clientWidth + 6 && (dx > 0 ? sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2 : sc.scrollLeft > 0)) { sc.scrollLeft += dx * sc.clientWidth * .6; dirty = true; return true; }
-    best = outer || wrap;
+    best = far || outer || wrap;
   }
   if (!best) { bump(); return false; }
   setFocus(best); return true;
@@ -278,7 +281,7 @@ function click(t, x, y) { if (t && t.isConnected && !dead(t)) t.dispatchEvent(ne
 function key(k, type = 'keydown') { const code = k === ' ' ? 'Space' : k.length === 1 ? 'Key' + k.toUpperCase() : k; (document.activeElement && document.activeElement !== document.body && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) ? document.activeElement : document.body).dispatchEvent(new KeyboardEvent(type, { key: k, code, bubbles: true, cancelable: true, composed: true, view: window })); }
 function tapKey(k) { key(k, 'keydown'); key(k, 'keyup'); }
 const isText = e => e && (e.tagName === 'TEXTAREA' || (e.tagName === 'INPUT' && /^(text|search|email|url|tel|password|number|)$/.test(e.getAttribute('type') || '')));
-function activate() {
+function activate(hold) {
   const c = focus && inList(focus); if (!c) { refocus(); return; }
   if (now() - autoAt < TW.mashGuard) return;   // what was focused has just gone and the ring jumped: a Confirm meant for the old thing does not press the new one
   const e = c.e, r = rectOf(c), x = Math.max(1, Math.min(innerWidth - 1, (r.left + r.right) / 2)), y = Math.max(1, Math.min(innerHeight - 1, (r.top + r.bottom) / 2));
@@ -286,10 +289,16 @@ function activate() {
   if (isText(e)) { if (Pad.mode === 'pad') openOsk(e); else e.focus(); return; }
   if (e.tagName === 'INPUT' && e.type === 'range') return;
   if (e.tagName === 'SELECT') return stepSelect(e, 1);
-  patchCapture(); ptr('pointerdown', e, x, y, 1); if (e.isConnected) ptr('pointerup', e, x, y, 0); click(e, x, y);
+  /* Confirm DOWN = pointerdown, Confirm UP = pointerup + click: a tap is a tap, and hold-to-fill buttons (job meters, "hold" plays) can be held */
+  patchCapture(); ptr('pointerdown', e, x, y, 1); if (hold) { holdEl = e; holdXY = [x, y]; L.ring.classList.add('down'); return; }
+  finishPress(e, x, y);
+}
+function finishPress(e, x, y) {
+  if (e.isConnected) ptr('pointerup', e, x, y, 0); click(e, x, y);
   if (hudFocus) hudFocus = false;   // one press on the HUD, then back to walking (or into the window it opened)
   dirty = true; scanAt = Math.min(scanAt, now() - .12);
 }
+function releaseHold() { const e = holdEl; if (!e) return; holdEl = null; if (L) L.ring.classList.remove('down'); finishPress(e, holdXY[0], holdXY[1]); }
 function stepSelect(e, d) { const n = e.options.length; if (!n) return; e.selectedIndex = (e.selectedIndex + d + n) % n; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); dirty = true; }
 function stepRange(e, d) { const min = +e.min || 0, max = e.max === '' ? 100 : +e.max, st = +e.step || (max - min) / 20 || 1, v = Math.max(min, Math.min(max, (+e.value || 0) + d * st)); if (v === +e.value) return bump(); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); }
 function clickEl(e) { if (!e || !e.isConnected) return false; const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2; patchCapture(); ptr('pointerdown', e, x, y, 1); if (e.isConnected) ptr('pointerup', e, x, y, 0); click(e, x, y); dirty = true; scanAt = Math.min(scanAt, now() - .12); return true; }
@@ -437,7 +446,8 @@ function speed(d) { const S = [1, 2, 4], i = Math.max(0, S.indexOf(G.state.speed
 function onDown(a) {
   ensure();
   if (a === 'r3') return setCursor(!cursorOn);
-  if (osk) { if (a === 'x') return osk.back(); if (a === 'y') return osk.space(); if (a === 'start' || a === 'back') return closeOsk(); if (a === 'ok') return activate(); return; }
+  if (osk) { if (a === 'x') return osk.back(); if (a === 'y') return osk.space(); if (a === 'start' || a === 'back') return closeOsk(); if (a === 'ok') return activate(true); return; }
+  if (hudPaused() && !cursorOn && !surf) { if (/^(ok|back|start|down|l3)$/.test(a)) G.hud.pause(false); return; }   // paused: these continue, the rest waits
   let st = state();
   if (st === 'cursor') { st = uiActive() ? 'ui' : 'world'; if (a === 'ok') return pressAt(); if (a === 'back') return setCursor(false); if (a === 'l2' || a === 'r2') { if (document.elementFromPoint(cx, cy) === G.cv) return G.setZoom(G.zoom + (a === 'r2' ? 1 : -1)); return wheelAt(cx, cy, a === 'r2' ? -120 : 120); } if (/^(up|down|left|right)$/.test(a)) return nudge(a === 'left' ? -1 : a === 'right' ? 1 : 0, a === 'up' ? -1 : a === 'down' ? 1 : 0); if (a === 'l1' || a === 'r1') return; }
   if (st === 'surf') {
@@ -452,7 +462,7 @@ function onDown(a) {
   }
   if (st === 'ui') {
     if (dirty || now() - scanAt > .25) { scan(); refocus(); }
-    if (a === 'ok') return activate();
+    if (a === 'ok') return activate(true);
     if (a === 'back') return goBack();
     if (a === 'l1') return void (tab(-1) || bump()); if (a === 'r1') return void (tab(1) || bump());
     if (a === 'x') { if (skip && skip.isConnected) return clickEl(skip); if (keysMap.x) return clickEl(keysMap.x); return; }
@@ -486,6 +496,7 @@ function worldBack() {
   if (tgtLock) { tgtLock = 0; return; }
 }
 function onUp(a) {
+  if (a === 'ok' && holdEl) releaseHold();
   if (a === 'ok' && press) release();
   if (surf && surf.lanes) { const m = LANES[surf.lanes], i = m.indexOf(a); if (i >= 0) laneTap(i, surf.lanes, false); }
 }
@@ -520,8 +531,11 @@ function hudFocusOff(st) { if (hudFocus && st !== 'ui') hudFocus = false; }
 function paint(st) {
   const showRing = (st === 'ui') && focus && inList(focus);
   let k = '';
-  if (showRing) { const c = inList(focus), r = rectOf(c); frect = r; k = Math.round(r.left) + ',' + Math.round(r.top) + ',' + Math.round(r.width) + ',' + Math.round(r.height); }
-  if (k !== ringKey) { ringKey = k; const s = L.ring.style; if (!k) L.ring.classList.remove('on'); else { const r = frect; s.transform = 'translate(' + Math.round(r.left) + 'px,' + Math.round(r.top) + 'px)'; s.width = Math.round(r.width) + 'px'; s.height = Math.round(r.height) + 'px'; L.ring.classList.add('on'); } }
+  let rl = 0, rt = 0, rw = 0, rh = 0;
+  if (showRing) { const c = inList(focus), r = rectOf(c); frect = r;
+    /* the ring is drawn OUTSIDE the rect: keep it on screen for things that touch the screen's edge (the room in Decorate, a full-width row) */
+    rl = Math.max(8, Math.round(r.left)); rt = Math.max(8, Math.round(r.top)); rw = Math.min(innerWidth - 8, Math.round(r.right)) - rl; rh = Math.min(innerHeight - 8, Math.round(r.bottom)) - rt; k = rl + ',' + rt + ',' + rw + ',' + rh; }
+  if (k !== ringKey) { ringKey = k; const s = L.ring.style; if (!k) L.ring.classList.remove('on'); else { s.transform = 'translate(' + rl + 'px,' + rt + 'px)'; s.width = rw + 'px'; s.height = rh + 'px'; L.ring.classList.add('on'); } }
   if (Pad.mode !== 'pad') return;
   /* corner hints: B on what Back will press, X on Skip, LB / RB at the ends of the tab bar */
   const want = []; if (st === 'ui' && !osk) { if (back && back.isConnected && back !== focus) want.push([back, 'back', 0]); if (skip && skip.isConnected) want.push([skip, 'x', 0]); if (tabsEl && tabsEl.isConnected) { want.push([tabsEl, 'l1', 1]); want.push([tabsEl, 'r1', 2]); } for (const kk in keysMap) if (keysMap[kk] !== skip) want.push([keysMap[kk], kk, 0]); }
@@ -535,7 +549,7 @@ function paint(st) {
 }
 function legend(st) {
   const scr = st === 'ui' && !!((focus && scCache && scroller(focus)) || mainScroll), f = st === 'ui' && focus && inList(focus) ? focus : null, sl = f && ((f.tagName === 'INPUT' && f.type === 'range') || f.tagName === 'SELECT');
-  const k = [st, Pad.style, Pad.swapped, !!osk, hudFocus, st === 'ui' && !!back, st === 'ui' && !!skip, st === 'ui' && !!tabsEl, scr, sl, surf ? surf.kind + surf.lanes + (surf.auto ? 'a' : '') : '', st === 'world' && !!target, st === 'world' && !!G.busy, !!hudPaused(), f && isText(f)].join('|');
+  const k = [st, Pad.style, Pad.swapped, !!osk, hudFocus, st === 'ui' && !!back, st === 'ui' && skip ? label(skip).slice(0, 16) : '', st === 'ui' && !!tabsEl, scr, sl, !!f, f ? padAttr(f) : '', surf ? surf.kind + surf.lanes + (surf.auto ? 'a' : '') : '', st === 'world' && !!target, st === 'world' && !!G.busy, !!hudPaused(), f && isText(f)].join('|');
   if (k === legendKey) return; legendKey = k; const B = L.bar; B.textContent = '';
   const it = (g, text, cls) => { const s = el('span' + (cls ? '.' + cls : '')); for (const q of [].concat(g)) s.append(glyph(q, 2)); s.append(text); B.append(s); };
   if (osk) { it('ok', 'Type'); it('x', 'Delete'); it('y', 'Space'); it('start', 'Done'); }
@@ -546,9 +560,9 @@ function legend(st) {
     else { it('ls', surf.auto ? 'Aim' : 'Move'); it('ok', surf.auto ? 'Tap / hold' : 'Tap, hold to drag'); for (const h of surf.hints || []) it(h[0], h[1]); it(surf.auto ? 'start' : 'back', surf.auto ? 'Pause' : 'Back'); }
   } else if (st === 'ui') {
     if (hudPaused()) it('ok', 'Continue');
-    else if (sl) it('dlr', 'Change'); else if (f && isText(f)) it('ok', 'Type'); else it('ok', 'Select');
+    else if (sl) it('dlr', 'Change'); else if (f && isText(f)) it('ok', 'Type'); else if (f) it('ok', padAttr(f) === 'line' ? 'Next' : 'Select');
     if (hudFocus) it('back', 'Back to walking'); else if (!hudPaused() && back) it('back', 'Back');
-    if (tabsEl) it(['l1', 'r1'], 'Tabs'); if (skip) it('x', 'Skip'); if (scr) it('rs', 'Scroll', 'wide');
+    if (tabsEl) it(['l1', 'r1'], 'Tabs'); if (skip) it('x', /^skip/i.test(label(skip)) ? 'Skip' : label(skip).slice(0, 16)); if (scr) it('rs', 'Scroll', 'wide');
   } else {
     if (hudPaused()) it('ok', 'Continue');
     else if (G.busy) { if (G.busy.canCancel !== false) it('back', 'Stop'); it('start', 'Phone'); }
@@ -562,7 +576,7 @@ function onMode(m, prev) {
   ensure(); const b = document.body.classList, pad = m === 'pad', kb = m === 'keys';
   b.toggle('pad-on', pad); b.toggle('kb-on', kb);
   if (pad || kb) { try { mo.observe(root(), { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'disabled', 'aria-hidden'] }); } catch (e) { /* no observer: the timed rescan still runs */ } dirty = true; }
-  else { mo.disconnect(); if (press) release(); cursorOn = false; if (surf) leaveSurface(); hudFocus = false; G.camLook = null; target = null; focus = null; ringKey = '~'; legendKey = ''; L.ring.classList.remove('on'); L.cur.classList.remove('on'); L.deco.textContent = ''; if (osk) closeOsk(); }
+  else { mo.disconnect(); if (holdEl) releaseHold(); if (press) release(); cursorOn = false; if (surf) leaveSurface(); hudFocus = false; G.camLook = null; target = null; focus = null; ringKey = '~'; legendKey = ''; L.ring.classList.remove('on'); L.cur.classList.remove('on'); L.deco.textContent = ''; if (osk) closeOsk(); }
   if (pad) { fillSlots(); G.padSteer = steerNow; }
   if (kb && !kbLoop) { kbLoop = true; G.on('frame', kbFrame); addEventListener('pointerdown', e => { if (e.isTrusted && Pad.mode === 'keys') Pad.setMode('touch'); }, { capture: true, passive: true }); }
   if (pad !== (prev === 'pad')) setTimeout(() => dispatchEvent(new Event('resize')), 0);   // the legend strip takes 30 px under the game while a pad is in use
@@ -612,7 +626,8 @@ function info() {
 export function init() {
   if (typeof window === 'undefined') return;
   Pad.init(G);
-  G.padnav = { state, info, target: () => target, settings, glyph, TW, refresh: () => { dirty = true; }, list: () => list.map(c => label(c.e).slice(0, 40)),
+  G.padnav = { state, info, target: () => (cursorOn || surf || hudFocus ? null : target),   // what Confirm would use right now (the HUD prompt shows it)
+    settings, glyph, TW, refresh: () => { dirty = true; }, list: () => list.map(c => label(c.e).slice(0, 40)),
     addSurface(s) { surfaces.push(s); dirty = true; return () => { const i = surfaces.indexOf(s); if (i >= 0) surfaces.splice(i, 1); if (surf && surf.el === s.el) leaveSurface(); dirty = true; }; },
     cursorTo(x, y) { cx = x; cy = y; }, focusEl: () => focus, setFocus(e) { scan(); const c = inList(e); if (c) setFocus(c, true); return !!c; } };
   G.on('input:mode', onMode); G.on('pad:down', onDown); G.on('pad:up', onUp); G.on('pad:poll', onPoll);

@@ -45,7 +45,7 @@ export const Pad = {
   get active() { return Pad.mode === 'pad'; },
   get style() { const g = Pad.prefs.glyphs; return g && g !== 'auto' ? g : guessStyle(Pad.id); },
   /** true when 'ok' is the RIGHT face button (the Nintendo way) */
-  get swapped() { const c = Pad.prefs.confirm; return c === 'east' || (c === 'auto' && Pad.style === 'switch'); },
+  get swapped() { const c = Pad.prefs.confirm; return c === 'east' || (c === 'auto' && guessStyle(Pad.id) === 'switch'); },   // follows the pad itself, not the glyph set chosen by hand
   held: a => !!down[sem(a)],
   init, setPref, rumble, steer, setMode, guessStyle, stickToWorld,
 };
@@ -84,8 +84,8 @@ function read(gp) {
     /* NON-STANDARD PAD (mapping ''): the first ten buttons are usually in the standard order already. The D-pad is either two axes (6 / 7, or 4 / 5 on small
        pads) or a hat on the last axis. Whatever cannot be told apart stays reachable through the cursor mode (left stick + the bottom face button). */
     let hx = 0, hy = 0; const n = gp.axes.length;
-    if (n >= 8) { hx = Math.round(ax(gp, 6)); hy = Math.round(ax(gp, 7)); }
-    else if (n === 10 || n === 5) { const h = hat(ax(gp, n - 1)); hx = h[0]; hy = h[1]; }
+    if (n === 10 || n === 5) { const h = hat(ax(gp, n - 1)); hx = h[0]; hy = h[1]; }
+    else if (n >= 8) { hx = Math.round(ax(gp, 6)); hy = Math.round(ax(gp, 7)); }
     else if (n === 6) { hx = Math.round(ax(gp, 4)); hy = Math.round(ax(gp, 5)); }
     cur.up = hy < 0; cur.down = hy > 0; cur.left = hx < 0; cur.right = hx > 0;
     if (n < 4) { rx = 0; ry = 0; }

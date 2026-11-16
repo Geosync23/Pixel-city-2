@@ -1,6 +1,7 @@
 // Road graph for traffic/transit (private helper of sim/traffic.js). Pure: no DOM, no G.
 //   buildGraph(world) -> { nodes, edges, nearestLane(x, y), route(a, b), routePts(a, b), lanePos(e, off, s), span(e), laneCoord(e, off) }
-//   node: { i, x, y, hx, hy (half size of the junction box along x / y), signal, dead (road end), out: [edge], gx, gy (signal 0 red, 1 amber, 2 green) }
+//   node: { i, x, y, hx, hy (half size of the junction box along x / y), signal, dead (road end), out: [edge], gx, gy (signal 0 red, 1 amber, 2 green),
+//           inn: [vehicles that hold the box], occ (= inn.length), ap: [vehicles approaching, rebuilt every frame], cl / clT / clS (who goes next: one claim per street, x and y; last refreshed; since), cf (cache: do two movements cross) }  (see _traffic_veh.js)
 //   edge: directed lane bundle { id, from, to, axis 'x'|'y', d (+1|-1 along the axis), c (road centre, cross axis), half, ls (side of the centre the
 //         lanes are on: lane line = c + ls * off, off 1 | 3), s0, s1 (node coordinates along the axis), len, lanes (1|2), rev, road, kind, w }
 //   Right-hand traffic: +x drives at y = c+1(+3), -x at c-1, +y at x = c-1, -y at x = c+1  (matches world.busRoutes lane paths and stop/taxi `lane` points).
@@ -9,7 +10,7 @@
 //         -> { edges, offs, len, pts: [[x, y]...] lane-centre waypoints (start, each turn corner, end), from: a, to: b } | null
 export function buildGraph(world) {
   const nodes = [], edges = [], nmap = new Map(), key = (x, y) => Math.round(x * 2) * 4096 + Math.round(y * 2);
-  const mkNode = (x, y, dead) => { const n = { i: nodes.length, x, y, hx: 0, hy: 0, signal: false, dead, out: [], occ: 0, occT: 0, occX: false, occAx: '', gx: 2, gy: 2, lights: [], pre: '', preT: 0, phase: 0 }; nodes.push(n); nmap.set(key(x, y), n); return n; };
+  const mkNode = (x, y, dead) => { const n = { i: nodes.length, x, y, hx: 0, hy: 0, signal: false, dead, out: [], occ: 0, inn: [], ap: [], cl: [null, null], clT: [0, 0], clS: [0, 0], cf: new Map(), gx: 2, gy: 2, lights: [], pre: '', preT: 0, phase: 0 }; nodes.push(n); nmap.set(key(x, y), n); return n; };
   const rById = new Map(world.roads.map(r => [r.id, r]));
   for (const it of world.intersections) {
     const n = nmap.get(key(it.x, it.y)) || mkNode(it.x, it.y, false); n.signal = n.signal || !!it.signal;
@@ -29,6 +30,7 @@ export function buildGraph(world) {
     if (co(on[on.length - 1]) < r.b - 5) on.push(ax ? mkNode(r.b, r.c, true) : mkNode(r.c, r.b, true));
     for (let i = 0; i + 1 < on.length; i++) { const f = mkEdge(on[i], on[i + 1], r), b = mkEdge(on[i + 1], on[i], r); f.rev = b; b.rev = f; }
   }
+  if (edges.length > 511) throw new Error('traffic graph: more than 511 lane edges (movement keys in _traffic_veh.js pack an edge id into 9 bits)');
   const E = edges.length, dist = new Float64Array(E), prev = new Int32Array(E), done = new Uint8Array(E);
   const ext = (n, axis) => n.dead ? 0 : axis === 'x' ? n.hx : n.hy;
   const laneCoord = (e, off) => e.c + e.ls * off;

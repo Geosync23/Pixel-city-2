@@ -10,6 +10,7 @@
 //   buses: [{ id, route, loop, u, veh|null, atStop, dwell, hold, nsi }], loops: { busN: { route, edges, offs, L, stops:[{id, poi, k, s, u}] } }
 //   nextBuses(stopId) -> [{ bus, route (id), num, name, color, minutes }] sorted;  busStopName(id);  BUS_SPEED
 //   stands: [{ poi, ref, cabs }]   count() -> active vehicles   offroad() -> vehicles whose centre is not on asphalt (debug)   simR, target (debug)
+//   stats: counters since load { ghost, ghostPre, unstick, replan, reroute, laneChange, pass, claim, squeeze, despawn }   TUNE: the driving tunables (_traffic_veh.js; docs/reports/traffic2.md)
 // Events: 'bus:arrive'(bus, stopId) when a real (on-screen-range) bus starts its dwell, 'bus:depart'(bus, stopId).
 // Exports: roadGraph() and route(fromPoint, toPoint) -> { edges, offs, len, pts } (DOM-free; usable by the train/minimap programmers).
 import { G } from '../core/game.js';
@@ -18,7 +19,7 @@ import { GT } from '../engine/world.js';
 import { ASSETS } from '../art/registry.js';
 import { getCity } from '../world/_city.js';
 import { buildGraph } from './_traffic_graph.js';
-import { T, Veh, step, place, setPlan, leaveNode } from './_traffic_veh.js';
+import { T, TUNE, Veh, step, place, setPlan, leaveNode, prepass } from './_traffic_veh.js';
 
 export const order = 60;
 let graph = null, world = null, C = null, ready = false;
@@ -26,8 +27,10 @@ export function roadGraph() { if (!graph) { world = getCity(); graph = buildGrap
 /** lane waypoint route between two points {x,y}: { edges, offs, len, pts:[[x,y]..] } | null */
 export function route(from, to) { return roadGraph().routePts(from, to); }
 
+const FLOW = 1;   // traffic round 2: cars added to the ambient target: FLOW x (1 + the district's density factor), i.e. 1.3 (Hillcrest) to 2 (Downtown). Traffic that flows leaves the simulated area sooner and buses no longer pile up, so without this the street would hold ~10% fewer vehicles than before (measured: docs/reports/traffic2.md)
 const CAP = 40, DWELL = 2;   // DWELL: game minutes at a stop off screen, real seconds on screen (QA round 3: was 5 -> a bus every ~90 min)
 export const BUS_SPEED = 9; // abstract (off-screen) bus speed, world units per game minute (QA round 3: was 6)
+export const BERTH = 0;   // how far past the stop sign a bus's centre halts. 0 = centred in the painted bay (the yellow box is 9 long, a bus 8). A second bus loads right behind it where the block is long enough (second berth, _traffic_veh.js); tried 5 to make room for one everywhere: the bus then stood outside its bay
 export const BUS_HEADWAY = 10, BUS_REAL_V = 5.5;   // target minutes between buses of one route in the daytime (buses per route = lap time / headway); measured pace of an on-screen bus nobody rides (u per game min at 1x, lights incl.)
 const KD = { sedan: ['veh.car.sedan', 6.6, 1], hatch: ['veh.car.hatch', 6.4, 1], suv: ['veh.car.suv', 6.4, 1], sports: ['veh.car.sports', 7.6, 1], beetle: ['veh.car.beetle', 6, 1], pickup: ['veh.car.pickup', 6.2, 1],
   van: ['veh.van', 6, 1], delivery: ['veh.van.delivery', 6, 0], icecream: ['veh.van.icecream', 3.6, 0], scooter: ['veh.scooter', 5.4, 1], motorbike: ['veh.motorbike', 7.4, 1], taxi: ['veh.taxi', 6.8, 0],
@@ -41,7 +44,7 @@ const DDENS = { downtown: 1, oldtown: .7, harbor: .6, hillcrest: .3, maplewood: 
 const timeF = h => h < 5 ? .07 : h < 7 ? .07 + (h - 5) * .4 : h < 9.5 ? 1 : h < 16 ? .62 : h < 19 ? 1 : h < 22 ? .5 : .2;
 
 const all = [], free = [], near = []; let nearW = 0, simR = 40, mx = 25, my = 29, target = 0, refill = true, fx = 0, fy = 0, lfx = -999, lfy = -999, tA = 0, tB = 0, tP = 0;
-const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0;
+const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0, tG = 0;
 
 function onScreen(x, y, m) { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m && sy < G.H + m + 30; }
 function countKind(k) { let n = 0; for (const v of T.list) if (v.kind === k) n++; return n; }
@@ -64,6 +67,8 @@ function release(v) {
   v.reset(); v.active = false; v.hidden = true; free.push(v);
 }
 function clearLane(x, y, r) { for (const o of T.list) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r) return false; return true; }
+/** nobody within r along the lane of lane ref q (other lanes and the oncoming side do not count) */
+function laneClear(q, r) { const ax = q.e.axis === 'x'; for (const o of T.list) { if (o.e.axis !== q.e.axis) { if (Math.abs(o.x - q.x) < 5 && Math.abs(o.y - q.y) < 5) return false; continue; } if (Math.abs(ax ? o.y - q.y : o.x - q.x) < 1.4 && Math.abs(ax ? o.x - q.x : o.y - q.y) < r) return false; } return true; }
 function trySpawn(prefill, h) {
   if (nearW <= 0) return false; const p = G.player;
   for (let t = 0; t < 40; t++) {
@@ -84,12 +89,25 @@ function trySpawn(prefill, h) {
 
 /* ---------- signals ---------- */
 function setLight(ob, st) { const name = SN[st]; if (ob.p && ob.p.state === name) return; ob.p = Object.assign({}, ob.p, { state: name }); ob._key = undefined; }
-function signals() {
+/* Demand-led lights (traffic round 2, owner msg 145 "smarter traffic"): each junction keeps its own two-phase cycle but no longer runs it blind. A green ends early
+   (after SIG.min s) when nobody is coming on it and someone waits on the other street; it is held (up to SIG.max s) while its own traffic keeps coming and at once
+   past SIG.green s when the other street has someone waiting; with nobody waiting on the other street it simply stays green. Amber SIG.amber s as before. Vehicles
+   that pre-empt (sirens, the cab / bus the player rides) still force their axis green. Demand = the vehicles within 18 units of the stop line (node.ap). */
+const SIG = { min: 3, green: 4, max: 6, claim: 3, bus: 3, amber: 1.6 };   // bus: extra green while two or more buses are still coming on it (transit priority);   // claim: extra seconds a green may run past max while someone who has been promised the junction (node.cl) is still waiting to get in
+function signals(dt) {
   const t = T.time;
   for (let i = 0; i < sigNodes.length; i++) {
     const n = sigNodes[i]; let gx, gy;
-    if (n.pre && n.preT > t) { gx = n.pre === 'x' ? 2 : 0; gy = 2 - gx; }
-    else { n.pre = ''; const ph = (t + n.phase) % 19.2; if (ph < 8) { gx = 2; gy = 0; } else if (ph < 9.6) { gx = 1; gy = 0; } else if (ph < 17.6) { gx = 0; gy = 2; } else { gx = 0; gy = 1; } }
+    if (n.sAx === undefined) { const ph = (t + n.phase) % 19.2; n.sAx = ph < 9.6 ? 'x' : 'y'; n.sT = ph < 9.6 ? ph : ph - 9.6; n.sAm = n.sT >= 8; }
+    if (n.pre && n.preT > t) { gx = n.pre === 'x' ? 2 : 0; gy = 2 - gx; n.sAx = n.pre; n.sT = 0; n.sAm = false; }
+    else {
+      n.pre = ''; n.sT += dt;
+      if (n.sAm) { if (n.sT >= SIG.amber) { n.sAx = n.sAx === 'x' ? 'y' : 'x'; n.sT = 0; n.sAm = false; } }
+      else if (n.sT >= SIG.min) { let own = 0, oth = 0, bus = 0; const A = n.ap; for (let k = 0; k < A.length; k++) { const o = A[k]; if (o.e.axis === n.sAx) { if (o.xw < 1.5) { own++; if (o.bus) bus++; } } else oth++; }   /* xw: someone who has been waiting for room on his exit cannot use the green anyway */
+        const ca = n.sAx === 'x' ? 0 : 1, cl = n.cl[ca], held = cl && cl.active && t - n.clT[ca] < .3 && n.sT < SIG.max + SIG.claim;
+        if (oth > 0 && !held && (own === 0 || n.sT >= SIG.max + (bus > 1 ? SIG.bus : 0) || (n.sT >= SIG.green && own < 2))) { n.sAm = true; n.sT = 0; } }
+      const g = n.sAm ? 1 : 2; gx = n.sAx === 'x' ? g : 0; gy = n.sAx === 'y' ? g : 0;
+    }
     if (gx !== n.gx || gy !== n.gy) { n.gx = gx; n.gy = gy; for (const ob of n.lights) setLight(ob, ob.flip ? gx : gy); }
   }
 }
@@ -102,7 +120,7 @@ function buildLoops() {
     const edges = [], stops = []; let ok = true;
     for (let i = 0; i < n && ok; i++) {
       const rt = graph.route(refs[i], refs[(i + 1) % n]); if (!rt) { ok = false; break; }
-      if (!edges.length) edges.push(rt.edges[0]); stops.push({ id: sp[i].id, poi: sp[i], k: edges.length - 1, s: refs[i].s, u: 0 });
+      if (!edges.length) edges.push(rt.edges[0]); { const e = refs[i].e, lim = e.s1 - e.d * (graph.ext(e.to, e.axis) + 1.4 + 6); let s = refs[i].s + e.d * BERTH; if ((lim - s) * e.d < 0) s = (lim - refs[i].s) * e.d > 0 ? lim : refs[i].s; stops.push({ id: sp[i].id, poi: sp[i], k: edges.length - 1, s, u: 0 }); }
       for (let j = 1; j < rt.edges.length; j++) edges.push(rt.edges[j]);
     }
     if (!ok) continue; if (edges.length > 1 && edges[edges.length - 1] === edges[0]) edges.pop();
@@ -114,22 +132,36 @@ function buildLoops() {
     }
     for (const s of stops) s.u = cum[s.k] + Math.max(0, (s.s - sA[s.k]) * edges[s.k].d);
     const num = (r.name.match(/^\s*(\w+)/) || [0, r.id])[1], dest = r.name.replace(/^\s*\w+\s*/, '').split(' - ')[0].toUpperCase().slice(0, 12);
-    const loop = loops[r.id] = { route: r, edges, offs, sA, cum, L, stops, num, dest };
+    const loop = loops[r.id] = { route: r, edges, offs, sA, cum, L, stops, num, dest, buses: [] };
     const nb = Math.max(2, Math.round((L / BUS_SPEED + stops.length * DWELL) / BUS_HEADWAY));
-    for (let b = 0; b < nb; b++) { const u = (L * (b / nb + .013 * buses.length)) % L; let nsi = 0; while (nsi < stops.length && stops[nsi].u < u) nsi++; buses.push({ id: r.id + ':' + b, route: r.id, loop, u, veh: null, atStop: null, dwell: 0, hold: false, nsi: nsi % stops.length }); }
+    for (let b = 0; b < nb; b++) { const u = (L * (b / nb + .013 * buses.length)) % L; let nsi = 0; while (nsi < stops.length && stops[nsi].u < u) nsi++; const bus = { id: r.id + ':' + b, route: r.id, loop, u, veh: null, atStop: null, dwell: 0, hold: false, nsi: nsi % stops.length, pace: 1 }; buses.push(bus); loop.buses.push(bus); }
   }
 }
 function loopAt(loop, u, out) { let k = loop.cum.length - 1; while (k > 0 && loop.cum[k] > u) k--; const e = loop.edges[k], q = graph.lanePos(e, loop.offs[k], loop.sA[k] + e.d * (u - loop.cum[k]), out); q.k = k; return q; }
 function busU(b) { const v = b.veh, l = b.loop; if (!v) return b.u; const k = v.planI, e = l.edges[k]; if (v.e !== e) return b.u; const len = (k + 1 < l.cum.length ? l.cum[k + 1] : l.L) - l.cum[k]; return b.u = l.cum[k] + Math.max(0, Math.min(len, (v.s - l.sA[k]) * e.d)); }
-function busTarget(b) { const s = b.loop.stops[b.nsi], v = b.veh; v.stop = { e: b.loop.edges[s.k], s: s.s }; v.onStop = busArrive; }
+function busTarget(b) { const s = b.loop.stops[b.nsi], v = b.veh; v.stop = { e: b.loop.edges[s.k], s: s.s, id: s.id }; v.onStop = busArrive; }
 function busArrive(v) { const b = v.bus; if (!b) return; const s = b.loop.stops[b.nsi]; b.atStop = s.id; b.dwell = DWELL; v.halt = true; G.emit('bus:arrive', b, s.id); }
 function busDepart(b) { const id = b.atStop; b.atStop = null; b.dwell = 0; b.nsi = (b.nsi + 1) % b.loop.stops.length; if (b.veh) { b.veh.halt = false; busTarget(b); } G.emit('bus:depart', b, id); }
-/* headway control (QA round 3): a bus that has caught up with the one ahead of it on its route waits a little longer at the stop (at most 6 extra), so buses do not bunch */
-function tooClose(b) { const l = b.loop, n = buses.filter(o => o.loop === l).length, u = b.u; let g = 1e9; for (const o of buses) if (o !== b && o.loop === l) { const d = (o.u - u + l.L) % l.L; if (d > .5 && d < g) g = d; } return g < .6 * l.L / n; }
-function dwellDone(b) { if (!(b.veh && b.veh.pre) && (b.held || 0) < 6 && tooClose(b)) { b.dwell = 1; b.held = (b.held || 0) + 1; return; } b.held = 0; busDepart(b); }
+/* a bus whose next stop has both berths taken leaves that stop out (called from _traffic_veh.js). Never the bus the player rides, never while the player is at that stop. */
+function busSkip(v) {
+  const b = v.bus; if (!b || v.ride || b.atStop || b.hold) return false; const S = b.loop.stops, s = S[b.nsi], p = G.player;
+  if (!p.hidden && Math.abs(p.x - s.poi.x) + Math.abs(p.y - s.poi.y) < 16) return false; b.nsi = (b.nsi + 1) % S.length; busTarget(b); T.stats.busSkip++; return true;
+}
+/* headway control. QA round 3: a bus that has caught up with the one ahead waits a little longer at the stop (at most 6 extra). Traffic round 2 (owner msg 145):
+   (1) every bus also drives a little faster when the gap ahead of it is bigger than the gap behind and a little slower when it is the other way round (b.pace,
+   0.8..1.2: the classic self-equalising headway rule), so buses spread out again without standing anywhere; (2) a bus on screen only waits extra when nobody is
+   never waits extra at all (it never holds up a lane for the timetable); off screen the old hold stays. */
+function gaps() {
+  for (const k in loops) { const l = loops[k], B = l.buses; if (!B || B.length < 2) continue; for (const b of B) busU(b); B.sort((p, q) => p.u - q.u); const n = B.length;
+    for (let i = 0; i < n; i++) { const b = B[i], ga = (B[(i + 1) % n].u - b.u + l.L) % l.L, gb = (b.u - B[(i + n - 1) % n].u + l.L) % l.L; b.ga = ga; b.pace = Math.max(.8, Math.min(1.2, 1 + .7 * (ga - gb) / (ga + gb + 1)));
+      const v = b.veh; if (v && !v.ride && !v.leadFast) v.vmax = v.vbase * Math.max(.88, Math.min(1.15, b.pace)); } }
+}
+function tooClose(b) { const l = b.loop; return (b.ga === undefined ? 1e9 : b.ga) < .5 * l.L / l.buses.length; }
+function dwellDone(b) { if (!b.veh && (b.held || 0) < 6 && tooClose(b)) { b.dwell = 1; b.held = (b.held || 0) + 1; return; } b.held = 0; busDepart(b); }   /* only off screen: a bus in view never stands at a stop for the timetable (its pace does the spacing) */
 function busAbstract(b, gm) {
   if (b.atStop) { if (!b.hold) b.dwell -= gm; if (b.dwell <= 0) dwellDone(b); return; }
-  const l = b.loop, s = l.stops[b.nsi], du = (s.u - b.u + l.L) % l.L, mv = BUS_SPEED * gm;
+  if (b.waitT > T.time && G.scene === C) return;   // held at the edge of the simulated area: the street ahead is full
+  const l = b.loop, s = l.stops[b.nsi], du = (s.u - b.u + l.L) % l.L, mv = BUS_SPEED * (b.pace || 1) * gm;
   if (mv >= du) { b.u = s.u; b.atStop = s.id; b.dwell = DWELL; } else b.u = (b.u + mv) % l.L;
 }
 function busReal(b) {
@@ -152,7 +184,7 @@ function rebuildNear() {
   near.length = 0; nearW = 0;
   for (const e of graph.edges) { const ax = e.axis === 'x', lo = Math.min(e.s0, e.s1), hi = Math.max(e.s0, e.s1), a = ax ? fx : fy, dA = a < lo ? lo - a : a > hi ? a - hi : 0, dC = Math.abs((ax ? fy : fx) - e.c); if (dA * dA + dC * dC < simR * simR) { near.push(e); nearW += e.w * Math.min(e.len, 60); } }
   const h = G.now().hf, cf = G.weather && G.weather.crowdFactor ? G.weather.crowdFactor() : undefined, dk = world.districtAt(fx, fy);
-  target = Math.min(CAP, Math.round(22 * (mx * my / 725) * (DDENS[dk] || .5) * timeF(h) * (cf === undefined ? 1 : .5 + .6 * cf)));
+  target = Math.min(CAP, Math.round(22 * (mx * my / 725) * (DDENS[dk] || .5) * timeF(h) * (cf === undefined ? 1 : .5 + .6 * cf) + FLOW * (1 + (DDENS[dk] || .5))));
   if (target < 1 && timeF(h) > .05 && Math.random() < .5) target = 1;
 }
 function housekeeping() {
@@ -162,12 +194,19 @@ function housekeeping() {
     if (v.bus) { if (d2 > (simR + 14) * (simR + 14) && v.role === 'bus') { busU(v.bus); release(v); } continue; }
     if (v.stand) { if (d2 > (simR + 12) * (simR + 12)) release(v); continue; }
     if (v.keep) continue;
-    if (Math.abs(dx - dy) > mx + 7 || Math.abs(dx + dy) > my + 7 || (v.stuck > 12 && !v.byPlayer && !onScreen(v.x, v.y, 60))) release(v);
+    if (Math.abs(dx - dy) > mx + 7 || Math.abs(dx + dy) > my + 7) release(v);
+    else if (v.unstick && !v.byPlayer && !onScreen(v.x, v.y, 60)) { T.stats.despawn++; release(v); }   /* last resort (was: anything standing 12 s out of sight, ~30-45 an hour): only what has not moved for TUNE.unstickAfter s; counted, tools/traffic_check.mjs drives it toward 0 */
   }
   let amb = 0; for (const v of T.list) if (!v.keep) amb++;
   if (amb > target + 5) for (let i = T.list.length - 1; i >= 0; i--) { const v = T.list[i]; if (!v.keep && !onScreen(v.x, v.y, 70)) { release(v); break; } }
   // buses entering range
-  for (const b of buses) { if (b.veh) continue; const q = loopAt(b.loop, b.u, tmp), dx = q.x - fx, dy = q.y - fy; if (dx * dx + dy * dy < (simR + 4) * (simR + 4) && T.list.length < CAP + 6 && (refill || !onScreen(q.x, q.y, 90)) && clearLane(q.x, q.y, 5)) busReal(b); }
+  /* traffic round 2: a bus never appears in or right at a junction (it used to pop up past the stop line and hold the box), and when the street is full where it
+     would appear it waits there (b.waitT) instead of driving on unseen through the queue. 9.5: a bus is 8 long (5 let two buses appear inside each other) */
+  for (const b of buses) {
+    if (b.veh) continue; const q = loopAt(b.loop, b.u, tmp), dx = q.x - fx, dy = q.y - fy; if (dx * dx + dy * dy >= (simR + 4) * (simR + 4) || T.list.length >= CAP + 6 || !(refill || !onScreen(q.x, q.y, 90))) continue;
+    const e = q.e; if ((e.s1 - e.d * (graph.ext(e.to, e.axis) + 1.4) - q.s) * e.d < 5.5 || (q.s - e.s0) * e.d < graph.ext(e.from, e.axis) + 6.1) continue;
+    if (!laneClear(q, 9.5)) { if (!b.atStop) b.waitT = T.time + .5; continue; } busReal(b);
+  }
   // taxi stands
   for (let i = 0; i < stands.length; i++) {
     const st = stands[i], dx = st.ref.x - fx, dy = st.ref.y - fy; if (dx * dx + dy * dy > simR * simR) continue; if (st.ref.e.closed) continue; /* city events: a taxi stand on a closed street has no cabs */ const want = 1 + (i % 2);
@@ -181,13 +220,22 @@ function fill(dt) {
   let amb = 0; for (const v of T.list) if (!v.keep) amb++;
   const h = G.now().hf;
   if (refill) { for (let i = 0; i < 80 && amb < target; i++) if (trySpawn(true, h)) amb++; refill = false; return; }
-  if (amb < target && T.list.length < CAP + 6) { trySpawn(false, h); if (amb < target - 3) trySpawn(false, h); }
+  if (amb < target && T.list.length < CAP + 6) { trySpawn(false, h); if (amb < target - 2) trySpawn(false, h); }
+}
+
+/* a cab that waits for its fare (parked in the lane by transit.js) eases over to the kerb, so the street behind it is not blocked (parked vehicles are not stepped) */
+function kerbIn(v, dt) { const e = v.e; v.curb = Math.min(TUNE.cabKerb, v.curb + .9 * dt); v.lat = e.c + e.ls * (v.off + v.curb); if (e.axis === 'x') v.y = v.lat; else v.x = v.lat; }
+/* a vehicle with a destination (a cab) whose next street stays full: route again from where it is, treating that street as blocked. Keeps its stop / onStop. */
+function reroute(v) {
+  const bad = v.ne, to = v.dest; if (!bad || !to || !v.plan || v.cyclic) return false; bad.len += 1e4; let rt = null;
+  try { rt = graph.route({ e: v.e, off: v.off, s: v.s, x: v.x, y: v.y }, to); } catch (err) { rt = null; } finally { bad.len -= 1e4; }
+  if (!rt || rt.edges.length < 2 || rt.edges[1] === bad || rt.edges[1] === v.e.rev) return false; setPlan(v, rt); T.stats.reroute++; return true;
 }
 
 /* ---------- setup ---------- */
 function ensure() {
   if (ready) return true; C = G.sceneCache.get('city'); if (!C || !C.world) return false;
-  world = C.world; graph = graph && world === getCity() ? graph : buildGraph(world); T.world = world; T.sfx = n => G.audio && G.audio.sfx && G.audio.sfx(n);
+  world = C.world; graph = graph && world === getCity() ? graph : buildGraph(world); T.world = world; T.sfx = n => G.audio && G.audio.sfx && G.audio.sfx(n); T.edges = graph.edges; T.onScreen = onScreen; T.reroute = reroute; T.busSkip = busSkip;
   for (const k in KINDS) KINDS[k].ok = ASSETS.has(KINDS[k].asset);
   for (const n of graph.nodes) if (n.signal) sigNodes.push(n);
   const tpois = world.pois.filter(p => p.type === 'taxistand' && p.lane);
@@ -210,23 +258,24 @@ function update(dt, gm) {
   if (!ready && !ensure()) return;
   for (let i = 0; i < buses.length; i++) if (!buses[i].veh) busAbstract(buses[i], gm);
   if (G.scene !== C) return;
-  T.time += dt; T.lit = !!G.env && (G.env.dark || 0) > .35; signals();
+  T.time += dt; T.lit = !!G.env && (G.env.dark || 0) > .35; signals(dt);
   const f = G.camTarget || G.player; fx = f.x; fy = f.y; mx = G.W / 32 + 12; my = G.H / 16 + 12; simR = Math.max(34, Math.min(70, Math.hypot(mx, my) / 1.414 + 2));
   if (Math.abs(fx - lfx) + Math.abs(fy - lfy) > 30) { refill = true; for (let i = T.list.length - 1; i >= 0; i--) { const v = T.list[i]; if (!v.keep) release(v); } tB = 0; tA = 0; } lfx = fx; lfy = fy;
   if ((tP -= dt) <= 0) { tP = .15; const P = T.peds; P.length = 0; const E = C.ents, r2 = (simR + 6) * (simR + 6); for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.isVehicle || !e.spec || e.hidden) continue; const dx = e.x - fx, dy = e.y - fy; if (dx * dx + dy * dy < r2) P.push(e); } }
   if ((tB -= dt) <= 0) { tB = 1; rebuildNear(); }
   if ((tA -= dt) <= 0) { tA = .22; housekeeping(); fill(dt); }
-  const L = T.list;
-  for (let i = 0; i < L.length; i++) { const v = L[i]; if (!v.parked) step(v, dt); }
+  const L = T.list; prepass(dt);
+  for (let i = 0; i < L.length; i++) { const v = L[i]; if (!v.parked) step(v, dt); else if (!v.stand && v.curb < TUNE.cabKerb) kerbIn(v, dt); }
   for (let i = 0; i < buses.length; i++) { const b = buses[i]; if (b.veh && b.atStop) { if (!b.hold) b.dwell -= dt; if (b.dwell <= 0) { busU(b); dwellDone(b); } } }
   // QA round 3: a real bus with the player's (ridden, pre-empting) bus close behind it on the same route drives at ride pace too, so the ride is not stuck behind it stop after stop
+  if ((tG -= dt) <= 0) { tG = 1; gaps(); }
   if ((tL -= dt) <= 0) { tL = .5; for (const b of buses) { const v = b.veh; if (!v || v.ride) continue; let lead = false; for (const o of buses) if (o !== b && o.loop === b.loop && o.veh && o.veh.pre && o.veh.ride) { const d = (busU(b) - busU(o) + b.loop.L) % b.loop.L; if (d > 0 && d < 60) lead = true; }
     if (lead && !v.leadFast) { v.leadFast = true; v.vmax = Math.max(v.vmax, 10); v.pre = true; } else if (!lead && v.leadFast) { v.leadFast = false; v.vmax = v.vbase || v.vmax; v.pre = false; } } }
 }
 
 export function init() {
   G.traffic = {
-    get graph() { return roadGraph(); }, vehicles: T.list, spawn: (k, ref, o) => (ensure(), spawn(k, ref, o)), release, place, setPlan, buses, loops, stands, nextBuses, busU, BUS_SPEED, ensure,
+    get graph() { return roadGraph(); }, vehicles: T.list, spawn: (k, ref, o) => (ensure(), spawn(k, ref, o)), release, place, setPlan, buses, loops, stands, nextBuses, busU, BUS_SPEED, ensure, stats: T.stats, TUNE,
     busStopName: id => { const p = world && world.pois.find(q => q.id === id); return p ? p.name : id; },
     /** a lane position out of view, `minD..maxD` units (straight line) from the lane ref `nearRef`, preferably heading toward it */
     offscreenLane(nearRef, minD = 24, maxD = 60) {

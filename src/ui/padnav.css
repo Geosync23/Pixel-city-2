@@ -6,8 +6,9 @@ body.pad-on #padnav,body.kb-on #padnav{display:block}
 /* the focus ring: dark / gold / dark, so it shows on cream panels, on the dark phone and on the world alike */
 #pad-ring{position:absolute;left:0;top:0;display:none;box-shadow:0 0 0 2px #2a2733,0 0 0 5px #ffd23e,0 0 0 7px #2a2733;animation:padring .9s steps(2,jump-none) infinite alternate}
 #pad-ring.on{display:block}
+#pad-ring.down{box-shadow:0 0 0 2px #2a2733,0 0 0 4px #fff6c4,0 0 0 6px #2a2733;animation:none}
 #pad-ring.bump{animation:padbump .18s steps(3)}
-@keyframes padring{from{box-shadow:0 0 0 2px #2a2733,0 0 0 5px #ffd23e,0 0 0 7px #2a2733}to{box-shadow:0 0 0 2px #2a2733,0 0 0 5px #fff6c4,0 0 0 7px #2a2733}}
+@keyframes padring{from{box-shadow:0 0 0 2px #2a2733,0 0 0 5px #ffd23e,0 0 0 7px #2a2733}to{box-shadow:0 0 0 2px #2a2733,0 0 0 5px #ff9a1f,0 0 0 7px #2a2733}}
 @keyframes padbump{0%{margin-left:-4px}50%{margin-left:4px}100%{margin-left:0}}
 #pad-cur{position:absolute;left:0;top:0;display:none;filter:drop-shadow(2px 2px 0 #2a273380)}
 #pad-cur.on{display:block}
@@ -23,6 +24,8 @@ body.pad-on #pad-bar{display:flex}
 body.pad-on #wrap{height:calc(100% - 30px)}
 #pad-bar>span{display:inline-flex;align-items:center;gap:4px}
 @media (max-width:620px){#pad-bar>span.wide{display:none}#pad-bar{gap:9px;font-size:11px}}
+/* a low screen (a phone on its side): a thinner strip with small glyphs, so the game gives up 20 px instead of 30 */
+@media (max-height:480px){#pad-bar{height:20px;line-height:20px;font-size:11px}#pad-bar>span>canvas{width:auto!important;height:13px!important}body.pad-on #wrap{height:calc(100% - 20px)}}
 /* glyph slots inside the game's own UI */
 body.pad-on .pg{display:inline-block;vertical-align:middle;line-height:0}
 body.pad-on .hud-prompt kbd{display:none}

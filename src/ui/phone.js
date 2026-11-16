@@ -139,7 +139,8 @@ const current = () => stack[stack.length - 1] || null;
 function ctxFor(v) {
   return { arg: v.arg, app: v.app, push: (title, fn, key) => { stack.push({ app: v.app, title, fn, key, arg: v.arg }); render(true); }, back, refresh, open, close, tip, home: () => { stack = []; render(true); } };
 }
-function tip(text) { if (!tipEl) return; tipEl.textContent = text; tipEl.classList.add('on'); clearTimeout(tipTimer); tipTimer = setTimeout(() => tipEl.classList.remove('on'), 2600); }
+/* QA15: the faded tip kept its text (opacity 0) in a role=status region, so text readers saw the last tip in every app for days; empty it once it has faded */
+function tip(text) { if (!tipEl) return; tipEl.textContent = text; tipEl.classList.add('on'); clearTimeout(tipTimer); tipTimer = setTimeout(() => { tipEl.classList.remove('on'); tipTimer = setTimeout(() => { if (!tipEl.classList.contains('on')) tipEl.textContent = ''; }, 250); }, 2600); }
 function statusBar() {
   if (!statusEl) return; const n = G.now(), w = weatherNow(), en = safe(() => G.needs.get('energy'), 80), indoor = G.scene && G.scene.indoor;
   statusEl.replaceChildren(el('span.ph-st-clock', { text: `${n.clock} ${n.weekdayName}` }),

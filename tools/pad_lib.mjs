@@ -30,17 +30,20 @@ export async function openGame(o = {}) {
   const base = `http://localhost:${port}/`;
   await pg.goto(base + (o.url || ''));
   await pg.waitForFunction(() => !document.getElementById('load') && window.G && window.G.scene, null, { timeout: 60000 });
-  const P = pad(pg); P.errors = errors; P.base = base; P.close = async () => { await br.close(); srv.close(); }; P.ctx = ctx;
+  const P = pad(pg); P.swapped = o.style === 'switch'; P.errors = errors; P.base = base; P.close = async () => { await br.close(); srv.close(); }; P.ctx = ctx;
   return P;
 }
 export function pad(pg) {
   const sleep = ms => pg.waitForTimeout(ms);
+  const idx = b => (P.swapped && (b === 'ok' || b === 'a') ? 1 : P.swapped && (b === 'back' || b === 'b') ? 0 : BTN[b]);
   const P = {
     pg, sleep, used: { focus: 0, cursor: 0, bespoke: 0 }, log: [],
     connect: async () => { await pg.evaluate(() => window.__connect()); await sleep(80); },
-    down: (b) => pg.evaluate(i => window.__btn(i, 1), BTN[b]), up: (b) => pg.evaluate(i => window.__btn(i, 0), BTN[b]),
+    /* 'ok' / 'back' are the CONFIRM / BACK buttons: on a Switch-style pad (P.swapped) those are the right / bottom face buttons */
+    down: (b) => pg.evaluate(i => window.__btn(i, 1), idx(b)), up: (b) => pg.evaluate(i => window.__btn(i, 0), idx(b)),
     /** press and release a button (ms held), then wait */
-    async press(b, ms = 70, after = 140) { await P.down(b); await sleep(ms); await P.up(b); await sleep(after); },
+    /* held at least 90 ms: the Gamepad API is polled once per frame, so on a busy machine (a long frame) a shorter tap can fall between two polls and never be seen. A thumb holds a button 60 to 120 ms */
+    async press(b, ms = 70, after = 140) { await P.down(b); await sleep(Math.max(90, ms)); await P.up(b); await sleep(after); },
     stick: (x, y) => pg.evaluate(a => window.__axes(a), [x, y]), rstick: (x, y) => pg.evaluate(a => window.__axes(a), [null, null, x, y]),
     info: () => pg.evaluate(() => (window.G && G.padnav ? G.padnav.info() : null)),
     ev: (fn, arg) => pg.evaluate(fn, arg),
@@ -58,10 +61,11 @@ export function pad(pg) {
             const vis = e => { const r = e.getBoundingClientRect(), h = document.elementFromPoint(Math.min(innerWidth - 1, Math.max(0, r.left + r.width / 2)), Math.min(innerHeight - 1, Math.max(0, r.top + r.height / 2))); return h && (e === h || e.contains(h)); };
             t = all.find(vis) || all[0]; }
           else t = (0, eval)('(' + src + ')')(a);
-          if (!t) return { none: true }; const r = t.getBoundingClientRect(), fr = f ? f.getBoundingClientRect() : null;
-          return { on: !!f && (f === t || t.contains(f)), t: [r.left + r.width / 2, r.top + r.height / 2, r.width, r.height], f: fr ? [fr.left + fr.width / 2, fr.top + fr.height / 2, fr.width, fr.height] : null, st: G.padnav.state(), fl: f ? (f.getAttribute('aria-label') || f.textContent || '').slice(0, 30) + (f.parentElement ? [...f.parentElement.children].indexOf(f) : '') : '' };
+          if (!t) return { none: true }; const r = t.getBoundingClientRect(), fr = f ? f.getBoundingClientRect() : null, tip = document.getElementById('ftw');
+          return { tip: !!tip && !tip.contains(t), on: !!f && (f === t || t.contains(f)), t: [r.left + r.width / 2, r.top + r.height / 2, r.width, r.height], f: fr ? [fr.left + fr.width / 2, fr.top + fr.height / 2, fr.width, fr.height] : null, st: G.padnav.state(), fl: f ? (f.getAttribute('aria-label') || f.textContent || '').slice(0, 30) + (f.parentElement ? [...f.parentElement.children].indexOf(f) : '') : '' };
         }, [typeof find === 'function' ? find.toString() : find.source || String(find), arg, typeof find !== 'function']);
         if (q.none) { await sleep(150); stuck++; if (stuck > 12) return false; continue; }
+        if (q.tip && P.unblock) { await P.unblock(); continue; }   // a first-time card slid in over what we were heading for: answer it first
         if (q.on) return true;
         if (!q.f) { await P.press('down', 60, 160); continue; }
         const dx = q.t[0] - q.f[0], dy = q.t[1] - q.f[1], gx = Math.abs(dx) - (q.t[2] + q.f[2]) / 2, gy = Math.abs(dy) - (q.t[3] + q.f[3]) / 2;
@@ -74,10 +78,10 @@ export function pad(pg) {
     },
     /** focus something and press A. Falls back to the CURSOR (R3, stick, A) when the ring cannot get there; counts which was needed. */
     async choose(find, arg, opts = {}) {
-      if (await P.focusOn(find, arg, opts)) { P.used.focus++; await P.press('ok', 70, opts.after || 220); return 'focus'; }
+      if (await P.focusOn(find, arg, opts)) { P.used.focus++; await sleep(320); await P.press('ok', 70, opts.after || 220); return 'focus'; }   // a person looks before pressing (and Confirm is ignored for 0.28 s after the ring jumps by itself)
       if (opts.noCursor) return null;
-      const r = await pg.evaluate(([src, isRe]) => { let t; if (isRe) { const re = new RegExp(src, 'i'); t = [...document.querySelectorAll('button,[role=button],a,div,span')].find(e => e.offsetWidth > 0 && re.test((e.getAttribute('aria-label') || e.textContent || '').replace(/\s+/g, ' ').trim()) && e.children.length < 6); } else t = (0, eval)('(' + src + ')')(); if (!t) return null; const q = t.getBoundingClientRect(); return [q.left + q.width / 2, q.top + q.height / 2]; }, [typeof find === 'function' ? find.toString() : find.source, typeof find !== 'function']);
-      if (!r) return null; await P.cursorTap(r[0], r[1]); P.used.cursor++; return 'cursor';
+      const r = await pg.evaluate(([src, isRe]) => { let t; if (isRe) { const re = new RegExp(src, 'i'); t = [...document.querySelectorAll('button,[role=button],a,div,span')].find(e => e.offsetWidth > 0 && re.test((e.getAttribute('aria-label') || e.textContent || '').replace(/\s+/g, ' ').trim()) && e.children.length < 6); } else t = (0, eval)('(' + src + ')')(); if (!t) return null; const q = t.getBoundingClientRect(), x = q.left + q.width / 2, y = q.top + q.height / 2, h = document.elementFromPoint(x, y); if (!h || !(t === h || t.contains(h))) return null;   /* covered by something else: a finger could not tap it either */ return [x, y]; }, [typeof find === 'function' ? find.toString() : find.source, typeof find !== 'function']);
+      if (!r) return null; await P.cursorTap(r[0], r[1]); P.used.cursor++; (P.used.cursorFor = P.used.cursorFor || []).push(typeof find === 'function' ? find.toString().slice(0, 80) : find.source); return 'cursor';
     },
     /** the free cursor: R3 on, steer the stick until the pointer is at (x, y), A, R3 off */
     async cursorTap(x, y, holdMs = 70) {
@@ -105,14 +109,24 @@ export function pad(pg) {
     async face(x, y, ms = 110) { const s = await pg.evaluate(() => [G.player.x, G.player.y]); const wx = x - s[0], wy = y - s[1], sx = (wx - wy) / 2, sy = (wx + wy) / 2, m = Math.hypot(sx, sy) || 1; await P.stick(sx / m * .5, sy / m * .5); await sleep(ms); await P.stick(0, 0); await sleep(160); },
     /** walk up to the interactable whose label matches, get it highlighted (facing it, else LB / RB), press A. Returns 'target' | 'cycle' | null. */
     async useThing(re, opts = {}) {
+      /* a first-time card can pop up on the way (a new street, a new shop): answer it as a player would (P.unblock) and carry on */
+      for (let tries = 0; tries < 4; tries++) { const r = await P.useThing1(re, opts); if (r || !P.unblock || !/state ui/.test(P.note || '')) return r; await P.unblock(); }
+      return null;
+    },
+    async useThing1(re, opts = {}) {
       const find = () => pg.evaluate(([src, near]) => { const r = new RegExp(src, 'i'), p = G.player; let b = null, bd = 1e9; for (const it of G.interactables()) { if (!r.test(it.label || '')) continue; const d = Math.hypot(it.x - (near ? near[0] : p.x), it.y - (near ? near[1] : p.y)); if (d < bd) { bd = d; b = it; } } return b ? { x: b.x, y: b.y, sx: b.spot ? b.spot.x : null, sy: b.spot ? b.spot.y : null, label: b.label, d: Math.hypot(b.x - p.x, b.y - p.y) } : null; }, [re.source, opts.near || null]);
       let it = await find(); if (!it) return null;
       if (it.d > (opts.range || 1.3)) { await P.walkTo(it.sx !== null ? it.sx : it.x, it.sy !== null ? it.sy : it.y, opts.tol || 1.1, opts.ms || 40000); it = await find(); if (!it) return null; }
-      await P.face(it.x, it.y); let how = 'target';
-      for (let k = 0; k < 14; k++) { const i = await P.info(); if (i.state !== 'world') return null; if (i.target && re.test(i.target)) { await P.press('ok', 70, opts.after || 400); return how; } how = 'cycle'; await P.press('r1', 60, 160); }
-      return null;
+      await P.face(it.x, it.y); let how = 'target', seen = [];
+      for (let k = 0; k < 24; k++) {
+        const i = await P.info(); if (i.state !== 'world') { P.note = 'useThing: state ' + i.state + ' focus ' + (i.focus ? i.focus.text.slice(0, 50) : '-'); return null; } if (i.target && re.test(i.target)) { await P.press('ok', 70, opts.after || 400); return how; }
+        seen.push(i.target || '-');
+        if (k === 0) { it = await find(); if (it && it.d > .8) { await P.walkTo(it.x, it.y, .7, 6000); it = await find(); if (it) await P.face(it.x, it.y); continue; } }   // not it yet: step right up to it, as anyone would
+        how = 'cycle'; await P.press('r1', 60, 160);
+      }
+      P.note = 'useThing ' + re.source + ': targets seen ' + seen.join(', '); return null;
     },
-    step(name, ok, how, note) { P.log.push({ name, ok: !!ok, how: how || '', note: note || '' }); console.log((ok ? 'PASS ' : 'FAIL ') + name + (how ? '  [' + how + ']' : '') + (note ? '  ' + note : '')); },
+    step(name, ok, how, note) { P.log.push({ name, ok: ok === null ? null : !!ok, how: how || '', note: note || '' }); console.log((ok === null ? 'SKIP ' : ok ? 'PASS ' : 'FAIL ') + name + (how ? '  [' + how + ']' : '') + (note ? '  ' + note : '')); },
   };
   return P;
 }
