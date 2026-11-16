@@ -760,3 +760,8 @@ Suitcase: it is yellow to match the bag on the belt; do you want red? A red lugg
 Clothing stores: the shoe and hat shops sell matching sets, not whole outfits, and team merch moved to Otterline. OK? Yes ok
 
 (traffic, night-light steps, mini-game details, classics volume, reading pace) show me these items. Mini games weren't done?
+
+## 197 (2026-11-16)
+Show me pictures of the night light and traffic questions
+
+Also make all these quesrions a questionnaire

@@ -53,7 +53,7 @@ for (const [v, door] of VENUES) {
   await pg.evaluate(([v, door]) => { G.state.flags.lastDoor = door; G.state.t = Math.floor(G.state.t / 1440) * 1440 + 12 * 60; G.needs.set('bladder', 18); G.needs.set('hygiene', 50); return G.go('int:' + v); }, [v, door]);
   await pg.waitForTimeout(1500); await closeUi();
   // stand a few steps from the Restroom door, then tap it
-  const dr = await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom); if (!it) return null; const s = it.spot || it; let best = null; for (const [dx, dy] of [[-1.5, 1.5], [0, 2.5], [2, 1], [-1, 2], [0, 2], [2, 0]]) { const x = s.x + dx, y = s.y + dy; if (!G.world.isBlocked(x, y)) { best = [x, y]; break; } } if (best) { G.player.x = best[0]; G.player.y = best[1]; } G.snapCam(); return { label: it.label, navTo: it.navTo, spot: [s.x, s.y] }; });
+  const dr = await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom); if (!it) return null; const s = it.spot || it; let best = null; for (const [dx, dy] of [[-.5, 1.8], [0, 2.5], [2, 1], [-1, 2], [0, 2], [2, 0]]) { const x = s.x + dx, y = s.y + dy; if (!G.world.isBlocked(x, y)) { best = [x, y]; break; } } if (best) { G.player.x = best[0]; G.player.y = best[1]; } G.snapCam(); return { label: it.label, navTo: it.navTo, spot: [s.x, s.y] }; });
   say(!!dr && dr.navTo === 'int:' + v + ':wc', v + ': Restroom door present, leads to the restroom room (' + JSON.stringify(dr) + ')');
   await pg.waitForTimeout(600); await shot(v + '_0_door');
   await tapIt(/^Restroom$/);
@@ -100,6 +100,7 @@ if (!o.only || o.only.includes('diner')) {
   console.log('--- guide');
   await pg.evaluate(() => { G.state.t = Math.floor(G.state.t / 1440) * 1440 + 13 * 60; G.state.flags.lastDoor = 'door:diner'; G.needs.set('bladder', 15); return G.go('int:diner'); }); await pg.waitForTimeout(1200);
   const g = await pg.evaluate(() => { const p = G.places && G.places.get('diner'); G.navGoals.select({ need: 'bladder', place: 'diner' }); if (G.phone && G.phone.setWaypoint) { try { G.phone.setWaypoint({ id: 'diner', x: p.x, y: p.y, name: p.name }); } catch (e) { } } else G.state.phone.waypoint = { id: 'diner', x: p.x, y: p.y, name: p.name }; return true; });
+  await pg.evaluate(() => { const it = G.interactables().find(i => i.restroom), s = it.spot; G.player.x = s.x - .5; G.player.y = s.y + 1.8; G.snapCam(); });
   await pg.waitForTimeout(1500); const c1 = await pg.evaluate(() => { const c = G.navGoals.current(); return c && { id: c.id, room: c.step.room, label: c.step.label }; });
   say(c1 && c1.id === 'wc' && c1.room === 'diner', 'guide in the diner: ' + JSON.stringify(c1)); await shot('guide_1_venue');
   await tapIt(/^Restroom$/); const gin = await waitFor(() => G.scene.id === 'int:diner:wc', null, 15000); if (!gin) console.log('  guide: door tap did not take me in ' + await dbg()); await pg.waitForTimeout(1500);

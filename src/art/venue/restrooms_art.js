@@ -6,7 +6,7 @@
 //   mirror  {style 'sky' round backlit | 'hall' arched gilt} (wall)     dryer (wall, diner chrome)      bin {style}
 //   pendant (sky, hang with z)   tube (wall, diner fluorescent)   sign {kind 'wash'|'level'|'civic'} (wall)   door {style 'sky'|'diner'} (wall: the venue's restroom door)
 //   floor {style, w, d} (flat, under everything)   mints (tag wcmints, sits on the sky vanity)   mop (diner: bucket + wet-floor sign)   suggest (hall: suggestion box, tag wcsuggest)
-import { box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, hash2, textY, signY, textW, PW, px, C } from '../../engine/raster.js';
+import { box, qy, qx, qz, lw, fq, glow, lit, cyl, ball, dk, lt, mix, hash2, textY, textX, signY, textW, PW, px, C } from '../../engine/raster.js';
 import { F, bx, post, frameY, frameX } from './_lib.js';
 
 const PORC = '#f4f1ea', BRASS = '#c9a35a', CHROME = '#d5dbe0', INK = '#2a2733';
@@ -15,6 +15,11 @@ const dot = (x, y, z, h, dx = 0, dy = 0) => { const s = PW(x, y, z); px(Math.rou
 const blob = (x, y, z, rx, ry, h) => { const s = PW(x, y, z); for (let Y = Math.ceil(s[1] - ry); Y <= Math.floor(s[1] + ry); Y++) { const t = (Y - s[1]) / ry, hw = rx * Math.sqrt(Math.max(0, 1 - t * t)); for (let X = Math.ceil(s[0] - hw); X <= Math.floor(s[0] + hw); X++) px(X, Y, C(h)); } };
 /** a disc / ring on a +y plane (round mirror, porthole) */
 const discY = (cx, y, cz, r, h, h2) => { const p = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; p.push([cx + Math.cos(a) * r, y, cz + Math.sin(a) * r]); } fq(p, h, h2); };
+
+/** a little marker heart on a +x / +y plane, centred at (along, z) */
+const HEART = [[0, -.1], [.1, .02], [.08, .07], [.04, .08], [0, .04], [-.04, .08], [-.08, .07], [-.1, .02]];
+const heartX = (x, yc, zc, c) => { for (let i = 0; i < HEART.length; i++) { const a = HEART[i], b = HEART[(i + 1) % HEART.length]; lw([x, yc + a[0], zc + a[1]], [x, yc + b[0], zc + b[1]], c); } };
+const heartY = (xc, y, zc, c) => { for (let i = 0; i < HEART.length; i++) { const a = HEART[i], b = HEART[(i + 1) % HEART.length]; lw([xc + a[0], y, zc + a[1]], [xc + b[0], y, zc + b[1]], c); } };
 
 /* ---------- the one shared piece: a toilet bowl, side-on in its stall. x0 = the side wall it backs onto (it faces +x), cy = its centre along y.
    o: { hung, tank 'low'|'high'|'plate', seat, c, m (metal), tankC, plate } ---------- */
@@ -66,10 +71,12 @@ function stall(p) {
   else { lw([T + .02, cy + .3, .78], [T + .1, cy + .3, .78], s.m); cyl(T + .1, cy + .4, .72, .06, .08, '#f8f5ee', { ol: false }); }
   if (s === ST.sky) lit(() => { lw([T + .06, .05, 2.38], [W - T - .06, .05, 2.38], '#ffd890'); });
   if (s === ST.hall) { const q = PW(T, cy - .45, 1.3); red(q, [[0, 0], [1, 0], [0, 1], [1, 1]], '#f2dca0'); }
+  // open: the door has swung in against the right partition (drawn before it: only what shows through the doorway is seen)
+  if (!occ) { qx(W - T - .06, D - pw - .7, D - pw - .02, z0 + .02, dTop - .02, dk(s.door2, .2)); lw([W - T - .06, D - pw - .02, z0 + .02], [W - T - .06, D - pw - .02, dTop - .02], dk(s.door2, .5)); }
   // right partition (the next stall's left wall), outer face visible
   box(W - T, 0, z0, T, D - pw, H - z0, s.panel, { ol: false }); panelX(s, W, 0, D - pw, z0, H, s.panel);
-  if (s === ST.diner && p.tag) { const q = PW(W, D * .62, 1.32); red(q, [[0, 1], [1, 0], [2, 0], [3, 1], [4, 0], [5, 0], [6, 1], [0, 2], [6, 2], [1, 3], [5, 3], [2, 4], [4, 4], [3, 5]].map(([a, b]) => [a, b - (a >> 1)]), '#c8233a');
-    red(PW(W, D * .62 - .55, 1.3), [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 0], [2, 1], [2, 2], [2, 3], [1, 4], [4, 2], [5, 1], [5, 2], [5, 3], [6, 2], [8, 0], [8, 1], [8, 2], [8, 3], [7, 4], [8, 4]].map(([a, b]) => [a, b - (a >> 1)]), INK); }   // "D+J" in a heart
+  if (s === ST.diner && p.tag) { textX('D+J', W, 1.25, 1.45, INK); heartX(W, .4, 1.3, '#c8233a'); lw([W, 1.2, 1.0], [W, .7, 1.0], dk(s.panel, .3)); }   // carved into the partition
+
   // front: pilasters / posts
   if (s === ST.diner) { for (const x of [0, W - pw]) { bx(x, D - pw, 0, pw, pw, H, CHROME, { l: '#c2c8ce', r: '#9aa2aa' }); bx(x - .02, D - pw - .02, 0, pw + .04, pw + .04, .1, '#9aa2aa'); } }
   else for (const x of [0, W - pw]) box(x, D - pw, 0, pw, pw, H, s.post, s === ST.hall ? { l: (u, v) => ((u * 3 + v * 7) % 23 === 0 ? '#c8c2b4' : '#e8e2d6'), ol: false } : { ol: false });
@@ -78,14 +85,11 @@ function stall(p) {
   if (s === ST.sky) bx(0, D - pw, H, W, pw, .05, BRASS);
   const xa = pw + .02, xb = W - pw - .02;
   if (occ) {   // shut: the door, its lock showing red, feet under it where there is a gap
-    if (z0 > .1) for (const sx of [.42, .62]) box(sx, D - .24, 0, .14, .12, .07, '#3a2f2a', { ol: false });
+    if (z0 > .1) for (const sx of [.4, .62]) { box(sx, D - .16, 0, .14, .16, .08, '#3a2f2a', { ol: false }); lw([sx, D - .002, .03], [sx + .14, D - .002, .03], '#5a4a40'); }
     panelFace(s, xa, xb, D - .02, z0 + .02, dTop - .02, s.door2); frameY(xa, xb, D - .02, z0 + .02, dTop - .02, dk(s.door2, .45));
     lw([xb - .1, D - .02, 1.0], [xb - .1, D - .02, 1.14], s.m); qy(xb - .3, xb - .14, D - .03, 1.2, 1.27, '#c8233a');
-    if (s === ST.diner) red(PW(xa + .2, D - .02, 1.4), [[0, 1], [1, 0], [2, 1], [3, 1], [4, 2], [0, 2], [1, 3], [2, 4], [3, 4], [4, 3]], '#c8233a');
-  } else {   // open: the door has swung in against the right partition; only its edge shows
-    qx(W - T - .06, D - pw - .7, D - pw - .02, z0 + .02, dTop - .02, dk(s.door2, .2)); lw([W - T - .06, D - pw - .02, z0 + .02], [W - T - .06, D - pw - .02, dTop - .02], dk(s.door2, .5));
-    qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a');
-  }
+    if (s === ST.diner) heartY(xa + .3, D - .025, 1.4, '#c8233a');
+  } else qy(xb + .005, xb + .07, D - .005, 1.2, 1.28, '#3fa05a');   // vacant
   if (s === ST.sky) lit(() => { dot(W - pw / 2, D, 1.5, occ ? '#ff5a5a' : '#7df0a0'); dot(W - pw / 2, D, 1.53, occ ? '#ff8a8a' : '#b8ffcc'); });
 }
 
@@ -158,7 +162,7 @@ function tube() {
 }
 function sign(p) {
   const k = p.kind || 'wash';
-  if (k === 'wash') { signY('WASH', 0, 1.3, .02, .52, .92, '#f8f5ee', '#c8233a', { frame: false }); signY('HANDS', 0, 1.3, .02, .1, .5, '#f8f5ee', '#c8233a', { frame: false }); frameY(0, 1.3, .02, .1, .92, '#2a2733'); dot(.08, .02, .86, '#8a9098'); dot(1.22, .02, .86, '#8a9098'); }
+  if (k === 'wash') { signY('WASH', 0, 1.5, .02, .52, .92, '#f8f5ee', '#c8233a', { frame: false }); signY('HANDS', 0, 1.5, .02, .1, .5, '#f8f5ee', '#c8233a', { frame: false }); frameY(0, 1.5, .02, .1, .92, '#2a2733'); dot(.08, .02, .86, '#8a9098'); dot(1.42, .02, .86, '#8a9098'); }
   else if (k === 'level') { lit(() => textY('LEVEL 52', 0, .02, .3, BRASS)); glow(() => { textY('LEVEL 52', 0, .02, .29, '#ffe2a0'); }); lw([0, .02, .04], [2, .02, .04], dk(BRASS, .2)); }
   else { box(0, 0, 0, 2.3, .05, 1.2, BRASS, { ol: true }); qy(.08, 2.22, .05, .08, 1.12, '#b88f48'); signY('PUBLIC', .08, 2.22, .05, .74, 1.12, '#b88f48', '#3a2a14', { frame: false }); signY('WASHROOM', .08, 2.22, .05, .4, .74, '#b88f48', '#3a2a14', { frame: false }); signY('EST 1891', .08, 2.22, .05, .1, .38, '#b88f48', '#6a4a24', { frame: false }); for (const [x, z] of [[.14, .14], [2.16, .14], [.14, 1.06], [2.16, 1.06]]) dot(x, .05, z, '#f2dca0'); }
 }
@@ -228,7 +232,7 @@ export default [
   F('wc.dryer', ['wc', 'decor'], [.7, .25, .5], dryer, { wall: true, mount: 1.0, solid: false, variants: [{}] }),
   F('wc.pendant', ['wc', 'lamp', 'overhead'], [.4, .4, 1.6], pendant, { solid: false, overhead: true, vb: [-.1, -.1, 0, .5, .5, 1.7], light: { x: .2, y: .2, z: 0, r: 2.4 }, variants: [{}] }),
   F('wc.tube', ['wc', 'lamp'], [1.2, .2, .16], tube, { wall: true, mount: 2.1, solid: false, vb: [-.1, -.1, -.2, 1.3, .3, .3], light: { x: .6, y: 1.2, z: 0, r: 2.6 }, variants: [{}] }),
-  F('wc.sign', ['wc', 'sign', 'decor'], p => (p.kind === 'civic' ? [2.3, .06, 1.2] : p.kind === 'level' ? [2, .04, .4] : [1.3, .04, .95]), sign, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'wash' }, { kind: 'level' }, { kind: 'civic' }] }),
+  F('wc.sign', ['wc', 'sign', 'decor'], p => (p.kind === 'civic' ? [2.3, .06, 1.2] : p.kind === 'level' ? [2, .04, .4] : [1.5, .04, .95]), sign, { wall: true, mount: 1.5, solid: false, variants: [{ kind: 'wash' }, { kind: 'level' }, { kind: 'civic' }] }),
   F('wc.door', ['wc', 'door'], p => [1, .1, p.style === 'sky' ? 2.4 : 2.4], door, { wall: true, mount: 0, solid: false, vb: [-.2, -.2, 0, 1.2, .5, 2.7], variants: [{ style: 'sky' }, { style: 'diner' }] }),
   F('wc.floor', ['wc', 'floor'], p => [p.w || 5, p.d || 4, .01], floor, { solid: false, flat: true, variants: S3.map(style => ({ style, w: 5, d: 4 })) }),
   F('wc.mints', ['wc', 'wcmints'], [.3, .3, .06], mints, { solid: false, variants: [{}] }),

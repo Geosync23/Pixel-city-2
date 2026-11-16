@@ -1,0 +1,60 @@
+<title>Maple Bay Questions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f6f1e4;--card:#fffaf0;--fg:#2b2533;--mute:#6d6577;--line:#d9cfba;--acc:#2f8f96;--accfg:#ffffff;--sel:#dff1f0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1a24;--card:#262330;--fg:#efe9dc;--mute:#a59fb0;--line:#3b3748;--acc:#5fc2c8;--accfg:#10222a;--sel:#21414a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1c1a24;--card:#262330;--fg:#efe9dc;--mute:#a59fb0;--line:#3b3748;--acc:#5fc2c8;--accfg:#10222a;--sel:#21414a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:1.5rem;margin:0 0 4px;text-wrap:balance}
+h2{font-size:1.15rem;margin:28px 0 2px}
+.sub{color:var(--mute);font-size:.9rem;margin:0 0 10px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
+.q p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts label{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:24px;cursor:pointer}
+.opts label:has(input:checked){background:var(--sel);border-color:var(--acc)}
+.opts input{accent-color:var(--acc);width:18px;height:18px;flex:none}
+.q input[type=text]{width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+figure{margin:0 0 12px}
+figure img{display:block;width:100%;max-width:300px;margin:0 auto;border-radius:6px;image-rendering:pixelated}
+figcaption{color:var(--mute);font-size:.85rem;text-align:center;margin-top:6px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;gap:12px;align-items:center;justify-content:center}
+.bar button{font:inherit;font-weight:600;background:var(--acc);color:var(--accfg);border:0;border-radius:8px;padding:12px 18px;cursor:pointer}
+.bar span{color:var(--mute);font-size:.9rem}
+#out{width:100%;box-sizing:border-box;min-height:160px;margin-top:10px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit}
+</style>
+<div class="wrap">
+<h1>Maple Bay: open questions</h1>
+<p class="sub">Tap an answer for the ones you care about and skip the rest. Then press "Copy my answers" and paste the text into our chat.</p>
+<div id="qs"></div>
+<div id="done" hidden><h2>Your answers</h2><p class="sub">If copying did not work, select this text and copy it by hand.</p><textarea id="out" readonly></textarea></div>
+</div>
+<div class="bar"><span id="cnt"></span><button id="copy" type="button">Copy my answers</button></div>
+<script>
+const P = __P__, Q = __Q__;
+const KEY = 'mbq1'; let A = {}; try { A = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(A)); } catch (e) {} };
+const root = document.getElementById('qs'); let n = 0, total = 0;
+const el = (t, a, ...c) => { const e = document.createElement(t); for (const k in a || {}) { if (k === 'text') e.textContent = a[k]; else e.setAttribute(k, a[k]); } for (const x of c) e.append(x); return e; };
+for (const [sec, stage, qs] of Q) {
+  root.append(el('h2', { text: sec }), el('p', { class: 'sub', text: stage }));
+  for (const [id, text, opts, pic] of qs) {
+    total++; n++; const q = el('div', { class: 'q' });
+    if (pic) q.append(el('figure', {}, el('img', { src: P[pic[0]], alt: pic[1] }), el('figcaption', { text: pic[1] })));
+    q.append(el('p', { text: n + '. ' + text })); const o = el('div', { class: 'opts' });
+    opts.forEach((t, i) => { const r = el('input', { type: 'radio', name: id, value: String(i) }); if (A[id] === i) r.checked = true; r.addEventListener('change', () => { A[id] = i; save(); count(); }); o.append(el('label', {}, r, el('span', { text: t }))); });
+    const note = el('input', { type: 'text', placeholder: 'Note (optional)', 'aria-label': 'Note for question ' + n }); note.value = A[id + '_n'] || ''; note.addEventListener('input', () => { A[id + '_n'] = note.value; save(); });
+    q.append(o, note); root.append(q);
+  }
+}
+function count() { let c = 0; for (const [, , qs] of Q) for (const [id] of qs) if (typeof A[id] === 'number') c++; document.getElementById('cnt').textContent = c + ' of ' + total + ' answered'; }
+count();
+document.getElementById('copy').addEventListener('click', () => {
+  let s = 'Questionnaire answers\n', k = 0;
+  for (const [sec, , qs] of Q) for (const [id, text, opts] of qs) { k++; const a = A[id], nt = (A[id + '_n'] || '').trim(); if (typeof a !== 'number' && !nt) continue; s += k + '. [' + sec + '] ' + text + '\n   -> ' + (typeof a === 'number' ? opts[a] : '(no choice)') + (nt ? ' | Note: ' + nt : '') + '\n'; }
+  const out = document.getElementById('out'); out.value = s; document.getElementById('done').hidden = false; const b = document.getElementById('copy');
+  const fb = () => { out.focus(); out.select(); b.textContent = 'Select and copy below'; out.scrollIntoView({ block: 'center' }); };
+  try { navigator.clipboard.writeText(s).then(() => { b.textContent = 'Copied. Paste it in the chat'; }, fb); } catch (e) { fb(); }
+});
+</script>

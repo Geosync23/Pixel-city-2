@@ -35,7 +35,7 @@ export const WC = [
         I('wc.stall', 0, 0, { style: 'diner', tag: 1 }),
         I('wc.sink', 1.7, 0, { style: 'diner' }), WY('wc.tube', 1.5, {}, { mount: 2.15 }), WY('wc.dryer', 2.85, {}, { mount: 1.0 }),
         I('wc.bin', 3.8, .1, { style: 'diner' }),
-        WX('wc.sign', 1.75, { kind: 'wash' }, { mount: 1.25 }), WX('generic.window', 3.1, { w: 1 }),
+        WX('wc.sign', 1.5, { kind: 'wash' }, { mount: 1.3 }), WX('generic.window', 3.0, { w: 1 }),
         I('wc.mop', .1, 2.2, {}, { flip: true }),
       ],
       exits: [{ x: 3.4, y: 3.5 }] } },
