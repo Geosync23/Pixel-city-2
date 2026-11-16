@@ -806,3 +806,8 @@ Questionnaire answers
    -> Fine as it is
 19. [From today] Closing the wish-list banner with x:
    -> Reminds again the next day (as now)
+
+## 199 (2026-11-16)
+Get rid of bigger. We need to show the world keeps going. And I changed my mind about the slower clock when reading keep it normal.
+
+Also this all seems like opus capable work no?

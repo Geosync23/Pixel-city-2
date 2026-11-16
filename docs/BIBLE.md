@@ -330,3 +330,4 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - Music: classics volume fine; NO vinyl crackle.
 - Phone: the slow reading clock applies only to the book reading app (Pages).
 - Wish-list reminder: as built (4.5 tiles, once a day, weekly stock counts, x does not silence longer).
+- (owner msg 199, same day) PHONE: no 'Bigger' button on shows / reading: always part-screen, the world must be seen to keep going. Reading runs the NORMAL clock everywhere (the slow reading pace is dropped, Pages included).
