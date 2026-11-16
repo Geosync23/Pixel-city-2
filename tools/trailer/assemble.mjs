@@ -9,7 +9,11 @@ const k = process.argv[2], E = EDL[k], name = process.argv[3] || `trailer_${k}_r
 const seq = path.join(SCRATCH, 'seq_' + k); fs.rmSync(seq, { recursive: true, force: true }); fs.mkdirSync(seq, { recursive: true });
 const NF = Math.round(E.len * FPS), f5 = i => String(i).padStart(5, '0'); let warn = 0; const mids = [];
 for (const s of E.video) {
-  const dir = path.join(SCRATCH, 'frames', s.clip), have = fs.existsSync(dir) ? fs.readdirSync(dir).length : 0, a = Math.round(s.t0 * FPS), b = Math.min(NF, Math.round(s.t1 * FPS)), off = Math.round((s.in || 0) * FPS);
+  let dir = path.join(SCRATCH, 'frames', s.clip);
+  if (s.crop && fs.existsSync(dir)) {   /* close-up: the middle of the frame around the character, enlarged by a whole factor with nearest-neighbour (pixels stay square and crisp) */
+    const out = dir + '__x' + s.crop, w = W / s.crop, h = H / s.crop; fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out);
+    execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', path.join(dir, '%05d.jpg'), '-start_number', '0', '-vf', `crop=${w}:${h}:${(W - w) / 2}:${Math.round((H - h) / 2 + (s.cy || 0))},scale=${W}:${H}:flags=neighbor`, '-q:v', '1', path.join(out, '%05d.jpg')]); dir = out; }
+  const have = fs.existsSync(dir) ? fs.readdirSync(dir).length : 0, a = Math.round(s.t0 * FPS), b = Math.min(NF, Math.round(s.t1 * FPS)), off = Math.round((s.in || 0) * FPS);
   if (!have) { console.log('MISSING CLIP', s.clip); warn++; continue; }
   if (off + (b - a) / (s.slow || 1) > have) { console.log('short clip', s.clip, 'needs', off + (b - a), 'has', have, '(last frame held)'); warn++; }
   for (let i = a; i < b; i++) fs.linkSync(path.join(dir, f5(Math.min(have - 1, off + Math.floor((i - a) / (s.slow || 1)))) + '.jpg'), path.join(seq, f5(i) + '.jpg'));
@@ -18,7 +22,7 @@ for (const s of E.video) {
 for (let i = 0; i < NF; i++) if (!fs.existsSync(path.join(seq, f5(i) + '.jpg'))) { console.log('GAP at frame', i, (i / FPS).toFixed(2)); process.exit(1); }
 const out = path.join(ROOT, 'docs/trailer', name + '.mp4'); fs.mkdirSync(path.dirname(out), { recursive: true });
 execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(seq, '%05d.jpg'), '-framerate', String(FPS), '-i', path.join(SCRATCH, 'overlay_' + k, '%05d.png'), '-i', path.join(SCRATCH, E.music),
-  '-filter_complex', '[0:v][1:v]overlay=format=auto,format=yuv420p[v]', '-map', '[v]', '-map', '2:a', '-t', String(E.len), '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.0', '-preset', 'slow', '-crf', '19', '-maxrate', '1900k', '-bufsize', '3800k', '-g', '60',
+  '-filter_complex', '[0:v][1:v]overlay=format=auto,format=yuv420p[v]', '-map', '[v]', '-map', '2:a', '-t', String(E.len), '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.0', '-preset', 'slow', '-crf', '19', '-maxrate', E.len > 50 ? '1750k' : '1900k', '-bufsize', '3600k', '-g', '60',
   '-af', 'volume=-1dB', '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', out], { stdio: 'inherit' });
 console.log(out, (fs.statSync(out).size / 1048576).toFixed(2) + ' MB', warn ? `(${warn} warnings)` : '');
 // contact sheet: one composited frame per shot with its time code

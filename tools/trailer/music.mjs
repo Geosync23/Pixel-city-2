@@ -16,8 +16,11 @@ export const ARR = {
   // B the mix: drums from the first door, octave lead for the fast run of doors
   b: [L(6, 0, 0, 1, 1), L(7, 0, 1, 1, 1),
     L(0, 1, 1, 0), L(1, 1, 1, 0), L(2, 1, 1, 1), L(3, 1, 1, 1), L(4, 1, 1, 0), L(5, 1, 1, 0), L(6, 1, 1, 1), L(7, 1, 1, 1),
-    L(0, 1, 1, 1, 1, 12), L(1, 1, 1, 1, 1, 12), L(2, 1, 1, 1, 1, 12), L(3, 1, 1, 1, 1, 12), L(4, 1, 1, 1), L(5, 1, 1, 1), L(6, 1, 1, 1), L(7, 1, 1, 1)],
+    L(0, 1, 1, 1, 1, 12), L(1, 1, 1, 1, 1, 12), L(2, 1, 1, 1, 1, 12), L(3, 1, 1, 1, 1, 12), L(4, 1, 1, 1), L(5, 1, 1, 1), L(6, 1, 1, 1), L(7, 1, 1, 1),
+    /* round 3 (owner msg 212): four more bars, the second half of the loop once more with the tune an octave up, then the same final chord */
+    L(4, 1, 1, 1, 1, 12), L(5, 1, 1, 1, 1, 12), L(6, 1, 1, 1, 1, 12), L(7, 1, 1, 1, 1, 12)],
 };
+export const LENS = { a: 45, b: 45 + 4 * BAR };
 if (import.meta.url === `file://${process.argv[1]}`) {
   const srv = await serve(CLEAN); const port = srv.address().port; const br = await chromium.launch(); const page = await br.newPage();
   await page.route('**/trailer_blank.html', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>music</title>' }));
@@ -46,7 +49,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       let pk = 0; for (let i = 0; i < n; i++) { pk = Math.max(pk, Math.abs(a[i]), Math.abs(c[i])); out.setInt16(44 + i * 4, Math.max(-1, Math.min(1, a[i])) * 32767, true); out.setInt16(46 + i * 4, Math.max(-1, Math.min(1, c[i])) * 32767, true); }
       let bin = ''; const u8 = new Uint8Array(out.buffer); for (let i = 0; i < u8.length; i += 32768) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 32768));
       return { b64: btoa(bin), pk };
-    }, { arr: ARR[k], BAR, T0, LEN });
+    }, { arr: ARR[k], BAR, T0, LEN: LENS[k] });
     const f = path.join(SCRATCH, `music_${k}.wav`); fs.writeFileSync(f, Buffer.from(b64.b64, 'base64')); console.log(f, 'peak', b64.pk.toFixed(3));
   }
   await br.close(); srv.close();

@@ -53,3 +53,11 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 - Worker looked at every frame of 0-4.75 s and 7.0-9.4 s, the 98 raw frames of the bus passing the tree in the opening (no popping), end card at 43.5 s. LEAD looked at six frames (0.3, 2.0, 5.5, 7.3, 8.5, 43.5 s: out/shots/trailer_b_lead2.png). Nobody has watched it in motion or heard it.
 - Weak spots: the word MAPLE sits across the Nest & Wire sign lettering; the opening is busy rather than packed (10-15 people); the four transport shots are glimpses at 0.58 s each.
 
+## Trailer B round 3 (owner msg 212; published version id 1794857754-51df)
+- docs/trailer/trailer_b.mp4 = 54.2 s, 12.43 MB (Stage 104 build); previous cut = trailer_b_v2.mp4.
+- 'your life, your pace' now 18.85-23.03 s over MON-THU; doors + counter unchanged; NEW 37.02-41.64 s four job close-ups (barista, station agent, prep cook, firefighter; 1.15 s each) under '25 jobs to work'; NEW 41.64-46.25 s four activity close-ups (treadmill, dance floor, river rail 'fishing', easel) under 'over 90 things to do'; 46.25-48.56 home by the fire + 48.56-50.87 NEW harbour boardwalk in evening light (replaces the lighthouse) under 'so much to see'; end card unchanged 50.87-54.23 s. Music: four more bars rendered in one pass (no splice), same final chord.
+- COUNTS: 25 jobs = distinct ids from G.jobs.listings() (not checked that all are equally complete); 'over 90 things to do' = 91 activity definitions in src/data/activities.js (includes small ones: wash hands, check phone, toilet: generous; stricter alternative 'over 40 mini-games' from 46 G.skillplay.games()).
+- Close-ups are recorded at zoom 4 and enlarged 2x (closer than a player can zoom). In-world yellow station arrows visible in job shots.
+- LEAD looked at twelve frames (out/shots/trailer_b_lead3.png): all sections as described; NOTE the digit 5 in '25 jobs to work' can read like an S at small size (the game font's known weak digit). Nobody has watched it in motion or heard it.
+- Weak spots: close-ups are glimpses; barista partly covered by customers; fishing shows no rod; painting on a bare floor; pace caption crosses the gym's TODAY board.
+

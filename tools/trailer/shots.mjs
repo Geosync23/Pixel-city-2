@@ -26,6 +26,24 @@ const bus = (x, y, z) => ({
 const tap = async (c, t, i) => { if (i % 12 !== 6) return; const cv = await c.page.$$('#ui canvas'); const el = cv[cv.length - 1]; if (!el) return; const b = await el.boundingBox(); if (b) await c.page.mouse.click(b.x + b.width / 2, b.y + b.height / 2); };
 const LUG = `try { G.state.intro = G.state.intro || {}; G.luggage.pickUp(); } catch (e) { }`;   // the intro suitcase, towed (the game's own G.luggage)
 
+/* round 3 (owner msg 212): close views of the character doing things, no panels (all UI hidden).
+   act: the game's own activity (G.activities.start(id, { fx, force })) at a fixture of the room (by function tag) or, in the city, at a world interactable; camera on the player, zoom z.
+   job: G.jobs.debugStart(job) (hire + go to the workplace + clock in), then the shift's steps are completed one after another (G.jobs.debugStep) so the character moves between its stations. */
+const act = (room, id, tag, z = 5, o = {}) => ({ url: city(o.h || 15), sec: o.sec || 3.5, settle: 3,
+  setup: c => c.ev(async ([room, id, tag, z, o]) => { const p = G.player; if (room) await G.go(room.startsWith('city') ? 'city' : 'int:' + room, Object.assign({ fade: false }, o.at ? { x: o.at[0], y: o.at[1] } : {})); p.hidden = false; G.camTarget = null;
+    let fx = null; if (G.scene.fixtures) { const L = G.scene.fixtures.filter(f => f.tags.includes(tag)); fx = L[o.n || 0] || L[0]; }
+    if (fx && fx.use) { p.x = fx.use.x; p.y = fx.use.y; }
+    let r = null; if (fx) r = G.activities.start(id, { fx, force: true, minutes: 600 }); else { const it = G.scene.interactables.find(q => q.x !== undefined && Math.hypot(q.x - p.x, q.y - p.y) < 6 && new RegExp(o.label || '.', 'i').test(q.label || '')); window._it = it ? it.label : null; r = G.activities.start(id, { force: true, minutes: 600, spot: it, poi: it && it.poi }); }
+    if (G.busy) G.busy.rate = .5; G.setZoom(z); G.snapCam(); return [!!fx, !!r, G.busy && G.busy.label, p.pose, window._it]; }, [room, id, tag, z, o]).then(r => console.log('act', id, JSON.stringify(r))),
+  frame: c => c.ev(() => { for (const w of document.querySelectorAll('#ui .ftw')) { w.remove(); G.modal = 0; } const p = G.player; TR.cam.x = p.x; TR.cam.y = p.y; TR.cam.z = p.z; G.camTarget = TR.cam; G.camDY = 0; }) });
+const job = (id, z = 5, o = {}) => ({ url: city(o.h || 10), sec: o.sec || 8, settle: 2,
+  setup: async c => { c.ev(id => { G.player.hidden = false; G.camTarget = null; window._j = G.jobs.debugStart(id); window._log = []; window._mg = 0; window._cool = 0; }, id); await wait(2500); console.log('job', id, JSON.stringify(await c.ev(z => { G.setZoom(z); G.snapCam(); return [G.scene.id, G.jobs.onShift(), G.player.x, G.player.y, JSON.stringify(G.jobs.hud()).slice(0, 300)]; }, z))); },
+  /* play the shift the way a player does: tap the current step's station (G.jobs.goStep -> the character walks there); the step's mini-game sheet is hidden, held for a second with the work pose, then finished through the game's test hook */
+  frame: (c, t, i) => c.ev(i => { const p = G.player; for (const w of document.querySelectorAll('#ui .ftw')) { w.remove(); G.modal = Math.max(0, G.modal - 1); }
+    TR.cam.x += (p.x - TR.cam.x) * .15; TR.cam.y += (p.y - TR.cam.y) * .15; TR.cam.z = p.z; if (i === 0) { TR.cam.x = p.x; TR.cam.y = p.y; } G.camTarget = TR.cam; G.camDY = 0;
+    const open = G.minigame.isOpen() || G.modal > 0 || !!G.busy; if (open) { window._mg++; if (!G.busy) p.pose = 'work'; if (window._mg > 32) { try { G.minigame.abort(); } catch (e) { } if (G.busy) G.endActivity(false); const id = G.jobs.debugStep(); for (const w of document.querySelectorAll('#ui .modal, #ui .mg')) w.remove(); G.modal = 0; p.pose = null; window._mg = 0; window._cool = 6; window._log.push([i, 'done', id]); } return; }
+    if (window._cool-- > 0 || p.path) return; const hh = G.jobs.hud(), h = hh && hh.orders; if (h && h[0]) { G.jobs.goStep(h[0].id); window._cool = 10; window._log.push([i, 'go', h[0].title, +p.x.toFixed(1), +p.y.toFixed(1), !!p.path]); } }, i).then(async () => { if (i === 235) console.log(JSON.stringify(await c.ev(() => window._log))); }) });
+
 export const SHOTS = {
   /* ================= TRAILER A: The City Wakes Up ================= */
   a01_light: { url: city(4.6), setup: free(34, 346, 1), settle: 3, sec: 7.4, frame: pan([34, 346], [44, 350], 7.4, { mins: 112 }) },
@@ -78,4 +96,9 @@ export const SHOTS = {
   b_fest: { url: city(19), sec: 4.2, setup: c => c.ev(() => { G.cityEvents.debug.start('lantern_parade'); G.cityEvents.debug.parade(.35); TR.free(109, 277, 2); }), settle: 6, frame: pan([109, 277], [104, 280], 4.2) },
   b_home: { url: city(20.5), sec: 3.2, setup: c => c.ev(async () => { await G.go('int:home:villa_belvedere', { fade: false }); const p = G.player; p.hidden = false; G.camTarget = null; G.setZoom(3); const it = G.scene.interactables.find(q => /^Sit/.test(q.label || '')); window._sit = it ? it.label : null; if (it) G.useInteractable(it); G.snapCam(); return window._sit; }).then(r => console.log('sit', r)), settle: 6, ready: c => c.ev(() => { const p = G.player; window._h = [p.x, p.y]; TR.cam.x = p.x; TR.cam.y = p.y; TR.cam.z = p.z; G.camTarget = TR.cam; G.snapCam(); }), frame: (c, t) => c.ev(u => { TR.move(window._h[0] - 1.5 + 6 * u, window._h[1], false); }, t / 3.2) },   // polish pass: a slow drift toward the fireplace instead of a locked-off still
   b_sunset: { url: city(19.2), setup: free(40.75, 350.75, 2), settle: 6, sec: 3.2, frame: pan([40.75, 350.75], [36.25, 352.25], 3.2, { mins: 20 }) },
+  b_city2: { url: city(18.6), setup: free(98, 344.5, 2), settle: 12, sec: 3, frame: pan([98, 344.5], [98 + 5.6 / 2, 344.5], 3) },
+  /* round 3 candidates */
+  x_barista: job('barista', 4), x_station: job('station_agent', 4), x_cook: job('line_cook', 4), x_fire: job('firefighter', 4), x_dj: job('radio_dj'), x_aqua: job('aquarist', 4), x_florist: job('florist'),
+  x_tread: act('gym', 'gym_treadmill', 'treadmill', 4), x_weights: act('gym', 'gym_weights', 'weights'), x_dance: act('bar', 'dance', 'dancefloor', 4, { h: 21 }), x_piano: act('home:villa_belvedere', 'practice_instrument', 'instrument', 5, { h: 19 }),
+  x_cookhome: act('home:marlowe_1br', 'cook', 'stove', 5, { h: 18.5 }), x_fish: act('city', 'fish_pier', 'fishing_spot', 4, { h: 18.3, at: [148, 250.6], label: 'fish' }), x_paint: act('home:easel_house', 'paint', 'easel', 4), x_pool: act('bar', 'play_pool', 'pool', 5, { h: 21 }),
 };
