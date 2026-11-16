@@ -140,7 +140,7 @@ function arrive(wp, quiet) {
 function objective() {
   const t = trip(), w = waypoint();
   if (t) {
-    if (t.stage === 0) return t.mode === 'cab' ? { kind: 'cab', pt: t.dest, goal: 'city', t } : { kind: 'board', pt: t.board, goal: t.mode === 'train' && norm(t.from) === 'central' ? 'int:central_station' : 'city', t };
+    if (t.stage === 0) return t.mode === 'cab' ? { kind: 'cab', pt: t.dest, goal: 'city', t } : { kind: 'board', pt: t.board, goal: t.mode === 'train' && norm(t.from) === 'central' ? (ROOMS.has('central_station:platforms') ? 'int:central_station:platforms' : 'int:central_station') : 'city', t };   /* Central: you board on the platforms, through the hall's gates */
     if (t.stage === 1) return { kind: 'ride', pt: t.alight || t.dest, goal: 'city', t };
     return { kind: 'dest', pt: t.dest, goal: t.dest.room ? 'int:' + t.dest.room : 'city', t };
   }
@@ -158,13 +158,16 @@ function cityGuide(o) {
 }
 function roomGuide(o) {
   const sc = G.scene, p = G.player, t = o.t;
-  if (o.kind === 'board') { const g = (sc.interactables || []).find(i => /platform/i.test(i.label || '')); if (!t.at) { t.at = true; const cur = waypoint(); if (cur) arrive(cur, true); } return g ? pointT(g.x, g.y, `Platforms: ${t.line} to ${short(t.alight && t.alight.name)}`, { h: 2.6 }) : chipT(`Board ${t.line} to ${short(t.alight && t.alight.name)}`); }
+  if (o.kind === 'board') { const nb = sc.navBoard ? safe(() => sc.navBoard(t), null) : null;   /* Central's platforms: the door mark of the right platform ("Platform 1: Loop A to ...") */
+    if (nb) { if (!t.at) { t.at = true; const cur = waypoint(); if (cur) arrive(cur, true); } return pointT(nb.x, nb.y, nb.label, { h: 2.4 }); }
+    const g = (sc.interactables || []).find(i => /platform/i.test(i.label || '')); if (!t.at) { t.at = true; const cur = waypoint(); if (cur) arrive(cur, true); } return g ? pointT(g.x, g.y, `Platforms: ${t.line} to ${short(t.alight && t.alight.name)}`, { h: 2.6 }) : chipT(`Board ${t.line} to ${short(t.alight && t.alight.name)}`); }
   const pt = o.pt, s = (sc.shops || []).find(q => q.venueId === pt.id || q.id === pt.id) || (sc.interactables || []).find(i => i.label === pt.name && isFinite(i.x));
   if (!s || Math.hypot(s.x - p.x, s.y - p.y) < ARRIVE_IN) { arrive(pt); return null; }
   return pointT(s.x, s.y, pt.name, { h: 2 });
 }
 function exitGuide(o, what) {
   const hop = route(o.goal), name = what || (o.kind === 'board' ? o.pt.name : o.pt.name);
+  if (hop && !what && o.kind === 'board' && hop.to === o.goal && o.t && o.t.mode === 'train') { const n = safe(() => G.rail.platformOf(G.rail.plan(o.t.from, o.t.to).dir), null); return pointT(hop.x, hop.y, `Through the gates → ${n ? 'Platform ' + n + ': ' : ''}${o.t.line} to ${short(o.t.alight && o.t.alight.name)}`, { h: 1.6 }); }
   return hop ? pointT(hop.x, hop.y, `${hop.label || 'Exit'} → ${name}`, { h: 1.6 }) : chipT(`Leave the building → ${name}`);
 }
 function cabGuide(o) {
@@ -215,7 +218,7 @@ function compute() {
   if (o.kind === 'cab') return cabGuide(o);
   if (id === o.goal) return id === 'city' ? cityGuide(o) : roomGuide(o);
   if (id === 'city') {   // the objective is inside a building: lead to its door
-    const door = cityPoi('door:' + o.goal.slice(4)) || o.pt, d = Math.hypot(door.x - G.player.x, door.y - G.player.y), rn = safe(() => ROOMS.get(o.goal.slice(4)).name, null) || door.name || 'the building';
+    const gr = o.goal.slice(4), g0 = gr.split(':')[0], door = cityPoi('door:' + gr) || (g0 !== gr && ROOMS.has(g0) && cityPoi('door:' + g0)) || o.pt, d = Math.hypot(door.x - G.player.x, door.y - G.player.y), rn = safe(() => ROOMS.get(cityPoi('door:' + gr) ? gr : g0).name, null) || safe(() => ROOMS.get(gr).name, null) || door.name || 'the building';
     if (o.kind === 'board' && d < ARRIVE && !o.t.at) { o.t.at = true; const cur = waypoint(); if (cur) arrive(cur, true); }
     return pointT(door.x, door.y, d < 14 ? `Go in: ${rn} → ${o.kind === 'board' ? 'platforms' : o.pt.name}` : o.kind === 'board' ? o.pt.name : `${o.pt.name} (${rn})`, { dist: d < 14 ? null : d, z: safe(() => G.world.heightAt(door.x, door.y), 0), h: 2.6 });
   }

@@ -188,7 +188,7 @@ async function station(ctx) {
       if (all && runner) { runner = false; api.note('Somebody is running down the stairs with an ice box.'); hold.replaceChildren(el('button.jp-opt', { 'data-jp': 'hold', text: 'Hold a beat for her', onclick: () => { hold.replaceChildren(); ran = true; const x = doors[0]; x.shut = false; x.d.className = 'jp-door open'; x.at = performance.now() - t0 + 1700; api.note('"Bless you!" The first door opens again.'); } }), el('button.jp-opt', { 'data-jp': 'nohold', text: 'She will get the next one', onclick: () => { hold.replaceChildren(); api.note(''); clearAt = performance.now(); } })); return; }
       if (all && !clearAt && !hold.childNodes.length) clearAt = performance.now(); else if (!all) clearAt = 0;
       if (clearAt && performance.now() - clearAt > 6000 && !done) { done = true; api.note('The driver leans out and looks at you.', 'no'); api.finish(.35); } });
-    return [el('div.jp-card', null, el('div', null, el('p', { text: ['The 6:42, platform 1.', 'The Harbor stopper, platform 2.', 'The Airport through train, platform 1.'][r] }), el('small', { text: 'Lit = open. Dark = shut.' }))), row, hold, flag]; } }));
+    return [el('div.jp-card', null, el('div', null, el('p', { text: ['The 6:42, platform 1.', 'The Railyard stopper, platform 2.', 'The Harborside train, platform 1.'][r] }), el('small', { text: 'Lit = open. Dark = shut.' }))), row, hold, flag]; } }));
   return mean(...rounds);
 }
 

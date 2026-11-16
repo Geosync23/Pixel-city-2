@@ -34,7 +34,7 @@ function towing() {
 const ent = { x: 0, y: 0, z: 0, bb: [-.12, -.12, .12, .12, .5], hidden: false, isLuggage: true, th: 0, ph: 0, sc: null,
   sprite() { return assetSprite(A(), { th: this.th, ph: this.ph }); } };
 let A_ = null; const A = () => A_ || (A_ = asset('fx.luggage.tow'));
-let ox = 0, oy = 0, s = 0, snap = true, lx = 0, ly = 0, still = 9, side = -1, drop = null;
+let ready = null, ox = 0, oy = 0, s = 0, snap = true, lx = 0, ly = 0, still = 9, side = -1, drop = null;
 function attach(sc) { if (ent.sc === sc && sc.ents.includes(ent)) return; detach(); sc.ents.push(ent); ent.sc = sc; snap = true; }
 function detach() { if (ent.sc) { const i = ent.sc.ents.indexOf(ent); if (i >= 0) ent.sc.ents.splice(i, 1); } for (const sc of (G.sceneCache ? G.sceneCache.values() : [])) { const i = sc.ents ? sc.ents.indexOf(ent) : -1; if (i >= 0) sc.ents.splice(i, 1); } ent.sc = null; }
 const blocked = (w, x, y) => safe(() => w.isBlocked(x, y), false);
@@ -63,7 +63,7 @@ function update(dt) {
   const goal = still < .18 && !seated ? 1 : 0; s += Math.sign(goal - s) * Math.min(Math.abs(goal - s), k);
   const g = want(P, w);
   /* home: the first time you walk into your flat the case leaves your hand and stands by the door */
-  if (drop || (safe(() => G.housing.isHome(), false) && safe(() => G.housing.room(), 'main') === 'main')) { if (homeDrop(dt, P, w, g)) return; }
+  if (drop || (ready === sc && safe(() => G.housing.isHome(), false) && safe(() => G.housing.room(), 'main') === 'main')) { if (homeDrop(dt, P, w, g)) return; }   /* (counted from the 'scene' event: not during the fade in) */
   const tx = g.stand[0] + (g.tow[0] - g.stand[0]) * s, ty = g.stand[1] + (g.tow[1] - g.stand[1]) * s;
   if (snap) { ox = tx; oy = ty; snap = false; } else { const q = 1 - Math.exp(-dt * 14); ox += (tx - ox) * q; oy += (ty - oy) * q; }
   place(P, w, g);
@@ -81,7 +81,7 @@ function homeDrop(dt, P, w, g) {
   if (!drop) drop = { t: 0 };
   drop.t += dt;
   if (!drop.box) {
-    if (drop.t < .9 || G.modal > 0 || G.busy || !G.housing || !G.housing.addLuggage) return false;
+    if (drop.t < 1.3 || G.modal > 0 || G.busy || !G.housing || !G.housing.addLuggage) return false;
     const b = G.housing.addLuggage(); if (!b) { finish(null); return true; }
     const def = safe(() => G.housing.roomDef(G.housing.current().id, 'main'), null), it = def && def.items.find(q => q.box === b.uid), wp = it && G.scene.toWorld ? G.scene.toWorld(it.x + .25, it.y + .25) : null;
     drop.box = b; drop.k = 0; drop.from = [ent.x, ent.y]; drop.to = wp ? [wp.x, wp.y] : null; safe(() => G.audio.sfx('clack'));
@@ -109,7 +109,7 @@ function label(sc) {
 export function init() {
   G.luggage = { pickUp, state: () => (towing() ? 'tow' : (st() || {}).lug === 2 ? 'home' : 'none'), ent, drop: () => { const S = st(); if (S && S.lug === 1) drop = { t: 9 }; }, TH0, REACH };
   G.on('frame', dt => safe(() => update(dt)));
-  G.on('scene', sc => { snap = true; drop = null; safe(() => label(sc)); });
+  G.on('scene', sc => { snap = true; drop = null; ready = sc; safe(() => label(sc)); });
   G.on('load', () => { detach(); drop = null; snap = true; });
   /* Skip intro (or a resume straight into the flat): a suitcase that never reached home comes along all the same */
   G.on('intro:done', () => { const S = st(); if (!S || S.lug === 2 || safe(() => G.housing.boxes().some(b => b.lug), false)) return; S.lug = 1; snap = true; });

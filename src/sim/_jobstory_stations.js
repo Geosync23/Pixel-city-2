@@ -22,8 +22,9 @@ export const STATIONS = {
     gate_desk: ['gate_desk', 21, 2.3], boarding_door: [/airport\.gatedoor/, 23.5, 1.1], info_desk: ['flight_board', 19.5, 12.7] },
   baggage_handler: {       /* int:airport:terminal — baggage claim */
     bag_cart: ['bag_cart'], baggage_carousel: ['carousel_island'], oversize_desk: ['oversize_desk'], lost_found: ['lost_found'] },
-  station_agent: {         /* int:central_station */
-    platform_edge: ['@', 17.2, 3.8],        /* a spot by the gates, looking down at the platforms (the departures portal on the wall cannot be reached) */ station_info: ['info', 14.8, 18], ticket_gate: ['gates', 15, 2.4], lost_property: { first: [['lost_property'], ['lockers', 22.5, 1.8]] }, announcer_booth: { first: [['announcer_booth'], ['tickets', 2.1, 7.5]] } },
+  station_agent: {         /* int:central_station:platforms (scenes/rooms/station_platforms.js): every station is a real fixture on Platforms 1-2 */
+    platform_edge: ['platform_edge'] /* the dispatch point on Platform 1 */, station_info: ['station_info'] /* the help point on the concourse */, ticket_gate: ['ticket_gate'] /* the validators at the stair head */,
+    lost_property: ['lost_property'] /* the hatch of the stationmaster's office */, announcer_booth: ['announcer_booth'] /* the PA box (Gladys) by the office */ },
   retail_associate: {      /* int:deptstore — the Thread & Co. Outlet bay */
     folding_table: [/clothing\.foldtable/], clothes_rack: [/clothing\.(round)?rack/], fitting_room: [/clothing\.mirror/, 27.8, 1.8], mallcounter: ['mallcounter', 29.5, 2.3], shop_window: [[/clothing\.mannequin/, 25.8, 5.3], [/clothing\.mannequin/, 27.3, 5.8]] },
   museum_guide: {          /* int:museum */
@@ -75,7 +76,7 @@ export function stationsFor(job, scene) {
 /* ---------- ticket scripts for the new jobs (same shape as _jobs_work.js SCRIPTS; all names / minutes / bonuses come from the job rows) ---------- */
 const CITIES = ['Port Ansel', 'Lakehead', 'Saint-Remy', 'Carrow', 'Pinehollow Field', 'Nine Mile Key'];
 const ASK_GATE = [['Where is gate B2?', 'Two gates back, past the koi pond.', ['No idea, sorry.', 'B2 moved to another airport.']], ['Is there coffee past here?', 'Bay Brew, by the green wall. They open at five.', ['Coffee is not allowed.', 'Try the vending machine. Good luck.']], ['Has my flight boarded?', 'Not yet. I will call your row. Sit, you have time.', ['Probably.', 'Hard to say with planes.']]];
-const ASK_STN = [['Which platform for the Harbor line?', 'Platform 2, down the left stair.', ['Platform nine and a half.', 'Any of them, eventually.']], ['Is the 6:42 on time?', 'To the minute. It is the clock that is fast.', ['It has never been on time.', 'Which 6:42?']], ['Where do I change for the airport?', 'Stay on. The Loop runs through to the Airport stop.', ['You cannot get there from here.', 'Take a cab, honestly.']]];
+const ASK_STN = [['Which platform for Harborside?', 'Platform 1. Loop A, the red one.', ['Platform nine and a half.', 'Any of them, eventually.']], ['Is the 6:42 on time?', 'To the minute. It is the clock that is fast.', ['It has never been on time.', 'Which 6:42?']], ['Where do I change for the airport?', 'Stay on. The Loop runs through to the Airport stop.', ['You cannot get there from here.', 'Take a cab, honestly.']]];
 const ASK_MUS = [['Is the big skeleton real?', 'Marge is real bone from the neck back. Come and see the join.', ['It is plastic.', 'Please do not ask about Marge.']], ['Where do the children dig?', 'The dig pit, left of the Hall. Brushes are in the tray.', ['Nowhere. No digging.', 'Outside, probably.']], ['What should I not miss?', 'The harbor model. It lights up at the hour.', ['The exit.', 'Everything is roughly the same.']]];
 const ASK_HOTEL = [['Somewhere quiet to read?', 'The lounge by the piano, before four.', ['The lift.', 'We do not do quiet.']], ['Breakfast before six?', 'Dot\'s Diner opens at five. Two blocks, pink sign.', ['Nothing opens before six.', 'Room service, at noon.']], ['A present for a nine-year-old?', 'Toy Galaxy, in the Galleria. Ask for the rocket kits.', ['The minibar.', 'Cash is traditional.']]];
 const FLOWERS = ['Tulips', 'Ranunculus', 'Eucalyptus', 'Stock', 'Ferns', 'Peonies', 'Wax flower', 'Roses'];
@@ -121,9 +122,11 @@ export function newScripts(h) {
       { id: 'walk', filler: 1, make: () => ({ title: 'Between flights', steps: [s('sort_belt', { any: 1, name: 'Walk the Belt' })] }) },
     ],
     station_agent: l => [
-      { id: 'train', every: [22, 30], first: 2, make: () => ({ title: 'A train is in', steps: [l >= 2 && s('announce', { mini: mash('The announcement', 'Speak', 6) }), s('dispatch', { mini: meter('timing', 'Along the train', 'Raise the flag when the last door is shut: in the green', 'Flag up') })] }) },
-      { id: 'ask', every: [12, 18], first: 1, max: 2, patience: 40, make: () => ({ title: 'Somebody is lost', custAt: { tag: 'station_info' }, steps: [s('which_platform', { mini: q('At the information desk', pick(ASK_STN)) })] }) },
-      { id: 'gate', every: [35, 50], first: 12, patience: 45, make: () => ({ title: 'A ticket is stuck in the gate', custAt: { tag: 'ticket_gate' }, steps: [s('stuck_ticket', { mini: mash('The gate', 'Jiggle', 5) })] }) },
+      /* the REAL timetable: the ticket appears when a Loop A train is about to stand at Platform 1 (G.rail.nextTrains), about one train in three (20-28 game minutes apart) */
+      { id: 'train', max: 1, when: W => { const now = G.state.t; if (W._trainAt && now < W._trainAt) return false; let ok = true; try { const nt = G.rail.nextTrains('central').find(q => q.dir === 0); ok = !!nt && (nt.boarding || nt.minutes < 2.5); } catch (e) { ok = true; } if (ok) W._trainAt = now + 20 + Math.random() * 8; return ok; },
+        make: () => ({ title: 'Loop A is in on Platform 1', steps: [l >= 2 && s('announce', { mini: mash('The announcement', 'Speak', 6) }), s('dispatch', { mini: meter('timing', 'Along the train', 'Raise the flag when the last door is shut: in the green', 'Flag up') })] }) },
+      { id: 'ask', every: [12, 18], first: 1, max: 2, patience: 40, make: () => ({ title: 'Somebody is lost', custAt: { tag: 'station_info' }, steps: [s('which_platform', { mini: q('At the help point', pick(ASK_STN)) })] }) },
+      { id: 'gate', every: [35, 50], first: 12, patience: 45, make: () => ({ title: 'A ticket is stuck in the validator', custAt: { tag: 'ticket_gate' }, steps: [s('stuck_ticket', { mini: mash('The validator', 'Jiggle', 5) })] }) },
       { id: 'lost', every: [70, 95], first: 30, make: () => ({ title: 'Handed in on platform 1', steps: [s('log_lost')] }) },
       { id: 'clock', filler: 1, make: () => ({ title: 'A lull', steps: [s('which_platform', { name: 'Stand by the Board' })] }) },
     ],

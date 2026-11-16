@@ -1,5 +1,6 @@
 // Central Station: the grand hall under the glass vault (room id 'central_station', 28 x 20). City door poi 'door:central_station'.
-// Platforms are reached through the fare gates on the far side (opens G.rail.openStation('central')); arriving trains drop you by the gates.
+// Platforms are reached through the fare gates on the far side: with a ticket / pass you walk up to room 'central_station:platforms' (station_platforms.js);
+// arriving trains put you on the platform and the stairs bring you down by the gates.
 // Fixtures are looked up by item key `k`: gates, counter, tm1-3 (ticket machines), coffee / news / bakery / flowers kiosks, info, clock, piano.
 // Sky-dependent art (items with sky: true) is re-rendered at dawn / dusk / night; light shafts (shaft: true) only show by day.
 // npcSpots (derived by venues_lib from `n:` flags + the hand-placed `npc` list): ~50 spots - bench seats, ticket queue + clerks, kiosk staff and
@@ -38,7 +39,22 @@ function setup(sc, G) {
   const add = (k, label, use) => { const f = fx(k); if (!f) return; sc.interactables.push({ x: f.x, y: f.y, h: Math.min(1.6, f.ob.size[2]), hit: 14, spot: f.use || undefined, label, use, fx: f }); };
   const shop = id => () => { if (G.shop && G.shop.open) G.shop.open(id); else toast('Closed right now.'); };
   const tickets = () => (G.rail ? G.rail.openTickets() : toast('The machine is out of order.'));
-  add('gates', 'Platforms 1 & 2', () => (G.rail ? G.rail.openStation('central') : toast('No trains today.')));
+  /* the fare gates: with a ticket, a pass or a staff badge you tap in and walk up to the platforms (room 'central_station:platforms'); the ticket itself is
+     used when you board, as before. Without one the gate stays shut and offers a ticket; the old boarding panel is the "Departures" detail view. */
+  const PLAT = 'int:central_station:platforms', staff = () => { try { const j = G.jobs && G.jobs.current && G.jobs.current(); return !!j && j.id === 'station_agent'; } catch (e) { return false; } };
+  const fareOk = () => !!G.rail && ((G.rail.hasPass && G.rail.hasPass()) || G.rail.tickets() > 0 || staff());
+  const through = () => { try { G.audio && G.audio.sfx && G.audio.sfx('click'); } catch (e) { } return G.go(PLAT, { from: 'hall' }); };
+  const gate = () => {
+    if (!G.rail) return toast('No trains today.');
+    if (fareOk()) { toast(staff() ? 'Staff badge: the gate opens.' : G.rail.hasPass && G.rail.hasPass() ? 'Pass valid: the gate opens. Platforms 1 and 2 are up the stairs.' : 'Ticket shown: the gate opens. It is used when you board.', 'good'); return through(); }
+    const m = modal({ title: 'Fare gates · Platforms 1-2', cls: 'rail-win' });
+    m.body.append(el('div.rail-note', { text: 'The gate stays shut: you need a ticket or a pass to go up to the platforms. A single ticket is good for one ride, any distance.' }));
+    m.body.append(el('div.rail-btns', null,
+      el('button.primary', { text: 'Buy a ticket and go through', 'data-act': 'gate-buy', onclick: () => { if (G.rail.buyTicket()) { m.close(); through(); } } }),
+      el('button', { text: 'Tickets & passes', onclick: () => { m.close(); G.rail.openTickets(); } }),
+      el('button', { text: 'Departures', 'data-act': 'gate-board', onclick: () => { m.close(); G.rail.openStation('central'); } })));
+  };
+  add('gates', 'Platforms 1 & 2', gate); { const it = sc.interactables[sc.interactables.length - 1]; if (it && it.label === 'Platforms 1 & 2') { it.navTo = PLAT; it.fareOk = fareOk; } }
   add('counter', 'Ticket office', tickets); for (const k of ['tm1', 'tm2', 'tm3']) add(k, 'Ticket machine', tickets);
   add('coffee', 'Coffee kiosk', shop('stand_coffee')); add('news', 'Newsstand', shop('cornerstore')); add('bakery', 'Bakery stand', shop('bakery'));
   add('flowers', 'Flower stall', () => G.startActivity({ label: 'Browsing the flowers', anim: 'stand', minutes: 8, done: () => { G.needs && G.needs.add && G.needs.add('fun', 5); toast('Peonies, tulips and a whole bucket of sunflowers. Lovely.', 'good'); } }));

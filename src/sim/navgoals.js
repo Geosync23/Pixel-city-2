@@ -87,6 +87,7 @@ const GRAPH = [
   ['int:aquarium', /^Staff door/, 'int:aquarium:lab'], ['int:aquarium', /^Stairs to the Turtle Lagoon$/, 'int:aquarium:turtles'], ['int:aquarium', /^Stairs down to the (Ocean Tunnel|Deep)$/, 'int:aquarium:deep'], ['int:aquarium', /^Door to the Harbor Deck$/, 'int:aquarium:deck'],
   ['int:aquarium:deep', /^Stairs up to/, 'int:aquarium'],
   ['int:skydeck_lobby', /^Lift to the SkyDeck$/, 'int:skydeck'], ['int:skydeck', /^Lift down to the lobby$/, 'int:skydeck_lobby'],
+  ['int:central_station', /^Platforms 1 & 2$/, 'int:central_station:platforms'],   /* the fare gates lead up to the platforms (their stairs are a normal exit back) */
   ['int:airport:concourse', /^Tram to Baggage Claim$/, 'int:airport:terminal'], ['int:airport:terminal', /^Tram to Gates/, 'int:airport:concourse'],
 ];
 const graphFor = sid => GRAPH.filter(g => (typeof g[0] === 'string' ? g[0] === sid : g[0].test(sid)));
