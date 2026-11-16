@@ -103,7 +103,8 @@ const posOf = a => (a && !a.placeId && a.data && a.data.pos && isFinite(a.data.p
 function atPlace(a) {
   const q = posOf(a); if (q) return !!(G.scene && G.scene.id === 'city' && Math.hypot(q.x - G.player.x, q.y - G.player.y) < 12);
   if (!a.placeId) return true; const sc = G.scene ? String(G.scene.id) : '';
-  if (sc !== 'city') return sc === a.placeId || sc === 'int:' + a.placeId || sc.endsWith(':' + a.placeId) || sc.endsWith(a.placeId);
+  /* QA r15: a room inside the venue counts too ('int:cinema:screen1' for 'cinema': "Leave now ... 1 min on foot" fired at a player seated in the hall) */
+  if (sc !== 'city') return sc === a.placeId || sc === 'int:' + a.placeId || sc.endsWith(':' + a.placeId) || sc.endsWith(a.placeId) || sc.indexOf('int:' + a.placeId + ':') === 0;
   const p = G.places && G.places.get ? G.places.get(a.placeId) : null; return !!p && Math.hypot(p.x - G.player.x, p.y - G.player.y) < 12;
 }
 const say = (a, lead) => `${lead}${a.title}${a.placeId && placeName(a.placeId) && !a.title.includes(placeName(a.placeId)) ? ' at ' + placeName(a.placeId) : ''}`;

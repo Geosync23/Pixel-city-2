@@ -54,7 +54,7 @@ const fail = e => { errors++; lastErr = String(e && e.message || e); };
 function levels() { const s = S || vol, o = {}; for (const k of KEYS) o[k] = clamp(s[k] === undefined ? vol[k] : s[k]); return o; }
 function applyVolumes(fast) {
   if (!buses) return; const L = levels(), t = A.ctx.currentTime, k = fast ? .02 : .08;
-  try { buses.master.gain.setTargetAtTime(L.master, t, k); buses.music.gain.setTargetAtTime(L.music * .9, t, k); buses.sfx.gain.setTargetAtTime(L.sfx, t, k); buses.amb.gain.setTargetAtTime(L.sfx * .55, t, k); buses.bed.gain.setTargetAtTime(BED_ON ? L.sfx * L.city * BED_GAIN : 0, t, k); } catch (e) { fail(e); }
+  try { buses.master.gain.setTargetAtTime(L.master, t, k); buses.music.gain.setTargetAtTime(L.music * .6, t, k); buses.sfx.gain.setTargetAtTime(L.sfx, t, k); buses.amb.gain.setTargetAtTime(L.sfx * .55, t, k); buses.bed.gain.setTargetAtTime(BED_ON ? L.sfx * L.city * BED_GAIN : 0, t, k); } catch (e) { fail(e); }
 }
 /** create the context and the mixer; only succeeds inside a user gesture. Safe to call again. */
 function unlock() {
@@ -161,7 +161,8 @@ function musicCtx() {
   if (G.onTitle) return { g: 'title', key: 'title' };
   const sc = G.scene, id = String(sc && sc.id || ''), ti = G.now(), time = timeOf(ti.hf), wk = weatherKind();
   if (mood && G.state.t < mood.until) return { g: 'mood:' + mood.name, key: mood.name }; mood = null;
-  if (rideKind === 'taxi') return { g: 'ride:cab', key: 'cab' }; if (rideKind === 'bus') return { g: 'ride:bus', key: 'bus' };
+  /* QA r15 C-odd 1: a cab / bus ride keeps the tune that is playing (its kind of place carries on); the ride's pool only chooses the NEXT tune */
+  if (rideKind === 'taxi') return { g: player && cur ? cur.g : 'ride:cab', key: 'cab' }; if (rideKind === 'bus') return { g: player && cur ? cur.g : 'ride:bus', key: 'bus' };
   if (/^(train|airtram)/.test(id) || rideKind === 'train' || rideKind === 'airtram') return { g: 'ride:train', key: 'train' };
   if (safe(() => G.rel.active(), false)) return { g: 'mood:date', key: 'date' };
   if (safe(() => G.jobs.onShift(), false)) return { g: 'work', key: 'work' };

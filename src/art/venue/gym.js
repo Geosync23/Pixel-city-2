@@ -23,7 +23,7 @@ const gym = [
     tube([.45, .25, .6], [.3, .25, 1.15], M); bx(.2, .08, 1.12, .12, .34, .05, MD); bx(.2, .16, 1.17, .08, .18, .12, M); lit(() => qx(.28, .18, .32, 1.19, 1.27, '#5af08a'));
     tube([.7, .25, .3], [1.05, .25, .82], M); box(.92, .15, .82, .32, .2, .07, MD);
     lw([.6, .36, .3], [.75, .4, .16], CH); bx(.72, .36, .13, .1, .08, .03, MD);
-  }, { use: { x: 1, y: 1 }, seats: [{ x: 1.05, y: .25, z: .88, dir: 2 }], pose: { x: 1.05, y: .25, z: .88, dir: 2, anim: 'cycle' }, variants: [{}, { c: '#f2c230' }, { c: '#2f8f8a' }] }),
+  }, { use: { x: 1, y: 1 }, seats: [{ x: .95, y: .25, z: .88, dir: 2 }] /* QA r15 B8: was x 1.05 (the saddle's back end): the rider read as beside the frame; .95 = the front of the saddle (.92-1.24) */, pose: { x: 1.05, y: .25, z: .88, dir: 2, anim: 'cycle' }, variants: [{}, { c: '#f2c230' }, { c: '#2f8f8a' }] }),
 
   F('gym.rower', ['gym', 'cardio', 'workout'], [2.5, .5, 1], p => {
     const c = p.c || '#3a3f4c';

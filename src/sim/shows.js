@@ -33,7 +33,7 @@ import { PLAYS } from './_shows_plays.js';
 
 export const order = 54; // before public_places (55) and places (58): our door pois must exist when they scan the city
 /** tuning (real seconds unless noted) */
-export const TUNE = { doorsMin: 15, doorsMax: 55, dim: 3.2, applause: 7.5, exitMax: 30, doorsBefore: 15 /* game min */, lateGrace: 12 /* game min */, stream: 17 /* s over which the crowd arrives */, walk: 2.5, rowWalk: 1.5 };
+export const TUNE = { doorsMin: 15, doorsMax: 55, dim: 3.2, applause: 7.5, exitMax: 30, doorsBefore: 15 /* game min */, lateGrace: 12 /* game min */, waitMax: 90 /* game min: the longest wait 'Wait in the lobby' offers (QA r15) */, stream: 17 /* s over which the crowd arrives */, walk: 2.5, rowWalk: 1.5 };
 const DAY = 1440, SEATED = { seated: true };
 export const VENUES = {
   cinema: { id: 'cinema', name: 'The Orpheum', kind: 'film', lobby: 'cinema', hall: 'cinema:screen1', progs: FILMS, times: () => [12.5, 14.75, 17, 19.25, 21.5], aud: [30, 46], dress: 0, moodlet: 'movie_magic', fun: 38, noun: 'film' },
@@ -75,7 +75,9 @@ function openBoxOffice(venueId) {
   const v = VENUES[venueId]; if (!v) return; css(); unlock(); const m = modal({ title: `${v.name} — Box Office` });
   const draw = () => {
     m.body.textContent = ''; const t = now(), day = Math.floor(t / DAY), mine = tickets().filter(k => k.venue === venueId), nx = mine.find(k => k.t + TUNE.lateGrace > t);
-    if (nx) { const d = Math.ceil(nx.t - TUNE.doorsBefore - t); m.body.append(el('div.shw-next', null, el('span', { text: d > 0 ? `Your ticket: ${nx.title}, ${fmtClock(nx.t)}. Doors open in ${d} min.` : `Your ticket: ${nx.title}. The doors are open!` }), el('button', { text: d > 0 ? 'Wait in the lobby' : 'Go in', onclick: () => { m.close(); d > 0 ? waitFor(nx) : enterHall(venueId); } }))); }
+    if (nx) { const d = Math.ceil(nx.t - TUNE.doorsBefore - t);
+      if (d > TUNE.waitMax) { const inDay = hasAppt(nx); m.body.append(el('div.shw-next', null, el('span', { text: `Your ticket: ${nx.title}, ${fmtClock(nx.t)}. Doors open ${doorsWhen(nx)}.` + (inDay ? ' It is in My Day.' : '') }), inDay ? null : el('button', { text: 'Add to My Day', onclick: () => { addAppt(nx); draw(); } }))); }   /* QA r15: no "Wait in the lobby" for an 877-minute overnight wait */
+      else m.body.append(el('div.shw-next', null, el('span', { text: d > 0 ? `Your ticket: ${nx.title}, ${fmtClock(nx.t)}. Doors open in ${d} min.` : `Your ticket: ${nx.title}. The doors are open!` }), el('button', { text: d > 0 ? 'Wait in the lobby' : 'Go in', onclick: () => { m.close(); d > 0 ? waitFor(nx) : enterHall(venueId); } }))); }
     let any = 0;
     for (const dd of [day, day + 1]) {
       const list = schedule(venueId, dd).filter(s => s.t + 5 > t); if (!list.length || (dd > day && any >= 3)) continue; m.body.append(el('div.shw-day', { text: dd === day ? 'Today' : 'Tomorrow' }));
@@ -85,6 +87,10 @@ function openBoxOffice(venueId) {
   };
   draw(); return m;
 }
+/* a ticket's My Day entry: buy() adds one when the doors are more than 20 min away; the player may have removed it */
+function hasAppt(tk) { return !!(tk.appt && G.planner && safe(() => G.planner.get(tk.appt), null)); }
+function addAppt(tk) { const v = VENUES[tk.venue], sh = findShow(tk.venue, tk.id); if (!v || !G.planner || hasAppt(tk)) return; tk.appt = safe(() => G.planner.add({ title: `${tk.title} at ${v.name}`, placeId: v.lobby, t: tk.t, dur: sh ? sh.minutes : 120, kind: 'event', data: { show: tk.id } }), null); if (tk.appt) toast(`Added to My Day: ${tk.title}, ${fmtClock(tk.t)}.`, 'good', 3000); }
+function doorsWhen(tk) { const dd = Math.floor((tk.t - TUNE.doorsBefore) / DAY) - Math.floor(now() / DAY); return `at ${fmtClock(tk.t - TUNE.doorsBefore)}` + (dd === 1 ? ' tomorrow' : dd > 1 ? ` in ${dd} days` : ''); }
 function waitFor(tk) {
   const mins = tk.t - TUNE.doorsBefore - now(), v = VENUES[tk.venue]; if (mins <= 0) return enterHall(tk.venue);
   G.startActivity({ label: 'Waiting for the doors', anim: 'phone', minutes: mins, rate: Math.max(6, mins / 5), done: () => { toast('The doors are open. Head in!', 'good'); if (G.scene && G.scene.roomId === v.lobby) setTimeout(() => enterHall(tk.venue), 500); } });
@@ -93,6 +99,7 @@ function enterHall(venueId) {
   const v = VENUES[venueId], t = now(), mine = tickets().filter(k => k.venue === venueId), cur = mine.find(k => t >= k.t - TUNE.doorsBefore && t <= k.t + TUNE.lateGrace); unlock();
   if (cur) return begin(v, cur);
   const nx = mine.find(k => k.t - TUNE.doorsBefore > t);
+  if (nx && nx.t - TUNE.doorsBefore - t > TUNE.waitMax) { const inDay = hasAppt(nx); return choose('Usher', inDay ? [{ label: 'OK', value: 'no' }] : [{ label: 'Add it to My Day', value: 'add' }, { label: 'Not now', value: 'no' }], { text: `"${nx.title}" starts at ${fmtClock(nx.t)}. Doors open ${doorsWhen(nx)}.` + (inDay ? ' It is in My Day.' : '') }).then(r => { if (r === 'add') addAppt(nx); }); }   /* QA r15: only a short wait is offered */
   if (nx) return choose('Usher', [{ label: `Wait in the lobby (${Math.ceil(nx.t - TUNE.doorsBefore - t)} min)`, value: 'wait' }, { label: 'Not yet', value: 'no' }], { text: `"${nx.title}" starts at ${fmtClock(nx.t)}. Doors open 15 minutes before.` }).then(r => { if (r === 'wait') waitFor(nx); });
   toast('Usher: "Tickets at the box office, please."'); return null;
 }

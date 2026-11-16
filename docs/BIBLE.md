@@ -276,3 +276,7 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ## Direction update 29 (owner msg 155, 2026-11-16) — night light approved
 - The owner approved the trial look from docs/shots/light_compare_*.png: the dithered streetlight pools fall on the GROUND only; each person / object is drawn clean and lit as a whole by the nearest light; nothing is painted over characters as a top layer. Implement it (Fable work) in docket order.
+
+## Direction update 30 (owner msg 158, 2026-11-16) — cooking mini-games match the dish; music quieter
+- COOKING: many more cooking mini-games, and the one played must fit what is being made (a smoothie is a BLENDER game, not a pan flip; chopping for salads / prep, stirring for soups / sauces, and so on). One mini-game per dish is enough: build the set, then give every recipe the most appropriate one.
+- MUSIC: a bit too loud by default: the music bus is trimmed (x0.6 instead of x0.9).

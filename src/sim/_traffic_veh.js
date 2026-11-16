@@ -40,7 +40,7 @@ export class Veh {
     this.v = 0; this.off = 1; this.noff = 1; this.s = 0; this.lat = 0; this.turnS = 0; this.inNode = null; this.cornerOn = false; this.cx = 0; this.cy = 0; this.cax = 'x'; this.cd = 1;
     this.plan = null; this.offs = null; this.planI = 0; this.cyclic = false; this.stop = null; this.onStop = null; this.halt = false; this.parked = false; this.curb = 0; this.keep = false; this.pre = false;
     this.stuck = 0; this.gho = 0; this.ghost = false; this.pedWait = 0; this.honk = 1; this.byPlayer = false; this.bus = null; this.stand = null; this.taxiFree = false; this.role = ''; this.acc = 1; this.gap = 1.3; this.age = 0; this.ride = false; this.leadFast = false;
-    this.mk = -1; this.nmk = -1; this.ln = 99; this.lw = 0; this.xw = 0; this.dg = 0; this.lcT = 0; this.pass = null; this.dest = null; this.unstick = false; this.why = 0;
+    this.mk = -1; this.nmk = -1; this.ln = 99; this.lw = 0; this.xw = 0; this.dg = 0; this.lcT = 0; this.pass = null; this.dest = null; this.unstick = false; this.why = 0; this.apN = null; this.far = false;
   }
   /** kind: { id, asset, vmax }, params: art params (color, route, free...) */
   setKind(kind, params) {
@@ -76,7 +76,7 @@ export class Veh {
 
 /* ---------- junction boxes: who holds them, whose paths cross ---------- */
 export function leaveNode(v) { const n = v.inNode; if (n) { const i = n.inn.indexOf(v); if (i >= 0) { n.inn[i] = n.inn[n.inn.length - 1]; n.inn.pop(); } n.occ = n.inn.length; v.inNode = null; v.nmk = -1; } }
-function enterNode(v, n) { leaveNode(v); n.inn.push(v); n.occ = n.inn.length; v.inNode = n; v.nmk = v.mk; v.lw = 0; v.xw = 0; const a = v.e.axis === 'x' ? 0 : 1; if (n.cl[a] === v) n.cl[a] = null; }
+function enterNode(v, n) { leaveNode(v); leaveAp(v); n.inn.push(v); n.occ = n.inn.length; v.inNode = n; v.nmk = v.mk; v.lw = 0; v.xw = 0; const a = v.e.axis === 'x' ? 0 : 1; if (n.cl[a] === v) n.cl[a] = null; }
 /** movement key of a vehicle through its next node: entry edge + lane, exit edge + lane, long vehicle (bus / truck) or not */
 const mkOf = (e, off, ne, noff, long) => ne ? (((e.id * 512 + ne.id) * 4) + (off === 3 ? 2 : 0) + (noff === 3 ? 1 : 0)) * 2 + (long ? 1 : 0) : -1;
 const setMk = v => { v.mk = mkOf(v.e, v.off, v.ne, v.noff, v.len > 5); };
@@ -140,20 +140,15 @@ function canEnter(v, n, ror) {
 }
 function boxConflict(v, n, mk) { const I = n.inn; for (let i = 0; i < I.length; i++) if (I[i] !== v && conflict(n, mk, I[i].nmk)) return true; return false; }
 
-/** once a frame, before the vehicles are stepped: distance of every vehicle to its stop line, and who is approaching which junction */
-const touched = [];
-export function prepass(dt) {
-  for (let i = 0; i < touched.length; i++) touched[i].ap.length = 0; touched.length = 0; const L = T.list; T.tick++;
-  for (let i = 0; i < L.length; i++) {
-    const v = L[i], e = v.e, n = e.to; if (v.parked) { v.ln = 99; v.stuck += dt; continue; } if (n.dead || v.inNode === n) { v.ln = 99; continue; }
-    const ax = e.axis === 'x'; v.ln = (e.s1 - e.d * ((ax ? n.hx : n.hy) + 1.4) - v.s) * e.d - v.len / 2;
-    if (v.ln < 18 && !v.halt) { if (!n.ap.length) touched.push(n); n.ap.push(v); }
-  }
-}
+/* who is approaching which junction (node.ap): a vehicle joins the list of its next node when it is within 18 of the stop line and leaves it when it enters the box,
+   halts, parks or is taken off the road (kept up to date as vehicles move: no pass over all vehicles every frame) */
+export function leaveAp(v) { const n = v.apN; if (n) { const A = n.ap, i = A.indexOf(v); if (i >= 0) { A[i] = A[A.length - 1]; A.pop(); } v.apN = null; } }
+/** take a vehicle out of every junction list (before it is released or put somewhere else) */
+export function detach(v) { leaveNode(v); leaveAp(v); }
 
 /** put a vehicle on a lane (resets turn state) */
 export function place(v, e, off, s) {
-  leaveNode(v); v.e = e; v.off = off; v.s = s; v.lat = e.c + e.ls * (off + v.curb); v.cornerOn = false; v.bb = e.axis === 'x' ? v.bbX : v.bbY; v.pass = null; v.dg = 0; v.lw = 0; v.xw = 0;
+  detach(v); v.e = e; v.off = off; v.s = s; v.lat = e.c + e.ls * (off + v.curb); v.cornerOn = false; v.bb = e.axis === 'x' ? v.bbX : v.bbY; v.pass = null; v.dg = 0; v.lw = 0; v.xw = 0;
   if (e.axis === 'x') { v.x = s; v.y = v.lat; } else { v.x = v.lat; v.y = s; } v.z = T.world.heightAt(v.x, v.y); chooseNext(v);
 }
 /** follow a route() result (or {edges, offs}) from index k. A route with an end (`to`) is remembered as the vehicle's destination, so it can be re-routed round a blocked street. */
@@ -216,7 +211,7 @@ export function step(v, dt) {
   const ps = v.pass; if (ps && (!ps.active || ps.e.axis !== e.axis)) v.pass = null;
   for (let i = 0; i < L.length; i++) {
     const o = L[i]; if (o === v) continue; const rx = o.x - v.x, ry = o.y - v.y, al = (ax ? rx : ry) * d; if (al < -6 || al > 26) continue;
-    const la = Math.abs(ax ? ry : rx), par = o.e.axis === e.axis; if (la > (par ? 2.4 : hw + o.len / 2 - .1)) continue; const ohl = par ? o.len / 2 : o.wid / 2;
+    const la = Math.abs(ax ? ry : rx); if (la > 5.2) continue; const par = o.e.axis === e.axis; if (la > (par ? 2.4 : hw + o.len / 2 - .1)) continue; const ohl = par ? o.len / 2 : o.wid / 2;
     if (par && (o.parked || o.halt) && o.v < .1 && (o.curb >= .5 || o === v.pass)) {   // something standing at the kerb (a stand cab, a waiting cab), or the obstacle being overtaken: go round it
       /* on a road with two lanes each way the swerve takes part of the inside lane: only when nobody is beside or just behind there (else wait behind the parked car) */
       if (al > -hl - ohl - 1.5 && al < 10) { const need = o === v.pass ? 1.5 : .8; if (need > dodge && (!multi || v.off !== 3 || v.dg > .5 || laneFree(v, 1, -99))) dodge = need; } if (la < (o === v.pass ? 1.2 : 1) && al > 0 && v.gho <= 0) { const a2 = al - hl - ohl - .5; if (a2 < adv) adv = a2; } continue;
@@ -274,6 +269,7 @@ export function step(v, dt) {
       } else if (line < .5 + v.v * v.v / 28) enterNode(v, n);
     }
   }
+  if (n.dead || v.inNode === n) v.ln = 99; if (v.ln < 18 && !v.halt) { if (v.apN !== n) { leaveAp(v); n.ap.push(v); v.apN = n; } } else if (v.apN) leaveAp(v);
   let vm = v.vmax; if (v.cornerOn) vm = Math.min(vm, 5); else if (v.ne && v.ne.axis !== e.axis && (v.turnS - v.s) * d < 4) vm = Math.min(vm, 4.2); if (slowTo < vm) vm = slowTo; if (dodge > 1 && vm > 5) vm = 5;
   const tv = adv <= .02 ? 0 : Math.min(vm, Math.sqrt(14 * adv));
   if (tv > v.v) v.v = Math.min(tv, v.v + 4.5 * dt * v.acc); else v.v = Math.max(tv, v.v - 16 * dt);

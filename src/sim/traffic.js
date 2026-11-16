@@ -19,7 +19,7 @@ import { GT } from '../engine/world.js';
 import { ASSETS } from '../art/registry.js';
 import { getCity } from '../world/_city.js';
 import { buildGraph } from './_traffic_graph.js';
-import { T, TUNE, Veh, step, place, setPlan, leaveNode, prepass } from './_traffic_veh.js';
+import { T, TUNE, Veh, step, place, setPlan, detach, leaveAp } from './_traffic_veh.js';
 
 export const order = 60;
 let graph = null, world = null, C = null, ready = false;
@@ -45,7 +45,7 @@ const DDENS = { downtown: 1, oldtown: .7, harbor: .6, hillcrest: .3, maplewood: 
 const timeF = h => h < 5 ? .07 : h < 7 ? .07 + (h - 5) * .4 : h < 9.5 ? 1 : h < 16 ? .62 : h < 19 ? 1 : h < 22 ? .5 : .2;
 
 const all = [], free = [], near = []; let nearW = 0, simR = 40, mx = 25, my = 29, target = 0, refill = true, fx = 0, fy = 0, lfx = -999, lfy = -999, tA = 0, tB = 0, tP = 0;
-const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0, tG = 0;
+const buses = [], loops = {}, stands = [], sigNodes = [], SN = ['red', 'amber', 'green'], tmp = {}; let tL = 0, tG = 0, sigDt = 0, pdt = 0;
 
 function onScreen(x, y, m) { const sx = (x - y) * U - G.cam.x, sy = (x + y) * U / 2 - world.heightAt(x, y) * U - G.cam.y; return sx > -m && sx < G.W + m && sy > -m && sy < G.H + m + 30; }
 function countKind(k) { let n = 0; for (const v of T.list) if (v.kind === k) n++; return n; }
@@ -63,11 +63,12 @@ function spawn(kindId, ref, opts) {
   v.active = true; v.hidden = false; place(v, ref.e, ref.off || 1, ref.s); T.list.push(v); v.prebake(300);   /* perf: its sprite is baked ahead (vehicles spawn off screen), not in the frame it drives into view */ return v;
 }
 function release(v) {
-  const i = T.list.indexOf(v); if (i < 0) return; T.list[i] = T.list[T.list.length - 1]; T.list.pop(); leaveNode(v);
+  const i = T.list.indexOf(v); if (i < 0) return; T.list[i] = T.list[T.list.length - 1]; T.list.pop(); detach(v);
   if (v.stand) { const j = v.stand.cabs.indexOf(v); if (j >= 0) v.stand.cabs.splice(j, 1); } if (v.bus) v.bus.veh = null;
   v.reset(); v.active = false; v.hidden = true; free.push(v);
 }
 function clearLane(x, y, r) { for (const o of T.list) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r) return false; return true; }
+const AS = GT.asphalt, nearRoad = (x, y) => world.tileType(x, y) === AS || world.tileType(x + .7, y) === AS || world.tileType(x - .7, y) === AS || world.tileType(x, y + .7) === AS || world.tileType(x, y - .7) === AS;
 /** nobody within r along the lane of lane ref q (other lanes and the oncoming side do not count) */
 function laneClear(q, r) { const ax = q.e.axis === 'x'; for (const o of T.list) { if (o.parked && o.curb >= .5) continue; if (o.e.axis !== q.e.axis) { if (Math.abs(o.x - q.x) < 5 && Math.abs(o.y - q.y) < 5) return false; continue; } if (Math.abs(ax ? o.y - q.y : o.x - q.x) < 1.4 && Math.abs(ax ? o.x - q.x : o.y - q.y) < r) return false; } return true; }
 function trySpawn(prefill, h) {
@@ -99,7 +100,7 @@ function signals(dt) {
   const t = T.time;
   for (let i = 0; i < sigNodes.length; i++) {
     const n = sigNodes[i]; let gx, gy;
-    if (n.sAx === undefined) { const ph = (t + n.phase) % 19.2; n.sAx = ph < 9.6 ? 'x' : 'y'; n.sT = ph < 9.6 ? ph : ph - 9.6; n.sAm = n.sT >= 8; }
+    if (n.sAx === '') { const ph = (t + n.phase) % 19.2; n.sAx = ph < 9.6 ? 'x' : 'y'; n.sT = ph < 9.6 ? ph : ph - 9.6; n.sAm = n.sT >= 8; }
     if (n.pre && n.preT > t) { gx = n.pre === 'x' ? 2 : 0; gy = 2 - gx; n.sAx = n.pre; n.sT = 0; n.sAm = false; }
     else {
       n.pre = ''; n.sT += dt;
@@ -191,7 +192,7 @@ function rebuildNear() {
 function housekeeping() {
   // despawn
   for (let i = T.list.length - 1; i >= 0; i--) {
-    const v = T.list[i], dx = v.x - fx, dy = v.y - fy, d2 = dx * dx + dy * dy;
+    const v = T.list[i], dx = v.x - fx, dy = v.y - fy, d2 = dx * dx + dy * dy; v.far = !v.ride && !onScreen(v.x, v.y, 64);
     if (v.bus) { if (d2 > (simR + 14) * (simR + 14) && v.role === 'bus') { busU(v.bus); release(v); } continue; }
     if (v.stand) { if (d2 > (simR + 12) * (simR + 12)) release(v); continue; }
     if (v.keep) continue;
@@ -259,14 +260,15 @@ function update(dt, gm) {
   if (!ready && !ensure()) return;
   for (let i = 0; i < buses.length; i++) if (!buses[i].veh) busAbstract(buses[i], gm);
   if (G.scene !== C) return;
-  T.time += dt; T.lit = !!G.env && (G.env.dark || 0) > .35; signals(dt);
+  T.time += dt; T.lit = !!G.env && (G.env.dark || 0) > .35; sigDt += dt; if ((T.tick % 3) === 0) { signals(sigDt); sigDt = 0; }   /* perf: the lights are worked out every third step */
   const f = G.camTarget || G.player; fx = f.x; fy = f.y; mx = G.W / 32 + 12; my = G.H / 16 + 12; simR = Math.max(34, Math.min(70, Math.hypot(mx, my) / 1.414 + 2));
   if (Math.abs(fx - lfx) + Math.abs(fy - lfy) > 30) { refill = true; for (let i = T.list.length - 1; i >= 0; i--) { const v = T.list[i]; if (!v.keep) release(v); } tB = 0; tA = 0; } lfx = fx; lfy = fy;
-  if ((tP -= dt) <= 0) { tP = .15; const P = T.peds; P.length = 0; const E = C.ents, r2 = (simR + 6) * (simR + 6); for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.isVehicle || !e.spec || e.hidden) continue; const dx = e.x - fx, dy = e.y - fy; if (dx * dx + dy * dy < r2) P.push(e); } }
+  if ((tP -= dt) <= 0) { tP = .15; const P = T.peds; P.length = 0; const E = C.ents, r2 = (simR + 6) * (simR + 6); for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.isVehicle || !e.spec || e.hidden) continue; const dx = e.x - fx, dy = e.y - fy; if (dx * dx + dy * dy < r2 && (e.isPlayer || nearRoad(e.x, e.y))) P.push(e); } }   /* perf + sense: only people on or right at the roadway matter to drivers (someone standing a step back from the kerb is not in the way) */
   if ((tB -= dt) <= 0) { tB = 1; rebuildNear(); }
   if ((tA -= dt) <= 0) { tA = .22; housekeeping(); fill(dt); }
-  const L = T.list; prepass(dt);
-  for (let i = 0; i < L.length; i++) { const v = L[i]; if (!v.parked) step(v, dt); else if (!v.stand && v.curb < TUNE.cabKerb) kerbIn(v, dt); }
+  /* perf: a vehicle that is well out of view (v.far, set in housekeeping) is stepped every other time with the two time steps added up; the ones in view every time */
+  const L = T.list, tk = ++T.tick, dt2 = dt + pdt; pdt = dt;
+  for (let i = 0; i < L.length; i++) { const v = L[i]; if (!v.parked) { if (!v.far) step(v, dt); else if ((v.uid + tk) & 1) step(v, dt2); } else { v.stuck += dt; if (v.apN) leaveAp(v); if (!v.stand && v.curb < TUNE.cabKerb) kerbIn(v, dt); } }
   for (let i = 0; i < buses.length; i++) { const b = buses[i]; if (b.veh && b.atStop) { if (!b.hold) b.dwell -= dt; if (b.dwell <= 0) { busU(b); dwellDone(b); } } }
   // QA round 3: a real bus with the player's (ridden, pre-empting) bus close behind it on the same route drives at ride pace too, so the ride is not stuck behind it stop after stop
   if ((tG -= dt) <= 0) { tG = 1; gaps(); }

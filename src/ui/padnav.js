@@ -251,7 +251,7 @@ function move(dx, dy) {
     if (a.left >= q.left - 1 && a.right <= q.right + 1 && a.top >= q.top - 1 && a.bottom <= q.bottom + 1) { if (!outer || q.width * q.height < outerA) { outer = c; outerA = q.width * q.height; } continue; }   // the thing the focus is inside: where a move ends up when nothing else lies that way
     /* "that way" = its middle lies that way and it is past the focus's edge (a thing in the same row / column may overlap a little) */
     if (ctr > 2 && (side <= 0 ? fwd > -Math.min(dx ? a.width : a.height, dx ? q.width : q.height) * .6 : fwd >= 0)) {
-      const g = Math.max(0, fwd) + (c.box ? 140 : 0);   // a box with things in it (the map): its contents first
+      const g = Math.max(0, fwd);
       if (side > 0 && side > (fwd + 40) * 2.5) { if (dy) { const fsc = g + side * TW.sideWeight; if (fsc < fs) { fs = fsc; far = c; } } continue; }   // far off to the side: not "that way" (up / down: unless nothing else is: a footer's buttons under a wide panel)
       cands.push({ c, g, side, off });
     } else if (side <= 0 && ctr < -2) { const sw = -ctr; if (sw > ws) { ws = sw; wrap = c; } }   // same row / column, the far end: where a wrap lands
@@ -267,6 +267,13 @@ function move(dx, dy) {
       for (const q of cands) if (q.g <= gmin + TW.rowTol) { const sc2 = q.side + q.off * .25 + (q.g - gmin) * .5; if (sc2 < bs) { bs = sc2; best = q.c; } }
     }
   }
+  /* BOXES (a thing with other things on it: the map with its buttons and its list panel).
+     Into a box: if something on it is straight ahead of the focus, go to that (the list's first row), else onto the box itself.
+     Inside a box: a move toward more of the box goes onto the box, not past it to something outside. */
+  if (best && best.box) { const q0 = rectOf(best); let inner = null, ig = 1e9;
+    for (const c of list) { if (c === best || c.e === focus || !best.e.contains(c.e)) continue; const q = rectOf(c); const sd = dx ? Math.max(q.top - a.bottom, a.top - q.bottom) : Math.max(q.left - a.right, a.left - q.right); if (sd > 0) continue; const g = dx ? (dx > 0 ? q.left - q0.left : q0.right - q.right) : (dy > 0 ? q.top - q0.top : q0.bottom - q.bottom); if (g < ig) { ig = g; inner = c; } }
+    if (inner) best = inner; }
+  if (outer && best && !outer.e.contains(best.e)) { const o = rectOf(outer), more = dx ? (dx > 0 ? o.right - a.right : a.left - o.left) : (dy > 0 ? o.bottom - a.bottom : a.top - o.top); if (more > 24) best = outer; }
   if (!best) {
     /* nothing further that way: scroll the list if it can, else wrap along the row / column */
     const sc = scCache && scroller(focus) || mainScroller();

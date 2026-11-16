@@ -15,7 +15,8 @@ const clinic = [
   F('clinic.chairs', ['waiting_room', 'clinic', 'bank', 'office', 'seating', 'waiting'], p => [(p.n || 3) * .5, .5, 1], p => {
     const n = p.n || 3, c = p.c || T; tube([.05, .2, .2], [n * .5 - .05, .2, .2], CH); post(.08, .1, 0, .2, CH); post(.08, .42, 0, .2, CH); post(n * .5 - .08, .42, 0, .2, CH); post(n * .5 - .08, .1, 0, .2, CH);
     for (let i = 0; i < n; i++) { const x = i * .5; bx(x + .05, .04, .45, .4, .07, .45, c); bx(x + .05, .04, .37, .4, .42, .08, lt(c, .08)); lw([x + .05, .46, .45], [x + .45, .46, .45], lt(c, .4)); }
-  }, { seats: p => Array.from({ length: p.n || 3 }, (_, i) => ({ x: .25 + i * .5, y: .25, z: .45, dir: 1 })), variants: [{ n: 3 }, { n: 4, c: '#4a7ac0' }, { n: 2, c: '#e8843a' }] }),
+  }, { /* QA r15 B6: two sitters on neighbouring chairs (0.5 apart) overlapped by half a body: seats on every other chair, spread over the row (n 2: 1 seat, 3: chairs 1+3, 4: 1+4, 5: 1+3+5) */
+    seats: p => { const n = p.n || 3, k = Math.ceil(n / 2); return Array.from({ length: k }, (_, j) => ({ x: .25 + (k === 1 ? 0 : Math.round(j * (n - 1) / (k - 1))) * .5, y: .25, z: .45, dir: 1 })); }, variants: [{ n: 3 }, { n: 4, c: '#4a7ac0' }, { n: 2, c: '#e8843a' }] }),
 
   F('clinic.exambed', ['exam_room', 'clinic', 'exam', 'bed', 'nursestation'], [2, 1, 1], p => {
     const c = p.c || '#4a7ac0'; box(.1, .15, 0, 1.8, .7, .6, W); qy(.1, 1.9, .85, 0, .08, '#8a9098'); frameY(.2, .95, .85, .14, .52, '#aab2ba'); frameY(1.05, 1.8, .85, .14, .52, '#aab2ba');

@@ -33,7 +33,7 @@ room({ id: 'library', name: 'Maple Bay Public Library', w: 14, d: 11, music: 'qu
     V('books.lowshelf', 3, 5.5, { seed: 5 }), V('books.lowshelf', 5, 5.5, { seed: 6, plant: true }),
     V('library.storycorner', .5, 7.5, null, { n: 'seats staff', ns: 2 }),
     V('library.desk', 5, 7.5, null, { n: 'staff use' }), V('library.cart', 8.5, 7), V('library.catalog', 10.5, 7.5), V('library.globe', 13, 7.5),
-    V('cafe.armchair', 12.5, 8.5, { c: '#4a7a6a' }, { n: 'seats' }), V('library.returns', 11, 9.5), V('generic.plant', 13.5, 10.5), V('generic.floorlamp', 13.5, 9.5),
+    V('cafe.armchair', 12.5, 8.5, { c: '#4a7a6a' }, { n: 'seats' }), V('library.returns', 11, 9.5), V('generic.plant', 13.5, 10.5), V('generic.floorlamp', 12.5, 8),   /* QA r15 B1: was (13.5, 9.5), camera-side of the armchair: its shade covered the sitter's face; now behind the chair, by the globe */
   ],
   npc: [S(8, 1.2, 3)],
   exits: [{ x: 8.5, y: 10.5 }] });
