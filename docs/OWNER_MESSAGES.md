@@ -967,3 +967,6 @@ This scene in the intro show a broken building. Is that in the game? Can we fix 
 
 ## 241 (2026-11-17)
 A lot of of te food stands and food carts have no worker tending to them. Put peiple at the carts.
+
+## 242 (2026-11-17)
+Thanks for making them face out. But manu of them are off to the side. They should be directly behind the cart/counter

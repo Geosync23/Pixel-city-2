@@ -21,19 +21,40 @@ const UNI = { stand_coffee: 'barista', stand_hotdog: 'cook', stand_taco: 'cook',
 const vendors = []; // {c, h:[open, close]}
 const openAt = (hr, h) => (hr >= h[0] && hr < h[1]) || (hr + 24 >= h[0] && hr + 24 < h[1]);
 function vendorTick() { const hr = (G.now && G.now().hf) || 12; for (const v of vendors) v.c.hidden = !openAt(hr, v.h); }
+// owner msg 242: directly BEHIND the counter. Gelato / coffee carts: a plain worker behind the cart (the cart covers the legs).
+// Grill carts, food trucks, harbor shacks, market stalls: the worker stands inside / behind and only the part seen through the serving
+// window (or above the counter) is drawn, sorted just in front of the prop. Local frame of the unflipped prop: +y is the customer side.
+// v: where the worker stands, vz: floor height, f: the face the window is on (local y), a: window span along x, z: window bottom/top (null = open above)
+const SPOT = [
+  ['prop.street.cart.icecream', { v: [1, -.4], plain: true }], ['prop.street.cart.coffee', { v: [1, -.4], plain: true }],
+  ['prop.street.cart', { v: [1, -.35], f: 0, a: [-1, 3], z: [1.12, null] }],
+  ['prop.street.foodtruck', { v: [1.6, 1.4], vz: .15, f: 1.8, a: [.55, 2.45], z: [1.25, 2.1] }],
+  ['prop.harbor.foodshack', { v: [1.5, 2.0], vz: 0, f: 2.4, a: [.45, 2.55], z: [1.0, 1.95] }],
+  ['prop.street.stall', { v: [1.5, .45], vz: 0, f: .8, a: [.1, 2.9], z: [1.05, null] }],
+];
+class Vendor extends Char {
+  sprite() {
+    const s = super.sprite(); if (!s || !this._poly) return s; const U = 16, ax = Math.round((this.x - this.y) * U), ay = Math.round((this.x + this.y) * U / 2 - this.z * U), ox = s.x + ax, oy = s.y + ay;
+    const c = this._cv || (this._cv = document.createElement('canvas')); if (c.width !== s.w || c.height !== s.h) { c.width = s.w; c.height = s.h; } const x = c.getContext('2d');
+    x.clearRect(0, 0, s.w, s.h); x.save(); x.beginPath(); this._poly.forEach((q, i) => (i ? x.lineTo : x.moveTo).call(x, q[0] - ox, q[1] - oy)); x.closePath(); x.clip(); x.drawImage(s.c, 0, 0); x.restore();
+    const o = this._so || (this._so = {}); o.c = c; o.x = s.x; o.y = s.y; o.w = s.w; o.h = s.h; return o;
+  }
+}
 function addVendor(s, w, ob, f, vid, i) {
-  if (!ob.id.startsWith('prop.')) return; const cx = (ob.B[0] + ob.B[3]) / 2, cy = (ob.B[1] + ob.B[4]) / 2, hx = (ob.B[3] - ob.B[0]) / 2, hy = (ob.B[4] - ob.B[1]) / 2;
-  let dx = cx - f.x, dy = cy - f.y; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
-  // gelato / coffee carts: behind the counter. Grill carts (low umbrella), trucks, shacks and market stalls hide anyone behind them,
-  // so there the worker stands at the near end of the counter, on the serving side, facing the queue.
-  const ax = Math.abs(dx) > Math.abs(dy), behind = /cart\.(icecream|coffee)/.test(ob.id);
-  const back = ax ? [cx + Math.sign(dx) * (hx + .45), cy] : [cx, cy + Math.sign(dy) * (hy + .45)];
-  const fe = ax ? -Math.sign(dx) : -Math.sign(dy), end = ax ? [cx + fe * (hx - .5), cy + hy + .5] : [cx + hx + .5, cy + fe * (hy - .5)];
-  const end2 = ax ? [cx + fe * (hx - .5), cy - hy - .5] : [cx - hx - .5, cy + fe * (hy - .5)];
-  const at = (behind ? [back, end, end2] : [end, end2, back]).find(q => !w.isBlocked(q[0], q[1])); if (!at) return;
-  if (s.ents.some(e => e instanceof Char && e._coach && Math.hypot(e.x - at[0], e.y - at[1]) < 2)) return; // the market trader already stands here
+  const sp = SPOT.find(e => ob.id.startsWith(e[0])); if (!sp) return; const d = sp[1], fl = !!ob.flip;
+  const W = (lx, ly) => fl ? [ob.x + ly, ob.y + lx] : [ob.x + lx, ob.y + ly]; const at = W(d.v[0], d.v[1]);
+  if (d.plain && w.isBlocked(at[0], at[1])) return;
+  if (s.ents.some(e => e instanceof Char && e._coach && Math.hypot(e.x - at[0], e.y - at[1]) < 2.5)) return; // the market trader already stands here
   const A = charArt(), spec = Object.assign({}, A.randomSpec(rng(9100 + i * 17), { age: 'adult', season: 1 }), { bag: null, outfit: UNI[vid] || 'grocer' });
-  const c = new Char(spec, at[0], at[1]); c.z = w.heightAt(at[0], at[1]); if (ax) c.face(-dx, 0); else c.face(0, -dy); c._vendor = true; c.label = 'Vendor'; s.ents.push(c); vendors.push({ c, h: HOURS[vid] || [8, 20] });
+  const c = d.plain ? new Char(spec, at[0], at[1]) : new Vendor(spec, at[0], at[1]); c.z = d.plain ? w.heightAt(at[0], at[1]) : ob.z + (d.vz || 0);
+  if (fl) c.face(1, 0); else c.face(0, 1); c._vendor = true; c.label = 'Vendor';
+  if (!d.plain) {
+    const U = 16, P = (lx, ly, z) => { const q = W(lx, ly); return [(q[0] - q[1]) * U, (q[0] + q[1]) * U / 2 - (ob.z + z) * U]; }, z1 = d.z[1] == null ? 40 : d.z[1];
+    c._poly = [P(d.a[0], d.f, d.z[0]), P(d.a[1], d.f, d.z[0]), P(d.a[1], d.f, z1), P(d.a[0], d.f, z1)];
+    const sy = ob.a.size[1], b0 = W(d.v[0] - .3, sy + .05), b1 = W(d.v[0] + .3, sy + .15); // sorted just in front of the prop's footprint
+    c.bb = [Math.min(b0[0], b1[0]) - at[0], Math.min(b0[1], b1[1]) - at[1], Math.max(b0[0], b1[0]) - at[0], Math.max(b0[1], b1[1]) - at[1], 2];
+  }
+  s.ents.push(c); vendors.push({ c, h: HOURS[vid] || [8, 20] });
 }
 const spots = []; // glow markers: {x, y, z, on()}
 let mat = null;

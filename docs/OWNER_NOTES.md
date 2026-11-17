@@ -207,3 +207,4 @@
 187. (msg 239) TITLE SCREEN scenes cycle faster: about 6-7 s each (was 24 s); keep the order. Done (7 s) in Stage 112.
 188. (msg 240) A BROKEN-LOOKING BUILDING in the title's City Hall view: it was in the game everywhere (the City Hall art itself). Fixed by the lead (Opus) in Stage 113.
 189. (msg 241) FOOD CARTS/STANDS had nobody working them: put people at the carts. Done by the lead (Opus) in Stage 114: 19 vendors in uniform, there during each stand's hours.
+190. (msg 242) Vendors were off to the side: put them DIRECTLY BEHIND the cart/counter. Done in Stage 115 (in truck windows, shack hatches, behind grill/market counters).
