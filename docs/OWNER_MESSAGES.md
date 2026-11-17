@@ -976,3 +976,6 @@ Now their heads  clip through. I kmow if you occlude them you cant sre them but 
 
 ## 244 (2026-11-17)
 All rhe ones wirh awnings are clipping. Just hide them like you did woru the bread stand. Only see vendors at open stands and those look good
+
+## 245 (2026-11-17)
+The Fable agent working on the lighting fix maxed out usage. Im surprised. It used so much then didn't finish.

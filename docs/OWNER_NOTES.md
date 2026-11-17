@@ -210,3 +210,4 @@
 190. (msg 242) Vendors were off to the side: put them DIRECTLY BEHIND the cart/counter. Done in Stage 115 (in truck windows, shack hatches, behind grill/market counters).
 191. (msg 243) Vendor heads were drawn over awnings: only where an awning/parasol blocks, slide them until visible; none on stands where that can't work. Done in Stage 116 (market stall has none now).
 192. (msg 244) Vendors at stands with awnings clip: remove them; keep vendors only at the open stands (those look good). Done in Stage 117: 8 vendors at the gelato and grill carts.
+193. (msg 245) Owner surprised the Fable lighting worker used up the Fable limit and didn't finish. Lead explained (hard engine problem, many build/screenshot/perf rounds, large render.js); the unfinished work is saved in the repo, left out of builds.
