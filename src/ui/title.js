@@ -82,7 +82,7 @@ function startPan() {
   const w = G.world, p = G.player; p.hidden = true; p.stop && p.stop();
   const q = G.query, cl = (v, m) => Math.max(6, Math.min(m - 6, v));
   const views = VIEWS.map(v => { const o = (w.pois || []).find(o => o && o.name === v[0] && isFinite(o.x) && isFinite(o.y)); const x = (o ? o.x : v[1]) + v[3], y = (o ? o.y : v[2]) + v[4]; return [cl(x - v[5] / 2, w.w), cl(y - v[6] / 2, w.h), cl(x + v[5] / 2, w.w), cl(y + v[6] / 2, w.h)]; });
-  let vi = Math.max(0, Math.min(views.length - 1, q && q.has('tview') ? +q.get('tview') | 0 : 0)), s = 0, cutting = false; const DUR = 24;
+  let vi = Math.max(0, Math.min(views.length - 1, q && q.has('tview') ? +q.get('tview') | 0 : 0)), s = 0, cutting = false; const DUR = 7;   /* seconds per view (owner msg 239: was 24; same order) */
   const cam = { x: views[vi][0], y: views[vi][1], z: w.heightAt(views[vi][0], views[vi][1]) };
   const cut = { title: true, update(dt) {
     p.hidden = true; const v = views[vi]; s = Math.min(1, s + dt / DUR); const e = s * s * (3 - 2 * s) * .9 + s * .1;

@@ -204,3 +204,4 @@
 184. (msg 236) Owner asleep: let the LIGHTING fix and the OPUS creator job finish, then STOP (start nothing else). Lead checks and publishes each, publishes the song listening page for him to hear in the morning, then writes the final hand-off for the account move and gives the final commit id.
 185. (msg 237) The FABLE LIMIT was hit (resets Nov 21, 08:00 UTC); the owner switched this lead session to OPUS 5.5. Creator song = B 'Window Shopping' and it must START RIGHT AWAY; the intro's phone tip must not cover Nora's text banner. Both done by the lead (Opus) in Stage 110.
 186. (msg 238) TITLE SCREEN: first a single START button; tapping it unlocks the sound (browsers need a tap) and shows Continue / New Game / Settings. Done by the lead (Opus) in Stage 111.
+187. (msg 239) TITLE SCREEN scenes cycle faster: about 6-7 s each (was 24 s); keep the order. Done (7 s) in Stage 112.
