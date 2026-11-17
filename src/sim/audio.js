@@ -208,7 +208,7 @@ function stopMusic(fade, giveBack) { if (player) { endTune(fade, false, giveBack
 function unhold() { if (held) { bagPutBack(mus(), held.key, held.id); held = null; } }
 function startTune(want) {
   const st = mus(), t0 = typeof performance !== 'undefined' ? performance.now() : 0; let id, key = want.key;
-  if (!forced && key === 'creator') { unhold(); player = new CreatorPlayer(A.ctx, CREATOR_SONG, buses.music, buses.send, { fade: 1.5 }); player.schedule(A.ctx.currentTime + .3); cur = { g: 'creator', key, id: CREATOR_SONG, pool: key }; track = CREATOR_SONG; wound = false; startMs = 0; return; }   /* outside the bags */
+  if (!forced && key === 'creator') { unhold(); player = new CreatorPlayer(A.ctx, CREATOR_SONG, buses.music, buses.send, { fade: .35 }); player.schedule(A.ctx.currentTime + .06); cur = { g: 'creator', key, id: CREATOR_SONG, pool: key }; track = CREATOR_SONG; wound = false; startMs = 0; return; }   /* outside the bags */
   const ck = !forced && isCK(key);
   if (forced) { id = forced; key = 'forced'; } else if (ck) { unhold(); id = 'classic_' + key.slice(8); if (id === 'classic_title') titleSeen = true; } else if (held && held.key === key) { id = held.id; held = null; } else { unhold(); id = bagDraw(st, key); }
   const song = songOf(id); if (!song) { musicGap = 10; forced = null; return; }
@@ -218,6 +218,8 @@ function startTune(want) {
 }
 function musicTick(dt, c) {
   const want = mwant || (mwant = musicCtx());
+  /* owner msg 237: the creator's song starts RIGHT AWAY: whatever plays (or the gap between title tunes) gives way at once */
+  if (want.g === 'creator' && !forced && (!player || !cur || cur.g !== 'creator')) { if (player) stopMusic(.3, true); startTune(want); return; }
   if (player) {
     player.schedule(c.currentTime + .45);
     if (!wound && !forced && want.g !== 'keep' && want.g !== cur.g) endTune(1.6, true, true);   /* another kind of place: finish the bar, fade */

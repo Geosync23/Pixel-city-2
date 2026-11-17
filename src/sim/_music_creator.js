@@ -9,7 +9,7 @@ import { A, mulberry, makeBuffers } from './_audio_lib.js';
 import { TRACKS, Session } from './_music_classic.js';
 
 /** THE SWITCH: which candidate the game plays in the creator. One word: 'creator_a' | 'creator_b' | 'creator_c'. */
-export const CREATOR_SONG = 'creator_a';
+export const CREATOR_SONG = 'creator_b';   /* owner msg 237: B 'Window Shopping' */
 
 const CMAJOR = [0, 2, 4, 5, 7, 9, 11];
 /* trims (dB) that put each candidate at the loudness of Classic: Indoors as the game plays it (tools/creator_song_page.mjs --check measures them) */

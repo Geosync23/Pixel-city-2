@@ -950,3 +950,8 @@ The lighting has taken a very long time are we close
 
 ## 236 (2026-11-17)
 Ok lighting and let opus finish the current task then stop. Thanks goodnight
+
+## 237 (2026-11-17) [session model switched to Opus 5.5 by the owner after the Fable limit was hit]
+Go with song b. But it takes too long to start playing once in the character creator. Make start right away.
+
+Also -  The tip to check your phone covers the view of the text message Nora sent (bar at the top  of the screen in the intro. ) they shouldn't overlap
