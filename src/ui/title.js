@@ -182,14 +182,16 @@ async function cont() {
 }
 
 /* ---------- new game ---------- */
+/* G.inCreator: true from New Game until Move in (creator, traits, home picker). src/sim/audio.js silences the city then and plays the creator's song. */
+function creatorPhase(on) { if (!!G.inCreator === on) return; G.inCreator = on; G.emit('creator', on); }
 async function newGame(step) {
-  hideTitleDom();
+  hideTitleDom(); creatorPhase(true);
   let who = null, homeId = null;
   for (;;) {
     if (step === 'homes') { const A = charArt(); who = { name: 'Alex', spec: (A.PLAYER_PRESETS || [])[0] || G.state.player.spec }; }
     else {
       who = await openCreator({ mode: 'new', spec: who && who.spec, name: who && who.name });
-      if (!who) { buildTitle(); return; }
+      if (!who) { creatorPhase(false); buildTitle(); return; }
       if (!(await traitStep())) continue;   /* pick 3 traits (src/sim/traits.js); Back returns to the creator */
     }
     step = null;
@@ -273,7 +275,7 @@ async function commitNewGame(name, spec, homeId) {
   if (!G.stateDefaults.home) G.defineState('home', () => ({ id: null }));
   if (!G.state.home || typeof G.state.home !== 'object') G.state.home = {};
   G.state.home.id = homeId;
-  stopPan(false); closeTitle();
+  creatorPhase(false); stopPan(false); closeTitle();
   G.introHandled = false; G.player.hidden = false;
   G.emit('game:new', { name, spec, homeId });
   if (!G.introHandled) await G.go('city', { poi: 'spawn:airport' });

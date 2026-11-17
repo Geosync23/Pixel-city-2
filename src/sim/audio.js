@@ -37,6 +37,7 @@ import { INST } from './_music_synth.js';
 import { pool as musicPool, draw as bagDraw, played as bagPlayed, putBack as bagPutBack, timeOf, whereOf, POOL_INFO, TIMES, DISTRICTS, SEASONS, CLASSIC_IN, weight as bagWeight } from './_music_pools.js';
 import { LEVELS, CLASSIC_LEVELS } from './_music_levels.js';
 import { ClassicPlayer, CLASSICS, CLASSIC_IDS, TRACKS as CLASSIC_TRACKS, renderClassic } from './_music_classic.js';
+import { CreatorPlayer, CREATOR_SONG, CREATOR_TUNES } from './_music_creator.js';
 import { BedMixer, sceneFor, BED_ON, BED_GAIN, PLACES, PHASES, INDOOR as BED_ROOMS } from './_audio_bed.js';
 import { STRETCHES } from '../data/ambience_audio.js';
 import { choose } from '../ui/kit.js';
@@ -52,6 +53,11 @@ const safe = (f, d) => { try { return f(); } catch (e) { return d; } };
 let sfxPlayed = 0, errors = 0, lastErr = '', musicGap = 4, ambT = 0, track = null;
 const unknown = new Set(), lastAt = new Map();
 const fail = e => { errors++; lastErr = String(e && e.message || e); };
+/* THE CREATOR HUSH (owner msgs 230-234, docs/reports/creator_song.md): from New Game until Move in (creator, traits, home picker; src/ui/title.js sets
+   G.inCreator) the city is silent: no recorded bed, no synth ambience layers or events, no jets (bus() = null), no city one-shots (traffic, rail, gulls ...);
+   only the interface sounds below get through, and the creator's own song plays (_music_creator.js). Everything comes back as before once it is cleared. */
+const inCreator = () => !!G.inCreator;
+const UI_SFX = new Set(['click', 'open', 'close', 'toast', 'alert', 'error', 'notify', 'buzz', 'send', 'page', 'typing', 'coin', 'pay', 'scan', 'skill', 'levelup', 'achievement', 'friend_up']);
 
 function levels() { const s = S || vol, o = {}; for (const k of KEYS) o[k] = clamp(s[k] === undefined ? vol[k] : s[k]); return o; }
 function applyVolumes(fast) {
@@ -83,7 +89,7 @@ function play(name, o, quiet) {
   if (!unlocked || dead || !buses) return false;
   try {
     const c = A.ctx; if (c.state !== 'running') return false;
-    const key = SFX[name] ? name : ALIAS[name], fn = SFX[key]; if (!fn) { unknown.add(name); return false; }
+    const key = SFX[name] ? name : ALIAS[name], fn = SFX[key]; if (!fn) { unknown.add(name); return false; } if (inCreator() && !UI_SFX.has(key)) return false;
     const now = c.currentTime, last = lastAt.get(key) || -1; if (now - last < .04) return false; lastAt.set(key, now); /* the same sound twice in one frame would only get louder */
     if (typeof o === 'number') o = { v: o }; o = o || {};
     const v = o.v === undefined ? 1 : Math.max(0, Math.min(1.5, o.v)); if (v <= 0) return false;
@@ -130,7 +136,7 @@ function bedQuery(prof) {
 }
 function bedTick(prof, now) {
   if (!bed) return; const L = levels(); bedQ = bedQuery(prof);
-  if (!BED_ON || L.master <= 0 || L.sfx <= 0 || L.city <= 0 || !bedQ) bed.set(null);   /* muted: nothing is decoded or played */
+  if (!BED_ON || L.master <= 0 || L.sfx <= 0 || L.city <= 0 || !bedQ || inCreator()) bed.set(null);   /* muted: nothing is decoded or played */
   else { const sc = sceneFor(bedQ); if (G.onTitle) { sc.master *= .5; sc.key += '~title'; } bed.set(sc); }   /* under the title music the bed sits 6 dB lower */
   bed.tick(now);
 }
@@ -157,7 +163,7 @@ const VENUE = [[/plane|cabin/, 'plane'], [/cafe|coffee|bakery|tea|cocoa|galley|a
 const FLAVOUR = { downtown: 'downtown', oldtown: 'oldtown', arts: 'arts', maplewood: 'suburb', hillcrest: 'suburb', railyard: 'harbor', park: 'park', harbor: 'harbor', airport: 'airport' };
 /* the eight old track names now mean the classics themselves (owner msg 181) */
 const OLD_TRACK = { title: 'classic_title', morning: 'classic_morning', day: 'classic_day', evening: 'classic_evening', night: 'classic_night', rainy: 'classic_rainy', interior: 'classic_interior', train: 'classic_train' };
-const songOf = id => SONG[id] || CLASSICS[id], isCK = k => typeof k === 'string' && k.startsWith('classic:');
+const songOf = id => SONG[id] || CLASSICS[id], isCK = k => typeof k === 'string' && k.startsWith('classic:'), noBag = k => isCK(k) || k === 'creator';
 const CK_WHERE = { title: 'Title screen', interior: 'Indoors', train: 'On the train', rainy: 'Outdoors in the rain', morning: 'Outdoors, morning', day: 'Outdoors, daytime', evening: 'Outdoors, evening', night: 'Outdoors, night' };
 let titleSeen = false;
 /* DAY ONE (owner msg 181, BIBLE Direction update 40; docs/reports/classics.md): on the first day of a NEW game only the eight classics play, each in its
@@ -172,6 +178,7 @@ let player = null, cur = null, forced = null, held = null, mwant = null, mood = 
 const mus = () => { const s = S || vol; return s.mus && typeof s.mus === 'object' ? s.mus : (s.mus = { bags: {}, recent: [], last: null }); };
 /** { g: the kind of place (a change of it ends the tune), key: the pool } for this moment */
 function musicCtx() {
+  if (inCreator()) return { g: 'creator', key: 'creator' };   /* the creator's own song, nothing else */
   if (G.onTitle) return { g: 'title', key: titleSeen ? 'title' : 'classic:title' }; titleSeen = false;   /* the title screen always opens with Classic: Title */
   if (dayOne()) { const k = oldTrack(); return { g: 'c:' + (k === 'interior' || k === 'train' ? k : 'out'), key: 'classic:' + k }; }
   const sc = G.scene, id = String(sc && sc.id || ''), ti = G.now(), time = timeOf(ti.hf), wk = weatherKind();
@@ -201,6 +208,7 @@ function stopMusic(fade, giveBack) { if (player) { endTune(fade, false, giveBack
 function unhold() { if (held) { bagPutBack(mus(), held.key, held.id); held = null; } }
 function startTune(want) {
   const st = mus(), t0 = typeof performance !== 'undefined' ? performance.now() : 0; let id, key = want.key;
+  if (!forced && key === 'creator') { unhold(); player = new CreatorPlayer(A.ctx, CREATOR_SONG, buses.music, buses.send, { fade: 1.5 }); player.schedule(A.ctx.currentTime + .3); cur = { g: 'creator', key, id: CREATOR_SONG, pool: key }; track = CREATOR_SONG; wound = false; startMs = 0; return; }   /* outside the bags */
   const ck = !forced && isCK(key);
   if (forced) { id = forced; key = 'forced'; } else if (ck) { unhold(); id = 'classic_' + key.slice(8); if (id === 'classic_title') titleSeen = true; } else if (held && held.key === key) { id = held.id; held = null; } else { unhold(); id = bagDraw(st, key); }
   const song = songOf(id); if (!song) { musicGap = 10; forced = null; return; }
@@ -213,11 +221,11 @@ function musicTick(dt, c) {
   if (player) {
     player.schedule(c.currentTime + .45);
     if (!wound && !forced && want.g !== 'keep' && want.g !== cur.g) endTune(1.6, true, true);   /* another kind of place: finish the bar, fade */
-    if (player.done && c.currentTime > player.next + .2) { const natural = !wound; player = null; cur = null; track = null; wound = false; forced = null; musicGap = natural ? (want.g === 'title' ? 5 : 20 + Math.random() * 30) : 2.5 + Math.random() * 2.5; }
-  } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced && !isCK(want.key)) { if (!held || held.key !== want.key) { unhold(); held = { key: want.key, id: bagDraw(mus(), want.key) }; } if (SONG[held.id]) compile(SONG[held.id]); } }
+    if (player.done && c.currentTime > player.next + .2) { const natural = !wound; player = null; cur = null; track = null; wound = false; forced = null; musicGap = natural ? (want.g === 'title' ? 5 : 20 + Math.random() * 30) : want.g === 'creator' ? .5 : 2.5 + Math.random() * 2.5; }
+  } else { musicGap -= dt; if (musicGap <= 0) startTune(want); else if (musicGap < 1.5 && !forced && !noBag(want.key)) { if (!held || held.key !== want.key) { unhold(); held = { key: want.key, id: bagDraw(mus(), want.key) }; } if (SONG[held.id]) compile(SONG[held.id]); } }
 }
-function nowPlaying() { if (!player || !cur) return null; const s = player.song, p = player.pos(); return { id: s.id, title: s.title, feel: s.feel, pool: cur.key, where: POOL_INFO[cur.key] || (isCK(cur.key) ? 'First day: ' + CK_WHERE[cur.key.slice(8)] : cur.key === 'forced' ? 'Chosen by hand' : 'Outdoors'), t: +p.t.toFixed(1), dur: +p.dur.toFixed(1), section: p.section, bar: p.bar, ending: wound }; }
-function musicDebug() { const st = mus(), w = unlocked ? (mwant || musicCtx()) : null, ids = !w ? [] : isCK(w.key) ? ['classic_' + w.key.slice(8)] : musicPool(w.key); return { unlocked, playing: nowPlaying(), context: w, pool: ids, bag: w ? (st.bags[w.key] || []).filter(x => ids.includes(x)) : [], next: held ? held.id : null, last: st.last, recent: (st.recent || []).slice(), played: st.n || 0, gap: +musicGap.toFixed(1), forced, mood, startMs, tunes: SONGS.length + CLASSIC_IDS.length, dayOne: dayOne(), firstDay: typeof st.d1 === 'number' ? st.d1 : null }; }
+function nowPlaying() { if (!player || !cur) return null; const s = player.song, p = player.pos(); return { id: s.id, title: s.title, feel: s.feel, pool: cur.key, where: POOL_INFO[cur.key] || (cur.key === 'creator' ? 'Character creator' : isCK(cur.key) ? 'First day: ' + CK_WHERE[cur.key.slice(8)] : cur.key === 'forced' ? 'Chosen by hand' : 'Outdoors'), t: +p.t.toFixed(1), dur: +p.dur.toFixed(1), section: p.section, bar: p.bar, ending: wound }; }
+function musicDebug() { const st = mus(), w = unlocked ? (mwant || musicCtx()) : null, ids = !w ? [] : w.key === 'creator' ? [CREATOR_SONG] : isCK(w.key) ? ['classic_' + w.key.slice(8)] : musicPool(w.key); return { unlocked, playing: nowPlaying(), context: w, pool: ids, bag: w ? (st.bags[w.key] || []).filter(x => ids.includes(x)) : [], next: held ? held.id : null, last: st.last, recent: (st.recent || []).slice(), played: st.n || 0, gap: +musicGap.toFixed(1), forced, mood, startMs, tunes: SONGS.length + CLASSIC_IDS.length, creator: inCreator(), creatorSong: CREATOR_SONG, dayOne: dayOne(), firstDay: typeof st.d1 === 'number' ? st.d1 : null }; }
 async function jukebox() {
   const np = nowPlaying(), o = [{ label: 'Follow the game again', sub: np ? 'Now: ' + np.title + ' (' + np.where + ')' : 'Nothing is playing', value: 'auto' }, { label: 'Skip to the next tune', value: '>' }], seen = new Set();
   const add = (head, ids) => { for (const id of ids) { if (seen.has(id)) continue; seen.add(id); const s = SONG[id], c = compile(s); o.push({ label: head + ': ' + s.title, sub: s.feel + ', ' + Math.round(c.dur) + ' s. ' + whereOf(id), value: id }); } };
@@ -229,7 +237,7 @@ async function jukebox() {
 function tick(dt) {
   if (!unlocked || dead || !buses) return; const c = A.ctx; if (!c || c.state !== 'running') return;
   try {
-    ambT -= dt; if (ambT <= 0) { ambT = .5; const sc = G.scene, prof = profile(); amb.set(prof, weatherKind(), !!(sc && sc.indoor)); amb.tick(c.currentTime); bedTick(prof, c.currentTime); mwant = musicCtx(); }
+    ambT -= dt; if (ambT <= 0) { ambT = .5; const sc = G.scene, prof = inCreator() ? 'silent' : profile(); amb.set(prof, inCreator() ? null : weatherKind(), !!(sc && sc.indoor)); amb.tick(c.currentTime); bedTick(prof, c.currentTime); mwant = musicCtx(); }
     // music
     /* owner msg 135: while you WATCH something (a show or film in a venue, Reel on the phone or the TV, any TV activity) the game's own music stays out,
        for the whole of it and a little after: not only while the show's score happens to be sounding */
@@ -253,7 +261,7 @@ export function init() {
   G.audio = {
     sfx: (name, o) => play(name, o),
     /** the effects bus while sound runs (null when locked / suspended): for continuous voices such as the jets of sim/planes.js; it follows Master / Effects / Mute */
-    bus: () => (unlocked && !dead && buses && A.ctx && A.ctx.state === 'running' ? buses.sfx : null),
+    bus: () => (unlocked && !dead && buses && A.ctx && A.ctx.state === 'running' && !inCreator() ? buses.sfx : null),
     setVolume(k, v) { if (!(k in vol)) return; v = clamp(v); vol[k] = v; if (S) S[k] = v; applyVolumes(true); },
     getVolume: k => levels()[k],
     /** play one tune now by its id (or a pool name, or one of the eight old track names: a tune of that pool); null = stop and let the controller carry on */
@@ -274,7 +282,7 @@ export function init() {
       jukebox,
       /** for tools/music_check.mjs: the songbook and the real player / renderer */
       musicKit: () => ({ SONGS, SONG, STYLES, INST, LEVELS, POOL_INFO, TIMES, DISTRICTS, SEASONS, compile, renderSong, Player, pool: musicPool, draw: bagDraw, played: bagPlayed, whereOf, timeOf, ctx: musicCtx, state: mus, watch, CLASSICS, CLASSIC_IDS, CLASSIC_IN, CLASSIC_LEVELS, CLASSIC_TRACKS, ClassicPlayer, renderClassic, weight: bagWeight, dayOne, oldTrack }),
-      ambience: () => Object.assign({ unlocked, running: !!A.ctx && A.ctx.state === 'running', want: bedQ, legacyProfile: amb ? amb.profile : null, noiseLayers: amb ? Object.keys(amb.layers) : [], events: amb ? amb.events.map(e => e[0]) : [], volumes: levels(), busGain: buses ? +buses.bed.gain.value.toFixed(3) : 0, unpackMs: unpackMs.slice(-8) }, bed ? bed.state() : { scene: null, tracks: [], sources: 0 }),
+      ambience: () => Object.assign({ unlocked, creator: inCreator(), running: !!A.ctx && A.ctx.state === 'running', want: bedQ, legacyProfile: amb ? amb.profile : null, noiseLayers: amb ? Object.keys(amb.layers) : [], events: amb ? amb.events.map(e => e[0]) : [], volumes: levels(), busGain: buses ? +buses.bed.gain.value.toFixed(3) : 0, unpackMs: unpackMs.slice(-8) }, bed ? bed.state() : { scene: null, tracks: [], sources: 0 }),
       stretches: () => Object.keys(STRETCHES).map(n => Object.assign({ name: n }, STRETCHES[n])),
       places: () => ({ places: PLACES.slice(), phases: PHASES.slice(), rooms: Object.keys(BED_ROOMS), weather: ['rain', 'storm', 'snow', 'fog'] }),
       force(place, phase, weather, indoor) { bedForce = { place, phase: phase || 'day', weather: weather || null, indoor: indoor || null }; if (bed) bed.force(sceneFor(bedForce)); return bedForce; },
@@ -306,6 +314,7 @@ export function init() {
   G.on('activity:start', id => { const d = ACTIVITY_BY_ID[id]; watch.tv = !!(d && d.tag === 'tv'); }); G.on('activity:done', () => { watch.tv = false; });
   G.on('scene', () => { watch.show = false; watch.tv = false; mwant = null; });
   G.on('ride:start', k => { rideKind = k; mwant = null; }); G.on('game:new', () => { mus().d1 = Math.floor(G.state.t / 1440); held = null; mwant = null; });   /* a new game: day one of the classics */ G.on('ride:end', () => { rideKind = null; mwant = null; }); G.on('load', () => { rideKind = null; mood = null; held = null; mwant = null; }); G.on('rel:date', () => { if (mood && mood.name === 'date') mood = null; });
+  G.on('creator', () => { mwant = null; ambT = 0; });   /* src/ui/title.js: the creator opened / closed: follow at once */
   G.on('frame', tick);
   G.on('thunder', loud => play('thunder', { v: .35 + .65 * clamp(loud) }));
   G.on('scene', (s, prev) => { if (!prev || !s) return; if (s.indoor && !prev.indoor) play('door_open', { v: .7 }); else if (!s.indoor && prev.indoor) play('door_close', { v: .7 }); });

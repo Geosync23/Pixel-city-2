@@ -122,7 +122,8 @@ export function sortItems(L, n = L.length, out = []) {
   /* order = indices by sort hint k, stable (an insertion sort: the same order as the Array.sort((p, q) => L[p].k - L[q].k) it replaces, without its temporary arrays) */
   for (let i = 0; i < n; i++) { const k = L[i].k; let j = i - 1; while (j >= 0 && L[order[j]].k > k) { order[j + 1] = order[j]; j--; } order[j + 1] = i; }
   let sp = 0, m = 0, bad = false;   // (st: 1 = being walked, 2 = drawn; bad: a link that is not of the weakest kind was dropped)
-  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1 && d < SB2 && !bad) { for (let k = sp - 2; k >= 0; k -= 2) { const x = stack[k]; if (L[x].m) { bad = true; break; } if (x === c) break; } }   /* (only a loop with somebody who moves in it: loops among placed objects alone are left as they always were) */ } else { sp -= 2; st[i] = 2; const it = L[i]; it._i = i; out[m++] = it; } } }
+  for (let o = 0; o < n; o++) { const root = order[o]; if (st[root]) continue; stack[sp++] = root; stack[sp++] = 0; st[root] = 1; while (sp) { const idx = stack[sp - 1], i = stack[sp - 2]; if (idx < cnt[i]) { stack[sp - 1]++; const d = deps[i][idx], c = d & SM; if (!st[c]) { st[c] = 1; stack[sp++] = c; stack[sp++] = 0; } else if (st[c] === 1) { let k = sp - 2; for (; k >= 0; k -= 2) { const x = stack[k]; if (L[x].m) { if (d < SB2) bad = true; break; } if (x === c) break; }   /* (only a loop with somebody who moves in it: loops among placed objects alone are left as they always were) */
+      if (k >= 0 && stack[k] === c) for (k = sp - 2; k >= 0; k -= 2) { const x = stack[k], q = L[x].ob; if (q) q._pd = q._pd || true; if (x === c) break; } }   /* night light (pools behind buildings): the placed objects of such a loop are noted. The link dropped here is one this walk happened to meet; another list with the same objects in it (a mask tile's) may drop another, so their light is laid in the frame's own order (ob._pd, see _occPrep). */ } else { sp -= 2; st[i] = 2; const it = L[i]; it._i = i; out[m++] = it; } } }
   if (bad) { SORT.resorts++; if (resort(L, n, out, SB2)) resort(L, n, out, SB); }
   if (out.length !== m) out.length = m;
   return out;
@@ -254,7 +255,7 @@ function wholeOb(ob, sp) {
  * is made after NL.promote frames and from then on simply drawn into the mask (one plain draw; same pixels). See silGet.
  * The steps are collected first (OS / ON / OC) and then run in one go. What is put back comes from the mask tiles (Renderer._maskTiles) when the mask was drawn from them; a copy of the whole mask is only made when there are no tiles (dusk, dawn) or a moving light reaches one of the places.
  * ER = this frame's boxes of lit things (something in front is only put back where it overlaps one). */
-let OS = [], OC = [], OX = [], ON = new Float32Array(8 * 128), nOP = 0, nPut = 0, nlLit = 0, nlCut = 0, nlCopy = 0, nlOcc = 0;
+let OS = [], OC = [], OX = [], ON = new Float32Array(8 * 128), nOP = 0, nlLit = 0, nlCut = 0, nlCopy = 0, nlOcc = 0;
 /* one step: type 0 punch + fill with col / 1 punch + put back (from the mask tiles if they hold it, else as 3) / 2 draw a flat-colour copy / 3 punch + fill with the thing's own light (ambient + the pools it takes, occPut);
  * src = sprite (0, 1, 3) or canvas (2); the part sx, sy, sw, sh of it, drawn at dx, dy; a = alpha or undefined; it = the item it belongs to (1, 3; null: something that takes every pool) */
 function pushOp(type, src, sx, sy, sw, sh, dx, dy, a, col, it) { OX[nOP] = it || null; if ((nOP + 1) * 8 > ON.length) { const n = new Float32Array(ON.length * 2); n.set(ON); ON = n; } const o = nOP * 8; OS[nOP] = src; OC[nOP] = col; nOP++; ON[o] = type; ON[o + 1] = sx; ON[o + 2] = sy; ON[o + 3] = sw; ON[o + 4] = sh; ON[o + 5] = dx; ON[o + 6] = dy; ON[o + 7] = a === undefined ? -1 : a; }
@@ -289,12 +290,12 @@ function litDraw(sp, sy, sh, dx, dy, ci, col, a, fr, dim, kx0, ky0, kx1, ky1) {
 }
 /* the same rows of a sprite that keeps the pattern and stands in front of lit things: the mask's own pattern is put back there (hx: the object's outline, see hexOf) */
 function cutDraw(sp, sy, sh, dx, dy, a, hx, it) {
-  const ty = it !== null && (it.e !== null || it.ob._pd === true) ? 3 : 1;   // (3: something the mask tiles do not hold: whatever moves, a thing whose picture keeps changing)
+  const ty = it !== null && (it.e !== null || it.ob._pd) ? 3 : 1;   // (3: something the mask tiles do not hold: whatever moves, a thing whose picture keeps changing)
   const q = sp.bx; let x0 = dx + (q ? q[0] : 0), y0 = dy + (q ? q[1] : 0), x1 = dx + (q ? q[2] : sp.w), y1 = dy + (q ? q[3] : sp.h); if (y0 < dy + sy) y0 = dy + sy; if (y1 > dy + sy + sh) y1 = dy + sy + sh;
   if (!nER || x0 >= eX1 || x1 <= eX0 || y0 >= eY1 || y1 <= eY0 || !hitBox(ER, nER, x0, y0, x1, y1, hx)) return; nlCut++;
   /* only the part of it that overlaps lit things: the box around the overlaps, or, when that is much larger than the overlaps themselves (a tower in front of three people), each overlap on its own (a step costs about as much as 2000 px of punching) */
-  if (hN > 1 && hN * 2000 + hA < (hX1 - hX0) * (hY1 - hY0)) { for (let i = 0, o = 0; i < nER; i++, o += 4) { if (x0 >= ER[o + 2] || x1 <= ER[o] || y0 >= ER[o + 3] || y1 <= ER[o + 1] || (eSkip && EK[i] === 1)) continue; const p = ER[o] > x0 ? ER[o] : x0, r = ER[o + 1] > y0 ? ER[o + 1] : y0, u = ER[o + 2] < x1 ? ER[o + 2] : x1, t = ER[o + 3] < y1 ? ER[o + 3] : y1; nPut++; pushOp(ty, sp, p - dx, r - dy, u - p, t - r, p, r, a, null, it); } }
-  else { nPut++; pushOp(ty, sp, hX0 - dx, hY0 - dy, hX1 - hX0, hY1 - hY0, hX0, hY0, a, null, it); }
+  if (hN > 1 && hN * 2000 + hA < (hX1 - hX0) * (hY1 - hY0)) { for (let i = 0, o = 0; i < nER; i++, o += 4) { if (x0 >= ER[o + 2] || x1 <= ER[o] || y0 >= ER[o + 3] || y1 <= ER[o + 1] || (eSkip && EK[i] === 1)) continue; const p = ER[o] > x0 ? ER[o] : x0, r = ER[o + 1] > y0 ? ER[o + 1] : y0, u = ER[o + 2] < x1 ? ER[o + 2] : x1, t = ER[o + 3] < y1 ? ER[o + 3] : y1; pushOp(ty, sp, p - dx, r - dy, u - p, t - r, p, r, a, null, it); } }
+  else { pushOp(ty, sp, hX0 - dx, hY0 - dy, hX1 - hX0, hY1 - hY0, hX0, hY0, a, null, it); }
 }
 /*
  * ---------- pools behind buildings (docs/reports/pool_occlusion.md; owner msg 219) ----------
@@ -310,11 +311,12 @@ function cutDraw(sp, sy, sh, dx, dy, a, hx, it) {
  * How: in a thing's silhouette, where a pool it does not take reaches it, the mask is punched out and filled with the thing's own light: ambient + the pools it does take, added in the usual
  * order (occPut: exact at the silhouette, and with the thing's alpha when it is see-through, so the pool shows through a faded building in proportion, like the ground behind does).
  * In draw order, and whatever stands in front of such a place gets its own light back the same way. For the world's own lamps and placed objects this is done once, when a mask tile is
- * painted (_occBake); a frame only works on moving lights, on things that are see-through or animated (they are left out of the tiles; a patch of "the mask without it" is kept while it
- * is so, _occPatch) and on big entities. When the mask is painted directly (dusk, dawn) the same pass runs over the frame's own item list (_occPass). Only in worlds with poolOcc (the city):
- * in a room the lights are the room's, on everything.
+ * painted (_occBake), so a frame drawn from tiles has nothing to do for them. Left to the frame (ob._pd; the tiles are painted without them) are: things that are see-through, the members of a
+ * ring (see sortItems) and things whose picture keeps changing: their own light is kept as a canvas (_occOwn) and drawn in the frame's order, one plain draw each, with the thing's alpha. The frame also
+ * works on moving lights and on big entities (a train car), by occPut. When the mask is painted directly (dusk, dawn: its colours change) the same pass runs over the frame's own item list (_occPass).
+ * Only in worlds with poolOcc (the city): in a room the lights are the room's, on everything.
  */
-let uN = 0, uX0 = 0, uY0 = 0, uX1 = 0, uY1 = 0, PUID = 0, nPF = 0; const PF = [];   // (PF: this frame's see-through / animated things that keep the pattern)
+let uN = 0, uX0 = 0, uY0 = 0, uX1 = 0, uY1 = 0;
 /* how much of pool j (of LB) a thing with box B takes on its faces: 0 none .. 1 like the ground. ob: the placed object, or null */
 function takes(B, j, ob) {
   if (ob !== null && (LO[j] === ob || ob._no === true)) return 1;
@@ -339,39 +341,27 @@ function hidden(B, ob, hx, x0, y0, x1, y1, from, to) {
   }
   return uN;
 }
-/* in the part x0..y1 (mask px) of the mask m, give the sprite sp (drawn at ox, oy; a = its alpha) its own light: ambient + the pools it takes (B, ob: see takes; B null: every pool).
- * The light is put together on the scratch canvas fc (fx), in the order the mask adds its pools; then the sprite is punched out of the mask and the hole filled with it. */
-function occPut(m, fx, fc, sp, ox, oy, x0, y0, x1, y1, a, B, ob, amb) {
+/* a thing's own light in the part x0..y1 (mask px): ambient + the pools it takes (B, ob: see takes; B null: every pool), added in the order the mask adds its pools, at 0, 0 of the canvas fc (fx).
+ * Returns how many pools; with none nothing is drawn (the light is the ambient colour) unless `always`. */
+function ownLight(fx, fc, x0, y0, x1, y1, B, ob, amb, always) {
   const w = x1 - x0, h = y1 - y0; let k = 0;
-  for (let j = 0, o = 0; j < nLB; j++, o += 7) {
-    let p = LB[o] - LB[o + 2], q = LB[o + 1] - LB[o + 3], r = p + 2 * LB[o + 2] + 1, t = q + 2 * LB[o + 3] + 1; const px = p, py = q; if (x0 >= r || x1 <= p || y0 >= t || y1 <= q) continue;
-    const f = B === null ? 1 : takes(B, j, ob); if (f <= 0) continue;
+  for (let j = always ? -1 : 0, o = j * 7; j < nLB; j++, o += 7) {   // (j = -1: the ambient colour alone)
+    let p = 0, q = 0, r = 0, t = 0, f = 1;
+    if (j >= 0) { p = LB[o] - LB[o + 2]; q = LB[o + 1] - LB[o + 3]; r = p + 2 * LB[o + 2] + 1; t = q + 2 * LB[o + 3] + 1; if (x0 >= r || x1 <= p || y0 >= t || y1 <= q) continue; f = B === null ? 1 : takes(B, j, ob); if (f <= 0) continue; }
     if (!k++) { if (fc.width < w || fc.height < h) { fc.width = Math.max(fc.width, w); fc.height = Math.max(fc.height, h); } fx.globalCompositeOperation = 'source-over'; fx.globalAlpha = 1; fx.fillStyle = amb; fx.fillRect(0, 0, w, h); fx.globalCompositeOperation = 'lighter'; }
-    if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; fx.globalAlpha = LA[j] * f; fx.drawImage(LS[j], p - px, q - py, r - p, t - q, p - x0, q - y0, r - p, t - q);
+    if (j < 0) continue; const px = p, py = q; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; fx.globalAlpha = LA[j] * f; fx.drawImage(LS[j], p - px, q - py, r - p, t - q, p - x0, q - y0, r - p, t - q);
   }
+  return always ? k - 1 : k;
+}
+/* in the part x0..y1 (mask px) of the mask m, give the sprite sp (drawn at ox, oy; a = its alpha) its own light: put together on the scratch canvas fc (ownLight), then the sprite is punched out of the
+ * mask and the hole filled with it (exact at the silhouette; with the alpha of a see-through thing the pool behind shows through in proportion). */
+function occPut(m, fx, fc, sp, ox, oy, x0, y0, x1, y1, a, B, ob, amb) {
+  const w = x1 - x0, h = y1 - y0, k = ownLight(fx, fc, x0, y0, x1, y1, B, ob, amb, false);
   m.globalCompositeOperation = 'destination-out'; m.globalAlpha = a; m.drawImage(sp.c, x0 - ox, y0 - oy, w, h, x0, y0, w, h); m.globalAlpha = 1; m.globalCompositeOperation = 'destination-over';
   if (k) m.drawImage(fc, 0, 0, w, h, x0, y0, w, h); else { m.fillStyle = amb; m.fillRect(x0, y0, w, h); }
 }
 /* a placed object whose picture is not painted yet: may it be something that keeps the pattern? (wholeOb without the sprite: by the rectangle its picture is painted in, which is never smaller than the picture) */
-function mayHide(ob) {
-  if (ob._ng === NL.gen) return !ob._nw; const n = ob.nl || (ob.a && ob.a.nl); if (n) return n !== 'whole'; if (!NL.props) return true; if (ob.a && ob.a.tags && ob.a.tags.indexOf('tree') >= 0) return !NL.trees;
-  const B = ob.B, sb = ob.sb; return !(B[5] - B[2] > .12 && B[3] - B[0] <= NL.propFoot && B[4] - B[1] <= NL.propFoot && ((sb[2] - sb[0]) * (sb[3] - sb[1]) <= NL.propBig || (typeof ob.id === 'string' && ob.id.startsWith('veh.'))));
-}
-/* rings: placed objects that are each "behind" the next all the way round (a station platform, its canopy and the deck beside them; docs/reports/occlusion.md). The frame's sort breaks a ring wherever its
- * walk meets it, and a mask tile's own sort (other things around it) may break it somewhere else, so the tile would lay the members' light in another order than the frame draws them. The members
- * (L[i]._rg = true) are therefore left to the frame, which works in the order it draws. The same links as sortItems; the groups by Tarjan's walk. Returns how many members. */
-const RA = []; let rIdx = new Int32Array(64), rLow = new Int32Array(64), rOn = new Uint8Array(64), rSt = new Int32Array(64), rC = 0, rS = 0, rN = 0, rL = null;
-function ringGo(v) {
-  rIdx[v] = rLow[v] = rC++; rSt[rS++] = v; rOn[v] = 1; const a = RA[v];
-  for (let k = 0; k < a.length; k++) { const w = a[k]; if (rIdx[w] < 0) { ringGo(w); if (rLow[w] < rLow[v]) rLow[v] = rLow[w]; } else if (rOn[w] && rIdx[w] < rLow[v]) rLow[v] = rIdx[w]; }
-  if (rLow[v] === rIdx[v]) { if (rSt[rS - 1] === v) { rS--; rOn[v] = 0; } else { let w; do { w = rSt[--rS]; rOn[w] = 0; rL[w]._rg = true; rN++; } while (w !== v); } }
-}
-function rings(L, n) {
-  if (n < 3) return 0; if (rIdx.length < n) { rIdx = new Int32Array(n * 2); rLow = new Int32Array(n * 2); rOn = new Uint8Array(n * 2); rSt = new Int32Array(n * 2); }
-  while (RA.length < n) RA.push([]); for (let i = 0; i < n; i++) { RA[i].length = 0; rIdx[i] = -1; rOn[i] = 0; L[i]._rg = false; }
-  for (let i = 0; i < n; i++) { const p = L[i], a = p.r; for (let j = i + 1; j < n; j++) { const q = L[j], b = q.r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((p.h !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, 0)) RA[j].push(i); else RA[i].push(j); } }
-  rC = 0; rS = 0; rN = 0; rL = L; for (let i = 0; i < n; i++) if (rIdx[i] < 0) ringGo(i); rL = null; return rN;
-}
+function mayHide(ob) { if (ob._ng === NL.gen) return !ob._nw; const sb = ob.sb, w = wholeOb(ob, { l: 0, c: 1, w: sb[2] - sb[0], h: sb[3] - sb[1] }); ob._ng = 0; return !w; }   // (not remembered: the real picture decides)
 /* the places a pass has worked on so far (_occPass): whatever stands in front of one gets its own light back */
 let QR = new Float32Array(4 * 64), nQR = 0;
 function addQ(x0, y0, x1, y1) { if ((nQR + 1) * 4 > QR.length) { const n = new Float32Array(QR.length * 2); n.set(QR); QR = n; } const o = nQR++ * 4; QR[o] = x0; QR[o + 1] = y0; QR[o + 2] = x1; QR[o + 3] = y1; }
@@ -641,11 +631,12 @@ export class Renderer {
       if (c) { if (l._cs !== c) { l._cs = c; let q = 0; for (let j = 0; j < c.length; j++) q = Math.imul(q ^ c.charCodeAt(j), 16777619); l._ch = q; } h = Math.imul(h ^ l._ch, 16777619); }
     }
     const orev = occ ? world.orev | 0 : 0, ng = occ ? NL.gen : 0;
-    if (K.world !== world || K.amb !== amb || K.al !== al || K.sig !== h || K.occ !== occ || K.orev !== orev || K.ng !== ng) { K.world = world; K.amb = amb; K.al = al; K.sig = h; K.occ = occ; K.orev = orev; K.ng = ng; K.gen++; K.since = fr; for (const t of K.tiles.values()) K.spare.push(t.c); K.tiles.clear(); if (K.spare.length > NL.tileMax) K.spare.length = NL.tileMax; }
+    if (K.world !== world || K.amb !== amb || K.al !== al || K.sig !== h || K.occ !== occ || K.orev !== orev || K.ng !== ng) { K.world = world; K.amb = amb; K.al = al; K.sig = h; K.occ = occ; K.orev = orev; K.ng = ng; K.gen++; K.since = fr; for (const t of K.tiles.values()) K.spare.push(t.c); K.tiles.clear(); if (K.spare.length > NL.tileMax) K.spare.length = NL.tileMax;
+      { const F = this._fpd; if (F) { let w = 0; for (let i = 0; i < F.length; i++) { const ob = F[i]; if (ob._pd !== 2) continue; if (ob._a === undefined) ob._pd = false; else F[w++] = ob; } F.length = w; } } }   // (things that were see-through go back into the tiles, now that all tiles are painted anew)
     return K;
   }
   /* does a tile (or a patch) have to be painted again? One of the things it could not work on is ready now, or one it worked on has been hidden */
-  _tileStale(t) { const w = t.w, o = t.o; for (let i = 0; i < w.length; i++) if (!w[i].hidden && objSpriteIf(w[i]) !== undefined) return true; for (let i = 0; i < o.length; i++) if (o[i].hidden) return true; return false; }
+  _tileStale(t) { const w = t.w, o = t.o; for (let i = 0; i < w.length; i++) if (!w[i].hidden && !w[i]._pd && objSpriteIf(w[i]) !== undefined) return true; for (let i = 0; i < o.length; i++) if (o[i].hidden) return true; return false; }
   _maskTiles(world, cam, amb, al, m, nlOn, occ, K) {
     const LL = world.lights, W = this.W, H = this.H, T = NL.tile, fr = this.frameNo;
     if (fr - K.since < NL.tileWait) return false;   // still changing (dusk): not worth painting tiles that are thrown away next frame
@@ -656,10 +647,10 @@ export class Renderer {
       if (t) { t.t = fr; if (occ && !t.stale && ((fr + tx) & 3) === 0 && (t.w.length || t.o.length) && this._tileStale(t)) t.stale = true;   /* (looked at every fourth frame) */ if (t.stale && old === null) old = t; continue; }
       if (baked) { miss++; continue; } baked = 1; K.bakes++;
       if (K.tiles.size >= NL.tileMax) { let k0 = 0, t0 = Infinity; for (const [k, v] of K.tiles) if (v.t < t0) { t0 = v.t; k0 = k; } K.spare.push(K.tiles.get(k0).c); K.tiles.delete(k0); }
-      t = { c: K.spare.pop() || mk(T, T), t: fr, x: tx, y: ty, w: [], o: [], stale: false }; this._occBake(world, t.c.getContext('2d'), tx * T, ty * T, T, T, amb, al, occ ? t : null, false, K.gen);
+      t = { c: K.spare.pop() || mk(T, T), t: fr, x: tx, y: ty, w: [], o: [], stale: false }; this._occBake(world, t.c.getContext('2d'), tx * T, ty * T, T, T, amb, al, occ ? t : null, K.gen);
       K.tiles.set(key, t);
     }
-    if (!baked && old !== null) { K.bakes++; old.w.length = 0; old.o.length = 0; this._occBake(world, old.c.getContext('2d'), old.x * T, old.y * T, T, T, amb, al, occ ? old : null, false, K.gen); old.stale = false; }
+    if (!baked && old !== null) { K.bakes++; old.w.length = 0; old.o.length = 0; this._occBake(world, old.c.getContext('2d'), old.x * T, old.y * T, T, T, amb, al, occ ? old : null, K.gen); old.stale = false; }
     if (miss) return false;
     for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) m.drawImage(K.tiles.get(tx * 65536 + ty).c, tx * T - cam.x, ty * T - cam.y);
     if (nlOn) for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue; addLight(x + rx, y + ry, poolSprite(l.r, l.c || '#ffd9a0'), al, l.ob, l.x, l.y, l.z); }
@@ -668,8 +659,7 @@ export class Renderer {
   /**
    * pools behind buildings. Paint the light mask of the w x h px at world px (ox, oy) into x as a frame painted directly would: the ambient colour, the world's pools, and (rec) the pools taken off
    * the things that hide them, in draw order (the placed objects there are sorted like a frame's). rec = { w: [], o: [] } is filled: o = the things worked on, w = things that matter here and could
-   * not be worked on (hidden, or their picture is not painted yet: nothing is painted for this). live: without the see-through things (the frame works on those itself); things whose picture keeps
-   * changing (ob._pd) are always left to the frame. gen: the tiles' K.gen (ob._pg / _ps: the picture a thing had when the tiles last saw it).
+   * not be worked on (hidden, or their picture is not painted yet: nothing is painted for this). Things left to the frame (ob._pd) are not in it. gen: the tiles' K.gen (ob._pg / _ps: the picture a thing had when the tiles last saw it).
    */
   /* the world's pools that reach the w x h px at world px (ox, oy): drawn into x (if given; its state is set), noted in LB (if note) */
   _occLoad(world, x, ox, oy, w, h, al, note) {
@@ -677,35 +667,35 @@ export class Renderer {
     for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), X = Math.round((l.x - l.y) * U) - ox - rx, Y = Math.round((l.x + l.y) * U / 2 - l.z * U) - oy - ry; if (X > w || Y > h || X + rx * 2 + 1 < 0 || Y + ry * 2 + 1 < 0) continue; const ps = poolSprite(l.r, l.c || '#ffd9a0'); if (x) x.drawImage(ps, X, Y); if (note) addLight(X + rx, Y + ry, ps, al, l.ob, l.x, l.y, l.z); }
     nLBw = nLB;
   }
-  _occBake(world, x, ox, oy, w, h, amb, al, rec, live, gen) {
+  _occBake(world, x, ox, oy, w, h, amb, al, rec, gen) {
     x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.fillStyle = amb; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'lighter'; x.globalAlpha = al; this._occLoad(world, x, ox, oy, w, h, al, !!rec);
     if (rec && nLB) {
       camX = ox; camY = oy;
       const Q = this._Q2 || (this._Q2 = []), L = this._OL || (this._OL = []), wait = this._OW || (this._OW = []); Q.length = 0; wait.length = 0; world.query(ox, oy, ox + w, oy + h, Q); let n = 0;
       for (let i = 0; i < Q.length; i++) {
-        const ob = Q[i]; if (ob._pd === true || (live && ob._a !== undefined)) continue; if (ob.hidden) { ob._pg = 0; if (mayHide(ob)) wait.push(ob); continue; }
+        const ob = Q[i]; if (ob._pd) continue; if (ob.hidden) { ob._pg = 0; if (mayHide(ob)) wait.push(ob); continue; }
         const sp = objSpriteIf(ob); if (sp === undefined) { if (mayHide(ob)) wait.push(ob); continue; } if (sp === null || (ob.size[2] <= .06 && !sp.l)) continue;   // (no picture; drawn with the ground, as in draw())
         if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) continue;
-        const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, ns: 0, _i: 0, _rg: false }); n++;
+        const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, ns: 0, _i: 0 }); n++;
         it.B = ob.B; it.spr = sp; it.ax = (ob.x - ob.y) * U; it.ay = (ob.x + ob.y) * U / 2 - ob.z * U; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; ob._pg = gen; ob._ps = sp;
       }
-      if (rings(L, n)) { /* the members of a ring are left to the frame from now on; tiles that hold one are painted again */ const T = NL.tile, K = this._mt; let m = 0;
-        for (let i = 0; i < n; i++) { const it = L[i]; if (!it._rg) { if (m !== i) { L[i] = L[m]; L[m] = it; } m++; continue; } const ob = it.ob, sb = ob.sb; ob._pd = true; if (K) for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }
-        for (let i = m; i < n; i++) { L[i].spr = null; L[i].ob = null; } n = m; }
-      const S = sortItems(L, n, this._OS || (this._OS = []));
-      this._occPass(x, S, n, 0, 0, w, h, amb, live, rec.o);
+      /* the list is sorted like a frame's. Where the sort met a ring (objects that are each "behind" the next all the way round: a station platform, its canopy and the deck beside them) it has
+         noted the members (ob._pd, see sortItems): they are left to the frame, and the rest is sorted again without them. */
+      let S = sortItems(L, n, this._OS || (this._OS = []));
+      for (;;) { let m = 0; for (let i = 0; i < n; i++) { const it = L[i]; if (it.ob._pd) continue; if (m !== i) { L[i] = L[m]; L[m] = it; } m++; } if (m === n) break; for (let i = m; i < n; i++) { L[i].spr = null; L[i].ob = null; } n = m; S = sortItems(L, n, this._OS); }
+      this._occPass(x, S, n, 0, 0, w, h, amb, rec.o);
       for (let i = 0; i < wait.length; i++) { const ob = wait[i], sb = ob.sb, x0 = sb[0] - ox < 0 ? 0 : sb[0] - ox, y0 = sb[1] - oy < 0 ? 0 : sb[1] - oy, x1 = sb[2] - ox > w ? w : sb[2] - ox, y1 = sb[3] - oy > h ? h : sb[3] - oy; if (x1 <= x0 || y1 <= y0) continue; const hx = ob.vbl ? ob._hx || hexOf(ob) : null; if (hidden(ob.B, ob, hx, x0, y0, x1, y1, 0, nLB) || (nQR && hitBox(QR, nQR, x0, y0, x1, y1, hx))) rec.w.push(ob); }
       for (let i = 0; i < n; i++) { L[i].spr = null; L[i].ob = null; S[i] = null; } wait.length = 0; Q.length = 0;
     }
     nLB = 0; nLBw = 0;
   }
   /* the pass itself: the first n items of L in draw order, on the mask m (its px x0..y1; camX / camY = its place in the world, LB = its pools). Every placed object that keeps the pattern gets its own
-   * light (occPut) where a pool it does not take reaches it, and where something behind it was worked on. live: see-through things are left out. rec: the objects worked on are added to it. */
-  _occPass(m, L, n, cx0, cy0, cx1, cy1, amb, live, rec) {
+   * light (occPut) where a pool it does not take reaches it, and where something behind it was worked on. rec: the objects worked on are added to it. */
+  _occPass(m, L, n, cx0, cy0, cx1, cy1, amb, rec) {
     const fx = this.Fx, fc = this.F; nQR = 0;
     for (let i = 0; i < n; i++) {
       const it = L[i], ob = it.ob; if (ob === null) continue; const sp = it.spr;
-      if ((ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) || ob._pd === true || (live && ob._a !== undefined)) continue;
+      if ((ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) || ob._pd) continue;
       const dx = sp.x + it.ax - camX, dy = sp.y + it.ay - camY, q = sp.bx; let x0 = q ? dx + q[0] : dx, y0 = q ? dy + q[1] : dy, x1 = q ? dx + q[2] : dx + sp.w, y1 = q ? dy + q[3] : dy + sp.h;
       if (x0 < cx0) x0 = cx0; if (y0 < cy0) y0 = cy0; if (x1 > cx1) x1 = cx1; if (y1 > cy1) y1 = cy1; if (x1 <= x0 || y1 <= y0) continue;
       const hx = ob.vbl ? ob._hx || hexOf(ob) : null;
@@ -716,54 +706,36 @@ export class Renderer {
     }
     m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
   }
-  /* before the mask is drawn: the frame's see-through things that keep the pattern (PF: they are in the tiles as if solid, see _occPatch), and the things whose picture is not the one the tiles saw
-   * (their tiles are painted again; one that keeps changing, three times within 600 frames, is left to the frame from then on: ob._pd, like the members of a ring, see rings()) */
+  /* before the mask is drawn, for the frame's things that keep the pattern: the ones left to the frame (ob._pd) get their own light ready (_occOwn). Left to the frame are: the members of a ring
+   * (sortItems notes them); a thing that is see-through (from then until the tiles are next thrown away: ob._pd = 2; it is in the tiles as if solid, so its tiles are painted again without it); and a thing whose
+   * picture keeps changing (not the one the tiles saw for the fourth time; before that its tiles are painted again). */
   _occPrep(world, S, K, amb, al) {
-    const fr = this.frameNo, T = NL.tile; let sig = 0; nPF = 0;
+    const T = NL.tile;
     for (let i = 0; i < S.length; i++) {
       const it = S[i], ob = it.ob; if (ob === null) continue; const sp = it.spr; if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) continue;
-      if (ob._pd !== true && ob._a === undefined) {
-        if (K === null || ob._pg !== K.gen || ob._ps === sp) continue;
-        ob._ps = sp; if (fr - (ob._pf | 0) < 600) { ob._pc = (ob._pc | 0) + 1; if (ob._pc >= 3) ob._pd = true; } else ob._pc = 1; ob._pf = fr;
-        { const sb = ob.sb; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }
-        continue;
-      }
-      if (ob._pd === true) { if (K !== null) this._occOwn(world, it, K, amb, al); continue; }   // (never in the tiles: the tiles are already "the mask without it"; its own light is kept, _occOwn)
-      PF[nPF++] = it; sig = (sig + (ob._pu || (ob._pu = ++PUID)) * 40503) | 0;
+      if (!ob._pd) {
+        if (ob._a !== undefined) { ob._pd = 2; (this._fpd || (this._fpd = [])).push(ob); }
+        else { if (K === null || ob._pg !== K.gen || ob._ps === sp) continue; ob._ps = sp; ob._pc = (ob._pc | 0) + 1; if (ob._pc > 3) ob._pd = true; }
+        if (K !== null) { const sb = ob.sb; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }
+        if (!ob._pd) continue;
+      } else if (K !== null && ob._pg === K.gen) { ob._pg = 0; const sb = ob.sb; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }   // (a member of a ring found since its tiles were painted: they are painted again without it)
+      if (K !== null) this._occOwn(world, it, K, amb, al);
     }
-    for (let i = nPF; i < PF.length && PF[i]; i++) PF[i] = null;
-    this._pfs = sig;
-    if (K !== null && fr - K.since >= NL.tileWait) for (let i = 0; i < nPF; i++) this._occPatch(world, PF[i], K, sig, amb, al);
   }
-  /* a thing that is left to the frame (ob._pd: a member of a ring, an animated thing): its own light (ambient + the pools it takes) cut to its shape is kept as a small canvas, for the part of it that
-   * pools reach (ob._pl). A frame then just draws it, like a flat-colour copy: one plain draw (the same pixels as occPut). Good while the mask's key (K.gen) and its picture stay; made in _occPrep. */
+  /* a thing that is left to the frame (ob._pd): its own light (ambient + the pools it takes) cut to its shape is kept as a canvas (ob._pl; none if no pool
+   * reaches it; a0..b1 = the box around the pools that do). A frame then just draws the part it needs, like a flat-colour copy: one plain draw (the same pixels as occPut). Good while the mask's key (K.gen) and its picture stay; made in _occPrep. */
   _occOwn(world, it, K, amb, al) {
     const ob = it.ob, sp = it.spr, fr = this.frameNo; let pl = ob._pl;
     if (pl && pl.gen === K.gen && pl.sp === sp) { pl.t = fr; return; }
-    if (!pl) { pl = ob._pl = { gen: 0, sp: null, c: null, cx: null, x: 0, y: 0, t: 0 }; (this._pls || (this._pls = [])).push(ob); }
+    if (!pl) { pl = ob._pl = { gen: 0, sp: null, c: null, cx: null, x: 0, y: 0, t: 0, a0: 0, b0: 0, a1: 0, b1: 0 }; (this._pls || (this._pls = [])).push(ob); }
     pl.gen = K.gen; pl.sp = sp; pl.t = fr;
     const q = sp.bx, qx = q ? q[0] : 0, qy = q ? q[1] : 0, X0 = sp.x + it.ax + qx, Y0 = sp.y + it.ay + qy, w = q ? q[2] - qx : sp.w, h = q ? q[3] - qy : sp.h, hx = ob.vbl ? ob._hx || hexOf(ob) : null; this._occLoad(world, null, X0, Y0, w, h, al, true); camX = X0; camY = Y0;
     let n = 0, a0 = 0, b0 = 0, a1 = 0, b1 = 0;   // the box around the pools that reach it
     for (let j = 0, o = 0; j < nLB; j++, o += 7) { let a = LB[o] - LB[o + 2], b = LB[o + 1] - LB[o + 3], c = a + 2 * LB[o + 2] + 1, d = b + 2 * LB[o + 3] + 1; if (a < 0) a = 0; if (b < 0) b = 0; if (c > w) c = w; if (d > h) d = h; if (c <= a || d <= b || (hx !== null && !hexBox(hx, a, b, c, d))) continue; if (!n++) { a0 = a; b0 = b; a1 = c; b1 = d; } else { if (a < a0) a0 = a; if (b < b0) b0 = b; if (c > a1) a1 = c; if (d > b1) b1 = d; } }
     if (!n) { pl.c = pl.cx = null; nLB = nLBw = 0; return; }
-    const pw = a1 - a0, ph = b1 - b0; if (pl.c === null || pl.c.width !== pw || pl.c.height !== ph) { pl.c = mk(pw, ph); pl.cx = pl.c.getContext('2d'); } const x = pl.cx;
-    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.fillStyle = amb; x.fillRect(0, 0, pw, ph); x.globalCompositeOperation = 'lighter';
-    for (let j = 0, o = 0; j < nLB; j++, o += 7) { let a = LB[o] - LB[o + 2], b = LB[o + 1] - LB[o + 3], c = a + 2 * LB[o + 2] + 1, d = b + 2 * LB[o + 3] + 1; const px = a, py = b; if (a < a0) a = a0; if (b < b0) b = b0; if (c > a1) c = a1; if (d > b1) d = b1; if (c <= a || d <= b) continue; const f = takes(ob.B, j, ob); if (f <= 0) continue; x.globalAlpha = LA[j] * f; x.drawImage(LS[j], a - px, b - py, c - a, d - b, a - a0, b - b0, c - a, d - b); }
-    x.globalCompositeOperation = 'destination-in'; x.globalAlpha = 1; x.drawImage(sp.c, qx + a0, qy + b0, pw, ph, 0, 0, pw, ph);
-    pl.x = X0 + a0; pl.y = Y0 + b0; nLB = nLBw = 0;
-  }
-  /* a see-through thing is in the tiles as if it were solid. While it is see-through, a patch is kept for it: the mask of the place where it hides pools, painted WITHOUT it and
-   * without the other see-through things on screen (sig: who they are; things with ob._pd are never in a tile or a patch). A frame drawn from tiles puts the patch down first; the frame's pass then lays the thing over it with its alpha. */
-  _occPatch(world, it, K, sig, amb, al) {
-    const ob = it.ob, sp = it.spr; let pw = ob._pw;
-    if (pw && pw.gen === K.gen && pw.sig === sig && pw.sp === sp && !(pw.c !== null && (pw.w.length || pw.o.length) && this._tileStale(pw))) return;
-    if (!pw) pw = ob._pw = { gen: 0, sig: 0, sp: null, c: null, cx: null, x: 0, y: 0, w: [], o: [] };
-    pw.gen = K.gen; pw.sig = sig; pw.sp = sp; pw.w.length = 0; pw.o.length = 0;
-    const q = sp.bx, X0 = sp.x + it.ax + (q ? q[0] : 0), Y0 = sp.y + it.ay + (q ? q[1] : 0), w = q ? q[2] - q[0] : sp.w, h = q ? q[3] - q[1] : sp.h; this._occLoad(world, null, X0, Y0, w, h, al, true);
-    camX = X0; camY = Y0; const n = nLB ? hidden(ob.B, ob, ob.vbl ? ob._hx || hexOf(ob) : null, 0, 0, w, h, 0, nLB) : 0, a0 = uX0, b0 = uY0, pwW = uX1 - uX0, pwH = uY1 - uY0; nLB = 0; nLBw = 0;
-    if (!n) { pw.c = null; pw.cx = null; return; }
-    pw.x = X0 + a0; pw.y = Y0 + b0; if (pw.c === null || pw.c.width !== pwW || pw.c.height !== pwH) { pw.c = mk(pwW, pwH); pw.cx = pw.c.getContext('2d'); }
-    this._occBake(world, pw.cx, pw.x, pw.y, pwW, pwH, amb, al, pw, true, K.gen);
+    if (pl.c === null || pl.c.width !== w || pl.c.height !== h) { pl.c = mk(w, h); pl.cx = pl.c.getContext('2d'); } const x = pl.cx;
+    ownLight(x, pl.c, 0, 0, w, h, ob.B, ob, amb, true); x.globalCompositeOperation = 'destination-in'; x.globalAlpha = 1; x.drawImage(sp.c, qx, qy, w, h, 0, 0, w, h);
+    pl.x = X0; pl.y = Y0; pl.a0 = a0; pl.b0 = b0; pl.a1 = a1; pl.b1 = b1; nLB = nLBw = 0;
   }
   /**
    * night light: for every thing that is lit as a whole, put its shape into the mask m in its flat colour, in draw order; where a thing that
@@ -771,7 +743,7 @@ export class Renderer {
    * pools were drawn with. Mirrors the item loop of draw() step by step (sitters, see-through objects, the focus ghost).
    */
   _nightE(S, cam, amb, al, m, tiled, occ, kg) {
-    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; nPut = 0; silNew = 0; camX = cam.x; camY = cam.y; vW = W; vH = H;
+    const fr = this.frameNo, W = this.W, H = this.H; nER = 0; nOP = 0; silNew = 0; camX = cam.x; camY = cam.y; vW = W; vH = H;
     if (amb !== AMB) { AMB = amb; const n = parseInt(amb.slice(1), 16); aR = n >> 16; aG = n >> 8 & 255; aB = n & 255; }
     for (let i = 0; i < S.length; i++) {
       const it = S[i], sp = it.spr, dx = sp.x + it.ax - cam.x, dy = sp.y + it.ay - cam.y, e = it.e, ob = it.ob, oa = ob ? ob._a : undefined;
@@ -797,13 +769,18 @@ export class Renderer {
            animated object and for a big entity (a train car): the world's lamps too. There it gets its own light (pushOp 3), with its alpha; a see-through thing in one step for everything behind it as well
            (a blend must not be done twice). */
         if (occ && hides) {
-          const from = ob && oa === undefined && ob._pd !== true ? nLBw : 0, x0 = bx0 < 0 ? 0 : bx0, y0 = by0 < 0 ? 0 : by0, x1 = bx1 > W ? W : bx1, y1 = by1 > H ? H : by1, pl = ob && ob._pd === true && !(a !== undefined && a < 1) ? ob._pl : null;
+          const from = ob && !ob._pd ? nLBw : 0, x0 = bx0 < 0 ? 0 : bx0, y0 = by0 < 0 ? 0 : by0, x1 = bx1 > W ? W : bx1, y1 = by1 > H ? H : by1, pl = ob && ob._pd ? ob._pl : null;
           if (pl && pl.gen === kg && pl.sp === sp) {
             /* left to the frame, with its own light kept (_occOwn): what is lit behind it is covered as usual, the kept copy is drawn, and where a moving light is on it its light is put together on the spot (after the copy: steps run in this order) */
-            const c = pl.c, cx0 = c !== null ? pl.x - cam.x : 0, cy0 = c !== null ? pl.y - cam.y : 0;
-            if (nER && x1 > x0 && y1 > y0) { eSkip = true; const hit = hitBox(ER, nER, x0, y0, x1, y1, hx); eSkip = false; if (hit && (c === null || hX0 < cx0 || hY0 < cy0 || hX1 > cx0 + c.width || hY1 > cy0 + c.height)) { nlCut++; pushOp(3, sp, hX0 - dx, hY0 - dy, hX1 - hX0, hY1 - hY0, hX0, hY0, a, null, it); } }   // (inside the kept copy's box the copy itself covers it)
-            if (c !== null) { const px = cx0, py = cy0, p0 = px < 0 ? 0 : px, q0 = py < 0 ? 0 : py, p1 = px + c.width > W ? W : px + c.width, q1 = py + c.height > H ? H : py + c.height; if (p1 > p0 && q1 > q0) { pushOp(2, c, p0 - px, q0 - py, p1 - p0, q1 - q0, p0, q0, a, null, null); addE(p0, q0, p1, q1); EK[nER - 1] = 1; nlOcc++; } }
-            for (let j = nLBw, o = j * 7; j < nLB; j++, o += 7) { let p = LB[o] - LB[o + 2], q = LB[o + 1] - LB[o + 3], r = p + 2 * LB[o + 2] + 1, t = q + 2 * LB[o + 3] + 1; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; if (r <= p || t <= q || (hx !== null && !hexBox(hx, p, q, r, t))) continue; { const f = takes(it.B, j, ob), ins = c !== null && p >= cx0 && q >= cy0 && r <= cx0 + c.width && t <= cy0 + c.height, out = c === null || p >= cx0 + c.width || r <= cx0 || q >= cy0 + c.height || t <= cy0; if ((f <= 0 && ins) || (f >= 1 && out)) continue; }   /* (the copy has taken it off there already / it is still on there, as it should be) */ pushOp(3, sp, p - dx, q - dy, r - p, t - q, p, q, a, null, it); addE(p, q, r, t); }
+            const c = pl.c; let r0 = 0, r1 = 0, r2 = 0, r3 = 0;   // r0..r3: the part of it this frame works on = where pools reach it + where something lit is behind it
+            if (x1 > x0 && y1 > y0) {
+              if (c !== null) { r0 = pl.x - cam.x + pl.a0; r1 = pl.y - cam.y + pl.b0; r2 = r0 + pl.a1 - pl.a0; r3 = r1 + pl.b1 - pl.b0; if (r0 < x0) r0 = x0; if (r1 < y0) r1 = y0; if (r2 > x1) r2 = x1; if (r3 > y1) r3 = y1; }
+              if (nER) { eSkip = true; const hit = hitBox(ER, nER, x0, y0, x1, y1, hx); eSkip = false; if (hit) { if (r2 <= r0 || r3 <= r1) { r0 = hX0; r1 = hY0; r2 = hX1; r3 = hY1; } else { if (hX0 < r0) r0 = hX0; if (hY0 < r1) r1 = hY0; if (hX1 > r2) r2 = hX1; if (hY1 > r3) r3 = hY1; } } }
+              if (r2 > r0 && r3 > r1) { if (c !== null) pushOp(2, c, r0 - (pl.x - cam.x), r1 - (pl.y - cam.y), r2 - r0, r3 - r1, r0, r1, a, null, null); else pushOp(0, sp, r0 - dx, r1 - dy, r2 - r0, r3 - r1, r0, r1, a, amb, null);   /* (no pool reaches it: its own light is the ambient colour) */ addE(r0, r1, r2, r3); EK[nER - 1] = 1; nlOcc++; }
+              if (!(a < 1)) for (let j = nLBw, o = j * 7; j < nLB; j++, o += 7) { let p = LB[o] - LB[o + 2], q = LB[o + 1] - LB[o + 3], r = p + 2 * LB[o + 2] + 1, t = q + 2 * LB[o + 3] + 1; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; if (r <= p || t <= q || (hx !== null && !hexBox(hx, p, q, r, t))) continue;
+                { const f = takes(it.B, j, ob), ins = p >= r0 && q >= r1 && r <= r2 && t <= r3, out = r2 <= r0 || r3 <= r1 || p >= r2 || r <= r0 || q >= r3 || t <= r1; if ((f <= 0 && ins) || (f >= 1 && out)) continue; }   // (the copy has taken it off there already / it is still on there, as it should be)
+                pushOp(3, sp, p - dx, q - dy, r - p, t - q, p, q, a, null, it); addE(p, q, r, t); }
+            }
             done = true;
           } else if (from < nLB && x1 > x0 && y1 > y0 && hidden(it.B, ob, hx, x0, y0, x1, y1, from, nLB)) {
             let a0 = uX0, b0 = uY0, a1 = uX1, b1 = uY1;
@@ -897,7 +874,7 @@ export class Renderer {
       if (sf) { if (fo === gh && i === fi) { const ov = gh.ov; if (!tall || !ov || !covers(ob, ov, ov.x + it.ax, ov.y + it.ay, fx, f.ay, true)) continue; } else if (!tall && (fx + 4 < r[0] || fx - 4 > r[2] || f.ay < r[1] || f.ay - 16 > r[3] || !covers(ob, it.spr, it.spr.x + it.ax, it.spr.y + it.ay, fx, f.ay, false))) continue; }
       else if (!tall) continue;
       ob._want = .28; if (ob._a === undefined) ob._a = 1; fading.add(ob); } }
-    for (const ob of fading) { ob._a += (ob._want - ob._a) * .18; if (ob._want === 1 && ob._a > .97) { ob._a = undefined; fading.delete(ob); if (ob._pw && ob._pd !== true) ob._pw = null; } }
+    for (const ob of fading) { ob._a += (ob._want - ob._a) * .18; if (ob._want === 1 && ob._a > .97) { ob._a = undefined; fading.delete(ob); } }
     for (const it of S) { const sp = it.spr;
       /* seating: somebody who sits with the back to the camera has the legs on the far side of the piece: the sprite's rows below the seat line go under the piece, the rest over it */
       if (it.ns) for (let q = it.sit; q; q = q.next) { if (q.e.dir < 2) continue; const qs = q.spr, r0 = Math.min(qs.h, 1 - qs.y), ea = q.e.alpha; if (r0 >= qs.h) continue; if (ea !== undefined) ctx.globalAlpha = ea; ctx.drawImage(qs.c, 0, r0, qs.w, qs.h - r0, qs.x + q.ax - cam.x, qs.y + q.ay - cam.y + r0, qs.w, qs.h - r0); if (ea !== undefined) ctx.globalAlpha = 1; }
@@ -909,15 +886,15 @@ export class Renderer {
     const dark = env.dark || 0; tn = performance.now(); ST.tItems += tn - tm; tm = tn;
     if (env.amb && env.amb !== '#ffffff') {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
-      const nlOn = NL.mode !== 'old' && dark > .05, al = Math.min(1, dark * .5), occ = nlOn && NL.occ && world.poolOcc === true; nLB = 0; nHP = 0; nPF = 0;   /* occ: a building hides the pools behind it (see "pools behind buildings") */
+      const nlOn = NL.mode !== 'old' && dark > .05, al = Math.min(1, dark * .5), occ = nlOn && NL.occ && world.poolOcc === true; nLB = 0; nHP = 0;   /* occ: a building hides the pools behind it (see "pools behind buildings") */
       /* perf: the mask of the world's own lights (ambient + every pool on screen: 20 to 40 draws a frame in town) is kept in tiles while nothing about it changes (all night; indoors all day): see _maskTiles. Same pixels. */
       const K = dark > .05 && NL.tiles ? this._maskKey(world, env.amb, al, occ) : null; if (occ) this._occPrep(world, S, K, env.amb, al);
       const tiled = K !== null && this._maskTiles(world, cam, env.amb, al, m, nlOn, occ, K); nLBw = nLB;
       if (!tiled) {
         m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
         if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = al; const LL = world.lights; for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2)   /* half size of its pool sprite (see poolSprite) */, x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue;   /* perf: off-screen lights are rejected before the pool sprite is looked up (every light of the city, every frame) */ const ps = poolSprite(l.r, l.c || '#ffd9a0'); m.drawImage(ps, x, y); if (nlOn) addLight(x + rx, y + ry, ps, al, l.ob, l.x, l.y, l.z); } nLBw = nLB;
-          if (occ && nLB) { camX = cam.x; camY = cam.y; this._occPass(m, S, S.length, 0, 0, W, H, env.amb, true, null); } }
-      } else if (nPF) { const sg = this._pfs, g = K.gen; for (let i = 0; i < nPF; i++) { const pw = PF[i].ob._pw; if (pw && pw.c !== null && pw.gen === g && pw.sig === sg) m.drawImage(pw.c, pw.x - cam.x, pw.y - cam.y); } }   // the see-through things' places, as they are without them (_occPatch)
+          if (occ && nLB) { camX = cam.x; camY = cam.y; this._occPass(m, S, S.length, 0, 0, W, H, env.amb, null); } }
+      }
       if (dark > .05 && hooks.lights) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = al; if (nlOn) { const tap = this._tap; tap.m = m; tap.w = occ ? world : null; tap.cx = cam.x; tap.cy = cam.y; hooks.lights(tap, cam, poolSprite); } else hooks.lights(m, cam, poolSprite); }
       /* night light: the pools stay on the ground; whoever stands on it is put into the mask as one flat colour (see _nightE) */
       if (nlOn && nLB) { const t0 = performance.now(); this._nightE(S, cam, env.amb, al, m, tiled, occ, K !== null ? K.gen : -1); ST.tNl += performance.now() - t0; }
