@@ -6,6 +6,8 @@ import { SCRATCH, FPS, W, H } from './lib.mjs'; import { EDL } from './edl.mjs';
 const require = createRequire(import.meta.url); const { chromium } = require('playwright');
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const k = process.argv[2], E = EDL[k], name = process.argv[3] || `trailer_${k}_rough`; if (!E) { console.log('usage: assemble.mjs a|b'); process.exit(1); }
+// node assemble.mjs b <name> [maxrate, e.g. 1300k] [crf]: the web copy (under 14.5 MB) and the owner's download copy (higher bitrate) are two runs of this
+const MAXR = process.argv[4] || (E.len > 58 ? '1650k' : E.len > 50 ? '1750k' : '1900k');
 const seq = path.join(SCRATCH, 'seq_' + k); fs.rmSync(seq, { recursive: true, force: true }); fs.mkdirSync(seq, { recursive: true });
 const NF = Math.round(E.len * FPS), f5 = i => String(i).padStart(5, '0'); let warn = 0; const mids = [];
 for (const s of E.video) {
@@ -22,8 +24,8 @@ for (const s of E.video) {
 for (let i = 0; i < NF; i++) if (!fs.existsSync(path.join(seq, f5(i) + '.jpg'))) { console.log('GAP at frame', i, (i / FPS).toFixed(2)); process.exit(1); }
 const out = path.join(ROOT, 'docs/trailer', name + '.mp4'); fs.mkdirSync(path.dirname(out), { recursive: true });
 execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(seq, '%05d.jpg'), '-framerate', String(FPS), '-i', path.join(SCRATCH, 'overlay_' + k, '%05d.png'), '-i', path.join(SCRATCH, E.music),
-  '-filter_complex', '[0:v][1:v]overlay=format=auto,format=yuv420p[v]', '-map', '[v]', '-map', '2:a', '-t', String(E.len), '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.0', '-preset', 'slow', '-crf', '19', '-maxrate', E.len > 58 ? '1650k' : E.len > 50 ? '1750k' : '1900k', '-bufsize', '3600k', '-g', '60',
-  '-af', 'volume=-1dB', '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', out], { stdio: 'inherit' });
+  '-filter_complex', '[0:v][1:v]overlay=format=auto,format=yuv420p[v]', '-map', '[v]', '-map', '2:a', '-t', String(E.len), '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.0', '-preset', 'slow', '-crf', process.argv[5] || '19', '-maxrate', MAXR, '-bufsize', parseInt(MAXR) * 2 + 'k', '-g', '60',
+  '-af', 'volume=-1dB', '-c:a', 'aac', '-b:a', parseInt(MAXR) < 1500 ? '128k' : '160k', '-ar', '48000', '-movflags', '+faststart', out], { stdio: 'inherit' });
 console.log(out, (fs.statSync(out).size / 1048576).toFixed(2) + ' MB', warn ? `(${warn} warnings)` : '');
 // contact sheet: one composited frame per shot with its time code
 const tmp = path.join(SCRATCH, 'sheet_' + k); fs.rmSync(tmp, { recursive: true, force: true }); fs.mkdirSync(tmp, { recursive: true });

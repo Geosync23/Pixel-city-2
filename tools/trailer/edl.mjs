@@ -43,12 +43,13 @@ const A = {
 /* ---------------- B: the mix (Open Every Door x A Week in Maple Bay) ---------------- */
 // the door montage: 16 interiors one per beat (bars 5-8), 24 one per half beat (bars 13-15); [room clip, name shown nowhere, just for the storyboard]
 // owner msg 216: no place twice. 40 different buildings, none of them the aquarium (it is the closing hold only), none a second room of a building already shown, none a place that also appears in the week or the job / activity close-ups.
-export const DOORS1 = ['restaurant', 'cs_hollowell', 'playhouse', 'lighthouse_lantern', 'post_main', 'cityhall', 'natatorium-pool', 'museum', 'observatory', 'skydeck', 'clinic', 'bank', 'fishmarket', 'conservatory', 'cs_nightjar', 'bookstore'];
-export const DOORS2 = ['bakery', 'cs_juniper', 'library', 'school_classroom', 'ramen', 'deptstore', 'arena-bowl', 'cs_secondwind', 'hotel', 'goods-timber', 'pizza', 'university', 'cs_tidepool', 'gazette_newsroom', 'office', 'concerthall', 'cs_sole', 'home-beacon_penthouse', 'radio_studio', 'cs_brim', 'cinema', 'grocery', 'goods-lumen', 'cs_lantern'];
-const WEEK = [['MON', 'b_job', 2, 'A job shift: trainee barista at the cafe (the shift panel is the game’s own)'], ['TUE', 'b_gym', 2, 'The gym: treadmill mini-game'], ['WED', 'b_cook', 2, 'Cooking mini-game at home ("Chop it")'], ['THU', 'b_rain', 2, 'A rainy evening walk downtown'],
+export const DOORS1 = ['restaurant', 'cs_hollowell', 'playhouse', 'lighthouse_lantern', 'central_station-platforms', 'cityhall', 'natatorium-pool', 'museum', 'observatory', 'skydeck', 'clinic', 'bank', 'fishmarket', 'conservatory', 'cs_nightjar', 'bookstore'];
+export const DOORS2 = ['bakery', 'cs_juniper', 'library', 'school_classroom', 'ramen', 'deptstore', 'arena-bowl', 'cs_secondwind', 'hotel', 'post_main', 'pizza', 'university', 'cs_tidepool', 'gazette_newsroom', 'office', 'concerthall', 'cs_sole', 'home-beacon_penthouse', 'radio_studio', 'cs_brim', 'cinema', 'grocery', 'goods-lumen', 'cs_lantern'];
+const WEEK = [['MON', 'b_job', 2, 'A job shift: trainee barista at the cafe (the shift panel is the game’s own)'], ['TUE', 'b_gym', 2, 'The gym: treadmill mini-game'], ['WED', 'b_cook', 2, 'Cooking mini-game at home ("Chop it")'], ['THU', 'd_thu', 2, 'Old Town market square at lunch'],
   ['FRI', 'b_date', 2, 'A first date on the River Walk (the date scene’s own text sheet)'], ['SAT', 'b_fest', 4, 'Lantern Night festival in Old Town'], ['SUN', 'b_fish', 2, 'Fishing off the river rail']];
 // round 3 (owner msg 212): four more bars. round 4 (owner msg 213): the four travel shots hold one bar each (bars 4-7), so everything from the doors on is three bars later: bb(n) = the old bar n.
-const LEN_B = 45 + 7 * BAR, END_B = bar(26), bb = (n, beats = 0) => bar(n >= 5 ? n + 3 : n, beats);   // final chord at bar 26 = 57.79 s, 61.15 s in all
+// round 8 (owner msg 217): a four-part section (work / make friends / shop and decorate / explore, 8 bars) after the week, one more city bar near the end: old bars 13 on are 11 later.
+const LEN_B = 45 + 14 * BAR, END_B = bar(33), bb = (n, beats = 0) => bar(n >= 13 ? n + 11 : n >= 5 ? n + 3 : n, beats);   // final chord at bar 33 = 73.95 s, 77.31 s in all
 const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
 {
   const v = B.video, g = B.gfx, tdB = td, END = END_B, LEN = LEN_B;
@@ -62,13 +63,20 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   let b = 0; WEEK.forEach(w => { const t = bb(9, b); v.push({ clip: w[1], in: w[1] === 'b_fest' ? 0 : .4, t0: t, t1: bb(9, b + w[2]), note: w[0] + ': ' + w[3] }); g.push({ kind: 'day', t0: t, t1: bb(9, b + w[2]) - .04, text: w[0] }); b += w[2]; });
   DOORS2.forEach((r, i) => { const t = bb(13, i / 2); v.push({ clip: 'room_' + r, in: .1, t0: t, t1: bb(13, (i + 1) / 2), note: 'Door ' + (DOORS1.length + i + 1) + ': ' + r }); g.push({ kind: 'wipe', t, d: .067 }); steps.push([t, num(k++)]); });
   v.push({ clip: 'room_aquarium', in: .15, t0: bb(16), t1: bb(17), note: 'Hold on the aquarium for the count caption' });
-  // round 3: close views of the character at work (bars 17-18) and at play (bars 19-20), two beats each; then home (kept), then a city shot in place of the lighthouse
-  const JOBS = [['x_barista', 4.27, 'Barista at Bean & Gone: makes a drink at the machine'], ['x_station', 1.67, 'Station agent at Central: sees a train off'], ['x_cook', 5.0, 'Prep cook in the diner kitchen'], ['x_fire', 3.07, 'Firefighter rolling a hose at the station']];
-  JOBS.forEach((j, i) => v.push({ clip: j[0], crop: 2, cy: 30, in: j[1], t0: bb(17, i * 2), t1: bb(17, i * 2 + 2), note: 'AT WORK: ' + j[2] }));
-  const PLAY = [['x_tread', .5, 'Running on the treadmill at the gym'], ['x_dance', .5, 'On the dance floor at the Blue Heron'], ['x_fish', .5, 'Fishing from the river rail'], ['x_paint', .5, 'Painting at the easel']];
-  PLAY.forEach((j, i) => v.push({ clip: j[0], crop: 2, cy: 30, in: j[1], t0: bb(19, i * 2), t1: bb(19, i * 2 + 2), note: 'AT PLAY: ' + j[2] }));
-  v.push({ clip: 'b_home', t0: bb(21), t1: bb(22), note: 'Evening at home by the fire' });
-  v.push({ clip: 'b_city2', t0: bb(22), t1: END, note: 'The harbour boardwalk in the evening light: fish hall, stalls, boats, strollers (replaces the lighthouse)' });
+  // round 8: the four-part section in bars 16-23 (two bars each), between the week and the fast doors
+  const JOBS = [['x_cook', 5.0, 'Prep cook in the diner kitchen'], ['x_fire', 3.07, 'Firefighter rolling a hose at the station'], ['x_bag', 3.4, 'Ramp hand sorting bags at the airport carousels'], ['x_hair', 2.67, 'Shop assistant at Otis & Sons barbershop']];
+  JOBS.forEach((j, i) => v.push({ clip: j[0], crop: 2, cy: 30, in: j[1], t0: bar(16, i * 2), t1: bar(16, i * 2 + 2), note: 'WORK: ' + j[2] }));
+  v.push({ clip: 'y_talk', in: .5, t0: bar(18), t1: bar(19), note: 'MAKE FRIENDS: talking with Nora in the park (the game\u2019s talk panel; "Chat" is clicked)' });
+  v.push({ clip: 'y_fd_haru', in: .5, t0: bar(19), t1: bar(20), note: 'MAKE FRIENDS: a first date with Haru on the fishing pier by the Bay Wheel (the date scene\u2019s own companion and text sheet)' });
+  v.push({ clip: 'y_shop', in: .5, t0: bar(20), t1: bar(21), note: 'SHOP: the shop window at Nest & Wire; a piece is bought' });
+  v.push({ clip: 'y_decor', in: .4, t0: bar(21), t1: bar(22), note: 'DECORATE: design mode at home, a lamp is dragged to a new place' });
+  v.push({ clip: 'y_train', in: 4.5, t0: bar(22), t1: bar(23), note: 'EXPLORE: inside the train, the city passing' });
+  v.push({ clip: 'y_stroll', in: .3, t0: bar(23), t1: bar(24), note: 'EXPLORE: on foot across the university green at lunch' });
+  const PLAY = [['x_dance', .5, 'On the dance floor at the Blue Heron'], ['x_garden', .5, 'Tending a bed in the community garden'], ['x_paint', .5, 'Painting at the easel'], ['x_swing', .5, 'On the swings at the playground']];
+  PLAY.forEach((j, i) => v.push({ clip: j[0], crop: 2, cy: 30, in: j[1], t0: bar(28, i * 2), t1: bar(28, i * 2 + 2), note: 'AT PLAY: ' + j[2] }));
+  v.push({ clip: 'd_pond', t0: bar(30), t1: bar(31), note: 'The park lake at lunch: fountain, kiosk, ducks, strollers' });
+  v.push({ clip: 'b_city2', t0: bar(31), t1: bar(32), note: 'The harbour boardwalk in the evening light: fish hall, stalls, boats, strollers' });
+  v.push({ clip: 'b_home', t0: bar(32), t1: END, note: 'Evening at home by the fire' });
   v.push({ clip: 'a16_end', t0: END, t1: LEN, note: 'End card over downtown at night' });
   g.push({ kind: 'fadein', t0: 0, t1: .5 });
   g.push({ kind: 'dim', t0: .3, t1: bb(3), a: .28 });
@@ -78,10 +86,15 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   g.push({ kind: 'count', t0: bb(5), t1: bb(9) - .05, steps, label: 'enterable buildings' });
   g.push({ kind: 'count', t0: bb(13), t1: bb(16), steps, label: 'enterable buildings' });
   g.push({ kind: 'cap', t0: bb(16), t1: bb(17) - .12, text: 'nearly 200 enterable buildings', size: 68 });   // owner msg 206-207: replaces 'over 190 buildings to walk into'; at the bottom, clear of the tank
-  g.push({ kind: 'cap', t0: bb(9, .5), t1: bb(11) - .15, text: 'your life, your pace', size: 88 });   // round 3: moved to the start of the week
-  g.push({ kind: 'cap', t0: bb(17), t1: bb(19) - .15, text: '25 jobs to work', size: 92 });
-  g.push({ kind: 'cap', t0: bb(19), t1: bb(21) - .15, text: 'over 90 things to do', size: 92 });
-  g.push({ kind: 'cap', t0: bb(21), t1: END - .12, text: 'so much to see', size: 92 });
+  g.push({ kind: 'cap', t0: bar(16), t1: bar(17) - .15, text: 'work', size: 100 });
+  g.push({ kind: 'cap', t0: bar(17), t1: bar(18) - .15, text: '25 jobs to work', size: 92 });
+  g.push({ kind: 'cap', t0: bar(18), t1: bar(20) - .15, text: 'make friends', size: 96, pos: 'top' });   // at the top: the talk panel and the date's text sheet sit at the bottom
+  g.push({ kind: 'cap', t0: bar(20), t1: bar(21) - .15, text: 'shop and<br>decorate', size: 72, y: 280, box: [900, 380] });   // beside the shop window
+  g.push({ kind: 'cap', t0: bar(21), t1: bar(22) - .15, text: 'shop and decorate', size: 76, y: 368 });   // between the room and design mode's tray
+  g.push({ kind: 'cap', t0: bar(22), t1: bar(24) - .15, text: 'explore', size: 100 });
+  g.push({ kind: 'cap', t0: bar(28), t1: bar(30) - .15, text: 'over 100 activities', size: 92 });   // owner msg 217 (the game defines 91 today; the owner's wording)
+  g.push({ kind: 'cap', t0: bar(30), t1: bar(32) - .15, text: 'so much to see', size: 92 });
+  g.push({ kind: 'cap', t0: bar(32) + .1, t1: END - .12, text: 'your life, your pace', size: 88 });   // owner msg 217: the summing-up line before the end card
   g.push({ kind: 'dim', t0: END, t1: LEN, a: .5 });
   g.push({ kind: 'title', t0: END, t1: LEN, y: 270, leaf: 1, tag: 'an open-world life sim', tagAt: .58 });
   g.push({ kind: 'fadeout', t0: LEN - .5, t1: LEN + .1 });

@@ -20,9 +20,11 @@ export const ARR = {
     /* round 3 (owner msg 212): four more bars, the second half of the loop once more with the tune an octave up, then the same final chord */
     L(4, 1, 1, 1, 1, 12), L(5, 1, 1, 1, 1, 12), L(6, 1, 1, 1, 1, 12), L(7, 1, 1, 1, 1, 12),
     /* round 4 (owner msg 213): three more bars (vi ii V once more, tune back down an octave), then the same final chord */
-    L(5, 1, 1, 1), L(6, 1, 1, 1), L(7, 1, 1, 1)],
+    L(5, 1, 1, 1), L(6, 1, 1, 1), L(7, 1, 1, 1),
+    /* round 8 (owner msg 217): seven more bars (I vi ii V, vi ii V), full band, then the same final chord */
+    L(0, 1, 1, 0), L(1, 1, 1, 0), L(2, 1, 1, 1), L(3, 1, 1, 1), L(5, 1, 1, 1, 1, 12), L(6, 1, 1, 1, 1, 12), L(7, 1, 1, 1, 1, 12)],
 };
-export const LENS = { a: 45, b: 45 + 7 * BAR };
+export const LENS = { a: 45, b: 45 + 14 * BAR };
 if (import.meta.url === `file://${process.argv[1]}`) {
   const srv = await serve(CLEAN); const port = srv.address().port; const br = await chromium.launch(); const page = await br.newPage();
   await page.route('**/trailer_blank.html', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>music</title>' }));
@@ -33,7 +35,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       const sr = 48000, ctx = new OfflineAudioContext(2, Math.ceil(LEN * sr), sr);
       Math.random = Lb.mulberry(4242);
       // the game's chain: Session -> trim (CLASSIC_LEVELS) -> the per-tune peak limiter -> out; echo send as in the game. +3 dB make-up so the trailer sits near -14 LUFS.
-      const master = ctx.createGain(); master.gain.value = 1.41; master.connect(ctx.destination);
+      const master = ctx.createGain(); master.gain.value = 1.38; master.connect(ctx.destination);
       const trim = ctx.createGain(); trim.gain.value = Math.pow(10, (LV.CLASSIC_LEVELS.classic_interior || 0) / 20);
       const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -9; lim.knee.value = 6; lim.ratio.value = 6; lim.attack.value = .003; lim.release.value = .15; trim.connect(lim); lim.connect(master);
       const send = M.useContext(ctx, master);
@@ -44,7 +46,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       // the ending: the tonic chord (bar 0, beat 1) with the kick, left to ring, then a gentle fade to the end of the file
       s.bassF = bassOn; s.f = { lead: false, drums: true, arp: true, oct: 0 }; s.play(0, t);
       { const c = s.c.chords[0]; for (const m of c.pad) Lb.tone(s.padF, t, { type: 'triangle', f: Lb.mtof(m + 12), a: .01, h: 2.0, d: 1.6, v: .035 }); for (const m of c.pad) Lb.tone(s.padF, t, { type: 'triangle', f: Lb.mtof(m), a: .01, h: 2.2, d: 1.4, v: .04 }); Lb.tone(s.bassF, t, { type: 'triangle', f: Lb.mtof(c.root), a: .01, h: 1.2, d: 1.6, v: .2 }); Lb.tone(s.leadF, t, { type: 'square', f: Lb.mtof(74), a: .008, h: .5, d: 1.6, v: .04, vib: [5, 3] }); }
-      master.gain.setValueAtTime(1.41, LEN - 1.6); master.gain.linearRampToValueAtTime(.0001, LEN - .05);
+      master.gain.setValueAtTime(1.38, LEN - 1.6); master.gain.linearRampToValueAtTime(.0001, LEN - .05);
       const buf = await ctx.startRendering(), n = buf.length, a = buf.getChannelData(0), c = buf.getChannelData(1), out = new DataView(new ArrayBuffer(44 + n * 4));
       const W = (o, str) => { for (let i = 0; i < str.length; i++) out.setUint8(o + i, str.charCodeAt(i)); };
       W(0, 'RIFF'); out.setUint32(4, 36 + n * 4, true); W(8, 'WAVEfmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 2, true); out.setUint32(24, sr, true); out.setUint32(28, sr * 4, true); out.setUint16(32, 4, true); out.setUint16(34, 16, true); W(36, 'data'); out.setUint32(40, n * 4, true);

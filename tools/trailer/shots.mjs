@@ -1,3 +1,4 @@
+import { R8 } from './shots_r8.mjs';
 // The shot list of both trailers (interiors of the door montage: rooms.mjs). Each shot: { url, setup(ctx), settle, ready(ctx), sec, frame(ctx, t, i) }.
 // ctx.ev(fn, arg) runs in the page (window.G, window.TR helpers from lib.mjs). All staging is done from outside; src/ is not touched.
 // ctx.meta(obj) stores numbers the edit needs (e.g. the touchdown frame) in <scratch>/meta/<id>.json.
@@ -149,5 +150,10 @@ export const SHOTS = {
   x_barista: job('barista', 4), x_station: job('station_agent', 4), x_cook: job('line_cook', 4), x_fire: job('firefighter', 4), x_dj: job('radio_dj'), x_aqua: job('aquarist', 4), x_florist: job('florist'),
   x_tread: act('gym', 'gym_treadmill', 'treadmill', 4), x_weights: act('gym', 'gym_weights', 'weights'), x_dance: act('bar', 'dance', 'dancefloor', 4, { h: 21 }), x_piano: act('home:villa_belvedere', 'practice_instrument', 'instrument', 5, { h: 19 }),
   x_cookhome: act('home:marlowe_1br', 'cook', 'stove', 5, { h: 18.5 }), x_fish: act('city', 'fish_pier', 'fishing_spot', 4, { h: 18.3, at: [148, 250.6], label: 'fish' }), x_paint: act('home:easel_house', 'paint', 'easel', 4), x_pool: act('bar', 'play_pool', 'pool', 5, { h: 21 }),
+  /* round 8 (owner msg 217) candidates */
+  x_gate: job('gate_agent', 4), x_bag: job('baggage_handler', 4), x_hair: job('hair_stylist', 4), x_dock: job('dock_worker', 4), x_courier: job('courier', 4),
+  x_garden: act('city', 'garden', 'garden_plot', 4, { h: 14, at: [347.3, 211.5], label: 'garden' }), x_swing: act('city', 'swing', 'swing', 4, { h: 14, at: [65, 186], label: 'swing' }),
+  x_ferris: act('city', 'ride_ferris_wheel', 'ferris_wheel', 3, { h: 14, at: [100, 372.6], label: 'wheel' }), x_picnic: act('city', 'picnic', 'picnic_spot', 4, { h: 14, at: [129, 169.5], label: 'picnic' }), x_ducks: act('city', 'feed_ducks', 'duck_pond', 4, { h: 14, at: [96, 171.5], label: 'duck' }),
+  ...R8({ city, free, pan, walk, busy }),
   ...D, d_cab2: D.d_cab, d_cab3: D.d_cab, d_bus2: D.d_bus, d_foot2: D.d_foot, d_open2: D.d_open, d_board2: D.d_board, d_foot3: D.d_foot, d_foot4: D.d_foot, d_bus3: D.d_bus, d_train2: D.d_train,
 };
