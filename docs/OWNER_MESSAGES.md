@@ -917,3 +917,6 @@ Ok reactivate 1 opus 5.5 worker to do what you outlined.
 
 ## 225 (2026-11-17)
 Show me the sounds first once made we might want recordings
+
+## 226 (2026-11-17)
+Sounds re good except use vaiant b for jet.

@@ -67,7 +67,11 @@ G.go = (id, opts = {}) => new Promise((res, rej) => {
 /* ---------- camera / coords ---------- */
 // The low-res canvas scrolls in whole pixels; the remaining fraction is applied as a CSS shift quantised to real screen pixels,
 // so scrolling is smooth in every direction (no judder on diagonals).
-function placeCam() { const c = G.cam, z = G.zoom, tx = c.fx - (G.W - 1) / 2, ty = c.fy - (G.H - 1) / 2; c.x = Math.floor(tx); c.y = Math.floor(ty); let sx = Math.round((tx - c.x) * z) / z, sy = Math.round((ty - c.y) * z) / z; if (sx >= 1) { sx = 0; c.x++; } if (sy >= 1) { sy = 0; c.y++; } c.sx = sx; c.sy = sy; if (G.cv && (c._sx !== sx || c._sy !== sy)) { c._sx = sx; c._sy = sy; G.cv.style.transform = 'translate(' + (-sx * G.cssScale) + 'px,' + (-sy * G.cssScale) + 'px)'; } }
+// PIXEL LOCK (owner msg 220, the hitchy plane): a camera target with `lock` ({ ax, ay } = the unrounded screen anchor of the entity it follows, e.g. a plane's
+// flight.cam) is followed in whole canvas pixels in step with the renderer's rounding of that entity, so it stays still on screen (no 1-px wobble against a
+// sub-pixel camera), and it is followed without lag (the lerp only takes up the offset left by a jump), so frame-time changes do not shake it either.
+function placeCam() { const c = G.cam, z = G.zoom, tx = c.fx - (G.W - 1) / 2, ty = c.fy - (G.H - 1) / 2, L = G.camTarget && G.camTarget.lock ? G.camTarget : null; c.x = Math.floor(tx); c.y = Math.floor(ty); let sx = Math.round((tx - c.x) * z) / z, sy = Math.round((ty - c.y) * z) / z; if (sx >= 1) { sx = 0; c.x++; } if (sy >= 1) { sy = 0; c.y++; }
+  if (L) { c.x = Math.round(L.ax) + Math.round(tx - L.ax); c.y = Math.round(L.ay) + Math.round(ty - L.ay); sx = sy = 0; } c.sx = sx; c.sy = sy; if (G.cv && (c._sx !== sx || c._sy !== sy)) { c._sx = sx; c._sy = sy; G.cv.style.transform = 'translate(' + (-sx * G.cssScale) + 'px,' + (-sy * G.cssScale) + 'px)'; } }
 function snapCam() { const p = G.camTarget || G.player, a = WS(p.x, p.y, p.z); G.cam.fx = a[0]; G.cam.fy = a[1] - 14; placeCam(); }
 G.snapCam = snapCam;
 function resize() {
@@ -184,7 +188,9 @@ function frame(now) {
     { const ss = G._sub; G._sub = null; if (G.scene.update) G.scene.update(ss ? ss[0] : dt, ss ? ss[1] : gm); for (const s of G.systems) if (s.update) s.update(ss ? ss[0] : dt, ss ? ss[1] : gm); }
   }
   // camera
-  const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), k = Math.min(1, dt * 7), lk = G.camLook /* PAD HOOK: the right stick looks around ({x, y} in canvas px; null without a pad) */; G.cam.fx += (a[0] + (lk ? lk.x : 0) - G.cam.fx) * k; G.cam.fy += (a[1] - 14 + (lk ? lk.y : 0) + (G.camDY || 0) /* PART-SCREEN HOOK (ui/phone.js): the player stays in view above the docked phone */ - G.cam.fy) * k; placeCam();
+  const ct = G.camTarget || G.player, a = WS(ct.x, ct.y, ct.z), ff = G.cam.ff || (G.cam.ff = { t: null, x: 0, y: 0 }), k = ct.lock ? 1 - Math.exp(-7 * dt) : Math.min(1, dt * 7);
+  if (ct.lock && ff.t === ct) { G.cam.fx += a[0] - ff.x; G.cam.fy += a[1] - ff.y; } ff.t = ct.lock ? ct : null; ff.x = a[0]; ff.y = a[1];   /* PIXEL LOCK: move with the target first */
+  const lk = G.camLook /* PAD HOOK: the right stick looks around ({x, y} in canvas px; null without a pad) */; G.cam.fx += (a[0] + (lk ? lk.x : 0) - G.cam.fx) * k; G.cam.fy += (a[1] - 14 + (lk ? lk.y : 0) + (G.camDY || 0) /* PART-SCREEN HOOK (ui/phone.js): the player stays in view above the docked phone */ - G.cam.fy) * k; placeCam();
   const env = G.scene.env ? G.scene.env(G.state.t) : G.scene.indoor ? ambientIndoor(G.state.t) : ambient(G.state.t, G.state.weather); G.env = env;
   const ents = G.scene.ents; if (!ents.includes(G.player)) ents.push(G.player);
   G.renderer.draw(G.world, G.cam, ents, env, {

@@ -70,6 +70,6 @@ export function screechB(o, t, p = 1) {
 
 /* the cabin PA chime: a soft high bell, then a lower one a major third down ("ding ... dong"), ~0.9 s */
 const ding = (o, t, f, v, d) => { tone(o, t, { f, a: .004, d, v }); tone(o, t, { f: f * 2, a: .003, d: d * .3, v: v * .16 }); tone(o, t, { f: f * 3, a: .002, d: d * .12, v: v * .05 }); };
-export function seatbelt(o, t, p = 1) { ding(o, t, 880 * p, .2, .75); ding(o, t + .42, 698 * p, .2, 1.05); }
+export function seatbelt(o, t, p = 1) { ding(o, t, 880 * p, .15, .75); ding(o, t + .42, 698 * p, .15, 1.05); }
 /* variant B: lower and rounder (E5 -> C5), a touch longer (listening page only) */
-export function seatbeltB(o, t, p = 1) { ding(o, t, 659 * p, .22, .9); ding(o, t + .48, 523 * p, .22, 1.25); }
+export function seatbeltB(o, t, p = 1) { ding(o, t, 659 * p, .16, .9); ding(o, t + .48, 523 * p, .16, 1.25); }

@@ -58,7 +58,7 @@ function sync(f) {
   const e = f.pool.e, s = f.pool.s, x = f.cx - (f.ay ? f.span : f.L) / 2, y = f.cy - (f.ay ? f.L : f.span) / 2;
   e.x = x; e.y = y; e.z = f.gz + f.alt; e.hidden = false; e.alpha = f.fade;
   s.x = x; s.y = y; s.z = f.gz + .02; s.hidden = false; s.alpha = f.fade * Math.max(.22, Math.min(.8, .8 - f.alt / 50));
-  f.cam.x = f.cx; f.cam.y = f.cy; f.cam.z = f.gz + f.alt * .6;
+  f.cam.x = f.cx; f.cam.y = f.cy; f.cam.z = f.gz + f.alt * .6; f.cam.lock = 1; f.cam.ax = (e.x - e.y) * 16; f.cam.ay = (e.x + e.y) * 16 / 2 - e.z * 16;   // the renderer's anchor of the plane, unrounded (core/game.js PIXEL LOCK keeps a following camera in step with it)
 }
 function free(f) { f.done = true; const p = f.pool; p.e.hidden = p.s.hidden = true; p.e.f = p.s.f = null; p.f = null; const i = flights.indexOf(f); if (i >= 0) flights.splice(i, 1); G.emit('plane:gone', f); }
 /* ---- sound ---- */
@@ -82,6 +82,8 @@ function sound() {
   }
   for (const [f, j] of jets) if (f.done) { j.stop(); jets.delete(f); }
 }
+/* dev Sound menu: 6 s of an airliner jet nearby (idle approach, then reverse thrust and back), outside the flight logic */
+function hearJet() { const out = G.audio && G.audio.bus && G.audio.bus(); if (!out) return false; const j = new Jet(out), t = A.ctx.currentTime; for (let i = 0; i <= 60; i++) { const u = i / 10; j.set(.9 * Math.min(1, u / 2.5, (6 - u) / 1.2), u < 3 ? .5 : u < 4.5 ? 1 : .4, 15, 0, t + u); } setTimeout(() => j.stop(), 6200); return true; }
 function touchdown(f) {
   f.td = f.t; const d = distTo(f), v = Math.min(1.5, hear(d) * 1.1), ok = v > .01 && !!(G.audio && G.audio.sfx('tyre_screech', { v, pan: Math.max(-1, Math.min(1, panOf(f) * .7)) }));
   dbg.screech.push({ t: +G.time.toFixed(4), flightT: +f.t.toFixed(4), cx: +f.cx.toFixed(3), v: +v.toFixed(3), played: ok }); if (dbg.screech.length > 20) dbg.screech.shift();
@@ -108,7 +110,7 @@ function step(f, dt) {
     const A = AP.approach;
     if (f.phase === 'air') {
       f.cx -= f.v * dt; const d = f.cx - A.touchdown;
-      if (d <= 0) { f.alt = 0; f.phase = 'roll'; touchdown(f); G.emit('plane:landed', f); } else f.alt = d * .13 * (d < 14 ? .45 + .55 * d / 14 : 1);
+      if (d <= 0) { f.alt = 0; f.phase = 'roll'; touchdown(f); G.emit('plane:landed', f); } else f.alt = d < 14 ? d * (.03 + d * (.01429 - d * .00051)) : d * .13;   // the flare: same height at 14 tiles out with the same slope (no kink), and a gentle .03 sink at the wheels (was a kink at 14 and a sudden stop of a .06 sink)
     } else {
       // roll straight down the runway, slowing; fade out near the far end (no turn: the art has no in-between angles and it looked odd)
       const R = AP.runways[0], endX = R.a + f.L / 2 + 4;
@@ -119,7 +121,7 @@ function step(f, dt) {
     if (f.fade < 1 && f.phase === 'roll') f.fade = Math.min(1, f.fade + dt * 1.5);
     f.v = Math.min(30, f.v + 7 * dt); f.cx -= f.v * dt;
     if (f.phase === 'roll' && f.v >= 22) f.phase = 'climb';
-    if (f.phase === 'climb') { f.alt += f.v * .2 * dt; if (f.alt > 3) f.gear = false; if (f.alt > 30 || f.cx < 8) { f.phase = 'out'; } }
+    if (f.phase === 'climb') { f.cr = Math.min(1, (f.cr || 0) + dt / .8); f.alt += f.v * .2 * f.cr * dt;   /* rotate: the climb rate builds over 0.8 s (it used to start at full rate in one frame) */ if (f.alt > 3) f.gear = false; if (f.alt > 30 || f.cx < 8) { f.phase = 'out'; } }
     if (f.phase === 'out') { f.alt += f.v * .2 * dt; f.fade -= dt / 1.5; if (f.fade <= 0) return free(f); }
     if (f.alt > 0 && f.cx < AP.runways[0].a) f.gz = groundZ(f.cx, f.cy);
   } else {
@@ -131,7 +133,7 @@ function step(f, dt) {
 }
 
 export function init() {
-  G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights, debug: () => dbg, clear: () => { for (const f of flights.slice()) free(f); } }; // clear(): remove every active flight (the intro wants an empty runway)
+  G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights, debug: () => dbg, hearJet, clear: () => { for (const f of flights.slice()) free(f); } }; // clear(): remove every active flight (the intro wants an empty runway)
   G.on('scene', (s) => { if (s && s.id !== 'city') for (const f of flights.slice()) free(f); });
   G.on('scene', (s) => { if (!s || s.id !== 'city' || s._acGrass) return; s._acGrass = true; const w = s.world; for (const ob of w.objs) { if (!/^veh\.airport\.(airliner|turboprop|bizjet|cargo|helicopter)/.test(ob.id)) continue; const t = w.tileType((ob.B[0] + ob.B[3]) / 2, (ob.B[1] + ob.B[4]) / 2); if (t === 1 || t === 16 || t === 20) ob.hidden = true; } });
   G.on('frame', sound);

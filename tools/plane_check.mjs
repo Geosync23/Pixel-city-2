@@ -144,7 +144,7 @@ const STRIP = opt('--strip');
 if (STRIP) {
   const vp = VPS[0], { br, pg } = await page(vp);
   await pg.evaluate(() => startFlight('land', 'follow', 1, 'min'));
-  await pg.evaluate(() => { window.__man.start(); window.__man.step(); });
+  await pg.evaluate(async () => { window.__man.start(); await sleep(150); window.__man.step(); });   // the frame already asked of the browser lands in the hand-driven queue
   // run to 1 s before touchdown
   const pre = await pg.evaluate(() => { const f = window.__f, A = G.sceneCache.get('city').world.airport.approach; let n = 0; while (f.cx - A.touchdown > f.v * 1.0 && n < 3000) { window.__man.step(); n++; } return n; });
   const shots = [], S = [];
@@ -180,36 +180,34 @@ if (STRIP) {
 if (arg('--sound')) {
   const vp = VPS[0], { br, pg } = await page(vp);
   await pg.touchscreen.tap(195, 400); await pg.waitForTimeout(400); await pg.evaluate(() => closeUi());
+  await pg.evaluate(MEASURE);
   const live = await pg.evaluate(async () => {
     const info0 = G.audio.info(); if (!G.planes.debug) return { error: 'no G.planes.debug', info0 };
-    G.planes.debug(true); await startFlight('land', 'follow', 1, 'min'); const f = window.__f, jet = [];
-    let td = null, scr = null; const off1 = G.on('plane:landed', fl => { if (fl === f) td = { t: G.time, ctx: G.audio.debug && A_ctxTime() }; });
-    function A_ctxTime() { try { return G.planes.debug().ctxTime; } catch (e) { return null; } }
-    const off2 = G.on('frame', () => { const d = G.planes.debug(); if (d && d.jet) jet.push({ t: +G.time.toFixed(3), cx: +f.cx.toFixed(2), alt: +f.alt.toFixed(2), ph: f.phase, g: d.jet[f.id] !== undefined ? +d.jet[f.id].toFixed(4) : null }); });
+    const n0 = G.planes.debug().screech.length; await startFlight('land', 'follow', 1, 'min'); const f = window.__f, jet = []; let td = null;
+    const off1 = G.on('plane:landed', fl => { if (fl === f) td = { t: +G.time.toFixed(4), flightT: +fl.t.toFixed(4) }; });
+    const off2 = G.on('frame', () => { if (!f.done) jet.push({ t: +G.time.toFixed(3), cx: +f.cx.toFixed(1), alt: +f.alt.toFixed(2), ph: f.phase, g: f.jg === undefined ? null : +f.jg.toFixed(4) }); });
     const t0 = performance.now(); while (!f.done && performance.now() - t0 < 16000) await sleep(100); off1(); off2();
-    const d = G.planes.debug(); return { info: G.audio.info(), td, screech: d.screech, jet: jet.filter((x, i) => i % 6 === 0) };
+    // a still camera at the Arrivals curb (about 75 tiles away) and one downtown: the jet's level there
+    const far = {}; for (const [nm, x, y] of [['curb', 321, 102.6], ['downtown', 212, 250]]) { G.planes.clear(); const g = G.planes.landNow('airliner'); G.camTarget = { x, y, z: 0 }; let mx = 0; const t1 = performance.now(); while (!g.done && performance.now() - t1 < 16000) { await sleep(50); mx = Math.max(mx, g.jg || 0); } far[nm] = +mx.toFixed(4); }
+    G.camTarget = null;
+    // pause: a landing with the game paused (G.modal) -> the jet level goes to 0
+    G.planes.clear(); const p = G.planes.landNow('airliner'); G.camTarget = p.cam; await sleep(800); const before = p.jg; G.modal++; await sleep(300); const during = p.jg; G.modal--; G.planes.clear(); G.camTarget = null;
+    return { info: G.audio.info(), td, screech: G.planes.debug().screech.slice(n0), jet, far, pause: { before, during } };
   });
-  report.soundLive = live; console.log('live landing with sound:', JSON.stringify({ td: live.td, screech: live.screech, sfxPlayed: live.info && live.info.sfxPlayed, errors: live.info && live.info.errors, lastError: live.info && live.info.lastError }));
-  if (live.jet) { const g = live.jet; console.log('jet gain over the landing (every 6th frame): ' + g.map(x => x.ph[0] + ':' + x.g).join(' ')); }
-  // offline renders of the effects through the game's own SFX functions
+  report.soundLive = Object.assign({}, live, { jet: live.jet && live.jet.filter((x, i) => i % 10 === 0) });
+  console.log('live landing with sound: touchdown', JSON.stringify(live.td), '| screech', JSON.stringify(live.screech), '| sfxPlayed', live.info && live.info.sfxPlayed, 'audio errors', live.info && live.info.errors, live.info && live.info.lastError);
+  if (live.jet) console.log('jet level, camera following (every 15th frame): ' + live.jet.filter((x, i) => i % 15 === 0).map(x => x.ph[0] + x.cx + ':' + x.g).join(' '));
+  console.log('jet peak level heard from the Arrivals curb', live.far && live.far.curb, '| from downtown', live.far && live.far.downtown, '| pause: level before', live.pause && live.pause.before, 'while paused', live.pause && live.pause.during);
+  // offline renders of the game's own effects (G.audio.debug.render: the SFX functions through bus 0.64 + the game's compressor)
   const off = await pg.evaluate(async () => {
-    const K = G.planes.debug().kit; if (!K) return { error: 'no kit' };
-    const sr = 48000, out = {};
-    for (const [name, dur, opts] of [['tyre_screech', 1, {}], ['seatbelt', 1.6, {}], ['jet', 4, {}], ['toast', 1.2, {}], ['door_close', 1, {}], ['train_chime', 2.6, {}]]) {
-      const c = new OfflineAudioContext(1, Math.round(sr * dur), sr); const g = await K.render(c, name, opts); const buf = await c.startRendering(); const d = buf.getChannelData(0);
-      let pk = 0, e = 0, first = -1, last = -1; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; e += d[i] * d[i]; }
-      for (let i = 0; i < d.length; i++) if (Math.abs(d[i]) > pk * .01) { if (first < 0) first = i; last = i; }
-      // spectrum: DFT on 4096-sample frames, magnitude summed; centroid; top peaks
-      const N = 4096, bins = new Float64Array(N / 2); for (let s = 0; s + N <= d.length; s += N / 2) { for (let k = 1; k < N / 2; k += 1) { if (k * sr / N > 12000) break; let re = 0, im = 0; for (let n = 0; n < N; n += 2) { const w = .5 - .5 * Math.cos(2 * Math.PI * n / N), x = d[s + n] * w, ph = 2 * Math.PI * k * n / N; re += x * Math.cos(ph); im -= x * Math.sin(ph); } bins[k] += Math.hypot(re, im); } }
-      let num = 0, den = 0; for (let k = 1; k < N / 2; k++) { num += k * sr / N * bins[k]; den += bins[k]; }
-      const peaks = []; for (let k = 2; k < N / 2 - 1; k++) if (bins[k] > bins[k - 1] && bins[k] >= bins[k + 1] && bins[k] > 0) peaks.push([+(k * sr / N).toFixed(0), bins[k]]); peaks.sort((a, b) => b[1] - a[1]);
-      // the chime: the strongest pitch in the first 0.4 s and in 0.45-0.9 s
-      const pitch = (a, b) => { const seg = d.subarray(Math.round(a * sr), Math.round(b * sr)); let bk = 0, bv = 0; for (let f = 300; f < 2000; f += 1) { let re = 0, im = 0; for (let n = 0; n < seg.length; n += 3) { const ph = 2 * Math.PI * f * n / sr; re += seg[n] * Math.cos(ph); im -= seg[n] * Math.sin(ph); } const v = Math.hypot(re, im); if (v > bv) { bv = v; bk = f; } } return bk; };
-      out[name] = { dur: first < 0 ? 0 : +((last - first) / sr).toFixed(3), peakDb: +(20 * Math.log10(pk || 1e-9)).toFixed(1), rmsDb: +(10 * Math.log10(e / d.length || 1e-12)).toFixed(1), centroidHz: den ? Math.round(num / den) : 0, topHz: peaks.slice(0, 4).map(p => p[0]), pitches: name === 'seatbelt' ? [pitch(.02, .4), pitch(.5, .9)] : undefined };
+    const out = {};
+    for (const [name, dur] of [['tyre_screech', 1], ['seatbelt', 2], ['toast', 1.2], ['door_close', 1], ['train_chime', 2.6], ['notify', 1]]) {
+      const c = new OfflineAudioContext(1, Math.round(48000 * dur), 48000); G.audio.debug.render(c, name); const b = await c.startRendering();
+      out[name] = measure(b.getChannelData(0), 48000, name === 'seatbelt' ? [[.08, .43], [.55, .95]] : null); delete out[name].env;
     }
     return out;
   });
-  report.soundOffline = off; console.log('offline renders:'); for (const k in off) console.log('  ' + k.padEnd(14) + JSON.stringify(off[k]));
+  report.soundOffline = off; console.log('offline renders (game code):'); for (const k in off) console.log('  ' + k.padEnd(13) + JSON.stringify(off[k]));
   await br.close();
 }
 fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(report, null, 1));
