@@ -18,7 +18,7 @@ async function boot(W = 390, H = 844) {
 }
 async function newGame(B) {
   const { pg, tapText } = B;
-  await tapText(/^New Game$/, 'button', 1200);
+  await tapText(/^Start$/, 'button', 600); await tapText(/^New Game$/, 'button', 1200);
   await tapText(/^Next ▶/, 'button', 1200); await tapText(/^Surprise me/, 'button', 600); await tapText(/^Next ▶/, 'button', 1500);
   await tapText(/./, '.hp-card', 500); await tapText(/^Move in/, 'button', 2500);
   await pg.waitForFunction(() => window.G && G.intro, null, { timeout: 60000 });

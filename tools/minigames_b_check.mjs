@@ -229,7 +229,7 @@ if (on2('intro')) {
   const cdp = await ctx.newCDPSession(pg), tap = async (x, y, ms = 350) => { await pg.touchscreen.tap(x, y); await pg.waitForTimeout(ms); }, touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
   const btn = re => pg.evaluate(src => { const x = new RegExp(src, 'i'), e = [...document.querySelectorAll('button, .opt')].find(b => b.offsetWidth && b.offsetHeight && x.test((b.textContent || '').trim())); if (!e) return null; e.scrollIntoView({ block: 'center' }); const q = e.getBoundingClientRect(); return [q.left + q.width / 2, q.top + q.height / 2, (e.textContent || '').trim().slice(0, 30)]; }, re.source);
   const path0 = [], press = async (re, ms = 1000) => { const b0 = await btn(re); if (!b0) return false; await pg.waitForTimeout(150); const b = await btn(re); if (!b) return false; path0.push(b[2]); await tap(b[0], b[1], ms); return true; };
-  for (const re of [/^New Game/, /^Next ▶/, /^Surprise me/, /^Next ▶/, /^Juniper Court/, /^Move in/]) await press(re);
+  for (const re of [/^Start$/, /^New Game/, /^Next ▶/, /^Surprise me/, /^Next ▶/, /^Juniper Court/, /^Move in/]) await press(re);
   for (let k = 0; k < 30; k++) { const st = await pg.evaluate(() => ({ home: /^int:home/.test((G.scene && G.scene.id) || ''), cut: !!G.cutscene })); if (st.home && !st.cut && !(await btn(/^Skip/))) break; if (!(await press(/^(Skip intro|Yes|Skip it)/, 1500)) && !(await press(/^Skip/, 1500))) await pg.waitForTimeout(800); }
   await pg.waitForTimeout(2500);
   const st = await pg.evaluate(() => ({ sc: G.scene.id, day: G.now().day, boxes: G.housing.boxes().map(b => b.label), seen: (G.state.skillplay.n || {}).mgSeen || 0, auto: G.skillplay.auto() }));

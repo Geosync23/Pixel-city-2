@@ -955,3 +955,6 @@ Ok lighting and let opus finish the current task then stop. Thanks goodnight
 Go with song b. But it takes too long to start playing once in the character creator. Make start right away.
 
 Also -  The tip to check your phone covers the view of the text message Nora sent (bar at the top  of the screen in the intro. ) they shouldn't overlap
+
+## 238 (2026-11-17)
+The title sceee main menu screen needs a start button then continue new game settings pops up. Then we have audio because rhe player will have tapped the screen.

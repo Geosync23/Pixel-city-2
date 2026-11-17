@@ -43,6 +43,8 @@ function starterHomes() {
 }
 
 let BASE = null, open = false, wrap = null, realSave = null, myCut = null, myCam = null;
+/* owner msg 238: the title opens with a single START button; its tap unlocks the sound (browsers only allow audio after a tap), then Continue / New Game / Settings appear */
+let started = false;
 export const isTitleOpen = () => open;
 
 export async function init(G_) {
@@ -123,7 +125,7 @@ function leafIcon(scale = 4) {
 function buildTitle() {
   if (wrap) wrap.remove();
   const has = G.hasSave();
-  const btns = el('div.tt-btns', null,
+  const btns = !started ? el('div.tt-btns', null, el('button.tt-btn.tt-primary.tt-start', { onclick: () => { started = true; try { G.audio && G.audio.unlock && G.audio.unlock(); } catch (e) { /* audio is optional */ } buildTitle(); } }, 'Start')) : el('div.tt-btns', null,
     has && el('button.tt-btn.tt-primary', { onclick: cont }, 'Continue'),
     el('button.tt-btn' + (has ? '' : '.tt-primary'), { onclick: () => newGame() }, 'New Game'),
     el('button.tt-btn.tt-quiet', { onclick: settings }, 'Settings'));

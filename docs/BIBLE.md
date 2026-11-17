@@ -344,4 +344,5 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 ## Direction update 43 (owner msg 220, 2026-11-17): the arrival plane
 - The landing airliner must move smoothly (no hitching). Sounds: jet engines on approach, a very brief tyre screech at touchdown, and the seat-belt 'ding dong' chime when the scene cuts to the cabin interior. Passengers must not flicker on their seats in the cabin.
 - (owner msg 230, 2026-11-17) The character creator (and the home picker before the intro) has its own song: fun, upbeat, in the style of the classic tracks; no city ambience recordings under it. After 'Move in' the soundtrack carries on exactly as before.
+- (owner msg 238, 2026-11-17) The title screen opens with one START button; its tap unlocks audio and reveals Continue / New Game / Settings.
 

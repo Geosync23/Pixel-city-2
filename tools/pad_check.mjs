@@ -33,7 +33,9 @@ stage('start', async () => {
   const before = await P.ev(() => ({ cls: document.body.className, layer: !!document.getElementById('padnav'), bar: !!document.getElementById('pad-bar') }));
   ok('no pad yet: no layer, no classes on <body>', !before.layer && !before.bar && !/pad-on|kb-on/.test(before.cls), '', JSON.stringify(before));
   await P.connect(); await P.press('down', 60, 250);
-  let i = await P.info(); ok('title: first button press shows the ring on New Game', i.mode === 'pad' && i.focus && /New Game/.test(i.focus.text), 'focus', i.focus && i.focus.text); await shot('01_title');
+  let i0 = await P.info(); ok('title: the pad ring is on Start (owner msg 238)', i0.focus && /Start/.test(i0.focus.text), 'focus', i0.focus && i0.focus.text);
+  await P.press('ok', 70, 700); await P.press('down', 60, 250);
+  let i = await P.info(); ok('title: after Start the ring is on New Game', i.mode === 'pad' && i.focus && /New Game/.test(i.focus.text), 'focus', i.focus && i.focus.text); await shot('01_title');
   await P.press('ok', 70, 900); i = await P.info(); ok('title -> New Game opens the creator', i.n > 20 && i.tabs, 'focus');
   /* creator: a preset, a tab with RB, a colour, the name with the pad keyboard */
   /* on a wide, low screen (844 x 390) the creator's preset row sits under its footer, for a finger as well: there the step is skipped and said so */

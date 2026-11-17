@@ -21,7 +21,7 @@ async function session(dir, tag) {
   const grab = async (name, clipSel) => { res.dom[name] = await pg.evaluate(sig); const clip = clipSel ? await pg.evaluate(s => { const q = document.querySelector(s).getBoundingClientRect(); return { x: Math.round(q.left), y: Math.round(q.top), width: Math.round(q.width), height: Math.round(q.height) }; }, clipSel) : null; const f = path.join(OUT, `touch_${tag}_${name}.png`); await pg.screenshot({ path: f, clip: clip || undefined }); res.px[name] = clip ? f : null; };
   /* 1. the title screen */
   await pg.goto(`http://localhost:${port}/`); await pg.waitForFunction(() => !document.getElementById('load') && window.G && window.G.scene, null, { timeout: 60000 }); await pg.waitForTimeout(1200);
-  await grab('title'); await tapText(/^New Game/); await pg.waitForTimeout(700); await grab('creator', '.cc-panel');
+  await tapText(/^Start$/); await pg.waitForTimeout(500); await grab('title'); await tapText(/^New Game/); await pg.waitForTimeout(700); await grab('creator', '.cc-panel');
   /* 2. straight into the city (developer URL), HUD, a walk, a thing, the phone and three apps */
   await pg.goto(`http://localhost:${port}/?scene=int:cafe&t=10`); await pg.waitForFunction(() => !document.getElementById('load') && window.G && window.G.scene, null, { timeout: 60000 }); await pg.waitForTimeout(1500);
   await pg.evaluate(() => { try { G.firstTime.setEnabled(false); } catch (e) { } }); await grab('hud', '#hud .hud-tl');

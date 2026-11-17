@@ -44,7 +44,7 @@ const waitFor = (fn, arg, ms = 25000) => pg.waitForFunction(fn, arg, { timeout: 
 const st = () => pg.evaluate(() => ({ scene: G.scene.id, x: +G.player.x.toFixed(2), y: +G.player.y.toFixed(2), bladder: Math.round(G.needs.get('bladder')), hygiene: +G.needs.get('hygiene').toFixed(1), busy: G.busy && G.busy.label, hidden: !!G.player.hidden, t: G.now().clock }));
 
 // ---- New Game (touch), intro skipped
-await tapText(/^New Game$/, 'button', 1200);
+await tapText(/^Start$/, 'button', 600); await tapText(/^New Game$/, 'button', 1200);
 await tapText(/^Next ▶/, 'button', 1200); await tapText(/^Surprise me/, 'button', 600); await tapText(/^Next ▶/, 'button', 1500);
 await tapText(/./, '.hp-card', 500); await tapText(/^Move in/, 'button', 2500);
 await pg.waitForFunction(() => window.G && G.intro, null, { timeout: 60000 });
