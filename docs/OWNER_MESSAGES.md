@@ -897,3 +897,8 @@ Then look at this screen shot.  He isnt sittong on the seesaw right. Fix this in
 Zoom in on the plane when its landing. Same shot otherwise snd same length.
 
 Also, street lights pool of light are viable through buildings. They should occlude properly. If the transparency layer kicks in because you are near its a diffeent story.  But if not near they need to occlide properly. Fix the trailer than fix the lighting. Its ok if its wrong in the trailer
+
+## 220 (2026-11-17)
+The plane is so hitchy cna we smooth it out. Im game ans record  that shot okce fixed. Also we need a jet sound and an airplene tire screech sound very brief when it touches down. Then the familiar ding dong of seat belt sound okce we go interior on thr plane. Also the charcters flicker on their seats in the plane.
+
+Order: single fable agent only: Please finish the lighting. then fix hitchy plane. Then add sound.  Then rehoot that shot from trailer and re distro trailer . No need for plane sound in trailer.

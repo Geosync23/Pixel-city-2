@@ -340,3 +340,7 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - (owner msg 208, 2026-11-16) BATHROOMS, amended: real rooms everywhere stays, but only signature buildings get elaborate, unique bathrooms. Shops (and other ordinary places) get very simple ones: a plain small room is enough.
 - (owner msg 211, 2026-11-16) Trailer 2 final wording: opening = a dense, zoomed-in city shot with the title card 'MAPLE BAY' + 'an open-world life sim'; then the plane; captions: '1 city', 'fully explorable' (not '4 ways to get around'), 'nearly 200 enterable buildings', 'your life, your pace'.
 - (owner msg 219, 2026-11-17) NIGHT LIGHT: a street lamp's pool of light must not show through a building standing in front of it. Buildings occlude pools properly; only when a building is faded because the player is near may the pool show through it.
+
+## Direction update 43 (owner msg 220, 2026-11-17): the arrival plane
+- The landing airliner must move smoothly (no hitching). Sounds: jet engines on approach, a very brief tyre screech at touchdown, and the seat-belt 'ding dong' chime when the scene cuts to the cabin interior. Passengers must not flicker on their seats in the cabin.
+
