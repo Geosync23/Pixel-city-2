@@ -77,4 +77,8 @@ export const R8 = ({ city, free, pan, walk, busy }) => ({
   z_seesaw: { url: city(14), sec: 6, settle: 3,
     setup: c => c.ev(async () => { await G.go('city', { x: 67.5, y: 189.2, fade: false }); const p = G.player; p.hidden = false; G.camTarget = null; const r = G.activities.start('seesaw', { at: { x: 66.4, y: 187.5, z: .85, dir: 0 }, force: true, minutes: 600, quiet: true }); if (G.busy) G.busy.rate = .5; G.setZoom(4); G.snapCam(); return [!!r, G.busy && G.busy.label, p.pose]; }).then(r => console.log('seesaw', JSON.stringify(r))),
     frame: (c, t, i) => c.ev(i => { const p = G.player; TR.cam.x = p.x; TR.cam.y = p.y; TR.cam.z = 1.6; G.camTarget = TR.cam; G.camDY = 0; return i % 6 === 0 ? (G.playground.debug().find(d => d.kind === 'seesaw') || {}).tilt : null; }, i).then(r => { if (r !== null && r !== undefined) (c._t = c._t || []).push(r); if (i === 179) console.log('tilts', JSON.stringify(c._t)); }) },
+  /* owner msg 219: the same landing, closer (recorded at zoom 2 instead of 1). The camera follows the aircraft along the runway as before and a little of its height, so the whole plane stays in frame */
+  b_plane2: { url: city(9), setup: free(372, 30, 2), settle: 2, sec: 9.5,
+    ready: c => c.ev(() => { window._f = G.planes.landNow('airliner'); window._td = -1; }),
+    frame: async (c, t, i) => { const r = await c.ev(i => { const f = window._f; TR.move(Math.max(318, Math.min(380, f.cx - 1)), 30 - Math.min(4, f.alt * .35), true); if (f.phase !== 'air' && window._td < 0) window._td = i; return window._td; }, i); if (r === i) c.meta({ touchdown: i }); } },
 });
