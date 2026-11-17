@@ -887,3 +887,8 @@ There was an awesome shot of the train platform in central station, in the monta
  Looking good but lets also change this scene (screenshots), the same basic shot happens twice. I love the first one, the daytime one, leave it. Find another cool open city area and do a zoomed in daytime shot high density etc . Same timing. Also say over 100 activities we will add more but not now.
 
 Finally i feel the trailer needs to showcase the city just a bit more to add to  so many  interior spaces. Don't take any interior away.  Maybe add some time to the trailer, add it  when it takes a break.from counting enterable buildings after the week rundown section. It shows work. But also show "make friends" and some social stuff. "Shop, and decorate"  then "explore"  and show rhe train interior and some zoomed in high density city walking. Then the rest. Then it talks about life at your pace to sum it up
+
+## 218 (2026-11-17) [refers to a screenshot of the playground shot; no image arrived with the message]
+Were very close. Round up the job and just say the count "30 jobs"
+
+Then look at this screen shot.  He isnt sittong on the seesaw right. Fix this in the game then fix the shot.
