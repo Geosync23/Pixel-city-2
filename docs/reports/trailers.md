@@ -77,3 +77,11 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 - POSSIBLE GAME BUG to check: the worker's Saturday measurements FROZE from 10:00 when the Blossom Festival starts ('the world froze in my measurements from then on'): unknown whether that is its harness (a festival card / modal pausing the game) or a real freeze. LEAD TODO.
 - CHECKED by the lead (clean build of the current tree, out/shots/s112_fest.png): on the first Saturday the clock runs straight through 10:00 (09:50 -> 10:24 over ~40 real seconds), no modal, no pause, zero page errors. The 'freeze' in the worker's Saturday measurements was its own harness, not the game.
 
+## Trailer B round 7 (owner msg 216) = CURRENT FINAL
+- trailer_b.mp4 = Maple_Bay_Trailer.mp4 (61.2 s, 13.32 MB); previous = trailer_b_v6.mp4.
+- Montage = 40 different buildings, aquarium only as the closing hold. Run 1: restaurant, Hollowell & Sons, playhouse, lighthouse lantern room, main post office, City Hall, natatorium pool, museum, observatory, SkyDeck, clinic, bank, fish market, conservatory, Nightjar, bookstore. Run 2: bakery, Juniper & Rye, public library, school classroom, ramen, department store, arena bowl, Second Wind, hotel lobby, Timber, pizza, university, Tidepool, Gazette newsroom, office, concert hall, Sole, Beacon penthouse, radio studio, Brim, cinema, grocery, Lumen, Little Lantern.
+- Replaced: aquarium -> playhouse; aquarium deep -> school classroom; diner -> restaurant; cafe -> bank; station platforms -> main post office; station hall -> Lumen; lighthouse ground floor dropped (lantern room moved to run 1) -> Little Lantern in its run-2 slot; Villa Belvedere -> clinic; bar -> department store; gym -> Timber; fire station -> Gazette newsroom; university library -> office. Eight clothing shops remain (different buildings).
+- 'a new city' on the plane shot. Walk direction: SkyDeck (the owner's screenshot), lighthouse lantern, natatorium pool, observatory re-recorded; the other clips passed a logged check (moves away from the door, still moving at the clip's end).
+- LEAD looked at twelve frames (out/shots/trailer_b_lead7.png): caption, eleven montage rooms incl. SkyDeck at 29 and the closing aquarium: all different places. Not watched in motion.
+- Weak: Timber's empty grey floor; Lumen dark; lantern room mostly sea.
+

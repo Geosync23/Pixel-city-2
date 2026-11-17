@@ -42,8 +42,9 @@ const A = {
 
 /* ---------------- B: the mix (Open Every Door x A Week in Maple Bay) ---------------- */
 // the door montage: 16 interiors one per beat (bars 5-8), 24 one per half beat (bars 13-15); [room clip, name shown nowhere, just for the storyboard]
-export const DOORS1 = ['diner', 'cs_hollowell', 'aquarium', 'lighthouse', 'central_station-platforms', 'cityhall', 'natatorium-pool', 'museum', 'observatory', 'skydeck', 'home-villa_belvedere', 'cafe', 'fishmarket', 'conservatory', 'cs_nightjar', 'bookstore'];
-export const DOORS2 = ['bakery', 'cs_juniper', 'library', 'aquarium-deep', 'ramen', 'bar', 'arena-bowl', 'cs_secondwind', 'hotel', 'gym', 'pizza', 'university', 'cs_tidepool', 'fire_station', 'university-library', 'concerthall', 'cs_sole', 'home-beacon_penthouse', 'radio_studio', 'cs_brim', 'cinema', 'grocery', 'central_station', 'lighthouse_lantern'];
+// owner msg 216: no place twice. 40 different buildings, none of them the aquarium (it is the closing hold only), none a second room of a building already shown, none a place that also appears in the week or the job / activity close-ups.
+export const DOORS1 = ['restaurant', 'cs_hollowell', 'playhouse', 'lighthouse_lantern', 'post_main', 'cityhall', 'natatorium-pool', 'museum', 'observatory', 'skydeck', 'clinic', 'bank', 'fishmarket', 'conservatory', 'cs_nightjar', 'bookstore'];
+export const DOORS2 = ['bakery', 'cs_juniper', 'library', 'school_classroom', 'ramen', 'deptstore', 'arena-bowl', 'cs_secondwind', 'hotel', 'goods-timber', 'pizza', 'university', 'cs_tidepool', 'gazette_newsroom', 'office', 'concerthall', 'cs_sole', 'home-beacon_penthouse', 'radio_studio', 'cs_brim', 'cinema', 'grocery', 'goods-lumen', 'cs_lantern'];
 const WEEK = [['MON', 'b_job', 2, 'A job shift: trainee barista at the cafe (the shift panel is the game’s own)'], ['TUE', 'b_gym', 2, 'The gym: treadmill mini-game'], ['WED', 'b_cook', 2, 'Cooking mini-game at home ("Chop it")'], ['THU', 'b_rain', 2, 'A rainy evening walk downtown'],
   ['FRI', 'b_date', 2, 'A first date on the River Walk (the date scene’s own text sheet)'], ['SAT', 'b_fest', 4, 'Lantern Night festival in Old Town'], ['SUN', 'b_fish', 2, 'Fishing off the river rail']];
 // round 3 (owner msg 212): four more bars. round 4 (owner msg 213): the four travel shots hold one bar each (bars 4-7), so everything from the doors on is three bars later: bb(n) = the old bar n.
@@ -72,7 +73,7 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   g.push({ kind: 'fadein', t0: 0, t1: .5 });
   g.push({ kind: 'dim', t0: .3, t1: bb(3), a: .28 });
   g.push({ kind: 'title', t0: .4, t1: bb(3) - .15, y: 270, leaf: 1, tag: 'an open-world life sim', tagAt: .45 });
-  g.push({ kind: 'cap', t0: bb(3) + .1, t1: bb(4) - .15, text: '1 city', size: 104 });
+  g.push({ kind: 'cap', t0: bb(3) + .1, t1: bb(4) - .15, text: 'a new city', size: 104 });
   g.push({ kind: 'cap', t0: bar(4), t1: bar(8) - .8, text: 'fully explorable', size: 96 });   // owner msg 211: replaces '4 ways to get around'
   g.push({ kind: 'count', t0: bb(5), t1: bb(9) - .05, steps, label: 'enterable buildings' });
   g.push({ kind: 'count', t0: bb(13), t1: bb(16), steps, label: 'enterable buildings' });

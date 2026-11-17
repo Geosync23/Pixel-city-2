@@ -13,9 +13,12 @@ const picks = [];
 for (const spec of rooms) {
   const [r, off] = spec.split('@'); const name = 'room_' + r.replace(/:/g, '-');
   try {
-    const go = page.evaluate(async ([r, z]) => { await G.go('int:' + r, { fade: false }); G.setZoom(z); G.player.hidden = false; G.camTarget = null; G.snapCam(); return [G.player.x, G.player.y, G.player.dir]; }, [r, opt.zoom]);
+    const go = page.evaluate(async ([r, z]) => { await G.go('int:' + r, { fade: false }); G.setZoom(z); G.player.hidden = false; G.camTarget = null; G.snapCam(); const p = G.player, ex = G.scene.interactables.filter(i => i.exit).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0] || { x: p.x, y: p.y }; window._ex = [ex.x, ex.y]; return [p.x, p.y, p.dir, ex.x, ex.y, G.world.w, G.world.h]; }, [r, opt.zoom]);
     await settle(page, 0.3); const sp = await go; await settle(page, 4);
-    const d = off ? off.split(',').map(Number) : [[5, 0], [0, 5], [-5, 0], [0, -5]][sp[2]] || [0, -5];
+    const dOld = [[5, 0], [0, 5], [-5, 0], [0, -5]][sp[2]] || [0, -5];
+    /* owner msg 216: the character must walk INTO the room, away from the door it came through. --away 1: the walk direction is the axis that points from the exit (the nearest exit interactable; the room centre decides when the spawn stands on it) into the room */
+    let dNew = [sp[0] - sp[3], sp[1] - sp[4]]; if (Math.hypot(dNew[0], dNew[1]) < .5) dNew = [sp[5] / 2 - sp[0], sp[6] / 2 - sp[1]]; dNew = Math.abs(dNew[0]) > Math.abs(dNew[1]) ? [5 * Math.sign(dNew[0]), 0] : [0, 5 * Math.sign(dNew[1])];
+    const d = off ? off.split(',').map(Number) : opt.away ? dNew : dOld; const trace = [];
     const info = await page.evaluate(([sp, d, z]) => {
       const p = G.player; p.x = sp[0]; p.y = sp[1]; p.path = null; G.setZoom(z);
       /* nearest free tile to the wanted target, searching back toward the spawn */
@@ -24,8 +27,11 @@ for (const spec of rooms) {
       TR.follow = () => { if (G.modal) { TR.sawModal = (document.querySelector('#ui .ftw, #ui .modal') || {}).className || 'modal'; for (const w of document.querySelectorAll('#ui .ftw, #ui .modal')) w.remove(); G.modal = 0; if (!p.path) p.goTo(G.world, tx, ty); } lead.x = p.x + TR.ld[0]; lead.y = p.y + TR.ld[1]; lead.z = p.z; G.snapCam(); }; TR.follow();
       return { path: p.path ? p.path.length : 0, to: [tx, ty], ents: G.scene.ents.length, modal: G.modal, saw: TR.sawModal || null };
     }, [sp, d, opt.zoom]);
-    for (let q = 0; q < Math.round((opt.pre === undefined ? .5 : opt.pre) * 30); q++) { await page.evaluate(() => TR.follow()); await page.clock.runFor(1000 / 30); }   /* polish pass: the player is a couple of steps inside when the clip starts */
-    const dir = await record(page, name, Math.round(opt.sec * FPS), () => page.evaluate(() => TR.follow()));
+    for (let q = 0; q < Math.round((opt.pre === undefined ? .5 : opt.pre) * 30); q++) { await page.evaluate(() => TR.follow()); await page.clock.runFor(1000 / 30); }
+    const pos = () => page.evaluate(() => { TR.follow(); const p = G.player; return [p.x, p.y, Math.hypot(p.x - window._ex[0], p.y - window._ex[1])]; });
+    if (opt.dry) { for (let q = 0; q < 19; q++) { trace.push(await pos()); await page.clock.runFor(1000 / 30); } const a = trace[0], b = trace[17], m = trace[13]; console.log(r, 'AUDIT', JSON.stringify({ dOld, dNew, same: dOld[0] === dNew[0] && dOld[1] === dNew[1], awayBy: +(b[2] - a[2]).toFixed(2), movingAtEnd: +Math.hypot(b[0] - m[0], b[1] - m[1]).toFixed(2), exit0: +a[2].toFixed(1) })); continue; }   /* polish pass: the player is a couple of steps inside when the clip starts */
+    const dir = await record(page, name, Math.round(opt.sec * FPS), async i => { const q = await pos(); if (i === 0 || i === 13 || i === 17) trace.push(q); });
+    { const a = trace[0], m = trace[1], b = trace[2]; console.log(r, 'WALK', JSON.stringify({ d, awayBy: +(b[2] - a[2]).toFixed(2), movingAtEnd: +Math.hypot(b[0] - m[0], b[1] - m[1]).toFixed(2), exit0: +a[2].toFixed(1) })); }
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(dir, '%05d.jpg'), '-c:v', 'libx264', '-crf', '10', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', path.join(SCRATCH, 'clips', name + '.mp4')]);
     picks.push(path.join(dir, '00014.jpg')); console.log(r, JSON.stringify(sp), JSON.stringify(info));
   } catch (e) { console.log(r, 'FAILED', e.message.split('\n')[0]); }
