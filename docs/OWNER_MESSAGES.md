@@ -979,3 +979,6 @@ All rhe ones wirh awnings are clipping. Just hide them like you did woru the bre
 
 ## 245 (2026-11-17)
 The Fable agent working on the lighting fix maxed out usage. Im surprised. It used so much then didn't finish.
+
+## 246 (2026-11-17)
+If we do 2, is there any risk of another agent picking up such complex work?
