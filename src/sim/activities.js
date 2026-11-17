@@ -444,7 +444,7 @@ async function heatMenu(fx, actId) {
 /* ---------- menus ---------- */
 const LABEL = { bed: 'Bed', fridge: 'Open fridge', pantry: 'Open pantry', stove: 'Cook', microwave: 'Microwave', sofa: 'Sofa', tv: 'TV', computer: 'Computer', bookshelf: 'Bookshelf', game: 'Play games', music: 'Stereo', shower: 'Shower', bath: 'Bath', exercise: 'Work out', instrument: 'Practise', easel: 'Easel', plant: 'Plant', wardrobe: 'Wardrobe', moving_box: 'Moving box', delivery_box: 'Delivery box',
   seat: 'Sit', fitting_room: 'Fitting room', book_browse: 'Browse books', treadmill: 'Cardio', weights: 'Weights', yoga_studio: 'Yoga', locker_shower: 'Showers', study_desk: 'Study desk', reading_nook: 'Reading nook', public_computer: 'Computer', bar_stool: 'Bar', dancefloor: 'Dance floor', stage: 'Stage', cinema_seat: 'Cinema seat', arcade: 'Arcade',
-  bench: 'Bench', duck_pond: 'Duck pond', fishing_spot: 'Fishing spot', ferris_wheel: 'The Bay Wheel', jog_path: 'Jogging path', viewpoint: 'Lookout', garden_plot: 'Garden bed', swing: 'Swing', picnic_spot: 'Picnic spot', busker: 'Busker', street_cat: 'Cat' };
+  bench: 'Bench', duck_pond: 'Duck pond', fishing_spot: 'Fishing spot', ferris_wheel: 'The Bay Wheel', jog_path: 'Jogging path', viewpoint: 'Lookout', garden_plot: 'Garden bed', swing: 'Swing', seesaw: 'See-saw', picnic_spot: 'Picnic spot', busker: 'Busker', street_cat: 'Cat' };
 function durations(a) { const m = a.minutes; if (m.min === m.max) return null; const s = [...new Set([m.min, m.default, m.max])]; return s.map(v => ({ label: hm(v), sub: v === m.default && s.length > 2 ? 'the usual' : '', value: v })); }
 async function pickAndStart(a, ctx) {
   let c = Object.assign({}, ctx);
@@ -502,7 +502,9 @@ function buildCity(scene) {
     const seat = tags.includes('bench') || tags.includes('swing') ? (p.seat || (p.seats && p.seats[0]) || { x: p.x, y: p.y, z: p.seatZ ?? .45, dir: p.dir ?? 1 }) : undefined;
     /* seating follow-ups: a bench poi sits you on the real seats of the bench standing there (the poi only knows the bench's middle, and its dir is the way the bench looks out, which put the sitter on the quay and lake benches facing the backrest) */
     const pseats = seat && !p.seat && !p.seats && p.type === 'bench' ? benchSeats(scene.world, p) : null;
-    const it = { scene: 'city', x: p.x, y: p.y, label: p.label || LABEL[tags[0]] || p.name || 'Spot', h: .8, range: 1.7, spot: p.spot || p.stand, poi: p, use: () => menu({ poi: p, tags, at: pseats ? onGround(nearSeat(pseats)) || seat : seat, title: p.name || LABEL[tags[0]] }) };
+    /* owner msg 218: 'Have a Swing' at the playground sat the player in the air in the middle of the playground (the poi's own position). It now sits them on a real seat of the swing set standing there. */
+    const swseats = seat && !p.seat && !p.seats && tags.includes('swing') ? playSeats(scene.world, p, 'swings') : null;
+    const it = { scene: 'city', x: p.x, y: p.y, label: p.label || LABEL[tags[0]] || p.name || 'Spot', h: .8, range: 1.7, spot: p.spot || p.stand, poi: p, use: () => menu({ poi: p, tags, at: pseats ? onGround(nearSeat(pseats)) || seat : swseats ? onGround(nearSeat(swseats)) || seat : seat, title: p.name || LABEL[tags[0]] }) };
     cityRemovers.push(G.addInteractable(it));
   }
   // bench / chair PROPS that carry seats but have no poi get a Sit spot too
@@ -514,12 +516,17 @@ function buildCity(scene) {
       const cx = seats.reduce((v, q) => v + q.x, 0) / seats.length, cy = seats.reduce((v, q) => v + q.y, 0) / seats.length; if (taken.some(p => Math.hypot(p.x - cx, p.y - cy) < 1.6)) continue;
       if (seats[0].z - scene.world.heightAt(seats[0].x, seats[0].y) > 1.6) continue;   /* a bench up on a rail platform is not reached from the street under it (the sitter was lifted to it, and twice as high: QA round 15 B10) */
       n++;
+      /* owner msg 218: the seesaw and the swing set are not benches (they offered People-Watch): tap the seesaw to ride it, the swing set to have a swing */
+      const play = (a.tags || []).includes('seesaw') ? ['seesaw', 'See-saw'] : (a.tags || []).includes('swings') ? ['swing', 'Swings'] : null;
+      if (play) { const poi = { type: 'spot', id: 'play:' + n, name: play[1], x: cx, y: cy }; cityRemovers.push(G.addInteractable({ scene: 'city', x: cx, y: cy, label: play[1], h: .8, range: 1.9, poi, use: () => menu({ poi, tags: [play[0]], at: onGround(nearSeat(seats)), title: play[1] }) })); continue; }
       const poi = { type: 'bench', id: 'seat:' + n, name: 'Bench', x: cx, y: cy };
       cityRemovers.push(G.addInteractable({ scene: 'city', x: cx, y: cy, label: 'Sit', h: .8, range: 1.7, poi, use: () => menu({ poi, tags: ['bench'], at: onGround(nearSeat(seats)), title: 'Bench' }) }));
     }
   } catch (e) { console.warn('bench props: ' + e.message); }
 }
 const onGround = s => onGround0(G.world, s);
+/** the seats (absolute z) of the playground piece with tag `tag` nearest to a poi, within 6 tiles; null if there is none */
+function playSeats(world, p, tag) { let best = null, bd = 6; for (const ob of world.objs) { const a = ob.a; if (!a || !Array.isArray(a.seats) || !(a.tags || []).includes(tag)) continue; const B = ob.B, d = Math.hypot((B[0] + B[3]) / 2 - p.x, (B[1] + B[4]) / 2 - p.y); if (d < bd) { bd = d; best = ob; } } return best ? propSeats(best, best.a.seats) : null; }
 const nearSeat = seats => { const p = G.player, ents = (G.scene && G.scene.ents) || [], free = seats.filter(q => !ents.some(c => c !== p && !c.hidden && Math.hypot(c.x - q.x, c.y - q.y) < .3)); return (free.length ? free : []).reduce((a, b) => !a || Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a, null); };
 /** generic "Sit": any fixture with a non-lying seat that no other activity claimed */
 function sitOn(fx) {

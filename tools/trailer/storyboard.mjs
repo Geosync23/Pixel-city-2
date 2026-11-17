@@ -37,6 +37,7 @@ HOW.z_chat_a = 'G.social.place puts Nora beside the player on a park path; one e
 HOW.z_date = 'G.rel.debug.fire(\'fd.haru\'): Haru\'s first-date scene with its own companion figure; the pier is left to fill for 20 s first; all UI including the scene\'s text sheet is hidden; see-through fading switched off; slow camera drift. Zoom 3.';
 HOW.z_shop = 'G.go(\'int:cs_outfitters\'); the coat rack is used as a tap does (G.useInteractable): the player walks to it and its sheet opens. The first-time clothes-shop card is dismissed first. Zoom 4.';
 HOW.z_decor = 'Furnished flat rented with dev-mode money; the real design mode (G.furnish.open); its top bar and tray are hidden by CSS (the bar would show the dev money); two real mouse drags. Zoom 4.';
+HOW.z_seesaw = 'Recorded on a build of the working tree with the seesaw fix (not Stage 104): the game\'s own Ride the See-saw activity at the seesaw seat, the clock slowed, all UI hidden; recorded at zoom 4 and the middle of the frame enlarged 2x.';
 HOW.b_city2 = 'Free camera, zoom 2, 18:36, 12 s of settling, steady pan; weather forced clear.';
 const roomHow = 'G.go(\'int:<room>\') (the game\'s scene change, no fade), 4 s for the room\'s own visitors, then the player walks in from the entrance (player.goTo) and the clip starts half a second later, when the player is a couple of steps inside; camera leads the player by a fixed offset so every room is framed alike.';
 let LAST = 18;

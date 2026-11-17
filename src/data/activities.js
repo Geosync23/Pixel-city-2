@@ -57,7 +57,7 @@ export const FUNCTION_TAGS = {
   venue: ['till', 'shelf', 'seat', 'host_stand', 'reception', 'showroom', 'clothes_rack', 'fitting_room', 'book_browse',
     'treadmill', 'weights', 'yoga_studio', 'locker_shower', 'exbike', 'rower', 'punchbag', 'yoga_mat', 'study_desk', 'reading_nook', 'public_computer',
     'bar_stool', 'dancefloor', 'stage', 'cinema_seat', 'arcade', 'taxi_rank', 'pool', 'darts', 'jukebox', 'screen', 'record_bin', 'listening_station', 'pet_pen', 'fish_tank', 'toy_demo', 'flower_display', 'tasting_board', 'artwork', 'pen_tester', 'flash_wall', 'browse', 'noticeboard', 'coffee_kiosk'],
-  world: ['bench', 'duck_pond', 'fishing_spot', 'ferris_wheel', 'jog_path', 'viewpoint', 'garden_plot', 'swing',
+  world: ['bench', 'duck_pond', 'fishing_spot', 'ferris_wheel', 'jog_path', 'viewpoint', 'garden_plot', 'swing', 'seesaw',
     'picnic_spot', 'busker', 'street_cat'],
   none: ['self'], // activities started from the backpack or phone
 };
@@ -348,6 +348,9 @@ export const ACTIVITIES = [
     onComplete: { moodlet: 'fresh_air' }, flavour: 'Dirt under the nails, tomatoes in the bag.' },
   { id: 'swing', name: 'Have a Swing', tag: 'swing', where: 'world', minutes: { min: 5, default: 10, max: 20 },
     perHour: { fun: 30 }, outdoor: true, social: true, anim: 'sit', flavour: 'Higher! Higher!' },
+  /* owner msg 218: the playground seesaw is its own thing to do (tag `seesaw` = the seesaw prop itself; sim/playground.js rocks it and seats the rider astride) */
+  { id: 'seesaw', name: 'Ride the See-saw', tag: 'seesaw', where: 'world', minutes: { min: 5, default: 10, max: 20 },
+    perHour: { fun: 26 }, outdoor: true, social: true, anim: 'sit', flavour: 'Up... and down.' },
   { id: 'picnic', name: 'Have a Picnic', tag: 'picnic_spot', where: 'world', minutes: { min: 10, default: 20, max: 60 }, durationFrom: 'item',
     perHour: { fun: 12, energy: 2 }, requires: { itemCategory: ['meal', 'ready_meal', 'dish', 'snack'], notWeather: ['rain', 'storm', 'snow'] },
     outdoor: true, social: true, anim: 'eat', onComplete: { moodlet: 'fresh_air' },

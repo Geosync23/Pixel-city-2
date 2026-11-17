@@ -39,7 +39,7 @@ FINAL CUT (polish pass, footage re-recorded on the Stage 104 build). Count capti
 | 27 | 62.41-63.56 | bar 28 | x_dance | AT PLAY: On the dance floor at the Blue Heron | The game's own activity started at its fixture / spot (G.activities.start(id, { force })), slowed so the clock barely moves; all UI hidden; camera on the character; recorded at zoom 4 and the middle of the frame enlarged 2x with square pixels (zoom 8). |
 | 28 | 63.56-64.72 | bar 28, beat 3 | x_garden | AT PLAY: Tending a bed in the community garden | The game's own activity started at its fixture / spot (G.activities.start(id, { force })), slowed so the clock barely moves; all UI hidden; camera on the character; recorded at zoom 4 and the middle of the frame enlarged 2x with square pixels (zoom 8). |
 | 29 | 64.72-65.87 | bar 29 | x_paint | AT PLAY: Painting at the easel | The game's own activity started at its fixture / spot (G.activities.start(id, { force })), slowed so the clock barely moves; all UI hidden; camera on the character; recorded at zoom 4 and the middle of the frame enlarged 2x with square pixels (zoom 8). |
-| 30 | 65.87-67.02 | bar 29, beat 3 | x_swing | AT PLAY: On the swings at the playground | The game's own activity started at its fixture / spot (G.activities.start(id, { force })), slowed so the clock barely moves; all UI hidden; camera on the character; recorded at zoom 4 and the middle of the frame enlarged 2x with square pixels (zoom 8). |
+| 30 | 65.87-67.02 | bar 29, beat 3 | z_seesaw | AT PLAY: Riding the playground seesaw, down and up (re-shot on a build with the seesaw fix) | Recorded on a build of the working tree with the seesaw fix (not Stage 104): the game's own Ride the See-saw activity at the seesaw seat, the clock slowed, all UI hidden; recorded at zoom 4 and the middle of the frame enlarged 2x. |
 | 31 | 67.02-69.33 | bar 30 | d_pond | The park lake at lunch: fountain, kiosk, ducks, strollers | Density recipe: weekday, fixed place, the simulation runs 45-75 s so the game fills the view by its own rules (start 11:40, filmed about 12:30), then a slow pan. Nothing spawned. Zoom 3. |
 | 32 | 69.33-71.64 | bar 31 | b_city2 | The harbour boardwalk in the evening light: fish hall, stalls, boats, strollers | Free camera, zoom 2, 18:36, 12 s of settling, steady pan; weather forced clear. |
 | 33 | 71.64-73.95 | bar 32 | b_home | Evening at home by the fire | Villa Belvedere at 20:30, the player uses a seat (G.useInteractable). |
@@ -58,7 +58,7 @@ FINAL CUT (polish pass, footage re-recorded on the Stage 104 build). Count capti
 | 53.18-60.39 | bar 24 | Counter box (top right) climbing 1 to 190, label "enterable buildings" |
 | 60.39-62.29 | bar 27, beat 1.5 | Caption: "nearly 200 enterable buildings" |
 | 34.72-36.87 | bar 16 | Caption: "work" |
-| 37.02-39.18 | bar 17 | Caption: "25 jobs to work" |
+| 37.02-39.18 | bar 17 | Caption: "30 jobs" |
 | 39.33-41.54 | bar 18 | Caption: "make friends" |
 | 41.64-43.80 | bar 19 | Caption: "make friends" |
 | 43.95-46.15 | bar 20 | Caption: "shop and decorate" |

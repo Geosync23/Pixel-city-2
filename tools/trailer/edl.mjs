@@ -72,7 +72,7 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   v.push({ clip: 'z_decor', in: .2, t0: bar(21), t1: bar(22), note: 'DECORATE: design mode at home: the love seat is carried across the room and set down, then the lamp' });
   v.push({ clip: 'y_train', in: 4.5, t0: bar(22), t1: bar(23), note: 'EXPLORE: inside the train, the city passing' });
   v.push({ clip: 'y_stroll', in: .3, t0: bar(23), t1: bar(24), note: 'EXPLORE: on foot across the university green at lunch' });
-  const PLAY = [['x_dance', .5, 'On the dance floor at the Blue Heron'], ['x_garden', .5, 'Tending a bed in the community garden'], ['x_paint', .5, 'Painting at the easel'], ['x_swing', .5, 'On the swings at the playground']];
+  const PLAY = [['x_dance', .5, 'On the dance floor at the Blue Heron'], ['x_garden', .5, 'Tending a bed in the community garden'], ['x_paint', .5, 'Painting at the easel'], ['z_seesaw', 1.2, 'Riding the playground seesaw, down and up (re-shot on a build with the seesaw fix)']];
   PLAY.forEach((j, i) => v.push({ clip: j[0], crop: 2, cy: 30, in: j[1], t0: bar(28, i * 2), t1: bar(28, i * 2 + 2), note: 'AT PLAY: ' + j[2] }));
   v.push({ clip: 'd_pond', t0: bar(30), t1: bar(31), note: 'The park lake at lunch: fountain, kiosk, ducks, strollers' });
   v.push({ clip: 'b_city2', t0: bar(31), t1: bar(32), note: 'The harbour boardwalk in the evening light: fish hall, stalls, boats, strollers' });
@@ -87,7 +87,7 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   g.push({ kind: 'count', t0: bb(13), t1: bb(16, .5), steps, label: 'enterable buildings' });
   g.push({ kind: 'cap', t0: bb(16, .5), t1: bb(17) - .12, text: 'nearly 200 enterable buildings', size: 68 });   // owner msg 206-207: replaces 'over 190 buildings to walk into'; at the bottom, clear of the tank
   g.push({ kind: 'cap', t0: bar(16), t1: bar(17) - .15, text: 'work', size: 100 });
-  g.push({ kind: 'cap', t0: bar(17), t1: bar(18) - .15, text: '25 jobs to work', size: 92 });
+  g.push({ kind: 'cap', t0: bar(17), t1: bar(18) - .15, text: '30 jobs', size: 100 });   // owner msg 218: his wording and rounding (the game lists 25)
   g.push({ kind: 'cap', t0: bar(18), t1: bar(19) - .1, text: 'make friends', size: 96, pos: 'top' });
   g.push({ kind: 'cap', t0: bar(19), t1: bar(20) - .15, text: 'make friends', size: 96 });   // at the top: the talk panel and the date's text sheet sit at the bottom
   g.push({ kind: 'cap', t0: bar(20), t1: bar(21) - .1, text: 'shop and decorate', size: 88 });   // beside the shop window

@@ -8,6 +8,14 @@ const water = () => winter() ? ICE : WATER;
 function bird(x, y, z, c = '#8a6a55') { const s = P(x, y, z); px(s[0], s[1] - 1, C(c)); px(s[0] + 1, s[1] - 1, C(c)); px(s[0] + 1, s[1] - 2, C(lt(c, .2))); px(s[0] - 1, s[1] - 2, C(dk(c, .3))); px(s[0] + 2, s[1] - 2, C('#e8a23a')); }
 const tube = (a, b, c, w = 2) => limb(a, b, c, w, w);
 
+
+/* ---------- playground pieces that move with their rider (owner msg 218; sim/playground.js) ----------
+ * The seesaw plank runs from x = .1 to x = 2.9 over a pivot at x = 1.5, z = .6; an end travels .32 up or down. seesawZ(tilt, x) = the height of the plank's top at x for tilt -2..2
+ * (undefined = 2, the resting picture). The seats are at x = .4 and x = 2.6: a rider's seat height is seesawZ(tilt, seat x).
+ * A swing seat hangs 1.83 below its bar; swingRise(sw) = how much it lifts when it is `sw` out along y. */
+export const SEESAW_SEATS = [.4, 2.6];
+export const seesawZ = (tilt, x) => .6 + .32 * ((tilt === undefined ? 2 : tilt) / 2) * (1 - 2 * (x - .1) / 2.8);
+export const swingRise = sw => 1.83 - Math.sqrt(Math.max(0, 1.83 * 1.83 - sw * sw));
 export default [
   {
     id: 'prop.park.fountain', kind: 'prop', tags: ['park', 'fountain', 'water', 'landmark', 'plaza'], solid: true, size: p => [p.w || 6, p.w || 6, 1], vb: p => [-.3, -.3, 0, (p.w || 6) + .3, (p.w || 6) + .3, (p.w || 6) * .62 + .4],
@@ -104,8 +112,9 @@ export default [
       for (const x of [.15, 3.85]) tube([x, .1, 0], [x, 1, 2.5], dk(c, .2), 2);
       rail([.15, 1, 2.5], [3.85, 1, 2.5], c, 3);
       [1.3, 2.7].forEach((x, i) => {
-        const sw = i ? .12 : -.1; lw([x - .25, 1, 2.45], [x - .25, 1 + sw, .62], '#8a8f9a'); lw([x + .25, 1, 2.45], [x + .25, 1 + sw, .62], '#c8ccd4');
-        if (p.tyre && i) { ring(x, 1 + sw, .45, 5, '#2a2433', 3); ring(x, 1 + sw, .45, 4, '#3a3440', 2); } else box(x - .3, 1 + sw - .14, .55, .6, .28, .06, sc, { t: winter() ? SNOW : lt(sc, .15) });
+        /* p.s0 / p.s1: where this seat is in its swing (owner msg 218; sim/playground.js). Without them the two seats hang as they always did. */
+        const sv = i ? p.s1 : p.s0, sw = sv === undefined ? (i ? .12 : -.1) : sv, up = swingRise(sv || 0); lw([x - .25, 1, 2.45], [x - .25, 1 + sw, .62 + up], '#8a8f9a'); lw([x + .25, 1, 2.45], [x + .25, 1 + sw, .62 + up], '#c8ccd4');
+        if (p.tyre && i) { ring(x, 1 + sw, .45 + up, 5, '#2a2433', 3); ring(x, 1 + sw, .45 + up, 4, '#3a3440', 2); } else box(x - .3, 1 + sw - .14, .55 + up, .6, .28, .06, sc, { t: winter() ? SNOW : lt(sc, .15) });
       });
       for (const x of [.15, 3.85]) tube([x, 1.9, 0], [x, 1, 2.5], c, 2);
     },
@@ -150,7 +159,8 @@ export default [
     id: 'prop.park.play.seesaw', kind: 'prop', tags: ['park', 'playground', 'seesaw', 'kids', 'seat'], solid: true, size: [3, 1, 1], vb: [-.2, -.2, 0, 3.2, 1.2, 1.4], seats: [{ x: .4, y: .5, z: .85, dir: 0 }, { x: 2.6, y: .5, z: .35, dir: 2 }],
     variants: [{}, { c: '#3b7bd8', c2: '#ffd23a' }, { c: '#e85a90', c2: '#3fa890' }],
     draw(p) {
-      const c = p.c || '#d8342c', c2 = p.c2 || '#3b7bd8', A = [.1, .5, .92], B = [2.9, .5, .28];
+      /* p.tilt -2..2 (owner msg 218; sim/playground.js rocks it while somebody rides): 2 = the low-x end up (how it rests, and how it was always drawn), -2 = that end down */
+      const c = p.c || '#d8342c', c2 = p.c2 || '#3b7bd8', A = [.1, .5, seesawZ(p.tilt, .1)], B = [2.9, .5, seesawZ(p.tilt, 2.9)];
       box(1.3, .3, 0, .4, .4, .55, '#56636b');
       fq([[A[0], .36, A[2]], [A[0], .64, A[2]], [B[0], .64, B[2]], [B[0], .36, B[2]]], winter() ? SNOW : c); fq([[A[0], .64, A[2]], [B[0], .64, B[2]], [B[0], .64, B[2] - .07], [A[0], .64, A[2] - .07]], dk(c, .35));
       lw([A[0], .36, A[2]], [B[0], .36, B[2]], dk(c, .6)); lw([A[0], .64, A[2] - .07], [B[0], .64, B[2] - .07], dk(c, .6));

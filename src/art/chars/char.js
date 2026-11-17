@@ -249,6 +249,7 @@ function poseOf(anim, f, front, pose) {
   }
   if (pose.mood === 'happy' && !P.mouth) P.mouth = 2;
   P.seatH = pose.seatH || 0;
+  if (pose.straddle && P.seated) { P.straddle = true; P.arms = [[2, 2, 4, 2], [1, 2, 3, 2]]; P.hold = false; }   /* astride, both hands on the handle in front */
   return P;
 }
 
@@ -316,13 +317,16 @@ function standLegs(k, P, front, hipY) {
   }
 }
 function seatedLegs(k, P, front) {
-  const sh = P.seatH || (k.kid ? SEAT_H - 2 : SEAT_H), tl = k.kid ? 3 : 4, shoe = k.shoeC || dk(k.skin, .08);
+  /* pose.straddle (owner msg 218: astride the seesaw plank): the thighs are short (the legs go down either side of what is ridden, not out in front), the near leg hangs straight down
+   * this side, and of the far leg only the top of the thigh shows: the rest is behind the plank / saddle. */
+  const sh = P.seatH || (k.kid ? SEAT_H - 2 : SEAT_H), tl = P.straddle ? 1 : k.kid ? 3 : 4, shoe = k.shoeC || dk(k.skin, .08);
   const thighC = k.skirtLen ? k.skirtC : legColor(k, 0, 6), shinC = k.skirtLen > 6 ? k.skirtC : legColor(k, 3, 6), cuffC = k.skirtLen > 6 ? k.skin : legColor(k, 5, 6);
   for (const near of [false, true]) {
     const sd = c => near ? c : dk(c, .16), s = front ? 1 : -1;
     const hx = (near === front) ? -2 : 1, ty = front ? (near ? -2 : -3) : (near ? -2 : -3);
     let kx = hx, ky = ty;
     for (let i = 0; i <= tl; i++) { kx = hx + i; ky = ty + s * (i >> 1); p(kx, ky, sd(lt(thighC, front ? .1 : 0))); p(kx, ky + 1, sd(thighC)); }
+    if (P.straddle && !near) continue;
     const foot = ky + sh + (front ? 0 : 1) - (P.pedal && (P.pedal > 0) === near ? 2 : 0);   // pedalling: the legs take turns to come up
     for (let y = ky + (front ? 2 : 1); y < foot - 1; y++) { const c = sd(y === foot - 2 ? cuffC : shinC); p(kx - 1, y, c); p(kx, y, c); }
     { const S = shoeCols(k, near); shoeDraw(k, kx - 1, foot, near, 4, S); }
