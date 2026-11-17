@@ -197,3 +197,4 @@
 177. (msg 226) PLANE SOUNDS APPROVED: tyre screech + seat-belt chime as the first takes; the JET uses VARIANT B (more / higher turbine whine). No recordings. Sounds may ship.
 178. (msg 228) TRAILER: the landing plane must be the RED livery (Maple Air) in the trailer; the random livery in the game stays.
 179. (msg 229) Plane sounds are good; TURN THEM DOWN IN THE INTRO: done by the lead (x0.45 for the jet and the screech while the intro runs, chime at half level).
+180. (msg 230) CHARACTER CREATION (the pre-intro: New Game -> creator / home picker): the city ambience recordings must NOT play there; it gets ITS OWN SONG: a nice, fun, upbeat tune in the style of the classic tracks (the original eight, old engine). Once creation is completed the music plays as it does now (day-one classics from the landing on). Fable work (music): queued behind the lighting fix.

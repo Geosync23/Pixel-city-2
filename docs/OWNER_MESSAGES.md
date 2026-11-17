@@ -929,3 +929,6 @@ Small thing but make the plane red for the trailer. I know its random in the gam
 
 ## 229 (2026-11-17)
 The sounds are good just turn down the plane spunds volume in the intro
+
+## 230 (2026-11-17)
+The city recordings shouldn't be playing while making a character in the pre intro. It should be its owm song. Then the songs play the same once completed. A nice fun upbeat song Inn the style of the classic tracks
