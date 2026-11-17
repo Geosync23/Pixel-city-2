@@ -914,3 +914,6 @@ Can an opus agent do any of this?
 
 ## 224 (2026-11-17)
 Ok reactivate 1 opus 5.5 worker to do what you outlined.
+
+## 225 (2026-11-17)
+Show me the sounds first once made we might want recordings
