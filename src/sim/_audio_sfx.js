@@ -2,6 +2,7 @@
 // Each entry: (out, t, p, o) => void   out = destination node, t = start time, p = pitch multiplier, o = caller opts.
 // Keep them short, soft and warm: sines/triangles, lowpassed squares, filtered noise.
 import { tone, noise, rand, pick } from './_audio_lib.js';
+import { screech, seatbelt } from './_audio_plane.js';
 
 const N = (out, t, o) => noise(out, t, o), T = (out, t, o) => tone(out, t, o);
 const bell = (out, t, f, v = .12, d = .9) => { T(out, t, { f, d, v }); T(out, t, { f: f * 2.76, d: d * .35, v: v * .25 }); T(out, t, { f: f * 5.4, d: d * .15, v: v * .1 }); };
@@ -99,6 +100,7 @@ export const SFX = {
     for (let i = 0; i < 40; i++) clap(o, t + rand(0, 2.2) * Math.sqrt(Math.random()), .09);
   },
 };
+SFX.tyre_screech = screech; SFX.seatbelt = seatbelt;   /* owner msg 220: touchdown + the cabin chime (_audio_plane.js; the jet is a continuous voice steered by sim/planes.js) */
 SFX.applause = (o, t) => { for (let i = 0; i < 45; i++) clap(o, t + rand(0, 2.4), .08); };
 
 /** default lengths in seconds (for throttling/ducking decisions) */

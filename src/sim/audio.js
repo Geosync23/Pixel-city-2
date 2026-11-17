@@ -252,6 +252,8 @@ export function init() {
   adopt(); G.on('load', adopt); G.on('ready', adopt);
   G.audio = {
     sfx: (name, o) => play(name, o),
+    /** the effects bus while sound runs (null when locked / suspended): for continuous voices such as the jets of sim/planes.js; it follows Master / Effects / Mute */
+    bus: () => (unlocked && !dead && buses && A.ctx && A.ctx.state === 'running' ? buses.sfx : null),
     setVolume(k, v) { if (!(k in vol)) return; v = clamp(v); vol[k] = v; if (S) S[k] = v; applyVolumes(true); },
     getVolume: k => levels()[k],
     /** play one tune now by its id (or a pool name, or one of the eight old track names: a tune of that pool); null = stop and let the controller carry on */
@@ -280,6 +282,8 @@ export function init() {
       release() { bedForce = null; if (bed) bed.force(null); },
       /** level of the bed bus right now (after the volume sliders): { rms, peak } in dBFS over the last ~40 ms; -200 = digital silence */
       meter() { if (!buses) return null; if (!meterNode) { meterNode = A.ctx.createAnalyser(); meterNode.fftSize = 2048; buses.bed.connect(meterNode); meterBuf = new Float32Array(2048); } meterNode.getFloatTimeDomainData(meterBuf); let e = 0, pk = 0; for (let i = 0; i < 2048; i++) { const x = meterBuf[i]; e += x * x; if (x > pk) pk = x; else if (-x > pk) pk = -x; } return { rms: e > 0 ? +(10 * Math.log10(e / 2048)).toFixed(1) : -200, peak: pk > 0 ? +(20 * Math.log10(pk)).toFixed(1) : -200 }; },
+      /** for tools/plane_check.mjs: schedule effect `name` into an OfflineAudioContext (bus 0.64 -> the game's compressor); the caller renders it */
+      render(oc, name) { const k = [A.ctx, A.white, A.pink, A.brown]; try { A.ctx = oc; makeBuffers(oc); const c = oc.createDynamicsCompressor(); c.threshold.value = -16; c.ratio.value = 4; c.connect(oc.destination); SFX[SFX[name] ? name : ALIAS[name]](gain(c, .64), .05, 1, {}); } finally { A.ctx = k[0]; A.white = k[1]; A.pink = k[2]; A.brown = k[3]; } },
       /** for tools/ambience_check.mjs: the mixer class and the loader, to render the same mix offline */
       kit: () => ({ BedMixer, sceneFor, STRETCHES, bytes: stretchBytes, mixer: bed }),
       async menu() {

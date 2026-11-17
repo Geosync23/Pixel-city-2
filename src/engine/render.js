@@ -357,6 +357,21 @@ function mayHide(ob) {
   if (ob._ng === NL.gen) return !ob._nw; const n = ob.nl || (ob.a && ob.a.nl); if (n) return n !== 'whole'; if (!NL.props) return true; if (ob.a && ob.a.tags && ob.a.tags.indexOf('tree') >= 0) return !NL.trees;
   const B = ob.B, sb = ob.sb; return !(B[5] - B[2] > .12 && B[3] - B[0] <= NL.propFoot && B[4] - B[1] <= NL.propFoot && ((sb[2] - sb[0]) * (sb[3] - sb[1]) <= NL.propBig || (typeof ob.id === 'string' && ob.id.startsWith('veh.'))));
 }
+/* rings: placed objects that are each "behind" the next all the way round (a station platform, its canopy and the deck beside them; docs/reports/occlusion.md). The frame's sort breaks a ring wherever its
+ * walk meets it, and a mask tile's own sort (other things around it) may break it somewhere else, so the tile would lay the members' light in another order than the frame draws them. The members
+ * (L[i]._rg = true) are therefore left to the frame, which works in the order it draws. The same links as sortItems; the groups by Tarjan's walk. Returns how many members. */
+const RA = []; let rIdx = new Int32Array(64), rLow = new Int32Array(64), rOn = new Uint8Array(64), rSt = new Int32Array(64), rC = 0, rS = 0, rN = 0, rL = null;
+function ringGo(v) {
+  rIdx[v] = rLow[v] = rC++; rSt[rS++] = v; rOn[v] = 1; const a = RA[v];
+  for (let k = 0; k < a.length; k++) { const w = a[k]; if (rIdx[w] < 0) { ringGo(w); if (rLow[w] < rLow[v]) rLow[v] = rLow[w]; } else if (rOn[w] && rIdx[w] < rLow[v]) rLow[v] = rIdx[w]; }
+  if (rLow[v] === rIdx[v]) { if (rSt[rS - 1] === v) { rS--; rOn[v] = 0; } else { let w; do { w = rSt[--rS]; rOn[w] = 0; rL[w]._rg = true; rN++; } while (w !== v); } }
+}
+function rings(L, n) {
+  if (n < 3) return 0; if (rIdx.length < n) { rIdx = new Int32Array(n * 2); rLow = new Int32Array(n * 2); rOn = new Uint8Array(n * 2); rSt = new Int32Array(n * 2); }
+  while (RA.length < n) RA.push([]); for (let i = 0; i < n; i++) { RA[i].length = 0; rIdx[i] = -1; rOn[i] = 0; L[i]._rg = false; }
+  for (let i = 0; i < n; i++) { const p = L[i], a = p.r; for (let j = i + 1; j < n; j++) { const q = L[j], b = q.r; if (a[0] >= b[2] || b[0] >= a[2] || a[1] >= b[3] || b[1] >= a[3]) continue; if ((p.h !== null || q.h !== null) && pairMiss(p, q)) continue; if (behind(p, q, 0)) RA[j].push(i); else RA[i].push(j); } }
+  rC = 0; rS = 0; rN = 0; rL = L; for (let i = 0; i < n; i++) if (rIdx[i] < 0) ringGo(i); rL = null; return rN;
+}
 /* the places a pass has worked on so far (_occPass): whatever stands in front of one gets its own light back */
 let QR = new Float32Array(4 * 64), nQR = 0;
 function addQ(x0, y0, x1, y1) { if ((nQR + 1) * 4 > QR.length) { const n = new Float32Array(QR.length * 2); n.set(QR); QR = n; } const o = nQR++ * 4; QR[o] = x0; QR[o + 1] = y0; QR[o + 2] = x1; QR[o + 3] = y1; }
@@ -644,7 +659,7 @@ export class Renderer {
       t = { c: K.spare.pop() || mk(T, T), t: fr, x: tx, y: ty, w: [], o: [], stale: false }; this._occBake(world, t.c.getContext('2d'), tx * T, ty * T, T, T, amb, al, occ ? t : null, false, K.gen);
       K.tiles.set(key, t);
     }
-    if (!baked && old !== null) { K.bakes++; old.w.length = 0; old.o.length = 0; old.stale = false; this._occBake(world, old.c.getContext('2d'), old.x * T, old.y * T, T, T, amb, al, occ ? old : null, false, K.gen); }
+    if (!baked && old !== null) { K.bakes++; old.w.length = 0; old.o.length = 0; this._occBake(world, old.c.getContext('2d'), old.x * T, old.y * T, T, T, amb, al, occ ? old : null, false, K.gen); old.stale = false; }
     if (miss) return false;
     for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) m.drawImage(K.tiles.get(tx * 65536 + ty).c, tx * T - cam.x, ty * T - cam.y);
     if (nlOn) for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue; addLight(x + rx, y + ry, poolSprite(l.r, l.c || '#ffd9a0'), al, l.ob, l.x, l.y, l.z); }
@@ -666,9 +681,12 @@ export class Renderer {
         const ob = Q[i]; if (ob._pd === true || (live && ob._a !== undefined)) continue; if (ob.hidden) { ob._pg = 0; if (mayHide(ob)) wait.push(ob); continue; }
         const sp = objSpriteIf(ob); if (sp === undefined) { if (mayHide(ob)) wait.push(ob); continue; } if (sp === null || (ob.size[2] <= .06 && !sp.l)) continue;   // (no picture; drawn with the ground, as in draw())
         if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) continue;
-        const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, ns: 0, _i: 0 }); n++;
+        const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, ns: 0, _i: 0, _rg: false }); n++;
         it.B = ob.B; it.spr = sp; it.ax = (ob.x - ob.y) * U; it.ay = (ob.x + ob.y) * U / 2 - ob.z * U; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; ob._pg = gen; ob._ps = sp;
       }
+      if (rings(L, n)) { /* the members of a ring are left to the frame from now on; tiles that hold one are painted again */ const T = NL.tile, K = this._mt; let m = 0;
+        for (let i = 0; i < n; i++) { const it = L[i]; if (!it._rg) { if (m !== i) { L[i] = L[m]; L[m] = it; } m++; continue; } const ob = it.ob, sb = ob.sb; ob._pd = true; if (K) for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }
+        for (let i = m; i < n; i++) { L[i].spr = null; L[i].ob = null; } n = m; }
       const S = sortItems(L, n, this._OS || (this._OS = []));
       this._occPass(x, S, n, 0, 0, w, h, amb, live, rec.o);
       for (let i = 0; i < wait.length; i++) { const ob = wait[i], sb = ob.sb, x0 = sb[0] - ox < 0 ? 0 : sb[0] - ox, y0 = sb[1] - oy < 0 ? 0 : sb[1] - oy, x1 = sb[2] - ox > w ? w : sb[2] - ox, y1 = sb[3] - oy > h ? h : sb[3] - oy; if (x1 <= x0 || y1 <= y0) continue; const hx = ob.vbl ? ob._hx || hexOf(ob) : null; if (hidden(ob.B, ob, hx, x0, y0, x1, y1, 0, nLB) || (nQR && hitBox(QR, nQR, x0, y0, x1, y1, hx))) rec.w.push(ob); }
@@ -693,8 +711,8 @@ export class Renderer {
     }
     m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
   }
-  /* before the mask is drawn: the frame's things that keep the pattern and are see-through or animated (PF: the tiles are painted without them... see _occPatch), and the things whose picture is
-   * not the one the tiles saw (their tiles are painted again; one that keeps changing, three times within 600 frames, is left to the frame from then on: ob._pd) */
+  /* before the mask is drawn: the frame's see-through things that keep the pattern (PF: they are in the tiles as if solid, see _occPatch), and the things whose picture is not the one the tiles saw
+   * (their tiles are painted again; one that keeps changing, three times within 600 frames, is left to the frame from then on: ob._pd, like the members of a ring, see rings()) */
   _occPrep(world, S, K, amb, al) {
     const fr = this.frameNo, T = NL.tile; let sig = 0; nPF = 0;
     for (let i = 0; i < S.length; i++) {
@@ -703,16 +721,17 @@ export class Renderer {
         if (K === null || ob._pg !== K.gen || ob._ps === sp) continue;
         ob._ps = sp; if (fr - (ob._pf | 0) < 600) { ob._pc = (ob._pc | 0) + 1; if (ob._pc >= 3) ob._pd = true; } else ob._pc = 1; ob._pf = fr;
         { const sb = ob.sb; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }
-        if (ob._pd !== true) continue;
+        continue;
       }
+      if (ob._pd === true) continue;   // (never in the tiles: the tiles are already "the mask without it")
       PF[nPF++] = it; sig = (sig + (ob._pu || (ob._pu = ++PUID)) * 40503) | 0;
     }
     for (let i = nPF; i < PF.length && PF[i]; i++) PF[i] = null;
     this._pfs = sig;
     if (K !== null && fr - K.since >= NL.tileWait) for (let i = 0; i < nPF; i++) this._occPatch(world, PF[i], K, sig, amb, al);
   }
-  /* a see-through (or animated) thing is in the tiles as if it were solid (or not at all). While it is so, a patch is kept for it: the mask of the place where it hides pools, painted WITHOUT it and
-   * without the other such things on screen (sig: who they are). A frame drawn from tiles puts the patch down first; the frame's pass then lays the thing over it with its alpha. */
+  /* a see-through thing is in the tiles as if it were solid. While it is see-through, a patch is kept for it: the mask of the place where it hides pools, painted WITHOUT it and
+   * without the other see-through things on screen (sig: who they are; things with ob._pd are never in a tile or a patch). A frame drawn from tiles puts the patch down first; the frame's pass then lays the thing over it with its alpha. */
   _occPatch(world, it, K, sig, amb, al) {
     const ob = it.ob, sp = it.spr; let pw = ob._pw;
     if (pw && pw.gen === K.gen && pw.sig === sig && pw.sp === sp && !(pw.c !== null && (pw.w.length || pw.o.length) && this._tileStale(pw))) return;
