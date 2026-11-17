@@ -935,3 +935,6 @@ The city recordings shouldn't be playing while making a character in the pre int
 
 ## 231 (2026-11-17)
 What does opus have left
+
+## 232 (2026-11-17)
+Let opus silence and make the song ill listen to it first. Let opus the first two thijgs on your lisy

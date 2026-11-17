@@ -10,13 +10,13 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 
 **Running right now (a worker does not survive a session or account change: see step 4 of MOVING below)**
 - FABLE: night-light POOL OCCLUSION (owner msg 219: lamp pools must not show through buildings unless the building is faded near the player). Owns src/engine/render.js (night pass), tools/poolocc_check.mjs, will write docs/reports/pool_occlusion.md. Lead's repro picture: out/shots/s114_sheet.png.
-- OPUS: nothing running (plane work published in Stage 107). For builds while the Fable lighting worker runs: pin src/engine/render.js, sprites.js, engine/world.js, world/_ctx.js to 49f9c4e.
+- OPUS (owner msg 232): CREATOR SOUND + VIADUCT TREES (a5fe304ea13e833fc): no ambience during character creation / home picker; three candidate creator tunes in the classic engine on a listening page docs/audio/creator_song.html (tools/creator_song_page.mjs) for the OWNER TO CHOOSE (publish it as an artifact when the worker says it is ready; the game wires candidate A behind one constant until he picks); the two trees under the viaduct moved + a rule in world/_furnish.js; docs/reports/creator_song.md. Must not touch render.js, sprites.js, engine/world.js, world/_ctx.js. Needs the Fable check. For builds while the Fable lighting worker runs: pin src/engine/render.js, sprites.js, engine/world.js, world/_ctx.js to 49f9c4e.
 - For any build while they run: pin the other worker's edited files to 49f9c4e and exclude its new files (recipe: docs/LEAD_PLAYBOOK.md + tools/clean_build.sh).
 
 **Queue after these, in the owner's order (msg 220; one Fable agent at a time)**
 1. (Fable) passengers FLICKER on their seats in the plane cabin.
 2. (Fable trailer worker) re-shoot the trailer's plane shot on the fixed game (zoomed in, as now) and resend the trailer; no plane sound in the trailer. The plane must be the RED 'Maple Air' livery in the trailer (owner msg 228: re-roll or force the livery for the recording; the game stays random). Build to record from: scratchpad/trailer/stage107_index.html or newer.
-3. (Fable) CREATOR SONG (owner msg 230): no city ambience recordings during character creation / home picker; its own fun, upbeat tune in the classic style; soundtrack afterwards unchanged. A listening page for the owner first is wise (he judged the plane sounds that way).
+3. (moved to OPUS by owner msg 232: see 'Running')
 - Small lead items: move the two trees under the rail viaduct ((54.5,121.5) poplar, (270.5,121.5) birch); a long traffic soak; activities are 92 and jobs 25 while the trailer says 'over 100 activities' and '30 jobs' (owner will ask for more LATER, not now).
 - PARKED until the owner says go: J4 (17 extra jobs), iPhone 13 mini work, Trailer A, a second Fable slot.
 
