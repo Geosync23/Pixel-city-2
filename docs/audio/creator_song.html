@@ -258,7 +258,7 @@ const CREATOR_SONG = 'creator_a';
 
 const CMAJOR = [0, 2, 4, 5, 7, 9, 11];
 /* trims (dB) that put each candidate at the loudness of Classic: Indoors as the game plays it (tools/creator_song_page.mjs --check measures them) */
-const CREATOR_LEVELS = { creator_a: -2.4, creator_b: -1.8, creator_c: -2.6 };
+const CREATOR_LEVELS = { creator_a: -1.9, creator_b: -1.9, creator_c: -2.7 };
 /* A classic's fields (see TRACKS in _music_classic.js) + title / feel + mel: one string per bar, 8 eighths each: a scale step (0 = the key note,
    7 = an octave up), '-' = the note before goes on, '.' = rest. prog: 16 bars = the 8-bar hook (A) and the 8-bar B section. */
 const CREATOR_TUNES = {
@@ -330,7 +330,7 @@ function unlock() {
     var master = gain(comp, .8); music = gain(master, .6 * .6); send = creatorEcho(ctx, music); }
   if (ctx.state === 'suspended') ctx.resume(); return true;
 }
-function tick() { if (!player) return; player.schedule(ctx.currentTime + .45); var q = player.pos(); now.textContent = 'Playing: ' + (cur === 'classic_interior' ? 'Classic: Indoors' : player.song.title.replace('Creator: ', '')) + ' · ' + Math.floor(q.t / 60) + ':' + ('0' + Math.floor(q.t % 60)).slice(-2) + (q.section ? ' · ' + q.section : ''); }
+function tick() { if (!player) return; player.schedule(ctx.currentTime + .45); var q = player.pos(); now.textContent = 'Playing: ' + (cur === 'classic_interior' ? 'Classic: Indoors' : player.song.title.replace('Creator: ', '')) + ' · ' + Math.floor(q.t / 60) + ':' + ('0' + Math.floor(q.t % 60)).slice(-2) + (q.section && cur !== 'classic_interior' ? ' · ' + q.section : ''); }
 function stop(fast) { if (player) player.stop(fast ? .25 : .6); player = null; cur = null; }
 function play(k) {
   if (!unlock()) { now.textContent = 'This browser has no Web Audio.'; return; } stop(true);

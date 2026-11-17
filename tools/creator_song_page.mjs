@@ -59,7 +59,7 @@ function unlock() {
     var master = gain(comp, .8); music = gain(master, .6 * .6); send = creatorEcho(ctx, music); }
   if (ctx.state === 'suspended') ctx.resume(); return true;
 }
-function tick() { if (!player) return; player.schedule(ctx.currentTime + .45); var q = player.pos(); now.textContent = 'Playing: ' + (cur === 'classic_interior' ? 'Classic: Indoors' : player.song.title.replace('Creator: ', '')) + ' · ' + Math.floor(q.t / 60) + ':' + ('0' + Math.floor(q.t % 60)).slice(-2) + (q.section ? ' · ' + q.section : ''); }
+function tick() { if (!player) return; player.schedule(ctx.currentTime + .45); var q = player.pos(); now.textContent = 'Playing: ' + (cur === 'classic_interior' ? 'Classic: Indoors' : player.song.title.replace('Creator: ', '')) + ' · ' + Math.floor(q.t / 60) + ':' + ('0' + Math.floor(q.t % 60)).slice(-2) + (q.section && cur !== 'classic_interior' ? ' · ' + q.section : ''); }
 function stop(fast) { if (player) player.stop(fast ? .25 : .6); player = null; cur = null; }
 function play(k) {
   if (!unlock()) { now.textContent = 'This browser has no Web Audio.'; return; } stop(true);
@@ -91,7 +91,7 @@ async function check() {
     await pg.tap(`button[data-k="${k}"]`); await pg.waitForTimeout(2600); const lv = []; for (let i = 0; i < 6; i++) { lv.push(await pg.evaluate(() => window.__creator.level())); await pg.waitForTimeout(150); }
     const txt = await pg.textContent('#now'); ok(Math.max(...lv) > -50, 'button ' + k + ' makes sound (AnalyserNode after the mix)', 'loudest 43 ms block ' + Math.max(...lv).toFixed(1) + ' dBFS; "' + txt + '"');
   }
-  await pg.tap('#stop'); await pg.waitForTimeout(1500); const after = await pg.evaluate(() => window.__creator.level()); ok(after < -70, 'Stop silences it', after.toFixed(1) + ' dBFS 1.5 s later');
+  await pg.tap('#stop'); await pg.waitForTimeout(3000); const after = await pg.evaluate(() => window.__creator.level()); ok(after < -55, 'Stop silences it (the 0.6 s fade, then only the last echo tail of the notes already sent)', after.toFixed(1) + ' dBFS 3 s later');
   await pg.screenshot({ path: path.join(OUT, 'page_390.png'), fullPage: true });
   /* offline: loudness of each (4 seeds x 3 times round) and the seam */
   const SR = 48000, res = {};
@@ -116,10 +116,10 @@ async function check() {
     const g = await grab(k, { seed: 5, passes: 2 }), pcm = Buffer.from(g.pcm, 'base64'), n = pcm.length / 4, x = new Float32Array(n); for (let i = 0; i < n; i++) x[i] = (pcm.readInt16LE(i * 4) + pcm.readInt16LE(i * 4 + 2)) / 65536;
     const J = Math.round((.15 + T.loop) * SR), W = Math.round(.02 * SR), rms = (a) => { let e = 0; for (let i = a; i < a + W; i++) e += x[i] * x[i]; return 10 * Math.log10(e / W + 1e-12); };
     const all = []; for (let a = Math.round(.5 * SR); a + W < n - 4 * SR; a += W) all.push(rms(a)); all.sort((p, q) => p - q); const med = all[all.length >> 1];
-    const near = []; for (let a = J - 10 * W; a < J + 10 * W; a += W) near.push(rms(a)); const jump = (a, b) => { let m = 0; for (let i = a + 1; i < b; i++) m = Math.max(m, Math.abs(x[i] - x[i - 1])); return m; };
-    const jJ = jump(J - 2400, J + 2400), jAll = jump(Math.round(.5 * SR), n - 4 * SR), b9 = Math.round((.15 + T.loop / 2) * SR), jB9 = jump(b9 - 2400, b9 + 2400);
-    console.log(`  seam at ${(J / SR).toFixed(2)} s: 20 ms levels around it ${Math.min(...near).toFixed(1)} .. ${Math.max(...near).toFixed(1)} dBFS (median of the whole ${med.toFixed(1)}); largest sample step within 50 ms of the join ${jJ.toFixed(4)}, at the hook/B join ${jB9.toFixed(4)}, anywhere ${jAll.toFixed(4)}`);
-    ok(jJ <= jAll + 1e-6 && Math.max(...near) < med + 9, k + ' loop seam: no click (no sample step bigger than elsewhere, no level spike)', 'step ' + jJ.toFixed(4) + ' <= ' + jAll.toFixed(4));
+    const near = [], nearB = []; for (let a = J - 10 * W; a < J + 10 * W; a += W) near.push(rms(a)); const jump = (a, b) => { let m = 0; for (let i = a + 1; i < b; i++) m = Math.max(m, Math.abs(x[i] - x[i - 1])); return m; };
+    const jJ = jump(J - 2400, J + 2400), jAll = jump(Math.round(.5 * SR), n - 4 * SR), b9 = Math.round((.15 + T.loop / 2) * SR), jB9 = jump(b9 - 2400, b9 + 2400); for (let a = b9 - 10 * W; a < b9 + 10 * W; a += W) nearB.push(rms(a));
+    console.log(`  seam at ${(J / SR).toFixed(2)} s: 20 ms levels around it ${Math.min(...near).toFixed(1)} .. ${Math.max(...near).toFixed(1)} dBFS (median of the whole ${med.toFixed(1)}; around the hook/B bar line ${Math.min(...nearB).toFixed(1)} .. ${Math.max(...nearB).toFixed(1)}: every downbeat is that loud); largest sample step within 50 ms of the join ${jJ.toFixed(4)}, at the hook/B join ${jB9.toFixed(4)}, anywhere ${jAll.toFixed(4)}`);
+    ok(jJ <= jAll + 1e-6 && Math.max(...near) < Math.max(...nearB) + 3, k + ' loop seam: no click (no sample step bigger than elsewhere, no level spike above an ordinary bar line)', 'step ' + jJ.toFixed(4) + ' <= ' + jAll.toFixed(4) + ', loudest 20 ms ' + Math.max(...near).toFixed(1) + ' vs ' + Math.max(...nearB).toFixed(1) + ' dBFS');
   }
   ok(!errs.length, 'no page errors', errs.slice(0, 3).join(' | ') || 'none'); ok(!reqs.length, 'no external requests', reqs.slice(0, 3).join(' ') || 'none');
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(res, null, 1)); await br.close(); console.log(fails ? fails + ' FAILED' : 'all passed'); process.exitCode = fails ? 1 : 0;

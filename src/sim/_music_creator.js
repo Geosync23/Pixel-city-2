@@ -13,7 +13,7 @@ export const CREATOR_SONG = 'creator_a';
 
 const CMAJOR = [0, 2, 4, 5, 7, 9, 11];
 /* trims (dB) that put each candidate at the loudness of Classic: Indoors as the game plays it (tools/creator_song_page.mjs --check measures them) */
-export const CREATOR_LEVELS = { creator_a: -2.4, creator_b: -1.8, creator_c: -2.6 };
+export const CREATOR_LEVELS = { creator_a: -1.9, creator_b: -1.9, creator_c: -2.7 };
 /* A classic's fields (see TRACKS in _music_classic.js) + title / feel + mel: one string per bar, 8 eighths each: a scale step (0 = the key note,
    7 = an octave up), '-' = the note before goes on, '.' = rest. prog: 16 bars = the 8-bar hook (A) and the 8-bar B section. */
 export const CREATOR_TUNES = {

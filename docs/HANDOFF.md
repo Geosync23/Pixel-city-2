@@ -8,6 +8,8 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 - TRAILER: Trailer 2 is the product (docs/trailer/trailer_b.mp4 web copy, docs/trailer/Maple_Bay_Trailer.mp4 download copy, 77.3 s; page https://claude.ai/artifact/3ugMHKYMhkK8mjqwCNHhLd). Full history, shot list, counts and the owner's wording decisions: docs/reports/trailers.md. Capture + edit scripts: tools/trailer/. RAW FRAMES LIVE ONLY IN THE SCRATCHPAD (not in the repo): on another account / machine every shot must be re-recorded (about 25-40 min of scripted capture) before the trailer can be re-cut.
 - Other owner-facing pages (all re-buildable from the repo): questionnaire docs/owner/questions.html (https://claude.ai/artifact/HeFBCe4UZ2dS7enmwCGmW1), plane sounds docs/audio/plane_sounds.html (https://claude.ai/artifact/1ubbJpXr3sbTZhtSaMazDq), classics docs/audio/classics.html, jukebox docs/audio/jukebox.html.
 
+**CREATOR SONG PAGE is published for the owner: https://claude.ai/artifact/3yrnxcJrxCErYqHdBz48V1 (he picks A, B or C; then set CREATOR_SONG in src/sim/_music_creator.js and publish).**
+
 **OWNER ASLEEP (msg 236): let the two running workers finish, check + publish their work, publish the creator-song listening page for him, then STOP: start nothing else, leave a morning note with the final commit id.**
 
 **THE PROJECT IS ABOUT TO MOVE TO ANOTHER ACCOUNT (owner msg 233, 2026-11-17).** Start nothing new on this account. Two things are still running: the Fable lighting fix and (owner msg 234) one Opus worker on the creator silence + song; when it is checked and published the lead writes the final note here, commits, pushes and gives the owner the final commit id.

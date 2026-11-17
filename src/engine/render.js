@@ -283,7 +283,8 @@ function hitBox(R, n, x0, y0, x1, y1, hx) {
  * when the thing stands in the dark (dim: its colour is the ambient colour) and nothing lit is behind it, only the part the pools reach (kx0..ky1, canvas px): the rest of the mask has that colour already. */
 function litDraw(sp, sy, sh, dx, dy, ci, col, a, fr, dim, kx0, ky0, kx1, ky1) {
   const q = sp.bx; let x0 = q ? q[0] : 0, y0 = q ? q[1] : 0, x1 = q ? q[2] : sp.w, y1 = q ? q[3] : sp.h; if (y0 < sy) y0 = sy; if (y1 > sy + sh) y1 = sy + sh;
-  if (dim && !(nER && hitBox(ER, nER, dx + x0, dy + y0, dx + x1, dy + y1, null))) { if (x0 < kx0 - dx) x0 = kx0 - dx; if (y0 < ky0 - dy) y0 = ky0 - dy; if (x1 > kx1 - dx) x1 = kx1 - dx; if (y1 > ky1 - dy) y1 = ky1 - dy; }   // (not when something lit stands behind it: that has to be covered whole)
+  if (dim) { eSkip = true; dim = !(nER && hitBox(ER, nER, dx + x0, dy + y0, dx + x1, dy + y1, null)); eSkip = false; }   /* (a kept own-light copy behind it does not count: outside the pools that is the ambient colour too) */
+  if (dim) { if (x0 < kx0 - dx) x0 = kx0 - dx; if (y0 < ky0 - dy) y0 = ky0 - dy; if (x1 > kx1 - dx) x1 = kx1 - dx; if (y1 > ky1 - dy) y1 = ky1 - dy; }   // (not when something lit stands behind it: that has to be covered whole)
   if (x1 <= x0 || y1 <= y0) return; nlLit++; const c = sp.im && q ? silGet(sp, ci, col, fr) : null;
   if (c) { nlSil++; pushOp(2, c, x0 - q[0], y0 - q[1], x1 - x0, y1 - y0, dx + x0, dy + y0, a, null); } else pushOp(0, sp, x0, y0, x1 - x0, y1 - y0, dx + x0, dy + y0, a, col);
   addE(dx + x0, dy + y0, dx + x1, dy + y1);
