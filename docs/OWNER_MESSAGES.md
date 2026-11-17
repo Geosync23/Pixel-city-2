@@ -941,3 +941,6 @@ Let opus silence and make the song ill listen to it first. Let opus the first tw
 
 ## 233 (2026-11-17)
 Actually stop the opus worker.  And lets wait until lighting is done. Then we transfer over to another account.
+
+## 234 (2026-11-17)
+Actually sorry, just let  1 opus  qoekwe silence and write the song
