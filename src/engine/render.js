@@ -352,6 +352,11 @@ function occPut(m, fx, fc, sp, ox, oy, x0, y0, x1, y1, a, B, ob, amb) {
   m.globalCompositeOperation = 'destination-out'; m.globalAlpha = a; m.drawImage(sp.c, x0 - ox, y0 - oy, w, h, x0, y0, w, h); m.globalAlpha = 1; m.globalCompositeOperation = 'destination-over';
   if (k) m.drawImage(fc, 0, 0, w, h, x0, y0, w, h); else { m.fillStyle = amb; m.fillRect(x0, y0, w, h); }
 }
+/* a placed object whose picture is not painted yet: may it be something that keeps the pattern? (wholeOb without the sprite: by the rectangle its picture is painted in, which is never smaller than the picture) */
+function mayHide(ob) {
+  if (ob._ng === NL.gen) return !ob._nw; const n = ob.nl || (ob.a && ob.a.nl); if (n) return n !== 'whole'; if (!NL.props) return true; if (ob.a && ob.a.tags && ob.a.tags.indexOf('tree') >= 0) return !NL.trees;
+  const B = ob.B, sb = ob.sb; return !(B[5] - B[2] > .12 && B[3] - B[0] <= NL.propFoot && B[4] - B[1] <= NL.propFoot && ((sb[2] - sb[0]) * (sb[3] - sb[1]) <= NL.propBig || (typeof ob.id === 'string' && ob.id.startsWith('veh.'))));
+}
 /* the places a pass has worked on so far (_occPass): whatever stands in front of one gets its own light back */
 let QR = new Float32Array(4 * 64), nQR = 0;
 function addQ(x0, y0, x1, y1) { if ((nQR + 1) * 4 > QR.length) { const n = new Float32Array(QR.length * 2); n.set(QR); QR = n; } const o = nQR++ * 4; QR[o] = x0; QR[o + 1] = y0; QR[o + 2] = x1; QR[o + 3] = y1; }
@@ -524,7 +529,7 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlCopy, nlOcc, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length, nlTiles: this._mt ? this._mt.tiles.size : 0, nlTileBakes: this._mt ? this._mt.bakes : 0 }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlCopy, nlOcc, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length, nlTiles: this._mt ? this._mt.tiles.size : 0, nlGen: this._mt ? this._mt.gen : 0, nlTileBakes: this._mt ? this._mt.bakes : 0 }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). nightLight('noprops' | 'props'): only what moves is lit as a whole / upright placed objects too (default). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; else if (mode === 'props' || mode === 'noprops') { NL.props = mode === 'props'; NL.gen++; } return NL.mode; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.F.width = Math.max(W, NL.tile); this.F.height = Math.max(H, NL.tile); this.ctx.imageSmoothingEnabled = false; }
@@ -633,7 +638,7 @@ export class Renderer {
     if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) > NL.tileMax - 4) return false;   // (a canvas so large that the tiles in view would not fit the cache: paint directly)
     for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
       const key = tx * 65536 + ty; let t = K.tiles.get(key);
-      if (t) { t.t = fr; if (occ && !t.stale && (t.w.length || t.o.length) && this._tileStale(t)) t.stale = true; if (t.stale && old === null) old = t; continue; }
+      if (t) { t.t = fr; if (occ && !t.stale && ((fr + tx) & 3) === 0 && (t.w.length || t.o.length) && this._tileStale(t)) t.stale = true;   /* (looked at every fourth frame) */ if (t.stale && old === null) old = t; continue; }
       if (baked) { miss++; continue; } baked = 1; K.bakes++;
       if (K.tiles.size >= NL.tileMax) { let k0 = 0, t0 = Infinity; for (const [k, v] of K.tiles) if (v.t < t0) { t0 = v.t; k0 = k; } K.spare.push(K.tiles.get(k0).c); K.tiles.delete(k0); }
       t = { c: K.spare.pop() || mk(T, T), t: fr, x: tx, y: ty, w: [], o: [], stale: false }; this._occBake(world, t.c.getContext('2d'), tx * T, ty * T, T, T, amb, al, occ ? t : null, false, K.gen);
@@ -658,8 +663,8 @@ export class Renderer {
       nLBw = nLB; camX = ox; camY = oy;
       const Q = this._Q2 || (this._Q2 = []), L = this._OL || (this._OL = []), wait = this._OW || (this._OW = []); Q.length = 0; wait.length = 0; world.query(ox, oy, ox + w, oy + h, Q); let n = 0;
       for (let i = 0; i < Q.length; i++) {
-        const ob = Q[i]; if (ob._pd === true || (live && ob._a !== undefined)) continue; if (ob.hidden) { ob._pg = 0; wait.push(ob); continue; }
-        const sp = objSpriteIf(ob); if (sp === undefined) { if (!(ob._ng === NL.gen && ob._nw)) wait.push(ob); continue; } if (sp === null || (ob.size[2] <= .06 && !sp.l)) continue;   // (no picture; drawn with the ground, as in draw())
+        const ob = Q[i]; if (ob._pd === true || (live && ob._a !== undefined)) continue; if (ob.hidden) { ob._pg = 0; if (mayHide(ob)) wait.push(ob); continue; }
+        const sp = objSpriteIf(ob); if (sp === undefined) { if (mayHide(ob)) wait.push(ob); continue; } if (sp === null || (ob.size[2] <= .06 && !sp.l)) continue;   // (no picture; drawn with the ground, as in draw())
         if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) continue;
         const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, ns: 0, _i: 0 }); n++;
         it.B = ob.B; it.spr = sp; it.ax = (ob.x - ob.y) * U; it.ay = (ob.x + ob.y) * U / 2 - ob.z * U; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; ob._pg = gen; ob._ps = sp;
