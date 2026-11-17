@@ -923,3 +923,6 @@ Sounds re good except use vaiant b for jet.
 
 ## 227 (2026-11-17)
 To double check- we are still documenting things in a way that makes it possible to move the project across accounts
+
+## 228 (2026-11-17)
+Small thing but make the plane red for the trailer. I know its random in the game thats fine. Just the trailer

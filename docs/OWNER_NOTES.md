@@ -195,3 +195,4 @@
 175. (msgs 221-224) ~117,600 lines of JS reported. Owner asked whether Opus could take part of the plane queue; lead proposed and he approved: ONE OPUS worker does the hitchy-plane smoothing + the three plane sounds in parallel with the Fable lighting worker; the cabin seat flicker and the trailer re-shoot stay with Fable. Team now: 1 Fable + 1 Opus + lead.
 176. (msg 225) PLANE SOUNDS: show them to the owner FIRST (a listening page) before they go into a published build; he may prefer real RECORDINGS. Opus worker told to do the sounds first and hand over docs/audio/plane_sounds.html; lead publishes it as an artifact and waits for his verdict.
 177. (msg 226) PLANE SOUNDS APPROVED: tyre screech + seat-belt chime as the first takes; the JET uses VARIANT B (more / higher turbine whine). No recordings. Sounds may ship.
+178. (msg 228) TRAILER: the landing plane must be the RED livery (Maple Air) in the trailer; the random livery in the game stays.

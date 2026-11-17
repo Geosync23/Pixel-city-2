@@ -15,7 +15,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 
 **Queue after these, in the owner's order (msg 220; one Fable agent at a time)**
 1. (Fable) passengers FLICKER on their seats in the plane cabin.
-2. (Fable trailer worker) re-shoot the trailer's plane shot on the fixed game (zoomed in, as now) and resend the trailer; no plane sound in the trailer.
+2. (Fable trailer worker) re-shoot the trailer's plane shot on the fixed game (zoomed in, as now) and resend the trailer; no plane sound in the trailer. The plane must be the RED 'Maple Air' livery in the trailer (owner msg 228: re-roll or force the livery for the recording; the game stays random). Build to record from: scratchpad/trailer/stage107_index.html or newer.
 - Small lead items: move the two trees under the rail viaduct ((54.5,121.5) poplar, (270.5,121.5) birch); a long traffic soak; activities are 92 and jobs 25 while the trailer says 'over 100 activities' and '30 jobs' (owner will ask for more LATER, not now).
 - PARKED until the owner says go: J4 (17 extra jobs), iPhone 13 mini work, Trailer A, a second Fable slot.
 

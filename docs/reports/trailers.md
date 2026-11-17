@@ -98,4 +98,5 @@ rough cuts; then resume the worker (adda1a00a80c38d29) for the polish pass.
 
 ## Trailer B round 10 (owner msg 219): plane zoomed in = CURRENT CUT (page version id 1794882713-0484)
 - Plane shot 4.72-7.02 s recorded at zoom 2 (not upscaled), whole aircraft in frame, no map-edge haze; starts ~0.5 s later in the landing (touchdown 0.7 s into the shot); the livery came out teal 'BayJet' (random per landing; earlier take was red 'Maple Air'). Previous cut = trailer_b_v9.mp4. Lead looked at three frames (out/shots/trailer_b_lead11.png).
+- OWNER (msg 228): in the trailer the landing plane is to be the RED livery (the take in round 10 came out teal); for the next re-shoot of the plane shot.
 
