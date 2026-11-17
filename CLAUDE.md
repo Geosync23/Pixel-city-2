@@ -27,6 +27,7 @@ integrate, test, publish playable builds, and keep the documentation current. Th
 
 ## Quick facts
 - Repo: /home/user/Pixel-city-2, branch `ccr-e622e92c-7t3ejy` (new account; continues `claude/pixel-city-life-sim-21h2e3`). Vanilla JS, no runtime deps. `node tools/build.mjs` -> `dist/index.html` (single file).
-- Playable build (new account, since 2026-11-14): https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG — republish by publishing `dist/index.html` from the same session, or pass this URL as `url` from a new session (read it first). Old account's slug 6723cacd-... is retired.
+- ACCOUNT MOVE (owner msg 247, 2026-11-17): the project moves to another account; follow docs/HANDOFF.md "MOVING TO ANOTHER ACCOUNT" and publish a NEW artifact there, then put its link on this line.
+- Playable build (second account, 2026-11-14 to 2026-11-17, last = Stage 117): https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG — republish by publishing `dist/index.html` from the same session, or pass this URL as `url` from a new session (read it first). Old account's slug 6723cacd-... is retired.
 - Docs map: `docs/BIBLE.md` (design + direction updates), `docs/ARCHITECTURE.md` (engine/G API), `docs/INTERFACES.md` (system APIs), `docs/ART_GUIDE.md`,
   `docs/LEAD_PLAYBOOK.md` (how we work), `docs/STATUS.md` (what exists), `docs/BACKLOG.md` (queue), `docs/HISTORY.md` (log), `docs/OWNER_MESSAGES.md` (the owner's messages verbatim), `docs/LEAD_JOURNAL.md` (the lead's decisions, reasoning and answers — append to it), `docs/OWNER_NOTES.md` (digest of owner feedback), `docs/reports/` (per-system notes).

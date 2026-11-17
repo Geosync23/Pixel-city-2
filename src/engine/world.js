@@ -94,11 +94,11 @@ export class World {
     const solid = o.solid !== undefined ? o.solid : (a.solid !== undefined ? a.solid : a.kind !== 'vehicle');
     ob.solid = solid; if (solid) this.block(ob.B[0], ob.B[1], ob.B[3], ob.B[4]);
     if (a.light) { const L = a.light, lx = flip ? L.y : L.x, ly = flip ? L.x : L.y; this.lights.push({ x: x + lx, y: y + ly, z: z + (L.z || 0), r: L.r || 3, c: L.c, ob }); }
-    this.objs.push(ob); this._hashAdd(ob); this.orev = (this.orev | 0) + 1;   /* orev: counts placed / removed objects (the renderer's light mask tiles hold the shapes of the objects in them, see render.js _occBake) */ return ob;
+    this.objs.push(ob); this._hashAdd(ob); return ob;
   }
   /** Place a custom drawable (not from the registry). spec = { key (unique sprite cache key), size:[w,d,h], vb?, draw(), solid? } */
   placeCustom(spec, x, y, o = {}) { const a = { id: 'custom:' + spec.key, kind: 'custom', size: spec.size, vb: spec.vb, draw: spec.draw, solid: spec.solid !== undefined ? spec.solid : true, light: spec.light }; return this.place(a, x, y, o); }
-  remove(ob) { const i = this.objs.indexOf(ob); if (i >= 0) this.objs.splice(i, 1); this.orev = (this.orev | 0) + 1; for (const k of ob._cells || []) { const a = this.hash.get(k), j = a.indexOf(ob); if (j >= 0) a.splice(j, 1); } if (ob.solid) this.free(ob.B[0], ob.B[1], ob.B[3], ob.B[4]); this.lights = this.lights.filter(l => l.ob !== ob); }
+  remove(ob) { const i = this.objs.indexOf(ob); if (i >= 0) this.objs.splice(i, 1); for (const k of ob._cells || []) { const a = this.hash.get(k), j = a.indexOf(ob); if (j >= 0) a.splice(j, 1); } if (ob.solid) this.free(ob.B[0], ob.B[1], ob.B[3], ob.B[4]); this.lights = this.lights.filter(l => l.ob !== ob); }
   _hashAdd(ob) { const s = ob.sb, x0 = Math.floor(s[0] / CELL), y0 = Math.floor(s[1] / CELL), x1 = Math.floor(s[2] / CELL), y1 = Math.floor(s[3] / CELL); ob._cells = []; for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) { const k = cx * 100003 + cy; let a = this.hash.get(k); if (!a) this.hash.set(k, a = []); a.push(ob); ob._cells.push(k); } }
   /** all static objects whose sprite bounds intersect the screen-space rect (world px) */
   query(x0, y0, x1, y1, out = []) {

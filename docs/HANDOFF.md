@@ -1,7 +1,35 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (rewritten clean 2026-11-17 for owner msg 227; update THIS section at every hand-off, newest facts only)
+## Now (rewritten 2026-11-17 for the ACCOUNT MOVE, owner msg 247; update THIS section at every hand-off, newest facts only)
+
+**READY TO MOVE. Nothing is running. The owner approved the move (msg 247). Start on the new account with the MOVING TO ANOTHER ACCOUNT steps at the bottom of this file.**
+
+**State of the game**
+- Last published: STAGE 117 (artifact version 1794922663-6c3f on the OLD account's link https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG; the new account publishes its own, see MOVING step 3). docs/HISTORY.md has one line per stage with what was checked.
+- The repo's src/ IS the live game: a plain `node tools/build.mjs` gives Stage 117 (checked: zero page errors in a smoke run, 2026-11-17). No pins, no excludes needed any more.
+  (Stages 98-117 were built with tools/clean_build.sh + PINS of four engine files at 49f9c4e; those files are now back at 49f9c4e in src/, the unfinished lighting work is parked as a patch, below.)
+- Stages 107-117 (smooth plane + plane sounds, intro volumes, creator song + silence, Start button, title 7 s, City Hall art, phone-hint placement, cart vendors) were made by Opus (workers or the lead) and checked by the lead on OPUS (the Fable limit ran out): treat them as NOT Fable-checked.
+  FIRST JOB for a Fable model on the new account (rule 3 'Fable checks Opus'): review `git diff 49f9c4e..HEAD -- src/ tools/` (49f9c4e = Stage 106; the four engine files are unchanged in that range), look at the pictures in docs/shots/stage11*.png, play the intro + creator + title screen, and say what was checked.
+- Owner-facing pages (old account links, re-publish from their files if he still wants them): trailer docs/trailer/trailers.html, questionnaire docs/owner/questions.html, plane sounds docs/audio/plane_sounds.html, creator song docs/audio (page built by tools), classics docs/audio/classics.html.
+
+**NEXT, in order (owner msgs 220, 228, 245-247; one Fable worker at a time; he may add one Opus worker)**
+1. (Fable) LIGHTING: night light pools show through buildings. Owner chose to RESUME it on the new account with the lead's plan: brief = docs/wip/LIGHTING_RESUME_BRIEF.md
+   (assess first and report before changing code; small checkpointed steps; report after each; stop if expensive). Unfinished work of the first worker: docs/wip/lighting_pool_occlusion.patch (applies cleanly), tools/poolocc_check.mjs.
+2. (Fable) passengers FLICKER on their seats in the plane cabin (owner msg 220).
+3. (Fable) re-shoot the trailer's PLANE SHOT on the current game (smooth plane since Stage 107), zoomed as in the current cut, RED 'Maple Air' livery (owner msg 228), same slot and length; resend the trailer (web + download copy). No plane sound in the trailer. Raw frames are NOT in the repo: tools/trailer/ re-records; docs/reports/trailers.md has the shot list.
+4. Small: move the two trees under the rail viaduct ((54.5,121.5) poplar, (270.5,121.5) birch) + a rule so nothing tall stands in the train's path (docs/reports/occlusion.md); a long traffic soak (FLOW_BUS .95 since Stage 100); a touch test pass over the newest work; re-run the five test tools updated for the Start button (tools/minigames_b_check.mjs, pad_check.mjs, pad_touch_check.mjs, restrooms_check.mjs, wishnudge_check.mjs).
+5. LATER, only on the owner's word: more activities (trailer says 'over 100', game has 92) and jobs ('30 jobs', game has 25).
+- PARKED until the owner says go: J4 (17 extra jobs), iPhone 13 mini work, Trailer A.
+- Open owner questions: should a landing plane be audible downtown (now a faint rumble)? Should the title screen also drop the city recordings (the creator no longer plays them)?
+
+**Team rule**: 1 Fable worker + 1 Opus worker + the lead (owner msgs 191, 203, 224). A Fable model checks all Opus work before it is published and says what the check covered.
+Brief every worker to write progress notes into its report AS IT GOES and to report back at set points (lesson of the lighting worker, owner msg 245).
+**Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 247), digests in docs/OWNER_NOTES.md (last = 195), design rulings in docs/BIBLE.md 'Direction update' sections (latest 43).
+
+## Earlier 'Now' notes of this session (history, newest first; superseded by the section above)
+### Superseded 'Now' (before the move)
+(old) Now (rewritten clean 2026-11-17 for owner msg 227; update THIS section at every hand-off, newest facts only)
 - 2026-11-17 latest: STAGE 117 published (version 1794922663-6c3f): vendors only at the open gelato/grill carts (owner msgs 241-244, src/sim/stalls.js SPOT + Slider); nothing with an awning has one. Stages 109-114 were small owner-asked fixes done by the lead on Opus (no Fable check). Still waiting on the owner: account move + final commit id; lighting option.
 **Where things stand**
 - GAME: last published STAGE 113 (artifact version 1794921031-04ea: City Hall's right wing drawn in front of its central block). Before it: STAGE 112 (artifact version 1794920352-da48: title views every 7 s). Before it: STAGE 111 (artifact version 1794920019-605d: title screen opens with a Start button that unlocks sound). Before it: STAGE 110 (artifact version 1794918770-b7fb: creator song B starting at once; intro hint below phone banners). Before it: STAGE 109 (artifact version 1794894380-7f21: creator silence + creator song, candidate A as a stand-in; Opus worker DONE). Before it: STAGE 108 (artifact version 1794889697-e2cc: plane sounds quieter in the intro, lead edit). Before it: STAGE 107 (artifact version 1794888713-dea3: smooth arrival plane + plane sounds; the Opus plane worker is DONE). Before it: STAGE 106 (artifact version 1794881657-ce17) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG. The Stage 106 commit is 49f9c4e: at that commit every file under src/ is finished, published work (the clean base for pins). Clean build 14,849 KB of a 16,000 KB limit (audio split recipe: BACKLOG 'SIZE HEADROOM').
@@ -31,7 +59,6 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 **Team rule now**: 1 Fable worker + 1 Opus worker + the lead (owner msgs 191, 203, 224). A Fable model checks all Opus work before it is published and says what the check covered.
 **Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message of his is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 227), digests in docs/OWNER_NOTES.md, design rulings in docs/BIBLE.md 'Direction update' sections (latest 43).
 
-## Earlier 'Now' notes of this session (history, newest first; superseded by the section above)
 - QUEUE FOR THE NEXT FREE FABLE SLOT (ORDER PER OWNER MSG 119: sound before jobs): (1) MAILBOXES (owner msg 115, BIBLE update 23), (2) AMBIENCE FROM RECORDINGS (below), (3) NOTHING: J4 (17 more jobs) is ON HOLD per owner msg 120; do not start it until the owner says. Lead's candidate list for it is in docs/BACKLOG.md. Ambience detail: AMBIENCE FROM RECORDINGS ONLY (owner msg 118, BIBLE update 24: decided; the test page's bed mixer in docs/audio/soundtest_page.js is the model; lead keeps collecting recordings into docs/audio/, Commons rate-limits hard).
 - AMBIENCE: owner is testing option D with the listening-test page (source: scratchpad/snd/soundtest.html, rebuilt from page_head.html + page.js + docs/audio/loop_*.mp3; see docs/audio/SOURCES.md). WAIT for the verdict; if yes -> a Fable worker builds it into src/sim/audio (bed loops as assets + positioned sources tied to real cars/people/places).
 - OWNER RULE (msg 146): ALL traffic work incl. the BASELINE MEASUREMENT is Fable work. QA round 14's Part C (traffic measuring) was cancelled; the Fable traffic worker builds tools/traffic_measure.mjs and measures before/after itself.
@@ -161,7 +188,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 The owner will continue this project from a different Claude account. Everything needed is in this repo; the conversation, the artifact link and any running worker do NOT transfer.
 For the NEW lead (first session on the new account):
 1. GitHub must be connected on that account with the Claude GitHub App installed for `geosync23/pixel-city-2`; continue from the head of the latest working branch (now `ccr-e622e92c-7t3ejy`; if the new session is assigned another branch, start it from that head).
-2. Read CLAUDE.md, then this file top to bottom, then the docs it lists. `npm install` (esbuild), `node tools/build.mjs`, run one `tools/shot.mjs` smoke test.
+2. Read CLAUDE.md, then this file top to bottom, then the docs it lists. `npm install` (esbuild), `node tools/build.mjs` (a plain build is the live game since 2026-11-17), run one `tools/shot.mjs` smoke test.
 3. Publish `dist/index.html` as a NEW artifact (the current link https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG belongs to the current account; so do the trailer / questionnaire / sound pages: republish those from their files in docs/ if the owner still wants them): update the slug/URL in CLAUDE.md and docs/LEAD_PLAYBOOK.md, and tell the owner the new link. Players' saves are per-link, so the owner starts a new game.
 4. Check the "Now" section: if it names a worker as running, that worker is gone — look at the files it owned (listed there), read docs/BACKLOG.md for the item, and either finish the work yourself or brief a new worker with "these files exist; continue".
 5. Keep following the standing orders (verbatim owner messages, HANDOFF updates, one worker at a time, steady pace).
