@@ -1,0 +1,11 @@
+import http from 'node:http'; import fs from 'node:fs'; import { createRequire } from 'node:module';
+const ROOT = '/home/user/Pixel-city-2'; const require = createRequire(ROOT + '/tools/x.mjs'); const { chromium } = require('playwright');
+const H = fs.readFileSync(process.argv[2]); const [x, y, t] = (process.argv[3] || '96,298,22').split(',');
+const srv = http.createServer((req, res) => { res.writeHead(200, { 'content-type': 'text/html' }); res.end(H); }); await new Promise(r => srv.listen(0, r));
+const br = await chromium.launch(); const pg = await br.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); pg.on('pageerror', e => console.log('ERR', e.stack || e.message)); const cdp = await pg.context().newCDPSession(pg); await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+await pg.goto(`http://localhost:${srv.address().port}/?scene=city&x=${x}&y=${y}&t=${t}`); await pg.waitForFunction(() => !document.getElementById('load') && window.G && window.G.scene, null, { timeout: 90000 });
+const r = await pg.evaluate(`(async()=>{ const sleep = ms => new Promise(r => setTimeout(r, ms)), R = G.renderer; await sleep(5000); const C = {}; for (const k of ['_occOwn', '_occBake', '_occPatch', '_occPrep', '_occPass', '_maskTiles', '_maskKey', '_nightE']) { const f = R[k]; C[k] = { n: 0, ms: 0 }; R[k] = function () { const t0 = performance.now(); const v = f.apply(this, arguments); C[k].ms += performance.now() - t0; C[k].n++; return v; }; }
+  const a = { ...R.stats }, p0 = R.perf(); await sleep(8000); const n = R.stats.frames - a.frames, p1 = R.perf(); const out = { frames: n, tAmb: +((R.stats.tAmb - a.tAmb) / n).toFixed(3), tNl: +((R.stats.tNl - a.tNl) / n).toFixed(3), bakes: p1.nlTileBakes - p0.nlTileBakes, perFrame: {} };
+  for (const k in C) out.perFrame[k] = (C[k].n / n).toFixed(2) + ' calls, ' + (C[k].ms / n).toFixed(3) + ' ms/frame'; for (const k of ['nlLit', 'nlCut', 'nlCopy', 'nlOcc']) out[k] = +((p1[k] - p0[k]) / n).toFixed(2);
+  out.pd = R._S.filter(it => it.ob && it.ob._pd).length; out.ents = R._S.filter(it => it.e && it.spr.w * it.spr.h > 26000).map(it => it.spr.w + 'x' + it.spr.h).join(','); out.items = R._S.length; out.dbg = JSON.stringify(R.nl._c); out.hp = 0; return out; })()`);
+console.log(JSON.stringify(r, null, 1)); await br.close(); srv.close();

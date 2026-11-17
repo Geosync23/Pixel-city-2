@@ -1,0 +1,26 @@
+bus_xp_day               frames   700  pairs   20718  POPS    0 (     0 px)  WRONG     0  CYCLES    0  RESORT    1  OUTSIDE 0  errors 0  6s  bus on x+ edge c=59.0 29..135 trees near/far 4/5 posts 15
+bus_xn_day               frames   700  pairs   23586  POPS    0 (     0 px)  WRONG     0  CYCLES    0  RESORT    0  OUTSIDE 0  errors 0  5s  bus on x- edge c=57.0 30..136 trees near/far 4/5 posts 15
+bus_yp_day               frames   700  pairs   59622  POPS    7 (  7810 px)  WRONG     0  CYCLES    0  RESORT  203  OUTSIDE 0  errors 0  8s  bus on y+ edge c=51.0 121..193 trees near/far 3/14 posts 9
+    pops by kind: {"train / train":5,"suv / prop.road.sign.street":1,"suv / prop.road.trafficlight":1}
+truck_xp_day             frames   700  pairs   19895  POPS    0 (     0 px)  WRONG     0  CYCLES    0  RESORT    0  OUTSIDE 0  errors 0  6s  truck on x+ edge c=59.0 29..135 trees near/far 4/5 posts 15
+bus_yn_day               frames   700  pairs   43164  POPS    2 (    92 px)  WRONG     0  CYCLES    0  RESORT   92  OUTSIDE 0  errors 0  8s  bus on y- edge c=53.0 122..194 trees near/far 5/5 posts 10
+    pops by kind: {"beetle / prop.road.trafficlight":1,"bus / ent":1}
+truck_yn_day             frames   700  pairs   59602  POPS    0 (     0 px)  WRONG     0  CYCLES    0  RESORT  126  OUTSIDE 0  errors 0  8s  truck on y- edge c=53.0 122..194 trees near/far 5/5 posts 10
+fire_yp_day              frames   700  pairs   49003  POPS    4 (  1400 px)  WRONG     0  CYCLES    0  RESORT  249  OUTSIDE 0  errors 0  8s  fire on y+ edge c=51.0 121..193 trees near/far 3/14 posts 9
+    pops by kind: {"train / train":1,"suv / ent":1,"pickup / ent":1,"fire / tree":1}
+bus_corner_day           frames   646  pairs   64999  POPS    4 (   154 px)  WRONG     0  CYCLES    0  RESORT  122  OUTSIDE 0  errors 0  6s  bus turning x- -> y- at 52,326 trees 7; 645 frames, ended on the turn edge
+    pops by kind: {"bus / person":2,"bus / prop.harbor.lamp":1,"scooter / person":1}
+bus_stop_day             frames   570  pairs   90793  POPS    1 (    45 px)  WRONG     0  CYCLES    0  RESORT    4  OUTSIDE 0  errors 0  6s  bus stop bus:8 at 49,150.8 (7 upright things around), bus after 0 frames, watched 569
+    pops by kind: {"bus / person":1}
+trains_central_day       frames   240  pairs   59469  POPS    1 (     6 px)  WRONG     0  CYCLES    0  RESORT  220  OUTSIDE 0  errors 0  5s  trains 4 (A) and 0 (B) meet at 212,305 (central) z 6, game t +2.5 min
+    pops by kind: {"hatch / prop.road.trafficlight":1}
+trains_viaduct_day       frames   240  pairs   36123  POPS    0 (     0 px)  WRONG     0  CYCLES    0  RESORT  178  OUTSIDE 0  errors 0  4s  trains 8 (A) and 5 (B) meet at 159,123 (open line) z 8, game t +4.6 min
+train_over_road_day      frames   300  pairs   46341  POPS   10 (  1347 px)  WRONG     0  CYCLES    0  RESORT   70  OUTSIDE 0  errors 0  4s  road under the viaduct at 265,127 (y), train passes
+    pops by kind: {"hatch / person":5,"sedan / person":5}
+watch_central_day        frames 10800  pairs 1429780  POPS   32 (  2957 px)  WRONG     0  CYCLES    0  RESORT  721  OUTSIDE 0  errors 0  33s  central 213,311 for 180 s, vehicles now 16
+    pops by kind: {"bus / prop.road.sign.street":5,"sports / ent":1,"bus / prop.road.trafficlight":4,"hatch / person":4,"hatch / ent":1,"suv / person":1,"pickup / prop.road.sign.street":1,"bus / person":2,"taxi / person":11,"truck / person":2}
+watch_plaza_day          frames 10800  pairs 1223712  POPS   86 ( 12847 px)  WRONG     0  CYCLES   14  RESORT 2405  OUTSIDE 0  errors 0  38s  plaza 222,228 for 180 s, vehicles now 22
+    pops by kind: {"bus / person":8,"delivery / tree":2,"scooter / person":6,"pickup / prop.road.trafficlight":1,"beetle / person":6,"taxi / person":3,"sedan / person":20,"delivery / prop.road.trafficlight":2,"sedan / ent":1,"sedan / prop.road.sign.street":1,"sedan / prop.road.trafficlight":1,"suv / person":4,"bus / prop.road.trafficlight":2,"sports / person":11,"hatch / person":3,"delivery / person":5,"sports / prop.road.sign.street":1,"sports / prop.road.trafficlight":1,"police / person":1,"police / prop.road.trafficlight":1,"sports / ent":1,"pickup / person":1,"beetle / prop.road.trafficlight":1,"van / prop.road.trafficlight":1,"hatch / prop.road.trafficlight":1,"hatch / taxi":1}
+watch_harbor_day         frames 10800  pairs 1850177  POPS   72 ( 10095 px)  WRONG     0  CYCLES  334  RESORT 8614  OUTSIDE 0  errors 0  38s  harbor 110,308 for 180 s, vehicles now 15
+    pops by kind: {"sedan / prop.road.sign.street":2,"sedan / prop.road.trafficlight":2,"bus / person":13,"ambulance / person":1,"beetle / person":3,"van / person":2,"van / prop.road.sign.street":2,"suv / prop.road.sign.street":1,"suv / prop.road.trafficlight":1,"suv / person":7,"sports / person":3,"bus / tree":5,"bus / prop.road.sign.street":3,"truck / prop.road.trafficlight":3,"truck / prop.rail.pier":2,"truck / tree":1,"hatch / person":5,"sedan / person":12,"hatch / prop.road.sign.street":1,"hatch / prop.road.trafficlight":1,"delivery / prop.road.trafficlight":1,"delivery / person":1}
+TOTAL pops 219, wrong 0, page errors 0 -> out/occl/pocc_before

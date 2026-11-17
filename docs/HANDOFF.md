@@ -15,7 +15,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 
 **NEXT, in order (owner msgs 220, 228, 245-247; one Fable worker at a time; he may add one Opus worker)**
 1. (Fable) LIGHTING: night light pools show through buildings. Owner chose to RESUME it on the new account with the lead's plan: brief = docs/wip/LIGHTING_RESUME_BRIEF.md
-   (assess first and report before changing code; small checkpointed steps; report after each; stop if expensive). Unfinished work of the first worker: docs/wip/lighting_pool_occlusion.patch (applies cleanly), tools/poolocc_check.mjs.
+   (assess first and report before changing code; small checkpointed steps; report after each; stop if expensive). Unfinished work of the first worker: docs/wip/lighting_pool_occlusion.patch (applies cleanly), tools/poolocc_check.mjs; EVERYTHING as it left it (files, full log, pictures, final check results: all passed, only its report missing; chat log up to its start) in docs/wip/lighting_as_left/ (README = how to resume). Owner msg 248: if the new account's attempt goes badly he will come back to THIS session after the Fable reset (2026-11-21 08:00 UTC) and resume the same worker aa491b05f2d98ad25 (README route A).
 2. (Fable) passengers FLICKER on their seats in the plane cabin (owner msg 220).
 3. (Fable) re-shoot the trailer's PLANE SHOT on the current game (smooth plane since Stage 107), zoomed as in the current cut, RED 'Maple Air' livery (owner msg 228), same slot and length; resend the trailer (web + download copy). No plane sound in the trailer. Raw frames are NOT in the repo: tools/trailer/ re-records; docs/reports/trailers.md has the shot list.
 4. Small: move the two trees under the rail viaduct ((54.5,121.5) poplar, (270.5,121.5) birch) + a rule so nothing tall stands in the train's path (docs/reports/occlusion.md); a long traffic soak (FLOW_BUS .95 since Stage 100); a touch test pass over the newest work; re-run the five test tools updated for the Start button (tools/minigames_b_check.mjs, pad_check.mjs, pad_touch_check.mjs, restrooms_check.mjs, wishnudge_check.mjs).
@@ -25,7 +25,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 
 **Team rule**: 1 Fable worker + 1 Opus worker + the lead (owner msgs 191, 203, 224). A Fable model checks all Opus work before it is published and says what the check covered.
 Brief every worker to write progress notes into its report AS IT GOES and to report back at set points (lesson of the lighting worker, owner msg 245).
-**Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 247), digests in docs/OWNER_NOTES.md (last = 195), design rulings in docs/BIBLE.md 'Direction update' sections (latest 43).
+**Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 248), digests in docs/OWNER_NOTES.md (last = 196), design rulings in docs/BIBLE.md 'Direction update' sections (latest 43).
 
 ## Earlier 'Now' notes of this session (history, newest first; superseded by the section above)
 ### Superseded 'Now' (before the move)

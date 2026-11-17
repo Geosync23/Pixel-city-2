@@ -1,0 +1,52 @@
+== 1. room graph ==
+PASS  room graph: 435 rooms                        846 doors used for real, 694 room-to-room routes checked, 0 rooms with problems
+== 2. audit scenarios (arrow label per scene on the way) ==
+PASS  courier: load, deliver (street + inside), ba point: Load the Bag  >  point: Exit → Deliver to Dot's Diner  >  point: Deliver here: tap the gold marker, or go in  >  point: Hand the parcel over at the counter  >  point: Exit → Deliver to Maple Brewing Co. Taproom
+PASS  job: barista first task                      point: Restock Pastry Case
+PASS  job: grocery_clerk first task                point: Tidy the Produce
+PASS  job: line_cook first task                    point: Wash Dishes
+PASS  job: office_analyst first task               point: Crunch Numbers
+PASS  job: fitness_trainer first task              point: Restock Towels
+PASS  job: librarian first task                    point: Straighten a Shelf
+PASS  job: nurse first task                        point: Tidy the Charts
+PASS  job: dock_worker first task                  point: Unload the blue crate
+PASS  job: bartender first task                    point: Polish Glasses
+PASS  show: play at the Lantern Playhouse          point: Go in: The Lantern Playhouse → your seat  >  point: Through the curtains: show your ticket  >  point: Your seat: row C, seat 12. Tap it to sit  >  no arrow
+PASS  City Hall: council meeting                   point: Go in: Maple Bay City Hall → the Council Chamber  >  point: Council Chamber: this way  >  point: Council in session: take a seat in the gallery
+PASS  job: clock-in (waypoint to the workplace)    point: Go in: Bean & Gone → clock in  >  point: Restock Pastry Case
+PASS  show: film at the Orpheum                    point: Go in: The Orpheum → your seat  >  point: Screen 1: show your ticket  >  point: Your seat: row C, seat 10. Tap it to sit  >  no arrow
+PASS  show: concert at Symphony Hall               point: Go in: Maple Bay Symphony Hall → your seat  >  point: Auditorium doors: show your ticket  >  point: Your seat: row D, seat 19. Tap it to sit  >  no arrow
+PASS  show: no ticket yet -> box office            point: Box office: pick a show and buy a ticket
+PASS  City Hall: wedding (guest)                   point: Stairs up → the Wedding Room  >  point: A wedding is on: sit with the guests
+PASS  City Hall: records queue (fountain chain)    point: Permits & Records: this way  >  point: Take a number from the red machine  >  point: Ticket A26: sit and wait, 3 ahead of you
+PASS  City Hall: appointment with the mayor        point: Stairs up → the mayor  >  point: The Mayor's Office → the mayor  >  point: Your ten minutes: talk to Mayor Castellanos
+PASS  City Hall: plain visit -> information desk   point: Information desk
+PASS  Arena: game, your seat                       point: Go in: Maple Bay Arena → your seat  >  point: Into the bowl → your seat  >  point: Your seat: tap it to sit down  >  no arrow
+PASS  Conservatory: guided tour meeting point      point: Go in: Maple Bay Botanical Conservatory → the tour  >  point: Guided tour at 13:00: meet the docent here
+PASS  Museum: guided tour meeting point            point: Guided tour at 14:00: meet the docent here
+PASS  Observatory: planetarium seat                point: Planetarium → the Star Theatre  >  point: Take any seat: tap it
+PASS  Aquarium: turtle feeding                     point: Stairs to the Turtle Lagoon → Turtle Feeding & Keeper Talk  >  point: Turtle feeding: hold out a lettuce leaf (10:45)
+PASS  Hotel: your table in the restaurant          point: The Gilded Maple → your table  >  point: Your table: tap it to sit down
+PASS  Fish Hall: the dawn auction                  point: Go in: Bay Fish Hall → the fish auction  >  point: Fish auction: bid at the rostrum
+PASS  Lighthouse: light the lamp                   point: The tower stair → the lantern room  >  point: Climb the stair → the lantern room  >  point: Ladder up to the lantern → the lantern room  >  point: Light the lamp: the great lens
+PASS  Natatorium: swim lesson                      point: Front desk: buy a swim  >  point: Changing Village → the lockers  >  point: Lockers: change into your swimwear  >  point: Quick rinse first: the showers  >  point: Competition Pool → the pool  >  point: Swim lesso
+PASS  Appointment with a friend in a cafe          point: Go in: Bean & Gone → Kit  >  point: Coffee with Kit: say hello to Kit
+PASS  Opportunity with an indoor step (arena: Benn point: Go in: Maple Bay Arena → Benny  >  point: Give the lucky ball back to Benny
+PASS  Need: hunger -> order at the diner           point: Go in: Dot's Diner → eat here: order  >  point: Eat here: order
+PASS  Need: bladder -> restroom in a cafe          point: The restroom
+PASS  Need: bladder at home -> bathroom -> toilet  point: Bathroom → the toilet  >  point: The toilet
+PASS  Need: energy at home -> bed                  point: Your bed: sleep
+PASS  Wander: mall shop (Tapioca Sky)              point: Go in: Maple Bay Galleria → Tapioca Sky  >  point: Tapioca Sky
+FAIL  In store: Galleria bay by bus (QA16 gap)     
+        FAIL city                       got "point: Go in: Maple Bay Galleria → Thread & Co. Outlet (arrow hidden: modal: FIRST TIME · CLOTHES SHOPS The Galleria Clothes, furniture, a salon and a food court under)"   want /Thread & Co/
+        ok   int:deptstore              got "point: Thread & Co. Outlet"
+PASS  Plain place: grocery -> the till             point: Go in: FreshWay Market  >  point: Shop at the counter
+PASS  Plain place: SkyDeck -> ticket desk          point: SkyDeck tickets
+PASS  Leaving: waypoint elsewhere from a deep room point: Back to the Clerk's office → FreshWay Market  >  point: Hatch down to the watch room → FreshWay Market
+PASS  Story beat: meet Kit at the Blue Heron       point: Go in: The Blue Heron → Kit
+PASS  Gig: city target stays marked at the spot    point: Pick up the flyers: tap the teal marker
+PASS  Explicit objective: G.navGoals.set()         point: Go in: Bean & Gone → the test  >  point: Test: the restroom
+PASS  Hotel lift: a waypoint with a room on anothe point: Lift → The Weathervane  >  point: Lift → The Weathervane  >  point: The Weathervane bar
+PASS  No objective: nothing shown, nothing left be no arrow  >  no arrow
+
+1 FAILED, 0 page errors

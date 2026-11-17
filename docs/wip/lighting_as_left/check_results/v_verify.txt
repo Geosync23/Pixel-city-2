@@ -1,0 +1,15 @@
+ok   city objects, bands vs whole      3785 sprites, 0 differ 
+ok   city objects, worker vs main      3779 sprites, 0 differ  (worker on; 12 custom drawables stay on the main thread; 0 whose art throws fall back: )
+ok   ground chunks, bands vs whole     784 chunks, 0 differ
+ok   citizen sprites, worker vs main   192 sprites, 0 differ
+ok   draw order vs the old depth sort  744 frames (about 37 items each), 0 differ
+ok   room cafe                         49 checks, 0 differ 
+ok   room deptstore                    294 checks, 0 differ 
+ok   room central_station              89 checks, 0 differ 
+ok   room goods:fjord                  246 checks, 0 differ 
+ok   room museum                       186 checks, 0 differ 
+ok   room grocery                      69 checks, 0 differ 
+ok   winter sample                     2006 checks, 0 differ
+ok   page errors                       0 
+VERIFY OK: same pixels
+wrote out/perf/pocc_verify.json

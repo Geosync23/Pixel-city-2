@@ -15,6 +15,12 @@ stands behind it (the see-through fade near the player).
   Its test tool is tools/poolocc_check.mjs. A perf run it made showed no slowdown. Nobody has checked whether it works.
 - Background on the night pass: docs/reports/nightlight.md, docs/reports/performance.md, docs/reports/occlusion.md.
 
+## NEW (owner msg 248): it was nearly done
+The lead read the first worker's log: it was in its final step and its last full check run on the final build ALL PASSED
+(0 pool-occlusion failures, nightcheck passed, no page errors, daytime pixels unchanged, speed about the same). Only its report
+was missing. Everything it left (files, full log, pictures, check results, the chat before it started) is in docs/wip/lighting_as_left/
+(README there). So step 1 below is mostly: apply the patch, read its log, re-run its checks, look at its pictures, write the report.
+
 ## How to work (the owner agreed to this plan, msg 246-247)
 1. ASSESS FIRST, CHANGE NOTHING. Read the patch and the night pass. Write `docs/reports/pool_occlusion.md` (one page): what the patch does,
    whether its approach is sound, what is missing, and whether to CONTINUE it or START FRESH, with a rough size. Then STOP and report to the lead.

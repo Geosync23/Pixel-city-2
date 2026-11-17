@@ -985,3 +985,7 @@ If we do 2, is there any risk of another agent picking up such complex work?
 
 ## 247 (2026-11-17)
 Ok lets do it per your plan. Prepare the project for a new account
+
+## 248 (2026-11-17)
+Ok but save the lighting work as is separately. If this doesnt go well ill come back at the reset snd it'll pickup where it left off
+Can you put in this chat log until before it started working on the lighting so it has context
