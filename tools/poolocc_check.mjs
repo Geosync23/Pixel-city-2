@@ -28,7 +28,7 @@ const LIB = `window.sleep = ms => new Promise(r => setTimeout(r, ms)); window.fr
   window.grab = () => { const c = G.cv, x = document.createElement('canvas'); x.width = c.width; x.height = c.height; const g = x.getContext('2d'); g.drawImage(c, 0, 0); return g.getImageData(0, 0, c.width, c.height).data; };
   window.mask = () => G.renderer.Mx.getImageData(0, 0, G.renderer.W, G.renderer.H).data;
   /* THE RULE (docs/reports/pool_occlusion.md): does a thing with box B = [x0, y0, z0, x1, y1, z1] take the pool of a lamp at l on its faces? */
-  window.takes = (B, l) => B[2] > l.z + 1.05 ? false : B[5] - B[2] < .5 ? true : (l.x >= B[3] || l.y >= B[4]) ? true : (l.x > B[0] && l.y > B[1]);
+  window.takes = (B, l) => B[2] > l.z + 1.05 ? false : (B[5] - B[2] < .5 || B[5] - l.z < .5) ? true : (l.x >= B[3] || l.y >= B[4]) ? true : (l.x > B[0] && l.y > B[1]);
   window.poolBox = l => { const U = 16, rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), cx = Math.round((l.x - l.y) * U) - G.cam.x, cy = Math.round((l.x + l.y) * U / 2 - l.z * U) - G.cam.y; return [cx - rx, cy - ry, cx + rx, cy + ry]; };
   window.itemBox = it => { const sp = it.spr, q = sp.bx || [0, 0, sp.w, sp.h], x = sp.x + it.ax - G.cam.x, y = sp.y + it.ay - G.cam.y; return [x + q[0], y + q[1], x + q[2], y + q[3]]; };
   window.openTo = ob => ob.nl === 'ground' || !!(ob.a && (ob.a.nl === 'ground' || (ob.a.tags || []).includes('fountain')));   /* takes every pool, like the ground */

@@ -257,10 +257,11 @@ function wholeOb(ob, sp) {
  * ER = this frame's boxes of lit things (something in front is only put back where it overlaps one). */
 let OS = [], OC = [], OX = [], ON = new Float32Array(8 * 128), nOP = 0, nlLit = 0, nlCut = 0, nlCopy = 0, nlOcc = 0;
 /* one step: type 0 punch + fill with col / 1 punch + put back (from the mask tiles if they hold it, else as 3) / 2 draw a flat-colour copy / 3 punch + fill with the thing's own light (ambient + the pools it takes, occPut);
- * src = sprite (0, 1, 3) or canvas (2); the part sx, sy, sw, sh of it, drawn at dx, dy; a = alpha or undefined; it = the item it belongs to (1, 3; null: something that takes every pool) */
+ / 4 punch + fill from its kept own-light copy (col; a see-through thing: the same arithmetic as 3);
+ * src = sprite (0, 1, 3, 4) or canvas (2); the part sx, sy, sw, sh of it, drawn at dx, dy; a = alpha or undefined; it = the item it belongs to (1, 3; null: something that takes every pool) */
 function pushOp(type, src, sx, sy, sw, sh, dx, dy, a, col, it) { OX[nOP] = it || null; if ((nOP + 1) * 8 > ON.length) { const n = new Float32Array(ON.length * 2); n.set(ON); ON = n; } const o = nOP * 8; OS[nOP] = src; OC[nOP] = col; nOP++; ON[o] = type; ON[o + 1] = sx; ON[o + 2] = sy; ON[o + 3] = sw; ON[o + 4] = sh; ON[o + 5] = dx; ON[o + 6] = dy; ON[o + 7] = a === undefined ? -1 : a; }
-let ER = new Float32Array(4 * 128), EK = new Uint8Array(128), eSkip = false, nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;   // (EK[i] = 1: the box of a thing's own light drawn from its kept copy, _occOwn. eSkip: leave those out, for the next such thing: its own copy covers it)
-function addE(x0, y0, x1, y1) { if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0; if (x1 > vW) x1 = vW; if (y1 > vH) y1 = vH; if (x1 <= x0 || y1 <= y0) return; if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; const k = new Uint8Array(EK.length * 2); k.set(EK); EK = k; } EK[nER] = 0; const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
+let ER = new Float32Array(4 * 128), EK = new Uint8Array(128), eSkip = false, nER = 0, eX0 = 0, eY0 = 0, eX1 = 0, eY1 = 0;   // (EK[i] = 1: the box of the own light of a thing that keeps the pattern (pools behind buildings), not of something lit as a whole. eSkip: leave those out: outside the pools such a box holds the ambient colour, which a thing in the dark and a kept own-light copy in front of it have there anyway)
+function addE(x0, y0, x1, y1, k) { if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0; if (x1 > vW) x1 = vW; if (y1 > vH) y1 = vH; if (x1 <= x0 || y1 <= y0) return; if ((nER + 1) * 4 > ER.length) { const n = new Float32Array(ER.length * 2); n.set(ER); ER = n; const k = new Uint8Array(EK.length * 2); k.set(EK); EK = k; } EK[nER] = k | 0; const o = nER++ * 4; ER[o] = x0; ER[o + 1] = y0; ER[o + 2] = x1; ER[o + 3] = y1; if (nER === 1) { eX0 = x0; eY0 = y0; eX1 = x1; eY1 = y1; } else { if (x0 < eX0) eX0 = x0; if (y0 < eY0) eY0 = y0; if (x1 > eX1) eX1 = x1; if (y1 > eY1) eY1 = y1; } }
 /* does the box x0..y1 overlap any of the n boxes in R? If so hX0..hY1 = the box around the overlaps (inside x0..y1): only that part has to be worked on */
 let hX0 = 0, hY0 = 0, hX1 = 0, hY1 = 0, hN = 0, hA = 0, camX = 0, camY = 0;   // (hN = how many boxes overlap, hA = their overlaps' area added up)
 /*
@@ -283,7 +284,7 @@ function hitBox(R, n, x0, y0, x1, y1, hx) {
  * when the thing stands in the dark (dim: its colour is the ambient colour) and nothing lit is behind it, only the part the pools reach (kx0..ky1, canvas px): the rest of the mask has that colour already. */
 function litDraw(sp, sy, sh, dx, dy, ci, col, a, fr, dim, kx0, ky0, kx1, ky1) {
   const q = sp.bx; let x0 = q ? q[0] : 0, y0 = q ? q[1] : 0, x1 = q ? q[2] : sp.w, y1 = q ? q[3] : sp.h; if (y0 < sy) y0 = sy; if (y1 > sy + sh) y1 = sy + sh;
-  if (dim) { eSkip = true; dim = !(nER && hitBox(ER, nER, dx + x0, dy + y0, dx + x1, dy + y1, null)); eSkip = false; }   /* (a kept own-light copy behind it does not count: outside the pools that is the ambient colour too) */
+  if (dim) { eSkip = true; dim = !(nER && hitBox(ER, nER, dx + x0, dy + y0, dx + x1, dy + y1, null)); eSkip = false; }   /* (the own light of a thing behind it that keeps the pattern does not count: outside the pools that is the ambient colour too) */
   if (dim) { if (x0 < kx0 - dx) x0 = kx0 - dx; if (y0 < ky0 - dy) y0 = ky0 - dy; if (x1 > kx1 - dx) x1 = kx1 - dx; if (y1 > ky1 - dy) y1 = ky1 - dy; }   // (not when something lit stands behind it: that has to be covered whole)
   if (x1 <= x0 || y1 <= y0) return; nlLit++; const c = sp.im && q ? silGet(sp, ci, col, fr) : null;
   if (c) { nlSil++; pushOp(2, c, x0 - q[0], y0 - q[1], x1 - x0, y1 - y0, dx + x0, dy + y0, a, null); } else pushOp(0, sp, x0, y0, x1 - x0, y1 - y0, dx + x0, dy + y0, a, col);
@@ -306,7 +307,8 @@ function cutDraw(sp, sy, sh, dx, dy, a, hx, it) {
  *   - its own lamp (a shop's door light), and a lamp within its footprint that is not far below it (under its roof, on its deck): yes, as before;
  *   - a lamp BEHIND it (nearer than both near faces in x and in y): no. The pool stays on the ground beside the thing and is gone from its silhouette;
  *   - a thing well overhead (its underside more than NL.over above the lamp: a viaduct deck over a street lamp): no;
- *   - a low thing at the lamp's level (under NL.low high: a kerb, a flower bed, a step), a fountain, anything marked nl: 'ground': every pool, like the ground.
+ *   - a low thing (under NL.low high: a kerb, a flower bed, a step), a thing whose top is no higher than the foot of the lamp (the next piece of the platform the lamp stands on, the track bed
+ *     beside it, a roof below a lamp up on a terrace), a fountain, anything marked nl: 'ground': every pool, like the ground. What one sees of them is their top, and that lies open to the lamp.
  * This depends on where things stand, never on the camera or on who walks where: nothing pops. A moving light (headlights: the pools scene.lights hooks draw) fades in over NL.ramp tiles as it
  * comes out from behind a thing. takes() is the rule.
  * How: in a thing's silhouette, where a pool it does not take reaches it, the mask is punched out and filled with the thing's own light: ambient + the pools it does take, added in the usual
@@ -321,9 +323,9 @@ let uN = 0, uX0 = 0, uY0 = 0, uX1 = 0, uY1 = 0;
 /* how much of pool j (of LB) a thing with box B takes on its faces: 0 none .. 1 like the ground. ob: the placed object, or null */
 function takes(B, j, ob) {
   if (ob !== null && (LO[j] === ob || ob._no === true)) return 1;
-  const o = j * 3, lx = LW[o], ly = LW[o + 1];
-  if (B[2] > LW[o + 2] + NL.over) return 0;
-  if (B[5] - B[2] < NL.low) return 1;
+  const o = j * 3, lx = LW[o], ly = LW[o + 1], lz = LW[o + 2];
+  if (B[2] > lz + NL.over) return 0;
+  if (B[5] - B[2] < NL.low || B[5] - lz < NL.low) return 1;
   if (j < nLBw) return lx >= B[3] || ly >= B[4] || (lx > B[0] && ly > B[1]) ? 1 : 0;
   /* a moving light: by its distance from the ground behind the thing (the two strips x < x0, y < y1 and x < x1, y < y0), so that it comes up evenly as the car drives out from behind */
   const ax = lx - B[0], ay = ly - B[4], bx = lx - B[3], by = ly - B[1], d1 = ax <= 0 ? (ay <= 0 ? 0 : ay) : ay <= 0 ? ax : Math.sqrt(ax * ax + ay * ay), d2 = bx <= 0 ? (by <= 0 ? 0 : by) : by <= 0 ? bx : Math.sqrt(bx * bx + by * by), d = d1 < d2 ? d1 : d2;
@@ -331,12 +333,12 @@ function takes(B, j, ob) {
 }
 /* does the box a..d (mask px) reach into a placed object's outline (hexOf)? */
 function hexBox(hx, a, b, c, d) { const t0 = b + camY, t1 = d + camY, ax = hx[6]; let lo = a + camX - ax, hi = c + camX - ax, v; if ((v = hx[0] - ax) > lo) lo = v; if ((v = hx[1] - ax) < hi) hi = v; if ((v = 2 * (t0 - hx[3])) > lo) lo = v; if ((v = 2 * (hx[4] - t1)) > lo) lo = v; if ((v = 2 * (hx[2] - t0)) < hi) hi = v; if ((v = 2 * (t1 - hx[5])) < hi) hi = v; return lo < hi; }
-/* the pools from..to (of LB) that reach the thing's own pixels x0..y1 (mask px; hx: its outline or null) and that it does not take in full: how many; uX0..uY1 = the box around where they reach it */
-function hidden(B, ob, hx, x0, y0, x1, y1, from, to) {
+/* the pools from..to (of LB) that reach the thing's own pixels x0..y1 (mask px; hx: its outline or null) and that it does not take in full (all: every pool that reaches it): how many; uX0..uY1 = the box around where they reach it */
+function hidden(B, ob, hx, x0, y0, x1, y1, from, to, all) {
   uN = 0; if (to <= from || x0 >= lX1 + 1 || x1 <= lX0 || y0 >= lY1 + 1 || y1 <= lY0) return 0;
   for (let j = from, o = from * 7; j < to; j++, o += 7) {
     let a = LB[o] - LB[o + 2], b = LB[o + 1] - LB[o + 3], c = LB[o] + LB[o + 2] + 1, d = LB[o + 1] + LB[o + 3] + 1; if (x0 >= c || x1 <= a || y0 >= d || y1 <= b) continue;
-    if (takes(B, j, ob) >= 1) continue;
+    if (!all && takes(B, j, ob) >= 1) continue;
     if (a < x0) a = x0; if (b < y0) b = y0; if (c > x1) c = x1; if (d > y1) d = y1; if (hx !== null && !hexBox(hx, a, b, c, d)) continue;
     if (!uN++) { uX0 = a; uY0 = b; uX1 = c; uY1 = d; } else { if (a < uX0) uX0 = a; if (b < uY0) uY0 = b; if (c > uX1) uX1 = c; if (d > uY1) uY1 = d; }
   }
@@ -709,17 +711,17 @@ export class Renderer {
   }
   /* before the mask is drawn, for the frame's things that keep the pattern: the ones left to the frame (ob._pd) get their own light ready (_occOwn). Left to the frame are: the members of a ring
    * (sortItems notes them); a thing that is see-through (from then until the tiles are next thrown away: ob._pd = 2; it is in the tiles as if solid, so its tiles are painted again without it); and a thing whose
-   * picture keeps changing (not the one the tiles saw for the fourth time; before that its tiles are painted again). */
+   * picture keeps changing (not the one the tiles saw, three times with less than 600 frames between them: an animation; a change now and then only has its tiles painted again). */
+  _occStale(K, ob) { const sb = ob.sb, T = NL.tile; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }   // the tiles a thing is in have to be painted again
   _occPrep(world, S, K, amb, al) {
-    const T = NL.tile;
     for (let i = 0; i < S.length; i++) {
       const it = S[i], ob = it.ob; if (ob === null) continue; const sp = it.spr; if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) continue;
       if (!ob._pd) {
         if (ob._a !== undefined) { ob._pd = 2; (this._fpd || (this._fpd = [])).push(ob); }
-        else { if (K === null || ob._pg !== K.gen || ob._ps === sp) continue; ob._ps = sp; ob._pc = (ob._pc | 0) + 1; if (ob._pc > 3) ob._pd = true; }
-        if (K !== null) { const sb = ob.sb; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }
+        else { if (K === null || ob._pg !== K.gen || ob._ps === sp) continue; ob._ps = sp; const fr = this.frameNo; ob._pc = fr - (ob._pf | 0) < 600 ? (ob._pc | 0) + 1 : 1; ob._pf = fr; if (ob._pc > 2) ob._pd = true; }
+        if (K !== null) this._occStale(K, ob);
         if (!ob._pd) continue;
-      } else if (K !== null && ob._pg === K.gen) { ob._pg = 0; const sb = ob.sb; for (let ty = Math.floor(sb[1] / T); ty * T < sb[3]; ty++) for (let tx = Math.floor(sb[0] / T); tx * T < sb[2]; tx++) { const t = K.tiles.get(tx * 65536 + ty); if (t) t.stale = true; } }   // (a member of a ring found since its tiles were painted: they are painted again without it)
+      } else if (K !== null && ob._pg === K.gen) { ob._pg = 0; this._occStale(K, ob); }   // (a member of a ring found since its tiles were painted: they are painted again without it)
       if (K !== null) this._occOwn(world, it, K, amb, al);
     }
   }
@@ -731,12 +733,11 @@ export class Renderer {
     if (!pl) { pl = ob._pl = { gen: 0, sp: null, c: null, cx: null, x: 0, y: 0, t: 0, a0: 0, b0: 0, a1: 0, b1: 0 }; (this._pls || (this._pls = [])).push(ob); }
     pl.gen = K.gen; pl.sp = sp; pl.t = fr;
     const q = sp.bx, qx = q ? q[0] : 0, qy = q ? q[1] : 0, X0 = sp.x + it.ax + qx, Y0 = sp.y + it.ay + qy, w = q ? q[2] - qx : sp.w, h = q ? q[3] - qy : sp.h, hx = ob.vbl ? ob._hx || hexOf(ob) : null; this._occLoad(world, null, X0, Y0, w, h, al, true); camX = X0; camY = Y0;
-    let n = 0, a0 = 0, b0 = 0, a1 = 0, b1 = 0;   // the box around the pools that reach it
-    for (let j = 0, o = 0; j < nLB; j++, o += 7) { let a = LB[o] - LB[o + 2], b = LB[o + 1] - LB[o + 3], c = a + 2 * LB[o + 2] + 1, d = b + 2 * LB[o + 3] + 1; if (a < 0) a = 0; if (b < 0) b = 0; if (c > w) c = w; if (d > h) d = h; if (c <= a || d <= b || (hx !== null && !hexBox(hx, a, b, c, d))) continue; if (!n++) { a0 = a; b0 = b; a1 = c; b1 = d; } else { if (a < a0) a0 = a; if (b < b0) b0 = b; if (c > a1) a1 = c; if (d > b1) b1 = d; } }
-    if (!n) { pl.c = pl.cx = null; nLB = nLBw = 0; return; }
+    if (!hidden(ob.B, ob, hx, 0, 0, w, h, 0, nLB, true)) { pl.c = pl.cx = null; nLB = nLBw = 0; return; }   // (uX0..uY1: the box around the pools that reach it)
+    pl.a0 = uX0; pl.b0 = uY0; pl.a1 = uX1; pl.b1 = uY1;
     if (pl.c === null || pl.c.width !== w || pl.c.height !== h) { pl.c = mk(w, h); pl.cx = pl.c.getContext('2d'); } const x = pl.cx;
     ownLight(x, pl.c, 0, 0, w, h, ob.B, ob, amb, true); x.globalCompositeOperation = 'destination-in'; x.globalAlpha = 1; x.drawImage(sp.c, qx, qy, w, h, 0, 0, w, h);
-    pl.x = X0; pl.y = Y0; pl.a0 = a0; pl.b0 = b0; pl.a1 = a1; pl.b1 = b1; nLB = nLBw = 0;
+    pl.x = X0; pl.y = Y0; nLB = nLBw = 0;
   }
   /**
    * night light: for every thing that is lit as a whole, put its shape into the mask m in its flat colour, in draw order; where a thing that
@@ -777,17 +778,17 @@ export class Renderer {
             if (x1 > x0 && y1 > y0) {
               if (c !== null) { r0 = pl.x - cam.x + pl.a0; r1 = pl.y - cam.y + pl.b0; r2 = r0 + pl.a1 - pl.a0; r3 = r1 + pl.b1 - pl.b0; if (r0 < x0) r0 = x0; if (r1 < y0) r1 = y0; if (r2 > x1) r2 = x1; if (r3 > y1) r3 = y1; }
               if (nER) { eSkip = true; const hit = hitBox(ER, nER, x0, y0, x1, y1, hx); eSkip = false; if (hit) { if (r2 <= r0 || r3 <= r1) { r0 = hX0; r1 = hY0; r2 = hX1; r3 = hY1; } else { if (hX0 < r0) r0 = hX0; if (hY0 < r1) r1 = hY0; if (hX1 > r2) r2 = hX1; if (hY1 > r3) r3 = hY1; } } }
-              if (r2 > r0 && r3 > r1) { if (c !== null) pushOp(2, c, r0 - (pl.x - cam.x), r1 - (pl.y - cam.y), r2 - r0, r3 - r1, r0, r1, a, null, null); else pushOp(0, sp, r0 - dx, r1 - dy, r2 - r0, r3 - r1, r0, r1, a, amb, null);   /* (no pool reaches it: its own light is the ambient colour) */ addE(r0, r1, r2, r3); EK[nER - 1] = 1; nlOcc++; }
+              if (r2 > r0 && r3 > r1) { if (c !== null) { if (a < 1) pushOp(4, sp, r0 - dx, r1 - dy, r2 - r0, r3 - r1, r0, r1, a, c, null); else pushOp(2, c, r0 - (pl.x - cam.x), r1 - (pl.y - cam.y), r2 - r0, r3 - r1, r0, r1, a, null, null); } else pushOp(0, sp, r0 - dx, r1 - dy, r2 - r0, r3 - r1, r0, r1, a, amb, null);   /* (no pool reaches it: its own light is the ambient colour) */ addE(r0, r1, r2, r3, 1); nlOcc++; }
               if (!(a < 1)) for (let j = nLBw, o = j * 7; j < nLB; j++, o += 7) { let p = LB[o] - LB[o + 2], q = LB[o + 1] - LB[o + 3], r = p + 2 * LB[o + 2] + 1, t = q + 2 * LB[o + 3] + 1; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; if (r <= p || t <= q || (hx !== null && !hexBox(hx, p, q, r, t))) continue;
                 { const f = takes(it.B, j, ob), ins = p >= r0 && q >= r1 && r <= r2 && t <= r3, out = r2 <= r0 || r3 <= r1 || p >= r2 || r <= r0 || q >= r3 || t <= r1; if ((f <= 0 && ins) || (f >= 1 && out)) continue; }   // (the copy has taken it off there already / it is still on there, as it should be)
-                pushOp(3, sp, p - dx, q - dy, r - p, t - q, p, q, a, null, it); addE(p, q, r, t); }
+                pushOp(3, sp, p - dx, q - dy, r - p, t - q, p, q, a, null, it); addE(p, q, r, t, 1); }
             }
             done = true;
           } else if (from < nLB && x1 > x0 && y1 > y0 && hidden(it.B, ob, hx, x0, y0, x1, y1, from, nLB)) {
             let a0 = uX0, b0 = uY0, a1 = uX1, b1 = uY1;
             if (a !== undefined && a < 1) { if (nER && hitBox(ER, nER, x0, y0, x1, y1, hx)) { if (hX0 < a0) a0 = hX0; if (hY0 < b0) b0 = hY0; if (hX1 > a1) a1 = hX1; if (hY1 > b1) b1 = hY1; } }
             else cutDraw(sp, 0, sp.h, dx, dy, a, hx, it);
-            pushOp(3, sp, a0 - dx, b0 - dy, a1 - a0, b1 - b0, a0, b0, a, null, it); addE(a0, b0, a1, b1); nlOcc++; done = true;
+            pushOp(3, sp, a0 - dx, b0 - dy, a1 - a0, b1 - b0, a0, b0, a, null, it); addE(a0, b0, a1, b1, 1); nlOcc++; done = true;
           }
         }
         if (!done) cutDraw(sp, 0, sp.h, dx, dy, a, hx, pit);
@@ -811,7 +812,7 @@ export class Renderer {
     for (let i = 0, o = 0; i < nOP; i++, o += 8) {
       const src = OS[i], it = OX[i], t = ON[o], sx = ON[o + 1], sy = ON[o + 2], sw = ON[o + 3], sh = ON[o + 4], dx = ON[o + 5], dy = ON[o + 6], a = ON[o + 7]; OS[i] = null; OX[i] = null;
       if (t === 2) { if (op !== 0) { m.globalCompositeOperation = 'source-over'; op = 0; } if (a >= 0) m.globalAlpha = a; m.drawImage(src, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; continue; }   // a flat-colour copy: just drawn
-      if (t === 0) { m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; m.globalCompositeOperation = 'destination-over'; op = 2; m.fillStyle = OC[i]; m.fillRect(dx, dy, sw, sh); continue; }
+      if (t === 0 || t === 4) { m.globalCompositeOperation = 'destination-out'; if (a >= 0) m.globalAlpha = a; m.drawImage(src.c, sx, sy, sw, sh, dx, dy, sw, sh); if (a >= 0) m.globalAlpha = 1; m.globalCompositeOperation = 'destination-over'; op = 2; if (t === 0) { m.fillStyle = OC[i]; m.fillRect(dx, dy, sw, sh); } else { const q = src.bx; m.drawImage(OC[i], sx - (q ? q[0] : 0), sy - (q ? q[1] : 0), sw, sh, dx, dy, sw, sh); OC[i] = null; }   /* (4: the hole is filled from the thing's kept own-light copy) */ continue; }
       const x0 = dx < 0 ? 0 : dx, y0 = dy < 0 ? 0 : dy, x1 = dx + sw > W ? W : dx + sw, y1 = dy + sh > H ? H : dy + sh; if (x1 <= x0 || y1 <= y0) continue; op = 2;
       let tl = t === 1 && fromTiles;
       if (tl && nHP) for (let j = 0, q = 0; j < nHP; j++, q += 3) { const im = HP[j], rx = im._rx, ry = im._ry, cx = HN[q] + rx, cy = HN[q + 1] + ry; if (x0 >= cx + rx + 1 || x1 <= cx - rx || y0 >= cy + ry + 1 || y1 <= cy - ry) continue; tl = false; break; }
