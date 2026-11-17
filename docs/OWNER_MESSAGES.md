@@ -902,3 +902,6 @@ Also, street lights pool of light are viable through buildings. They should occl
 The plane is so hitchy cna we smooth it out. Im game ans record  that shot okce fixed. Also we need a jet sound and an airplene tire screech sound very brief when it touches down. Then the familiar ding dong of seat belt sound okce we go interior on thr plane. Also the charcters flicker on their seats in the plane.
 
 Order: single fable agent only: Please finish the lighting. then fix hitchy plane. Then add sound.  Then rehoot that shot from trailer and re distro trailer . No need for plane sound in trailer.
+
+## 221 (2026-11-17)
+How many lines of code are at
