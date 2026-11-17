@@ -989,3 +989,10 @@ Ok lets do it per your plan. Prepare the project for a new account
 ## 248 (2026-11-17)
 Ok but save the lighting work as is separately. If this doesnt go well ill come back at the reset snd it'll pickup where it left off
 Can you put in this chat log until before it started working on the lighting so it has context
+
+## 249 (2026-11-17)
+Should a landing plane be heard downtown? No
+
+Should the title screen also drop the city recordings, like the character creator now does? No keep them. 
+
+I dont need Fable to check the woek. Its ok. With that in mind write me a prompt. No team keas just the one Fable workers with an opus to support.

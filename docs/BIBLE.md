@@ -346,3 +346,9 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - (owner msg 230, 2026-11-17) The character creator (and the home picker before the intro) has its own song: fun, upbeat, in the style of the classic tracks; no city ambience recordings under it. After 'Move in' the soundtrack carries on exactly as before.
 - (owner msg 238, 2026-11-17) The title screen opens with one START button; its tap unlocks audio and reveals Continue / New Game / Settings.
 
+
+
+## Direction update 44 (owner msg 249, 2026-11-17): plane sound range, title sound, team
+- A landing plane is NOT heard downtown (Stage 118: the jet fades to nothing by 200 tiles; src/sim/_audio_plane.js hear()).
+- The title screen KEEPS its city recordings (only the character creator / home picker is silent of them).
+- From the new account: one Fable session doing the work itself + at most one Opus helper; no Fable check of Opus work required.

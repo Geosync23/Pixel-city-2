@@ -11,7 +11,9 @@
 import { A, gain, filt, tone, noise, loopNoise } from './_audio_lib.js';
 
 /* distance model: near 1 at the runway side, -20 dB at 70 tiles (the Arrivals curb), a faint low rumble downtown (~250 tiles), nothing past 300 */
-export const hear = d => 1 / (1 + (d / 22) * (d / 22)) + .012 * Math.max(0, 1 - d / 300);
+/* owner msg 249: a landing is NOT heard downtown (~250 tiles away): the far rumble is gone and the level falls to nothing by 200 tiles
+   (Arrivals curb, ~75 tiles: 0.068, was 0.080) */
+export const hear = d => d >= 200 ? 0 : 1 / (1 + (d / 22) * (d / 22)) * (1 - (d / 200) * (d / 200));
 /* far away a jet is a low rumble: the low-pass falls with distance */
 const lpOf = d => 350 + 9000 / (1 + Math.pow(d / 30, 1.5));
 

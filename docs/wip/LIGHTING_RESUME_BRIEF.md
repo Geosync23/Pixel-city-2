@@ -1,6 +1,6 @@
 # Brief: resume the NIGHT-LIGHT POOL OCCLUSION fix (owner msgs 219, 245-247)
 
-Owner's plan (msg 247: "lets do it per your plan"). One Fable worker. The lead hands this file to it, adding only the session's branch name.
+Owner's plan (msg 247: "lets do it per your plan"). Since owner msg 249 the Fable session does this ITSELF (no lead/worker split); "report to the lead" below = write it in the report and tell the owner briefly.
 
 ## The problem (owner msg 219)
 At night, the pools of light from street lamps, windows and headlights show THROUGH buildings: a pool on the far side of a building

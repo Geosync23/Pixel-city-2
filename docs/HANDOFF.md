@@ -6,26 +6,25 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 **READY TO MOVE. Nothing is running. The owner approved the move (msg 247). Start on the new account with the MOVING TO ANOTHER ACCOUNT steps at the bottom of this file.**
 
 **State of the game**
-- Last published: STAGE 117 (artifact version 1794922663-6c3f on the OLD account's link https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG; the new account publishes its own, see MOVING step 3). docs/HISTORY.md has one line per stage with what was checked.
-- The repo's src/ IS the live game: a plain `node tools/build.mjs` gives Stage 117 (checked: zero page errors in a smoke run, 2026-11-17). No pins, no excludes needed any more.
+- Last published: STAGE 118 (artifact version 1794939787-ff32: a landing is no longer heard downtown, owner msg 249). Before it STAGE 117 (artifact version 1794922663-6c3f on the OLD account's link https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG; the new account publishes its own, see MOVING step 3). docs/HISTORY.md has one line per stage with what was checked.
+- The repo's src/ IS the live game: a plain `node tools/build.mjs` gives the live game (checked: zero page errors in a smoke run, 2026-11-17). No pins, no excludes needed any more.
   (Stages 98-117 were built with tools/clean_build.sh + PINS of four engine files at 49f9c4e; those files are now back at 49f9c4e in src/, the unfinished lighting work is parked as a patch, below.)
-- Stages 107-117 (smooth plane + plane sounds, intro volumes, creator song + silence, Start button, title 7 s, City Hall art, phone-hint placement, cart vendors) were made by Opus (workers or the lead) and checked by the lead on OPUS (the Fable limit ran out): treat them as NOT Fable-checked.
-  FIRST JOB for a Fable model on the new account (rule 3 'Fable checks Opus'): review `git diff 49f9c4e..HEAD -- src/ tools/` (49f9c4e = Stage 106; the four engine files are unchanged in that range), look at the pictures in docs/shots/stage11*.png, play the intro + creator + title screen, and say what was checked.
+- Owner msg 249: NO Fable review of Stages 107-118 is needed (the owner dropped the 'Fable checks Opus' rule).
 - Owner-facing pages (old account links, re-publish from their files if he still wants them): trailer docs/trailer/trailers.html, questionnaire docs/owner/questions.html, plane sounds docs/audio/plane_sounds.html, creator song docs/audio (page built by tools), classics docs/audio/classics.html.
 
-**NEXT, in order (owner msgs 220, 228, 245-247; one Fable worker at a time; he may add one Opus worker)**
-1. (Fable) LIGHTING: night light pools show through buildings. Owner chose to RESUME it on the new account with the lead's plan: brief = docs/wip/LIGHTING_RESUME_BRIEF.md
+**NEXT, in order (owner msgs 220, 228, 245-249)**
+1. LIGHTING: night light pools show through buildings. Owner chose to RESUME it on the new account with the lead's plan: brief = docs/wip/LIGHTING_RESUME_BRIEF.md
    (assess first and report before changing code; small checkpointed steps; report after each; stop if expensive). Unfinished work of the first worker: docs/wip/lighting_pool_occlusion.patch (applies cleanly), tools/poolocc_check.mjs; EVERYTHING as it left it (files, full log, pictures, final check results: all passed, only its report missing; chat log up to its start) in docs/wip/lighting_as_left/ (README = how to resume). Owner msg 248: if the new account's attempt goes badly he will come back to THIS session after the Fable reset (2026-11-21 08:00 UTC) and resume the same worker aa491b05f2d98ad25 (README route A).
-2. (Fable) passengers FLICKER on their seats in the plane cabin (owner msg 220).
-3. (Fable) re-shoot the trailer's PLANE SHOT on the current game (smooth plane since Stage 107), zoomed as in the current cut, RED 'Maple Air' livery (owner msg 228), same slot and length; resend the trailer (web + download copy). No plane sound in the trailer. Raw frames are NOT in the repo: tools/trailer/ re-records; docs/reports/trailers.md has the shot list.
+2. Passengers FLICKER on their seats in the plane cabin (owner msg 220).
+3. Re-shoot the trailer's PLANE SHOT on the current game (smooth plane since Stage 107), zoomed as in the current cut, RED 'Maple Air' livery (owner msg 228), same slot and length; resend the trailer (web + download copy). No plane sound in the trailer. Raw frames are NOT in the repo: tools/trailer/ re-records; docs/reports/trailers.md has the shot list.
 4. Small: move the two trees under the rail viaduct ((54.5,121.5) poplar, (270.5,121.5) birch) + a rule so nothing tall stands in the train's path (docs/reports/occlusion.md); a long traffic soak (FLOW_BUS .95 since Stage 100); a touch test pass over the newest work; re-run the five test tools updated for the Start button (tools/minigames_b_check.mjs, pad_check.mjs, pad_touch_check.mjs, restrooms_check.mjs, wishnudge_check.mjs).
 5. LATER, only on the owner's word: more activities (trailer says 'over 100', game has 92) and jobs ('30 jobs', game has 25).
 - PARKED until the owner says go: J4 (17 extra jobs), iPhone 13 mini work, Trailer A.
-- Open owner questions: should a landing plane be audible downtown (now a faint rumble)? Should the title screen also drop the city recordings (the creator no longer plays them)?
+- Answered (msg 249): no landing sound downtown (done, Stage 118); the title screen keeps its city recordings.
 
-**Team rule**: 1 Fable worker + 1 Opus worker + the lead (owner msgs 191, 203, 224). A Fable model checks all Opus work before it is published and says what the check covered.
+**Team rule (owner msg 249)**: the new account's session runs on Fable and does the work itself, with at most ONE Opus helper sub-agent. No lead/worker split, no Fable check of Opus work. The opening prompt is docs/NEW_ACCOUNT_PROMPT.md.
 Brief every worker to write progress notes into its report AS IT GOES and to report back at set points (lesson of the lighting worker, owner msg 245).
-**Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 248), digests in docs/OWNER_NOTES.md (last = 196), design rulings in docs/BIBLE.md 'Direction update' sections (latest 43).
+**Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 249), digests in docs/OWNER_NOTES.md (last = 197), design rulings in docs/BIBLE.md 'Direction update' sections (latest 44).
 
 ## Earlier 'Now' notes of this session (history, newest first; superseded by the section above)
 ### Superseded 'Now' (before the move)
