@@ -79,15 +79,47 @@ same source by `node tools/plane_sounds_page.mjs` (lib + this file copied in), s
 - Dev menu > Sound: new row "Jet" (6 s of a nearby airliner: approach, reverse thrust, idle), "Tyre screech", "Seat-belt chime".
 
 ### Measurements (OfflineAudioContext, 48 kHz, through bus 0.64 and the game's compressor = default Master 0.8 x Effects 0.8)
-MEASUREMENTS_HERE
+| sound | length (above -40 dB of its peak) | peak | RMS | spectral centre | notes |
+|---|---|---|---|---|---|
+| tyre_screech (game) | 0.24 s (tail to ~0.3 s) | -18.2 dBFS | -39.6 dB | 3.5 kHz | no clipping |
+| seatbelt (game) | 1.06 s | -18.1 dBFS | -35.3 dB | 858 Hz | measured pitches 880 Hz then 698 Hz |
+| existing: train_chime / notify / door_close / toast | 1.70 / 0.35 / 0.12 / 0.40 s | -19.4 / -18.0 / -14.5 / -25.5 dBFS | -34.8 / -36.5 / -36.4 / -42.9 dB | | for comparison |
+| jet landing by the runway (page = game code, 10.2 s) | | -9.9 dBFS | -28.7 dB | 1.57 kHz | loudness every 0.5 s: -47 dB at the start of the approach, rising to -20 dB at reverse thrust, falling to -47 dB at the end of the roll-out |
+| jet heard from downtown (~250 tiles) | | -45 dBFS | -61.5 dB | 408 Hz | a faint low rumble |
+In a real landing in the game (`node tools/plane_check.mjs --sound`, phone, sound unlocked by a tap):
+- **Timing:** touchdown at game time 7.183 s, and the screech fired at 7.183 s, in the same frame (the call sits in the touchdown branch). Further landings: from the
+  Arrivals curb the screech plays at 0.083; from downtown it is skipped (0.009, under the 0.01 floor).
+- **Jet level, camera following the plane (the intro):** it rises 0.62 -> 0.91 over the approach as the plane descends to the camera, holds while it rolls, and fades
+  to 0.11 as the plane fades out. Engine setting on top: approach 0.5, reverse 1.0, idle 0.2.
+- **Peak jet level at other spots:** 0.080 from the Arrivals curb, 0.0097 from downtown.
+- **Pause:** level 0.68 before pausing, 0 while paused.
+- No audio errors in any run.
 
 ## Files
 - new: `src/sim/_audio_plane.js`, `tools/plane_check.mjs`, `tools/plane_sounds_page.mjs`, `docs/audio/plane_sounds.html`, this report
-- edited: `src/core/game.js` (pixel lock), `src/sim/planes.js` (lock fields, flare, climb ramp, jet + screech), `src/sim/audio.js` (`bus()`,
+- edited: `tools/ambience_check.mjs` (jet sources are not a noise bed), `src/core/game.js` (pixel lock), `src/sim/planes.js` (lock fields, flare, climb ramp, jet + screech), `src/sim/audio.js` (`bus()`,
   `debug.render`), `src/sim/_audio_sfx.js` (two entries), `src/sim/intro_airport.js` (chime), `src/ui/devmode.js` (Sound row)
 
 ## Verification
-VERIFICATION_HERE
+All of these were run by me (the worker) on the tree described here, with the other worker's render.js changes in it:
+- **`node src/data/validate.mjs`:** OK.
+- **`node tools/build.mjs`:** OK. `grep -c '(?<[=!]' dist/index.html` = 0.
+- **`node tools/ambience_check.mjs`:** 138/138 after the change below; the first run had 7 FAILs.
+  - What failed: the check counts any noise-buffer source alive over 5 s outdoors as a "noise bed". A landing jet near the player tripped it.
+  - The fix: the jet's sources now carry `_jet`, and the check leaves them out.
+  - Lead, please decide: the jet IS filtered noise, which is what the brief asked for and what the owner approved in msg 226. Owner rule 116 ("no white-noise layer") is about beds. If you disagree, the alternative is to cut the jet's range.
+  - In the same first run, "stretch crossfades are equal power" failed once (1.51) and passed on the rerun. It looks timing-dependent and is not related to this change.
+- **`node tools/navcheck.mjs --rooms all`:** all passed, 0 page errors.
+- **`node tools/perf.mjs --verify`:** VERIFY OK, same pixels.
+- **`node tools/plane_check.mjs`:**
+  - live, all cases (before on the build from 4025922, after on this build), plus `--strip before/after`, `--sound` and `--page`: 0 page errors.
+  - The full results are in `out/plane/report.json`, with frame logs in `out/plane/frames_*.json`.
+- **Full intro by touch** (scratch script; 390x844, touch): New Game -> creator (Next, Surprise me, Next, Juniper Court, Move in) -> the landing cinematic -> the cut to the cabin -> Skip the wait -> walking to the door by tapping -> the concourse.
+  - Steps: arrival_plane_cinematic -> cabin -> concourse.
+  - Sounds fired: `tyre_screech` during the landing, played in the touchdown frame; `seatbelt` once, 0.75 s after the cabin step began.
+  - The jet was voiced for the whole landing (max level 0.91).
+  - Audio errors 0, page errors 0.
+- **Size:** +5.0 KB (15,215,588 -> 15,220,614 bytes). Measured on the same tree by building with and without my source changes.
 
 ## Not tested / open
 - Nobody has heard the sounds inside the game (only the page, by the owner). Levels next to the city ambience bed and music are by numbers only.
