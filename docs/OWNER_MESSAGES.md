@@ -947,3 +947,6 @@ Actually sorry, just let  1 opus  qoekwe silence and write the song
 
 ## 235 (2026-11-17)
 The lighting has taken a very long time are we close
+
+## 236 (2026-11-17)
+Ok lighting and let opus finish the current task then stop. Thanks goodnight
