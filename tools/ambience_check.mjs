@@ -28,9 +28,9 @@ const INIT = () => {
   for (const K of ['AudioContext', 'webkitAudioContext']) { const C = window[K]; if (C) window[K] = new Proxy(C, { construct(t, a) { M.ctxMade++; return new t(...a); } }); }
   const st = AudioBufferSourceNode.prototype.start;
   AudioBufferSourceNode.prototype.start = function (...a) { const r = { node: this, t: performance.now(), dur: this.buffer ? this.buffer.duration : 0 }; M.srcs.add(r); this.addEventListener('ended', () => M.srcs.delete(r)); return st.apply(this, a); };
-  M.live = () => { const now = performance.now(); return [...M.srcs].map(r => ({ dur: +r.dur.toFixed(2), age: +((now - r.t) / 1000).toFixed(1), loop: r.node.loop })); };
+  M.live = () => { const now = performance.now(); return [...M.srcs].map(r => ({ dur: +r.dur.toFixed(2), age: +((now - r.t) / 1000).toFixed(1), loop: r.node.loop, jet: !!r.node._jet })); };
   /* the game's noise buffers are exactly 3 s long (src/sim/_audio_lib.js makeBuffers); one-shot effects use them for a moment, a noise BED would hold one for long */
-  M.noise = () => M.live().filter(s => Math.abs(s.dur - 3) < .05 && s.age > 5);
+  M.noise = () => M.live().filter(s => Math.abs(s.dur - 3) < .05 && s.age > 5 && !s.jet);   /* a landing plane's jet (sim/planes.js, owner msgs 220 + 226) is an event sound, not a bed: its sources carry _jet */
   const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = cb => raf(t => { if (t !== M.cur) { if (M.rec && M.cur >= 0) M.frames.push([Math.round(performance.now()), +(t - M.cur).toFixed(1)]); M.cur = t; } cb(t); });
 };
 const HELP = () => {

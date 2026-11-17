@@ -36,6 +36,7 @@ export class Jet {
     this.aG = gain(this.lp, 0); this.src.push(loopNoise(filt(this.aG, 'highpass', 2800, .5), 'pink', 1.2));
     this.wG = gain(this.lp, 0); this.wF = filt(this.wG, 'bandpass', 2400, 7); this.w = [];
     for (const k of [1, 1.006, .5]) { const w = c.createOscillator(); w.type = k === .5 ? 'triangle' : 'sawtooth'; w.frequency.value = 2400 * k; w.connect(k === .5 ? this.wG : this.wF); w.start(); w.k = k; this.w.push(w); this.src.push(w); }
+    for (const s of this.src) s._jet = 1;   /* tools/ambience_check.mjs tells these event sources from a noise bed */
   }
   set(level, thrust, dist, pan, t) {
     if (this.dead) return; const T = (p, v, k = .12) => p.setTargetAtTime(v, t, k), o = this.o, th = Math.max(0, Math.min(1, thrust));

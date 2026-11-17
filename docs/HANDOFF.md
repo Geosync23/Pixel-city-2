@@ -1,7 +1,28 @@
 # HANDOFF — the always-current note (read FIRST after any compaction or restart; rewrite the "Now" section at every hand-off)
 Rule: this file is updated every time a worker finishes, a build is published, or the owner gives direction. If memory and this file disagree, this file and the code win.
 
-## Now (updated 2026-11-16, after Stage 95) — FABLE LEAD SESSION; 2 FABLE WORKERS + 1 OPUS QA RUNNING
+## Now (rewritten clean 2026-11-17 for owner msg 227; update THIS section at every hand-off, newest facts only)
+**Where things stand**
+- GAME: last published STAGE 106 (artifact version 1794881657-ce17) at https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG. The Stage 106 commit is 49f9c4e: at that commit every file under src/ is finished, published work (the clean base for pins). Clean build 14,849 KB of a 16,000 KB limit (audio split recipe: BACKLOG 'SIZE HEADROOM').
+- The whole agreed docket is done (clothing stores, Central Station platforms, luggage, wish-list reminder, real bathrooms everywhere, seating follow-ups, draw-order fix, small bundles): docs/HISTORY.md has one line per stage with what was checked; docs/STATUS.md lists what exists; docs/reports/<system>.md hold the details and APIs.
+- TRAILER: Trailer 2 is the product (docs/trailer/trailer_b.mp4 web copy, docs/trailer/Maple_Bay_Trailer.mp4 download copy, 77.3 s; page https://claude.ai/artifact/3ugMHKYMhkK8mjqwCNHhLd). Full history, shot list, counts and the owner's wording decisions: docs/reports/trailers.md. Capture + edit scripts: tools/trailer/. RAW FRAMES LIVE ONLY IN THE SCRATCHPAD (not in the repo): on another account / machine every shot must be re-recorded (about 25-40 min of scripted capture) before the trailer can be re-cut.
+- Other owner-facing pages (all re-buildable from the repo): questionnaire docs/owner/questions.html (https://claude.ai/artifact/HeFBCe4UZ2dS7enmwCGmW1), plane sounds docs/audio/plane_sounds.html (https://claude.ai/artifact/1ubbJpXr3sbTZhtSaMazDq), classics docs/audio/classics.html, jukebox docs/audio/jukebox.html.
+
+**Running right now (a worker does not survive a session or account change: see step 4 of MOVING below)**
+- FABLE: night-light POOL OCCLUSION (owner msg 219: lamp pools must not show through buildings unless the building is faded near the player). Owns src/engine/render.js (night pass), tools/poolocc_check.mjs, will write docs/reports/pool_occlusion.md. Lead's repro picture: out/shots/s114_sheet.png.
+- OPUS: the ARRIVAL PLANE (owner msgs 220, 224-226; BIBLE 43): smooth the hitchy landing motion (src/sim/planes.js; tools/plane_check.mjs) + three synthesised sounds (src/sim/_audio_plane.js; jet = VARIANT B, tyre screech, seat-belt chime: approved by the owner, may ship on) + docs/reports/plane.md. Must not touch render.js / sprites.js. Needs the FABLE CHECK before publishing (CLAUDE.md rule 3).
+- For any build while they run: pin the other worker's edited files to 49f9c4e and exclude its new files (recipe: docs/LEAD_PLAYBOOK.md + tools/clean_build.sh).
+
+**Queue after these, in the owner's order (msg 220; one Fable agent at a time)**
+1. (Fable) passengers FLICKER on their seats in the plane cabin.
+2. (Fable trailer worker) re-shoot the trailer's plane shot on the fixed game (zoomed in, as now) and resend the trailer; no plane sound in the trailer.
+- Small lead items: move the two trees under the rail viaduct ((54.5,121.5) poplar, (270.5,121.5) birch); a long traffic soak; activities are 92 and jobs 25 while the trailer says 'over 100 activities' and '30 jobs' (owner will ask for more LATER, not now).
+- PARKED until the owner says go: J4 (17 extra jobs), iPhone 13 mini work, Trailer A, a second Fable slot.
+
+**Team rule now**: 1 Fable worker + 1 Opus worker + the lead (owner msgs 191, 203, 224). A Fable model checks all Opus work before it is published and says what the check covered.
+**Owner**: plays on an Android phone in portrait, voice-types, wants brief plain reports, honest about what was and was not tested. Every message of his is in docs/OWNER_MESSAGES.md (verbatim, numbered; last = 227), digests in docs/OWNER_NOTES.md, design rulings in docs/BIBLE.md 'Direction update' sections (latest 43).
+
+## Earlier 'Now' notes of this session (history, newest first; superseded by the section above)
 - QUEUE FOR THE NEXT FREE FABLE SLOT (ORDER PER OWNER MSG 119: sound before jobs): (1) MAILBOXES (owner msg 115, BIBLE update 23), (2) AMBIENCE FROM RECORDINGS (below), (3) NOTHING: J4 (17 more jobs) is ON HOLD per owner msg 120; do not start it until the owner says. Lead's candidate list for it is in docs/BACKLOG.md. Ambience detail: AMBIENCE FROM RECORDINGS ONLY (owner msg 118, BIBLE update 24: decided; the test page's bed mixer in docs/audio/soundtest_page.js is the model; lead keeps collecting recordings into docs/audio/, Commons rate-limits hard).
 - AMBIENCE: owner is testing option D with the listening-test page (source: scratchpad/snd/soundtest.html, rebuilt from page_head.html + page.js + docs/audio/loop_*.mp3; see docs/audio/SOURCES.md). WAIT for the verdict; if yes -> a Fable worker builds it into src/sim/audio (bed loops as assets + positioned sources tied to real cars/people/places).
 - OWNER RULE (msg 146): ALL traffic work incl. the BASELINE MEASUREMENT is Fable work. QA round 14's Part C (traffic measuring) was cancelled; the Fable traffic worker builds tools/traffic_measure.mjs and measures before/after itself.
@@ -130,9 +151,9 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 ## MOVING TO ANOTHER ACCOUNT (owner msg 43: planned for the end of this session)
 The owner will continue this project from a different Claude account. Everything needed is in this repo; the conversation, the artifact link and any running worker do NOT transfer.
 For the NEW lead (first session on the new account):
-1. GitHub must be connected on that account with the Claude GitHub App installed for `Geosync23/Pixel-city-2`; work on branch `claude/pixel-city-life-sim-21h2e3` (or whatever branch that session is assigned — if it differs, start it from this branch's head).
+1. GitHub must be connected on that account with the Claude GitHub App installed for `geosync23/pixel-city-2`; continue from the head of the latest working branch (now `ccr-e622e92c-7t3ejy`; if the new session is assigned another branch, start it from that head).
 2. Read CLAUDE.md, then this file top to bottom, then the docs it lists. `npm install` (esbuild), `node tools/build.mjs`, run one `tools/shot.mjs` smoke test.
-3. Publish `dist/index.html` as a NEW artifact (the old slug 6723cacd-... belongs to the old account): update the slug/URL in CLAUDE.md and docs/LEAD_PLAYBOOK.md, and tell the owner the new link. Players' saves are per-link, so the owner starts a new game.
+3. Publish `dist/index.html` as a NEW artifact (the current link https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG belongs to the current account; so do the trailer / questionnaire / sound pages: republish those from their files in docs/ if the owner still wants them): update the slug/URL in CLAUDE.md and docs/LEAD_PLAYBOOK.md, and tell the owner the new link. Players' saves are per-link, so the owner starts a new game.
 4. Check the "Now" section: if it names a worker as running, that worker is gone — look at the files it owned (listed there), read docs/BACKLOG.md for the item, and either finish the work yourself or brief a new worker with "these files exist; continue".
 5. Keep following the standing orders (verbatim owner messages, HANDOFF updates, one worker at a time, steady pace).
 For the CURRENT lead before the switch: let the running worker finish if possible, do the playbook loop, rewrite "Now", append anything from the conversation not yet in LEAD_JOURNAL.md, commit and push, and tell the owner the final commit id.

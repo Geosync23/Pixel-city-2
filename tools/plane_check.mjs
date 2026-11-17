@@ -143,7 +143,7 @@ if (!arg('--noLive')) for (const vp of VPS) {
 const STRIP = opt('--strip');
 if (STRIP) {
   const vp = VPS[0], { br, pg } = await page(vp);
-  await pg.evaluate(() => startFlight('land', 'follow', 1, 'min'));
+  await pg.evaluate(() => { const u = document.getElementById('ui'); if (u) u.style.visibility = 'hidden'; startFlight('land', 'follow', 1, 'min'); });
   await pg.evaluate(async () => { window.__man.start(); await sleep(150); window.__man.step(); });   // the frame already asked of the browser lands in the hand-driven queue
   // run to 1 s before touchdown
   const pre = await pg.evaluate(() => { const f = window.__f, A = G.sceneCache.get('city').world.airport.approach; let n = 0; while (f.cx - A.touchdown > f.v * 1.0 && n < 3000) { window.__man.step(); n++; } return n; });
@@ -152,8 +152,9 @@ if (STRIP) {
     const s = await pg.evaluate(() => { window.__man.step(); return sampleOf(window.__f); }); S.push(s);
     if (i % 2) continue;
     // the plane's screen box: around its anchor (CSS px), clipped to the viewport
-    const cx = Math.round(s.px), cy = Math.round(s.py), w = 300, h = 170, x = Math.max(0, Math.min(vp.w - w, cx - w / 2)), y = Math.max(0, Math.min(vp.h - h, cy - 120));
-    shots.push({ buf: await pg.screenshot({ clip: { x, y, width: w, height: h } }), x, y });
+    // the camera follows the plane: a band across the middle of the screen (HUD hidden), in CSS px
+    const w = vp.w, h = 240, x = 0, y = Math.round(vp.h / 2 - 150);
+    shots.push({ buf: await pg.screenshot({ clip: { x, y, width: w, height: h }, scale: 'css' }), x, y });
   }
   fs.writeFileSync(path.join(OUT, 'strip_' + STRIP + '.json'), JSON.stringify(S));
   // stitch: decode PNGs in the page (canvas) and lay them out 6 per row

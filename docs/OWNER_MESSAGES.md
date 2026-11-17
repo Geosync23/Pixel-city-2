@@ -920,3 +920,6 @@ Show me the sounds first once made we might want recordings
 
 ## 226 (2026-11-17)
 Sounds re good except use vaiant b for jet.
+
+## 227 (2026-11-17)
+To double check- we are still documenting things in a way that makes it possible to move the project across accounts

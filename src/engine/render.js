@@ -544,7 +544,7 @@ export class Renderer {
     return { tested, bad };
   }
   /** perf counters: this renderer's + the sprite cache's (engine/sprites.js spriteStats) */
-  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlCopy, nlOcc, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length, nlTiles: this._mt ? this._mt.tiles.size : 0, nlGen: this._mt ? this._mt.gen : 0, nlTileBakes: this._mt ? this._mt.bakes : 0 }); }
+  perf() { return Object.assign({}, this.stats, spriteStats(), { nlLit, nlCut, nlCopy, nlOcc, nlSil, nlMade: silMade, nlPx: silPx, nlCount: SILS.length, nlTiles: this._mt ? this._mt.tiles.size : 0, nlTileBakes: this._mt ? this._mt.bakes : 0 }); }
   /** dev switch for A / B pictures: nightLight('old') = the light mask over everything (as before), nightLight('new') = pools on the ground, people and things lit as a whole (default; also the URL flag ?nightlight=old). nightLight('noprops' | 'props'): only what moves is lit as a whole / upright placed objects too (default). Returns the mode. */
   nightLight(mode) { if (mode === 'old' || mode === 'new') NL.mode = mode; else if (mode === 'props' || mode === 'noprops') { NL.props = mode === 'props'; NL.gen++; } return NL.mode; }
   resize(W, H) { this.W = W; this.H = H; this.cv.width = W; this.cv.height = H; this.B.width = W; this.B.height = H; this.M.width = W; this.M.height = H; this.F.width = Math.max(W, NL.tile); this.F.height = Math.max(H, NL.tile); this.ctx.imageSmoothingEnabled = false; }
@@ -671,11 +671,16 @@ export class Renderer {
    * not be worked on (hidden, or their picture is not painted yet: nothing is painted for this). live: without the see-through things (the frame works on those itself); things whose picture keeps
    * changing (ob._pd) are always left to the frame. gen: the tiles' K.gen (ob._pg / _ps: the picture a thing had when the tiles last saw it).
    */
+  /* the world's pools that reach the w x h px at world px (ox, oy): drawn into x (if given; its state is set), noted in LB (if note) */
+  _occLoad(world, x, ox, oy, w, h, al, note) {
+    const LL = world.lights; nLB = 0;
+    for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), X = Math.round((l.x - l.y) * U) - ox - rx, Y = Math.round((l.x + l.y) * U / 2 - l.z * U) - oy - ry; if (X > w || Y > h || X + rx * 2 + 1 < 0 || Y + ry * 2 + 1 < 0) continue; const ps = poolSprite(l.r, l.c || '#ffd9a0'); if (x) x.drawImage(ps, X, Y); if (note) addLight(X + rx, Y + ry, ps, al, l.ob, l.x, l.y, l.z); }
+    nLBw = nLB;
+  }
   _occBake(world, x, ox, oy, w, h, amb, al, rec, live, gen) {
-    const LL = world.lights; nLB = 0; x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.fillStyle = amb; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'lighter'; x.globalAlpha = al;
-    for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), X = Math.round((l.x - l.y) * U) - ox - rx, Y = Math.round((l.x + l.y) * U / 2 - l.z * U) - oy - ry; if (X > w || Y > h || X + rx * 2 + 1 < 0 || Y + ry * 2 + 1 < 0) continue; const ps = poolSprite(l.r, l.c || '#ffd9a0'); x.drawImage(ps, X, Y); if (rec) addLight(X + rx, Y + ry, ps, al, l.ob, l.x, l.y, l.z); }
+    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.fillStyle = amb; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'lighter'; x.globalAlpha = al; this._occLoad(world, x, ox, oy, w, h, al, !!rec);
     if (rec && nLB) {
-      nLBw = nLB; camX = ox; camY = oy;
+      camX = ox; camY = oy;
       const Q = this._Q2 || (this._Q2 = []), L = this._OL || (this._OL = []), wait = this._OW || (this._OW = []); Q.length = 0; wait.length = 0; world.query(ox, oy, ox + w, oy + h, Q); let n = 0;
       for (let i = 0; i < Q.length; i++) {
         const ob = Q[i]; if (ob._pd === true || (live && ob._a !== undefined)) continue; if (ob.hidden) { ob._pg = 0; if (mayHide(ob)) wait.push(ob); continue; }
@@ -737,9 +742,8 @@ export class Renderer {
     if (pw && pw.gen === K.gen && pw.sig === sig && pw.sp === sp && !(pw.c !== null && (pw.w.length || pw.o.length) && this._tileStale(pw))) return;
     if (!pw) pw = ob._pw = { gen: 0, sig: 0, sp: null, c: null, cx: null, x: 0, y: 0, w: [], o: [] };
     pw.gen = K.gen; pw.sig = sig; pw.sp = sp; pw.w.length = 0; pw.o.length = 0;
-    const q = sp.bx, X0 = sp.x + it.ax + (q ? q[0] : 0), Y0 = sp.y + it.ay + (q ? q[1] : 0), w = q ? q[2] - q[0] : sp.w, h = q ? q[3] - q[1] : sp.h, LL = world.lights; nLB = 0;
-    for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2), X = Math.round((l.x - l.y) * U) - X0 - rx, Y = Math.round((l.x + l.y) * U / 2 - l.z * U) - Y0 - ry; if (X > w || Y > h || X + rx * 2 + 1 < 0 || Y + ry * 2 + 1 < 0) continue; addLight(X + rx, Y + ry, poolSprite(l.r, l.c || '#ffd9a0'), al, l.ob, l.x, l.y, l.z); }
-    nLBw = nLB; camX = X0; camY = Y0; const n = nLB ? hidden(ob.B, ob, ob.vbl ? ob._hx || hexOf(ob) : null, 0, 0, w, h, 0, nLB) : 0, a0 = uX0, b0 = uY0, pwW = uX1 - uX0, pwH = uY1 - uY0; nLB = 0; nLBw = 0;
+    const q = sp.bx, X0 = sp.x + it.ax + (q ? q[0] : 0), Y0 = sp.y + it.ay + (q ? q[1] : 0), w = q ? q[2] - q[0] : sp.w, h = q ? q[3] - q[1] : sp.h; this._occLoad(world, null, X0, Y0, w, h, al, true);
+    camX = X0; camY = Y0; const n = nLB ? hidden(ob.B, ob, ob.vbl ? ob._hx || hexOf(ob) : null, 0, 0, w, h, 0, nLB) : 0, a0 = uX0, b0 = uY0, pwW = uX1 - uX0, pwH = uY1 - uY0; nLB = 0; nLBw = 0;
     if (!n) { pw.c = null; pw.cx = null; return; }
     pw.x = X0 + a0; pw.y = Y0 + b0; if (pw.c === null || pw.c.width !== pwW || pw.c.height !== pwH) { pw.c = mk(pwW, pwH); pw.cx = pw.c.getContext('2d'); }
     this._occBake(world, pw.cx, pw.x, pw.y, pwW, pwH, amb, al, pw, true, K.gen);
