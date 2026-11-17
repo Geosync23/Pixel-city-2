@@ -206,3 +206,4 @@
 186. (msg 238) TITLE SCREEN: first a single START button; tapping it unlocks the sound (browsers need a tap) and shows Continue / New Game / Settings. Done by the lead (Opus) in Stage 111.
 187. (msg 239) TITLE SCREEN scenes cycle faster: about 6-7 s each (was 24 s); keep the order. Done (7 s) in Stage 112.
 188. (msg 240) A BROKEN-LOOKING BUILDING in the title's City Hall view: it was in the game everywhere (the City Hall art itself). Fixed by the lead (Opus) in Stage 113.
+189. (msg 241) FOOD CARTS/STANDS had nobody working them: put people at the carts. Done by the lead (Opus) in Stage 114: 19 vendors in uniform, there during each stand's hours.

@@ -28,7 +28,7 @@ Last updated: stage 15 (Wave A: unique interiors, lobbies, homes, bladder, conse
 - jobs: 10 jobs with work loops, auto-work, promotions, gigs.
 - rail: trains on viaduct, cutaway ride scene, Central Station hall, passes.
 - airport interior: plane cabin, concourse, tram, terminal; new opening sequence.
-- stalls + welcome glow (src/sim/stalls.js), addresses (src/sim/addresses.js).
+- stalls + welcome glow + cart/stand VENDORS during opening hours (src/sim/stalls.js, Stage 114), addresses (src/sim/addresses.js).
 - bladder need + bathrooms as own rooms + restrooms everywhere (docs/reports/bladder_bath.md).
 - Botanical Conservatory showpiece (docs/reports/conservatory.md).
 - all 9 player homes unique (docs/reports/unique_homes.md).

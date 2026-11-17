@@ -964,3 +964,6 @@ Great. The title screen shouls cycle scenes faster. Maybe 6 or seconds. The orde
 
 ## 240 (2026-11-17) [with a phone screenshot of the title screen's City Hall view: a large brick building in front of the clock tower looks broken]
 This scene in the intro show a broken building. Is that in the game? Can we fix ti?
+
+## 241 (2026-11-17)
+A lot of of te food stands and food carts have no worker tending to them. Put peiple at the carts.
