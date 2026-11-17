@@ -11,7 +11,7 @@ FINAL CUT (polish pass, footage re-recorded on the Stage 104 build). Count capti
 | # | Time (s) | On the beat | Shot | What it shows | How it is captured |
 |---|---|---|---|---|---|
 | 1 | 00.00-04.72 | bar 1 | d_open | OPENING: a busy downtown street corner, close (zoom 3): shopfronts, traffic lights, cab, bus, people, trees; title card over it | Density pass: the same corner, zoom and pan as before on a weekday; the simulation runs 75 s first (clock 16:12 to about 17:20, evening rush), nothing added. Free camera (hidden player rides along), zoom 3; weather forced clear. |
-| 2 | 04.72-07.02 | bar 3 | a08_plane | The airport: a plane touches down | G.planes.landNow('airliner') forces a landing now (the game's own ambient landing); camera tracks the aircraft along the runway, zoom 1; trimmed so the wheels touch on the downbeat. |
+| 2 | 04.72-07.02 | bar 3 | b_plane2 | The airport: a plane touches down, close (owner msg 219: recorded at zoom 2; starts half a second later in the landing than before so the map edge is never in view) | G.planes.landNow('airliner') forces a landing now (the game's own ambient landing); camera tracks the aircraft along the runway and a little of its height; recorded at zoom 2. |
 | 3 | 07.02-09.33 | bar 4 | b03_foot | Fully explorable: On foot across the plaza | Player walks across the plaza (player.goTo), the game's own follow camera, zoom 3. |
 | 4 | 09.33-11.64 | bar 5 | b04_bus | Fully explorable: Bus | Camera follows the nearest moving bus, zoom 3. |
 | 5 | 11.64-13.95 | bar 6 | b05_train | Fully explorable: Train on the viaduct, a second train passing | Camera follows a trainset leaving Central, zoom 2. |
