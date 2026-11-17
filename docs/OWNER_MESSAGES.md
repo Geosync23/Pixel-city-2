@@ -880,3 +880,10 @@ Eliminate any repeating locations in the montage. The aquarium appears 2 or 3 ti
 Also insteas of 1 city it should day a new city
 
 Finally in the sfreenshot you see a scene where rhe character is walk towards the door instead of into a space like the other clips. It disrupts.
+
+## 217 (2026-11-17) [with two phone screenshots of the trailer: 0:07 "fully explorable" daytime City Hall plaza; 0:29 THU rainy plaza with "your life, your pace"]
+There was an awesome shot of the train platform in central station, in the montage. get that back please.
+
+ Looking good but lets also change this scene (screenshots), the same basic shot happens twice. I love the first one, the daytime one, leave it. Find another cool open city area and do a zoomed in daytime shot high density etc . Same timing. Also say over 100 activities we will add more but not now.
+
+Finally i feel the trailer needs to showcase the city just a bit more to add to  so many  interior spaces. Don't take any interior away.  Maybe add some time to the trailer, add it  when it takes a break.from counting enterable buildings after the week rundown section. It shows work. But also show "make friends" and some social stuff. "Shop, and decorate"  then "explore"  and show rhe train interior and some zoomed in high density city walking. Then the rest. Then it talks about life at your pace to sum it up
