@@ -126,7 +126,13 @@ const cityhall = K.asset('cityhall', ['cityhall', 'landmark', 'civic'], { w: 18,
     for (const s of [-1, 1]) { FC.win(du + s * 2.2 - .5, du + s * 2.2 + .5, 1.3, 3.6, { on: true, mullion: 'cross', sill: true, frame: '#5a4a48' }); }
     FC.q(du - 1, du + 1, .6, 4, dk(st, .3)); FC.q(du - .8, du + .8, .6, 3.3, '#5a3f2a'); FC.q(du - .74, du - .03, .65, 3.2, '#7a5a3a'); FC.q(du + .03, du + .74, .65, 3.2, '#7a5a3a'); K.shopGlass(FC, du - .8, du + .8, 3.3, 3.9, { bayw: .4 });
     for (const s of [-1, 1]) FC.q(du + s * .12 - .03, du + s * .12 + .03, 1.6, 1.9, gold, undefined, .01);
-    for (let y = .8; y + 1 <= d - 2; y += 1.8) FX(cx1).win(y, y + 1, 3.6, 5.4, { on: L.r() < .5, mullion: 'cross', sill: true, frame: '#5a4a48' });
+    for (let y = .8; y + 1 <= d - 2; y += 1.8) FX(cx1).win(y, y + .9, hw + .2, hc - .3, { on: L.r() < .5, mullion: 'cross', sill: true, frame: '#5a4a48' });   /* (above the right wing's roof: the part of this face that can be seen) */
+    /* owner msg 240: the RIGHT WING stands in front of the central block's right face, so it is drawn again over it (the face used to be painted across the wing's roof,
+       which made the building look broken: a brick wall hanging over the wing). Same pieces as the first pass, limited to x cx1..w. */
+    { const ww = w - cx1; box(cx1, 0, 0, ww, yw, .5, dk(st, .2)); box(cx1, 0, .5, ww, yw, hw - .5, st, { l: PAT.stone(dk(st, .18)), r: PAT.stone(dk(st, .36)) }); wing(cx1, w);
+      for (let y = .7; y + 1 <= yw - .5; y += 1.75) for (let f = 0; f < 2; f++) { const z = .5 + f * 2.3; FX(w).win(y, y + 1, z + .4, z + 1.9, { on: L.on(f), glowc: L.col(f), mullion: 'cross', sill: true, frame: '#5a4a48' }); }
+      K.cornice(cx1, 0, ww, yw, hw - .3, .3, lt(st, .25), .15); K.roofTop(cx1, 0, hw, ww, yw, st, { rc: rf });
+      for (let x = cx1 + .2; x < w; x += .45) lw([x, yw, hw], [x, yw, hw + .35], lt(st, .2)); lw([cx1, yw, hw + .35], [w, yw, hw + .35], lt(st, .3)); }
     glow(() => qz(cx0 + .3, cx1 - .3, d - .9, d - .1, .62, '#ffe6ac', 'glass'));
     // clock tower
     const tx = du - 1.5, ty = 2.2, tz = hc, th = 5.2; box(tx, ty, tz, 3, 3, th, st);

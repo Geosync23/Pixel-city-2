@@ -961,3 +961,6 @@ The title sceee main menu screen needs a start button then continue new game set
 
 ## 239 (2026-11-17)
 Great. The title screen shouls cycle scenes faster. Maybe 6 or seconds. The order is great somt chage that
+
+## 240 (2026-11-17) [with a phone screenshot of the title screen's City Hall view: a large brick building in front of the clock tower looks broken]
+This scene in the intro show a broken building. Is that in the game? Can we fix ti?
