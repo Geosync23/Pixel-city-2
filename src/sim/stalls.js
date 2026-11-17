@@ -7,6 +7,7 @@ import { VENUE_BY_ID } from '../data/venues.js';
 import { ROOMS } from '../scenes/interior.js';
 import { Char, charArt } from '../core/char.js';
 import { rng } from '../engine/raster.js';
+import { objSprite } from '../engine/sprites.js';
 export const order = 60;
 // prop id (prefix) [+ '/' + p.kind] -> street venue id
 const MAP = [
@@ -20,18 +21,36 @@ const HOURS = { stand_hotdog: [10, 22], stand_coffee: [6, 18], stand_icecream: [
 const UNI = { stand_coffee: 'barista', stand_hotdog: 'cook', stand_taco: 'cook', stand_icecream: 'barista', market_stalls: 'grocer' };
 const vendors = []; // {c, h:[open, close]}
 const openAt = (hr, h) => (hr >= h[0] && hr < h[1]) || (hr + 24 >= h[0] && hr + 24 < h[1]);
-function vendorTick() { const hr = (G.now && G.now().hf) || 12; for (const v of vendors) v.c.hidden = !openAt(hr, v.h); }
+function vendorTick() { const hr = (G.now && G.now().hf) || 12; for (const v of vendors) v.c.hidden = v.c._gone || !openAt(hr, v.h); }
 // owner msg 242: directly BEHIND the counter. Gelato / coffee carts: a plain worker behind the cart (the cart covers the legs).
 // Grill carts, food trucks, harbor shacks, market stalls: the worker stands inside / behind and only the part seen through the serving
 // window (or above the counter) is drawn, sorted just in front of the prop. Local frame of the unflipped prop: +y is the customer side.
 // v: where the worker stands, vz: floor height, f: the face the window is on (local y), a: window span along x, z: window bottom/top (null = open above)
+// owner msg 243: no head drawn over an awning / parasol. Carts: a plain worker behind the cart, slid along it to the spot where the
+// cart's own pixels (parasol, awning, pole) cover the least of the head; none at all where no spot shows it. The market stall's awning
+// hangs lower than a head anywhere behind its counter, so stalls get no worker.
 const SPOT = [
-  ['prop.street.cart.icecream', { v: [1, -.4], plain: true }], ['prop.street.cart.coffee', { v: [1, -.4], plain: true }],
-  ['prop.street.cart', { v: [1, -.35], f: 0, a: [-1, 3], z: [1.12, null] }],
+  ['prop.street.cart', { slide: true, ly: -.38 }],
   ['prop.street.foodtruck', { v: [1.6, 1.4], vz: .15, f: 1.8, a: [.55, 2.45], z: [1.25, 2.1] }],
   ['prop.harbor.foodshack', { v: [1.5, 2.0], vz: 0, f: 2.4, a: [.45, 2.55], z: [1.0, 1.95] }],
-  ['prop.street.stall', { v: [1.5, .45], vz: 0, f: .8, a: [.1, 2.9], z: [1.05, null] }],
 ];
+function pixels(c) { try { let x = c.getContext && c.getContext('2d'); if (!x) { const t = document.createElement('canvas'); t.width = c.width; t.height = c.height; x = t.getContext('2d'); x.drawImage(c, 0, 0); } return x.getImageData(0, 0, c.width, c.height).data; } catch (e) { return null; } }
+class Slider extends Char {
+  sprite() { if (this._gone) return null; if (!this._placed && !this._place()) return null; return super.sprite(); }
+  _place() {
+    const ob = this._ob, w = this._w, ps = objSprite(ob), s = super.sprite(); if (!ps || !s || !ps.c || !s.c) return false; const pp = pixels(ps.c), cp = pixels(s.c); if (!pp || !cp) { this._placed = true; return true; }
+    const U = 16, pw = ps.c.width, cw = s.c.width, ch = s.c.height, px0 = ps.x + (ob.x - ob.y) * U, py0 = ps.y + (ob.x + ob.y) * U / 2 - ob.z * U;
+    let top = -1; for (let j = 0; j < ch && top < 0; j++) for (let i = 0; i < cw; i++) if (cp[(j * cw + i) * 4 + 3] > 0) { top = j; break; } if (top < 0) { this._placed = true; return true; }
+    const head = []; for (let j = top; j < Math.min(ch, top + 11); j++) for (let i = 0; i < cw; i++) if (cp[(j * cw + i) * 4 + 3] > 0) head.push(i, j);
+    const sx = ob.a.size[0], L = []; for (let lx = .2; lx <= sx - .2 + 1e-6; lx += .2) L.push(lx); L.sort((p, q) => Math.abs(p - sx / 2) - Math.abs(q - sx / 2));
+    let best = null, bc = 1e9;
+    for (const lx of L) { const q = this._W(lx, this._ly); if (w.isBlocked(q[0], q[1])) continue; const z = w.heightAt(q[0], q[1]), ax = Math.round((q[0] - q[1]) * U), ay = Math.round((q[0] + q[1]) * U / 2 - z * U);
+      let cov = 0; for (let k = 0; k < head.length; k += 2) { const X = Math.round(s.x + ax + head[k] - px0), Y = Math.round(s.y + ay + head[k + 1] - py0); if (X >= 0 && Y >= 0 && X < pw && Y < ps.c.height && pp[(Y * pw + X) * 4 + 3] > 0) cov++; }
+      if (cov < bc) { bc = cov; best = [q[0], q[1], z]; } if (cov <= head.length * .12) break; }   // nearest the middle that shows the head
+    this._placed = true; if (!best || bc > head.length * .2) { this._gone = true; this.hidden = true; return false; }
+    this.x = best[0]; this.y = best[1]; this.z = best[2]; return true;
+  }
+}
 class Vendor extends Char {
   sprite() {
     const s = super.sprite(); if (!s || !this._poly) return s; const U = 16, ax = Math.round((this.x - this.y) * U), ay = Math.round((this.x + this.y) * U / 2 - this.z * U), ox = s.x + ax, oy = s.y + ay;
@@ -42,13 +61,13 @@ class Vendor extends Char {
 }
 function addVendor(s, w, ob, f, vid, i) {
   const sp = SPOT.find(e => ob.id.startsWith(e[0])); if (!sp) return; const d = sp[1], fl = !!ob.flip;
-  const W = (lx, ly) => fl ? [ob.x + ly, ob.y + lx] : [ob.x + lx, ob.y + ly]; const at = W(d.v[0], d.v[1]);
-  if (d.plain && w.isBlocked(at[0], at[1])) return;
+  const W = (lx, ly) => fl ? [ob.x + ly, ob.y + lx] : [ob.x + lx, ob.y + ly]; const at = d.slide ? W(ob.a.size[0] / 2, d.ly) : W(d.v[0], d.v[1]);
   if (s.ents.some(e => e instanceof Char && e._coach && Math.hypot(e.x - at[0], e.y - at[1]) < 2.5)) return; // the market trader already stands here
   const A = charArt(), spec = Object.assign({}, A.randomSpec(rng(9100 + i * 17), { age: 'adult', season: 1 }), { bag: null, outfit: UNI[vid] || 'grocer' });
-  const c = d.plain ? new Char(spec, at[0], at[1]) : new Vendor(spec, at[0], at[1]); c.z = d.plain ? w.heightAt(at[0], at[1]) : ob.z + (d.vz || 0);
+  const c = d.slide ? new Slider(spec, at[0], at[1]) : new Vendor(spec, at[0], at[1]); c.z = d.slide ? w.heightAt(at[0], at[1]) : ob.z + (d.vz || 0);
+  if (d.slide) { c._ob = ob; c._w = w; c._W = W; c._ly = d.ly; }
   if (fl) c.face(1, 0); else c.face(0, 1); c._vendor = true; c.label = 'Vendor';
-  if (!d.plain) {
+  if (!d.slide) {
     const U = 16, P = (lx, ly, z) => { const q = W(lx, ly); return [(q[0] - q[1]) * U, (q[0] + q[1]) * U / 2 - (ob.z + z) * U]; }, z1 = d.z[1] == null ? 40 : d.z[1];
     c._poly = [P(d.a[0], d.f, d.z[0]), P(d.a[1], d.f, d.z[0]), P(d.a[1], d.f, z1), P(d.a[0], d.f, z1)];
     const sy = ob.a.size[1], b0 = W(d.v[0] - .3, sy + .05), b1 = W(d.v[0] + .3, sy + .15); // sorted just in front of the prop's footprint

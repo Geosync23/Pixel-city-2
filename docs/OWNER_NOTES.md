@@ -208,3 +208,4 @@
 188. (msg 240) A BROKEN-LOOKING BUILDING in the title's City Hall view: it was in the game everywhere (the City Hall art itself). Fixed by the lead (Opus) in Stage 113.
 189. (msg 241) FOOD CARTS/STANDS had nobody working them: put people at the carts. Done by the lead (Opus) in Stage 114: 19 vendors in uniform, there during each stand's hours.
 190. (msg 242) Vendors were off to the side: put them DIRECTLY BEHIND the cart/counter. Done in Stage 115 (in truck windows, shack hatches, behind grill/market counters).
+191. (msg 243) Vendor heads were drawn over awnings: only where an awning/parasol blocks, slide them until visible; none on stands where that can't work. Done in Stage 116 (market stall has none now).

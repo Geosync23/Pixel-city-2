@@ -970,3 +970,6 @@ A lot of of te food stands and food carts have no worker tending to them. Put pe
 
 ## 242 (2026-11-17)
 Thanks for making them face out. But manu of them are off to the side. They should be directly behind the cart/counter
+
+## 243 (2026-11-17) [with a phone screenshot: the market stall (BREAD) vendor's head drawn over the striped awning]
+Now their heads  clip through. I kmow if you occlude them you cant sre them but just in these cases only (awning blocksijg) slide them around until visible. If not visible on some stands thats ok
