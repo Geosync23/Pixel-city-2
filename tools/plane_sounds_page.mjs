@@ -8,12 +8,12 @@ import fs from 'node:fs'; import path from 'node:path'; import { ROOT } from './
 const strip = s => s.replace(/^import .*$/gm, '').replace(/^export (const|function|class) /gm, '$1 ');
 const lib = strip(fs.readFileSync(path.join(ROOT, 'src/sim/_audio_lib.js'), 'utf8')), snd = strip(fs.readFileSync(path.join(ROOT, 'src/sim/_audio_plane.js'), 'utf8'));
 const B = [
-  ['land', 'Jet: approach and landing', 'Standing by the runway, near the touchdown point: the airliner comes in (about 5 s), touches down, reverse thrust, then rolls out and fades. About 11 s. Jet only.'],
+  ['land', 'Jet: approach and landing', 'Standing by the runway, near the touchdown point: the airliner comes in (about 5 s), touches down, reverse thrust, then rolls out and fades. About 11 s. Jet only. This is the chosen jet (the turbine-whine take, owner msg 226).'],
   ['far', 'Jet: heard from downtown', 'The same landing at the game\'s volume for downtown (about 250 tiles away): a faint low rumble. Turn your volume up to hear it. About 11 s.'],
   ['screech', 'Tyre screech', 'The main wheels touching the runway: two quick chirps and a soft thump. About 0.3 s.'],
   ['both', 'Jet + screech together at touchdown', 'From 2 s before touchdown to 3 s after, by the runway: the screech lands exactly as the wheels touch, under the jet. About 5 s.'],
   ['chime', 'Seat-belt chime', 'The cabin "ding dong" when the scene cuts inside the plane: a high soft bell, then one a major third lower. About 0.9 s (the tail rings a little longer).'],
-  ['landB', 'Variant B: jet with more turbine whine', 'The same landing by the runway, with a higher and louder turbine whine over the roar. About 11 s.'],
+  ['landB', 'First take (not chosen): jet with less whine', 'The first version, kept for reference: the same landing with a lower, quieter turbine whine. The owner chose the brighter one above (msg 226). About 11 s.'],
   ['screechB', 'Variant B: softer, longer screech', 'One lower, smoother squeal instead of two quick chirps. About 0.4 s.'],
   ['chimeB', 'Variant B: lower, rounder chime', 'E then C instead of A then F: warmer, a little slower. About 1.1 s.'],
 ];
@@ -84,7 +84,7 @@ var PLAY = {
   screech: function (t) { screech(bus, t, 1); return .4; },
   both: function (t) { return landing(t, 350, 46, null, true, -2, 3); },
   chime: function (t) { seatbelt(bus, t, 1); return 1.2; },
-  landB: function (t) { return landing(t, 350, 46, { whine: 2.4, pitch: 1.2 }, false); },
+  landB: function (t) { return landing(t, 350, 46, { whine: 1 / 2.4, pitch: 1 / 1.2 }, false); },
   screechB: function (t) { screechB(bus, t, 1); return .5; },
   chimeB: function (t) { seatbeltB(bus, t, 1); return 1.5; },
 };

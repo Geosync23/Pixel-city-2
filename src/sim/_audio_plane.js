@@ -2,7 +2,7 @@
 // src/sim/planes.js), the TYRE SCREECH at touchdown and the SEAT-BELT CHIME in the cabin. All synthesised (no recordings): filtered noise + tones.
 // The same code drives docs/audio/plane_sounds.html (tools/plane_sounds_page.mjs copies this file and _audio_lib.js into the page), so the
 // listening page and the game cannot drift apart.
-//   new Jet(dest, o?)   o: { pitch (turbine whine, 1 = airliner), whine (whine level, 1), rumble (1) }
+//   new Jet(dest, o?)   o: { pitch (turbine whine, 1 = airliner), whine (whine level, 1), rumble (1) }   (1 = the chosen jet: owner msg 226, variant B of the page)
 //   jet.set(level, thrust, dist, pan, t)   level 0..1 (distance x fade x kind), thrust 0..1 (idle .2 .. full / reverse 1), dist tiles (muffles), pan -1..1, t = ctx time
 //   jet.stop(t)        fade out and free the nodes
 //   hear(d) -> 0..1    the distance model (tiles between the aircraft and the listener; altitude counts)
@@ -27,7 +27,7 @@ export function thrustOf(f) {
 
 export class Jet {
   constructor(dest, o = {}) {
-    const c = this.c = A.ctx; this.o = o; this.p = o.pitch || 1; this.dead = false;
+    const c = this.c = A.ctx; this.o = o; this.p = 1.2 * (o.pitch || 1); this.wv = 2.4 * (o.whine || 1);   /* owner msg 226: the louder, higher turbine whine (page variant B) is the jet */ this.dead = false;
     const P = c.createStereoPanner ? c.createStereoPanner() : null; this.pan = P; if (P) P.connect(dest);
     this.out = gain(P || dest, 0); this.lp = filt(this.out, 'lowpass', 6000, .5);
     // rumble (brown noise, low-passed), roar (pink noise through a band that opens with thrust), air (pink, high band), turbine whine (two detuned saws in a narrow band)
@@ -44,7 +44,7 @@ export class Jet {
     T(this.rG.gain, .5 * (o.rumble || 1) * (.45 + .55 * th)); T(this.rF.frequency, 140 + 120 * th);
     T(this.oG.gain, .42 * Math.pow(th, 1.3)); T(this.oF.frequency, 320 + 950 * th, .3);
     T(this.aG.gain, .06 * th * th);
-    const wf = (1500 + 1700 * th) * this.p; T(this.wG.gain, .022 * (o.whine || 1) * (.35 + .65 * th), .2); T(this.wF.frequency, wf, .4);
+    const wf = (1500 + 1700 * th) * this.p; T(this.wG.gain, .022 * this.wv * (.35 + .65 * th), .2); T(this.wF.frequency, wf, .4);
     for (const w of this.w) T(w.frequency, wf * w.k, .4);
   }
   stop(t) {
