@@ -196,3 +196,4 @@
 176. (msg 225) PLANE SOUNDS: show them to the owner FIRST (a listening page) before they go into a published build; he may prefer real RECORDINGS. Opus worker told to do the sounds first and hand over docs/audio/plane_sounds.html; lead publishes it as an artifact and waits for his verdict.
 177. (msg 226) PLANE SOUNDS APPROVED: tyre screech + seat-belt chime as the first takes; the JET uses VARIANT B (more / higher turbine whine). No recordings. Sounds may ship.
 178. (msg 228) TRAILER: the landing plane must be the RED livery (Maple Air) in the trailer; the random livery in the game stays.
+179. (msg 229) Plane sounds are good; TURN THEM DOWN IN THE INTRO: done by the lead (x0.45 for the jet and the screech while the intro runs, chime at half level).

@@ -62,6 +62,8 @@ function sync(f) {
 }
 function free(f) { f.done = true; const p = f.pool; p.e.hidden = p.s.hidden = true; p.e.f = p.s.f = null; p.f = null; const i = flights.indexOf(f); if (i >= 0) flights.splice(i, 1); G.emit('plane:gone', f); }
 /* ---- sound ---- */
+/* owner msg 229: the plane sounds are quieter during the intro (the arrival is the first thing a new player hears): about -7 dB */
+const introV = () => (G.intro && G.intro.active ? .45 : 1);
 const jets = new Map(), KV = { airliner: [1, 1, 1], cargo: [1.1, .9, 1], bizjet: [.7, 1.25, 1.2], turboprop: [.6, .55, .6] }, dbg = { screech: [] };   // [level, whine pitch, whine level]
 const ear = () => G.camTarget || G.player;
 const distTo = f => { const L = ear(); return Math.hypot(f.cx - L.x, f.cy - L.y, f.alt); };
@@ -70,7 +72,7 @@ function sound() {
   const out = G.audio && G.audio.bus ? G.audio.bus() : null;
   if (!out || !G.scene || G.scene.id !== 'city') { for (const j of jets.values()) j.stop(); jets.clear(); return; }
   const t = A.ctx.currentTime, on = [], paused = G.modal > 0; let sum = 0;
-  for (const f of flights) { const d = distTo(f), g = paused ? 0 : hear(d) * f.fade * (KV[f.id] || KV.airliner)[0] * .9; f.jg = g; on.push([f, d, g]); sum += g; }
+  for (const f of flights) { const d = distTo(f), g = paused ? 0 : hear(d) * f.fade * (KV[f.id] || KV.airliner)[0] * .9 * introV(); f.jg = g; on.push([f, d, g]); sum += g; }
   on.sort((a, b) => b[2] - a[2]); const k = sum > 1 ? 1 / sum : 1;
   for (let i = 0; i < on.length; i++) {
     const [f, d, g] = on[i]; let j = jets.get(f);
@@ -85,7 +87,7 @@ function sound() {
 /* dev Sound menu: 6 s of an airliner jet nearby (idle approach, then reverse thrust and back), outside the flight logic */
 function hearJet() { const out = G.audio && G.audio.bus && G.audio.bus(); if (!out) return false; const j = new Jet(out), t = A.ctx.currentTime; for (let i = 0; i <= 60; i++) { const u = i / 10; j.set(.9 * Math.min(1, u / 2.5, (6 - u) / 1.2), u < 3 ? .5 : u < 4.5 ? 1 : .4, 15, 0, t + u); } setTimeout(() => j.stop(), 6200); return true; }
 function touchdown(f) {
-  f.td = f.t; const d = distTo(f), v = Math.min(1.5, hear(d) * 1.1), ok = v > .01 && !!(G.audio && G.audio.sfx('tyre_screech', { v, pan: Math.max(-1, Math.min(1, panOf(f) * .7)) }));
+  f.td = f.t; const d = distTo(f), v = Math.min(1.5, hear(d) * 1.1) * introV(), ok = v > .01 && !!(G.audio && G.audio.sfx('tyre_screech', { v, pan: Math.max(-1, Math.min(1, panOf(f) * .7)) }));
   dbg.screech.push({ t: +G.time.toFixed(4), flightT: +f.t.toFixed(4), cx: +f.cx.toFixed(3), v: +v.toFixed(3), played: ok }); if (dbg.screech.length > 20) dbg.screech.shift();
 }
 const runwayBusy = () => flights.some(f => f.kind !== 'fly' && !(f.kind === 'takeoff' && f.alt > 6));

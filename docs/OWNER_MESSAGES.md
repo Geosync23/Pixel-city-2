@@ -926,3 +926,6 @@ To double check- we are still documenting things in a way that makes it possible
 
 ## 228 (2026-11-17)
 Small thing but make the plane red for the trailer. I know its random in the game thats fine. Just the trailer
+
+## 229 (2026-11-17)
+The sounds are good just turn down the plane spunds volume in the intro
