@@ -873,3 +873,10 @@ Trailer  is good thanks please make a download able mp4
 
 ## 215 (2026-11-16)
 "Weak spot: the street is quiet, with four or five pedestrians and no other traffic." Add density for those new logner city shots. But only as much as there really is on a busy time of day.
+
+## 216 (2026-11-17) [with a phone screenshot of the trailer at 0:21, counter "29 enterable buildings", the character walking toward a door]
+Eliminate any repeating locations in the montage. The aquarium appears 2 or 3 times. We're trying to show the variety and this counters that.  But still end the montage on the aquarium like it does now.
+
+Also insteas of 1 city it should day a new city
+
+Finally in the sfreenshot you see a scene where rhe character is walk towards the door instead of into a space like the other clips. It disrupts.
