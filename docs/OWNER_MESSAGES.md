@@ -892,3 +892,8 @@ Finally i feel the trailer needs to showcase the city just a bit more to add to 
 Were very close. Round up the job and just say the count "30 jobs"
 
 Then look at this screen shot.  He isnt sittong on the seesaw right. Fix this in the game then fix the shot.
+
+## 219 (2026-11-17)
+Zoom in on the plane when its landing. Same shot otherwise snd same length.
+
+Also, street lights pool of light are viable through buildings. They should occlude properly. If the transparency layer kicks in because you are near its a diffeent story.  But if not near they need to occlide properly. Fix the trailer than fix the lighting. Its ok if its wrong in the trailer
