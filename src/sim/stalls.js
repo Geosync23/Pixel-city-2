@@ -29,10 +29,10 @@ function vendorTick() { const hr = (G.now && G.now().hf) || 12; for (const v of 
 // owner msg 243: no head drawn over an awning / parasol. Carts: a plain worker behind the cart, slid along it to the spot where the
 // cart's own pixels (parasol, awning, pole) cover the least of the head; none at all where no spot shows it. The market stall's awning
 // hangs lower than a head anywhere behind its counter, so stalls get no worker.
+// owner msg 244: only the open carts (gelato / grill: a parasol, no awning) keep a worker; everything with an awning
+// (coffee cart, food trucks, harbor shacks, market stalls) has none. (The window-clipped Vendor class below is kept, unused.)
 const SPOT = [
-  ['prop.street.cart', { slide: true, ly: -.38 }],
-  ['prop.street.foodtruck', { v: [1.6, 1.4], vz: .15, f: 1.8, a: [.55, 2.45], z: [1.25, 2.1] }],
-  ['prop.harbor.foodshack', { v: [1.5, 2.0], vz: 0, f: 2.4, a: [.45, 2.55], z: [1.0, 1.95] }],
+  ['prop.street.cart.icecream', { slide: true, ly: -.38 }], ['prop.street.cart.hotdog', { slide: true, ly: -.38 }],
 ];
 function pixels(c) { try { let x = c.getContext && c.getContext('2d'); if (!x) { const t = document.createElement('canvas'); t.width = c.width; t.height = c.height; x = t.getContext('2d'); x.drawImage(c, 0, 0); } return x.getImageData(0, 0, c.width, c.height).data; } catch (e) { return null; } }
 class Slider extends Char {

@@ -973,3 +973,6 @@ Thanks for making them face out. But manu of them are off to the side. They shou
 
 ## 243 (2026-11-17) [with a phone screenshot: the market stall (BREAD) vendor's head drawn over the striped awning]
 Now their heads  clip through. I kmow if you occlude them you cant sre them but just in these cases only (awning blocksijg) slide them around until visible. If not visible on some stands thats ok
+
+## 244 (2026-11-17)
+All rhe ones wirh awnings are clipping. Just hide them like you did woru the bread stand. Only see vendors at open stands and those look good
