@@ -44,7 +44,7 @@ export function init() {
       update(dt, c) {
         if (ph !== 'wait' && ph !== 'free') return; if (room() !== 'airport:plane') return; const cab = G.scene.cabin; t += dt;
         if (ph === 'wait') {
-          if (said === 0 && t > .5) { said = 1; safe(() => G.audio.sfx('train_chime')); caption(null, 'Ding! The seatbelt sign blinks off.', 3000); cab.start(); }
+          if (said === 0 && t > .5) { said = 1; safe(() => G.audio.sfx('seatbelt')); caption(null, 'Ding! The seatbelt sign blinks off.', 3000); cab.start(); }
           else if (said === 1 && t > 4.6) { said = 2; caption('Captain', 'Welcome to Maple Bay, folks. Local time is 2 PM. Thanks for flying Maple Air.', 4400); }
           else if (said === 2 && t > 13.5) { said = 3; caption(null, 'New city. New keys waiting. Almost there.', 3600); }
           if (t > 2.5 && (cab.myTurn() || t > TUNE.CABIN_MAX)) {

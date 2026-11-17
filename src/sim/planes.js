@@ -11,10 +11,15 @@
 //        `cam` is a camera target (G.camTarget = flight.cam) at the aircraft's centre.
 // Events: 'plane:flyover'(flight) once per flight when it passes low near the player (audio hook), 'plane:landed'(flight) at
 //         touchdown, 'plane:gone'(flight) when it despawns.
+// SOUND (owner msg 220): each flight near enough gets a synthesised JET voice (src/sim/_audio_plane.js), steered every frame by distance to the
+//   listener (what the camera follows; altitude counts), the engine setting (thrustOf) and the fade; at most the two loudest are voiced and their sum
+//   is kept at one jet's level. Silent while the game is paused. The TYRE SCREECH fires in the frame of touchdown. G.planes.debug() -> { screech: [...] }, f.jg = jet level.
 // No state is saved. Entities: the aircraft (z = altitude, tall sort box -> draws over the city) and its flat '<id>.shadow' on the ground.
 import { G } from '../core/game.js';
 import { asset } from '../art/registry.js';
 import { assetSprite, prebakeAsset } from '../engine/sprites.js';
+import { A } from './_audio_lib.js';
+import { Jet, hear, thrustOf } from './_audio_plane.js';
 
 const KINDS = ['airliner', 'turboprop', 'bizjet', 'cargo'], WEIGHT = ['airliner', 'airliner', 'turboprop', 'turboprop', 'bizjet', 'cargo'];
 const flights = []; let C = null, AP = null, next = 3, flip = 0;
@@ -56,6 +61,31 @@ function sync(f) {
   f.cam.x = f.cx; f.cam.y = f.cy; f.cam.z = f.gz + f.alt * .6;
 }
 function free(f) { f.done = true; const p = f.pool; p.e.hidden = p.s.hidden = true; p.e.f = p.s.f = null; p.f = null; const i = flights.indexOf(f); if (i >= 0) flights.splice(i, 1); G.emit('plane:gone', f); }
+/* ---- sound ---- */
+const jets = new Map(), KV = { airliner: [1, 1, 1], cargo: [1.1, .9, 1], bizjet: [.7, 1.25, 1.2], turboprop: [.6, .55, .6] }, dbg = { screech: [] };   // [level, whine pitch, whine level]
+const ear = () => G.camTarget || G.player;
+const distTo = f => { const L = ear(); return Math.hypot(f.cx - L.x, f.cy - L.y, f.alt); };
+const panOf = f => { const L = ear(); return ((f.cx - f.cy) - (L.x - L.y)) * 16 / Math.max(60, (G.W || 300) / 2); };
+function sound() {
+  const out = G.audio && G.audio.bus ? G.audio.bus() : null;
+  if (!out || !G.scene || G.scene.id !== 'city') { for (const j of jets.values()) j.stop(); jets.clear(); return; }
+  const t = A.ctx.currentTime, on = [], paused = G.modal > 0; let sum = 0;
+  for (const f of flights) { const d = distTo(f), g = paused ? 0 : hear(d) * f.fade * (KV[f.id] || KV.airliner)[0] * .9; f.jg = g; on.push([f, d, g]); sum += g; }
+  on.sort((a, b) => b[2] - a[2]); const k = sum > 1 ? 1 / sum : 1;
+  for (let i = 0; i < on.length; i++) {
+    const [f, d, g] = on[i]; let j = jets.get(f);
+    const want = i < 2 && g >= (j ? .0015 : .003);   // a little hysteresis: no voice flapping on and off at the edge of hearing
+    if (!want && !paused) { if (j) { j.stop(); jets.delete(f); } continue; }
+    if (!want && !j) continue;   // paused: existing voices are held at zero, none are made
+    if (!j) { const q = KV[f.id] || KV.airliner; try { j = new Jet(out, { pitch: q[1], whine: q[2] }); } catch (e) { continue; } jets.set(f, j); }
+    j.set(g * k, thrustOf(f), d, panOf(f), t);
+  }
+  for (const [f, j] of jets) if (f.done) { j.stop(); jets.delete(f); }
+}
+function touchdown(f) {
+  f.td = f.t; const d = distTo(f), v = Math.min(1.5, hear(d) * 1.1), ok = v > .01 && !!(G.audio && G.audio.sfx('tyre_screech', { v, pan: Math.max(-1, Math.min(1, panOf(f) * .7)) }));
+  dbg.screech.push({ t: +G.time.toFixed(4), flightT: +f.t.toFixed(4), cx: +f.cx.toFixed(3), v: +v.toFixed(3), played: ok }); if (dbg.screech.length > 20) dbg.screech.shift();
+}
 const runwayBusy = () => flights.some(f => f.kind !== 'fly' && !(f.kind === 'takeoff' && f.alt > 6));
 
 function landNow(variant) {
@@ -78,7 +108,7 @@ function step(f, dt) {
     const A = AP.approach;
     if (f.phase === 'air') {
       f.cx -= f.v * dt; const d = f.cx - A.touchdown;
-      if (d <= 0) { f.alt = 0; f.phase = 'roll'; G.emit('plane:landed', f); } else f.alt = d * .13 * (d < 14 ? .45 + .55 * d / 14 : 1);
+      if (d <= 0) { f.alt = 0; f.phase = 'roll'; touchdown(f); G.emit('plane:landed', f); } else f.alt = d * .13 * (d < 14 ? .45 + .55 * d / 14 : 1);
     } else {
       // roll straight down the runway, slowing; fade out near the far end (no turn: the art has no in-between angles and it looked odd)
       const R = AP.runways[0], endX = R.a + f.L / 2 + 4;
@@ -101,9 +131,10 @@ function step(f, dt) {
 }
 
 export function init() {
-  G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights, clear: () => { for (const f of flights.slice()) free(f); } }; // clear(): remove every active flight (the intro wants an empty runway)
+  G.planes = { landNow, takeoffNow, flyover, count: () => flights.length, flights: () => flights, debug: () => dbg, clear: () => { for (const f of flights.slice()) free(f); } }; // clear(): remove every active flight (the intro wants an empty runway)
   G.on('scene', (s) => { if (s && s.id !== 'city') for (const f of flights.slice()) free(f); });
   G.on('scene', (s) => { if (!s || s.id !== 'city' || s._acGrass) return; s._acGrass = true; const w = s.world; for (const ob of w.objs) { if (!/^veh\.airport\.(airliner|turboprop|bizjet|cargo|helicopter)/.test(ob.id)) continue; const t = w.tileType((ob.B[0] + ob.B[3]) / 2, (ob.B[1] + ob.B[4]) / 2); if (t === 1 || t === 16 || t === 20) ob.hidden = true; } });
+  G.on('frame', sound);
   G.addSystem({ name: 'planes', update(dt, gm) {
     if (!G.scene || G.scene.id !== 'city' || !city()) return;
     for (let i = flights.length - 1; i >= 0; i--) step(flights[i], Math.min(dt, .1));
