@@ -5,6 +5,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 - Session branch `ccr-43e14e98-hxd35t` (from 4a045fd). Live game = Stage 118 on the NEW link https://claude.ai/artifact/Xb5aFwEtTpQU4Hz2rjUXuD (slug f7b44435-7681-47c8-9be9-2fa1322d8f44, version 1794964754-7bc3).
 - RUNNING: ONE Fable worker on the lighting resume (owner msg 250 asked for exactly this). It owns src/engine/render.js, sprites.js, world.js, src/world/_ctx.js, tools/poolocc_check.mjs, docs/reports/pool_occlusion.md. It applies the patch, re-runs the checks, writes the report with progress notes, makes before/after night pictures, and STOPS (no bigger changes, no publish, no git). Then: I look at its pictures, send the owner a short note (works? what's left?), and publish only when right.
 - NOTE: from this commit on, src/ holds the lighting patch IN PROGRESS (unchecked), so a plain build is NOT the published Stage 118 until the lighting is approved; Stage 118 source = commit 4a045fd for the four engine files.
+- RULE (owner msg 252): everything done on this account stays SEPARATE from the starting point: push only to `ccr-43e14e98-hxd35t`, never to `ccr-e622e92c-7t3ejy` or the older branches, never to the old accounts' artifacts.
 - Do not delete anything in docs/wip/. Then items 2-4 of the list below (cabin flicker, trailer plane re-shoot, small items).
 - Owner messages: last = 250; notes last = 198.
 

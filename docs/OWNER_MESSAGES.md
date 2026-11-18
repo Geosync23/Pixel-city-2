@@ -1023,3 +1023,6 @@ Please just for now 1 Fable worker picking up the lighting work
 
 ## 251 (2026-11-18)
 Great. Question: The screenshot you shared shows the old lighting ,yes? It isn't occluding
+
+## 252 (2026-11-18)
+Great thanks. Yes all work we do here must be kept seperate of where we started
