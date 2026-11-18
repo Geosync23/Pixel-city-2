@@ -1,4 +1,5 @@
 MOVE TO ANOTHER ACCOUNT PENDING (owner msg 233): nothing new starts here; the ordered open work is in docs/HANDOFF.md 'OPEN WORK FOR THE NEXT ACCOUNT'.
+2026-11-18 morning STATE: Stage 122 live (lighting smooth walls + playtest list). STOPPED, waiting for the owner. Open small things: see docs/HANDOFF.md 'Now'.
 2026-11-18 STATE: lighting DONE (Stage 120; owner to choose door glow), trailer round 11 DONE. STOPPED (owner msg 255). Waiting: small items need the owner's word.
 OWNER MSG 255 (2026-11-18): finish lighting (no pools on walls, RUNNING) -> trailer plane re-shoot + resend -> STOP. Cabin flicker DROPPED. Small items wait.
 THIRD ACCOUNT (2026-11-18): (1) LIGHTING [DONE Stage 119, owner to look; open: flicker when walking, headlights behind buildings, lamp-in-front-of-wall question]; (2) cabin passenger flicker [NEXT]; (3) trailer plane re-shoot + resend; (4) small items (+ fix tools/perf.mjs Start tap). See docs/HANDOFF.md 'Now'.
