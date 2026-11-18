@@ -175,3 +175,32 @@ What I saw in the pictures (out/shots/poolocc3/):
 Not tested for the variants: poolocc_check / nightcheck with the switch on (the [walls] test would rightly fail for B; the tool needs a B mode), flicker while walking, headlights sweeping a wall by eye, dusk/dawn.
 
 To make smooth B the default: (1) flip the NL defaults (`walls: false, smooth: true`) - one line; (2) give poolocc_check a mode for it ([walls] replaced by "wall light = Stage 119 light, smoothed": no checker pattern on building px, lamps behind still 0 px) and re-run the full battery + perf; (3) decide about roofs and the dithered canopies/shelters (extend `isBld` to roofed props if wanted); (4) a walk-around by eye at night. Rough size: half a session.
+
+# Step 4: smooth wall light becomes the default (owner approved, 2026-11-18)
+## Progress (step 4)
+- [x] S4-0. Section started. Before build for comparisons = Stage 120 (scratch s2_after.html = same render.js as Stage 120 default).
+- [x] S4-1. Default flipped in the NL line (walls off, smooth on); switches: strict (Stage 120), dither / nowalls (Stage 119), noocc (Stage 118); wallown / smoothA kept (free). poolocc_check: new [smooth] test for the default, [walls] now with --mode strict. Quick run at oldtown: default passes ([smooth] mean light 105.93 vs dithered 106.21, roughness 5487 vs 63626, 0 px outside buildings); --mode strict passes ([walls] 0 px). Full battery started.
+- [x] S4-2. poolocc_check default: 0 FAIL (16 spots; [leak] 0 px, [smooth] passes everywhere, [same] 0 px); --mode strict: 0 FAIL ([walls] 0 px). Pictures in out/shots/poolocc4/ made; looked at fade + harbour pairs: fine. Rest of the battery running.
+- [x] S4-3. Rest of the battery on the new default: nightcheck all passed; perf --verify VERIFY OK (day pixels unchanged); occl_check 0 page errors, "wrong 31" all in train_over_road (day; two repeats on each build: 0 wrong - the known run-to-run noise of that tool); perf below.
+
+## Step 4: result - DONE
+The smooth wall light (step 3's variant B) is the default. Switches for the old looks: `?nightlight=strict` (Stage 120), `?nightlight=dither` or `nowalls` (Stage 119), `?nightlight=noocc` (Stage 118); `wallown` / `smoothA` kept (they cost nothing). The only code change in this step is the NL defaults line in render.js; the smooth code is step 3's.
+
+Checks (new default build vs the Stage 120 build):
+| check | result |
+|---|---|
+| `poolocc_check` (16 spots, `--same` Stage 120) | 0 FAIL. `[leak]` lamps behind buildings 0 px (15/15); `[ground]` 0 px outside silhouettes; `[fade]` 0 px; `[same]` occlusion off = Stage 120 build 0 px (15/15 + day); no page errors |
+| new `[smooth]` test (smooth switched off = Stage 119 vs on) | 0 px differ outside the buildings at all 15 spots; mean light on visible building px equal to within 0.8 levels everywhere (e.g. oldtown 105.93 vs 106.21, plaza 124.35 vs 124.85, lantern 145.17 vs 145.98); roughness far lower (oldtown 5487 vs 63626, plaza 6313 vs 129802, central 1524 vs 89699) |
+| `poolocc_check --mode strict` | 0 FAIL, `[walls]` 0 px (15/15): the Stage 120 look still works behind its switch |
+| `nightcheck` | all checks passed |
+| `perf --verify` | VERIFY OK: same pixels by day |
+| `occl_check` | page errors 0; wrong 31 in one day case, 0 in 4 repeats (both builds): noise |
+| perf, 390x844 dpr 2, CPU 4x (out/perf/pocc4_perf.md, pocc4_perf2.md) | night_plaza 57.9 -> 58.1 fps (JS p50 7.0 -> 6.7 ms); walk 59.3 -> 59.5 (4.0 -> 4.1); night_rain: first set (3 runs) 55.3 -> 52.0 (8.7 -> 9.2 ms), repeat set (4 runs) 56.1 -> 55.6 (8.3 -> 8.4 ms, p95 17.1 -> 18.2). So: no cost by day or at the plaza; at most about half a fps in the rainy night walk, with one noisy set |
+
+Pictures (out/shots/poolocc4/, 500x900): pair_X.png = Stage 120 | new default for oldtown, airport, downtown, harbour, plaza, juniper, fade; LEAD_door_stage119_dithered_vs_new_default.png (3x close-up of the old-town door). Looked at by me in this step: pair_fade, pair_harbour (plus step 3's B pictures of oldtown, airport, juniper, downtown, plaza, which are the same look).
+- Fade: the see-through loft still shows the ground pools behind it; walls around it softly lit; door of the house bottom-left lit again.
+- Roofs: a roof is part of the building's silhouette, so a lamp in front can light it softly where its pool ellipse reaches (as in Stage 119, now smooth). None visible on the roofs in the pictures looked at (Sail Loft roof, juniper roof, helipad stay dark). Lamps behind a building never light its roof (step 1).
+- Windows, signs, lamp heads: not washed out.
+
+Not tested: flicker by eye while walking; headlights sweeping a wall by eye; a long night soak; dusk/dawn pictures (the tool's dusk spot passes).
+Odd / to know: props that keep the pool pattern (airport glass canopy, rail canopies, shelters) still take DITHERED pools, so a dithered canopy can sit in front of a smooth facade; tools/perf.mjs still needs the Start-button fix (out/tools_tmp/perf_fix.mjs used); docs (nightlight.md, INTERFACES.md) do not describe NL.walls / wallOwn / smooth yet.
