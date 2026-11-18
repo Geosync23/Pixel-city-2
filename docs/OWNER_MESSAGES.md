@@ -1053,3 +1053,19 @@ Even in your door glow kept example all the light on yhe wall is gone. I want th
 
 ## 261 (2026-11-18)
 What's taking so long for a test
+
+## 262 (2026-11-18)
+Yes that's it, make it the default . I also have this list of items from playtesting:
+
+No mini game for unpacking boxes
+
+When clicking a todo item arrow should point to it: unpack boxes get auto selected . Have arrow point to them automatically. Then suitcase. 
+
+Also the to items/my schedule shoild be at the top when you ckock it. Ideas below. Also get rid of my day button. Todo button bring up same menu. Teach how to use this menu. Higbligjt yhe button and teach to opem and see what to do. Explain thwre is a more compalrte veraion of this in the phone. 
+
+After unpacking there should be a " needs" lesson. Bathroom. Then cooking/eating (this is in there) then it shoild say the eveing is free ans five a few ideas then tell yhe player they shoild go see their grandpa tomorrow morning and perhaps look for a job. 
+
+Making sadwich mini game is great. But it doesnt need to be done 3 times
+
+
+Work on the lightning and then all the above tonigjt. Thank you goodnight
