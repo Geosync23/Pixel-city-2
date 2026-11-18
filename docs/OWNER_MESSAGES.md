@@ -1026,3 +1026,6 @@ Great. Question: The screenshot you shared shows the old lighting ,yes? It isn't
 
 ## 252 (2026-11-18)
 Great thanks. Yes all work we do here must be kept seperate of where we started
+
+## 253 (2026-11-18)
+Thank you for checking, yes please move forward with that. No light pools on walls as you suggested. This is the only work going for now
