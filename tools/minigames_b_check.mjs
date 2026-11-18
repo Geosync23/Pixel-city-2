@@ -73,7 +73,8 @@ async function tapOpen(A, find, dz, expect) {
     if (await pg.evaluate(() => !!(G.phone && G.phone.isOpen))) { await pg.evaluate(() => G.phone.close()); await pg.waitForTimeout(400); continue; }   /* a tap landed on a phone banner (small items 2026-11-18) */
     if (await there()) { if (await right()) return 'touch'; wrong++; await closeWin(); continue; }
     const c = await pg.evaluate(([f, dz]) => { const fn = new Function('i', 'return ' + f), it = G.interactables().filter(i => { try { return fn(i); } catch (e) { return false; } }).sort((a, b) => Math.hypot(a.x - G.player.x, a.y - G.player.y) - Math.hypot(b.x - G.player.x, b.y - G.player.y))[0]; if (!it) return null; const p = G.toScreen(it.x, it.y, (it.z || 0) + (dz === undefined || dz === null ? (it.h || .6) * .5 : dz)), r = G.cv.getBoundingClientRect(); return [p.x + r.left, p.y + r.top]; }, [find, dzs[Math.min(wrong, dzs.length - 1)]]);
-    if (!c) throw new Error('no thing ' + find);
+    if (!c) { const sc = await pg.evaluate(() => G.scene && G.scene.id); if (k < 10 && /:wc$/.test(sc)) { await pg.evaluate(s => G.go(s), sc.replace(/:wc$/, '')); await pg.waitForTimeout(1500); continue; }   /* a thumb tap landed on the room's restroom door and walked in (seen in the laundromat, 2026-11-18): step back out and look again */
+      if (k < 10) { await pg.waitForTimeout(800); continue; } throw new Error('no thing ' + find + ' state ' + JSON.stringify(await pg.evaluate(() => ({ sc: G.scene && G.scene.id, busy: !!G.busy, modal: !!G.modal, n: G.interactables().length })))); }
     const vw = pg.viewportSize(); await A.tap(Math.max(40, Math.min(vw.width - 40, c[0])), Math.max(170, Math.min(vw.height - 150, c[1])), 500);
     await pg.waitForFunction(() => !!document.querySelector('.modal .win') || !!G.minigame.MG.cur || !!G.busy || !G.player.moving, null, { timeout: 15000 }).catch(() => {}); await pg.waitForTimeout(500);
   }

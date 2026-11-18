@@ -26,7 +26,7 @@ Last updated: stage 15 (Wave A: unique interiors, lobbies, homes, bladder, conse
 - venue rooms: 20 venues (+ cinema hall). crowd: pedestrians/animals/room customers+staff. social: cast on schedules, talk panel, relationships, gifts, invitations.
 - story: intro steps (G.intro), story engine (G.story, 18 beats), goals widget (Goals/Opportunities/Appointments), planes landing/taking off, achievements.
 - jobs: 10 jobs with work loops, auto-work, promotions, gigs.
-- rail: trains on viaduct, cutaway ride scene, Central Station hall, passes.
+- rail: trains on viaduct, cutaway ride scene, Central Station hall, passes. Nothing tall in the train's path (tools/railpath_check.mjs, Stage 123).
 - airport interior: plane cabin, concourse, tram, terminal; new opening sequence.
 - stalls + welcome glow + VENDORS at the open gelato/grill carts during opening hours (src/sim/stalls.js, Stages 114-117), addresses (src/sim/addresses.js).
 - bladder need + bathrooms as own rooms + restrooms everywhere (docs/reports/bladder_bath.md).
