@@ -1038,3 +1038,6 @@ Finish the lighting. After,  Go to #2. #1 isnt an issue anymore . Stop there
 
 ## 256 (2026-11-18)
 Going to bed.  Please set up am hourly check to reset in case If you max out 5 hour usage
+
+## 257 (2026-11-18)
+Can you show me the door glow youre referencing
