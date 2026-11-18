@@ -1047,3 +1047,6 @@ Door glow kept and  also can we get the ligjt spilling onto a wall without thr d
 
 ## 259 (2026-11-18)
 Thanks..sorry for the sloppy explanation but you still understood
+
+## 260 (2026-11-18, with two screenshots saved in docs/owner/msg260/: 1 = the "door glow kept" panel of trio_oldtown (wall dark), 2 = the "before" door close-up (wall lit, dithered))
+Even in your door glow kept example all the light on yhe wall is gone. I want that much light back with no dithering
