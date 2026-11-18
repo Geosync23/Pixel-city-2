@@ -28,8 +28,9 @@ art modules auto-discovered; cross-system calls go through `G.<system>` APIs doc
 ## Building, testing, publishing
 - Build: `node tools/build.mjs` -> `dist/index.html`. Dev server: `node tools/serve.mjs`. Art preview: `node tools/gallery.mjs <filter> --scale 3 --out name [--night] [--flip] [--season n]`.
 - Screenshot/drive: `node tools/shot.mjs --dist --url "?scene=city&x=..&y=..&t=<hour>&zoom=2" --eval "<async js using window.G>" --wait ms --out name`. Rooms: `?scene=int:<roomId>`. Intro replay: `?scene=city&intro`. Map preview: `node tools/mapview.mjs`.
+- Publish (THIRD account, current): `mcp__claude-artifacts__publish_files`, files [{as:'index.html', path:'/home/user/Pixel-city-2/dist/index.html'}], slug `f7b44435-7681-47c8-9be9-2fa1322d8f44`, base_version from the last publish / `get_artifact` -> https://claude.ai/artifact/Xb5aFwEtTpQU4Hz2rjUXuD. The line below is the previous account's.
 - Publish (new account): Artifact tool, publish `/home/user/Pixel-city-2/dist/index.html` -> https://claude.ai/artifact/JQ1cnxuWNmXT8VSrYKowbG (same file path in the same session keeps the URL; from a new session pass `url` after an `action: read`). Short `label` per stage. Then give the owner the link and what changed.
-- Git: commit locally after each step with the attribution trailer. `git push -u origin ccr-e622e92c-7t3ejy` (this session's branch) works; push after every commit. No PR unless asked.
+- Git: commit locally after each step with the attribution trailer. `git push -u origin ccr-43e14e98-hxd35t` (this session's branch) works; push after every commit. No PR unless asked.
 
 ## Design guard-rails (from the owner; see OWNER_NOTES for the full digest)
 - Chunky pixel art world, high-detail characters, zoomed-in camera, modern diverse US city, lots of visible life.
