@@ -3,6 +3,8 @@
 Owner msgs 163-164 (BIBLE Direction update 33 + its CORRECTION). Builds on worker A (`docs/reports/minigames_a.md`, `docs/reports/minigames_audit.md` section 5).
 **No human has played any of these.** A script played them by touch following each game's own hint; difficulty and feel are set by reasoning and want a pass once the owner has tried them.
 
+**UPDATE Stage 122 (2026-11-18):** unpacking the moving boxes / suitcase has NO mini-game any more (`unpack_boxes` removed from ACT_GAME_B in src/data/minigames_b.js, owner playtest list). tools/minigames_b_check.mjs expects the plain action now (small items 2026-11-18). Rows and tests below that play `unbox` on the moving boxes are history.
+
 ## What changed for the player
 
 - **The moving boxes** (day one) are the first mini-game of a new game: tap the tape three times, then tap each thing as it comes up out of the box. It shows what is really in that box (the ramen, the pyjamas, the umbrella). It cannot be failed.
@@ -22,7 +24,7 @@ Owner msgs 163-164 (BIBLE Direction update 33 + its CORRECTION). Builds on worke
 
 | # | Category | Activity (id or label) | Game key | Kit kind | Bonus for playing well | Proof |
 |---|---|---|---|---|---|---|
-| 1 | Moving boxes | `unpack_boxes` | `unbox` | **unbox** (new) | Fun up to +5, handiness xp | Touch; also Auto, mini-games off, 375 px, gamepad, and from a fresh New Game on day one |
+| 1 | Moving boxes (REMOVED Stage 122: unpacking is a plain 20-min action again; the `unbox` kind still exists, unused) | `unpack_boxes` | `unbox` | **unbox** (new) | Fun up to +5, handiness xp | Touch; also Auto, mini-games off, 375 px, gamepad, and from a fresh New Game on day one |
 | 2 | Laundry: sort | starting a wash, home washer or laundromat (new short activity "Loading the machine", 3 min, only when mini-games are on) | `sort` | **laundry** / sort (new) | Fresh Clothes lasts 1 to 2 hours longer | Touch at the laundromat (script walk: the washer is behind others on screen); 375 px. Home washer: same call, not run |
 | 2 | Laundry: fold | "Folding laundry" (laundromat) | `fold` | **laundry** / fold (new) | Fun up to +3, Fresh Clothes +1 hour | Touch (script walk); 375 px; gamepad |
 | 3 | Dishes | "A quick tidy" | `dishes` | **scrub** (new), plates | home cleanliness up to +3 | Touch (script walk: the cleaning cupboard is behind the sofa on screen); Auto; off; 375 px; gamepad |
@@ -57,7 +59,7 @@ Where the character stands while the game runs: boxes `carry`; laundry, cleaning
 | Club dancing | The club's `dance` already had a game; the home version now shares it. |
 | Barber | The cut is already a picker with a preview and a confirm (`sim/hair.js`), then the chair. No game added, as the list says. |
 | Pets: fetch, own pets | The player cannot own a pet. Brushing is at the pet shop pen; `pet_cat` (3 min) left plain. |
-| Delivery boxes (`homedesign.js` "Unpack", 4-8 min) and the hotel suitcase | Not hooked: only the moving boxes. The flat-pack already has "Tighten the bolts". |
+| Delivery boxes (`homedesign.js` "Unpack", 4-8 min) and the hotel suitcase | Not hooked (and since Stage 122 the moving boxes are not hooked either). The flat-pack already has "Tighten the bolts". |
 | Other plain timers | `play_jukebox`, `play_display`, `dig_crates`, `listen_station`, `taste_samples`, `test_pens`, `flip_flash`, `ride_ferris_wheel`, `watch_game`, `bath`, `wash_hands`, brushing teeth, the natatorium / hotel showers: left plain (short or passive; "let's not overdo it"). |
 | Folding at home | Home loads put themselves away when dry: there is no fold step to attach to. |
 

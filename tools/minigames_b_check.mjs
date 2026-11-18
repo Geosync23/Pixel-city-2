@@ -1,7 +1,7 @@
 // Mini-games B check (owner msgs 163-164): the chore / venue games of src/sim/_mg_games.js on the BUILT game, 390x844 touch (the open / touch helpers are the ones of minigames_check.mjs).
 //   node tools/minigames_b_check.mjs [walk | home | town | rules | pad | intro | explore]     (no argument = everything but explore)
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module';
-import { openGame } from './pad_lib.mjs';
+import { openGame } from './pad_lib.mjs'; import { titleTo } from './title_lib.mjs';
 const ROOT = '/home/user/Pixel-city-2'; const require = createRequire(ROOT + '/'); const { chromium } = require('playwright');
 const HTML = fs.readFileSync(path.join(ROOT, 'dist/index.html'), 'utf8'), BASE = fs.readFileSync(path.join(ROOT, 'tools/perf_save.json'), 'utf8');
 const OUT = path.join(ROOT, 'out/shots'); fs.mkdirSync(OUT, { recursive: true });
@@ -14,7 +14,7 @@ async function open(w = 390, h = 844) {
   pg.on('pageerror', e => errs.push(e.message.slice(0, 300))); pg.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
   await pg.goto(U); await pg.evaluate(s => localStorage.setItem('maplebay.save.v1', s), BASE); await pg.goto(U);
   await pg.waitForFunction(() => window.G && G.onTitle !== undefined && !document.getElementById('load'), null, { timeout: 180000 }); await pg.waitForTimeout(800);
-  await pg.touchscreen.tap(w / 2, 440); await pg.waitForFunction(() => !G.onTitle && G.scene, null, { timeout: 60000 }); await pg.waitForTimeout(2000);
+  await titleTo(pg, 'Continue'); await pg.waitForTimeout(2000);
   await pg.evaluate(() => { try { G.state.tips.off = 1; } catch (e) { } try { G.firstTime.setEnabled(false); } catch (e) { } try { G.dev.set(true); G.dev.freeze && G.dev.freeze(true); } catch (e) { } G.state.t = Math.floor(G.state.t / 1440) * 1440 + 10 * 60; });
   const cdp = await ctx.newCDPSession(pg);
   const tap = async (x, y, ms = 350) => { await pg.touchscreen.tap(x, y); await pg.waitForTimeout(ms); };
@@ -70,6 +70,7 @@ async function tapOpen(A, find, dz, expect) {
   const closeWin = async () => { const c = await pg.evaluate(() => { const b = document.querySelector('.modal .win .x, .modal .win button'); if (!b) return null; const q = b.getBoundingClientRect(); return [q.left + q.width / 2, q.top + q.height / 2]; }); if (c) await A.tap(c[0], c[1], 500); await pg.evaluate(() => { const w = document.querySelector('.modal .win'); if (w) { const b = [...w.querySelectorAll('button')].find(e => /^(x|×|Close|Never mind|Not now)$/i.test(e.textContent.trim())); if (b) b.click(); } }); await pg.waitForTimeout(400); };
   const dzs = [dz, dz, .15, .95, .5, dz]; let wrong = 0;
   for (let k = 0; k < 14 && wrong < 5; k++) {
+    if (await pg.evaluate(() => !!(G.phone && G.phone.isOpen))) { await pg.evaluate(() => G.phone.close()); await pg.waitForTimeout(400); continue; }   /* a tap landed on a phone banner (small items 2026-11-18) */
     if (await there()) { if (await right()) return 'touch'; wrong++; await closeWin(); continue; }
     const c = await pg.evaluate(([f, dz]) => { const fn = new Function('i', 'return ' + f), it = G.interactables().filter(i => { try { return fn(i); } catch (e) { return false; } }).sort((a, b) => Math.hypot(a.x - G.player.x, a.y - G.player.y) - Math.hypot(b.x - G.player.x, b.y - G.player.y))[0]; if (!it) return null; const p = G.toScreen(it.x, it.y, (it.z || 0) + (dz === undefined || dz === null ? (it.h || .6) * .5 : dz)), r = G.cv.getBoundingClientRect(); return [p.x + r.left, p.y + r.top]; }, [find, dzs[Math.min(wrong, dzs.length - 1)]]);
     if (!c) throw new Error('no thing ' + find);
@@ -82,7 +83,7 @@ async function tapOpen(A, find, dz, expect) {
 }
 /** from a tap on the thing to the end of the activity: returns { opened, kind, title, card, stars } */
 async function go(A, o) {
-  const pg = A.pg; await pg.waitForFunction(() => !G.busy && !G.minigame.MG.cur, null, { timeout: 30000 }).catch(() => {}); await pg.evaluate(() => document.querySelectorAll('.mg-res').forEach(e => e.remove()));
+  const pg = A.pg; await pg.waitForFunction(() => !G.busy && !G.minigame.MG.cur, null, { timeout: 30000 }).catch(() => {}); await pg.evaluate(() => { document.querySelectorAll('.mg-res').forEach(e => e.remove()); if (G.phone && G.phone.isOpen) G.phone.close(); });
   let how = 'touch'; if (o.find) how = await tapOpen(A, o.find, o.dz, (o.pick || [])[0]);
   for (const re of o.pick || []) { if (await pg.evaluate(() => !!G.minigame.MG.cur)) break; await pg.waitForTimeout(350); if (await pg.evaluate(() => !!document.querySelector('.modal .win'))) { if (process.env.MGB_V) console.log('   menu: ' + await pg.evaluate(() => document.querySelector('.modal .win').textContent.slice(0, 200))); await A.tapText(re, '.modal .opt, .modal button').catch(e => { if (process.env.MGB_V) console.log('   ' + e.message); }); } }
   const opened = await pg.waitForFunction(() => !!G.minigame.MG.cur, null, { timeout: o.wait || 9000 }).then(() => true).catch(() => false);
@@ -119,11 +120,15 @@ if (on2('home')) {
   await pg.evaluate(async () => { const sleep = ms => new Promise(r => setTimeout(r, ms)); if (!G.housing.isHome()) { try { await G.housing.goHome(); } catch (e) { } await sleep(2500); } G.skillplay.setAuto(false); });
   /* 1. the moving boxes: played, Auto, mini-games off */
   let b0 = await pg.evaluate(() => ({ n: G.housing.boxes().length, fun: G.needs.get('fun'), flag: G.state.flags.boxes_unpacked || 0 })); await pg.evaluate(() => G.needs.set('fun', 40));
-  r = await go(A, { name: 'mgb_unbox', find: "/Unpack a Moving Box/.test(i.label)", shotAt: 2.4 }); let b1 = await pg.evaluate(() => ({ n: G.housing.boxes().length, fun: G.needs.get('fun') }));
-  say(r.opened && r.kind === 'unbox' && b1.n === b0.n - 1 && r.stars >= 2 && /Fun \+/.test(r.card), `moving box by touch: ${fmt(r)}; boxes ${b0.n} -> ${b1.n}`);
-  r = await go(A, { find: "/Unpack a Moving Box/.test(i.label)", auto: true }); let b2 = await pg.evaluate(() => G.housing.boxes().length);
-  say(r.opened && b2 === b1.n - 1 && !/stars/.test(r.card || ''), `moving box, Auto: unpacked as before (boxes ${b1.n} -> ${b2}), no game result card`);
-  await pg.evaluate(() => G.skillplay.setAuto(true)); r = await go(A, { find: "/Unpack a Moving Box/.test(i.label)", wait: 2500 }); await pg.waitForFunction(() => !G.busy, null, { timeout: 40000 }).catch(() => {}); let b3 = await pg.evaluate(() => { G.skillplay.setAuto(false); return G.housing.boxes().length; });
+  /* Stage 122 (owner playtest list): unpacking is a plain 20-min action again, NO mini-game. Tapped by touch twice: the box goes, no game opens. */
+  const boxGone = n => pg.waitForFunction(n => G.housing.boxes().length < n && !G.busy, n, { timeout: 90000 }).catch(() => {});   /* a 20-game-minute action */
+  /* ONE thumb tap on the nearest box, then hands off (tapOpen's repeated taps could land while the walk-and-unpack had just started and stop it) */
+  const tapBox = async () => { await pg.waitForFunction(() => !G.busy, null, { timeout: 30000 }).catch(() => {}); const c = await pg.evaluate(() => { const it = G.interactables().filter(i => /Unpack a Moving Box/.test(i.label)).sort((a, b) => Math.hypot(a.x - G.player.x, a.y - G.player.y) - Math.hypot(b.x - G.player.x, b.y - G.player.y))[0]; if (!it) return null; const p = G.toScreen(it.x, it.y, (it.z || 0) + (it.h || .6) * .5), r = G.cv.getBoundingClientRect(); return [p.x + r.left, p.y + r.top]; }); if (!c) return { opened: false, busy: 'no box' }; await A.tap(c[0], c[1], 300); const busy = await pg.waitForFunction(() => !!G.busy || !!G.minigame.MG.cur, null, { timeout: 12000 }).then(() => true).catch(() => false); await pg.waitForTimeout(2500); const mg = await pg.evaluate(() => !!G.minigame.MG.cur); if (process.env.MGB_V) { const t0 = Date.now(); let last = ''; while (Date.now() - t0 < 60000) { const q = await pg.evaluate(() => JSON.stringify({ b: G.busy && G.busy.label, n: G.housing.boxes().length, c: G.now().clock, m: G.modal, sp: G.state.speed, p: [G.player.x.toFixed(1), G.player.y.toFixed(1)] })); if (q !== last) { console.log('   box', Math.round((Date.now() - t0) / 1000), q); last = q; } if (/"b":null/.test(q)) break; await pg.waitForTimeout(700); } } return { opened: mg, busy: busy ? 'started' : 'did not start' }; };
+  r = await tapBox(); await boxGone(b0.n); let b1 = await pg.evaluate(() => ({ n: G.housing.boxes().length, fun: G.needs.get('fun') }));
+  say(!r.opened && b1.n === b0.n - 1, `moving box by touch: a plain action, no mini-game (Stage 122): ${fmt(r)}; boxes ${b0.n} -> ${b1.n}`);
+  r = await tapBox(); await boxGone(b1.n); let b2 = await pg.evaluate(() => G.housing.boxes().length);
+  say(!r.opened && b2 === b1.n - 1, `moving box by touch, again: plain again (boxes ${b1.n} -> ${b2}), no game: ${fmt(r)}`);
+  await pg.evaluate(() => G.skillplay.setAuto(true)); r = await tapBox(); await boxGone(b2); let b3 = await pg.evaluate(() => { G.skillplay.setAuto(false); return G.housing.boxes().length; });
   say(!r.opened && b3 === b2 - 1, `moving box, mini-games off: no game, unpacked as before (boxes ${b2} -> ${b3})`);
   /* 2. cleaning: the quick tidy (dishes), the proper clean (window, counter, plates) */
   await pg.evaluate(() => { G.supplies.addClean(-G.supplies.clean() + 30); G.supplies.add('cleaner', 3); G.supplies.add('sponge', 3); });
@@ -238,9 +243,9 @@ if (on2('intro')) {
   A.playTouch = async (name, shotAt) => { let shot = false, kind = null, title = null; const t0 = Date.now(); while (Date.now() - t0 < 60000) { const s = await pg.evaluate(() => { const m = G.minigame.MG.cur; if (!m) return null; const s = m.state(), w = s.want || {}, p = m.toClient(w.x === undefined ? 90 : w.x, w.y === undefined ? 55 : w.y); return { kind: m.kind, title: m.def.title, t: s.t, done: s.done, counting: s.counting, ready: !!w.ready, x: p.x, y: p.y }; }); if (!s) break; kind = s.kind; title = s.title; if (!shot && s.t >= shotAt) { shot = true; await pg.screenshot({ path: path.join(OUT, name + '.png') }); } if (s.done || s.counting || !s.ready) { await pg.waitForTimeout(40); continue; } await pg.touchscreen.tap(s.x, s.y); await pg.waitForTimeout(280); } return { kind, title }; };
   await pg.evaluate(() => { try { G.firstTime.setEnabled(false); } catch (e) { } });
   let r = { opened: false };
-  for (let k = 0; k < 5 && !r.opened; k++) { for (let q = 0; q < 4; q++) { const b = await btn(/^(OK|Got it|Close|Later|Not now|x|×)$/); if (b) await tap(b[0], b[1], 500); } r = await go(A, { name: 'mgb_intro_box', find: "/Unpack a Moving Box/.test(i.label)", shotAt: 2.2, wait: 6000 }).catch(e => ({ opened: false, busy: e.message })); }
+  { for (let q = 0; q < 4; q++) { const b = await btn(/^(OK|Got it|Close|Later|Not now|x|×)$/); if (b) await tap(b[0], b[1], 500); } r = await go(A, { name: 'mgb_intro_box', find: "/Unpack a Moving Box/.test(i.label)", wait: 4000 }).catch(e => ({ opened: false, busy: e.message })); await pg.waitForFunction(() => !G.busy, null, { timeout: 40000 }).catch(() => {}); }   /* ONE box (the old retry loop unpacked them all now that no game opens) */
   const en = await pg.evaluate(() => ({ boxes: G.housing.boxes().length, flag: G.state.flags.boxes_unpacked, seen: (G.state.skillplay.n || {}).mgSeen, tip: (G.state.skillplay.n || {}).mgTip || 0 }));
-  say(r.opened && r.kind === 'unbox' && en.boxes === st.boxes.length - 1 && en.seen === 1 && en.tip === 0, `day one, the first box by touch (a human-speed thumb: one tap every 0.3 s): ${fmt(r)}; ${JSON.stringify(en)} (first mini-game of the save, no "turn them off" tip yet)`);
+  say(!r.opened && en.boxes === st.boxes.length - 1 && !en.seen, `day one, the first box by touch: a plain action, no mini-game (Stage 122): opened ${r.opened}; ${JSON.stringify(en)}`);
   say(!errs.length, `intro: zero page errors ${errs.slice(0, 3).join(' | ')}`); await ctx.close();
 }
 

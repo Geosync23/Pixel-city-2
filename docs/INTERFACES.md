@@ -34,3 +34,9 @@ Conventions
 - UI: one window at a time; use `modal/choose/say/toast/bubble` from ui/kit.js; everything reachable by touch; no hover-only affordances; keyboard shortcuts are a bonus.
 - Every system must survive save -> reload (`G.save(); G.load()`): keep runtime caches out of `G.state`, rebuild them on `'load'`.
 - Autosave is owned by ui/hud.js (on sleep, scene change, every 2 game hours).
+- Night light (src/engine/render.js `NL`, docs/reports/nightlight.md + pool_occlusion.md): default since Stage 121 = pools on the ground (dithered), wall light
+  SMOOTH from lamps / headlights in front of a building and its own door / window pools, never from a lamp behind it. URL test switches `?nightlight=`
+  `strict` (Stage 120: no pools on walls) | `dither` or `nowalls` (Stage 119: wall light dithered) | `noocc` (Stage 118: pools across everything; the kill
+  switch) | `wallown` / `smoothA` (a building keeps only its own pools, dithered / smooth) | `old` | `noprops` | `notrees` | `notiles`. At run time: set
+  `G.renderer.nl.walls / wallOwn / smooth / occ` and `nl.gen++`. After ANY change to the night pass run `node tools/poolocc_check.mjs`, `node tools/nightcheck.mjs`
+  and `node tools/perf.mjs --verify` (night cost over a long session: `node tools/perf.mjs --nightsoak N`).

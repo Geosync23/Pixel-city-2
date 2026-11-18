@@ -4,7 +4,7 @@ import { pad } from './_terrain.js';
 import * as R from '../engine/raster.js';
 
 export const RAIL_PATH = [[43, 123], [276, 123], [276, 129], [376, 129], [376, 305], [43, 305]];
-const LEGS = [ // deck rectangles: axis, centre coordinate, from, to
+export const LEGS = [ // deck rectangles: axis, centre coordinate, from, to
   { axis: 'x', c: 123, a: 40, b: 279 }, { axis: 'x', c: 129, a: 273, b: 379 }, { axis: 'y', c: 376, a: 132, b: 302 }, { axis: 'x', c: 305, a: 40, b: 379 }, { axis: 'y', c: 43, a: 126, b: 302 },
 ];
 const lerp = (t, pts) => { if (t <= pts[0][0]) return pts[0][1]; for (let i = 0; i < pts.length - 1; i++) { const p = pts[i], q = pts[i + 1]; if (t <= q[0]) return p[1] + (q[1] - p[1]) * (t - p[0]) / (q[0] - p[0]); } return pts[pts.length - 1][1]; };

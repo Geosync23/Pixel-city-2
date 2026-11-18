@@ -15,6 +15,8 @@
 //              interleaved runs (keep a copy of dist/index.html before a change to have a "before"); a query string can follow a file name
 //              (after.html?nobakeworker, after.html?nobake: the engine's test switches).
 //   --soak N   instead of the scenes: wander the city and rooms for N minutes, forcing a GC and reading the JS heap every 30 s (leak check).
+//   --nightsoak N  instead of the scenes: a night walk (21:30-22:30, the hour is re-set at each district hop) through six districts for N minutes;
+//              every 30 s the frame stats of that window, the heap after GC, objects flagged for per-frame night handling (ob._pd) and night-light counters.
 //   --verify   instead of the scenes: the "same pixels" checks of the engine's test hooks, run in the page (takes ~2 minutes):
 //              every object of the city and of six rooms, and every ground chunk, painted in one go vs. in bands (the bake queue) and vs.
 //              by the bake worker; citizens' sprites worker vs. main thread; the draw order of 600 frames (city walk + parade) vs. the old
@@ -26,9 +28,9 @@
 // browser's paint), the JS heap after a forced GC at the start and the end of the scene, and page errors (must be zero).
 // The start state is tools/perf_save.json (day 0, at home in Old Town) with Math.random replaced by a seeded generator, tips and needs off.
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module'; import { build } from 'esbuild';
-import { ROOT } from './artfiles.mjs'; import { genModules } from './modules.mjs';
+import { ROOT } from './artfiles.mjs'; import { genModules } from './modules.mjs'; import { titleTo } from './title_lib.mjs';
 const require = createRequire(import.meta.url); const { chromium } = require('playwright');
-const a = process.argv.slice(2), o = { scenes: 'all', rate: 4, dsf: 2, runs: 3, out: '', profile: false, html: '', soak: 0, save: path.join(ROOT, 'tools/perf_save.json'), label: '' };
+const a = process.argv.slice(2), o = { scenes: 'all', rate: 4, dsf: 2, runs: 3, out: '', profile: false, html: '', soak: 0, nightsoak: 0, save: path.join(ROOT, 'tools/perf_save.json'), label: '' };
 for (let i = 0; i < a.length; i++) { const k = a[i].slice(2); if (k === 'profile') o.profile = true; else if (k === 'verify') o.verify = true; else o[k] = ['scenes', 'out', 'html', 'save', 'label'].includes(k) ? a[++i] : +a[++i]; }
 const OUT = path.join(ROOT, 'out/perf'); fs.mkdirSync(OUT, { recursive: true });
 const name = o.out || `perf_${o.rate}x_dsf${o.dsf}${o.soak ? '_soak' : o.verify ? '_verify' : ''}`;
@@ -107,7 +109,7 @@ async function openGame(br, bi = 0) {
   await pg.addInitScript(INIT);
   await pg.goto(URL0); await pg.evaluate(s => localStorage.setItem('maplebay.save.v1', s), SAVE);
   await pg.goto(URL0); await pg.waitForFunction(() => window.G && G.onTitle !== undefined && !document.getElementById('load'), null, { timeout: 180000 }); await pg.waitForTimeout(800);
-  await pg.touchscreen.tap(195, 440); await pg.waitForFunction(() => !G.onTitle && G.scene, null, { timeout: 60000 }); await pg.waitForTimeout(2500);
+  await titleTo(pg, 'Continue'); await pg.waitForTimeout(2500);
   await pg.evaluate(HELP);
   const cdp = await ctx.newCDPSession(pg);
   const heap = async () => { await cdp.send('HeapProfiler.collectGarbage'); const h = await cdp.send('Runtime.getHeapUsage'); return +(h.usedSize / 1048576).toFixed(1); };
@@ -159,6 +161,27 @@ async function runScene(br, id, bi = 0) {
 const med = v => { const s = v.filter(x => x !== undefined && x !== null).sort((x, y) => x - y); return s.length ? s[s.length >> 1] : null; };
 const spread = (runs, k) => { const v = runs.map(r => r[k]).filter(x => typeof x === 'number'); return v.length ? `${med(v)} (${Math.min(...v)}-${Math.max(...v)})` : '-'; };
 
+/* ---------- night soak (small items 2026-11-18): night city walk through several districts for N minutes at the CPU throttle; every 30 s: frame stats of
+   that window, JS heap after GC, objects flagged for per-frame night handling (ob._pd, never cleared: docs/reports/pool_occlusion.md), night-light counters ---------- */
+async function nightSoak(br) {
+  const g = await openGame(br); await g.cdp.send('Emulation.setCPUThrottlingRate', { rate: o.rate }); const pts = [];
+  await g.pg.evaluate(async () => {
+    const LEGS = [[62, 231, ROUTE], [222, 228, [[232, 228], [232, 215], [212, 215], [212, 232], [236, 226]]], [110, 296, [[130, 292], [160, 292], [190, 292], [140, 296]]], [206, 140, [[230, 140], [206, 170], [178, 140], [206, 138]]], [266, 232, [[266, 264], [266, 296], [234, 296], [266, 200]]], [178, 264, [[112, 264], [82, 264], [112, 200], [178, 232]]]];
+    window.__pd = () => { let n = 0; for (const ob of (G.world && G.world.objs) || []) if (ob._pd) n++; return n; };
+    await toCity(62, 231, 22); window.__nsoak = (async () => { let k = 0; while (!window.__soakStop) { try { const L = LEGS[k++ % LEGS.length]; await toCity(L[0], L[1], 21.5 + (k % 3) * .5); await walkRoute(L[2], 55000); } catch (e) { window.__soakErr = String(e); await sleep(1000); } } })();
+    const P = window.__perf; P.d = []; P.js = []; P.rec = true; });
+  const t0 = Date.now(); let lastE = await g.pg.evaluate(() => G.renderer.perf ? G.renderer.perf() : {});
+  while (Date.now() - t0 < o.nightsoak * 60000) {
+    await g.pg.waitForTimeout(30000);
+    const fr = await g.pg.evaluate(() => { const P = window.__perf, r = { d: P.d, js: P.js }; P.d = []; P.js = []; return r; });
+    const h = await g.heap(), st = await g.pg.evaluate(() => ({ scene: G.scene.id, clock: G.now().clock, at: [Math.round(G.player.x), Math.round(G.player.y)], pd: window.__pd(), ents: G.scene.ents.length, err: window.__soakErr || null, e: G.renderer.perf ? G.renderer.perf() : {} }));
+    const e = st.e, n = (e.frames - (lastE.frames || 0)) || 1, per = k => +(((e[k] || 0) - (lastE[k] || 0)) / n).toFixed(1); lastE = e; delete st.e;
+    const sx = stats(fr.d.slice(1), fr.js.slice(1)) || {};
+    pts.push({ s: Math.round((Date.now() - t0) / 1000), heapMB: h, ...st, fps: sx.fps, p95: sx.p95, worst: sx.worst, over50: sx.over50, jsP50: sx.jsP50, jsP95: sx.jsP95, nlLitPF: per('nlLit'), nlOccPF: per('nlOcc'), nlCopyPF: per('nlCopy'), nlSilPF: per('nlSil'), sils: e.nlCount });
+    console.log(JSON.stringify(pts[pts.length - 1]));
+  }
+  await g.pg.evaluate(() => { window.__soakStop = true; }); const errors = g.errs.slice(0, 10); await g.ctx.close(); return { points: pts, errors };
+}
 /* ---------- soak: wander for N minutes, heap after GC every 30 s ---------- */
 async function soak(br) {
   const g = await openGame(br); await g.cdp.send('Emulation.setCPUThrottlingRate', { rate: o.rate }); const pts = [];
@@ -195,6 +218,8 @@ async function verify(br) {
 const br = await chromium.launch(); const result = { when: new Date().toISOString(), rate: o.rate, dsf: o.dsf, runs: o.runs, label: o.label, html: o.html || '(current tree)', profile: o.profile, scenes: {} };
 if (o.verify) {
   const v = await verify(br); result.verify = v; console.log(v.ok ? 'VERIFY OK: same pixels' : 'VERIFY FAILED'); if (!v.ok) process.exitCode = 1;
+} else if (o.nightsoak) {
+  result.nightsoak = await nightSoak(br); const p = result.nightsoak.points; console.log(`night soak ${o.nightsoak} min: heap ${p.map(x => x.heapMB).join(' ')} MB; JS p95 ${p.map(x => x.jsP95).join(' ')}; _pd ${p.map(x => x.pd).join(' ')}; page errors ${result.nightsoak.errors.length}`, result.nightsoak.errors);
 } else if (o.soak) {
   result.soak = await soak(br); const p = result.soak.points; console.log(`soak ${o.soak} min: heap ${p.map(x => x.heapMB).join(' ')} MB; page errors ${result.soak.errors.length}`, result.soak.errors);
 } else {

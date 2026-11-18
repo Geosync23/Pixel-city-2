@@ -95,6 +95,12 @@ Things that were tried and measured on the way (so nobody has to repeat them): f
 - Art / scene hooks: `nl: 'whole' | 'ground'` on an asset, a placed object or an entity. Sprites of the sprite cache carry `bx` (box of their pixels), `lb` (box of their glow) and `im` (never drawn on again).
 - `scene.lights(m, cam, pool)` hooks keep working unchanged; `m` may now be the pass-through object, which supports what the hooks use today (`drawImage`, `globalAlpha`, `globalCompositeOperation`, `fillStyle`, `fillRect`, `save`, `restore`). A pool only counts as light on people if it is drawn with `drawImage(pool(r, colour), x, y)`.
 
+- **Switches as of Stage 121 (2026-11-18; small items update):** default = ground pools dithered, wall light SMOOTH (lamps / headlights in front of a building and
+  its own door / window pools; never a lamp behind it). `?nightlight=strict` (Stage 120 look: no pools on walls), `dither` / `nowalls` (Stage 119: wall light
+  dithered), `noocc` (Stage 118: pools across everything; kill switch), `wallown` / `smoothA` (a building keeps only its own pools), plus `old`, `noprops`,
+  `notrees`, `notiles` above. Run time: `G.renderer.nl.walls / wallOwn / smooth / occ`, then `nl.gen++`. Checks after ANY night-pass change:
+  `node tools/poolocc_check.mjs`, `node tools/nightcheck.mjs`, `node tools/perf.mjs --verify`; long-session cost: `node tools/perf.mjs --nightsoak N`.
+
 ## 10. Still imperfect
 - A long vehicle (a bus) is one colour from the light at its middle: it does not brighten end by end as it passes a lamp.
 - The light is taken where the pool is drawn on screen: a bird flying over a pool brightens although it is above the light.

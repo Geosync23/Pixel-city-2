@@ -9,6 +9,9 @@ const SMALL = { [Z.downtown]: ['prop.street.bin', 'prop.street.hydrant', 'prop.s
   [Z.harbor]: ['prop.street.bin', 'prop.street.hydrant', 'prop.harbor.bollard', 'prop.harbor.crates', 'prop.harbor.barrels', 'prop.harbor.gullperch', 'prop.ind.dumpster'], [Z.hillcrest]: ['prop.street.mailbox', 'prop.nature.topiary', 'prop.street.hydrant', 'prop.street.planter.round'],
   [Z.maplewood]: ['prop.street.hydrant', 'prop.street.mailbox', 'prop.street.bin', 'veh.bicycle', 'prop.street.newsbox'], [Z.arts]: ['prop.street.bin', 'prop.street.utilitybox', 'prop.street.postercolumn', 'prop.street.hydrant', 'veh.bicycle', 'prop.street.aframe', 'prop.street.bikeshare', 'veh.scooter', 'prop.street.newsbox'],
   [Z.railyard]: ['prop.street.hydrant', 'prop.ind.barrier', 'prop.ind.dumpster', 'prop.street.utilitybox', 'prop.ind.pallets'], [Z.park]: ['prop.street.bin', 'prop.street.drinkingfountain', 'prop.street.bench.wood', 'prop.park.bikerack'], [Z.airport]: ['prop.street.bin', 'prop.street.hydrant', 'prop.street.planter.round'] };
+// Street trees that fell right under the rail viaduct deck (the train ran through their crowns): moved along the same sidewalk to the nearest free spot
+// clear of the deck (small items 2026-11-18). Same random draws as before, so nothing else in the city moves. The rule: tools/railpath_check.mjs.
+const RAIL_TREE_MOVES = { '54.25,121.5': [54.25, 128], '270.25,121.5': [270.25, 115.5] }; // keys = the spot before the snap to .5 (54.5,121.5 and 270.5,121.5 in the city)
 const DK = ['', 'downtown', 'oldtown', 'harbor', 'hillcrest', 'maplewood', 'arts', 'railyard', 'park', 'airport'];
 
 export function build(c) {
@@ -29,7 +32,7 @@ export function build(c) {
       const [x, y] = P(rd, t, off); if (c.occAt(x + .25, y + .25) !== 2) continue; const z = zoneOf(x, y), bridge = x > RIV.x0 - 2 && x < RIV.x1 + 2;
       if (k % 4 === 0) { const id = c.first(...(rd.half === 4 && z !== Z.oldtown && z !== Z.hillcrest ? ['prop.street.lamp.double'] : []), ...(LAMP[z] || LAMP[1]), 'ex.lamp'); c.put(id, x, y, { p: c.vp(id, r), free: true }); }
       else if (bridge) continue;
-      else if (k % 4 === 2) { const l = TREE[z] || []; if (l.length && r() < .8) pv(pick(l), x, y, r, { free: true }); }
+      else if (k % 4 === 2) { const l = TREE[z] || [], mv = RAIL_TREE_MOVES[x + ',' + y]; if (l.length && r() < .8) pv(pick(l), mv ? mv[0] : x, mv ? mv[1] : y, r, { free: true }); }
       else if (r() < .45) { const id = pick(SMALL[z] || SMALL[1]); if (!c.has(id)) continue; const sz = c.size(id, {}); if (Math.max(sz[0], sz[1]) > 1.6 && r() < .5) continue; pv(id, x - (rd.axis === 'y' && s < 0 ? sz[1] - .5 : 0), y - (rd.axis === 'x' && s < 0 ? Math.min(sz[1], 1) - .5 : 0), r, { free: true, flip: rd.axis === 'y' && sz[0] > 1 }); }
     }
   }

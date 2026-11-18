@@ -8,6 +8,8 @@
 //              rides  = a player cab ride and a bus ride (with Skip) driven through G.transit in real time
 //              shots  = 390x844 pictures of the three worst baseline spots at the morning rush (out/shots/<name>_spot1..3.png)
 //   --html     the single-file build to measure (default dist/index.html; build first). --out names out/traffic/<name>.json + .md + out/shots/<name>_heat.png
+//   --series   (small items 2026-11-18) sample every 10 game minutes: clock, vehicles, vehicles standing > 20 s (with where), JS heap MB (CDP; after a forced GC every 2 game hours), page errors -> res.series
+//              in out/traffic/<name>.json; with --shots also up to 3 pictures per run when >= 3 vehicles stand > 20 s.
 //   --hz       simulated frames per second (default 60). --jobs pages run in parallel.
 //
 // HOW THE TIME IS RUN (honest fast-forward): the game's own frame() is driven, unmodified, with a synthetic clock: requestAnimationFrame is captured and the
@@ -32,7 +34,7 @@ import { encodePNG } from './png.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { chromium } = createRequire(ROOT + '/')('playwright');
 const a = process.argv.slice(2), o = { plan: 'quick', html: path.join(ROOT, 'dist/index.html'), out: '', hz: 60, jobs: 3, days: 0, sites: '', shots: false, w: 390, h: 844 };
-for (let i = 0; i < a.length; i++) { const k = a[i].slice(2); if (k === 'shots') o.shots = true; else o[k] = ['plan', 'html', 'out', 'sites'].includes(k) ? a[++i] : +a[++i]; }
+for (let i = 0; i < a.length; i++) { const k = a[i].slice(2); if (k === 'shots') o.shots = true; else if (k === 'series') o.series = true; else o[k] = ['plan', 'html', 'out', 'sites'].includes(k) ? a[++i] : +a[++i]; }
 const NAME = o.out || 'traffic_' + o.plan, OUT = path.join(ROOT, 'out/traffic'), SHOTS = path.join(ROOT, 'out/shots'); fs.mkdirSync(OUT, { recursive: true }); fs.mkdirSync(SHOTS, { recursive: true });
 const HTML = fs.readFileSync(path.resolve(o.html));
 const srv = http.createServer((q, r) => { r.writeHead(200, { 'content-type': 'text/html' }); r.end(HTML); }); await new Promise(r => srv.listen(0, r)); const URLB = `http://localhost:${srv.address().port}/`;
@@ -166,12 +168,16 @@ async function runOne(R) {
   await pg.evaluate(HARNESS);
   await pg.evaluate(([x, y, wx, ev, walk]) => { const H = window.__TC; H.focus(x, y); if (wx) { H.wx = wx; G.weather.setWeather(wx, 0); } if (ev) G.cityEvents.debug.start(ev[0], ev[1]); if (walk) H.walk = { pts: walk, i: 0 }; }, [s.x, s.y, R.wx || null, R.event || null, R.walk || null]);
   let left = R.secs, shots = 0; const prog = [];
+  const series = [];
   while (left > 0) {
-    const chunk = Math.min(left, R.shot ? 240 : 900), r = await pg.evaluate(([c, hz, sj]) => window.__TC.run(c, hz, sj ? { stopJam: sj } : {}), [chunk, o.hz, R.shot && shots < R.shot ? 3 : 0]); left -= chunk; prog.push(r.clock + ':' + r.veh);
+    const chunk = Math.min(left, o.series ? 10 / .85 : R.shot ? 240 : 900), r = await pg.evaluate(([c, hz, sj]) => window.__TC.run(c, hz, sj ? { stopJam: sj } : {}), [chunk, o.hz, R.shot && shots < R.shot ? 3 : 0]); left -= chunk; prog.push(r.clock + ':' + r.veh);
+    if (o.series) { const q = await pg.evaluate(() => { const st = window.__TC.stuckNow(); return { st, cam: [+G.player.x.toFixed(0), +G.player.y.toFixed(0)] }; });
+      if (!R._cdp) R._cdp = await ctx.newCDPSession(pg); if (series.length % 12 === 0) await R._cdp.send('HeapProfiler.collectGarbage'); q.heap = +((await R._cdp.send('Runtime.getHeapUsage')).usedSize / 1048576).toFixed(1);   /* performance.memory is bucketed in headless Chromium: CDP; a forced GC every 2 game hours */ series.push({ clock: r.clock, veh: r.veh, stuck: q.st.length, stuckList: q.st.length ? q.st : undefined, heap: q.heap, errs: errs.length, cam: q.cam });
+      if (o.shots && shots < 3 && q.st.length >= 3) { await pg.evaluate(() => window.__TC.render(4)); await pg.screenshot({ path: path.join(SHOTS, `${NAME}_${R.id}_${++shots}.png`) }); console.log('   shot', `${NAME}_${R.id}_${shots}.png`, 'at', r.clock, JSON.stringify(q.st)); } }
     if (R.shot && shots < R.shot) { const st = await pg.evaluate(() => window.__TC.stuckNow()); if (st.length >= 3) { await pg.evaluate(() => window.__TC.render(4)); await pg.screenshot({ path: path.join(SHOTS, `${NAME}_${R.id}_${++shots}.png`) }); console.log('   shot', `${NAME}_${R.id}_${shots}.png`, 'at', r.clock, JSON.stringify(st)); } }
   }
   if (R.endShot) { await pg.evaluate(() => window.__TC.render(4)); await pg.screenshot({ path: path.join(SHOTS, `${NAME}_${R.id}_end.png`) }); }
-  const res = await pg.evaluate(() => window.__TC.result()); res.id = R.id; res.run = { site: s.id, x: s.x, y: s.y, t: R.t, secs: R.secs, wx: R.wx || 'clear', event: R.event || null, walk: !!R.walk, view: R.view || [o.w, o.h] }; res.pageErrs = errs; res.wall = Math.round((Date.now() - t0) / 1000);
+  const res = await pg.evaluate(() => window.__TC.result()); res.id = R.id; res.run = { site: s.id, x: s.x, y: s.y, t: R.t, secs: R.secs, wx: R.wx || 'clear', event: R.event || null, walk: !!R.walk, view: R.view || [o.w, o.h] }; res.pageErrs = errs; if (o.series) res.series = series; res.wall = Math.round((Date.now() - t0) / 1000);
   await ctx.close(); console.log(`  ${R.id}: ${Math.round(res.sim)} sim s in ${res.wall} s, errs ${errs.length + res.errs.length}, paused frames ${res.paused}`); return res;
 }
 

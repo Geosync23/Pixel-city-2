@@ -34,8 +34,7 @@ stage('start', async () => {
   ok('no pad yet: no layer, no classes on <body>', !before.layer && !before.bar && !/pad-on|kb-on/.test(before.cls), '', JSON.stringify(before));
   await P.connect(); await P.press('down', 60, 250);
   let i0 = await P.info(); ok('title: the pad ring is on Start (owner msg 238)', i0.focus && /Start/.test(i0.focus.text), 'focus', i0.focus && i0.focus.text);
-  await P.press('ok', 70, 700); await P.press('down', 60, 250);
-  let i = await P.info(); ok('title: after Start the ring is on New Game', i.mode === 'pad' && i.focus && /New Game/.test(i.focus.text), 'focus', i.focus && i.focus.text); await shot('01_title');
+  await P.press('ok', 70, 700); let i = await P.info(); if (!(i.focus && /New Game/.test(i.focus.text))) { await P.press('down', 60, 250); i = await P.info(); }   /* after Start the ring is usually ON New Game already (no save): an extra Down went to Settings (small items 2026-11-18) */ ok('title: after Start the ring is on New Game', i.mode === 'pad' && i.focus && /New Game/.test(i.focus.text), 'focus', i.focus && i.focus.text); await shot('01_title');
   await P.press('ok', 70, 900); i = await P.info(); ok('title -> New Game opens the creator', i.n > 20 && i.tabs, 'focus');
   /* creator: a preset, a tab with RB, a colour, the name with the pad keyboard */
   /* on a wide, low screen (844 x 390) the creator's preset row sits under its footer, for a finger as well: there the step is skipped and said so */
@@ -288,13 +287,14 @@ stage('settings', async () => {
   ok('Settings: Save now', how5 && saved === 'Pad', how5, 'saved player ' + saved); await backOut();
   const before = await st(); rumbles += await P.ev(() => window.__rumbles || 0); await P.pg.reload(); await P.pg.waitForFunction(() => !document.getElementById('load') && window.G && window.G.scene, null, { timeout: 60000 }); await sleep(1200);
   const fresh = await P.ev(() => ({ cls: document.body.className, layer: !!document.getElementById('padnav') })); await P.connect(); await P.press('down', 60, 300); let i = await P.info();
+  await P.choose(/^Start$/, null, { after: 900 });   /* the title's Start button comes first (Stage 118+; small items 2026-11-18) */
   how = await P.choose(/^Continue/, null, { after: 2600 }); await clearTips(); const s = await st(); const mus = await P.ev(() => (G.state.audio ? G.state.audio.music : null));
   ok('reload: the title shows no pad layer until a button is pressed, then Continue brings the game back', !fresh.layer && how && !s.title && s.sc === before.sc && Math.abs(s.x - before.x) < 3, how, `${s.sc} ${s.x},${s.y} $${s.money} music ${mus}`); await shot('39_continued');
   const w = await P.walkTo(s.x + (/^int:home/.test(s.sc) ? -1.5 : 2), s.y + 1.5, .6, 8000); ok('after Continue: the stick walks, the world target is back', w && (await P.info()).state === 'world', 'stick');
 });
 /* ------------------------------------------------------------------ run */
 let from = FROM ? stages.findIndex(s => s[0] === FROM) + 1 : 0;
-if (FROM) { await sleep(1000); await P.connect(); await P.press('down', 60, 250); const how = await P.choose(/^Continue/, null, { after: 2500 }); ok('title: Continue (from the ' + FROM + ' checkpoint)', how, how); await clearTips(); }
+if (FROM) { await sleep(1000); await P.connect(); await P.press('down', 60, 250); await P.choose(/^Start$/, null, { after: 900 }); const how = await P.choose(/^Continue/, null, { after: 2500 }); ok('title: Continue (from the ' + FROM + ' checkpoint)', how, how); await clearTips(); }
 for (let k = from; k < stages.length; k++) {
   const [name, fn] = stages[k]; console.log('--- ' + name);
   try { await fn(); } catch (e) { ok(name + ': the script itself failed', false, '', String(e && e.message).slice(0, 300)); try { await shot('fail_' + name); console.log('   state', JSON.stringify(await st())); } catch (e2) { /* page gone */ } }

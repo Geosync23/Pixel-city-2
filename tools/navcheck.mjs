@@ -74,7 +74,8 @@ const RUN = `async (row) => {
     try { if (c.go === 'city') { const d = G.navGoals.doorOf(row.door || ''); if (G.scene.id !== 'city') await G.go('city', d ? { x: d.x, y: d.y + 2.5 } : {}); if (d) { G.player.stop(); G.player.x = d.x; G.player.y = d.y + 2.5; } await sleep(120); await dismiss(); }
       else if (c.go && G.scene.id !== c.go) { await G.go(c.go, c.fresh === false ? {} : { fresh: true }); await sleep(120); await dismiss(); }
       if (c.do) await (0, eval)('(async()=>{' + c.do + '})')(); await sleep(c.wait || 450); await dismiss(); await sleep(60);
-      const a = arrow(), re = new RegExp(c.label, 'i'); let ok = a.label !== null && re.test(a.label) && (!c.mode || a.mode === c.mode) && (!c.goal || a.goal === c.goal) && a.shown;
+      let a = arrow(); const re = new RegExp(c.label, 'i');
+      if (a.label !== null && !a.shown && document.querySelector('#ftw .ftw-card, .ftw')) { await sleep(300); await dismiss(); await sleep(250); a = arrow(); }   /* a first-time window that opened just after dismiss() (timing; QA16 row, small items 2026-11-18): close it as a player would and look again */ let ok = a.label !== null && re.test(a.label) && (!c.mode || a.mode === c.mode) && (!c.goal || a.goal === c.goal) && a.shown;
       if (c.none) ok = a.label === null;
       let reach = '';
       if (ok && a.mode === 'point' && a.scene === G.scene.id && !c.none && c.reach !== false) { const p = G.player, sx = p.x, sy = p.y; const can = p.goTo(G.world, a.x, a.y, { snap: 8, limit: 60000 }); p.stop && p.stop(); p.path = null; p.x = sx; p.y = sy; if (!can) { ok = false; reach = ' (target not reachable on foot)'; } }

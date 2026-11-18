@@ -26,7 +26,7 @@ cursor, surfaces, pad keyboard, glyph hints, legend strip, Settings section), `s
   pointer + click events to whatever is under it, canvas or DOM, so anything a finger can do a pad can do.
 - **Surfaces**: things played with the pointer (the map, the room in Decorate, mini-game canvases) are focus stops you step ONTO with the confirm button;
   inside, the stick is the pointer. A running mini-game of the shared kit takes the pad at once.
-- **Glyphs** appear only in `pad` mode: on the interact prompt, on the HUD's phone / bag / My Day buttons, on whatever Back / Skip / the tab bar will press
+- **Glyphs** appear only in `pad` mode: on the interact prompt, on the HUD's phone / bag buttons (the My Day button was removed in Stage 122: Y opens the To do chip's menu), on whatever Back / Skip / the tab bar will press
   (small corner badges), and in a legend strip under the game. The strip takes 30 px at the bottom of the screen while a pad is in use (the game view shrinks by
   that much), so it can never cover a button.
 - **Keyboard**: in any window the arrow keys / Tab move the same focus ring and Enter / Space press it. In the world the keys keep their old jobs.
