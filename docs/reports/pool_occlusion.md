@@ -149,3 +149,10 @@ Looked at by me: airport (pair, crop, trio), oldtown (pair, door crop), harbour,
 4. Buildings are recognised by the id prefix `bld.`; a wall-like prop is not covered.
 5. Not done: flicker by eye while walking, long night soak, headlights-on-wall picture (only the tool's `[moving]` test: 0 px in front at all 15 spots).
 6. tools/perf.mjs still needs the Start-button fix (I used out/tools_tmp/perf_fix.mjs again).
+
+# Step 3 (test): smooth, undithered light on walls (owner, 2026-11-18)
+Test variants behind switches; the default build stays Stage 120 strict.
+
+## Progress (step 3)
+- [x] S3-0. Section started.
+- [x] S3-1. Assessed: the dither is baked into the pool sprite (poolSprite: 5 rings, checker between them); the mask is multiplied over the frame. Walls already get their light re-assembled per building (ownLight/occPut from steps 1-2), so smooth wall light = draw a smooth twin of the pool sprite (smoothOf: one gradient through the ring averages) in ownLight when the thing is a building, and re-work a building's silhouette wherever ANY pool reaches it. ~12 lines, no redesign. Switches ?nightlight=smoothA / smoothB (NL.smooth + wallOwn / walls off). Built; first look at the old-town door: B gives a clean smooth glow on the wall.

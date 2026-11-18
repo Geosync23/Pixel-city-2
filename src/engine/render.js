@@ -155,6 +155,14 @@ function sortItemsRef(L) {
 }
 let WID = 0;
 const pools = new Map();
+/* step 3 TEST: the same pool without the dither, for walls: one soft gradient through the averages of the dithered rings (1 | .85 | .7 | .525 | .175), same colour, same extent. Made once per pool sprite. */
+const SMQ = [0, .35, .45, .65, .825, .95, 1], SMK = [1, 1, .85, .7, .525, .175, 0];
+function smoothOf(c) {
+  if (c._sm) return c._sm; const w = c.width, h = c.height, rx = c._rx, ry = c._ry, t = mk(w, h), x = t.getContext('2d'), id = x.createImageData(w, h), d = id.data, R0 = c._rgb[0], G0 = c._rgb[1], B0 = c._rgb[2];
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const a = (i - rx) / rx, b = (j - ry) / ry, q = Math.sqrt(a * a + b * b); if (q >= 1) continue; let n = 1; while (SMQ[n] < q) n++; const k = SMK[n - 1] + (SMK[n] - SMK[n - 1]) * (q - SMQ[n - 1]) / (SMQ[n] - SMQ[n - 1]), o = (j * w + i) * 4; d[o] = R0 * k; d[o + 1] = G0 * k; d[o + 2] = B0 * k; d[o + 3] = 255; }
+  x.putImageData(id, 0, 0); return c._sm = t;
+}
+function isBld(ob) { return ob._wl !== undefined ? ob._wl : (ob._wl = typeof ob.id === 'string' && ob.id.startsWith('bld.')); }
 function poolSprite(r, col) { // banded, dithered ellipse of light
   const key = r + col; let c = pools.get(key); if (c) return c;
   const rx = Math.round(r * U * 1.2), ry = Math.round(rx / 2); c = mk(rx * 2 + 1, ry * 2 + 1); const x = c.getContext('2d'), id = x.createImageData(c.width, c.height), d = id.data;
@@ -179,7 +187,7 @@ const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(locati
  * tiles / tile / tileMax / tileWait: the mask tiles (Renderer._maskTiles; ?nightlight=notiles paints the mask directly every frame, as before).
  * occ / low / over / ramp: a building hides the pools behind it (see "pools behind buildings" below; ?nightlight=noocc or G.renderer.nl.occ = false: pools across everything, as before).
  * propFoot / propBig: which placed objects are lit as a whole (wholeOb below: footprint in tiles, painted box in px). promote / perFrame / slots / budget: the flat-colour copies (silGet below). */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), trees: !(NLQ && NLQ[1] === 'notrees'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), occ: !(NLQ && NLQ[1] === 'noocc'), walls: !(NLQ && NLQ[1] === 'nowalls'), wallOwn: !!(NLQ && NLQ[1] === 'wallown'), low: .5, over: 1.05, ramp: .75, tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 6, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), trees: !(NLQ && NLQ[1] === 'notrees'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), occ: !(NLQ && NLQ[1] === 'noocc'), walls: !(NLQ && (NLQ[1] === 'nowalls' || NLQ[1] === 'smoothB')), wallOwn: !!(NLQ && (NLQ[1] === 'wallown' || NLQ[1] === 'smoothA')), smooth: !!(NLQ && (NLQ[1] === 'smoothA' || NLQ[1] === 'smoothB')),   /* step 3 TEST (?nightlight=smoothA / smoothB): the light a building takes on its walls is drawn smooth, see smoothOf */ low: .5, over: 1.05, ramp: .75, tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 6, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
 let LB = new Float32Array(7 * 64), nLB = 0, nLBw = 0   /* the first nLBw are the world's own lights, the rest come from scene.lights hooks (headlights, stage lights) */, lX0 = 0, lY0 = 0, lX1 = 0, lY1 = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 let LW = new Float32Array(3 * 64), LA = new Float32Array(64); const LS = [];   // per pool: where its light stands in the world (x, y, z in tiles), the strength it was drawn with, its sprite
 function addLight(cx, cy, c, a, owner, wx, wy, wz) {
@@ -322,7 +330,7 @@ function cutDraw(sp, sy, sh, dx, dy, a, hx, it) {
 let uN = 0, uX0 = 0, uY0 = 0, uX1 = 0, uY1 = 0;
 /* how much of pool j (of LB) a thing with box B takes on its faces: 0 none .. 1 like the ground. ob: the placed object, or null */
 function takes(B, j, ob) {
-  const wall = ob !== null && NL.walls && (ob._wl !== undefined ? ob._wl : (ob._wl = typeof ob.id === 'string' && ob.id.startsWith('bld.')));
+  const wall = ob !== null && NL.walls && isBld(ob);
   if (ob !== null && (ob._no === true || (LO[j] === ob && (!wall || NL.wallOwn)))) return 1;
   const o = j * 3, lx = LW[o], ly = LW[o + 1], lz = LW[o + 2];
   if (B[2] > lz + NL.over) return 0;
@@ -345,7 +353,7 @@ function hidden(B, ob, hx, x0, y0, x1, y1, from, to, all) {
   uN = 0; if (to <= from || x0 >= lX1 + 1 || x1 <= lX0 || y0 >= lY1 + 1 || y1 <= lY0) return 0;
   for (let j = from, o = from * 7; j < to; j++, o += 7) {
     let a = LB[o] - LB[o + 2], b = LB[o + 1] - LB[o + 3], c = LB[o] + LB[o + 2] + 1, d = LB[o + 1] + LB[o + 3] + 1; if (x0 >= c || x1 <= a || y0 >= d || y1 <= b) continue;
-    if (!all && takes(B, j, ob) >= 1) continue;
+    if (!all && takes(B, j, ob) >= 1 && !(NL.smooth && ob !== null && isBld(ob))) continue;   /* (step 3 TEST: a building's walls are redrawn wherever any pool reaches them, the ones it takes come back smooth) */
     if (a < x0) a = x0; if (b < y0) b = y0; if (c > x1) c = x1; if (d > y1) d = y1; if (hx !== null && !hexBox(hx, a, b, c, d)) continue;
     if (!uN++) { uX0 = a; uY0 = b; uX1 = c; uY1 = d; } else { if (a < uX0) uX0 = a; if (b < uY0) uY0 = b; if (c > uX1) uX1 = c; if (d > uY1) uY1 = d; }
   }
@@ -354,12 +362,12 @@ function hidden(B, ob, hx, x0, y0, x1, y1, from, to, all) {
 /* a thing's own light in the part x0..y1 (mask px): ambient + the pools it takes (B, ob: see takes; B null: every pool), added in the order the mask adds its pools, at 0, 0 of the canvas fc (fx).
  * Returns how many pools; with none nothing is drawn (the light is the ambient colour) unless `always`. */
 function ownLight(fx, fc, x0, y0, x1, y1, B, ob, amb, always) {
-  const w = x1 - x0, h = y1 - y0; let k = 0;
+  const w = x1 - x0, h = y1 - y0, sm = NL.smooth && ob !== null && B !== null && isBld(ob); let k = 0;
   for (let j = always ? -1 : 0, o = j * 7; j < nLB; j++, o += 7) {   // (j = -1: the ambient colour alone)
     let p = 0, q = 0, r = 0, t = 0, f = 1;
     if (j >= 0) { p = LB[o] - LB[o + 2]; q = LB[o + 1] - LB[o + 3]; r = p + 2 * LB[o + 2] + 1; t = q + 2 * LB[o + 3] + 1; if (x0 >= r || x1 <= p || y0 >= t || y1 <= q) continue; f = B === null ? 1 : takes(B, j, ob); if (f <= 0) continue; }
     if (!k++) { if (fc.width < w || fc.height < h) { fc.width = Math.max(fc.width, w); fc.height = Math.max(fc.height, h); } fx.globalCompositeOperation = 'source-over'; fx.globalAlpha = 1; fx.fillStyle = amb; fx.fillRect(0, 0, w, h); fx.globalCompositeOperation = 'lighter'; }
-    if (j < 0) continue; const px = p, py = q; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; fx.globalAlpha = LA[j] * f; fx.drawImage(LS[j], p - px, q - py, r - p, t - q, p - x0, q - y0, r - p, t - q);
+    if (j < 0) continue; const px = p, py = q; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; fx.globalAlpha = LA[j] * f; fx.drawImage(sm ? smoothOf(LS[j]) : LS[j], p - px, q - py, r - p, t - q, p - x0, q - y0, r - p, t - q);
   }
   return always ? k - 1 : k;
 }
@@ -790,7 +798,7 @@ export class Renderer {
               if (nER) { eSkip = true; const hit = hitBox(ER, nER, x0, y0, x1, y1, hx); eSkip = false; if (hit) { if (r2 <= r0 || r3 <= r1) { r0 = hX0; r1 = hY0; r2 = hX1; r3 = hY1; } else { if (hX0 < r0) r0 = hX0; if (hY0 < r1) r1 = hY0; if (hX1 > r2) r2 = hX1; if (hY1 > r3) r3 = hY1; } } }
               if (r2 > r0 && r3 > r1) { if (c !== null) { if (a < 1) pushOp(4, sp, r0 - dx, r1 - dy, r2 - r0, r3 - r1, r0, r1, a, c, null); else pushOp(2, c, r0 - (pl.x - cam.x), r1 - (pl.y - cam.y), r2 - r0, r3 - r1, r0, r1, a, null, null); } else pushOp(0, sp, r0 - dx, r1 - dy, r2 - r0, r3 - r1, r0, r1, a, amb, null);   /* (no pool reaches it: its own light is the ambient colour) */ addE(r0, r1, r2, r3, 1); nlOcc++; }
               if (!(a < 1)) for (let j = nLBw, o = j * 7; j < nLB; j++, o += 7) { let p = LB[o] - LB[o + 2], q = LB[o + 1] - LB[o + 3], r = p + 2 * LB[o + 2] + 1, t = q + 2 * LB[o + 3] + 1; if (p < x0) p = x0; if (q < y0) q = y0; if (r > x1) r = x1; if (t > y1) t = y1; if (r <= p || t <= q || (hx !== null && !hexBox(hx, p, q, r, t))) continue;
-                { const f = takes(it.B, j, ob), ins = p >= r0 && q >= r1 && r <= r2 && t <= r3, out = r2 <= r0 || r3 <= r1 || p >= r2 || r <= r0 || q >= r3 || t <= r1; if ((f <= 0 && ins) || (f >= 1 && out)) continue; }   // (the copy has taken it off there already / it is still on there, as it should be)
+                { const f = takes(it.B, j, ob), ins = p >= r0 && q >= r1 && r <= r2 && t <= r3, out = r2 <= r0 || r3 <= r1 || p >= r2 || r <= r0 || q >= r3 || t <= r1; if ((f <= 0 && ins) || (f >= 1 && out && !(NL.smooth && ob !== null && isBld(ob)))) continue; }   // (the copy has taken it off there already / it is still on there, as it should be)
                 pushOp(3, sp, p - dx, q - dy, r - p, t - q, p, q, a, null, it); addE(p, q, r, t, 1); }
             }
             done = true;
