@@ -78,3 +78,7 @@
 .ph-wd-i.src-work{border-left-color:var(--blue)}.ph-wd-i.src-family,.ph-wd-i.src-story,.ph-wd-i.src-friend{border-left-color:#e0608e}.ph-wd-i.src-class,.ph-wd-i.src-ticket,.ph-wd-i.src-delivery{border-left-color:#8a5cc2}.ph-wd-i.gone{opacity:.5}
 .ph-wd-free{opacity:.6}.ph-wd-n{font-size:12px;opacity:.7;margin-top:1px}.ph-wd-n.big{opacity:1;background:#ffe08a;border:2px solid var(--edge);padding:0 6px;align-self:flex-start}
 .md-sheet,#goalsw{font-variant-ligatures:none}
+
+/* owner playtest 2026-11-18: the selected to-do (the guide arrow points at it) + the "more on your phone" row */
+.md-goal.sel{background:#fff3b0;outline:2px solid var(--edge);padding-left:4px}
+.md-tom.md-phone{margin-top:10px;flex-direction:column;gap:1px;align-items:flex-start}.md-tom.md-phone span{white-space:normal;overflow:visible;font-size:12px;opacity:.85}

@@ -502,7 +502,7 @@ function onDown(a) {
     case 'ok': if (!useTarget()) { const adv = document.querySelector('[data-pad-advance]'); if (adv) clickEl(adv); } break;
     case 'back': worldBack(); break;
     case 'x': clickEl(document.querySelector('#hud .hud-bag')) || (G.inv && G.inv.open && G.inv.open()); break;
-    case 'y': clickEl(document.querySelector('#hud .hud-myday')) || (G.myDay && G.myDay.open && G.myDay.open()); break;
+    case 'y': clickEl(document.querySelector('#goalsw:not(.off):not(.empty) .gw-head')) || (G.myDay && G.myDay.open && G.myDay.open()); break;
     case 'start': if (G.phone && G.phone.open) G.phone.open(); break;
     case 'select': if (G.phone && G.phone.open) G.phone.open('map'); break;
     case 'l1': cycle(-1); break; case 'r1': cycle(1); break;

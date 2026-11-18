@@ -43,3 +43,13 @@
 #ui:has(#goalsw.md:not(.empty):not(.off)) #toasts{top:134px}
 /* QA8: with the phone open the intro bubble goes to the bottom, above the phone's own buttons */
 .tut.low{top:auto;bottom:62px}
+
+/* owner playtest 2026-11-18: the chip is THE To do button now (the My Day HUD button is gone) */
+#goalsw.md .gw-head{min-height:30px;padding:4px 8px}
+#goalsw.md .gw-head .gw-more{flex:none;font-weight:700;font-size:15px;line-height:1;opacity:.7;margin-left:1px}
+#goalsw.md .gw-head .pg,#goalsw.md.gold .gw-head .pg{flex:none;background:none;padding:0}
+#goalsw.md.soon .gw-head{animation:gwsoon 1s infinite alternate}
+@keyframes gwsoon{to{background:#ffd23c}}
+.tut.under{top:140px}
+#ui:has(.tut.under) #toasts,#ui:has(#goalsw.md:not(.empty):not(.off)):has(.tut.under) #toasts{top:200px}
+@media (prefers-reduced-motion:reduce){#goalsw.md.soon .gw-head{animation:none}}

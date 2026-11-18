@@ -13,7 +13,7 @@
 //   hint(text | null, target?, opts?)   one small tutorial bubble at the top of the screen. target = CSS selector | DOM element |
 //        world position / entity {x, y, z?, h?} | function returning one of those (re-evaluated ~4x per second, so it survives
 //        re-rendered UIs). DOM targets get a pulsing outline (.tut-hl), world targets a bouncing arrow.
-//        opts: { skip: fn (adds a small button), skipLabel, onTap: fn }
+//        opts: { skip: fn (adds a small button), skipLabel, onTap: fn, under: true (sit below the To do chip and keep the chip visible) }
 //   caption(who | null, text, ms = 3600)   non-modal speech caption (who null = narrator style);  caption() clears it
 //   skipButton(label, fn) -> remove()      a lone "Skip" button bottom-right (cutscenes)
 //   refresh()                              re-render the widget
@@ -53,7 +53,8 @@ function render() {
   if (G.myDayUI && G.myDayUI.chip) {   /* My Day owns the lists; this is its "what is next" line */
     let c = null; try { c = G.myDayUI.chip(); } catch (e) { c = null; }
     W.classList.add('md'); W.classList.toggle('empty', !c || !c.text); W.classList.toggle('gold', !!(c && c.gold)); W.classList.add('shut'); W.body.replaceChildren();
-    if (c && c.text) W.head.replaceChildren(el('i', { text: c.label || 'Next' }), el('span', { text: c.text }));
+    if (!W.pg) W.pg = el('i.pg', { 'data-pg': 'y' });   /* PAD HOOK: the Y glyph (it sat on the removed My Day button) */
+    if (c && c.text) { W.head.replaceChildren(el('i.gw-tag', { text: c.label || 'Next' }), el('span', { text: c.text }), el('b.gw-more', { text: '›' }), W.pg); W.head.setAttribute('aria-label', 'To do, my schedule and ideas: ' + c.text); }
     return;
   }
   const all = G.goals ? G.goals.list() : [], goals = all.filter(g => g.group !== 'opportunity'), opps = all.filter(g => g.group === 'opportunity'), ap = appts();
@@ -79,9 +80,9 @@ export function hint(text, target, opts = {}) {
   if (!text) return;
   text = tapWords(text);
   injectCss();
-  const box = el('div.tut', { onclick: () => opts.onTap && opts.onTap() }, el('span', { text }), opts.skip ? el('button.tut-skip', { text: opts.skipLabel || 'Skip intro', onclick: e => { e.stopPropagation(); opts.skip(); } }) : null);
+  const box = el('div.tut' + (opts.under ? '.under' : ''), { onclick: () => opts.onTap && opts.onTap() }, el('span', { text }), opts.skip ? el('button.tut-skip', { text: opts.skipLabel || 'Skip intro', onclick: e => { e.stopPropagation(); opts.skip(); } }) : null);
   const arrow = el('div.tut-arrow', { style: { display: 'none' } });
-  root().append(arrow, box); H = { box, arrow, target, hl: null, world: null, k: 0, low: false }; tickHint();
+  root().append(arrow, box); H = { box, arrow, target, hl: null, world: null, k: 0, low: false, under: !!opts.under }; tickHint();
 }
 function tickHint() {
   if (!H) return; let t = H.target; try { if (typeof t === 'function') t = t(); if (typeof t === 'string') t = document.querySelector(t); } catch (e) { t = null; }
@@ -132,7 +133,7 @@ export function init() {
   G.on('frame', frame); G.on('game:start', () => { liveUI = true; }); G.on('ready', () => { if (!G.started) liveUI = true; });
   setInterval(() => {
     tickHint(); if (!W) return;
-    const off = !!G.cutscene || !!H || !liveUI;
+    const off = !!G.cutscene || (!!H && !H.under) || !liveUI;   /* a bubble made with opts.under sits below the To do chip and leaves it visible (the first-evening lessons) */
     W.classList.toggle('off', off); if (dirty && !off) render();
   }, 250);
 }

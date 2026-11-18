@@ -33,7 +33,7 @@ async function session(dir, tag) {
   if (res.used) { await grab('shop', '.modal .win'); await tapText(/^Close$/); } await tapEl('#hud .hud-phone'); await pg.waitForTimeout(700); await grab('phone_home', '.ph-screen');
   await tapText(/^Settings/); await pg.waitForTimeout(600); await grab('phone_settings', '.ph-view');
   await tapText(/^Back$/); await pg.waitForTimeout(400); await tapText(/^Map/); await pg.waitForTimeout(900); await grab('phone_map');
-  await tapText(/^Put phone away/); await pg.waitForTimeout(500); await tapEl('#hud .hud-myday'); await pg.waitForTimeout(800); await grab('myday');
+  await tapText(/^Put phone away/); await pg.waitForTimeout(500); await tapEl('#goalsw .gw-head'); await pg.waitForTimeout(800); await grab('myday');
   res.pad = await pg.evaluate(() => ({ layer: !!document.getElementById('padnav'), bar: !!document.getElementById('pad-bar'), cls: document.body.className, slots: [...document.querySelectorAll('.pg')].map(e => [e.childElementCount, getComputedStyle(e).display, e.offsetWidth].join('/')), steer: typeof G.padSteer, look: G.camLook === undefined ? 'unset' : String(G.camLook), mode: G.pad ? G.pad.mode : 'no G.pad', seen: G.pad ? G.pad.seen : false, marks: [...document.querySelectorAll('#ui *')].filter(e => e._pn).length }));
   await br.close(); srv.close(); return res;
 }

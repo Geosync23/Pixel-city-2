@@ -7,7 +7,7 @@
 //   addIndicator({ id, icon, text?, title?, onclick?, cls? }) -> { set({ icon?, text?, cls?, hidden? }), remove() }
 //                              a small chip in the status row under the money (pass, job timer, "raining" ...). Same id replaces.
 //   setBadge('phone' | 'bag', n | '')    force a button badge (the phone badge follows G.messages.unread() by itself)
-//   setMyDay({ soon?: bool, badge?: n | '' })   the My Day button (top-left, first in the row; opens G.myDay.open()): pulse it / show a count. Driven by ui/myday.js.
+//   setMyDay({ soon?: bool, badge?: n | '' })   pulse the To do chip under the needs bar (ui/goals.js; it opens G.myDay.open()) while it is time to leave. Driven by ui/myday.js. (The separate My Day HUD button was removed 2026-11-18.)
 //   togglePanel(open?)         the wellness panel         pause(on?)          saved()  flash the save indicator
 // Autosave (only in a started game, never on dev ?scene= launches): after sleeping, on every scene change, every 2 game hours.
 // Keys: P pause, 1/2/3 speed, I/B backpack (inventory.js), Tab/N wellness panel, M/Q phone.
@@ -61,7 +61,8 @@ function build() {
   H.phone = el('button.hud-btn.hud-phone', { 'aria-label': 'Phone', onclick: () => (G.phone && G.phone.open ? G.phone.open() : toast('No signal yet.', 'info')) }, iconEl('ui.phone', 3), H.phoneBadge, el('i.pg', { 'data-pg': 'start' }));
   H.panel = el('div.hud-panel');
   H.paused = el('button.hud-paused', { onclick: () => pause(false) }, el('b', { text: 'Paused' }), el('span', { text: 'tap to continue' }));
-  H.root.append(el('div.hud-tl', null, el('div.hud-tlrow', null, H.day, H.time), H.needs), el('div.hud-tr', null, el('div.hud-trrow', null, H.saved, H.money), H.delta, H.speed, H.ind), el('div.hud-bc', null, H.prompt, H.act), el('div.hud-br', null, H.bag, H.phone), H.panel, H.paused);
+  /* owner playtest 2026-11-18: the My Day button is gone from the HUD; the To do chip under the needs bar (ui/goals.js #goalsw) opens the same menu. H.day is still built (not attached) so setMyDay callers keep working. */
+  H.root.append(el('div.hud-tl', null, el('div.hud-tlrow', null, H.time), H.needs), el('div.hud-tr', null, el('div.hud-trrow', null, H.saved, H.money), H.delta, H.speed, H.ind), el('div.hud-bc', null, H.prompt, H.act), el('div.hud-br', null, H.bag, H.phone), H.panel, H.paused);
   root().prepend(H.root);
 }
 
@@ -170,7 +171,7 @@ function toastsClear(dt) {
 }
 export function init() {
   injectCss(); build();
-  G.hud = { show, hide, refresh, addIndicator, togglePanel, pause, saved, setBadge: (k, v) => { badges[k] = v; dirty = true; }, setMyDay: o => { if (o.soon !== undefined) H.day.classList.toggle('soon', !!o.soon); if (o.badge !== undefined) { H.dayBadge.textContent = o.badge || ''; H.dayBadge.classList.toggle('on', !!o.badge); } }, get visible() { return shown; }, get el() { return H.root; } };
+  G.hud = { show, hide, refresh, addIndicator, togglePanel, pause, saved, setBadge: (k, v) => { badges[k] = v; dirty = true; }, setMyDay: o => { if (o.soon !== undefined) { H.day.classList.toggle('soon', !!o.soon); const c = document.getElementById('goalsw'); if (c) c.classList.toggle('soon', !!o.soon); } if (o.badge !== undefined) { H.dayBadge.textContent = o.badge || ''; H.dayBadge.classList.toggle('on', !!o.badge); } }, get visible() { return shown; }, get el() { return H.root; } };
   G.on('frame', onFrame); G.on('frame', toastsClear);
   for (const ev of ['needs:change', 'inv:change', 'hour', 'weather', 'load', 'msg:new', 'moodlet', 'skill:up']) G.on(ev, () => { dirty = true; });
   G.on('money', moneyDelta);

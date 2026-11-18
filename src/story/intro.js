@@ -221,9 +221,12 @@ export const GOAL_LISTS = {
     goals: [
       { id: 'unpack', text: 'Unpack your moving boxes and suitcase (0/4)', hint: 'Tap a box (or the suitcase by the door) to unpack it.',
         doneWhen: 'boxes_unpacked:4', doneText: "All unpacked. It is starting to look like yours." },   /* owner msg 165: the suitcase you towed home is the fourth (sim/luggage.js); goals already in old saves keep their 0/3 */
+      /* owner playtest 2026-11-18: the needs lesson. Completed by sim/first_evening.js (toilet, then washing your hands). Old saves simply do not have this row. */
+      { id: 'bathroom', text: 'Freshen up in the bathroom', hint: 'Through the Bathroom door: use the toilet, then wash your hands.',
+        doneWhen: 'freshened_up', doneText: 'Better. That is how needs work: you look after them at the things around you.' },
       { id: 'fridge', text: 'Check the fridge', hint: 'Tap the fridge.',
         doneWhen: 'fridge_opened', doneText: 'A starter cupboard: eggs, bread, rice, the basics. Enough to cook tonight.' },
-      { id: 'find_food', text: 'Find something to eat nearby', hint: 'Open Maps on your phone to see what is close.',
+      { id: 'find_food', text: 'Make yourself something to eat', hint: 'Tap the fridge, then "Make a no-cook dish". A sandwich is easy. (Or eat out: Maps on your phone shows what is close.)',
         doneWhen: 'ate_meal', doneText: 'Much better. First dinner in the new city!' },
       { id: 'text_jules', text: 'Text Nora that you made it', hint: 'Messages > Nora > Reply.',
         doneWhen: 'replied:jules', doneText: 'Nora sent back eleven hearts and a dinosaur. The dinosaur is from Milo.' },
@@ -248,6 +251,27 @@ export const GOAL_LISTS = {
         doneWhen: 'met_npcs:3', doneText: 'Three names learned. Only a few thousand to go.' },
     ],
   },
+};
+
+/* owner playtest 2026-11-18: the guided first evening (sim/first_evening.js). Prompts are the small yellow bubble; `free` / `tomorrow` are read as cards. */
+export const FIRST_EVENING = {
+  unpack_box:   'Tap a moving box to unpack it.',
+  unpack_case:  'Now your suitcase, by the door.',
+  menu:         'Tap To do: it shows what to do next.',
+  needs:        'The little bars up top are your needs. You look after them at the things around you.',
+  toilet:       'Long trip. Use the toilet: through the Bathroom door.',
+  toilet_here:  'Tap the toilet.',
+  wash:         'Now wash your hands at the sink.',
+  fridge:       'Hungry? Tap the fridge.',
+  make:         'Fridge › Make a no-cook dish › a sandwich.',
+  eat:          'Dinner is in the fridge. Open it and eat.',
+  free:         ['Unpacked, washed, fed. The rest of the {when} is yours.',
+                 'A few ideas: take a walk round the block and see what is near. Put your feet up on the sofa with a book. Text Nora that you made it.',
+                 'There are always more under Ideas, in the To do menu. And when you are tired, your bed is right there.'],
+  tomorrow:     ['Tomorrow morning: go and see Nana Bea. She will have breakfast on. 4 Thimble Street, Old Town, the blue door.',
+                 'After that, perhaps look for a job. The Jobs app on your phone has the whole board. No rush.',
+                 'Both are on your To do list for tomorrow.'],
+  skip:         'Skip tips',
 };
 
 export const NUDGES = [

@@ -16,6 +16,7 @@
 import { G } from '../core/game.js';
 import { el, root, toast } from './kit.js';
 import { iconEl } from './_icons.js';
+import { tapWords } from './goals.js';
 import { defaultTime } from '../sim/myday.js';
 
 export const order = 133;
@@ -63,7 +64,8 @@ function chip() {
   const g = sc.goals.find(x => !x.done); if (g) return { label: 'To do', text: g.shown || g.text };
   if (sc.chapter) return { label: 'Story', text: sc.chapter.text, gold: true };
   const o = sc.opps.find(x => !x.done); if (o) return { label: 'To do', text: o.text };
-  const k = safe(() => G.myDay.ideas({ n: 5 }).length, 0); return k ? { label: 'Free', text: `${k} idea${k === 1 ? '' : 's'} for right now` } : null;
+  /* owner playtest 2026-11-18: this chip is the only way into the menu now, so it never disappears */
+  const k = safe(() => G.myDay.ideas({ n: 5 }).length, 0); return k ? { label: 'To do', text: `Nothing planned · ${k} idea${k === 1 ? '' : 's'} for right now` } : { label: 'To do', text: 'Nothing planned. Tap to look.' };
 }
 function syncHud() {
   const n = safe(() => G.planner.next(), null); let soon = false;
@@ -139,7 +141,8 @@ function render() {
   if (rest.length) { sched.append(sec(sc.next ? 'Later today' : 'Today')); const cut = !M.allToday && rest.length > 5 ? 4 : rest.length; for (const a of rest.slice(0, cut)) sched.append(schedRow(a));
     if (cut < rest.length) sched.append(el('button.md-tom', { 'data-more': 1, onclick: () => { M.allToday = true; render(); } }, el('b', { text: `${rest.length - cut} more today` }), el('span', { text: rest.slice(cut, cut + 3).map(a => `${hh(a.t)} ${a.title}`).join(' · ') }))); }
   if (flex.length) { sched.append(sec('Any time today')); for (const a of flex) sched.append(schedRow(a)); }
-  if (empty) B.append(ideasBox, sched); else B.append(sched, ideasBox);
+  /* owner playtest 2026-11-18: To do and My schedule at the TOP, Ideas BELOW (the ideas used to lead when the day was empty, and To do sat under them) */
+  const todoAt = el('div'); B.append(todoAt, sched);
   /* to do + opportunities taken up (the old Goals widget) */
   const goals = sc.goals, opps = sc.opps;
   if (goals.length || opps.length) {
@@ -147,11 +150,16 @@ function render() {
     box.append(el('button.md-sec.md-fold', { onclick: () => { S.todoShut = !shut; render(); } }, el('span', { text: `To do${goals.length ? ` · ${goals.length - openN} of ${goals.length} done` : ''}` }), el('i', { text: shut ? '+' : '-' })));
     if (!shut) { let last = null;
       for (const g of goals) { if (g.listTitle && g.listTitle !== last) { last = g.listTitle; box.append(el('div.md-list', { text: last })); }
-        box.append(el('button.md-goal' + (g.done ? '.done' : ''), { 'data-g': g.id, onclick: () => { if (g.done) return; if (g.placeId) go(g.placeId); else if (g.hint) flash(g.hint); } }, el('span.md-box'), el('span', { text: g.shown || g.text }), g.placeId && !g.done ? iconEl('ui.pin', 1) : null)); }
+        /* owner playtest 2026-11-18: tapping a to-do item points the guide arrow at its thing (sim/first_evening.js knows where each one is); the sheet closes so the arrow can be seen */
+        const here = !g.done && safe(() => G.todoNav.has(g.id), false), sel = !g.done && safe(() => G.todoNav.selected() === g.id, false);
+        box.append(el('button.md-goal' + (g.done ? '.done' : '') + (sel ? '.sel' : ''), { 'data-g': g.id, onclick: () => { if (g.done) return; if (here) { safe(() => G.todoNav.pick(g.id)); close(); toast(g.hint ? tapWords(g.hint) : 'Follow the arrow.', 'info', 3600); } else if (g.placeId) go(g.placeId); else if (g.hint) flash(g.hint); } }, el('span.md-box'), el('span', { text: g.shown || g.text }), (g.placeId || here) && !g.done ? iconEl('ui.pin', 1) : null)); }
       if (opps.length) { box.append(el('div.md-list', { text: 'Opportunities you took up' })); for (const g of opps) box.append(el('button.md-goal.opp' + (g.done ? '.done' : ''), { 'data-g': g.id, onclick: () => { if (g.done) return; if (g.placeId) go(g.placeId); else if (g.hint) flash(g.hint); } }, el('span.md-box'), el('span', { text: g.text }), g.placeId && !g.done ? iconEl('ui.pin', 1) : null)); } }
-    B.append(box);
-  }
+    todoAt.replaceWith(box);
+  } else todoAt.remove();
   if (sc.tomorrow.length) B.append(el('button.md-tom', { onclick: () => { close(); safe(() => G.phone.open('planner', { day: Math.floor(t / DAY) + 1 })); } }, el('b', { text: 'Tomorrow' }), el('span', { text: sc.tomorrow.slice(0, 2).map(a => `${hh(a.t)} ${a.title}`).join(' · ') + (sc.tomorrow.length > 2 ? ` · ${sc.tomorrow.length - 2} more` : '') })));
+  B.append(ideasBox);
+  /* the fuller version (owner playtest 2026-11-18) */
+  B.append(el('button.md-tom.md-phone', { 'data-phone': 1, onclick: () => { close(); safe(() => G.phone.open('planner')); } }, el('b', { text: 'More on your phone' }), el('span', { text: 'The My Day app has the whole week, every idea and your alarm.' })));
   /* findability (owner msg 107): the Systems shelf and Wander's quick tools are one tap from here */
   if (!M.teach) B.append(el('div.md-acts', { style: 'margin-top:10px;justify-content:space-between' }, el('button.md-sm', { 'data-shelf': 1, onclick: () => { close(); safe(() => G.phone.open('guide', { tab: 'systems' })); } }, 'How things work here'),
     el('button.md-sm', { 'data-quick': 1, onclick: () => { close(); safe(() => G.phone.open('guide', { tool: 'fun' })); } }, 'Fun right now')));
@@ -161,14 +169,15 @@ function render() {
 
 /* ---------- the walk-through (3 steps on the real sheet) ---------- */
 const TUT = [
-  { sel: '.md-sched', text: 'This is your schedule. Only what you choose goes on it, plus the things life puts there: work, family, a Chapter of the story.' },
-  { sel: '.md-ideas', text: 'These are ideas, picked for right now from all over town. They are not on your day. They are only ideas.' },
-  { sel: '.md-ideas .md-add', text: 'Like one? Tap Add and it is on your day. "Take me there" shows the way. That is all there is to it.' },
+  { sel: '.md-todo, .md-sched', text: 'To do comes first: what is worth doing next. Tap an item and the arrow in the world points you to it.' },
+  { sel: '.md-sched', text: 'My schedule is under it: appointments and work shifts, plus anything you add yourself. The next one is always on top.' },
+  { sel: '.md-ideas', text: 'Ideas are below: things you could do right now. They are only ideas until you tap Add.' },
+  { sel: '.md-phone', text: 'This is the short version. The My Day app on your phone has the complete one: the whole week, every idea, your alarm.' },
 ];
 function tutStep() {
   if (!M || !M.tut) return; const k = M.tut.k, s = TUT[k]; for (const e of M.el.querySelectorAll('.md-hl')) e.classList.remove('md-hl');
-  const tg = M.body.querySelector(s.sel); if (tg) { tg.classList.add('md-hl'); if (M.tut.shown !== k) { M.tut.shown = k; try { tg.scrollIntoView({ block: k === 2 ? 'center' : 'nearest' }); } catch (e) { /* old browser */ } } }
-  M.tutBox.replaceChildren(el('small', { text: `How My Day works · ${k + 1} of ${TUT.length}` }), el('p', { text: s.text }),
+  const tg = M.body.querySelector(s.sel); if (tg) { tg.classList.add('md-hl'); if (M.tut.shown !== k) { M.tut.shown = k; try { tg.scrollIntoView({ block: k >= 2 ? 'center' : 'nearest' }); } catch (e) { /* old browser */ } } }
+  M.tutBox.replaceChildren(el('small', { text: `How this menu works · ${k + 1} of ${TUT.length}` }), el('p', { text: s.text }),
     el('div.md-tutb', null, el('button.md-link', { 'data-tut': 'skip', text: 'Skip', onclick: () => tutEnd() }), el('button.md-tnext', { 'data-tut': 'next', text: k === TUT.length - 1 ? 'Got it' : 'Next', onclick: () => { if (k === TUT.length - 1) tutEnd(); else { M.tut.k++; tutStep(); } } })));
   M.tutBox.classList.add('on');
 }
