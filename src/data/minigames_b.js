@@ -32,6 +32,7 @@ export const MIXES = [['Orange', [1, 1, 0]], ['Green', [0, 1, 1]], ['Violet', [1
 
 /* ---- which activity opens which game.  skill: the game goes through skillplay (GAME_FOR + GAMES: bonus xp in that skill, records, the Me app);  no skill: the B runner (no xp: a shower is not a skill) ---- */
 export const ACT_GAME_B = {
-  unpack_boxes: 'unbox', tend_plants: 'water', sk_tune_shower: 'leak', sk_tune_stove: 'wires', sk_tune_tv: 'wires', sk_tune_computer: 'wires', play_pool: 'cue', dance_home: 'dance', read_skill_book: 'recall',   // skillplay
+  /* owner playtest 2026-11-18: unpacking a moving box / the suitcase is a plain timed action again (no mini-game); the 'unbox' game itself stays in the kit (G.mgB.demo('unbox')) */
+  tend_plants: 'water', sk_tune_shower: 'leak', sk_tune_stove: 'wires', sk_tune_tv: 'wires', sk_tune_computer: 'wires', play_pool: 'cue', dance_home: 'dance', read_skill_book: 'recall',   // skillplay
   shower: 'dial', gym_shower: 'dial', swing: 'swing', feed_ducks: 'ducks', meet_animals: 'brush',                                                                                                                // B runner
 };
