@@ -1020,3 +1020,6 @@ Not now: more activities and jobs (later, when I say), J4 jobs, iPhone 13 mini w
 About me: I play on an Android phone in portrait and voice-type. Keep reports short and plain, and always say what you tested yourself and what you didn't
 
 Please just for now 1 Fable worker picking up the lighting work
+
+## 251 (2026-11-18)
+Great. Question: The screenshot you shared shows the old lighting ,yes? It isn't occluding

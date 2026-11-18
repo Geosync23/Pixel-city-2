@@ -217,3 +217,4 @@
 197. (msg 249) No landing sound downtown (done, Stage 118); title keeps city recordings; no Fable check of Opus work needed; new account = one Fable session doing the work + one Opus helper; opening prompt written: docs/NEW_ACCOUNT_PROMPT.md.
 
 198. (msg 250) Third account started with the prepared prompt (docs/NEW_ACCOUNT_PROMPT.md) plus: 'just for now 1 Fable worker picking up the lighting work'. Order: lighting (report to owner before bigger changes; publish with before/after night pictures) -> cabin passenger flicker -> trailer plane re-shoot + resend -> small items. Keep docs/wip/ intact. Done at start: branch `ccr-43e14e98-hxd35t` from the head of ccr-e622e92c-7t3ejy, plain build, smoke shot OK, NEW artifact https://claude.ai/artifact/Xb5aFwEtTpQU4Hz2rjUXuD.
+199. (msg 251) Asked whether the smoke screenshot shows the old lighting (not occluding). Answer: yes, Stage 118 has no lighting fix yet; the fix is only in the worker's tree until checked.
