@@ -1032,3 +1032,6 @@ Thank you for checking, yes please move forward with that. No light pools on wal
 
 ## 254 (2026-11-18)
 Agyer this what tasks doesthe Fable worker have left from what was outlined
+
+## 255 (2026-11-18)
+Finish the lighting. After,  Go to #2. #1 isnt an issue anymore . Stop there
