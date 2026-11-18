@@ -1041,3 +1041,6 @@ Going to bed.  Please set up am hourly check to reset in case If you max out 5 h
 
 ## 257 (2026-11-18)
 Can you show me the door glow youre referencing
+
+## 258 (2026-11-18)
+Door glow kept and  also can we get the ligjt spilling onto a wall without thr dithering? I know its part of what youre talking about.  Even in your door glow kept rxample the ligjt the lamp would spill on the wall is fantastic. But the dithering ruins the effect..keep the ligjtm lose the shading effect on walls. Keep it on the ground.. show me a test that first
