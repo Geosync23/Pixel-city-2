@@ -9,7 +9,10 @@
     them all); 2 = hotel pool laps + shoot pool "NO GAME OPENED, modal:1": a phone notification banner was under a thumb tap and opened the phone
     (screenshot out/shots/small_items/A_mgb_fails.png) -> tool fix: put the phone away before/while tapping a thing. Also: the boxes are now tapped ONCE
     and the tool waits for the box to go (repeated taps could land just as the walk-and-unpack started). After: home 15/15, intro 3/3, town all pass
-    (walk / rules / pad passed in the first run). Under heavy machine load (3 browsers at once) "moving box again" and "tune up the stove" failed once
+    (walk / rules / pad passed in the first run). A later full run on a quiet machine: 24 PASS / 2 FAIL ("moving box again" and, after it, "tune up
+    the stove: no card") and then the town part stopped with "no thing ... dryer" (the laundromat dryer not found right after the sort game). The box
+    wait is now polled from node (waitForFunction missed the box going now and then): home 15/15 twice after that; town re-run: all passed. So the
+    dryer stop is an intermittent tool/timing flake I did not pin down (it passed in 3 of 4 runs). Under heavy machine load (3 browsers at once) "moving box again" and "tune up the stove" failed once
     each and passed on the quiet re-run: timing, not the game (a direct probe unpacked 3 boxes in a row by touch fine).
   - tools/pad_check.mjs: first run 8 PASS / 33 FAIL, all from step 2: after Start the ring is ALREADY on New Game (no save), the tool pressed Down
     once more and landed on Settings -> Down only when needed. Second run 67 / 2: reload -> Continue needed the Start button first (also in --from).
@@ -52,6 +55,60 @@
   - Not a jam anywhere. Overlap pair-s/h 30.8 (3.6 visible) and stuck-despawn 29/h are the tool's usual background numbers (see traffic2.md).
   - Raw: out/traffic/soak_1118b.{md,json} (series per run in the json), heat map out/shots/soak_1118b_heat.png. (First try soak_1118 had heap from
     performance.memory, which is bucketed in headless Chromium: replaced by CDP.)
-- [ ] E. Long night lighting soak
-- [ ] F. Touch pass (night walls, first evening from a new game incl. arrival intro)
-- [ ] G. Doc upkeep
+- [x] E. Long night lighting soak. DONE. NEW `node tools/perf.mjs --nightsoak N` (no render.js / sprites.js / world.js / _ctx.js edits): tools/perf_save.json,
+  390x844, dsf 2, CPU throttle 4x, night (21:30-23:10; the hour is re-set at each hop), six district legs walked in turn (Old Town -> Downtown,
+  City Hall Plaza, Harbor, Arts / Hillcrest edge, Downtown east / Maplewood, Old Town west), 55 s walking per leg (the hop between legs is a G.go
+  teleport), every 30 s: frame stats of that window, heap after a forced GC, objects with ob._pd. 12 min (24 samples), machine otherwise idle. 0 page errors.
+  | when | fps | JS p50 / p95 ms | frame p95 ms | heap MB (after GC) | objects with _pd |
+  |---|---|---|---|---|---|
+  | start (0.5-1.5 min) | 45-47 | 11.3-12.0 / 22.8-27.5 | 33.4 | 33.2-34.3 | 8-18 |
+  | middle (5.5-6.5 min) | 47-55 | 10.5-7.2 / 23.0-14.6 | 33.3-33.4 | 36.5-37.1 | 76-88 |
+  | end (11-12.3 min) | 52-54 | 7.8-9.1 / 16.0-17.9 | 33.3 | 37.4-37.7 | 91-93 |
+  VERDICT: NO CREEP in frame cost; it gets CHEAPER as caches fill (JS p95 27.5 -> ~17 ms, fps 45 -> 54). The flagged-object count does grow as new
+  districts are visited (8 -> 88 in the first 6 min) and then levels off (88-93 for the second lap over the same districts): it is bounded by what you
+  have walked past, not by time. Heap +4.5 MB over 12 min with the growth slowing (+3.9 MB in the first 6 min, +0.6 MB in the last 6): caches filling,
+  not a leak seen at this length. Worst single frames 350-880 ms are the district hops (a scene load), not walking. Not tested: rain at night, more
+  than 12 minutes, more than these six districts (a player who tours the whole city would flag more objects; the per-frame cost of ~90 flagged
+  objects did not show). Raw: out/perf/nightsoak_1118.json, out/si_logs/nightsoak.log.
+- [x] F. Touch pass. DONE (partly scripted; details below). Scripts (not in git): out/tools_tmp/night_walls.mjs, out/tools_tmp/intro_touch.mjs (+ logs out/si_logs/).
+  NIGHT WALLS (390x844, dsf 2, perf_save, 22:00): screenshots in Old Town (100,231), City Hall Plaza (222,228), Harbor station (110,296), Arts (206,140):
+  out/shots/small_items/night_*.png, montage F_night4.png. Walls / windows / pools look right; nothing odd on walls. FLICKER: 6 consecutive canvas frames
+  while walking (after a real tap on the ground) at the Plaza and in Old Town (nf_<spot>_0..5.png), each pair aligned for the camera shift: changed
+  pixels per pair 2.9-3.5% (Plaza) and 0.8-1.2% (Old Town); the changed pixels are people, cabs, cars and one curb-line strip by the plaza crosswalk
+  (diff overlays F_flicker_montage.png, magenta = changed). NO wall flicker between consecutive frames at either spot.
+  ARRIVAL INTRO PLAYED BY TOUCH (new game, no Skip): plane cinematic -> cabin (wait in line, walk to the door) -> concourse (walkway, Nora's text read
+  and answered in Messages, a traveller, the tram exit) -> tram ride -> Baggage Claim (carousel 2, grab the yellow bag, green channel, arrivals, atrium)
+  -> curb (walk, phone, Messages, MapleCab, Juniper Court, Request ride, wait, tap the cab) -> cab ride (not skipped, ~100 s) -> Manny + Walt (15 lines)
+  -> door -> lobby -> stairs. 414 s from "Move in". 0 page errors. Shots intro_01..14_*.png. The driver needed several rounds of rules (its own limits:
+  tapping under the hint arrow, counters in the way); nothing in the game blocked a player who reads the hint.
+- [x] G. Doc upkeep. DONE (short factual edits): docs/reports/myday.md (top note: HUD My Day button removed in Stage 122, the To do chip and pad Y
+  open the menu; the button bullet marked removed), docs/reports/minigames_b.md (top note + table rows: moving boxes have no mini-game since Stage 122,
+  `unbox` kind unused; the check expects the plain action), docs/reports/controller.md (glyph line: no My Day button; Y opens the To do chip's menu),
+  docs/reports/nightlight.md section 9 + docs/INTERFACES.md conventions (night-light switches strict | dither / nowalls | noocc | wallown / smoothA (+ old,
+  noprops, notrees, notiles), smooth wall light default, run-time NL flags, the checks to run after any night-pass change, and perf --nightsoak).
+
+## F: what was found (390x844, real taps)
+1. **Phone banners cover the To do chip** (old gap, still there): Maple Post banner over the chip at night in Old Town (night_oldtown.png / F_night4.png),
+   Milo's text over it in the Juniper Court lobby (intro_stuck_30.png), the wish-list banner box measured top 98 / bottom 168 vs the chip at 95-125
+   (wishnudge_check). A banner lasts a few seconds; the chip cannot be tapped meanwhile. Low-medium.
+2. **Intro ended in the lobby (seen once, not root-caused)**: after Walt, the door, then the lobby hint "Your flat is upstairs. Tap the stairs." the
+   driver tapped the stairs and the "Stairs: up to Flat 3B" prompt; from then on G.intro.at = null, the To do chip read "Unpack your moving boxes" and
+   no hint was shown, while the scene stayed int:lobby:h_juniper_court for the next 90 s (player standing at the stairs, 16:01; intro_stuck_30.png).
+   The apartment_arrival step is done on G.housing.isHome(), which should be false in a lobby, so something else happened; a probe to replay it
+   (G.intro.goto('apartment_arrival') on a new game) hung, so I could not reproduce it. A player would still see the Stairs button. Severity unclear;
+   worth one look by hand: New Game, play the intro to the lobby, tap the stairs once, watch whether the flat opens.
+3. **Small touch targets (< 40 px)** at 390 wide: speed buttons ❚❚ / 1x / 2x / 4x (30-32 x 26), "Skip intro" (70 x 22), the close "x" of a counter
+   window in the airport (31 x 28), the To do chip (30 high), the interact prompt button ("E Traveller", "E Stairs: up to Flat 3B": 31 high),
+   "Skip" (57 x 36), "Skip ride" (34 high). Mostly long-standing.
+4. **Curb, "Tap the cab to hop in"** (F_intro3.png, middle): the top of the screen stacks the nav banner "To Juniper Court: meet your MapleCab at the
+   kerb", the MapleCab phone banner, the hint, the arrow label "Your MapleCab: hop in" and an overheard-chat bubble that overlaps that label; the cab
+   itself was off screen (arrow in the top-left corner). Readable but crowded. Low.
+5. **Wording**: "kerb" (nav arrow "Cab pick-up: wait at the kerb", the nav banner, phone_taxi, phone tips) next to "curb" in the intro ("Stay by the
+   curb", the narration). Pick one. Low.
+6. **Lobby chatter**: "There are two kinds of people: those who stand on the right, and tourists." (an escalator line) said in the Juniper Court lobby
+   (intro_stuck_30.png). Low.
+7. **"Open the MapleCab app"** comes while the phone still shows the Messages thread: the app's highlight only appears after the player goes back to
+   the home screen by themselves. Low.
+8. A "Discovered: City Hall Plaza" toast draws under the To do chip (F_night4.png, 2nd panel). Low.
+Not a game problem: the tool needed many rules (tapping under the hint arrow lands next to the walkway, a tap toward the tram hit a counter and opened
+its window ~60 times, etc.). The first lesson step (unpack) after a played intro was not reached by the script (it ended in the lobby, see 2).
