@@ -179,7 +179,7 @@ const NLQ = typeof location !== 'undefined' ? /[?&]nightlight=(\w+)/.exec(locati
  * tiles / tile / tileMax / tileWait: the mask tiles (Renderer._maskTiles; ?nightlight=notiles paints the mask directly every frame, as before).
  * occ / low / over / ramp: a building hides the pools behind it (see "pools behind buildings" below; ?nightlight=noocc or G.renderer.nl.occ = false: pools across everything, as before).
  * propFoot / propBig: which placed objects are lit as a whole (wholeOb below: footprint in tiles, painted box in px). promote / perFrame / slots / budget: the flat-colour copies (silGet below). */
-export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), trees: !(NLQ && NLQ[1] === 'notrees'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), occ: !(NLQ && NLQ[1] === 'noocc'), low: .5, over: 1.05, ramp: .75, tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 6, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
+export const NL = { mode: NLQ && NLQ[1] === 'old' ? 'old' : 'new', props: !(NLQ && NLQ[1] === 'noprops'), trees: !(NLQ && NLQ[1] === 'notrees'), gen: 1, tiles: !(NLQ && NLQ[1] === 'notiles'), occ: !(NLQ && NLQ[1] === 'noocc'), walls: !(NLQ && NLQ[1] === 'nowalls'), wallOwn: !!(NLQ && NLQ[1] === 'wallown'), low: .5, over: 1.05, ramp: .75, tile: 256, tileMax: 24, tileWait: 20, step: .175, max: 8, hyst: .22, rate: 3, big: 26000, propFoot: 4.5, propBig: 7000, promote: 6, promoteBig: 3, perFrame: 2, slots: 4, budget: 2.5e6 };
 let LB = new Float32Array(7 * 64), nLB = 0, nLBw = 0   /* the first nLBw are the world's own lights, the rest come from scene.lights hooks (headlights, stage lights) */, lX0 = 0, lY0 = 0, lX1 = 0, lY1 = 0; const LO = [];   /* LO[i] = the object the light belongs to (a lamp post is not lit by its own lamp), or null */   // the pools drawn into the mask this frame: centre x, y, half size x, y (canvas px), colour x strength
 let LW = new Float32Array(3 * 64), LA = new Float32Array(64); const LS = [];   // per pool: where its light stands in the world (x, y, z in tiles), the strength it was drawn with, its sprite
 function addLight(cx, cy, c, a, owner, wx, wy, wz) {
@@ -322,10 +322,17 @@ function cutDraw(sp, sy, sh, dx, dy, a, hx, it) {
 let uN = 0, uX0 = 0, uY0 = 0, uX1 = 0, uY1 = 0;
 /* how much of pool j (of LB) a thing with box B takes on its faces: 0 none .. 1 like the ground. ob: the placed object, or null */
 function takes(B, j, ob) {
-  if (ob !== null && (LO[j] === ob || ob._no === true)) return 1;
+  const wall = ob !== null && NL.walls && (ob._wl !== undefined ? ob._wl : (ob._wl = typeof ob.id === 'string' && ob.id.startsWith('bld.')));
+  if (ob !== null && (ob._no === true || (LO[j] === ob && (!wall || NL.wallOwn)))) return 1;
   const o = j * 3, lx = LW[o], ly = LW[o + 1], lz = LW[o + 2];
   if (B[2] > lz + NL.over) return 0;
   if (B[5] - B[2] < NL.low || B[5] - lz < NL.low) return 1;
+  /* step 2 (owner msg 253): a ground pool is light on the ground. A building (id 'bld.*') takes no pool on its walls or roof from any side; not even from its own lamps (window and door spill: NL.wallOwn = true / ?nightlight=wallown keeps those); only from a light standing within its
+     footprint (under a canopy, in a depot; a moving one comes up over NL.ramp tiles as it drives in). NL.walls = false (?nightlight=nowalls): step 1 only, a lamp in front still lights the wall. */
+  if (wall) {
+    let d = lx - B[0], e = ly - B[1]; if (e < d) d = e; e = B[3] - lx; if (e < d) d = e; e = B[4] - ly; if (e < d) d = e;
+    return d <= 0 ? 0 : j < nLBw || d >= NL.ramp ? 1 : d / NL.ramp;
+  }
   if (j < nLBw) return lx >= B[3] || ly >= B[4] || (lx > B[0] && ly > B[1]) ? 1 : 0;
   /* a moving light: by its distance from the ground behind the thing (the two strips x < x0, y < y1 and x < x1, y < y0), so that it comes up evenly as the car drives out from behind */
   const ax = lx - B[0], ay = ly - B[4], bx = lx - B[3], by = ly - B[1], d1 = ax <= 0 ? (ay <= 0 ? 0 : ay) : ay <= 0 ? ax : Math.sqrt(ax * ax + ay * ay), d2 = bx <= 0 ? (by <= 0 ? 0 : by) : by <= 0 ? bx : Math.sqrt(bx * bx + by * by), d = d1 < d2 ? d1 : d2;
@@ -677,8 +684,8 @@ export class Renderer {
       const Q = this._Q2 || (this._Q2 = []), L = this._OL || (this._OL = []), wait = this._OW || (this._OW = []); Q.length = 0; wait.length = 0; world.query(ox, oy, ox + w, oy + h, Q); let n = 0;
       for (let i = 0; i < Q.length; i++) {
         const ob = Q[i]; if (ob._pd) continue; if (ob.hidden) { ob._pg = 0; if (mayHide(ob)) wait.push(ob); continue; }
-        const sp = objSpriteIf(ob); if (sp === undefined) { if (mayHide(ob)) wait.push(ob); continue; } if (sp === null || (ob.size[2] <= .06 && !sp.l)) continue;   // (no picture; drawn with the ground, as in draw())
-        if (ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) continue;
+        const sp = objSpriteIf(ob); if (sp === undefined) { wait.push(ob); continue; } if (sp === null || (ob.size[2] <= .06 && !sp.l)) continue;   // (no picture; drawn with the ground, as in draw())
+        /* (step 2: the things lit as a whole are in the list too: in front of a wall that has lost a pool they get the pattern back, see _occPass) */
         const it = L[n] || (L[n] = { B: null, spr: null, ax: 0, ay: 0, r: null, k: 0, ob: null, e: null, h: null, t: null, m: 0, ns: 0, _i: 0 }); n++;
         it.B = ob.B; it.spr = sp; it.ax = (ob.x - ob.y) * U; it.ay = (ob.x + ob.y) * U / 2 - ob.z * U; it.r = ob.sb; it.k = ob.k; it.ob = ob; it.h = OCCL && ob.vbl ? ob._oh || obHex(ob) : null; it.t = ob.sb; ob._pg = gen; ob._ps = sp;
       }
@@ -698,10 +705,13 @@ export class Renderer {
     const fx = this.Fx, fc = this.F; nQR = 0;
     for (let i = 0; i < n; i++) {
       const it = L[i], ob = it.ob; if (ob === null) continue; const sp = it.spr;
-      if ((ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp)) || ob._pd) continue;
+      if (ob._pd) continue; const whole = ob._ng === NL.gen ? ob._nw : wholeOb(ob, sp); if (whole && !nQR) continue;
       const dx = sp.x + it.ax - camX, dy = sp.y + it.ay - camY, q = sp.bx; let x0 = q ? dx + q[0] : dx, y0 = q ? dy + q[1] : dy, x1 = q ? dx + q[2] : dx + sp.w, y1 = q ? dy + q[3] : dy + sp.h;
       if (x0 < cx0) x0 = cx0; if (y0 < cy0) y0 = cy0; if (x1 > cx1) x1 = cx1; if (y1 > cy1) y1 = cy1; if (x1 <= x0 || y1 <= y0) continue;
       const hx = ob.vbl ? ob._hx || hexOf(ob) : null;
+      /* step 2: a thing lit as a whole (a lamp post, a tree, a sign) that stands in front of a place worked on gets the mask's pattern back there, every pool, like the ground: it looks as it always did
+         (the frame then lights it as a whole, or leaves it, as before). Without this a post in front of a wall took the wall's darkness. */
+      if (whole) { if (hitBox(QR, nQR, x0, y0, x1, y1, hx)) { occPut(m, fx, fc, sp, dx, dy, hX0, hY0, hX1, hY1, 1, null, null, amb); if (rec) rec.push(ob); } continue; }
       let has = hidden(ob.B, ob, hx, x0, y0, x1, y1, 0, nLB) > 0, a0 = uX0, b0 = uY0, a1 = uX1, b1 = uY1;
       if (nQR && hitBox(QR, nQR, x0, y0, x1, y1, hx)) { if (!has) { has = true; a0 = hX0; b0 = hY0; a1 = hX1; b1 = hY1; } else { if (hX0 < a0) a0 = hX0; if (hY0 < b0) b0 = hY0; if (hX1 > a1) a1 = hX1; if (hY1 > b1) b1 = hY1; } }
       if (!has) continue;
@@ -890,8 +900,8 @@ export class Renderer {
       const m = this.Mx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
       const nlOn = NL.mode !== 'old' && dark > .05, al = Math.min(1, dark * .5), occ = nlOn && NL.occ && world.poolOcc === true; nLB = 0; nHP = 0;   /* occ: a building hides the pools behind it (see "pools behind buildings") */
       /* perf: the mask of the world's own lights (ambient + every pool on screen: 20 to 40 draws a frame in town) is kept in tiles while nothing about it changes (all night; indoors all day): see _maskTiles. Same pixels. */
-      const K = dark > .05 && NL.tiles ? this._maskKey(world, env.amb, al, occ) : null; if (occ) this._occPrep(world, S, K, env.amb, al);
-      const tiled = K !== null && this._maskTiles(world, cam, env.amb, al, m, nlOn, occ, K); nLBw = nLB;
+      const K = dark > .05 && (NL.tiles || occ) ? this._maskKey(world, env.amb, al, occ) : null; if (occ) this._occPrep(world, S, K, env.amb, al);   /* (step 2: the key is kept with NL.tiles off as well, so that the things left to the frame have their own-light copies (_occOwn) exactly as in a real frame that is painted directly because a tile is missing) */
+      const tiled = K !== null && NL.tiles && this._maskTiles(world, cam, env.amb, al, m, nlOn, occ, K); nLBw = nLB;
       if (!tiled) {
         m.fillStyle = env.amb; m.fillRect(0, 0, W, H);
         if (dark > .05) { m.globalCompositeOperation = 'lighter'; m.globalAlpha = al; const LL = world.lights; for (let i = 0; i < LL.length; i++) { const l = LL[i], rx = Math.round(l.r * U * 1.2), ry = Math.round(rx / 2)   /* half size of its pool sprite (see poolSprite) */, x = Math.round((l.x - l.y) * U) - cam.x - rx, y = Math.round((l.x + l.y) * U / 2 - l.z * U) - cam.y - ry; if (x > W || y > H || x + rx * 2 + 1 < 0 || y + ry * 2 + 1 < 0) continue;   /* perf: off-screen lights are rejected before the pool sprite is looked up (every light of the city, every frame) */ const ps = poolSprite(l.r, l.c || '#ffd9a0'); m.drawImage(ps, x, y); if (nlOn) addLight(x + rx, y + ry, ps, al, l.ob, l.x, l.y, l.z); } nLBw = nLB;

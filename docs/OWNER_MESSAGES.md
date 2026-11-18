@@ -1029,3 +1029,6 @@ Great thanks. Yes all work we do here must be kept seperate of where we started
 
 ## 253 (2026-11-18)
 Thank you for checking, yes please move forward with that. No light pools on walls as you suggested. This is the only work going for now
+
+## 254 (2026-11-18)
+Agyer this what tasks doesthe Fable worker have left from what was outlined
