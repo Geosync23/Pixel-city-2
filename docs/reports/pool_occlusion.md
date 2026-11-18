@@ -110,3 +110,42 @@ Goal: a ground pool is light on the ground only; never on a building's wall or r
   Tool: fresh() also resets the kept light colour; [walls] moved to the end and reports building px / all px separately.
 - [x] S2-5. Second full battery (final render.js): nightcheck all passed; perf --verify VERIFY OK (day pixels unchanged); poolocc 15/16 spots pass, [walls] 0 px everywhere; 1 FAIL at central: [fade] 5 px (worst 19 levels) under the half-transparent edge pixels of a lit palm in front of the faded station - tool now leaves such pixels out (same exception nightcheck [6] has); re-run of central passes. occl_check full: wrong 11 (watch_plaza, vehicle/person; day code is untouched by step 2 - to be re-run before/after).
 - [x] S2-6. Perf Stage 119 -> step 2 (3 runs, 4x CPU, 390x844 dpr 2; out/perf/pocc2_resume.md): night_rain 55.4 -> 55.5 fps, JS p50 8.6 -> 8.4 ms; night_plaza 57.9 -> 58.0, 7.2 -> 7.0; walk 59.0 -> 59.1, 4.3 -> 4.1. No measurable cost. 0 errors.
+- [x] S2-7. Final full poolocc run with the final tool: 0 FAIL (16 spots). occl_check watch_plaza repeated: Stage 119 build 0, 0, 0, 0, 23 wrong; step-2 build 5, 4, 5, 0 wrong -> the "wrong" count of that watch is run-to-run noise (random traffic), present in both builds; step 2 touches no daytime code. Report section written.
+
+## Step 2: verdict
+**It works** for the stated goal: no ground pool is drawn on any building wall or roof. **One decision is needed before publishing: the door glow** (below).
+
+## Step 2: what changed (render.js only, about 20 lines on top of step 1; no redesign)
+- `takes()`: a placed object whose id starts with `bld.` (a building) takes NO pool from a lamp outside its footprint, whichever side the lamp is on, and (default) none from its own lamps either. It still takes: a light standing inside its footprint (canopy, depot, pavilion; a moving light ramps in over `NL.ramp`), and the old "low thing / top below the lamp's foot / fountain / nl:'ground'" cases. Props (rail platform/canopy/pier, shelters, food truck, string lights, airport canopy) and everything lit as a whole (people, cars, trees, lamp posts) are unchanged.
+- New switches in `NL`: `walls` (default on; `?nightlight=nowalls` = Stage 119 behaviour) and `wallOwn` (default off; `?nightlight=wallown` = a building keeps its OWN door/window pool on its wall).
+- `_occBake` / `_occPass`: things lit as a whole are now in the tile pass too and get the full pattern back where they stand in front of a wall that lost a pool (otherwise lamp posts in front of walls went dark, and differently depending on whether the building behind was faded).
+- `draw()`: the mask key is kept whenever occ is on (also with `NL.tiles` off), so the direct-paint test mode matches a real direct-painted frame.
+- tools/poolocc_check.mjs: new `[walls]` test; `[leak]`/`[moving]` use the step-2 rule; three test-hygiene fixes (kept light colour reset, "afterwards" after lit props are started afresh, pixels under half-transparent edges of sprites in front left out of `[fade]`).
+
+## Step 2: THE DECISION - the door glow
+The 178 building-owned lights in the city (r 2.5 to 11) are the door/shop-front spill pools = the warm glow at enterable doors. They are ordinary ground pools, half of which lies on the building's own wall. The airport example is exactly this: the light on the terminal's glass front is mostly the terminal's OWN entrance pool (r 7), not the curb lamp.
+- Default as built (strict, owner's wording "no light pools on walls"): the own pool stays on the GROUND in front of the door but no longer lights the wall, the door leaf or a doorstep that is part of the building's picture. Entrances look darker than today (out/shots/poolocc2/crop_oldtown_door.png, trio_juniper.png right).
+- Alternative (`NL.wallOwn = true`, one word in the NL line of render.js): street lamps, headlights and other buildings' pools are off the walls, but each building keeps its own door glow on its wall as today. Then the airport front stays lit (trio_airport.png middle).
+The brief asked for both "no pools on walls" and "door glow unchanged"; for the wall part these contradict each other, so the lead/owner should pick from the trio pictures. Lit windows, signs, lamp heads and their halos are unchanged in both.
+
+## Step 2: checks (run by me on the final build vs. the Stage 119 build)
+| check | result |
+|---|---|
+| `poolocc_check --objs 4 --same stage119` (16 spots) | 0 FAIL. `[walls]` 0 px change on 1141 to 31945 visible building px per spot when the ~1000 lamps the buildings do not take are removed; `[leak]` 0 px (15/15); `[ground]` 0 px outside silhouettes; `[moving]` 0 px behind and 0 px in front; `[fade]` 0 px; `[same]` occlusion off = Stage 119, 0 px (15/15 + day) ; no page errors |
+| same tool on the Stage 119 build (towers, lofts) | fails as it should: `[walls]` 766 px / 939 px, `[leak]` 702 px |
+| `nightcheck` | all checks passed |
+| `perf --verify` (day pixels) | VERIFY OK: same pixels, page errors 0 |
+| `occl_check` | full run: page errors 0, wrong 11, all in watch_plaza; shown above to be noise that the Stage 119 build has too (0 to 23) |
+| perf (out/perf/pocc2_resume.md) | night_rain 55.4 -> 55.5 fps (JS p50 8.6 -> 8.4 ms), night_plaza 57.9 -> 58.0 (7.2 -> 7.0), walk 59.0 -> 59.1 (4.3 -> 4.1): no measurable cost |
+
+## Step 2: pictures (out/shots/poolocc2/, 500x900 zoom 2; pair_X = Stage 119 | step 2; trio_X = Stage 119 | own door glow kept | step 2 default)
+airport (default spot), downtown 197,264, glass 189,150, harbour 101,326, oldtown 123,263, plaza 222,228, central 213,326, juniper 62,231, fade (player 69.5,235 behind the loft); crop_airport.png, crop_oldtown_door.png; trio_airport / trio_oldtown / trio_juniper.
+Looked at by me: airport (pair, crop, trio), oldtown (pair, door crop), harbour, downtown, plaza, fade, trio_juniper. Seen: terminal front, house walls, warehouse wall clean; ground pools reach the wall foot with a straight edge, no dark fringe on the pavement; lamp heads/halos, lit windows and signs unchanged; pools still show through the faded loft. Not looked at: glass, central, trio_oldtown (final versions).
+
+## Step 2: known gaps / what's left
+1. The door-glow decision above.
+2. A doorstep or plinth that is drawn as part of a building's picture goes dark with the wall (seen at the old-town door). Fixing that needs per-asset marking (out of scope).
+3. A light inside a building's footprint still lights the whole silhouette (station hall, gas station, depot, pavilion), and props with roofs (airport canopy, rail canopy, bus shelter) still take pools: left as they are, as instructed.
+4. Buildings are recognised by the id prefix `bld.`; a wall-like prop is not covered.
+5. Not done: flicker by eye while walking, long night soak, headlights-on-wall picture (only the tool's `[moving]` test: 0 px in front at all 15 spots).
+6. tools/perf.mjs still needs the Start-button fix (I used out/tools_tmp/perf_fix.mjs again).
