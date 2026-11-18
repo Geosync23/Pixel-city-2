@@ -4,6 +4,7 @@ Rule: this file is updated every time a worker finishes, a build is published, o
 ## Now (2026-11-18, THIRD account, owner msg 250; update THIS section at every hand-off)
 - Session branch `ccr-43e14e98-hxd35t` (from 4a045fd). Live game = Stage 118 on the NEW link https://claude.ai/artifact/Xb5aFwEtTpQU4Hz2rjUXuD (slug f7b44435-7681-47c8-9be9-2fa1322d8f44, version 1794964754-7bc3).
 - RUNNING: ONE Fable worker on the lighting resume (owner msg 250 asked for exactly this). It owns src/engine/render.js, sprites.js, world.js, src/world/_ctx.js, tools/poolocc_check.mjs, docs/reports/pool_occlusion.md. It applies the patch, re-runs the checks, writes the report with progress notes, makes before/after night pictures, and STOPS (no bigger changes, no publish, no git). Then: I look at its pictures, send the owner a short note (works? what's left?), and publish only when right.
+- NOTE: from this commit on, src/ holds the lighting patch IN PROGRESS (unchecked), so a plain build is NOT the published Stage 118 until the lighting is approved; Stage 118 source = commit 4a045fd for the four engine files.
 - Do not delete anything in docs/wip/. Then items 2-4 of the list below (cabin flicker, trailer plane re-shoot, small items).
 - Owner messages: last = 250; notes last = 198.
 

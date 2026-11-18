@@ -81,6 +81,8 @@ const objKey = ob => ob._key || (ob._key = ob.id + '|' + JSON.stringify(ob.p) + 
 export function objSprite(ob) {
   return cached(objKey(ob), () => { try { return toSpritePooled(R.render(R.screenBox(ob.vbl), () => ob.a.draw(ob.p), null, 3, ob.flip, true)); } catch (e) { console.warn('art error in ' + ob.id + ': ' + e.message); return null; } });
 }
+/** the same sprite if it has been painted already, else undefined: nothing is painted for the asking (the night pass asks about things that are not on screen yet, render.js _occBake) */
+export function objSpriteIf(ob) { return cache.get(objKey(ob)); }
 /**
  * seating (docs/reports/seating.md): the part of a placed object's sprite that lies on the camera side of the plane x >= v (ax 0) or
  * y >= v (ax 1), in the object's placed frame relative to (ob.x, ob.y): what must be drawn again over somebody sitting on it. The art is

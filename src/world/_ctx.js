@@ -32,7 +32,7 @@ export function level(x, y) {
 }
 
 export function makeCtx(seed) {
-  const world = new World(W, H, { name: 'city' });
+  const world = new World(W, H, { name: 'city' }); world.poolOcc = true;   /* outdoors: a building hides the light pools on the ground behind it (engine/render.js, docs/reports/pool_occlusion.md). Rooms keep their lights on everything. */
   const c = { world, seed, r: rng(seed), occ: new Uint8Array(W * H), roads: [], nodes: [], marks: [], named: {}, stats: {} };
   /* occupancy: 0 free, 1 carriageway, 2 sidewalk, 3 building/reserved, 4 water, 5 rail corridor, 6 paved path / plaza (walkable, keep clear of big things) */
   c.occSet = (x0, y0, x1, y1, v) => { x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(W, Math.ceil(x1)); y1 = Math.min(H, Math.ceil(y1)); for (let y = y0; y < y1; y++) c.occ.fill(v, y * W + x0, y * W + x1); };
