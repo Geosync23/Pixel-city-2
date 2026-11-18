@@ -55,7 +55,7 @@ const B = { len: LEN_B, music: 'music_b.wav', video: [], gfx: [] };
   const v = B.video, g = B.gfx, tdB = td, END = END_B, LEN = LEN_B;
   // revision (owner msg 211): opens on a dense, close downtown corner under the title card (2 bars so the title can be read); the plane follows; the on-foot / bus / train / cab run is trimmed from 2 beats each to 1 beat each (one bar) to pay for it
   v.push({ clip: 'd_open', t0: 0, t1: bb(3), note: 'OPENING: a busy downtown street corner, close (zoom 3): shopfronts, traffic lights, cab, bus, people, trees; title card over it' });
-  v.push({ clip: 'b_plane2', in: (meta('b_plane2').touchdown || 145) / 30 - .67, t0: bb(3), t1: bb(4), note: 'The airport: a plane touches down, close (owner msg 219: recorded at zoom 2; starts half a second later in the landing than before so the map edge is never in view)' });
+  v.push({ clip: 'b_plane3', in: (meta('b_plane3').touchdown || 145) / 30 - .67, t0: bb(3), t1: bb(4), note: 'The airport: a plane touches down, close (owner msg 219: recorded at zoom 2; starts half a second later in the landing than before so the map edge is never in view)' });
   const ways = [['b03_foot', .5, 'On foot across the plaza'], ['b04_bus', 0, 'Bus'], ['b05_train', .2, 'Train on the viaduct, a second train passing'], ['d_cab3', 23.87, 'Cab along the Old Town river road in the evening rush']];
   ways.forEach((w, i) => v.push({ clip: w[0], in: w[1], t0: bar(4 + i), t1: bar(5 + i), note: 'Fully explorable: ' + w[2] }));
   const steps = []; let k = 0; const total = DOORS1.length + DOORS2.length, num = i => Math.max(1, Math.round(N * Math.pow((i + 1) / total, 1.35)));
