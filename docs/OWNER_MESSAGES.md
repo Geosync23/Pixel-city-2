@@ -1104,3 +1104,6 @@ Make it 4 times.
 
 
 Also anotjer question. Most games you've helped me build were html and pytbon. This one is almost all Javascript. Why? This is the first gsme Fable ha ls built, does thst have sometbing to do with it?
+
+## 273 (2026-11-19)
+I want to change somwthing with the controls. When you are holding and directing to walk, and you push into a door, you ahould walk through it. But dont make to too sensitive. Make a slight buffer to prevent accidentally triggering it

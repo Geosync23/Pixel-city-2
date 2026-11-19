@@ -149,6 +149,27 @@ const hopAct = a => !!(a && a.at && !a.hide && !a.noHop && !G.cutscene && (a.ani
 G.startActivity = a => { const p = G.player; G.endActivity(false); a.left = a.minutes; a.rate = a.rate || Math.max(4, a.minutes / 6); a.prev = { x: p.x, y: p.y, zoff: p.zoff }; if (a.at) { p.x = a.at.x; p.y = a.at.y; p.zoff = a.at.z || 0; if (a.at.dir !== undefined) p.dir = a.at.dir; } p.pose = a.anim || null; p.hidden = !!a.hide; p.stop(); G.busy = a; if (hopAct(a) && Math.hypot(a.at.x - a.prev.x, a.at.y - a.prev.y) < 4) p.hop = performance.now(); G.emit('activity', a); return a; };
 G.endActivity = (completed = true) => { const a = G.busy; if (!a) return; G.busy = null; const p = G.player; p.pose = null; p.hidden = false; if (a.at) { p.x = a.prev.x; p.y = a.prev.y; p.zoff = a.prev.zoff; } p.hop = hopAct(a) ? performance.now() : 0; if (completed) a.done && a.done(); else a.cancel && a.cancel(); G.emit('activityEnd', a, completed); };
 
+/* ---------- PUSH INTO A DOOR (owner msg 273) ----------
+   While you hold-and-steer (finger, keys or stick) and keep heading INTO a door, you walk through it, as if you had tapped it.
+   Not too sensitive (the buffer): the door must be close (PUSH.near tiles) and straight ahead (within PUSH.cone, about 40 degrees each side), or you
+   are standing right on its doorstep (PUSH.close) and not walking away, or you are at the doorstep (PUSH.step) and held up by the wall (hardly
+   getting forward; sliding sideways along the wall counts as held up); and that must stay true for PUSH.hold real seconds without a break.
+   Walking past a door along its wall never qualifies (it is not ahead of you when it is near). After any scene change nothing fires until you
+   let go once, so you never bounce straight back through the door you just came in by. Stations (boarding panel) are not doors here. */
+const PUSH = { hold: .38, near: 1.5, close: .6, step: 1.3, cone: .76, slow: .35 }; let pushT = 0, pushLock = false, pushScene = null, pushIt = null;
+const pushable = it => !!it.use && !it.ent && (it.exit || it.door || (it.poi && it.poi.type === 'door') || DOORISH.test(it.label || '')) && !(it.poi && it.poi.type === 'station') && !/platform|station/i.test(it.label || '');
+function pushDoor(steer, dt, px0, py0, k) {
+  const p = G.player, sid = G.scene && G.scene.id; if (sid !== pushScene) { pushScene = sid; pushLock = !!steer; pushT = 0; pushIt = null; }
+  if (!steer) { pushLock = false; pushT = 0; pushIt = null; return; }
+  if (pushLock || G.modal || G.busy || G.cutscene) { pushT = 0; return; }
+  const fwd = (p.x - px0) * steer[0] + (p.y - py0) * steer[1], held = fwd < (p.speed || 3.6) * dt * Math.max(.2, k || 1) * PUSH.slow; let best = null, bd = PUSH.near;
+  for (const it of G.interactables()) { if (!pushable(it)) continue; const tx = it.x - p.x, ty = it.y - p.y, d = Math.hypot(tx, ty); if (d >= bd) continue; const dot = d > .05 ? (tx * steer[0] + ty * steer[1]) / d : 1; if (!(dot >= PUSH.cone || (d < PUSH.close && dot > -.2) || (d < PUSH.step && held))) continue; bd = d; best = it; }
+  if (!best) { pushT = 0; pushIt = null; return; }
+  if (best !== pushIt) { pushIt = best; pushT = 0; } pushT += dt; PUSH._t = pushT; PUSH._d = bd;   /* read by tools/pushdoor_check.mjs */
+  if (pushT >= PUSH.hold) { pushT = 0; pushIt = null; pushLock = true; p.stop(); p.faceTo(best.x, best.y); G.emit('use', best); best.use(G, best); }
+}
+G.pushDoorTune = PUSH;
+
 /* ---------- main loop ---------- */
 let last = 0;
 function frame(now) {
@@ -177,12 +198,14 @@ function frame(now) {
       let pmag = 1; if (!steer && G.padSteer) { const ps = G.padSteer(); if (ps) { steer = ps; pmag = ps[2]; G.target = null; G.pending = null; } }
       /* game speed moves the WORLD too (QA round 5: at 2x/4x walking and rides cost 2-4x the game time and every ETA was wrong): the walk + scene + systems run `sub` steps per frame */
       const spd = Math.max(1, G.state.speed || 1), sub = Math.min(4, Math.round(spd)), sdt = dt * spd / sub, sgm = gm / sub;
+      const px0 = p.x, py0 = p.y;
       for (let q = 0; q < sub; q++) {
         p.move(G.world, sdt * pmag, steer);
         if (G.pending) { const it = G.pending.it; if (it.ent && !it.spot && p.path) { const e = p.path[p.path.length - 1]; if (e && Math.hypot(e[0] - it.x, e[1] - it.y) > 1.5) p.goTo(G.world, it.x, it.y, { snap: 8 }); } const tx = it.spot ? it.spot.x : it.x, ty = it.spot ? it.spot.y : it.y; if (Math.hypot(tx - p.x, ty - p.y) <= G.pending.range) G.pending.fire(); else if (!p.path) { if (Math.hypot(tx - p.x, ty - p.y) <= Math.max(G.pending.range, 1.6)) G.pending.fire(); else G.pending = null; } }
         if (q < sub - 1) { if (G.scene.update) G.scene.update(sdt, sgm); for (const s of G.systems) if (s.update) s.update(sdt, sgm); if (G.modal > 0 || G.busy || G.cutscene || G.scene.world !== G.world) break; }
       }
       G._sub = [sdt, sgm];
+      pushDoor(steer, dt, px0, py0, pmag * spd);
       if (!p.path) G.target = null;
     }
     { const ss = G._sub; G._sub = null; if (G.scene.update) G.scene.update(ss ? ss[0] : dt, ss ? ss[1] : gm); for (const s of G.systems) if (s.update) s.update(ss ? ss[0] : dt, ss ? ss[1] : gm); }
