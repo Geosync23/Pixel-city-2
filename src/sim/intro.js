@@ -118,8 +118,10 @@ const curbText = () => safe(() => { const n = G.now(), h = n.hour % 12 || 12; re
       if (!G.scene || G.scene.id !== 'city') { await G.go('city', { poi: 'spawn:airport' }); if (!live(my)) return; }
       const P = G.player; G.state.flags.firstCabFree = true; p0 = { x: P.x, y: P.y }; tm = 0;
       /* owner msg 165: no left-over red bag next to you at the kerb any more: you tow your own suitcase out of the terminal (sim/luggage.js) */
-      if (c.fresh || !s.sub) { caption(null, curbText(), 3600); safe(() => G.phone.lock('taxi')); sub('move'); }
-      else sub(s.welcomed ? (safe(() => G.messages.unread(), 0) && !safe(() => G.phone.isUnlocked('taxi'), true) ? 'phone' : 'taxi_app') : 'move');
+      /* owner msg 271: Nora's text arrives the moment you step out; no 'stretch your legs' here any more (it is said when you get off the plane) */
+      if (c.fresh || !s.sub) { caption(null, curbText(), 3600); safe(() => G.phone.lock('taxi')); sendWelcome(); sub('phone'); }
+      else if (!s.welcomed) { sendWelcome(); sub('phone'); }
+      else sub(safe(() => G.messages.unread(), 0) && !safe(() => G.phone.isUnlocked('taxi'), true) ? 'phone' : 'taxi_app');
       if (I().sub === 'taxi_app') safe(() => G.phone.unlock('taxi', true));
       const on = (ev, fn) => offs.push(G.on(ev, (...a) => { if (cur && cur.id === 'curb') fn(...a); }));
       on('phone:open', app => { const k = I().sub; if (k === 'move') sendWelcome(); if (k === 'phone' || k === 'move') sub('read'); if (app === 'messages' && /phone|read|move/.test(k)) toTaxi(); if (app === 'taxi' && I().sub === 'taxi_app') sub('call'); });

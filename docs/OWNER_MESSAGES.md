@@ -1093,3 +1093,8 @@ Take away the skip into button. Also remove the tool tip about talking to Travel
 
 ## 270 (2026-11-19)
 Very small thing. While the plane landing animation is happening dont mention the local time. Only once in the cabin (which it already does)
+
+## 271 (2026-11-19)
+The text from your sister needs to come immediately exciting the airport. And the tool tip should nudge to do check it so players can get to calling a cab. Really need to walk.the player through it. Take away the stretch your legs tool tip move it when you get off the plane. Then then your sister texts and then the tool tip for texts. Then adter the tool tip about tapping the counter to buy things..
+
+Lets keep popping thst tap counter to buy tool tip as you enter shops etc for a while. But not too long. A good few times entering shops.

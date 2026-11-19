@@ -4,7 +4,7 @@
 //   tramride  the people-mover ride (scene 'airtram').
 //   baggage   "Collect your bag at carousel 2" (your yellow bag appears on the belt; tap it -> starter snacks + backpack window; from then on you TOW it: sim/luggage.js), then
 //             customs green channel -> arrivals hall -> exit doors -> city 'spawn:airport' where the existing 'curb' step takes over.
-// State: G.state.intro.ap = { c0, belt, talk, shop, msg, replied, bag, joke } (JSON flags; steps resume from them after a load).
+// State: G.state.intro.ap = { c0, mv, belt, talk, shop, shopT, msg, replied, bag, joke } (JSON flags; steps resume from them after a load).
 // The sibling "welcome" texts stay with the curb step (sendWelcome there); this file only sends a short "are you on the ground?" opener.
 // Debug: G.introAirport = { TUNE, grabBag(), state() }.   Replay: ?scene=city&intro
 import { G } from '../core/game.js';
@@ -59,10 +59,10 @@ export function init() {
   }
   /* ---------- concourse ---------- */
   {
-    let offs = [], t = 0, cur = '', ok = false, run = 0;
+    let offs = [], t = 0, cur = '', ok = false, run = 0, p0 = null;
     I.register({ id: 'concourse',
       async enter(c) {
-        const my = ++run; ok = false; t = 0; cur = ''; slow(true);
+        const my = ++run; ok = false; t = 0; cur = ''; p0 = null; slow(true);
         if (room() !== 'airport:concourse') { await G.go('int:airport:concourse'); if (my !== run || !at('concourse')) return; }
         const s = ST(); goal('ap_tram', 'Follow the signs to the tram', 'The tram to Baggage Claim leaves from the far end of Concourse B.'); safe(() => G.phone.lock('taxi'));
         if (!s.c0) { s.c0 = 1; caption(null, 'Maple Bay International - Concourse B.', 3400); }
@@ -72,10 +72,13 @@ export function init() {
       },
       update(dt, c) {
         if (!ok || room() !== 'airport:concourse') return; t += dt; const s = ST(), sc = G.scene, X = G.player.x - 1; let h;
-        if (!s.msg && (X > TUNE.MSG_AT_X || t > 45)) { s.msg = 1; safe(() => G.messages.send({ from: 'jules', text: 'Are you on the ground yet?? My flight tracker froze. Classic.', replies: [{ label: 'Just landed!', value: 'landed', then: 'OK OK OK. Tram, bag, curb. I will text you properly at recess!' }, { label: 'Wheels down. Hunting for the tram.', value: 'tram', then: 'Follow the signs and do NOT get lost in duty free. Talk soon!' }] })); }
-        if (s.msg && !s.replied && X < 52) h = phoneOpen() ? ['reply', 'Open Messages and tap a reply to send it to Nora.', msgBtn] : ['phone', 'Bzzt! A text from your sibling. Tap your phone to read it.', '.hud-phone'];
+        /* owner msg 271, in this order: 'stretch your legs' as you get off the plane -> Nora's text and the tip for texts -> the counters tip -> walkway, tram */
+        if (!p0) p0 = { x: G.player.x, y: G.player.y }; if (!s.mv && (Math.hypot(G.player.x - p0.x, G.player.y - p0.y) > 2 || t > 7)) s.mv = 1;
+        if (s.mv && !s.msg) { s.msg = 1; safe(() => G.messages.send({ from: 'jules', text: 'Are you on the ground yet?? My flight tracker froze. Classic.', replies: [{ label: 'Just landed!', value: 'landed', then: 'OK OK OK. Tram, bag, curb. I will text you properly at recess!' }, { label: 'Wheels down. Hunting for the tram.', value: 'tram', then: 'Follow the signs and do NOT get lost in duty free. Talk soon!' }] })); }
+        if (!s.mv) h = ['move', 'Tap the ground to walk. Stretch those legs!'];
+        else if (s.msg && !s.replied && X < 52) h = phoneOpen() ? ['reply', 'Open Messages and tap a reply to send it to Nora.', msgBtn] : ['phone', 'Bzzt! Nora just texted you. Tap your phone to read it.', '.hud-phone'];
+        else if (X < 38 && !s.shop && (s.shopT || 0) < 14) { s.shopT = (s.shopT || 0) + dt; h = ['shop', 'No rush: tap a counter (coffee, noodles, books) to buy something. You have $' + Math.round(safe(() => G.state.player.money, 0)) + '.', sc.spots.coffee]; }
         else if (!s.belt && X < 19) h = ['belt', 'Follow the signs to the Tram. Step onto the moving walkway - it carries you along, and walking on it is even faster.', sc.spots.belt];
-        else if (X < 38 && !s.shop) h = ['shop', 'No rush: tap a counter (coffee, noodles, books) to buy something. You have $' + Math.round(safe(() => G.state.player.money, 0)) + '.', sc.spots.coffee];
         else h = ['tram', 'Keep following the signs: the tram to Baggage Claim is at the far end of the concourse.', sc.spots.tram];
         if (h[0] !== cur) { cur = h[0]; c.hint(h[1], h[2]); }
       },

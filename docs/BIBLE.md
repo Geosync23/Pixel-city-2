@@ -355,3 +355,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 
 ### Direction update (owner msg 269, 2026-11-19)
 No 'Skip intro' button. No 'talk to travellers' tip at the airport. Talking to people is taught as its own first-time window later on day one: in the evening, out in public, and it says to push the Talk button at the bottom of the screen.
+
+### Direction update (owner msg 271, 2026-11-19)
+The arrival must WALK the player through: 'stretch your legs' as you get off the plane, then Nora's text and the tip for texts, then the counters tip. At the curb Nora's text arrives at once and the tips lead straight to the phone and the cab. The 'tap the counter to buy' tip keeps coming back for the first few shop visits.
