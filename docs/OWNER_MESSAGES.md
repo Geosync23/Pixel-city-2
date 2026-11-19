@@ -1081,3 +1081,6 @@ In the new trailer the plane is still very hitchy even though in game its been s
 
 ## 266 (2026-11-19)
 Oke more thing- the train shot is hitchy too. That may be a game issue not a trailer issues. Diagnose it then report before digging in
+
+## 267 (2026-11-19)
+Resort just the train

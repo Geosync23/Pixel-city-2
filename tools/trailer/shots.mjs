@@ -15,7 +15,8 @@ const auto = c => c.ev(() => { const b = [...document.querySelectorAll('#ui butt
 const train = (st, z) => ({
   setup: free(213, 300, z), settle: 1,
   ready: async c => { const r = await c.ev(st => { let best = null; for (let k = 0; k < 400 && !best; k++) { for (const s of G.rail.trains()) if (s.at === st && s.toDepart < .35 && s.v < .01) best = s; if (!best) G.advance(.25); } if (!best) return null; window._tr = [best.dir, best.train]; TR.free(best.x, best.y); return [best.dir, best.train, best.x, best.y, G.now().clock]; }, st); console.log('train', JSON.stringify(r)); await c.settle(2.5); },
-  frame: c => c.ev(() => { const s = G.rail.trainState(window._tr[0], window._tr[1]); TR.cam.x += (s.x - TR.cam.x) * .5; TR.cam.y += (s.y - TR.cam.y) * .5; TR.move(TR.cam.x, TR.cam.y); }),
+  /* the camera keeps ONE height for the whole shot: TR.move takes the ground height under it, which steps at a river bank and bumped the picture (round 13, owner msg 267) */
+  frame: c => c.ev(() => { const s = G.rail.trainState(window._tr[0], window._tr[1]); TR.cam.x += (s.x - TR.cam.x) * .5; TR.cam.y += (s.y - TR.cam.y) * .5; if (window._cz === undefined) window._cz = G.world.heightAt(TR.cam.x, TR.cam.y); TR.move(TR.cam.x, TR.cam.y); TR.cam.z = window._cz; G.snapCam(); }),
 });
 /* follow the moving bus nearest to the camera */
 const bus = (x, y, z) => ({
