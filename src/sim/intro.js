@@ -40,7 +40,7 @@ function register(def, o = {}) {
   let i = o.before ? steps.findIndex(s => s.id === o.before) : o.after ? steps.findIndex(s => s.id === o.after) + 1 : steps.length;
   if (i < 0 || (o.after && i === 0)) i = steps.length; steps.splice(i, 0, def);
 }
-const hint = (text, target, opts = {}) => uiHint(text, target, Object.assign(cur && cur.id !== 'first_evening' ? { skip } : {}, opts));
+const hint = (text, target, opts = {}) => uiHint(text, target, Object.assign({}, opts));   /* owner msg 269: NO 'Skip intro' button on the hints any more (G.intro.skip() stays for the test tools) */
 const ctx = { G, get state() { return I(); }, get fresh() { return fresh; }, hint, caption, next: () => next(), goto: id => goto(id), home: () => home() };
 function leave() { if (offDone) { offDone(); offDone = null; } const c = cur; cur = null; token++; if (c && c.exit) safe(() => c.exit()); uiHint(null); }
 async function goto(id) {

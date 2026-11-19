@@ -1087,3 +1087,6 @@ Resort just the train
 
 ## 268 (2026-11-19)
 Great work this is good. Can you sharw with me the latest game link
+
+## 269 (2026-11-19)
+Take away the skip into button. Also remove the tool tip about talking to Traveler's. Insterad, teach how to talk to people as anotjer tool tip (must push talk button on bottom of screen) later sometime on the first day in the evening while in public.

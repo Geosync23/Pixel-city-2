@@ -54,7 +54,7 @@ export const TIPS = [
   { id: 'money_low', topic: 'work', title: 'When money is tight', text: 'Cook at home, walk or take the bus, and pick up a gig. Receipts shows where the week\'s money went.', go: { app: 'wallet' } },
   { id: 'saving', topic: 'work', title: 'Saving the game', text: 'The game saves by itself every morning and when you come home. You can also save by hand in Settings.', go: { app: 'settings' } },
   // people
-  { id: 'talk', topic: 'people', title: 'Talking to people', text: 'Tap someone and press Talk. Pick what to say: chat, joke, ask about them. What works depends on the person, and the things you learn are remembered.' },
+  { id: 'talk', topic: 'people', title: 'Talking to people', text: 'Walk up to someone and push the Talk button at the bottom of the screen. Pick what to say: chat, joke, ask about them. What works depends on the person, and the things you learn are remembered.' },
   { id: 'messages', topic: 'people', title: 'Messages', text: 'Friends and family text you with news and invitations. Answer with a tap. The People tab shows hearts, birthdays and where a friend usually is.', go: { app: 'messages' } },
   { id: 'gifts', topic: 'people', title: 'Gifts', text: 'Carry a gift in your bag and choose Give while talking. People have favourites; ask about them to find out. Birthdays count double.' },
   { id: 'invites', topic: 'people', title: 'Invitations', text: 'Invite a friend out from Messages or from My Day. Accepting an invitation adds it to your day; turning up on time is good for the friendship.', go: { app: 'planner' } },

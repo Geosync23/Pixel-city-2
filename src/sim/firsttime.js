@@ -95,8 +95,11 @@ export function offer(id, o = {}) {
 /* A waiting window is only shown where it makes sense, the ones tied to something that just happened go first, and one that has waited too long is let go
    (not marked seen: it comes back the next time its moment does). */
 const atHome = () => safe(() => G.housing.isHome(G.scene.id), false), outAndAbout = () => !atHome() && !/^int:(clinic|airport)/.test(String(G.scene && G.scene.id));
+/* owner msg 269: 'Talking to people' is taught later on day one, in the evening, out in public (street or a place; not your flat, your lobby, the airport) */
+const inPublic = () => outAndAbout() && !/^int:lobby/.test(String(G.scene && G.scene.id)), talkTime = () => { const d0 = safe(() => G.state.intro.day0, undefined), d = Math.floor(G.state.t / DAY); return d0 === undefined || d > d0 || G.now().hf >= 17; };
+const talkLesson = () => { if (introDone() && talkTime() && inPublic()) soon('talk'); };
 const lowNow = re => safe(() => Object.keys(G.state.needs.v || {}).some(k => re.test(k) && /low|critical/.test(G.needs.band(k).id)), true);   /* QA8: a needs window only while that need is still low */
-const WHERE = { bladder: () => safe(() => G.needs.get('bladder') < 45, true), needs_tap: () => lowNow(/^(hunger|energy|hygiene|fun|social)$/), needs_soft: () => lowNow(/^(comfort|outdoors|inspiration)$/), fun_ways: () => lowNow(/^fun$/), talk: outAndAbout, cooking: atHome, boxes: atHome, sleep: atHome, mail: atHome, recipe_new: atHome, cleaning: atHome, laundry: atHome, autowork: () => safe(() => G.jobs.onShift(), false), weather: () => safe(() => G.weather.isWet(), false),
+const WHERE = { bladder: () => safe(() => G.needs.get('bladder') < 45, true), needs_tap: () => lowNow(/^(hunger|energy|hygiene|fun|social)$/), needs_soft: () => lowNow(/^(comfort|outdoors|inspiration)$/), fun_ways: () => lowNow(/^fun$/), talk: () => inPublic() && talkTime(), cooking: atHome, boxes: atHome, sleep: atHome, mail: atHome, recipe_new: atHome, cleaning: atHome, laundry: atHome, autowork: () => safe(() => G.jobs.onShift(), false), weather: () => safe(() => G.weather.isWet(), false),
   events: () => !!safe(() => G.cityEvents.live(), null), chapter_after: () => !safe(() => G.chapters.active(), false) };
 const FIRST = { shift: 1, autowork: 1, promoted: 1, gigs: 1, deliveries: 1, boxes: 1, shows: 1, events: 1, bills: 1, mail: 1, opps: 1, invites: 1, uniclass: 1, chapter_after: 1, needs_tap: 1, passout: 1, wander: 1 };
 const TTL = { sleep: 180, passout: 180, weather: 360, autowork: 240, events: 600, store: 720, recipe_new: 720, spoiled: 720, money_low: 720 }, TTL_DEFAULT = 2 * DAY;
@@ -151,7 +154,8 @@ function wire() {
   /* people */
   on('scene', sc => { if (!sc || !introDone()) return; const home = safe(() => G.housing.isHome(sc.id), false);
     if (home) { const h = G.now().hf; if (h >= 16.5 && h < 22 && safe(() => G.inv.fridge.items().length, 0)) soon('cooking'); }
-    else if (/^int:/.test(sc.id || '') && !/^int:airport/.test(sc.id)) soon('talk'); });
+    else talkLesson(); });
+  on('hour', () => talkLesson());
   on('friend:up', (id, tier) => { if (!tier || /^(friend|close)$/.test(tier)) soon('gifts'); });   /* QA11: not when a Porchlight hello makes a stranger an acquaintance */
   on('msg:appt', (th, ok) => { if (ok) soon('invites'); });
   on('post:mail', () => soon('mail')); on('post:visit', () => now('postoffice', 1500));

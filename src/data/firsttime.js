@@ -81,8 +81,8 @@ export const WINDOWS = [
   { id: 'uniclass', sys: 'university', topic: 'work', title: 'You are enrolled',   /* soon: the first course is taken */
     text: 'Come to class at the times on My Day and keep up with the coursework. Sit the final when you feel ready.' },
   /* ---------- people ---------- */
-  { id: 'talk', sys: 'friends', topic: 'people', title: 'Talking to people',   /* soon: the first time you are inside a place with people; or Social runs low */
-    text: 'Tap someone and choose Talk. What goes down well depends on the person, and what you learn about them is remembered. Regular chats turn strangers into friends.' },
+  { id: 'talk', sys: 'friends', topic: 'people', title: 'Talking to people',   /* soon (owner msg 269): the first evening (from 17:00 on day one, or any time after) while out in public; or Social runs low */
+    text: 'Walk up to someone and push the Talk button at the bottom of the screen. Then pick what to say: what goes down well depends on the person. Regular chats turn strangers into friends.' },
   { id: 'gifts', sys: 'friends', topic: 'people', title: 'Getting on well',   /* soon: a friendship moves up */
     text: 'A small gift goes a long way. Carry it in your bag and choose Give while you talk. Ask what they like first.' },
   { id: 'invites', sys: 'friends', topic: 'people', title: 'It is on your day',   /* soon: an invitation is accepted */

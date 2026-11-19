@@ -352,3 +352,6 @@ The owner's words are in OWNER_MESSAGES #107. What they add up to: the game has 
 - A landing plane is NOT heard downtown (Stage 118: the jet fades to nothing by 200 tiles; src/sim/_audio_plane.js hear()).
 - The title screen KEEPS its city recordings (only the character creator / home picker is silent of them).
 - From the new account: one Fable session doing the work itself + at most one Opus helper; no Fable check of Opus work required.
+
+### Direction update (owner msg 269, 2026-11-19)
+No 'Skip intro' button. No 'talk to travellers' tip at the airport. Talking to people is taught as its own first-time window later on day one: in the evening, out in public, and it says to push the Talk button at the bottom of the screen.

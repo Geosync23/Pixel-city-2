@@ -56,9 +56,9 @@ stage('start', async () => {
   /* the intro: X = the Skip button (twice: the flight, then the wait), then the tutorial's "Skip intro" from the HUD (D-pad up) */
   await P.press('x', 70, 1500); await P.press('x', 70, 1300); s = await st();
   let n = 0; while (s.cut && n++ < 6) { await P.press('x', 70, 1200); s = await st(); }
-  await P.press('up', 60, 350); how = await P.choose(/^Skip intro/, null, { after: 1800 });
+  const skipBtn = await P.ev(() => [...document.querySelectorAll('button')].some(b => b.offsetWidth && /^Skip intro/.test(b.textContent.trim()))); ok('intro: there is NO "Skip intro" button (owner msg 269)', !skipBtn, 'look'); how = 'G.intro.skip()'; await P.ev(() => G.intro.skip()); await sleep(1800);
   s = await st(); await until(() => /^int:home/.test(G.scene.id) && !G.modal, null, 8000); s = await st();
-  ok('intro: X skips the cutscenes, D-pad up + "Skip intro" lands in the flat', /^int:home/.test(s.sc), 'bespoke(X = Skip) + ' + how, s.sc);
+  ok('intro: X skips the cutscenes; the test then skips the rest by script and lands in the flat', /^int:home/.test(s.sc), 'bespoke(X = Skip) + ' + how, s.sc);
 });
 /* ------------------------------------------------------------------ B: the home, out through the lobby */
 stage('home', async () => {

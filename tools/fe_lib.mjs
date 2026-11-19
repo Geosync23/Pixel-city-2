@@ -17,7 +17,7 @@ export async function boot({ w = 390, h = 844, save = null, dsf = 2 } = {}) {
   /** new game through the real buttons, then the intro's own Skip buttons, until we stand in the flat */
   const newGame = async () => {
     for (const re of [/^Start$/, /^New Game/, /^Next ▶/, /^Surprise me/, /^Next ▶/, /^Juniper Court/, /^Move in/]) await press(re);
-    for (let k = 0; k < 40; k++) { const st = await ev(() => ({ home: /^int:home/.test((G.scene && G.scene.id) || ''), cut: !!G.cutscene })); if (st.home && !st.cut && !(await btn(/^Skip(?! tips)/))) break; if (!(await press(/^(Skip intro|Yes|Skip it)/, 1500)) && !(await press(/^Skip(?! tips)/, 1500))) await pg.waitForTimeout(800); }
+    for (let k = 0; k < 40; k++) { const st = await ev(() => ({ home: /^int:home/.test((G.scene && G.scene.id) || ''), cut: !!G.cutscene })); if (st.home && !st.cut && !(await btn(/^Skip(?! tips)/))) break; if (!(await press(/^(Yes|Skip it)/, 1500)) && !(await press(/^Skip(?! tips)/, 1500))) { await ev(() => { if (G.intro && G.intro.active && !G.cutscene && !/^int:home/.test((G.scene && G.scene.id) || '')) G.intro.skip(); }); await pg.waitForTimeout(1500); }   /* owner msg 269: the 'Skip intro' button is gone; the tools use G.intro.skip() once the cutscene's own Skip is done */ }
     await pg.waitForTimeout(2500);
   };
   /** walk to an interactable (label regexp source) and tap it on the canvas like a thumb would; returns true when something reacted (menu, busy, modal) */

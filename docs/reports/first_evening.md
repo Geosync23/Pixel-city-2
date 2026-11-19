@@ -58,3 +58,8 @@ Inside the sheet, top to bottom now: To do (+ Opportunities you took up) · Next
 
 ## Screenshots (out/shots/first_evening/, 390x844 @2x unless suffixed _360)
 00_hud_before · 01_hud_after_arrow_boxes · 02_unpacking_plain · 03_arrow_suitcase · 04_menu_lesson · 05_menu_walk_1..4 · 06_menu_open · 06b_todo_tap_arrow_bed · 07_bathroom_lesson · 07b_in_bathroom · 07c_wash_hands · 08_food_lesson · 09_sandwich_minigame · 09b_sandwich_ready · 10_free_evening · 10b_free_evening_ideas · 11_tomorrow_nana · 11b_tomorrow_job · 12_menu_tomorrow_todos
+
+## Owner msg 269 (2026-11-19, Stage 124): no Skip intro button; talk lesson moved
+- 'Skip intro' button REMOVED from the intro's hint bubbles (src/sim/intro.js hint(): no `skip` option any more). G.intro.skip() still exists for the test tools (fe_lib.mjs, minigames_b_check, pad_check now call it). STILL THERE: the 'Skip' button on the plane-landing cutscene and 'Skip tips' on the first-evening lesson bubbles (different buttons; owner to say if they go too).
+- Airport concourse hint about tapping a traveller to say hi REMOVED (src/sim/intro_airport.js); the same bubble now only says the counters sell things ('No rush: tap a counter ...').
+- 'Talking to people' first-time window (src/data/firsttime.js id `talk`, also the Bay Basics text in src/ui/phone_tips.js): new text 'Walk up to someone and push the Talk button at the bottom of the screen. ...'. Trigger (src/sim/firsttime.js talkLesson / talkTime / inPublic): offered from 17:00 on day one (or any later day) while out in public = the street or a place, not your flat, your lobby, the airport or the clinic; checked on every scene change and every game hour; WHERE gate holds it until then (also when 'social low' queues it earlier).
