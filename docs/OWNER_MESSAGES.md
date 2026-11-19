@@ -1084,3 +1084,6 @@ Oke more thing- the train shot is hitchy too. That may be a game issue not a tra
 
 ## 267 (2026-11-19)
 Resort just the train
+
+## 268 (2026-11-19)
+Great work this is good. Can you sharw with me the latest game link

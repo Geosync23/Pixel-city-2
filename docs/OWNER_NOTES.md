@@ -234,3 +234,4 @@
 213. (msg 265) TRAILER: the plane shot is still very hitchy in the new trailer although the plane is smooth in the game now. Fix it (find why the capture stutters, re-shoot, resend).
 214. (msg 266) TRAILER: the train shot is hitchy too; may be a GAME issue, not the trailer. DIAGNOSE and REPORT first, do not dig in (no fix) until he answers.
 215. (msg 267) "Resort just the train" = RE-SHOOT just the train shot with the fixed recorder and splice it in (option 1); not the whole trailer.
+216. (msg 268) Trailer round 13 APPROVED ("this is good"). Asked for the latest game link (Stage 123, https://claude.ai/artifact/Xb5aFwEtTpQU4Hz2rjUXuD).
