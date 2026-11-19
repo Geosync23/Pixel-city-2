@@ -379,3 +379,10 @@ If there is no sound: tap the screen once (browsers only start audio after a tou
 - To reproduce: `node tools/build.mjs && node tools/pad_check.mjs` (about 10 minutes; `--w 844 --h 390 --style ps --tag land_`, `--w 1280 --h 720 --style
   switch --tag desk_`), `node tools/pad_extra.mjs`, and for the touch comparison `python3 tools/pad_nopad.py /tmp/nopad && (cd /tmp/nopad && node
   tools/build.mjs) && node tools/pad_touch_check.mjs /tmp/nopad/dist`.
+
+## Push into a door (owner msg 273, 2026-11-19, Stage 128)
+- src/core/game.js `pushDoor()` (called from the walk loop for ALL steering: held finger, keys, pad stick). While you steer INTO a door you walk through it as if tapped. Tuning `G.pushDoorTune` = PUSH { hold .38 s, near 1.5 tiles, cone .76 (about 40 degrees each side), close .6, step 1.3, slow .35 }.
+- A door counts when, without a break for `hold` real seconds: it is within `near` and straight ahead (cone); or you stand on its doorstep (`close`) and are not walking away; or you are within `step` of it and held up by the wall (forward progress under 35 % of your walking speed; sliding along the wall counts).
+- Buffer against accidents: the timer restarts whenever the condition breaks or the nearest door changes; walking past a door along its wall never qualifies; after ANY scene change nothing fires until the finger / stick is released once (no bounce back through the door you came in by); nothing during windows, activities, cutscenes.
+- Doors = interactables with exit / door / poi.type 'door' / a door-ish label (Leave, Stairs, Lift, Restroom ...), not people, not stations or platforms (those open a panel).
+- Check: tools/pushdoor_check.mjs (real pointer holds at 390x844: flat door out, no bounce while still holding, short brush does not enter, walking past does not enter, street door in). The check aims with G.toWorld (on raised ground the plain projection is a tile off).

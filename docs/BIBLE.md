@@ -358,3 +358,6 @@ No 'Skip intro' button. No 'talk to travellers' tip at the airport. Talking to p
 
 ### Direction update (owner msg 271, 2026-11-19)
 The arrival must WALK the player through: 'stretch your legs' as you get off the plane, then Nora's text and the tip for texts, then the counters tip. At the curb Nora's text arrives at once and the tips lead straight to the phone and the cab. The 'tap the counter to buy' tip keeps coming back for the first few shop visits.
+
+### Direction update (owner msgs 273-274, 2026-11-19)
+Hold-and-steer is the main way to walk: the first walk tip leads with it, and steering into a door walks you through it (with a small buffer so it does not fire by accident).

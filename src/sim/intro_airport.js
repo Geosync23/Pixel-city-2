@@ -49,7 +49,7 @@ export function init() {
           else if (said === 2 && t > 13.5) { said = 3; caption(null, 'New city. New keys waiting. Almost there.', 3600); }
           if (t > 2.5 && (cab.myTurn() || t > TUNE.CABIN_MAX)) {
             ph = 'free'; cab.release(); if (G.cutscene === cut) G.cutscene = null; cut = null; unseat(); if (un) un(); un = null;
-            c.hint((touch() ? 'Your turn! Tap where you want to walk.' : 'Your turn! Click where you want to walk (or use WASD / the arrow keys).') + ' Head for the door at the front.', { x: 20.75, y: 1.9, h: 1.9 });
+            c.hint((touch() ? 'Your turn! Hold your finger on the screen and steer to walk. You can also tap a spot to go there.' /* owner msg 274: lead with HOLD */ : 'Your turn! Click where you want to walk (or use WASD / the arrow keys).') + ' Head for the door at the front.', { x: 20.75, y: 1.9, h: 1.9 });
           }
         } else { const a = cab.attendant; if (a && !bye && near(a, 2.8)) { bye = 1; a.pose = 'wave'; a._hold = 4; bubble(a, 'Thanks for flying with us. Welcome to Maple Bay!'); } }
       },
@@ -75,7 +75,7 @@ export function init() {
         /* owner msg 271, in this order: 'stretch your legs' as you get off the plane -> Nora's text and the tip for texts -> the counters tip -> walkway, tram */
         if (!p0) p0 = { x: G.player.x, y: G.player.y }; if (!s.mv && (Math.hypot(G.player.x - p0.x, G.player.y - p0.y) > 2 || t > 7)) s.mv = 1;
         if (s.mv && !s.msg) { s.msg = 1; safe(() => G.messages.send({ from: 'jules', text: 'Are you on the ground yet?? My flight tracker froze. Classic.', replies: [{ label: 'Just landed!', value: 'landed', then: 'OK OK OK. Tram, bag, curb. I will text you properly at recess!' }, { label: 'Wheels down. Hunting for the tram.', value: 'tram', then: 'Follow the signs and do NOT get lost in duty free. Talk soon!' }] })); }
-        if (!s.mv) h = ['move', 'Tap the ground to walk. Stretch those legs!'];
+        if (!s.mv) h = ['move', touch() ? 'Hold and steer to walk, or tap the ground. Stretch those legs!' : 'Click the ground to walk. Stretch those legs!'];
         else if (s.msg && !s.replied && X < 52) h = phoneOpen() ? ['reply', 'Open Messages and tap a reply to send it to Nora.', msgBtn] : ['phone', 'Bzzt! Nora just texted you. Tap your phone to read it.', '.hud-phone'];
         else if (X < 38 && !s.shop && (s.shopT || 0) < 14) { s.shopT = (s.shopT || 0) + dt; h = ['shop', 'No rush: tap a counter (coffee, noodles, books) to buy something. You have $' + Math.round(safe(() => G.state.player.money, 0)) + '.', sc.spots.coffee]; }
         else if (!s.belt && X < 19) h = ['belt', 'Follow the signs to the Tram. Step onto the moving walkway - it carries you along, and walking on it is even faster.', sc.spots.belt];
