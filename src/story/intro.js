@@ -60,7 +60,7 @@ export const INTRO_SEQUENCE = [
     id: 'landing', type: 'cutscene', shot: 'plane_descends_over_bay', durationSec: 12,
     lines: [
       { speaker: 'pa', text: 'Folks, we are beginning our descent into Maple Bay International.' },
-      { speaker: 'pa', text: "It's 68 and sunny, 2 p.m. local. On your left: the lighthouse. On your right: also nice." },
+      { speaker: 'pa', text: "It's 68 and sunny. On your left: the lighthouse. On your right: also nice." },
       { speaker: 'narrator', text: 'One suitcase. One phone. One whole new city.' },
     ],
   },

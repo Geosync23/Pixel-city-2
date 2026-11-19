@@ -236,3 +236,4 @@
 215. (msg 267) "Resort just the train" = RE-SHOOT just the train shot with the fixed recorder and splice it in (option 1); not the whole trailer.
 216. (msg 268) Trailer round 13 APPROVED ("this is good"). Asked for the latest game link (Stage 123, https://claude.ai/artifact/Xb5aFwEtTpQU4Hz2rjUXuD).
 217. (msg 269) (a) REMOVE the "Skip intro" button. (b) REMOVE the tooltip about talking to travellers. (c) INSTEAD teach talking to people as a separate tooltip (you must push the Talk button at the bottom of the screen), shown later on the first day, in the evening, while the player is out in public.
+218. (msg 270) During the plane LANDING animation do not mention the local time; only once in the cabin (already there).
