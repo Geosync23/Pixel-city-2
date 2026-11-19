@@ -37,7 +37,11 @@ export async function open({ url = '?scene=city&t=7', dist = true, hide = true, 
 
 /** stop real time; afterwards only step() moves the page's clock (rAF, timers, Date, performance.now) */
 export async function freeze(page) { const now = await page.evaluate(() => Date.now()); await page.clock.pauseAt(now + 1500); }
-export async function step(page, ms = 1000 / FPS) { await page.clock.runFor(ms); }
+/* The page's fake clock fires the game's frame every 16 ms. A step of 33.33 ms therefore ran the game 2 frames most of the time and 3 frames every 8th
+   video frame: everything moving jumped 1.5x there (the 'hitchy' plane, owner msg 265). 32 ms = exactly 2 game frames per video frame, always.
+   (The picture then runs 4% slower than real time, evenly.) */
+export const STEP_MS = 32;
+export async function step(page, ms = STEP_MS) { await page.clock.runFor(ms); }
 /** let `sec` seconds of page time pass without recording (settling crowds, traffic, fades) */
 export async function settle(page, sec) { const n = Math.round(sec * 20); for (let i = 0; i < n; i++) await page.clock.runFor(50); }
 
