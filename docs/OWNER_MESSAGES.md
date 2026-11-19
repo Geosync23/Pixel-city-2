@@ -1078,3 +1078,6 @@ Please as the Fable worker check all this thoroughly when completed
 
 ## 265 (2026-11-19)
 In the new trailer the plane is still very hitchy even though in game its been smoothed out. Can we fix this
+
+## 266 (2026-11-19)
+Oke more thing- the train shot is hitchy too. That may be a game issue not a trailer issues. Diagnose it then report before digging in

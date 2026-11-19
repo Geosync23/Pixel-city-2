@@ -232,3 +232,4 @@
 211. (msg 263) GO on the small items: two trees under the rail viaduct + nothing-tall-in-the-train-path rule; long traffic soak; touch-test pass over the newest work; fix + re-run the test tools for the Start button; plus the leftovers (docs, long-night lighting soak, Galleria navcheck vs old build).
 212. (msg 264) When the Opus helper finishes the small items, I (Fable) check ALL of it thoroughly before publishing: read its diff, re-run its checks myself, look at its pictures, and say what the check covered.
 213. (msg 265) TRAILER: the plane shot is still very hitchy in the new trailer although the plane is smooth in the game now. Fix it (find why the capture stutters, re-shoot, resend).
+214. (msg 266) TRAILER: the train shot is hitchy too; may be a GAME issue, not the trailer. DIAGNOSE and REPORT first, do not dig in (no fix) until he answers.
