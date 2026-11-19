@@ -7,7 +7,7 @@ import { G } from '../core/game.js';
 import { hint as uiHint } from '../ui/goals.js';
 
 export const order = 138;
-const TIMES = 6, SHOW_S = 7, TEXT = 'Tap the counter to buy things.';
+const TIMES = 4, SHOW_S = 7, TEXT = 'Tap the counter to buy things.';
 const safe = (f, d) => { try { const v = f(); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
 const S = () => { const s = G.state.tips = G.state.tips || {}; return s; };
 let mine = null, timer = 0, lastRoom = '';

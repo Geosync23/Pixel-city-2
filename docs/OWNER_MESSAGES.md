@@ -1098,3 +1098,9 @@ Very small thing. While the plane landing animation is happening dont mention th
 The text from your sister needs to come immediately exciting the airport. And the tool tip should nudge to do check it so players can get to calling a cab. Really need to walk.the player through it. Take away the stretch your legs tool tip move it when you get off the plane. Then then your sister texts and then the tool tip for texts. Then adter the tool tip about tapping the counter to buy things..
 
 Lets keep popping thst tap counter to buy tool tip as you enter shops etc for a while. But not too long. A good few times entering shops.
+
+## 272 (2026-11-19)
+Make it 4 times. 
+
+
+Also anotjer question. Most games you've helped me build were html and pytbon. This one is almost all Javascript. Why? This is the first gsme Fable ha ls built, does thst have sometbing to do with it?
