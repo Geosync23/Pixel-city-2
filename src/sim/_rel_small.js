@@ -67,7 +67,10 @@ export function hourly(force) {
   /* who: somebody with something particular to say first (a gap, a birthday, the morning after), a partner often, family at least once a day */
   const w = id => { const b = draw(id, 'texts', true); if (!b) return 0; let v = 1 + (b.ctx !== 'any' ? 3 : 0); if (id === p) v += 3; else if (stage(id) !== 'none') v += 2; if (safe(() => G.social.isFamily(id), false) && !sm.fam) v += 2; if (fr(id) >= 75) v += 1; return v; };
   const ws = ids.map(w), tot = ws.reduce((a, b) => a + b, 0); if (!tot) return null; let r = Math.random() * tot, id = ids[0]; for (let i = 0; i < ids.length; i++) { r -= ws[i]; if (r <= 0) { id = ids[i]; break; } }
-  const b = draw(id, 'texts'); if (!b) return null; if (safe(() => G.social.isFamily(id), false)) sm.fam = 1;
+  /* owner msg 280: somebody's very first text can be their own introduction (SMALL[id].first), once, if nothing from their pool was ever sent */
+  const fk = id + ':texts', firsts = s.small.first || (s.small.first = {}), intro = SMALL[id] && SMALL[id].first;
+  let b = intro && !firsts[id] && !(s.small.bag[fk] && s.small.bag[fk].length) && !(s.small.rec && s.small.rec[fk] && Object.keys(s.small.rec[fk]).length) ? { text: intro } : null;
+  if (intro) firsts[id] = 1; if (!b) b = draw(id, 'texts'); if (!b) return null; if (safe(() => G.social.isFamily(id), false)) sm.fam = 1;
   queueText({ from: id, text: b.text }); G.emit('rel:small', 'text', id, b.text); return { id, text: b.text };
 }
 /** add-only hook in sim/social.js update(): the line somebody says when you pass them. null = the social system's own wave */

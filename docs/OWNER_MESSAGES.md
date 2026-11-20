@@ -1127,3 +1127,6 @@ It takes too long for everyone behind you on yhe plane to start deboarding. They
 
 ## 279 (2026-11-20)
 Drop in on Nana shouldn't be an idea in my day until you visit her for the first time in the story quest.  Unless yhat button takes you there and activates the story too
+
+## 280 (2026-11-20)
+Noras kids firsts texts shoild make clear who they are. Subtlety not on the nose. Weave it in to their text naturally. Then they cna continue with the texts they were sending

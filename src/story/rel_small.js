@@ -3,7 +3,7 @@
 // The gentle daily stream: a wave on the street, a text, a remembered detail. A few a day, all people together (rel_rules.js PACING).
 //
 // EXPORTS
-//   SMALL        { [castId]: { waves: Bit[], texts: Bit[], details: [memKey, line][] } }
+//   SMALL        { [castId]: { waves: Bit[], texts: Bit[], details: [memKey, line][], first?: string (their very first text, sent once before the pool) } }
 //                waves    what they call out when you pass (a bubble, no notification).           <= 90 chars
 //                texts    phone messages. `re` is not used: a text never demands an answer.        <= 150 chars
 //                details  a line said at the start of a talk when they hold that `mem:` about you (each once). <= 110 chars
@@ -293,6 +293,11 @@ export const SMALL = {
 };
 
 /* --------------------------------------------------- anyone without their own pools --------------------------------------------------- */
+/* owner msg 280: the FIRST text you ever get from Nora's children says who they are without announcing it (Mom = the teacher who shared a room with you;
+   ages; who is whose sister). Sent once, before anything from their `texts` pool; after it they carry on with the pool as before. <= 150 chars. */
+SMALL.pip.first = "This is Pip. Mom is marking spelling tests, so I have her phone. She says you two shared a room once. I'm nine. I have questions.";
+SMALL.milo.first = 'this is milo. i am six. pip is my sister, she is the boss. mom says you are her family so you are mine too. mom is typing. i did the dots.';
+
 export const SMALL_ANY = S([
   ['acquaintance', 'any', 'Oh, hello! Didn\'t see you there.'], ['acquaintance', 'morning', 'Morning! Off somewhere?'], ['friend', 'any', 'Hey, you! Good to see a friendly face.'], ['friend', 'rain', 'Some weather! Get home dry.'], ['friend', 'festival', 'You\'re out for it too! Isn\'t it something?'], ['close', 'any', 'There you are. I was just thinking about you.'],
 ], [
