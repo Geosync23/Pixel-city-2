@@ -325,6 +325,8 @@ export function init() {
     nextBuses: id => TX() ? TX().nextBuses(id).map(a => ({ route: a.route, num: a.num, name: a.name, color: a.color, minutes: a.minutes })) : [],
     stops: () => W().pois.filter(p => p.type === 'busstop'),
     get ride() { return ride; }, get pending() { return pend; },
+    /* owner msg 275: where to WAIT for a called cab = the pavement on YOUR side next to where it will stop (the arrows point here, not at the lane or at the cab still driving up) */
+    get kerb() { if (!pend || !pend.pick || !isFinite(pend.pick.x)) return null; if (!pend.kerb) pend.kerb = curbSpot(pend.pick.x, pend.pick.y, G.player.x, G.player.y); return pend.kerb; },
     onArrive(fn) { arriveFns.push(fn); return () => { const i = arriveFns.indexOf(fn); if (i >= 0) arriveFns.splice(i, 1); }; },
     registerMode(name, impl) { modes[name] = impl; if (impl && impl.ride) T['ride' + name[0].toUpperCase() + name.slice(1)] = (...a) => impl.ride(...a); return T; },
     beginRide(r) { ride = Object.assign({ progress: 0, vehicle: null, destination: null }, r); G.emit('ride:start', ride.kind, ride.destination); return ride; },

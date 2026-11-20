@@ -1110,3 +1110,8 @@ I want to change somwthing with the controls. When you are holding and directing
 
 ## 274 (2026-11-19)
 Also we need to so explaim tap to hold when standing up in the cabin. It says tap to to go where yiu want but lead with hold.
+
+## 275 (2026-11-20)
+Remove the text from.sister about texting at recess just have her text what she does when exiting airport.
+
+Also the arrow for the cab pointing to the wrong side of the street move it to our side

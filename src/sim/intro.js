@@ -107,7 +107,7 @@ const curbText = () => safe(() => { const n = G.now(), h = n.hour % 12 || 12; re
     read: () => hint(T('tut_read'), appBtn(/^Messages/i)),
     taxi_app: () => hint(T('tut_taxi_app'), appBtn(/^(MapleCab|Taxi)/i)),
     call: () => hint(T('tut_call_cab'), callBtn, { onTap: () => { const h = home(); if (h && !phoneOpen()) safe(() => G.phone.open('taxi', { place: h.roomId })); } }),
-    wait: () => hint(T('tut_wait'), () => safe(() => G.transit.pending.cab, null)),
+    wait: () => hint(T('tut_wait'), () => safe(() => { const pd = G.transit.pending; return pd.state === 'waiting' ? pd.cab : (G.transit.kerb || pd.cab); }, null)),   /* owner msg 275: while the cab is still driving up the arrow marks the kerb on YOUR side, not the cab across / down the street */
     get_in: () => hint(T('tut_get_in'), () => safe(() => G.transit.pending.cab, null)),
   };
   const sub = s => { I().sub = s; idle = 0; SUBS[s](); };

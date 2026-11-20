@@ -173,7 +173,7 @@ function exitGuide(o, what) {
 function cabGuide(o) {
   if (G.scene.id !== 'city') return exitGuide(o, 'meet your cab outside');
   const pd = safe(() => G.transit.pending, null); if (!pd || !pd.cab) return chipT('Calling your MapleCab...');
-  if (pd.state === 'coming' && pd.pick && isFinite(pd.pick.x)) return pointT(pd.pick.x, pd.pick.y, 'Cab pick-up: wait at the kerb', { h: 1.8 });
+  if (pd.state === 'coming' && pd.pick && isFinite(pd.pick.x)) { const k = safe(() => G.transit.kerb, null) || pd.pick; return pointT(k.x, k.y, 'Cab pick-up: wait at the curb', { h: 1.8 }); }   /* owner msg 275: the pavement on your side, not the lane */
   return pointT(pd.cab.x, pd.cab.y, 'Your MapleCab: hop in', { h: 2.2 });
 }
 let rideSt = { was: '', missed: false };

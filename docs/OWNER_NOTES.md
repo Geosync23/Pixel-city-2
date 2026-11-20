@@ -241,3 +241,4 @@
 220. (msg 272) Counter tip in shops: 4 times (was 6). QUESTION: why is this game almost all JavaScript when his other games were HTML and Python; is it because Fable built it? (answered in chat: it runs in the phone browser from one link, which needs JavaScript; not about the model).
 221. (msg 273) CONTROLS: while holding and steering to walk, pushing into a door should walk you through it; not too sensitive: a slight buffer so it is not triggered by accident.
 222. (msg 274) Cabin walk tip (when you stand up): explain HOLD to walk and LEAD with it; tapping where you want to go comes second.
+223. (msg 275) (a) Remove the sister's text about texting at recess; she just texts what she does when you exit the airport. (b) The arrow for the cab points to the wrong side of the street: move it to our side.
