@@ -1124,3 +1124,6 @@ The timing on the text as the plane is wrong now. The message about one city etc
 
 ## 278 (2026-11-20)
 It takes too long for everyone behind you on yhe plane to start deboarding. They shoukd stand up right afyer you waiting for you to move
+
+## 279 (2026-11-20)
+Drop in on Nana shouldn't be an idea in my day until you visit her for the first time in the story quest.  Unless yhat button takes you there and activates the story too

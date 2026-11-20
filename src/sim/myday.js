@@ -37,6 +37,11 @@ import { EVENTS } from '../data/calendar.js';
 import { FAMILIES, FAMILY_OF } from '../data/skills_extra.js';
 import { cityPos } from '../ui/phone_util.js';
 import '../art/icons/myday.js';
+import { CHAPTERS } from '../story/chapters.js';
+/* owner msg 279: family you first MEET in a story Chapter (Nana Bea in Chapter 1, Dez in 2, Nora's house in 3 ...) are not offered as 'Drop in on ...' / 'Say hi to ...'
+   ideas until that Chapter is done: the first visit belongs to the story. */
+const FIRST_CH = {}; for (const ch of CHAPTERS) for (const id of ch.cast || []) if (!FIRST_CH[id]) FIRST_CH[id] = ch.id;
+const storyMet = id => { const ch = FIRST_CH[id]; if (!ch) return true; try { if (!G.social.isFamily(id)) return true; return !!G.chapters.done(ch); } catch (e) { return true; } };
 
 export const order = 132;
 const DAY = 1440, WALK0 = .215, WALK_ = () => WALK0 * (G.CLOCK || .85);   /* QA13: game minutes per unit on foot at the owner's slower clock (msg 142) */
@@ -131,7 +136,7 @@ function gather(day, at, extra) {
     let n = 0; for (const id of ids.sort((a, b) => hash(a + d0) - hash(b + d0))) { if (n >= 2) break;
       const w = safe(() => G.social.whereIs(id), null), c = safe(() => G.social.npc(id), null), sch = safe(() => G.social.schedule(id), null); if (!w || !c || !w.placeId || !place(w.placeId) || inRoom(w.placeId)) continue;
       if (sch && /type|lift|work|serve|cook|sleep|stock|clean|sweep|teach|drive/.test(sch.anim || '')) continue; const hf = (t0 % DAY) / 60; if (hf < 8 || hf > 21.5) continue;
-      if (have.has('friend:' + id)) continue; const nm = c.short || c.name, pn = place(w.placeId).name, atHome = /^home:/.test(w.placeId);
+      if (have.has('friend:' + id) || !storyMet(id)) continue; const nm = c.short || c.name, pn = place(w.placeId).name, atHome = /^home:/.test(w.placeId);
       n++; push({ id: 'friend:' + id, kind: 'friend', cat: 'people', title: atHome ? `Drop in on ${nm}` : `Say hi to ${nm} at ${pn}`, why0: atHome ? `${nm} is home just now` : `${nm} is there just now`, icon: safe(() => G.social.isFamily(id), false) ? 'rel.family' : 'rel.friend', placeId: w.placeId, dur: 60, fixed: false, npc: id }); }
   }
   /* 6-8. places: your interests, somewhere new, the weather. One pass over the guidebook. */

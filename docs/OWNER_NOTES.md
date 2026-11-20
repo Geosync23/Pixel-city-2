@@ -245,3 +245,4 @@
 224. (msg 276) QUESTION: how long until you meet Nora in a main story mission? (answered from src/story/chapters.js + sim/chapters.js).
 225. (msg 277) Landing captions: the "One suitcase. One phone. One whole new city." line is barely on screen. Pilot just says "It's 68 and sunny."; end that line sooner so the city line gets more time.
 226. (msg 278) Cabin: the passengers BEHIND you take too long to start deboarding; they should stand up right after you and wait for you to move.
+227. (msg 279) My Day ideas: "Drop in on Nana" must not be offered until you have visited her for the first time in the story (Chapter 1), unless that button takes you there and starts the story too.

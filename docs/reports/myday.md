@@ -75,3 +75,5 @@ NOT verified: a whole hand-played day; the leave-now banner together with the pu
 - Name: "My Day" is used for the button, the sheet and the phone app (the app's first tab is "My Schedule"). Alternative for the app only: "Planner" as the full view of My Day.
 - Should the planner's per-event "Today in Maple Bay" notices stay off (they are folded into the morning line and one evening idea)?
 - Is one tap = "any time today" right for open-ended ideas, or should Add always ask for a time?
+
+- Owner msg 279 (2026-11-20, Stage 132): people ideas skip family members until the story Chapter where you first meet them is done (storyMet in src/sim/myday.js; first chapter per person is read from the CHAPTERS casts).
