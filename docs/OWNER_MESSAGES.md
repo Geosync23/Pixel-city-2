@@ -1121,3 +1121,6 @@ How long does it take to meet Nora in a main story mission
 
 ## 277 (2026-11-20)
 The timing on the text as the plane is wrong now. The message about one city etc is barely on screen. Make the pilot just say its 68 and sunny. End that message sooner to make more time for the former
+
+## 278 (2026-11-20)
+It takes too long for everyone behind you on yhe plane to start deboarding. They shoukd stand up right afyer you waiting for you to move
