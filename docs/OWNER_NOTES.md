@@ -243,3 +243,4 @@
 222. (msg 274) Cabin walk tip (when you stand up): explain HOLD to walk and LEAD with it; tapping where you want to go comes second.
 223. (msg 275) (a) Remove the sister's text about texting at recess; she just texts what she does when you exit the airport. (b) The arrow for the cab points to the wrong side of the street: move it to our side.
 224. (msg 276) QUESTION: how long until you meet Nora in a main story mission? (answered from src/story/chapters.js + sim/chapters.js).
+225. (msg 277) Landing captions: the "One suitcase. One phone. One whole new city." line is barely on screen. Pilot just says "It's 68 and sunny."; end that line sooner so the city line gets more time.

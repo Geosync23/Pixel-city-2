@@ -1118,3 +1118,6 @@ Also the arrow for the cab pointing to the wrong side of the street move it to o
 
 ## 276 (2026-11-20)
 How long does it take to meet Nora in a main story mission
+
+## 277 (2026-11-20)
+The timing on the text as the plane is wrong now. The message about one city etc is barely on screen. Make the pilot just say its 68 and sunny. End that message sooner to make more time for the former

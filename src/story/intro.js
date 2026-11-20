@@ -59,9 +59,10 @@ export const INTRO_SEQUENCE = [
   {
     id: 'landing', type: 'cutscene', shot: 'plane_descends_over_bay', durationSec: 12,
     lines: [
-      { speaker: 'pa', text: 'Folks, we are beginning our descent into Maple Bay International.' },
-      { speaker: 'pa', text: "It's 68 and sunny. On your left: the lighthouse. On your right: also nice." },
-      { speaker: 'narrator', text: 'One suitcase. One phone. One whole new city.' },
+      /* owner msg 277: `at` = seconds into the shot, `ms` = time on screen. The shot ends about 8.5 s in (3.6 s after touchdown), so the last line starts by 4.4 s */
+      { speaker: 'pa', text: 'Folks, we are beginning our descent into Maple Bay International.', at: .3, ms: 2500 },
+      { speaker: 'pa', text: "It's 68 and sunny.", at: 2.8, ms: 1600 },
+      { speaker: 'narrator', text: 'One suitcase. One phone. One whole new city.', at: 4.4, ms: 4400 },
     ],
   },
   { id: 'curb', type: 'narration', text: 'Maple Bay Intl., Arrivals. Monday, 2:00 PM. Spring.' },

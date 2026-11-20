@@ -83,7 +83,7 @@ const inside = () => { try { return !!(G.intro && G.intro.steps && G.intro.steps
     },
     update(dt) {
       if (!cut) return; t += dt; const L = SEQ.landing.lines;
-      if (li < L.length && t > .4 + li * 2.9) { const l = L[li++]; caption(l.speaker === 'pa' ? 'Captain' : l.speaker === 'narrator' ? null : short(l.speaker), fill(l.text), 3500); }
+      if (li < L.length && t > (L[li].at !== undefined ? L[li].at : .4 + li * 2.9)) { const l = L[li++]; caption(l.speaker === 'pa' ? 'Captain' : l.speaker === 'narrator' ? null : short(l.speaker), fill(l.text), l.ms || 3500); }
       if (!inside() && fl && fl.phase === 'roll' && fl.v < 12 && G.camTarget === fl.cam) G.camTarget = null; // legacy flow only: pan to the arrivals curb (the airport-interior opening cuts to the cabin instead)
       if (fl && fl.phase === 'roll') { tOff = tOff || t; if (t - tOff > 3.6 || fl.fade < 1) return next(); } // cut to the cabin while the plane is still rolling down the runway
       if (t > Math.min(18, (SEQ.landing.durationSec || 12) + 6) || (!fl && t > 8) || (fl && fl.done)) next();
