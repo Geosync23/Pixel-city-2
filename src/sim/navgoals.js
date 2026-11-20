@@ -171,7 +171,8 @@ define('shift', 'strong', 90, ctx => {
 define('cab', 'strong', 95, ctx => {
   const pd = safe(() => G.transit.pending, null), t = trip(); if (!pd || !pd.cab || !pd.cab.active || pd.state === 'picking' || (t && t.mode === 'cab')) return null;
   const c = pd.cab, coming = pd.state === 'coming' || pd.state === 'hail';
-  if (coming && pd.pick && isFinite(pd.pick.x)) return { room: 'city', find: { x: pd.pick.x, y: pd.pick.y, h: 1.8 }, label: 'Cab pick-up: wait at the kerb', far: 'Your MapleCab is on its way', short: 'your cab', quiet: 1 };
+  if (coming && pd.pick && isFinite(pd.pick.x)) { const k = safe(() => G.transit.kerb, null) || pd.pick;   /* owner msg 275: the pavement on YOUR side, not the lane */
+    return { room: 'city', find: { x: k.x, y: k.y, h: 1.8 }, label: 'Cab pick-up: wait at the curb', far: 'Your MapleCab is on its way', short: 'your cab', quiet: 1 }; }
   return { room: 'city', find: () => ({ x: c.x, y: c.y, h: 2.2, ent: c }), label: 'Your MapleCab: tap it to get in', far: 'Your MapleCab is waiting', short: 'your cab', quiet: 1 };
 });
 /* -- gigs (dog walking, flyers, furniture): a chain of city targets, each finished by tapping its teal marker: the arrow stays on it until it is done */

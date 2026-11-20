@@ -1115,3 +1115,6 @@ Also we need to so explaim tap to hold when standing up in the cabin. It says ta
 Remove the text from.sister about texting at recess just have her text what she does when exiting airport.
 
 Also the arrow for the cab pointing to the wrong side of the street move it to our side
+
+## 276 (2026-11-20)
+How long does it take to meet Nora in a main story mission
