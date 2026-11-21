@@ -108,7 +108,9 @@ function doorDir(it) {
   if (!v) { let bk = 9; for (const [ax, ay] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) for (const k of [.5, .8, 1.1, 1.4]) { if (k >= bk) break; if (G.world.isBlocked(it.x + ax * k, it.y + ay * k)) { bk = k; v = { x: ax, y: ay }; break; } } }
   return (it._pd = v);
 }
-const floorExit = (it, h) => !!it.exit && h <= .5;   /* an exit at the front edge of a room: a doormat on the floor, the way out is past it */
+const floorExit = (it, h) => !!it.exit && h <= .5;
+/* for the test tools: where a thumb taps to go through this door = { x, y, up } (world point, height above the ground) */
+G.doorTap = it => { const h = it.h === undefined ? .8 : it.h, dv = doorDir(it); return floorExit(it, h) && dv ? { x: it.x + dv.x * 1.6, y: it.y + dv.y * 1.6, up: 0 } : { x: it.x, y: it.y, up: Math.max(.9, h * .6) }; };   /* an exit at the front edge of a room: a doormat on the floor, the way out is past it */
 function pick(px, py) {
   let best = null, bd = 1e9;
   for (const it of G.interactables()) {

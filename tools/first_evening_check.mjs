@@ -46,7 +46,7 @@ say(s.nav === 'Your bed' && !(await ev(() => G.myDay.isOpen)), `tapping the to-d
 await pg.waitForTimeout(1500); s = await st(); console.log(JSON.stringify(s));
 say(s.step === 'bath' && /toilet/i.test(s.tut || ''), `needs lesson: bubble "${s.tut}", arrow "${s.nav}" (the bed stays selected until the next step: ${s.sel})`);
 await ev(() => G.navGoals.select(null)); await pg.waitForTimeout(700); s = await st(); say(/toilet/i.test(s.nav || ''), `arrow to the bathroom: "${s.nav}"`); await shot('07_bathroom_lesson');
-await A.useThing('^Bathroom', { dz: .2, tries: 6, until: () => /:bath$/.test(G.scene.id) }); await pg.waitForTimeout(2500); s = await st(); console.log(JSON.stringify(s)); await shot('07b_in_bathroom');
+await A.useThing('^Bathroom', { dz: .9 /* owner msg 281: tap the DOOR (above the threshold), not the floor in front of it */, tries: 6, until: () => /:bath$/.test(G.scene.id) }); await pg.waitForTimeout(2500); s = await st(); console.log(JSON.stringify(s)); await shot('07b_in_bathroom');
 say(/:bath$/.test(s.scene) && s.nav === 'Use the toilet', `in the bathroom the arrow marks the toilet ("${s.nav}")`);
 await A.useThing('^Toilet'); await pg.waitForTimeout(600); await A.press(/^(Use|Toilet|Go)/, 700, '.modal button, .opt'); await settle(); s = await st();
 say(/wash/i.test(s.tut || '') && s.nav === 'Wash your hands', `after the toilet: bubble "${s.tut}", arrow "${s.nav}"`); await shot('07c_wash_hands');
@@ -54,7 +54,9 @@ await A.useThing('^Sink'); await pg.waitForTimeout(600); await A.press(/^Wash/, 
 say(await ev(() => G.goals.isDone('bathroom')), 'to-do "Freshen up in the bathroom" done');
 
 /* cooking and eating */
-const its = await ev(() => G.interactables().map(i => i.label)); const back = its.find(l => /Back|Leave|Exit|door|room/i.test(l)); console.log('     bath exits: ' + JSON.stringify(its)); await A.useThing('^' + back.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), { dz: .2, tries: 6, until: () => !/:bath$/.test(G.scene.id) }); await pg.waitForTimeout(2500);
+const its = await ev(() => G.interactables().map(i => i.label)); const back = its.find(l => /Back|Leave|Exit|door|room/i.test(l)); console.log('     bath exits: ' + JSON.stringify(its)); /* owner msg 281: tap the door / the way out, not the mat in front of it (G.doorTap says where) */
+for (let k = 0; k < 6 && await ev(() => /:bath$/.test(G.scene.id)); k++) { const c = await ev(lbl => { const it = G.interactables().find(i => i.label === lbl), q = G.doorTap(it); if (Math.hypot(it.x - G.player.x, it.y - G.player.y) > .8) { G.player.stop(); G.player.x = it.spot ? it.spot.x : it.x; G.player.y = it.spot ? it.spot.y : it.y; G.snapCam(); return null; } const p = G.toScreen(q.x, q.y, G.world.heightAt(it.x, it.y) + q.up), r = G.cv.getBoundingClientRect(); return [p.x + r.left, p.y + r.top]; }, back); if (c) await A.tap(c[0], c[1], 1800); else await pg.waitForTimeout(700); }
+await pg.waitForTimeout(2500);
 s = await st(); console.log(JSON.stringify(s)); say(s.step === 'food' && /fridge/i.test(s.tut || '') && /fridge/i.test(s.nav || ''), `food lesson: bubble "${s.tut}", arrow "${s.nav}"`); await shot('08_food_lesson');
 await A.useThing('fridge'); await pg.waitForTimeout(700); await A.press(/^Make a no-cook dish/, 1000); await A.press(/^Cheese & Tomato Sandwich/, 1000); await A.press(/^Make it/, 1500);
 let games = 0, rounds = null, shotDone = false;
