@@ -1133,3 +1133,6 @@ Noras kids firsts texts shoild make clear who they are. Subtlety not on the nose
 
 ## 281 (2026-11-21)
 Hold walk into door isnt working. The problem is there is a box in front of each door. Walking over triggers it. I need to push the door not the door matt. Same with click to enter. Click the door not  the box in front of it.
+
+## 282 (2026-11-21)
+A lot of stores dont have employees sometimes. Make sure if a place has things to buy there is someone there

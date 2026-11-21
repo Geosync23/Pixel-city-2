@@ -8,7 +8,7 @@ import { EVENTS, eventOnDay } from '../data/calendar.js';
 import { X, Cit, rnd, ri, pick, rr, dirOf, getSpec, registerTalk, ambientLine, speak, talkTo, bubbleOk } from './_crowd_core.js';
 
 const NP = 18, STAY = 1, IN = 2, OUT = 3;
-const pool = []; let scene = null, spots = [], exitPt = null, venueId = '', vtype = '', churn = 4, checkT = 0, bubT = 6, uniform = null, desired = 0, inited = false;
+const pool = []; let mustOnly = false, scene = null, spots = [], exitPt = null, venueId = '', vtype = '', churn = 4, checkT = 0, bubT = 6, uniform = null, desired = 0, inited = false;
 const reserved = new Set();
 const EAT = ['cafe', 'bakery', 'diner', 'ramen', 'pizza', 'restaurant'];
 const SEAT_ANIMS = { eat: ['eat', 'drink', 'talk', 'eat', 'sit', 'phone'], bar: ['drink', 'talk', 'drink', 'sit'], library: ['read', 'read', 'read', 'sit'], bookstore: ['read', 'sit'], office: ['type'], cinema: ['sit', 'sit', 'eat'], clinic: ['sit', 'read', 'phone'], other: ['sit', 'phone', 'read'] };
@@ -87,16 +87,47 @@ function leave(c, fast) {
 }
 function clearRoom() { for (const c of pool) free(c); for (const s of spots) s.by = null; if (scene) { for (const c of pool) { const i = scene.ents.indexOf(c); if (i >= 0) scene.ents.splice(i, 1); } } scene = null; spots = []; }
 const custSpots = () => spots.filter(s => s.kind !== 'staff');
+/* owner msg 282: "if a place has things to buy there is someone there". Every counter / till / kiosk that sells (an interactable with `.shop`) gets ONE staff
+   spot that is always filled while you are in the room, open or closed, whatever the random draw: the nearest staff spot within 3.2 tiles (its own
+   fixture's first), else a new one behind the counter (the far side from where the customer stands), else beside it. Marked `must`. */
+/* self-service points never get a clerk: the lighthouse's honesty shelf, vending machines, lockers */
+const SELF = /honest|keeper's shelf|vending|machine|locker/i, selfServe = it => SELF.test((it.label || '') + ' ' + it.shop);
+/* does this counter sell right now? A stall / kiosk inside a hall (a venue with no room of its own) keeps its own hours and shows its own CLOSED sign:
+   shop.open refuses there, so no clerk is owed. A shop's own till sells whenever you are inside. */
+const sellsNow = it => {
+  if (/^fishmarket/.test(String(it.shop))) return false;   /* the fish hall has its own monger at every OPEN stall and a CLOSED board on the others (sim/fishmarket.js) */
+  const sc = G.scene; if (sc && typeof sc.isOpen === 'function') return !!sc.isOpen();   /* the Galleria: its shops refuse outside the mall's hours (scenes/rooms/mall.js) */
+  const v = VENUE_BY_ID[it.shop]; if (!v || v.interior) return true; const n = G.now(); return isOpen(v, n.weekday, n.hf); };
+const shopIts = sc => { const out = []; try { for (const it of G.interactables()) if (it.shop && !it.ent && !selfServe(it)) out.push(it); } catch (e) { for (const it of sc.interactables) if (it.shop && !it.ent && !selfServe(it)) out.push(it); } return out; };   /* incl. the ones a room adds itself (mall kiosks) */
+/* is somebody of the room's OWN people (a keeper, a stall holder, a named person) already at this counter? then nobody is added */
+const attended = (sc, it) => sc.ents.some(e => e !== G.player && !pool.includes(e) && e.setSpec && !e.hidden && e.active !== false && e.kind !== 'customer' && Math.hypot(e.x - it.x, e.y - it.y) < 2.4);
+function mustSpots(sc) {
+  const W = sc.world, out = [], staff = spots.filter(s => s.kind === 'staff'), its = shopIts(sc); if (sc._mustN === its.length) return out; sc._mustN = its.length;
+  for (const it of its) { if (it._must) continue; it._must = 1; if (attended(sc, it)) { it._must = 0; sc._mustN = -1; continue; }
+    let best = null, bd = 3.2; for (const s of staff) { if (s.must) { if (Math.hypot(s.x - it.x, s.y - it.y) < 2.2) { best = s; bd = -1; break; } continue; } const d = Math.hypot(s.x - it.x, s.y - it.y) - (it.fx && s.fx === it.fx ? 2 : 0); if (d < bd) { bd = d; best = s; } }
+    if (!best) { const fx = it.fx || sc.fixtures.reduce((a, f) => { const d = Math.hypot(f.x - it.x, f.y - it.y); return d < 1.6 && (!a || d < Math.hypot(a.x - it.x, a.y - it.y)) ? f : a; }, null);
+      const cx = fx ? fx.x : it.x, cy = fx ? fx.y : it.y, u = (fx && fx.use) || it.spot || { x: it.x, y: it.y + 1 }, vx = cx - u.x, vy = cy - u.y, L = Math.hypot(vx, vy) || 1, nx = vx / L, ny = vy / L; let at = null;
+      for (const k of [1, .8, 1.3, 1.6]) { const x = cx + nx * L * k, y = cy + ny * L * k; if (!W.isBlocked(x, y)) { at = { x, y }; break; } }
+      if (!at) for (const [ax, ay] of [[-ny, nx], [ny, -nx], [-ny * 1.6, nx * 1.6], [ny * 1.6, -nx * 1.6]]) { const x = cx + ax, y = cy + ay; if (!W.isBlocked(x, y) && Math.hypot(x - u.x, y - u.y) > .6) { at = { x, y }; break; } }
+      if (!at) continue; best = { kind: 'staff', x: at.x, y: at.y, z: 0, dir: dirOf(u.x - at.x, u.y - at.y), anims: ['work', 'stand', 'stand'], fx: fx || null, by: null }; spots.push(best); staff.push(best); }
+    if (!best.must) { best.must = true; best.counter = it; out.push(best); }
+  }
+  return out;
+}
+const mustFill = instant => { for (const s of spots) if (s.must && !s.by && !isRes(s) && !onShiftHere(s) && !nearPlayer(s, .9) && (!s.counter || sellsNow(s.counter))) spawn(s, instant); };
 function enter(sc) {
   clearRoom(); const rid = sc.roomId || (sc.id || '').slice(4), def = sc.def || {};
-  if (/^home/.test(rid) || def.home || def.noCrowd || /^(train|dev)/.test(rid)) return;
+  if (/^home/.test(rid) || def.home || /^(train|dev)/.test(rid)) return;
+  mustOnly = !!def.noCrowd;   /* owner msg 282: a room that runs its own crowd still gets somebody at every counter that sells */
+  if (mustOnly && !shopIts(sc).length) return;
   scene = sc; venueId = baseVenue(rid); const v = VENUE_BY_ID[venueId], t = G.now(); X.hour = t.hf; X.wd = t.weekday; X.season = t.season;
   const ex = sc.interactables.find(i => i.exit); exitPt = ex ? { x: ex.x, y: ex.y } : sc.spawn && sc.spawn.x !== undefined ? { x: sc.spawn.x, y: sc.spawn.y } : { x: sc.world.w / 2, y: sc.world.h - 2 };
   const job = JOBS.find(j => j.venue === venueId); uniform = job ? job.uniform : null;
-  spots = sc._crowdSpots || (sc._crowdSpots = buildSpots(sc)); for (const s of spots) s.by = null;
+  spots = sc._crowdSpots || (sc._crowdSpots = mustOnly ? [] : buildSpots(sc)); for (const s of spots) s.by = null;
   for (const c of pool) if (!sc.ents.includes(c)) sc.ents.push(c);
-  const open = v ? isOpen(v, t.weekday, t.hf) : true; if (!open) { desired = 0; return; }
-  const staff = spots.filter(s => s.kind === 'staff' && !isRes(s) && !onShiftHere(s) && !nearPlayer(s, .7)); let ns = Math.min(staff.length, venueId === 'office' ? 6 : 3);
+  mustSpots(sc); mustFill(true);   /* owner msg 282: the counters first, open or closed */
+  const open = v ? isOpen(v, t.weekday, t.hf) : true; if (!open || mustOnly) { desired = 0; return; }
+  const staff = spots.filter(s => s.kind === 'staff' && !s.by && !isRes(s) && !onShiftHere(s) && !nearPlayer(s, .7)); let ns = Math.max(0, Math.min(staff.length, (venueId === 'office' ? 6 : 3) - spots.filter(s => s.must && s.by).length));
   for (let k = 0; k < ns; k++) { const j = k + ri(staff.length - k), s = staff[j]; staff[j] = staff[k]; spawn(s, true); }
   const cs = custSpots(), pop = popularity(t.hf, t.weekday); desired = Math.min(NP - ns, Math.round(cs.length * pop * .62));
   let guard = 0, n = 0; while (n < desired && guard++ < 80) { const s = cs[ri(cs.length)]; if (!usableNow(s) || onShiftHere(s)) continue; spawn(s, true); n++; }
@@ -124,6 +155,7 @@ export function initRooms() {
   if (inited) return; inited = true;
   for (let i = 0; i < NP; i++) { const c = new Cit(); pool.push(c); registerTalk(c); }
   G.on('room:enter', sc => { try { enter(sc); } catch (e) { console.error(e); } });
+  G.counterInfo = it => ({ self: selfServe(it), sells: sellsNow(it) });   /* tools/staffed_check.mjs */
   G.on('room:exit', () => clearRoom());
   G.on('use', it => { if (scene && it && (it.fx || it.spot)) vacate(it.fx || null, it.spot || null, false); });
   G.on('activity', a => { if (scene && a && a.at) vacate(null, a.at, false); });
@@ -150,7 +182,9 @@ export function updateRooms(dt) {
     churn = rr(5, 13); const t = G.now(), v = VENUE_BY_ID[venueId], open = v ? isOpen(v, t.weekday, t.hf) : true, cs = custSpots(); X.hour = t.hf;
     let n = 0; for (const c of pool) if (c.active && c.kind !== 'staff' && c.st !== OUT) n++;
     desired = open ? Math.min(NP - 3, Math.round(cs.length * popularity(t.hf, t.weekday) * .62)) : 0;
-    if (!open) { for (const c of pool) if (c.active && c.st === STAY && rnd() < .4) leave(c); }
+    mustSpots(scene); mustFill(false);   /* a counter the room added later, or somebody stepped away from one (you stood in their spot): they come back */
+    if (mustOnly) return;
+    if (!open) { for (const c of pool) if (c.active && c.st === STAY && !(c.spot && c.spot.must) && rnd() < .4) leave(c); }
     else if (n < desired || (n <= desired && rnd() < .35)) { for (let k = 0; k < 10; k++) { const s = cs[ri(cs.length)]; if (s && usableNow(s) && !onShiftHere(s)) { spawn(s, false); break; } } }
     else if (n > desired) { const c = pool[ri(pool.length)]; if (c.active && c.kind !== 'staff' && c.st === STAY) leave(c); }
   }
