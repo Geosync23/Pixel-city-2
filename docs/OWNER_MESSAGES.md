@@ -1136,3 +1136,6 @@ Hold walk into door isnt working. The problem is there is a box in front of each
 
 ## 282 (2026-11-21)
 A lot of stores dont have employees sometimes. Make sure if a place has things to buy there is someone there
+
+## 283 (2026-11-21)
+Also stores should  close at some point and the door should lock. Bit some places like convenience stores etc are 24 hours

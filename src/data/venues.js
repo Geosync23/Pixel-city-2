@@ -41,7 +41,7 @@ export const VENUES = [
     priceMult: 1, jobId: 'grocery_clerk', blurb: 'Everything for the fridge, under one green awning.' },
   { id: 'cornerstore', name: 'Lucky Corner', type: 'shop', district: 'oldtown', where: 'Old Town, on a cobbled corner under a neon clover',
     station: 'st_oldtown', interior: true,
-    hours: DAILY(6, 26),
+    hours: DAILY(0, 24),   /* owner msg 283: convenience stores never close */
     offers: { shop: ['ingredient', 'ready_meal', 'snack', 'drink', 'misc', 'gift'], functions: ['shelf', 'till'] },
     priceMult: 1.2, jobId: null, blurb: 'Open late, a bit pricey, always has what you forgot.' },
   { id: 'clothing', name: 'Thread & Co.', type: 'shop', district: 'downtown', where: 'Downtown shopping street',
