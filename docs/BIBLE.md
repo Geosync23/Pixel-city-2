@@ -361,3 +361,6 @@ The arrival must WALK the player through: 'stretch your legs' as you get off the
 
 ### Direction update (owner msgs 273-274, 2026-11-19)
 Hold-and-steer is the main way to walk: the first walk tip leads with it, and steering into a door walks you through it (with a small buffer so it does not fire by accident).
+
+### Direction update (owner msgs 281-283, 2026-11-21)
+Doors answer to the door itself, not the mat in front. If a place sells something, somebody is at the counter. Shops close: their street door locks outside opening hours and says when it opens; convenience stores, the diner and the hotel never close.

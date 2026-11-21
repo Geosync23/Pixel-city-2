@@ -1,0 +1,15 @@
+# Staff at every counter + closing times (owner msgs 282-283, 2026-11-21, Stage 135)
+
+## Somebody at every counter that sells (msg 282)
+- CAUSE found: a venue outside its opening hours got NO staff at all (src/sim/_crowd_rooms.js enter(): `if (!open) return`), and every street door let you in whatever the hour; inside, the till still sold. Also staff were 3 random staff spots, not necessarily the till.
+- RULE now (src/sim/_crowd_rooms.js mustSpots / mustFill): every counter / till / kiosk that sells (an interactable with `.shop`) has ONE `must` staff spot that is filled first and always while you are in the room, open or closed: the nearest staff spot within 3.2 tiles (its own fixture's first), else a new spot behind the counter (far side from the customer's spot), else beside it. A must clerk who stepped aside (you stood on their spot) comes back; closing-time churn never sends them home.
+- Rooms that run their own crowd (`noCrowd`: aquarium, lighthouse ...) get the same guarantee in a 'must only' mode; counters a room adds itself (mall kiosks) are found through G.interactables(); a counter that already has one of the room's own people within 2.4 tiles gets nobody extra.
+- NOT staffed on purpose: self-service points (SELF: the lighthouse's honesty shelf, vending machines, lockers); the fish hall's stalls (its own monger stands at every OPEN stall, the others show CLOSED); the Galleria's shops outside the mall's hours (they refuse to sell then). `G.counterInfo(it)` -> { self, sells }.
+- CHECK: tools/staffed_check.mjs [--hours 6,8,12,17,21,23] [--reps n] [--v]: enters all 100 rooms that sell something (136 counters) for real at each hour and needs an employee or named person (not a customer) within 2.6 tiles of every counter that sells at that moment. Before: 91 counters unattended when closed + the mall and fish hall at the edges of the day. After: 0 of 690 looks.
+
+## Closing time (msg 283)
+- src/world/city.js `closedNow(p)`: a street door whose place has opening hours is LOCKED outside them: toast 'X is closed. Opens 7:00.' / 'Opens tomorrow at 8:00.' / 'Opens Monday at 9:00.', event 'door:closed'(poi, text).
+- NOT locked: places with no hours (homes, lobbies), places that run their own door (poi.locked / poi.onUse: the showpieces), and, whatever the hour: during the arrival, a story Chapter, a date / relationship scene, while you are on shift, and the place you work at (staff key). You are not thrown out at closing time; you just cannot come back in.
+- 24 HOURS: convenience stores (`cornerstore` in src/data/venues.js and the `gen_bodega` template in venues_extra.js: Lucky Corner, Coast Gas Mini Mart, Birch Lane Pantry, Salt & Co. Provisions; were 6:00-2:00), Dot's Diner and the Grand Maple Hotel (already).
+- Only the street door is locked. G.go (story, tools, taxis arriving inside) is not affected.
+- CHECK: tools/closing_check.mjs (cafe, supermarket, bookshop, bar locked with the right 'opens' line; corner store, gas mini mart, diner open at night; staff key; your own building).
