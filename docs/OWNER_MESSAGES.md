@@ -1130,3 +1130,6 @@ Drop in on Nana shouldn't be an idea in my day until you visit her for the first
 
 ## 280 (2026-11-20)
 Noras kids firsts texts shoild make clear who they are. Subtlety not on the nose. Weave it in to their text naturally. Then they cna continue with the texts they were sending
+
+## 281 (2026-11-21)
+Hold walk into door isnt working. The problem is there is a box in front of each door. Walking over triggers it. I need to push the door not the door matt. Same with click to enter. Click the door not  the box in front of it.

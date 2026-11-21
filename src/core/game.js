@@ -100,10 +100,25 @@ const DOORISH = /^(enter|exit|leave|go (in|out|up|down|to)|back to)\b|door|restr
 const isDoor = it => it.exit || it.door || (it.poi && (it.poi.type === 'door' || it.poi.type === 'station')) || (!it.ent && DOORISH.test(it.label || ''));
 const DOOR_SIDE = 2;   /* QA10: a door's tap target reaches about 2 door-widths to each side (was 4: a floor tap 75 px beside the Leave door took the player out of the flat) */
 const onScreenX = (x, y, z) => { const a = WS(x, y, z); return a[0] >= G.cam.x - 2 && a[0] <= G.cam.x + G.W + 2; };   /* QA10: the door's middle is on screen (a door past the edge of the screen is not tappable) */
+/* owner msg 281: which way a door FACES AWAY from you = from its doormat / threshold (where the interactable stands) into the door itself.
+   From the stand spot when it has one, else the nearest blocked side (the wall it is in, or the room's front edge for a floor exit). Cached. */
+function doorDir(it) {
+  if (it._pd !== undefined && it._pdw === G.world) return it._pd; it._pdw = G.world; let v = null;
+  if (it.spot) { const dx = it.x - it.spot.x, dy = it.y - it.spot.y, d = Math.hypot(dx, dy); if (d > .2) v = { x: dx / d, y: dy / d }; }
+  if (!v) { let bk = 9; for (const [ax, ay] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) for (const k of [.5, .8, 1.1, 1.4]) { if (k >= bk) break; if (G.world.isBlocked(it.x + ax * k, it.y + ay * k)) { bk = k; v = { x: ax, y: ay }; break; } } }
+  return (it._pd = v);
+}
+const floorExit = (it, h) => !!it.exit && h <= .5;   /* an exit at the front edge of a room: a doormat on the floor, the way out is past it */
 function pick(px, py) {
   let best = null, bd = 1e9;
   for (const it of G.interactables()) {
     const z = it.z !== undefined ? it.z : G.world.heightAt(it.x, it.y), h = it.h === undefined ? .8 : it.h; let d, lim;
+    /* owner msg 281: you tap the DOOR, not the box / mat in front of it. A door in a wall: only taps on the door itself count (above the threshold; a tap on
+       the ground in front just walks there). A floor exit at the front of a room: the target is the way out PAST the mat, not the mat. */
+    if (isDoor(it) && !it.ent) { const dv = doorDir(it);
+      if (floorExit(it, h) && dv) { if (!onScreenX(it.x, it.y, z)) continue; const a = WS(it.x + dv.x * 1.1, it.y + dv.y * 1.1, z), b = WS(it.x + dv.x * 2.4, it.y + dv.y * 2.4, z), vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((px - a[0]) * vx + (py - a[1]) * vy) / L));
+        d = Math.hypot(px - (a[0] + vx * t), py - (a[1] + vy * t)); lim = 10;   /* the mat reaches .5 tile (9 px) toward the way out: its outer edge is just outside this */ if (d >= lim) continue; d = d * .6 + 5; if (d < bd) { bd = d; best = it; } continue; }
+      if (h >= 1 && py > WS(it.x, it.y, z + .4)[1]) continue; }
     if (isDoor(it) && !onScreenX(it.x, it.y, z)) continue;   /* QA10: floor taps near the edge of the screen took an off-screen lift (SkyDeck lobby) and the off-screen Leave door (Juniper Court kitchen) */
     if (isDoor(it) && !(Math.hypot(it.x - G.player.x, it.y - G.player.y) < (it.homelink ? 3.5 : 1.6))) {   /* QA8: on a door's mat, a tap nearby is not 'go back out' */   /* QA7: standing on the stairs, a tap near them is not 'go back down' */
       const top = Math.max(h, it.exit ? 1.2 : 2.6), a = WS(it.x, it.y, z), b = WS(it.x, it.y, z + top), vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1;
@@ -149,21 +164,21 @@ const hopAct = a => !!(a && a.at && !a.hide && !a.noHop && !G.cutscene && (a.ani
 G.startActivity = a => { const p = G.player; G.endActivity(false); a.left = a.minutes; a.rate = a.rate || Math.max(4, a.minutes / 6); a.prev = { x: p.x, y: p.y, zoff: p.zoff }; if (a.at) { p.x = a.at.x; p.y = a.at.y; p.zoff = a.at.z || 0; if (a.at.dir !== undefined) p.dir = a.at.dir; } p.pose = a.anim || null; p.hidden = !!a.hide; p.stop(); G.busy = a; if (hopAct(a) && Math.hypot(a.at.x - a.prev.x, a.at.y - a.prev.y) < 4) p.hop = performance.now(); G.emit('activity', a); return a; };
 G.endActivity = (completed = true) => { const a = G.busy; if (!a) return; G.busy = null; const p = G.player; p.pose = null; p.hidden = false; if (a.at) { p.x = a.prev.x; p.y = a.prev.y; p.zoff = a.prev.zoff; } p.hop = hopAct(a) ? performance.now() : 0; if (completed) a.done && a.done(); else a.cancel && a.cancel(); G.emit('activityEnd', a, completed); };
 
-/* ---------- PUSH INTO A DOOR (owner msg 273) ----------
-   While you hold-and-steer (finger, keys or stick) and keep heading INTO a door, you walk through it, as if you had tapped it.
-   Not too sensitive (the buffer): the door must be close (PUSH.near tiles) and straight ahead (within PUSH.cone, about 40 degrees each side), or you
-   are standing right on its doorstep (PUSH.close) and not walking away, or you are at the doorstep (PUSH.step) and held up by the wall (hardly
-   getting forward; sliding sideways along the wall counts as held up); and that must stay true for PUSH.hold real seconds without a break.
-   Walking past a door along its wall never qualifies (it is not ahead of you when it is near). After any scene change nothing fires until you
-   let go once, so you never bounce straight back through the door you just came in by. Stations (boarding panel) are not doors here. */
-const PUSH = { hold: .38, near: 1.5, close: .6, step: 1.3, cone: .76, slow: .35 }; let pushT = 0, pushLock = false, pushScene = null, pushIt = null;
+/* ---------- PUSH INTO A DOOR (owner msgs 273, 281) ----------
+   While you hold-and-steer (finger, keys or stick) and PUSH AGAINST a door, you walk through it, as if you had tapped it.
+   Walking over the mat / box in front of a door does nothing (msg 281). It fires only when ALL of this stays true for PUSH.hold real seconds:
+   you are at the door (within PUSH.near of its threshold), you are steering INTO it (within PUSH.cone of the way the door faces, see doorDir),
+   and you are HELD UP by it: hardly getting forward (under PUSH.slow of your walking speed; sliding along the wall counts as held up).
+   For an exit at the front of a room the 'door' is the edge past the mat: push on past the mat. After any scene change nothing fires until you
+   let go once, so you never bounce straight back. Stations (boarding panel) are not doors here. */
+const PUSH = { hold: .4, near: 1.25, cone: .6, slow: .35 }; let pushT = 0, pushLock = false, pushScene = null, pushIt = null;
 const pushable = it => !!it.use && !it.ent && (it.exit || it.door || (it.poi && it.poi.type === 'door') || DOORISH.test(it.label || '')) && !(it.poi && it.poi.type === 'station') && !/platform|station/i.test(it.label || '');
 function pushDoor(steer, dt, px0, py0, k) {
   const p = G.player, sid = G.scene && G.scene.id; if (sid !== pushScene) { pushScene = sid; pushLock = !!steer; pushT = 0; pushIt = null; }
   if (!steer) { pushLock = false; pushT = 0; pushIt = null; return; }
   if (pushLock || G.modal || G.busy || G.cutscene) { pushT = 0; return; }
   const fwd = (p.x - px0) * steer[0] + (p.y - py0) * steer[1], held = fwd < (p.speed || 3.6) * dt * Math.max(.2, k || 1) * PUSH.slow; let best = null, bd = PUSH.near;
-  for (const it of G.interactables()) { if (!pushable(it)) continue; const tx = it.x - p.x, ty = it.y - p.y, d = Math.hypot(tx, ty); if (d >= bd) continue; const dot = d > .05 ? (tx * steer[0] + ty * steer[1]) / d : 1; if (!(dot >= PUSH.cone || (d < PUSH.close && dot > -.2) || (d < PUSH.step && held))) continue; bd = d; best = it; }
+  if (held) for (const it of G.interactables()) { if (!pushable(it)) continue; const d = Math.hypot(it.x - p.x, it.y - p.y); if (d >= bd) continue; const dv = doorDir(it); if (!dv || dv.x * steer[0] + dv.y * steer[1] < PUSH.cone) continue; bd = d; best = it; }
   if (!best) { pushT = 0; pushIt = null; return; }
   if (best !== pushIt) { pushIt = best; pushT = 0; } pushT += dt; PUSH._t = pushT; PUSH._d = bd;   /* read by tools/pushdoor_check.mjs */
   if (pushT >= PUSH.hold) { pushT = 0; pushIt = null; pushLock = true; p.stop(); p.faceTo(best.x, best.y); G.emit('use', best); best.use(G, best); }

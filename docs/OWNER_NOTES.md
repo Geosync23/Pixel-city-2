@@ -247,3 +247,4 @@
 226. (msg 278) Cabin: the passengers BEHIND you take too long to start deboarding; they should stand up right after you and wait for you to move.
 227. (msg 279) My Day ideas: "Drop in on Nana" must not be offered until you have visited her for the first time in the story (Chapter 1), unless that button takes you there and starts the story too.
 228. (msg 280) The FIRST texts from Nora's kids (Pip, Milo) should make clear who they are: subtly, woven naturally into the text, not on the nose. After that they continue with the texts they were already sending.
+229. (msg 281) Push-into-door is wrong: there is a box (mat) in front of each door and walking over it triggers the door. It must trigger on pushing the DOOR itself, not the mat. Same for tapping: tap the door to enter, not the box in front of it.

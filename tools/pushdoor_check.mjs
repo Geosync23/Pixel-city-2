@@ -41,6 +41,41 @@ await ev(([x, y]) => { G.player.stop(); G.player.x = x + .2; G.player.y = y + 2.
 h = await holdToward(d.x, d.y, 6000, { until: inside }); let s5 = await st(); await h.release();
 ok(s5.sc !== 'city', 'street: holding into the building door walks in', s5.sc + ' after ' + h.ms + ' ms');
 await pg.waitForTimeout(800);
-// 4. keyboard steering too: in the lobby, the stairs / street door by keys is not required; just check no page errors
+// ---- owner msg 281: the MAT / box in front of a door does nothing; the DOOR does ----
+const pt = async (x, y, up) => { const c = await ev(([x, y, up]) => { const z = G.world.heightAt(x, y), p = G.toScreen(x, y, z + up), r = G.cv.getBoundingClientRect(); return [Math.round(p.x + r.left), Math.round(p.y + r.top)]; }, [x, y, up]); if (c[0] < 5 || c[0] > 385 || c[1] < 130 || c[1] > 780) console.log('   (tap point off the playfield: ' + c + ')'); return c; };
+const goCity = async () => { await ev(() => { G.go('city'); }); await pg.waitForTimeout(2200); await ev(() => { const it = G.interactables().find(i => /^Juniper Court/.test(i.label || '')); G.player.stop(); G.player.x = it.x + .2; G.player.y = it.y + 2.6; G.snapCam(); }); await pg.waitForTimeout(700); };
+// 5. street: walk straight ACROSS the mat (through the threshold point, along the wall) -> stays out
+await goCity(); d = await door(/Juniper Court/);
+await ev(([x, y]) => { G.player.stop(); G.player.x = x - 2.5; G.player.y = y + .15; }, [d.x, d.y]); await pg.waitForTimeout(500);
+h = await holdToward(d.x + 3, d.y + .15, 2400, { far: 3 }); await h.release(); await pg.waitForTimeout(500); let s6 = await st();
+ok(s6.sc === 'city' && s6.x > d.x + .8, 'street: walking over the mat in front of the door (not pushing the door) does not go in', JSON.stringify(s6));
+// 6. street: TAP the mat -> walks there, stays out; TAP the door -> goes in
+await ev(([x, y]) => { G.player.stop(); G.player.x = x + .1; G.player.y = y + 2.1; G.snapCam(); }, [d.x, d.y]); await pg.waitForTimeout(600);
+let c = await pt(d.x, d.y, 0); await B.tap(c[0], c[1], 2600); let s7 = await st();
+ok(s7.sc === 'city', 'street: a tap on the mat / ground in front of the door only walks there', JSON.stringify(s7));
+await ev(([x, y]) => { G.player.stop(); G.player.x = x + .1; G.player.y = y + 2.1; G.snapCam(); }, [d.x, d.y]); await pg.waitForTimeout(600);
+c = await pt(d.x, d.y, 1.3); await B.tap(c[0], c[1], 3200); let s8 = await st();
+ok(s8.sc !== 'city', 'street: a tap on the door itself goes in', s8.sc);
+// 7. a room with a floor exit (cafe): mat = nothing, past the mat = out
+await ev(() => { G.go('int:cafe', { fresh: true }); }); await pg.waitForTimeout(2500); d = await door(/^Exit/);
+const out = await ev(([x, y]) => { const it = G.interactables().find(i => i.exit && Math.hypot(i.x - x, i.y - y) < .1); let v = null, bk = 9; for (const [ax, ay] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) for (const k of [.5, .8, 1.1, 1.4]) { if (k >= bk) break; if (G.world.isBlocked(it.x + ax * k, it.y + ay * k)) { bk = k; v = [ax, ay]; break; } } return v; }, [d.x, d.y]);
+console.log('cafe exit', JSON.stringify(d), 'out', JSON.stringify(out));
+await ev(([x, y, o]) => { G.player.stop(); G.player.x = x - o[0] * 1.9 + .1; G.player.y = y - o[1] * 1.9; G.snapCam(); }, [d.x, d.y, out]); await pg.waitForTimeout(600);
+c = await pt(d.x, d.y, 0); await B.tap(c[0], c[1], 2800); let s9 = await st();
+ok(s9.sc === 'int:cafe' && Math.hypot(s9.x - d.x, s9.y - d.y) < 1, 'cafe: a tap on the doormat walks onto it and stays in', JSON.stringify(s9));
+await pg.waitForTimeout(1500); let s9b = await st(); ok(s9b.sc === 'int:cafe', 'cafe: standing on the doormat does not leave', s9b.sc);
+h = await holdToward(d.x + out[0] * 3, d.y + out[1] * 3, 4000, { until: () => G.scene.id !== 'int:cafe' }); let s10 = await st(); await h.release(); await pg.waitForTimeout(600);
+ok(s10.sc !== 'int:cafe', 'cafe: pushing on past the mat (into the way out) leaves', s10.sc + ' after ' + h.ms + ' ms');
+await ev(() => { G.go('int:cafe', { fresh: true }); }); await pg.waitForTimeout(2500);
+await ev(([x, y, o]) => { G.player.stop(); G.player.x = x - o[0] * 1.9 + .1; G.player.y = y - o[1] * 1.9; G.snapCam(); }, [d.x, d.y, out]); await pg.waitForTimeout(600);
+await ev(([x, y, o]) => { G.player.stop(); G.player.x = x - o[0] * .4; G.player.y = y - o[1] * .4; G.snapCam(); }, [d.x, d.y, out]); await pg.waitForTimeout(1200); ok((await st()).sc === 'int:cafe', 'cafe: (set-up) standing by the mat, still inside');
+c = await pt(d.x + out[0] * 1.6, d.y + out[1] * 1.6, 0); await B.tap(c[0], c[1], 3500); let s11 = await st();
+ok(s11.sc !== 'int:cafe', 'cafe: a tap on the way out past the mat leaves', s11.sc);
+// 8. the flat: tap the floor in front of the Leave door -> stays; tap the door -> out
+await ev(() => { G.housing.goHome(); }); await pg.waitForTimeout(3500); d = await door(/^Leave/);
+await ev(([x, y]) => { G.player.stop(); G.player.x = x - .2; G.player.y = y + 2.3; G.snapCam(); }, [d.x, d.y]); await pg.waitForTimeout(600);
+c = await pt(d.x, d.y + .85, 0); await B.tap(c[0], c[1], 2600); let s12 = await st(); ok(/^int:home/.test(s12.sc), 'flat: a tap on the floor in front of the door only walks there', JSON.stringify(s12));
+await ev(([x, y]) => { G.player.stop(); G.player.x = x - .2; G.player.y = y + 2.3; G.snapCam(); }, [d.x, d.y]); await pg.waitForTimeout(600);
+c = await pt(d.x, d.y, 1.1); await B.tap(c[0], c[1], 3200); let s13 = await st(); ok(!/^int:home/.test(s13.sc), 'flat: a tap on the door itself leaves', s13.sc);
 ok(!B.errs.length, 'zero page errors', B.errs.join(' | '));
 console.log(fails ? fails + ' FAILED' : 'ALL PASS'); await B.close(); process.exit(fails ? 1 : 0);
