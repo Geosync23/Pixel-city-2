@@ -1,5 +1,13 @@
 # Status — what exists right now (update whenever something lands)
-Last updated: stage 15 (Wave A: unique interiors, lobbies, homes, bladder, conservatory) — 2026-11-14.
+Last updated: Stage 135 (2026-11-24, before the move to a fourth account). The sections below describe systems as they were built; the newest state of each is in its docs/reports/*.md and in docs/HISTORY.md.
+
+## Added on the third account (Stages 119-135, 2026-11-18 to 2026-11-21)
+- Night lighting: pools hidden behind buildings, smooth wall light, dithered ground (reports pool_occlusion.md, nightlight.md).
+- First evening + arrival teaching: to-do arrow, My Day from the To do chip, needs lesson, airport / curb walk-through, talk lesson, counter tip (first_evening.md; src/sim/first_evening.js, shop_hint.js).
+- Doors: push the door while steering; tap the door, not the mat (controller.md; src/core/game.js pushDoor / doorDir / pick).
+- Shops: a clerk at every selling counter; opening hours lock street doors; 24 h convenience stores (staff_and_hours.md; src/sim/_crowd_rooms.js, src/world/city.js closedNow).
+- Family: 'Drop in on' ideas only after their story chapter (myday.md); Pip's and Milo's introduction texts (src/story/rel_small.js `first`).
+- Tools: first_evening_check, pushdoor_check, staffed_check, closing_check, railpath_check, title_lib, fe_lib; perf --nightsoak; traffic_check --series; trailer recorder STEP_MS = 32.
 
 ## Engine & tools (lead-written) — src/engine, src/core, tools/
 - `raster.js` pixel rasteriser (16 px/unit, 2:1 iso, glow/lit light layer, flip mode, patterns, 3x5 font, season helpers); `world.js` (vertex-height terrain, ground types, objects, nav grid 0.5u, pois, decals);

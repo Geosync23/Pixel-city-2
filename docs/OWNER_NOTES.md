@@ -250,3 +250,4 @@
 229. (msg 281) Push-into-door is wrong: there is a box (mat) in front of each door and walking over it triggers the door. It must trigger on pushing the DOOR itself, not the mat. Same for tapping: tap the door to enter, not the box in front of it.
 230. (msg 282) Many stores sometimes have NO employee. Rule: if a place has things to buy, somebody is there (behind the counter).
 231. (msg 283) Stores should CLOSE at some point and the door should LOCK. Some places (convenience stores etc.) are open 24 hours.
+232. (msg 284) Stage 135 approved ("Great"). PREP THE PROJECT TO MOVE TO A NEW ACCOUNT (fourth account): docs current, opening prompt, everything pushed.

@@ -1139,3 +1139,6 @@ A lot of stores dont have employees sometimes. Make sure if a place has things t
 
 ## 283 (2026-11-21)
 Also stores should  close at some point and the door should lock. Bit some places like convenience stores etc are 24 hours
+
+## 284 (2026-11-24)
+Great. Please prep the project to be moved to a new account
