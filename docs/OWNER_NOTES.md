@@ -251,3 +251,4 @@
 230. (msg 282) Many stores sometimes have NO employee. Rule: if a place has things to buy, somebody is there (behind the counter).
 231. (msg 283) Stores should CLOSE at some point and the door should LOCK. Some places (convenience stores etc.) are open 24 hours.
 232. (msg 284) Stage 135 approved ("Great"). PREP THE PROJECT TO MOVE TO A NEW ACCOUNT (fourth account): docs current, opening prompt, everything pushed.
+233. (msg 285) QUESTION: what would it take to make the game a stand-alone executable? (answered in chat: the game is already one self-contained HTML file, so it is a wrapping job: Android app via a web-view wrapper, desktop via Electron/Tauri, or an installable web app; needs somewhere to build and, for stores, his developer accounts; saves and screen/back-button handling are the real work). No work started.

@@ -1142,3 +1142,6 @@ Also stores should  close at some point and the door should lock. Bit some place
 
 ## 284 (2026-11-24)
 Great. Please prep the project to be moved to a new account
+
+## 285 (2026-11-26)
+Quick question. What would it tskr to make.this gsme  a stand alone executable
